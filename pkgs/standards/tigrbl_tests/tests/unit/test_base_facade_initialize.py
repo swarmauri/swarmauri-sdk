@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import Column, Integer
 
 from tigrbl.app._app import App as _App
-from tigrbl.api._api import Api as _Api
+from tigrbl.router._api import Api as _Api
 from tigrbl.engine import resolver as _resolver
 from tigrbl.engine.shortcuts import mem
 from tigrbl.table import Base
@@ -46,13 +46,13 @@ def test_base_app_supports_initialize():
 
 
 def test_base_api_supports_initialize_sync():
-    api = SimpleApi(engine=mem(async_=False))
-    api.models["Widget"] = Widget
+    router = SimpleApi(engine=mem(async_=False))
+    router.models["Widget"] = Widget
 
-    api.initialize()
+    router.initialize()
 
-    assert getattr(api, "_ddl_executed", False) is True
-    assert api.tables["Widget"] is Widget.__table__
+    assert getattr(router, "_ddl_executed", False) is True
+    assert router.tables["Widget"] is Widget.__table__
 
 
 @pytest.mark.asyncio
@@ -62,10 +62,10 @@ async def test_base_api_supports_initialize_async():
 
         id = Column(Integer, primary_key=True)
 
-    api = SimpleApi(engine=mem())
-    api.models["Gadget"] = Gadget
+    router = SimpleApi(engine=mem())
+    router.models["Gadget"] = Gadget
 
-    await api.initialize()
+    await router.initialize()
 
-    assert getattr(api, "_ddl_executed", False) is True
-    assert api.tables["Gadget"] is Gadget.__table__
+    assert getattr(router, "_ddl_executed", False) is True
+    assert router.tables["Gadget"] is Gadget.__table__

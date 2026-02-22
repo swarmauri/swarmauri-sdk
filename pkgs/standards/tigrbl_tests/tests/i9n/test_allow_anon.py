@@ -61,12 +61,12 @@ def _build_client():
 
     cfg = mem(async_=False)
     auth = DummyAuth()
-    api = TigrblApp(engine=cfg)
-    api.set_auth(authn=auth.get_principal)
-    api.include_models([Tenant, Item])
-    api.initialize()
+    router = TigrblApp(engine=cfg)
+    router.set_auth(authn=auth.get_principal)
+    router.include_models([Tenant, Item])
+    router.initialize()
     app = TigrblApp()
-    app.include_router(api.router)
+    app.include_router(router.router)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -93,12 +93,12 @@ def _build_client_attr():
 
     cfg = mem(async_=False)
     auth = DummyAuth()
-    api = TigrblApp(engine=cfg)
-    api.set_auth(authn=auth.get_principal)
-    api.include_models([Tenant, Item])
-    api.initialize()
+    router = TigrblApp(engine=cfg)
+    router.set_auth(authn=auth.get_principal)
+    router.include_models([Tenant, Item])
+    router.initialize()
     app = TigrblApp()
-    app.include_router(api.router)
+    app.include_router(router.router)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -119,13 +119,11 @@ def test_allow_anon_list_and_read():
             db.add(item)
             db.commit()
             db.refresh(item)
-            tid = str(tenant.id)
             iid = str(item.id)
         assert client.get("/item").status_code == 200
         assert client.get(f"/item/{iid}").status_code == 200
         # Requests without credentials are rejected for non-whitelisted routes.
-        payload = {"id": str(uuid4()), "tenant_id": tid, "name": "new"}
-        assert client.post("/item", json=payload).status_code == 409
+        assert client.delete(f"/item/{iid}").status_code == 409
     finally:
         client.close()
 
@@ -162,11 +160,11 @@ def _build_client_create_noauth():
             return {"create", "bulk_create"}
 
     cfg = mem(async_=False)
-    api = TigrblApp(engine=cfg)
-    api.include_models([Tenant, Item])
-    api.initialize()
+    router = TigrblApp(engine=cfg)
+    router.include_models([Tenant, Item])
+    router.initialize()
     app = TigrblApp()
-    app.include_router(api.router)
+    app.include_router(router.router)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -192,11 +190,11 @@ def _build_client_create_attr_noauth():
         __tigrbl_allow_anon__ = {"create", "bulk_create"}
 
     cfg = mem(async_=False)
-    api = TigrblApp(engine=cfg)
-    api.include_models([Tenant, Item])
-    api.initialize()
+    router = TigrblApp(engine=cfg)
+    router.include_models([Tenant, Item])
+    router.initialize()
     app = TigrblApp()
-    app.include_router(api.router)
+    app.include_router(router.router)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -247,11 +245,9 @@ def test_allow_anon_list_and_read_attr():
             db.add(item)
             db.commit()
             db.refresh(item)
-            tid = str(tenant.id)
             iid = str(item.id)
         assert client.get("/item").status_code == 200
         assert client.get(f"/item/{iid}").status_code == 200
-        payload = {"id": str(uuid4()), "tenant_id": tid, "name": "new"}
-        assert client.post("/item", json=payload).status_code == 409
+        assert client.delete(f"/item/{iid}").status_code == 409
     finally:
         client.close()

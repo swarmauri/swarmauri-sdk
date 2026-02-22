@@ -6,7 +6,7 @@ model, providing a structured way to inspect runtime metadata without
 searching the class hierarchy manually.
 """
 
-from tigrbl import Base, TigrblApi, engine_ctx
+from tigrbl import Base, TigrblRouter, engine_ctx
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -23,10 +23,10 @@ def test_table_binding_reads_table_config():
 
     engine_ctx(kind="sqlite", mode="memory", async_=False)(Widget)
 
-    api = TigrblApi(engine=mem(async_=False))
-    api.include_model(Widget)
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_model(Widget)
 
-    config = api.table_config[Widget.__name__]
+    config = router.table_config[Widget.__name__]
     assert config["engine"]["kind"] == "sqlite"
 
 
@@ -49,9 +49,9 @@ def test_table_config_registry_is_model_specific():
 
     engine_ctx(kind="sqlite", mode="memory", async_=False)(Gadget)
 
-    api = TigrblApi(engine=mem(async_=False))
-    api.include_model(Widget)
-    api.include_model(Gadget)
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_model(Widget)
+    router.include_model(Gadget)
 
-    assert api.table_config[Widget.__name__]["engine"]["kind"] == "sqlite"
-    assert api.table_config[Gadget.__name__]["engine"]["kind"] == "sqlite"
+    assert router.table_config[Widget.__name__]["engine"]["kind"] == "sqlite"
+    assert router.table_config[Gadget.__name__]["engine"]["kind"] == "sqlite"

@@ -8,7 +8,7 @@ from tigrbl.responses import (
     response_ctx,
     resolve_response_spec,
 )
-from tigrbl.api.api_spec import APISpec
+from tigrbl.router.router_spec import RouterSpec
 from tigrbl.app.app_spec import AppSpec
 from tigrbl.op.types import OpSpec
 from tigrbl.table.table_spec import TableSpec
@@ -19,7 +19,7 @@ def test_response_ctx_precedence():
     class App:  # pragma: no cover - simple container
         pass
 
-    @response_ctx(headers={"A": "api", "B": "api"})
+    @response_ctx(headers={"A": "router", "B": "router"})
     class API:  # pragma: no cover - simple container
         pass
 
@@ -32,7 +32,7 @@ def test_response_ctx_precedence():
         pass
 
     app_spec = AppSpec(response=ResponseSpec(status_code=200))
-    api_spec = APISpec(response=ResponseSpec(status_code=201))
+    api_spec = RouterSpec(response=ResponseSpec(status_code=201))
     table_spec = TableSpec(
         model=SimpleNamespace(), response=ResponseSpec(status_code=202)
     )
@@ -55,7 +55,7 @@ def test_response_ctx_precedence():
     hints, envelope, default_media = infer_hints(merged)
     assert hints.status_code == 203
     assert hints.headers["A"] == "op"
-    assert hints.headers["B"] == "api"
+    assert hints.headers["B"] == "router"
     assert hints.headers["C"] == "table"
     assert hints.headers["D"] == "op"
     assert envelope is None

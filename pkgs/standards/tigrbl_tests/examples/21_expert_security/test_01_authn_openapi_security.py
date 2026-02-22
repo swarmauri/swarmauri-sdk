@@ -1,7 +1,7 @@
 """Lesson 21.1: Authn dependencies update OpenAPI security per route.
 
 This example demonstrates how to configure authn dependencies on both
-``TigrblApp`` and ``TigrblApi``, allow anonymous access to selected operations,
+``TigrblApp`` and ``TigrblRouter``, allow anonymous access to selected operations,
 and confirm OpenAPI reflects security requirements on a per-route basis.
 """
 
@@ -13,7 +13,7 @@ from tigrbl.responses import JSONResponse
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, Security, String
@@ -76,7 +76,7 @@ async def test_openapi_security_from_app_authn_dependency() -> None:
 async def test_openapi_security_from_api_authn_dependency() -> None:
     """Show API-level authn dependencies mark secured routes in OpenAPI.
 
-    This test configures a bearer-token authn dependency on ``TigrblApi``,
+    This test configures a bearer-token authn dependency on ``TigrblRouter``,
     allows anonymous access to list operations, and asserts that only the
     secured routes include OpenAPI security metadata.
     """
@@ -98,23 +98,23 @@ async def test_openapi_security_from_api_authn_dependency() -> None:
         name = Column(String, nullable=False)
 
     # Instantiation: build the API, apply authn, and include the model.
-    api = TigrblApi(engine=mem(async_=False))
-    api.set_auth(authn=authn_dependency)
-    api.include_model(SecureApiWidget)
+    router = TigrblRouter(engine=mem(async_=False))
+    router.set_auth(authn=authn_dependency)
+    router.include_model(SecureApiWidget)
 
     # Deployment: initialize storage, attach OpenAPI, and run with Uvicorn.
-    init_result = api.initialize()
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
 
     # Deployment: add an OpenAPI endpoint directly on the router-only API.
     def openapi_endpoint(_request) -> JSONResponse:
-        return JSONResponse(api.openapi())
+        return JSONResponse(router.openapi())
 
-    api.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
+    router.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
 
     port = pick_unique_port()
-    base_url, server, task = await start_uvicorn(api, port=port)
+    base_url, server, task = await start_uvicorn(router, port=port)
 
     # Usage: request the OpenAPI schema from the running API.
     async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:

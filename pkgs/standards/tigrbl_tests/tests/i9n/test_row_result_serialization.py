@@ -29,9 +29,9 @@ async def client():
 
         __tigrbl_cols__ = {"id": id, "name": name}
 
-    api = Tigrblv3(engine=mem())
-    api.include_model(Widget, prefix="")
-    await api.initialize()
+    router = Tigrblv3(engine=mem())
+    router.include_model(Widget, prefix="")
+    await router.initialize()
     prov = _resolver.resolve_provider()
     engine, session_maker = prov.ensure()
     async with session_maker() as session:
@@ -57,7 +57,7 @@ async def client():
     crud.list = row_list  # type: ignore
 
     app = Tigrblv3()
-    app.include_router(api.router)
+    app.include_router(router.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:

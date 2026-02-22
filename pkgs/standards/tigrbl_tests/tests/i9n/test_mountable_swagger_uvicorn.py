@@ -1,7 +1,7 @@
 import httpx
 import pytest
 
-from tigrbl import TigrblApi, TigrblApp
+from tigrbl import TigrblRouter, TigrblApp
 from tigrbl.system import mount_swagger
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
@@ -27,10 +27,10 @@ async def test_swagger_mountable_on_tigrbl_app_uvicorn():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_swagger_mountable_on_tigrbl_api_uvicorn():
-    api = TigrblApi()
-    mount_swagger(api, path="/custom/docs", name="swagger_custom")
+    router = TigrblRouter()
+    mount_swagger(router, path="/custom/docs", name="swagger_custom")
 
-    base_url, server, task = await run_uvicorn_in_task(api)
+    base_url, server, task = await run_uvicorn_in_task(router)
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(f"{base_url}/custom/docs")

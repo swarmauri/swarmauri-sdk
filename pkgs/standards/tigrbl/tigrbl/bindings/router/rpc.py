@@ -4,16 +4,17 @@ import logging
 from types import SimpleNamespace
 from typing import Any, Dict, Mapping, Optional, Union
 
-from .common import ApiLike, _ensure_api_ns
+from .common import RouterLike, _ensure_router_ns
 from ...engine import resolver as _resolver
 from ...core.crud.helpers.model import _single_pk_name
+from ...transport.dispatcher import resolve_operation
 
 logger = logging.getLogger("uvicorn")
-logger.debug("Loaded module v3/bindings/api/rpc")
+logger.debug("Loaded module v3/bindings/router/rpc")
 
 
 async def rpc_call(
-    api: ApiLike,
+    router: RouterLike,
     model_or_name: Union[type, str],
     method: str,
     payload: Any = None,
@@ -27,17 +28,18 @@ async def rpc_call(
     `model_or_name` may be a model class or its name.
     """
     logger.debug("rpc_call invoked for model=%s method=%s", model_or_name, method)
-    _ensure_api_ns(api)
+    _ensure_router_ns(router)
 
-    if isinstance(model_or_name, str):
-        mdl = api.models.get(model_or_name)
-        if mdl is None:
-            logger.debug("Unknown model name '%s'", model_or_name)
-            raise KeyError(f"Unknown model '{model_or_name}'")
-        logger.debug("Resolved model name '%s' to %s", model_or_name, mdl)
-    else:
-        mdl = model_or_name
-        logger.debug("Using model class %s", getattr(mdl, "__name__", mdl))
+    resolution = resolve_operation(
+        router=router, model_or_name=model_or_name, alias=method
+    )
+    mdl = resolution.model
+    logger.debug(
+        "Resolved operation model=%s alias=%s target=%s",
+        getattr(mdl, "__name__", mdl),
+        method,
+        resolution.target,
+    )
 
     fn = getattr(getattr(mdl, "rpc", SimpleNamespace()), method, None)
     if fn is None:
@@ -48,14 +50,16 @@ async def rpc_call(
             f"{getattr(mdl, '__name__', mdl)} has no RPC method '{method}'"
         )
 
-    # Acquire DB if not explicitly provided (op > model > api > app)
+    # Acquire DB if not explicitly provided (op > model > router > app)
     _release_db = None
     if db is None:
         try:
             logger.debug(
                 "Acquiring DB for rpc_call %s.%s", getattr(mdl, "__name__", mdl), method
             )
-            db, _release_db = _resolver.acquire(api=api, model=mdl, op_alias=method)
+            db, _release_db = _resolver.acquire(
+                router=router, model=mdl, op_alias=method
+            )
         except Exception:
             logger.exception(
                 "DB acquire failed for rpc_call %s.%s; no default configured?",

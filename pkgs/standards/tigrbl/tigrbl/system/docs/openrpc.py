@@ -6,6 +6,10 @@ from pydantic import BaseModel
 
 from ...responses import Response
 from ...op import OpSpec
+from .openapi.helpers import (
+    _security_from_dependencies,
+    _security_schemes_from_dependencies,
+)
 
 JsonObject = Dict[str, Any]
 
@@ -14,8 +18,8 @@ def _with_leading_slash(path: str) -> str:
     return path if path.startswith("/") else f"/{path}"
 
 
-def _jsonrpc_path(api: Any) -> str:
-    configured = getattr(api, "jsonrpc_prefix", None) or "/rpc"
+def _jsonrpc_path(router: Any) -> str:
+    configured = getattr(router, "jsonrpc_prefix", None) or "/rpc"
     return _with_leading_slash(str(configured)).rstrip("/") or "/"
 
 
@@ -60,7 +64,7 @@ def _request_origin(request: Any) -> str | None:
     return f"{scheme}://{host}"
 
 
-def _iter_models(api: Any) -> List[type]:
+def _iter_models(router: Any) -> List[type]:
     seen: set[type] = set()
     models: List[type] = []
 
@@ -76,8 +80,8 @@ def _iter_models(api: Any) -> List[type]:
                 seen.add(model)
                 models.append(model)
 
-    _add_from(getattr(api, "models", None) or {})
-    for child in getattr(api, "apis", ()) or ():
+    _add_from(getattr(router, "models", None) or {})
+    for child in getattr(router, "routers", ()) or ():
         _add_from(getattr(child, "models", None) or {})
 
     return models
@@ -114,10 +118,12 @@ def _describe_method(model: type, spec: OpSpec) -> str | None:
     return None
 
 
-def build_openrpc_spec(api: Any, request: Any | None = None) -> JsonObject:
-    info_title = getattr(api, "title", None) or getattr(api, "name", None) or "API"
-    info_version = getattr(api, "version", None) or "0.1.0"
-    jsonrpc_url = _jsonrpc_path(api)
+def build_openrpc_spec(router: Any, request: Any | None = None) -> JsonObject:
+    info_title = (
+        getattr(router, "title", None) or getattr(router, "name", None) or "API"
+    )
+    info_version = getattr(router, "version", None) or "0.1.0"
+    jsonrpc_url = _jsonrpc_path(router)
     origin = _request_origin(request)
     server_url = f"{origin}{jsonrpc_url}" if origin else jsonrpc_url
     spec: JsonObject = {
@@ -125,13 +131,14 @@ def build_openrpc_spec(api: Any, request: Any | None = None) -> JsonObject:
         "info": {"title": f"{info_title} JSON-RPC API", "version": info_version},
         "servers": [{"name": info_title, "url": server_url}],
         "methods": [],
-        "components": {"schemas": {}},
+        "components": {"schemas": {}, "securitySchemes": {}},
     }
 
     components = spec["components"]["schemas"]
+    security_schemes = spec["components"]["securitySchemes"]
     methods: List[JsonObject] = []
 
-    for model in _iter_models(api):
+    for model in _iter_models(router):
         for op in _iter_ops(model):
             if not getattr(op, "expose_rpc", True):
                 continue
@@ -162,6 +169,12 @@ def build_openrpc_spec(api: Any, request: Any | None = None) -> JsonObject:
                     components.setdefault(key, value)
                 method["result"] = {"name": "result", "schema": out_json}
 
+            secdeps = tuple(getattr(op, "secdeps", ()) or ())
+            security = _security_from_dependencies(secdeps)
+            if security:
+                method["security"] = security
+                security_schemes.update(_security_schemes_from_dependencies(secdeps))
+
             methods.append(method)
 
     spec["methods"] = sorted(methods, key=lambda item: item["name"])
@@ -169,23 +182,23 @@ def build_openrpc_spec(api: Any, request: Any | None = None) -> JsonObject:
 
 
 def mount_openrpc(
-    api: Any,
-    router: Any | None = None,
+    router: Any,
+    app: Any | None = None,
     *,
     path: str = "/openrpc.json",
     name: str = "openrpc_json",
     tags: list[str] | None = None,
 ) -> Any:
-    """Mount an OpenRPC JSON endpoint onto ``router`` or ``api``."""
+    """Mount an OpenRPC JSON endpoint onto ``app`` or ``router``."""
 
-    target_router = router if router is not None else api
+    target_router = app if app is not None else router
     normalized_path = _with_leading_slash(path)
-    setattr(api, "openrpc_path", normalized_path)
+    setattr(router, "openrpc_path", normalized_path)
 
     def _openrpc_endpoint(request: Any) -> Response:
-        return Response.json(build_openrpc_spec(api, request=request))
+        return Response.json(build_openrpc_spec(router, request=request))
 
-    target_router.add_api_route(
+    target_router.add_route(
         normalized_path,
         _openrpc_endpoint,
         methods=["GET"],

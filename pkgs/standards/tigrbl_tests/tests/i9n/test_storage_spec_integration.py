@@ -6,9 +6,9 @@ from tigrbl.types import String
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_storage_spec_request_response_schema(api_client_v3):
-    client, api, Widget, _ = api_client_v3
-    create_schema = api.schemas.Widget.create.in_
-    read_schema = api.schemas.Widget.read.out
+    client, router, Widget, _ = api_client_v3
+    create_schema = router.schemas.Widget.create.in_
+    read_schema = router.schemas.Widget.read.out
     assert create_schema.model_fields["name"].is_required()
     assert not create_schema.model_fields["age"].is_required()
     assert "secret" in read_schema.model_fields
@@ -35,9 +35,9 @@ async def test_storage_spec_default_resolution(api_client_v3):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_storage_spec_internal_orm(api_client_v3):
-    _, api, Widget, _ = api_client_v3
-    assert api.models["Widget"] is Widget
-    assert "age" in api.columns["Widget"]
+    _, router, Widget, _ = api_client_v3
+    assert router.models["Widget"] is Widget
+    assert "age" in router.columns["Widget"]
 
 
 @pytest.mark.i9n
@@ -92,7 +92,7 @@ async def test_storage_spec_rpc_methods(api_client_v3):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_storage_spec_core_crud(api_client_v3):
-    _, api, Widget, session_maker = api_client_v3
+    _, router, Widget, session_maker = api_client_v3
     async with session_maker() as session:
         obj = await crud.create(Widget, {"name": "core", "secret": "def"}, db=session)
         await session.commit()

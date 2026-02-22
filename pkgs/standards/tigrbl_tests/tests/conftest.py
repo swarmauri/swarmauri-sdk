@@ -180,10 +180,10 @@ def create_test_api():
     def _create_api(model_class):
         """Create Tigrbl instance with a single model for testing."""
         Base.metadata.clear()
-        api = TigrblApp(engine=mem(async_=False))
-        api.include_model(model_class)
-        api.initialize()
-        return api
+        router = TigrblApp(engine=mem(async_=False))
+        router.include_model(model_class)
+        router.initialize()
+        return router
 
     return _create_api
 
@@ -194,9 +194,9 @@ async def create_test_api_async():
 
     def _create_api_async(model_class):
         Base.metadata.clear()
-        api = TigrblApp(engine=mem())
-        api.include_model(model_class)
-        return api
+        router = TigrblApp(engine=mem())
+        router.include_model(model_class)
+        return router
 
     return _create_api_async
 
@@ -255,21 +255,21 @@ async def api_client(db_mode):
     fastapi_app = TigrblApp()
 
     if db_mode == "async":
-        api = TigrblApp(engine=mem())
-        api.include_models([Tenant, Item])
-        await api.initialize()
+        router = TigrblApp(engine=mem())
+        router.include_models([Tenant, Item])
+        await router.initialize()
 
     else:
-        api = TigrblApp(engine=mem(async_=False))
-        api.include_models([Tenant, Item])
-        api.initialize()
+        router = TigrblApp(engine=mem(async_=False))
+        router.include_models([Tenant, Item])
+        router.initialize()
 
-    api.mount_jsonrpc()
-    fastapi_app.include_router(api.router)
+    router.mount_jsonrpc()
+    fastapi_app.include_router(router.router)
     transport = ASGITransport(app=fastapi_app)
 
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, api, Item
+    return client, router, Item
 
 
 @pytest.fixture
@@ -333,14 +333,14 @@ async def api_client_v3():
 
     cfg = mem()
     fastapi_app = TigrblApp()
-    api = TigrblApp(engine=cfg)
-    api.include_model(Widget, prefix="")
-    api.mount_jsonrpc()
-    api.attach_diagnostics()
-    await api.initialize()
+    router = TigrblApp(engine=cfg)
+    router.include_model(Widget, prefix="")
+    router.mount_jsonrpc()
+    router.attach_diagnostics()
+    await router.initialize()
     prov = _resolver.resolve_provider()
     _, session_maker = prov.ensure()
-    fastapi_app.include_router(api.router)
+    fastapi_app.include_router(router.router)
     transport = ASGITransport(app=fastapi_app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, api, Widget, session_maker
+    return client, router, Widget, session_maker

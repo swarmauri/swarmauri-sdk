@@ -1,7 +1,7 @@
 """Lesson 21.2: Op-level security dependencies surface in OpenAPI.
 
 This example shows how to add security dependencies directly to specific
-operations on a ``TigrblApi``, mount that API on ``TigrblApp``, and confirm that
+operations on a ``TigrblRouter``, mount that API on ``TigrblApp``, and confirm that
 only the secured routes advertise security requirements in the OpenAPI schema.
 """
 
@@ -12,7 +12,7 @@ import pytest
 from tigrbl.security import HTTPBearer
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -23,7 +23,7 @@ async def test_openapi_security_from_op_secdeps_on_mounted_api() -> None:
     """Confirm op-level sec deps annotate only intended routes in OpenAPI.
 
     This test adds a bearer-token dependency to the list operation on a
-    ``TigrblApi``, mounts the API on ``TigrblApp``, and verifies that the OpenAPI
+    ``TigrblRouter``, mounts the API on ``TigrblApp``, and verifies that the OpenAPI
     schema flags the list route while leaving create unprotected.
     """
 
@@ -45,11 +45,11 @@ async def test_openapi_security_from_op_secdeps_on_mounted_api() -> None:
         name = Column(String, nullable=False)
 
     # Instantiation: build the API, include the model, and mount on the app.
-    api = TigrblApi(engine=mem(async_=False))
-    api.include_model(SecDepsWidget)
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_model(SecDepsWidget)
 
     app = TigrblApp(engine=mem(async_=False))
-    app.include_router(api)
+    app.include_router(router)
 
     # Deployment: initialize storage and run the app with Uvicorn.
     init_result = app.initialize()

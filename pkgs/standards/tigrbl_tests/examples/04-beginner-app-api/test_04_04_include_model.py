@@ -11,9 +11,9 @@ from examples.lesson_support import make_widget_model
 @pytest.mark.asyncio
 async def test_app_includes_model_namespaces() -> None:
     widget = make_widget_model(model_name="WidgetApi", table_name="widget_api")
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(widget, prefix="")
-    await api.initialize()
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(widget, prefix="")
+    await router.initialize()
 
-    assert "WidgetApi" in api.models
-    assert api.models["WidgetApi"] is widget
+    assert "WidgetApi" in router.models
+    assert router.models["WidgetApi"] is widget

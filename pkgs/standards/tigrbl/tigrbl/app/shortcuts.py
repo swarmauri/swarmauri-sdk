@@ -13,7 +13,7 @@ def defineAppSpec(
     version: str = "0.1.0",
     engine: Any = None,
     # composition
-    apis: Sequence[Any] = (),
+    routers: Sequence[Any] = (),
     ops: Sequence[Any] = (),
     models: Sequence[Any] = (),
     schemas: Sequence[Any] = (),
@@ -41,7 +41,7 @@ def defineAppSpec(
         TITLE=title,
         VERSION=version,
         ENGINE=engine,
-        APIS=tuple(apis or ()),
+        ROUTERS=tuple(routers or ()),
         OPS=tuple(ops or ()),
         MODELS=tuple(models or ()),
         SCHEMAS=tuple(schemas or ()),

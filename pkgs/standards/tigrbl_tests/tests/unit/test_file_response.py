@@ -17,7 +17,7 @@ from tigrbl.bindings import (
 from tigrbl import TigrblApp as FastApp
 from tigrbl.types import Integer, Mapped, mapped_column
 from tigrbl.table import Table
-from tigrbl.api._api import Api
+from tigrbl.router._api import Api
 from tigrbl.app._app import App as BaseApp
 
 
@@ -88,27 +88,27 @@ def test_file_response_table(tmp_path):
 
 
 def test_file_response_api(tmp_path):
-    file_path = tmp_path / "api.txt"
-    file_path.write_text("api")
+    file_path = tmp_path / "router.txt"
+    file_path.write_text("router")
     Widget = _build_model(Table, file_path, bind=False)
     Widget.columns = ()
 
     class FilesApi(Api):
         PREFIX = ""
 
-    api = FilesApi()
+    router = FilesApi()
 
     async def fake_db():
         yield None
 
-    api.get_db = fake_db  # type: ignore[assignment]
-    include_model(api, Widget)
+    router.get_db = fake_db  # type: ignore[assignment]
+    include_model(router, Widget)
 
     resp = asyncio.run(Widget.handlers.download.handler({}))
     assert resp.path == str(file_path)
 
     app = FastApp()
-    app.include_router(api)
+    app.include_router(router)
     transport = ASGITransport(app=app)
     with Client(transport=transport, base_url="http://test") as client:
         response = client.post("/widget/download", json={})
@@ -125,13 +125,13 @@ def test_file_response_app(tmp_path):
     class FilesApi(Api):
         PREFIX = ""
 
-    api = FilesApi()
+    router = FilesApi()
 
     async def fake_db():
         yield None
 
-    api.get_db = fake_db  # type: ignore[assignment]
-    include_model(api, Widget)
+    router.get_db = fake_db  # type: ignore[assignment]
+    include_model(router, Widget)
 
     class FilesApp(BaseApp):
         TITLE = "FilesApp"
@@ -139,7 +139,7 @@ def test_file_response_app(tmp_path):
         LIFESPAN = None
 
     app = FilesApp()
-    app.include_router(api)
+    app.include_router(router)
 
     resp = asyncio.run(Widget.handlers.download.handler({}))
     assert resp.path == str(file_path)

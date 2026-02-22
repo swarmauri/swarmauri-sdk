@@ -33,17 +33,17 @@ async def schema_ctx_client():
 
     cfg = mem()
     app = TigrblApp()
-    api = TigrblApp(engine=cfg)
-    api.include_model(Widget, prefix="")
-    api.mount_jsonrpc()
-    api.attach_diagnostics()
-    await api.initialize()
+    router = TigrblApp(engine=cfg)
+    router.include_model(Widget, prefix="")
+    router.mount_jsonrpc()
+    router.attach_diagnostics()
+    await router.initialize()
     prov = _resolver.resolve_provider()
     _, sessionmaker = prov.ensure()
-    app.include_router(api.router)
+    app.include_router(router.router)
 
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
-    return client, api, Widget, sessionmaker
+    return client, router, Widget, sessionmaker
 
 
 @pytest.mark.i9n
@@ -58,9 +58,9 @@ async def test_schema_ctx_bindings(schema_ctx_client):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_schema_ctx_request_response_schema(schema_ctx_client):
-    _, api, _, _ = schema_ctx_client
-    create_schema = api.schemas.Widget.create.in_
-    read_schema = api.schemas.Widget.read.out
+    _, router, _, _ = schema_ctx_client
+    create_schema = router.schemas.Widget.create.in_
+    read_schema = router.schemas.Widget.read.out
     assert create_schema.model_fields["name"].is_required()
     assert "age" in read_schema.model_fields
 
@@ -86,9 +86,9 @@ async def test_schema_ctx_default_resolution(schema_ctx_client):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_schema_ctx_internal_orm(schema_ctx_client):
-    _, api, Widget, _ = schema_ctx_client
-    assert api.models["Widget"] is Widget
-    assert "age" in api.columns["Widget"]
+    _, router, Widget, _ = schema_ctx_client
+    assert router.models["Widget"] is Widget
+    assert "age" in router.columns["Widget"]
 
 
 @pytest.mark.i9n

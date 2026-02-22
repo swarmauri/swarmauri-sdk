@@ -52,12 +52,12 @@ from ..deps.pydantic import (
     ValidationError,
 )
 
-from ..api._api import APIRouter, Router
+from ..router._router import Router
 from ..core.crud.params import Body, Path
-from ..responses import Response
+from ..transport import Response
 from ..runtime.status.exceptions import HTTPException, StatusDetailError
 from ..security.dependencies import Depends, Security
-from ..requests import Request
+from ..transport import Request
 
 # ── Local Package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
@@ -154,7 +154,6 @@ __all__: list[str] = [
     # routing/dependency support (from deps)
     "Request",
     "Response",
-    "APIRouter",
     "Router",
     "Security",
     "Depends",

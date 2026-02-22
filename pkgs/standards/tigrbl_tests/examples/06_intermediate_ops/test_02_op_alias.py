@@ -23,12 +23,12 @@ def test_alias_ctx_registers_custom_name():
         name = Column(String, nullable=False)
 
     # Deployment: create an app and include the model so specs are bound.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonAlias)
-    api.initialize()
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(LessonAlias)
+    router.initialize()
 
     # Test: inspect the aliases produced by binding the model into the app.
-    aliases = {spec.alias for spec in api.bind(LessonAlias)}
+    aliases = {spec.alias for spec in router.bind(LessonAlias)}
 
     # Assertion: the alias is present in the operation set.
     assert "lookup" in aliases
@@ -52,12 +52,12 @@ def test_alias_ctx_override_applies_arity():
         name = Column(String, nullable=False)
 
     # Deployment: bind the model into an API so OpSpecs resolve with overrides.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonAliasOverride)
-    api.initialize()
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(LessonAliasOverride)
+    router.initialize()
 
     # Test: find the bound spec with the overridden alias.
-    spec = next(sp for sp in api.bind(LessonAliasOverride) if sp.alias == "peek")
+    spec = next(sp for sp in router.bind(LessonAliasOverride) if sp.alias == "peek")
 
     # Assertion: the alias keeps the canonical target but updates arity.
     assert spec.target == "read"

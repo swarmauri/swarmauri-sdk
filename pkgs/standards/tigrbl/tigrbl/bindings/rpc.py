@@ -19,14 +19,9 @@ from pydantic import BaseModel
 
 from ..op import OpSpec
 from ..op.types import PHASES
-from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
 from ..runtime.status import HTTPException
+from ..transport.dispatcher import dispatch_operation
 
-# Prefer Kernel phase-chains if available (atoms + system steps + hooks)
-try:
-    from ..runtime.kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore
-except Exception:  # pragma: no cover
-    _kernel_build_phase_chains = None  # type: ignore
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rpc")
@@ -118,25 +113,20 @@ def _ns(obj: Any, name: str) -> Any:
 def _get_phase_chains(
     model: type, alias: str
 ) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
-    """
-    Prefer building via runtime Kernel (atoms + system steps + hooks in one lifecycle).
-    Fallback: read the pre-built model.hooks.<alias> chains directly.
-    """
-    if _kernel_build_phase_chains is not None:
-        try:
-            return _kernel_build_phase_chains(model, alias)
-        except Exception:
-            logger.exception(
-                "Kernel build_phase_chains failed for %s.%s; falling back to hooks",
-                getattr(model, "__name__", model),
-                alias,
-            )
-    hooks_root = _ns(model, "hooks")
-    alias_ns = getattr(hooks_root, alias, None)
-    out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
-    for ph in PHASES:
-        out[ph] = list(getattr(alias_ns, ph, []) or [])
-    return out
+    """Backward-compatible phase chain accessor used by other bindings modules."""
+    try:
+        from ..transport.dispatcher import (
+            _get_phase_chains as _transport_get_phase_chains,
+        )
+
+        return _transport_get_phase_chains(model, alias)
+    except Exception:
+        hooks_root = _ns(model, "hooks")
+        alias_ns = getattr(hooks_root, alias, None)
+        out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
+        for ph in PHASES:
+            out[ph] = list(getattr(alias_ns, ph, []) or [])
+        return out
 
 
 def _coerce_payload(payload: Any) -> Any:
@@ -369,11 +359,11 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         app_ref = (
             getattr(request, "app", None)
             or base_ctx.get("app")
-            or getattr(model, "api", None)
+            or getattr(model, "router", None)
             or model
         )
         base_ctx.setdefault("app", app_ref)
-        base_ctx.setdefault("api", base_ctx.get("api") or app_ref)
+        base_ctx.setdefault("router", base_ctx.get("router") or app_ref)
         base_ctx.setdefault("model", model)
         base_ctx.setdefault("op", alias)
         base_ctx.setdefault("method", alias)
@@ -386,23 +376,16 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
             ),
         )
 
-        phases = _get_phase_chains(model, alias)
-        # RPC methods should return JSON-serializable data, not transport
-        # Response objects. Kernel-composed POST_RESPONSE chains include
-        # renderer atoms that convert payloads into Response instances. Keep
-        # only explicit user hooks for RPC execution.
-        model_hooks = getattr(getattr(model, "hooks", None), alias, None)
-        phases["POST_RESPONSE"] = list(getattr(model_hooks, "POST_RESPONSE", []) or [])
-
-        base_ctx["response_serializer"] = lambda r: _serialize_output(
-            model, alias, target, r
-        )
-        # 3) run executor
-        result = await _executor._invoke(
-            request=request,
+        result = await dispatch_operation(
+            router=getattr(model, "router", None),
+            model_or_name=model,
+            alias=alias,
+            payload=base_ctx.get("payload"),
             db=db,
-            phases=phases,
+            request=request,
             ctx=base_ctx,
+            response_serializer=lambda r: _serialize_output(model, alias, target, r),
+            rpc_mode=True,
         )
 
         return result

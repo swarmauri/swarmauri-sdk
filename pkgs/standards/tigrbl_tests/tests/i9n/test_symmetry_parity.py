@@ -13,8 +13,8 @@ CRUD_MAP = {
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_route_and_method_symmetry(api_client):
-    client, api, _ = api_client
-    api.attach_diagnostics(prefix="", app=client._transport.app)
+    client, router, _ = api_client
+    router.attach_diagnostics(prefix="", app=client._transport.app)
     spec = (await client.get("/openapi.json")).json()
     paths = spec["paths"]
     methods = await client.get("/methodz")

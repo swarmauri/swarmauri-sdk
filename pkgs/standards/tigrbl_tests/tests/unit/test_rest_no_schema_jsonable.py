@@ -38,15 +38,15 @@ def client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
-    api = Tigrblv3(engine=mem(async_=False))
-    api.include_model(Gadget, prefix="")
-    api.initialize()
+    router = Tigrblv3(engine=mem(async_=False))
+    router.include_model(Gadget, prefix="")
+    router.initialize()
 
     # Remove generated out schemas to exercise jsonable fallback
     Gadget.schemas.read.out = None  # type: ignore[attr-defined]
     Gadget.schemas.list.out = None  # type: ignore[attr-defined]
 
-    transport = ASGITransport(app=api)
+    transport = ASGITransport(app=router)
     with Client(transport=transport, base_url="http://test") as client:
         yield client, Gadget
 

@@ -77,16 +77,16 @@ def mro_collect_app_spec(app: type) -> AppSpec:
     if lifespan is sentinel:
         lifespan = None
 
-    include_inherited_apis = "APIS" not in app.__dict__
+    include_inherited_routers = "ROUTERS" not in app.__dict__
     spec = AppSpec(
         title=title,
         version=version,
         engine=engine,
-        apis=_merge_seq_attr(
+        routers=_merge_seq_attr(
             app,
-            "APIS",
-            include_inherited=include_inherited_apis,
-            reverse=include_inherited_apis,
+            "ROUTERS",
+            include_inherited=include_inherited_routers,
+            reverse=include_inherited_routers,
         ),
         ops=_merge_seq_attr(app, "OPS"),
         models=_merge_seq_attr(app, "MODELS"),

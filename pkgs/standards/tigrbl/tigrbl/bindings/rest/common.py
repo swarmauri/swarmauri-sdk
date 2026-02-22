@@ -11,7 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from ...api._api import APIRouter as Router
+from ...router._router import Router
 from ...core.crud.params import Body, Path, Query
 from ...responses import Response
 from ...runtime.status.exceptions import HTTPException
@@ -41,9 +41,6 @@ from .routing import (
     _RESPONSES_META,
     _default_path_suffix,
     _normalize_deps,
-    _normalize_secdeps,
-    _require_auth_header,
-    _requires_auth_header,
     _path_for_spec,
     _request_model_for,
     _response_model_for,
@@ -121,9 +118,6 @@ __all__ = [
     "_make_list_query_dep",
     "_optionalize_list_in_model",
     "_normalize_deps",
-    "_normalize_secdeps",
-    "_require_auth_header",
-    "_requires_auth_header",
     "_status_for",
     "_RESPONSES_META",
     "_DEFAULT_METHODS",

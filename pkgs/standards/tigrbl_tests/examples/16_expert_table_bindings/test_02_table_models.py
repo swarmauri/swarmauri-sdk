@@ -5,7 +5,7 @@ lookup table for ORM classes. Storing models by name lets other subsystems
 discover model-level metadata without duplicating model discovery logic.
 """
 
-from tigrbl import Base, TigrblApi
+from tigrbl import Base, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -20,11 +20,11 @@ def test_table_binding_registers_model():
 
         name = Column(String, nullable=False)
 
-    api = TigrblApi(engine=mem(async_=False))
+    router = TigrblRouter(engine=mem(async_=False))
 
-    api.include_model(Widget)
+    router.include_model(Widget)
 
-    assert api.models[Widget.__name__] is Widget
+    assert router.models[Widget.__name__] is Widget
 
 
 def test_model_registry_supports_multiple_models():
@@ -42,10 +42,10 @@ def test_model_registry_supports_multiple_models():
 
         name = Column(String, nullable=False)
 
-    api = TigrblApi(engine=mem(async_=False))
+    router = TigrblRouter(engine=mem(async_=False))
 
-    api.include_model(Widget)
-    api.include_model(Gadget)
+    router.include_model(Widget)
+    router.include_model(Gadget)
 
-    assert api.models[Widget.__name__] is Widget
-    assert api.models[Gadget.__name__] is Gadget
+    assert router.models[Widget.__name__] is Widget
+    assert router.models[Gadget.__name__] is Gadget

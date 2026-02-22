@@ -18,6 +18,6 @@ async def test_response_rest_rpc_parity():
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         rest_result = (await client.post("/widget/ping", json={})).json()
-    api = SimpleNamespace(models={"Widget": Widget})
-    rpc_result = await rpc_call(api, Widget, "ping", {}, db=SimpleNamespace())
+    router = SimpleNamespace(models={"Widget": Widget})
+    rpc_result = await rpc_call(router, Widget, "ping", {}, db=SimpleNamespace())
     assert rest_result == rpc_result == {"pong": True}

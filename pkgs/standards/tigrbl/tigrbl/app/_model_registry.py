@@ -6,9 +6,9 @@ from typing import Any, Iterable
 
 
 def initialize_model_registry(models: Iterable[Any]) -> dict[str, Any]:
-    """Build the default ``models`` mapping for an App or Api instance.
+    """Build the default ``models`` mapping for an App or Router instance.
 
-    ``defineAppSpec``/``defineApiSpec`` allow authors to declare default models
+    ``defineAppSpec``/``defineRouterSpec`` allow authors to declare default models
     using bare model classes or ``("alias", Model)`` tuples.  Runtime facades,
     however, expect ``self.models`` to be a dictionary keyed by model name so
     that lookups like ``app.models["Widget"]`` Just Work.

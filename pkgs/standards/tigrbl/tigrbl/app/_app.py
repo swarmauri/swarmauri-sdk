@@ -1,25 +1,46 @@
 # tigrbl/tigrbl/v3/app/_app.py
 from __future__ import annotations
+import inspect
 from typing import Any
 
-from ..api._api import APIRouter
+from ..router._api import Router
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
 from ..ddl import initialize as _ddl_initialize
 from ._model_registry import initialize_model_registry
 from .app_spec import AppSpec
+from ..router._route import Route
+from ..router._routing import (
+    merge_tags as _merge_tags_impl,
+    normalize_prefix as _normalize_prefix_impl,
+)
+from ..runtime.dependencies import (
+    execute_dependency_tokens as _execute_dependency_tokens_impl,
+    execute_route_dependencies as _execute_route_dependencies_impl,
+)
+from ..router.resolve import resolve_handler_kwargs as _resolve_handler_kwargs_impl
+from ..runtime.status.exceptions import HTTPException
+from ..runtime.status.mappings import status
+from ..system.docs.openapi.metadata import is_metadata_route as _is_metadata_route_impl
+from ..transport import Request, Response
+from ..transport.gw import asgi_app as _asgi_app_impl, wsgi_app as _wsgi_app_impl
 
 
-class App(AppSpec, APIRouter):
+class App(AppSpec):
     TITLE = "Tigrbl"
     VERSION = "0.1.0"
     LIFESPAN = None
-    APIS = ()
+    ROUTERS = ()
     OPS = ()
     MODELS = ()
     SCHEMAS = ()
     HOOKS = ()
+    DESCRIPTION = None
+    OPENAPI_URL = "/openapi.json"
+    DOCS_URL = "/docs"
+    DEBUG = False
+    SWAGGER_UI_VERSION = "5.31.0"
     SECURITY_DEPS = ()
     DEPS = ()
     RESPONSE = None
@@ -42,10 +63,30 @@ class App(AppSpec, APIRouter):
         get_db = asgi_kwargs.pop("get_db", None)
         if get_db is not None:
             self.get_db = get_db
+        description = asgi_kwargs.pop("description", None)
+        if description is None:
+            description = getattr(self, "DESCRIPTION", None)
+        openapi_url = asgi_kwargs.pop("openapi_url", None)
+        if openapi_url is None:
+            openapi_url = getattr(self, "OPENAPI_URL", "/openapi.json")
+        docs_url = asgi_kwargs.pop("docs_url", None)
+        if docs_url is None:
+            docs_url = getattr(self, "DOCS_URL", "/docs")
+        debug = asgi_kwargs.pop("debug", None)
+        if debug is None:
+            debug = bool(getattr(self, "DEBUG", False))
+        swagger_ui_version = asgi_kwargs.pop("swagger_ui_version", None)
+        if swagger_ui_version is None:
+            swagger_ui_version = getattr(self, "SWAGGER_UI_VERSION", "5.31.0")
         self.title = self.TITLE
         self.version = self.VERSION
+        self.description = description
+        self.openapi_url = openapi_url
+        self.docs_url = docs_url
+        self.debug = debug
+        self.swagger_ui_version = swagger_ui_version
         self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
-        self.apis = tuple(getattr(self, "APIS", ()))
+        self.routers = tuple(getattr(self, "ROUTERS", ()))
         self.ops = tuple(getattr(self, "OPS", ()))
         # Runtime registries use mutable containers (dict/namespace), but the
         # dataclass fields expect sequences. Storing a dict here satisfies both.
@@ -59,11 +100,17 @@ class App(AppSpec, APIRouter):
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
         self.lifespan = self.LIFESPAN
 
-        APIRouter.__init__(
+        Router.__init__(
             self,
+            engine=self.engine,
             title=self.title,
             version=self.version,
-            include_docs=True,
+            description=self.description,
+            openapi_url=self.openapi_url,
+            docs_url=self.docs_url,
+            debug=self.debug,
+            swagger_ui_version=self.swagger_ui_version,
+            include_docs=False,
             **asgi_kwargs,
         )
         _engine_ctx = self.engine
@@ -72,16 +119,16 @@ class App(AppSpec, APIRouter):
             _resolver.resolve_provider()
 
     def install_engines(
-        self, *, api: Any = None, models: tuple[Any, ...] | None = None
+        self, *, router: Any = None, models: tuple[Any, ...] | None = None
     ) -> None:
-        # If class declared APIS/MODELS, use them unless explicit args are passed.
-        apis = (api,) if api is not None else self.APIS
+        # If class declared ROUTERS/MODELS, use them unless explicit args are passed.
+        routers = (router,) if router is not None else self.ROUTERS
         models = models if models is not None else self.MODELS
-        if apis:
-            for a in apis:
-                install_from_objects(app=self, api=a, models=models)
+        if routers:
+            for a in routers:
+                install_from_objects(app=self, router=a, models=models)
         else:
-            install_from_objects(app=self, api=None, models=models)
+            install_from_objects(app=self, router=None, models=models)
 
     def _collect_tables(self) -> list[Any]:
         seen = set()
@@ -104,16 +151,157 @@ class App(AppSpec, APIRouter):
                 tables.append(table)
         return tables
 
+    def __call__(self, *args: Any, **kwargs: Any):
+        return self._dispatch_call(*args, **kwargs)
+
+    def _dispatch_call(self, *args: Any, **kwargs: Any):
+        return self._router_call(*args, **kwargs)
+
+    def _normalize_prefix(self, prefix: str) -> str:
+        return _normalize_prefix_impl(prefix)
+
+    def _merge_tags(self, tags: list[str] | None) -> list[str] | None:
+        return _merge_tags_impl(getattr(self, "tags", None), tags)
+
+    def _router_call(self, *args: Any, **kwargs: Any):
+        del kwargs
+        if len(args) == 2 and isinstance(args[0], dict) and callable(args[1]):
+            return self._wsgi_app(args[0], args[1])
+        if len(args) == 1 and isinstance(args[0], dict):
+            scope = args[0]
+
+            async def _asgi2_instance(receive: Any, send: Any) -> None:
+                await self._asgi_app(scope, receive, send)
+
+            return _asgi2_instance
+        if len(args) == 3 and isinstance(args[0], dict):
+            return self._asgi_app(args[0], args[1], args[2])
+        raise TypeError("Invalid ASGI/WSGI invocation")
+
     def _wsgi_app(self, environ: dict[str, Any], start_response: Any) -> list[bytes]:
-        return super()._wsgi_app(environ, start_response)
+        return _wsgi_app_impl(self, environ, start_response)
 
     async def _asgi_app(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
-        await super()._asgi_app(scope, receive, send)
+        await _asgi_app_impl(self, scope, receive, send)
+
+    def _request_from_wsgi(self, environ: dict[str, Any]) -> Request:
+        from tigrbl.transport.request import request_from_wsgi
+
+        return request_from_wsgi(self, environ)
+
+    def _request_from_asgi(self, scope: dict[str, Any], body: bytes) -> Request:
+        from tigrbl.transport.request import request_from_asgi
+
+        return request_from_asgi(self, scope, body)
+
+    def _route_match_priority(self, route: Route) -> tuple[int, int, int]:
+        is_metadata = int(getattr(route, "name", "") in {"__openapi__", "__docs__"})
+        dynamic_segments = route.path_template.count("{")
+        path_length = -len(route.path_template)
+        return (-is_metadata, dynamic_segments, path_length)
+
+    @staticmethod
+    def _is_http_response_like(obj: Any) -> bool:
+        return (
+            hasattr(obj, "status_code")
+            and hasattr(obj, "headers")
+            and (
+                hasattr(obj, "body")
+                or hasattr(obj, "body_iterator")
+                or hasattr(obj, "render")
+                or hasattr(obj, "path")
+            )
+        )
+
+    async def dispatch(self, req: Request) -> Response:
+        path_matches = [r for r in self._routes if r.pattern.match(req.path)]
+        if req.method.upper() == "OPTIONS" and path_matches:
+            allowed_methods = {
+                method.upper()
+                for route in path_matches
+                for method in getattr(route, "methods", ())
+            }
+            allowed_methods.add("OPTIONS")
+            return Response(
+                status_code=204,
+                headers={"allow": ",".join(sorted(allowed_methods))},
+                body=b"",
+            )
+
+        candidates = [r for r in path_matches if req.method in r.methods]
+        candidates.sort(key=self._route_match_priority)
+        for candidate in candidates:
+            match = candidate.pattern.match(req.path)
+            if not match:
+                continue
+            req2 = Request(
+                method=req.method,
+                path=req.path,
+                headers=req.headers,
+                query=req.query,
+                path_params={k: v for k, v in match.groupdict().items()},
+                body=req.body,
+                script_name=req.script_name,
+                app=self,
+                state=req.state,
+                scope=req.scope,
+            )
+            return await self.call_handler(candidate, req2)
+
+        if path_matches:
+            allowed = {
+                method.upper()
+                for candidate in path_matches
+                for method in getattr(candidate, "methods", ())
+            }
+            allowed.add("OPTIONS")
+            return Response.json(
+                {"detail": "Method Not Allowed"},
+                status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+                headers={"allow": ",".join(sorted(allowed))},
+            )
+
+        return Response.json(
+            {"detail": "Not Found"}, status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    async def call_handler(self, route: Route, req: Request) -> Response:
+        dependency_cleanups: list[Any] = []
+        setattr(req.state, "_dependency_cleanups", dependency_cleanups)
+        try:
+            await _execute_route_dependencies_impl(self, route, req)
+            kwargs = await self._resolve_handler_kwargs(route, req)
+            kwargs = await _execute_dependency_tokens_impl(self, kwargs, req)
+            out = route.handler(**kwargs)
+            if inspect.isawaitable(out):
+                out = await out
+        except HTTPException as he:
+            return Response.json(
+                {"detail": he.detail}, status_code=he.status_code, headers=he.headers
+            )
+        finally:
+            for cleanup in reversed(dependency_cleanups):
+                result = cleanup()
+                if inspect.isawaitable(result):
+                    await result
+
+        if isinstance(out, Response):
+            return out
+        code = route.status_code if route.status_code is not None else 200
+        return Response.json(out, status_code=code)
 
     async def _dispatch(self, req: Any):
-        return await super()._dispatch(req)
+        return await self.dispatch(req)
 
     async def _call_handler(self, route: Any, req: Any):
-        return await super()._call_handler(route, req)
+        return await self.call_handler(route, req)
+
+    def _is_metadata_route(self, route: Route) -> bool:
+        return _is_metadata_route_impl(self, route)
+
+    async def _resolve_handler_kwargs(
+        self, route: Route, req: Request
+    ) -> dict[str, Any]:
+        return await _resolve_handler_kwargs_impl(self, route, req)
 
     initialize = _ddl_initialize

@@ -11,8 +11,8 @@ def test_precedence_op_over_model_over_api_over_app(tmp_path):
     _model_prov = prov(mem(async_=False))
     _op_prov = prov(pga(host="db", name="op_db"))
 
-    # Fake “api” and “model” identities
-    api = SimpleNamespace()
+    # Fake “router” and “model” identities
+    router = SimpleNamespace()
 
     class Model:
         __name__ = "Model"
@@ -20,7 +20,7 @@ def test_precedence_op_over_model_over_api_over_app(tmp_path):
     # Register in resolver
     resolver.set_default(sqlitef(str(tmp_path / "app.sqlite")))
     resolver.register_api(
-        api, {"kind": "postgres", "async": False, "host": "db", "db": "api_db"}
+        router, {"kind": "postgres", "async": False, "host": "db", "db": "api_db"}
     )
     resolver.register_table(Model, {"kind": "sqlite", "async": False, "mode": "memory"})
     resolver.register_op(
@@ -31,7 +31,7 @@ def test_precedence_op_over_model_over_api_over_app(tmp_path):
 
     # Resolve each level
     p_app = resolver.resolve_provider()
-    p_api = resolver.resolve_provider(api=api)
+    p_api = resolver.resolve_provider(router=router)
     p_model = resolver.resolve_provider(model=Model)
     p_op = resolver.resolve_provider(model=Model, op_alias="create")
 

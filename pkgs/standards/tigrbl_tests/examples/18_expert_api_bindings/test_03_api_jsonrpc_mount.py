@@ -6,7 +6,7 @@ preferred pattern because it preserves routing metadata alongside model
 configuration.
 """
 
-from tigrbl import Base, TigrblApi
+from tigrbl import Base, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -21,10 +21,10 @@ def test_api_binding_mounts_jsonrpc_router():
 
         name = Column(String, nullable=False)
 
-    api = TigrblApi(engine=mem(async_=False))
-    api.include_model(Widget)
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_model(Widget)
 
-    router = api.mount_jsonrpc()
+    router = router.mount_jsonrpc()
 
     assert router is not None
 
@@ -38,9 +38,9 @@ def test_jsonrpc_mount_uses_configured_prefix():
 
         name = Column(String, nullable=False)
 
-    api = TigrblApi(engine=mem(async_=False), jsonrpc_prefix="/rpc-demo")
-    api.include_model(Widget)
+    router = TigrblRouter(engine=mem(async_=False), jsonrpc_prefix="/rpc-demo")
+    router.include_model(Widget)
 
-    router = api.mount_jsonrpc()
+    router = router.mount_jsonrpc()
 
     assert router is not None

@@ -41,11 +41,11 @@ async def client_and_model():
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
     app = Tigrblv3()
-    api = Tigrblv3(engine=mem())
-    api.include_model(Gadget, prefix="")
-    api.mount_jsonrpc(prefix="/rpc")
-    await api.initialize()
-    app.include_router(api.router)
+    router = Tigrblv3(engine=mem())
+    router.include_model(Gadget, prefix="")
+    router.mount_jsonrpc(prefix="/rpc")
+    await router.initialize()
+    app.include_router(router.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
@@ -161,11 +161,11 @@ async def wrapper_field_client_and_model():
         __tigrbl_cols__ = {"id": id, "data": data}
 
     app = Tigrblv3()
-    api = Tigrblv3(engine=mem())
-    api.include_model(WrapperNamed, prefix="")
-    api.mount_jsonrpc(prefix="/rpc")
-    await api.initialize()
-    app.include_router(api.router)
+    router = Tigrblv3(engine=mem())
+    router.include_model(WrapperNamed, prefix="")
+    router.mount_jsonrpc(prefix="/rpc")
+    await router.initialize()
+    app.include_router(router.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
@@ -261,11 +261,11 @@ async def bulk_client_and_model():
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
     app = Tigrblv3()
-    api = Tigrblv3(engine=mem())
-    api.include_model(Gadget, prefix="")
-    api.mount_jsonrpc(prefix="/rpc")
-    await api.initialize()
-    app.include_router(api.router)
+    router = Tigrblv3(engine=mem())
+    router.include_model(Gadget, prefix="")
+    router.mount_jsonrpc(prefix="/rpc")
+    await router.initialize()
+    app.include_router(router.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:

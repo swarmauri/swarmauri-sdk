@@ -11,8 +11,6 @@ from typing import get_args as _get_args, get_origin as _get_origin
 from .collection import _make_collection_endpoint
 from .member import _make_member_endpoint
 from .common import (
-    TIGRBL_ALLOW_ANON_ATTR,
-    TIGRBL_AUTH_DEP_ATTR,
     TIGRBL_GET_DB_ATTR,
     TIGRBL_REST_DEPENDENCIES_ATTR,
     BaseModel,
@@ -24,11 +22,8 @@ from .common import (
     _default_path_suffix,
     _nested_prefix,
     _normalize_deps,
-    _normalize_secdeps,
     _optionalize_list_in_model,
     _path_for_spec,
-    _require_auth_header,
-    _requires_auth_header,
     _req_state_db,
     _resource_name,
     _status,
@@ -84,20 +79,13 @@ def _query_param_schemas_from_model(
 
 
 def _build_router(
-    model: type, specs: Sequence[OpSpec], *, api: Any | None = None
+    model: type, specs: Sequence[OpSpec], *, router: Any | None = None
 ) -> Router:
     resource = _resource_name(model)
 
     # Router-level deps: extra deps only (transport-level; never part of kernel plan)
     extra_router_deps = _normalize_deps(
         getattr(model, TIGRBL_REST_DEPENDENCIES_ATTR, None)
-    )
-    auth_dep = getattr(model, TIGRBL_AUTH_DEP_ATTR, None)
-
-    # Verbs explicitly allowed without auth
-    allow_anon_attr = getattr(model, TIGRBL_ALLOW_ANON_ATTR, None)
-    allow_anon = set(
-        allow_anon_attr() if callable(allow_anon_attr) else allow_anon_attr or []
     )
 
     router = Router(dependencies=extra_router_deps or None)
@@ -249,7 +237,7 @@ def _build_router(
                 db_dep=db_dep,
                 pk_param=pk_param,
                 nested_vars=nested_vars,
-                api=api,
+                router=router,
             )
         else:
             endpoint = _make_collection_endpoint(
@@ -258,7 +246,7 @@ def _build_router(
                 resource=resource,
                 db_dep=db_dep,
                 nested_vars=nested_vars,
-                api=api,
+                router=router,
             )
 
         # Status codes
@@ -279,10 +267,6 @@ def _build_router(
 
         # Attach route
         label = f"{model.__name__} - {sp.alias}"
-        route_deps = None
-        if auth_dep and sp.alias not in allow_anon and sp.target not in allow_anon:
-            route_deps = _normalize_deps([auth_dep])
-
         unique_id = f"{endpoint.__name__}_{uuid4().hex}"
         include_in_schema = bool(
             getattr(sp, "extra", {}).get("include_in_schema", True)
@@ -307,19 +291,11 @@ def _build_router(
                 if sp.target in {"list", "clear"}
                 else None
             ),
+            tigrbl_model=model,
+            tigrbl_alias=sp.alias,
         )
         if response_class is not None:
             route_kwargs["response_class"] = response_class
-
-        secdeps: list[Any] = list(route_deps or [])
-        if auth_dep and sp.alias not in allow_anon and sp.target not in allow_anon:
-            if _requires_auth_header(auth_dep):
-                secdeps.append(_require_auth_header)
-            secdeps.append(auth_dep)
-        secdeps.extend(getattr(sp, "secdeps", ()))
-        route_secdeps = _normalize_secdeps(secdeps)
-        if route_secdeps:
-            route_kwargs["dependencies"] = route_secdeps
 
         if (
             sp.alias != sp.target
@@ -328,7 +304,7 @@ def _build_router(
         ):
             route_kwargs["include_in_schema"] = False
 
-        router.add_api_route(**route_kwargs)
+        router.add_route(**route_kwargs)
 
         logger.debug(
             "rest: registered %s %s -> %s.%s (response_model=%s)",

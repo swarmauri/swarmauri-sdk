@@ -38,7 +38,7 @@ class _Ctx(dict):
     Common keys:
       • request: ASGI Request (optional)
       • db: Session | AsyncSession
-      • api/model/op: optional metadata
+      • router/model/op: optional metadata
       • result: last non-None step result
       • error: last exception caught (on failure paths)
       • response: SimpleNamespace(result=...) for POST_RESPONSE shaping

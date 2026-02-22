@@ -5,7 +5,7 @@ retrieved from the API instance and mounted on a host app, keeping the API
 responsible for its own diagnostic endpoints.
 """
 
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -20,11 +20,11 @@ def test_api_binding_mounts_diagnostics_router():
 
         name = Column(String, nullable=False)
 
-    api = TigrblApi(engine=mem(async_=False))
-    api.include_model(Widget)
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_model(Widget)
 
     app = TigrblApp()
-    router = api.attach_diagnostics(app=app)
+    router = router.attach_diagnostics(app=app)
 
     assert router is not None
 
@@ -38,13 +38,13 @@ def test_api_diagnostics_mounts_on_app_namespace():
 
         name = Column(String, nullable=False)
 
-    api = TigrblApi(engine=mem(async_=False))
-    api.include_model(Widget)
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_model(Widget)
 
     app = TigrblApp()
-    router = api.attach_diagnostics(app=app)
+    router = router.attach_diagnostics(app=app)
 
     assert router is not None
     assert any(
-        route.path == f"{api.system_prefix}/healthz" for route in app.router.routes
+        route.path == f"{router.system_prefix}/healthz" for route in app.router.routes
     )

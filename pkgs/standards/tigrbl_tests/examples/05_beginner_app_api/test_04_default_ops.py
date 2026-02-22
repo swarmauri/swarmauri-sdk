@@ -20,12 +20,12 @@ def test_default_ops_register_core_verbs():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-    api = TigrblApp(engine=mem(async_=False))
+    router = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize default operations.
-    api.include_model(Widget)
-    api.initialize()
+    router.include_model(Widget)
+    router.initialize()
     # Exercise: gather the operation aliases bound to the model.
-    verbs = {spec.alias for spec in api.bind(Widget)}
+    verbs = {spec.alias for spec in router.bind(Widget)}
     # Assertion: core CRUD verbs are present by default.
     assert {"create", "read", "update", "delete", "list"}.issubset(verbs)
 
@@ -45,12 +45,12 @@ def test_default_ops_are_exposed_as_aliases():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-    api = TigrblApp(engine=mem(async_=False))
+    router = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize operations.
-    api.include_model(Widget)
-    api.initialize()
+    router.include_model(Widget)
+    router.initialize()
     # Exercise: list bound operation aliases.
-    aliases = {spec.alias for spec in api.bind(Widget)}
+    aliases = {spec.alias for spec in router.bind(Widget)}
     # Assertion: common aliases like create/list are always available.
     assert "create" in aliases
     assert "list" in aliases

@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.types import Mapped, String
@@ -19,7 +19,7 @@ class Zeta(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class ZetaApi(TigrblApi):
+class ZetaApi(TigrblRouter):
     MODELS = (Zeta,)
 
 

@@ -15,10 +15,15 @@ class AppSpec:
 
     title: str = "Tigrbl"
     version: str = "0.1.0"
+    description: Optional[str] = None
+    openapi_url: str = "/openapi.json"
+    docs_url: str = "/docs"
+    debug: bool = False
+    swagger_ui_version: str = "5.31.0"
     engine: Optional[EngineCfg] = None
 
-    # NEW: multi-API composition (store API classes or instances)
-    apis: Sequence[Any] = field(default_factory=tuple)
+    # NEW: multi-router composition (store router classes or instances)
+    routers: Sequence[Any] = field(default_factory=tuple)
 
     # NEW: orchestration/topology knobs
     ops: Sequence[Any] = field(default_factory=tuple)  # op descriptors or specs

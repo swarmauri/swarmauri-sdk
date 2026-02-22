@@ -17,7 +17,7 @@ def mount_openapi(
     def _openapi_handler(request: Any) -> Response:
         return Response.json(openapi(router))
 
-    router.add_api_route(
+    router.add_route(
         path,
         _openapi_handler,
         methods=["GET"],

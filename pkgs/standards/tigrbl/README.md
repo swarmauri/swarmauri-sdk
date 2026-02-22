@@ -623,7 +623,7 @@ provider_pg = Provider(spec_pg)
 `engine_ctx` binds database configuration to different layers. It accepts a
 DSN string, a mapping, an `EngineSpec`, a `Provider`, or an `Engine`. The
 resolver chooses the most specific binding in the order
-`op > table > api > app`.
+`op > table > router > app`.
 
 #### Engine precedence 🥇
 

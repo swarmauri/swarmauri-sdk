@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -20,23 +20,23 @@ class Theta(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class ThetaApi(TigrblApi):
+class ThetaApi(TigrblRouter):
     MODELS = (Theta,)
 
 
 @pytest.mark.unit
 def test_tigrbl_api_app_instantiation_sets_composed_state() -> None:
-    api = ThetaApi(engine=mem(async_=False))
+    router = ThetaApi(engine=mem(async_=False))
 
     class ThetaApp(TigrblApp):
-        APIS = (api,)
+        APIS = (router,)
 
     app = ThetaApp(engine=mem(async_=False))
 
-    api_dir = dir(api)
+    api_dir = dir(router)
     app_dir = dir(app)
 
     assert "models" in api_dir
-    assert api.models["Theta"] is Theta
+    assert router.models["Theta"] is Theta
     assert "apis" in app_dir
-    assert app.apis == [api]
+    assert app.apis == [router]

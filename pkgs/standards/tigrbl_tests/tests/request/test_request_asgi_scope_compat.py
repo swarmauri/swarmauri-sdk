@@ -8,7 +8,7 @@ def test_request_accepts_scope_with_receive_kwarg_for_compatibility() -> None:
         "type": "http",
         "method": "post",
         "path": "/rpc",
-        "root_path": "/api",
+        "root_path": "/router",
         "headers": [(b"authorization", b"Bearer test-token")],
         "query_string": b"a=1&a=2&b=3",
         "path_params": {"tenant_id": "abc"},
@@ -22,7 +22,7 @@ def test_request_accepts_scope_with_receive_kwarg_for_compatibility() -> None:
 
     assert request.method == "POST"
     assert request.path == "/rpc"
-    assert str(request.url) == "/api/rpc?a=1&a=2&b=3"
+    assert str(request.url) == "/router/rpc?a=1&a=2&b=3"
     assert request.query == {"a": ["1", "2"], "b": ["3"]}
     assert request.path_params == {"tenant_id": "abc"}
     assert request.headers.authorization == "Bearer test-token"

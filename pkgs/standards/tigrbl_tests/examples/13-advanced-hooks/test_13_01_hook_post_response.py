@@ -33,10 +33,10 @@ async def test_hook_modifies_response() -> None:
             ctx["response"].result["hooked"] = True
 
     app = TigrblApp()
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Item, prefix="")
-    await api.initialize()
-    app.include_router(api.router)
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(Item, prefix="")
+    await router.initialize()
+    app.include_router(router.router)
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

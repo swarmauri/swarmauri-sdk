@@ -17,21 +17,21 @@ from tigrbl.hook import hook_ctx
 def create_client(model_cls):
     """Build a FastAPI app with Tigrbl v3 and return an AsyncClient."""
     app = TigrblApp()
-    api = TigrblApp(engine={"kind": "sqlite", "memory": True})
-    api.include_model(model_cls)
-    api.mount_jsonrpc()
-    api.attach_diagnostics()
+    router = TigrblApp(engine={"kind": "sqlite", "memory": True})
+    router.include_model(model_cls)
+    router.mount_jsonrpc()
+    router.attach_diagnostics()
 
     from tigrbl.engine import resolver as _resolver
 
-    prov = _resolver.resolve_provider(api=api)
+    prov = _resolver.resolve_provider(router=router)
     engine, SessionLocal = prov.ensure()
     Base.metadata.create_all(engine)
 
-    app.include_router(api.router)
+    app.include_router(router.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, api, SessionLocal
+    return client, router, SessionLocal
 
 
 # ---------------------------------------------------------------------------
@@ -53,8 +53,8 @@ async def test_hook_ctx_binding_i9n():
         async def flag(cls, ctx):
             ctx["flagged"] = True
 
-    client, api, _ = create_client(Item)
-    assert any(callable(h) for h in api.hooks.Item.create.PRE_HANDLER)
+    client, router, _ = create_client(Item)
+    assert any(callable(h) for h in router.hooks.Item.create.PRE_HANDLER)
     await client.aclose()
 
 
@@ -301,9 +301,9 @@ async def test_hook_ctx_core_crud_i9n():
         async def mark(cls, ctx):
             ctx["response"].result["via"] = "core"
 
-    client, api, SessionLocal = create_client(Item)
+    client, router, SessionLocal = create_client(Item)
     with SessionLocal() as session:
-        result = await api.core.Item.create({"name": "x"}, db=session)
+        result = await router.core.Item.create({"name": "x"}, db=session)
     assert result["via"] == "core"
     await client.aclose()
 

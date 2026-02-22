@@ -11,8 +11,8 @@ from examples.lesson_support import make_widget_model
 @pytest.mark.asyncio
 async def test_rest_router_is_attached() -> None:
     widget = make_widget_model(model_name="WidgetRouter", table_name="widget_router")
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(widget, prefix="")
-    await api.initialize()
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(widget, prefix="")
+    await router.initialize()
 
-    assert api.routers["WidgetRouter"] is widget.rest.router
+    assert router.routers["WidgetRouter"] is widget.rest.router

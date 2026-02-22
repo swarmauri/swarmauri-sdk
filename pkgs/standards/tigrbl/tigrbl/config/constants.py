@@ -97,7 +97,7 @@ TIGRBL_OPS_ATTR = "__tigrbl_ops__"  # declarative OpSpec list from decorators
 TIGRBL_VERB_ALIASES_ATTR = "__tigrbl_verb_aliases__"  # optional verb alias map
 TIGRBL_VERB_ALIAS_POLICY_ATTR = "__tigrbl_verb_alias_policy__"  # alias policy override
 TIGRBL_NESTED_PATHS_ATTR = "__tigrbl_nested_paths__"  # nested path callback (optional)
-TIGRBL_API_HOOKS_ATTR = "__tigrbl_api_hooks__"  # API-level hooks map
+TIGRBL_ROUTER_HOOKS_ATTR = "__tigrbl_router_hooks__"  # Router-level hooks map
 TIGRBL_HOOKS_ATTR = "__tigrbl_hooks__"  # model-level hooks map
 TIGRBL_REGISTRY_LISTENER_ATTR = "__tigrbl_registry_listener__"  # ops registry listener
 TIGRBL_GET_DB_ATTR = "__tigrbl_get_db__"  # DB dependency
@@ -122,7 +122,7 @@ MODEL_LEVEL_CFGS: frozenset[str] = frozenset(
         TIGRBL_VERB_ALIASES_ATTR,
         TIGRBL_VERB_ALIAS_POLICY_ATTR,
         TIGRBL_NESTED_PATHS_ATTR,
-        TIGRBL_API_HOOKS_ATTR,
+        TIGRBL_ROUTER_HOOKS_ATTR,
         TIGRBL_HOOKS_ATTR,
         TIGRBL_REGISTRY_LISTENER_ATTR,
         TIGRBL_GET_DB_ATTR,
@@ -191,7 +191,7 @@ __all__ = [
     "TIGRBL_VERB_ALIASES_ATTR",
     "TIGRBL_VERB_ALIAS_POLICY_ATTR",
     "TIGRBL_NESTED_PATHS_ATTR",
-    "TIGRBL_API_HOOKS_ATTR",
+    "TIGRBL_ROUTER_HOOKS_ATTR",
     "TIGRBL_HOOKS_ATTR",
     "TIGRBL_REGISTRY_LISTENER_ATTR",
     "TIGRBL_GET_DB_ATTR",

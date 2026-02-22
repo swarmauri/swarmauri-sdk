@@ -9,9 +9,9 @@ Quick start:
     from tigrbl import include_model, build_jsonrpc_router, mount_diagnostics
     from tigrbl import OpSpec, hook_ctx, op_ctx, alias_ctx, schema_ctx, SchemaRef
 
-    include_model(api, User, app=asgi_app)
-    app.include_router(build_jsonrpc_router(api), prefix="/rpc")
-    app.include_router(mount_diagnostics(api), prefix="/system")
+    include_model(router, User, app=asgi_app)
+    app.include_router(build_jsonrpc_router(router), prefix="/rpc")
+    app.include_router(mount_diagnostics(router), prefix="/system")
 
     # Example: custom op using an existing schema
     @op_ctx(alias="search", target="custom", arity="collection",
@@ -68,6 +68,7 @@ from .schema import _build_schema, _build_list_params, get_schema
 
 # ── Transport & Diagnostics (optional) ─────────────────────────────────────────
 from .transport.jsonrpc import build_jsonrpc_router
+from .transport import Request, Response
 from .system import mount_diagnostics
 
 # ── DB/bootstrap helpers (infra; optional) ─────────────────────────────────────
@@ -76,9 +77,9 @@ from .ddl import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
 from .app.tigrbl_app import TigrblApp
-from .api import Api, TigrblApi
+from .router import Route, Router, TigrblRouter
 
-from .table import Base
+from .table import Table
 from .op import Op
 from .security import APIKey, HTTPBearer, MutualTLS, OAuth2, OpenIdConnect
 
@@ -87,9 +88,10 @@ __all__: list[str] = []
 
 __all__ += [
     "TigrblApp",
-    "TigrblApi",
-    "Api",
-    "Base",
+    "TigrblRouter",
+    "Router",
+    "Route",
+    "Table",
     "Op",
     "HTTPBearer",
     "APIKey",
@@ -147,4 +149,6 @@ __all__ += [
     "bootstrap_dbschema",
     # Config
     "DEFAULT_HTTP_METHODS",
+    "Request",
+    "Response",
 ]

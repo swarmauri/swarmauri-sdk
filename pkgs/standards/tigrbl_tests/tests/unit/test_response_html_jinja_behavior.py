@@ -49,8 +49,8 @@ def test_jinja_response_rest_alias_table(tmp_path):
 @pytest.mark.asyncio
 async def test_html_response_rpc_alias_table(tmp_path):
     Widget, _ = build_model_for_response("html", tmp_path)
-    api = SimpleNamespace(models={"Widget": Widget})
-    result = await rpc_call(api, Widget, "download", {}, db=SimpleNamespace())
+    router = SimpleNamespace(models={"Widget": Widget})
+    result = await rpc_call(router, Widget, "download", {}, db=SimpleNamespace())
     assert result["status_code"] == 200
     assert result["body"] == b"<h1>pong</h1>"
 
@@ -62,8 +62,8 @@ async def test_html_response_rpc_alias_table(tmp_path):
 async def test_jinja_response_rpc_alias_table(tmp_path):
     pytest.importorskip("jinja2")
     Widget = build_model_for_jinja_response(tmp_path)
-    api = SimpleNamespace(models={"Widget": Widget})
-    result = await rpc_call(api, Widget, "download", {}, db=SimpleNamespace())
+    router = SimpleNamespace(models={"Widget": Widget})
+    result = await rpc_call(router, Widget, "download", {}, db=SimpleNamespace())
     assert result["status_code"] == 200
     assert result["body"] == b"<h1>World</h1>"
 
@@ -75,8 +75,8 @@ async def test_jinja_response_rpc_alias_table(tmp_path):
 async def test_diagnostics_kernelz_active_for_jinja_response(tmp_path):
     pytest.importorskip("jinja2")
     Widget = build_model_for_jinja_response(tmp_path)
-    api = SimpleNamespace(models={"Widget": Widget})
-    kernelz = _build_kernelz_endpoint(api)
+    router = SimpleNamespace(models={"Widget": Widget})
+    kernelz = _build_kernelz_endpoint(router)
     data = await kernelz()
     assert "atom:response:template@out:dump" in data["Widget"]["download"]
     assert "atom:response:negotiate@out:dump" in data["Widget"]["download"]
@@ -89,10 +89,10 @@ async def test_diagnostics_kernelz_active_for_jinja_response(tmp_path):
 def test_kernel_state_for_jinja_response(tmp_path):
     pytest.importorskip("jinja2")
     Widget = build_model_for_jinja_response(tmp_path)
-    api = SimpleNamespace(models={"Widget": Widget})
-    K.ensure_primed(api)
+    router = SimpleNamespace(models={"Widget": Widget})
+    K.ensure_primed(router)
     labels = [
-        lbl.split(":", 1)[1] for lbl in K.kernelz_payload(api)["Widget"]["download"]
+        lbl.split(":", 1)[1] for lbl in K.kernelz_payload(router)["Widget"]["download"]
     ]
     assert "atom:response:template@out:dump" in labels
     assert "atom:response:negotiate@out:dump" in labels

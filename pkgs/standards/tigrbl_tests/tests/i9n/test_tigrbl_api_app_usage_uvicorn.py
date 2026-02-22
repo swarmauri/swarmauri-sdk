@@ -2,7 +2,7 @@ import httpx
 import pytest
 import pytest_asyncio
 
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 from tigrbl.types import Security
 from tigrbl.engine.shortcuts import mem
@@ -35,22 +35,22 @@ class Kappa(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class KappaApi(TigrblApi):
+class KappaApi(TigrblRouter):
     MODELS = (Kappa,)
 
 
 @pytest_asyncio.fixture()
 async def running_api_app():
-    api = KappaApi(engine=mem(async_=False))
-    api.set_auth(authn=auth_dependency, allow_anon=False)
-    api.include_models([Kappa])
-    api.initialize()
+    router = KappaApi(engine=mem(async_=False))
+    router.set_auth(authn=auth_dependency, allow_anon=False)
+    router.include_models([Kappa])
+    router.initialize()
 
     class KappaApp(TigrblApp):
-        APIS = (api,)
+        APIS = (router,)
 
     app = KappaApp(engine=mem(async_=False))
-    app.include_router(api)
+    app.include_router(router)
 
     base_url, server, task = await run_uvicorn_in_task(app)
     try:

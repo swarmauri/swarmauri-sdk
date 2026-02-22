@@ -1,6 +1,6 @@
 """Integration coverage for engine precedence, interning, and uvicorn routing.
 
-These scenarios validate resolver binding across TigrblApp/TigrblApi surfaces,
+These scenarios validate resolver binding across TigrblApp/TigrblRouter surfaces,
 including REST + JSON-RPC flows against a live uvicorn server.
 """
 
@@ -10,7 +10,7 @@ import httpx
 import pytest
 from sqlalchemy import Column, String
 
-from tigrbl import Base, TigrblApi, TigrblApp, engine_ctx, op_ctx
+from tigrbl import Base, TigrblRouter, TigrblApp, engine_ctx, op_ctx
 from tigrbl.engine import resolver
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
@@ -90,41 +90,41 @@ async def test_tigrblapi_multi_table_engine_binding_uvicorn() -> None:
     """Validate API-level engine defaults and table overrides via uvicorn.
 
     Steps:
-        1) Build a TigrblApi with two tables and a table override.
-        2) Assert resolver bindings for api + models.
+        1) Build a TigrblRouter with two tables and a table override.
+        2) Assert resolver bindings for router + models.
         3) Exercise REST + JSON-RPC routes in uvicorn.
     """
     # Step 1: Define models and engine configs for the API.
-    api_engine = {**mem(async_=False), "tag": "api-default"}
-    table_engine = {**mem(async_=False), "tag": "api-table"}
+    api_engine = {**mem(async_=False), "tag": "router-default"}
+    table_engine = {**mem(async_=False), "tag": "router-table"}
 
     class ApiWidget(Base, GUIDPk):
         __tablename__ = "api_widgets"
-        __resource__ = "api-widget"
+        __resource__ = "router-widget"
         name = Column(String, nullable=False)
 
     @engine_ctx(table_engine)
     class ApiGadget(Base, GUIDPk):
         __tablename__ = "api_gadgets"
-        __resource__ = "api-gadget"
+        __resource__ = "router-gadget"
         name = Column(String, nullable=False)
 
-    api = TigrblApi(engine=api_engine)
-    api.include_models([ApiWidget, ApiGadget])
-    api.install_engines(models=tuple(api.models.values()))
-    api.mount_jsonrpc()
-    api.initialize()
+    router = TigrblRouter(engine=api_engine)
+    router.include_models([ApiWidget, ApiGadget])
+    router.install_engines(models=tuple(router.models.values()))
+    router.mount_jsonrpc()
+    router.initialize()
 
     app = TigrblApp()
-    app.include_router(api.router, prefix="/api")
+    app.include_router(router.router, prefix="/router")
 
-    # Step 2: Assert resolver bindings (api vs table overrides).
-    api_provider = resolver.resolve_provider(api=api)
-    widget_provider = resolver.resolve_provider(api=api, model=ApiWidget)
-    gadget_provider = resolver.resolve_provider(api=api, model=ApiGadget)
+    # Step 2: Assert resolver bindings (router vs table overrides).
+    api_provider = resolver.resolve_provider(router=router)
+    widget_provider = resolver.resolve_provider(router=router, model=ApiWidget)
+    gadget_provider = resolver.resolve_provider(router=router, model=ApiGadget)
     assert api_provider is widget_provider
     assert gadget_provider is not api_provider
-    assert api.engine == api_engine
+    assert router.engine == api_engine
     assert ApiGadget.table_config["engine"] == table_engine
 
     # Step 3: Start uvicorn and validate REST + JSON-RPC calls.
@@ -132,10 +132,10 @@ async def test_tigrblapi_multi_table_engine_binding_uvicorn() -> None:
     try:
         async with httpx.AsyncClient() as client:
             rest_widget = await client.post(
-                f"{base_url}/api/api-widget", json={"name": "widget"}
+                f"{base_url}/router/router-widget", json={"name": "widget"}
             )
             rest_gadget = await client.post(
-                f"{base_url}/api/api-gadget", json={"name": "gadget"}
+                f"{base_url}/router/router-gadget", json={"name": "gadget"}
             )
             rpc_payload = {
                 "jsonrpc": "2.0",
@@ -143,7 +143,9 @@ async def test_tigrblapi_multi_table_engine_binding_uvicorn() -> None:
                 "params": {"name": "rpc-widget"},
                 "id": 1,
             }
-            rpc_response = await client.post(f"{base_url}/api/rpc/", json=rpc_payload)
+            rpc_response = await client.post(
+                f"{base_url}/router/rpc/", json=rpc_payload
+            )
 
         assert rest_widget.status_code == 201
         assert rest_gadget.status_code == 201
@@ -166,7 +168,7 @@ async def test_multi_api_precedence_dedupe_and_op_engine_uvicorn() -> None:
     # Step 1: Define engine configs and models.
     app_engine = {**mem(async_=False), "tag": "app-shared"}
     api_one_engine = {**mem(async_=False), "tag": "app-shared"}
-    api_two_engine = {**mem(async_=False), "tag": "api-two"}
+    api_two_engine = {**mem(async_=False), "tag": "router-two"}
     model_engine = {**mem(async_=False), "tag": "model-two"}
     op_engine = {**mem(async_=False), "tag": "op-override"}
 
@@ -196,13 +198,13 @@ async def test_multi_api_precedence_dedupe_and_op_engine_uvicorn() -> None:
         __resource__ = "beta-gadget"
         name = Column(String, nullable=False)
 
-    api_one = TigrblApi(engine=api_one_engine)
+    api_one = TigrblRouter(engine=api_one_engine)
     api_one.include_models([AlphaWidget, AlphaGadget])
     api_one.initialize()
     api_one.install_engines(models=tuple(api_one.models.values()))
     api_one.mount_jsonrpc()
 
-    api_two = TigrblApi(engine=api_two_engine)
+    api_two = TigrblRouter(engine=api_two_engine)
     api_two.include_models([BetaWidget, BetaGadget])
     api_two.initialize()
     api_two.install_engines(models=tuple(api_two.models.values()))
@@ -216,13 +218,13 @@ async def test_multi_api_precedence_dedupe_and_op_engine_uvicorn() -> None:
     app.install_engines(models=tuple(app.models.values()))
     app.initialize()
 
-    # Step 2: Assert resolver precedence and dedupe across app/api/model/op.
+    # Step 2: Assert resolver precedence and dedupe across app/router/model/op.
     default_provider = resolver.resolve_provider()
-    api_one_provider = resolver.resolve_provider(api=api_one)
-    api_two_provider = resolver.resolve_provider(api=api_two)
-    beta_model_provider = resolver.resolve_provider(api=api_two, model=BetaWidget)
+    api_one_provider = resolver.resolve_provider(router=api_one)
+    api_two_provider = resolver.resolve_provider(router=api_two)
+    beta_model_provider = resolver.resolve_provider(router=api_two, model=BetaWidget)
     beta_op_provider = resolver.resolve_provider(
-        api=api_two, model=BetaWidget, op_alias="ping"
+        router=api_two, model=BetaWidget, op_alias="ping"
     )
 
     assert default_provider is api_one_provider

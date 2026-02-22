@@ -10,7 +10,7 @@ def test_acronym_model_route(create_test_api):
         __tablename__ = "gpg_keys"
         key = Column(String, nullable=False)
 
-    api = create_test_api(GPGKey)
-    paths = {route.path for route in api.router.routes}
+    router = create_test_api(GPGKey)
+    paths = {route.path for route in router.router.routes}
     assert "/gpgkey" in paths
     assert all("g_p_g_key" not in p for p in paths)

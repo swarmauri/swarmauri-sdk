@@ -21,19 +21,19 @@ async def setup_client(db_mode, Tenant, Item):
     fastapi_app = APIRouter()
 
     if db_mode == "async":
-        api = TigrblApp(engine=mem())
-        api.include_models([Tenant, Item])
-        await api.initialize()
+        router = TigrblApp(engine=mem())
+        router.include_models([Tenant, Item])
+        await router.initialize()
     else:
-        api = TigrblApp(engine=mem(async_=False))
-        api.include_models([Tenant, Item])
-        api.initialize()
+        router = TigrblApp(engine=mem(async_=False))
+        router.include_models([Tenant, Item])
+        router.initialize()
 
-    api.mount_jsonrpc()
-    fastapi_app.include_router(api.router)
+    router.mount_jsonrpc()
+    fastapi_app.include_router(router.router)
     transport = ASGITransport(app=fastapi_app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, api
+    return client, router
 
 
 @pytest.mark.i9n

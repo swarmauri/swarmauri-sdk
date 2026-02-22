@@ -25,19 +25,19 @@ async def api_client_with_extras(db_mode):
         }
 
     if db_mode == "async":
-        api = TigrblApp(engine=mem())
-        api.include_model(Widget)
-        await api.initialize()
+        router = TigrblApp(engine=mem())
+        router.include_model(Widget)
+        await router.initialize()
     else:
-        api = TigrblApp(engine=mem(async_=False))
-        api.include_model(Widget)
-        api.initialize()
+        router = TigrblApp(engine=mem(async_=False))
+        router.include_model(Widget)
+        router.initialize()
 
     app = TigrblApp()
-    app.include_router(api.router)
+    app.include_router(router.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, api, Widget
+    return client, router, Widget
 
 
 @pytest.mark.i9n

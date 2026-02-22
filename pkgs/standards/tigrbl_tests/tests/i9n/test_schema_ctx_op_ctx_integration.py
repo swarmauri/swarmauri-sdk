@@ -35,16 +35,16 @@ async def widget_client():
             return ctx["payload"]
 
     app = TigrblApp()
-    api = TigrblApp(engine=mem())
-    api.include_model(Widget, prefix="")
-    api.mount_jsonrpc()
-    await api.initialize()
-    app.include_router(api.router)
+    router = TigrblApp(engine=mem())
+    router.include_model(Widget, prefix="")
+    router.mount_jsonrpc()
+    await router.initialize()
+    app.include_router(router.router)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        yield client, api, Widget
+        yield client, router, Widget
 
 
 @pytest.mark.i9n

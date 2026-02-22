@@ -53,12 +53,12 @@ async def build_widget_app(
     diagnostics_prefixes: Iterable[str] = ("", "/systemz"),
 ) -> tuple[TigrblApp, TigrblApp]:
     app = TigrblApp()
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(model, prefix="")
-    await api.initialize()
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(model, prefix="")
+    await router.initialize()
     if jsonrpc:
-        api.mount_jsonrpc()
+        router.mount_jsonrpc()
     for prefix in diagnostics_prefixes:
-        api.attach_diagnostics(prefix=prefix, app=app)
-    app.include_router(api.router)
-    return app, api
+        router.attach_diagnostics(prefix=prefix, app=app)
+    app.include_router(router.router)
+    return app, router

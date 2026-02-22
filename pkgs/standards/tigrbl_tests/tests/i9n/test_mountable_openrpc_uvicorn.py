@@ -2,7 +2,7 @@ import httpx
 import pytest
 from sqlalchemy import Column, String
 
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.system import mount_openrpc
@@ -39,12 +39,12 @@ async def test_openrpc_mountable_on_tigrbl_app_uvicorn():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_openrpc_mountable_on_tigrbl_api_uvicorn():
-    api = TigrblApi(engine=mem(async_=False), models=[Thing])
-    api.initialize()
-    api.mount_jsonrpc(prefix="/rpc")
-    mount_openrpc(api, path="/custom/openrpc.json", name="openrpc_custom")
+    router = TigrblRouter(engine=mem(async_=False), models=[Thing])
+    router.initialize()
+    router.mount_jsonrpc(prefix="/rpc")
+    mount_openrpc(router, path="/custom/openrpc.json", name="openrpc_custom")
 
-    base_url, server, task = await run_uvicorn_in_task(api)
+    base_url, server, task = await run_uvicorn_in_task(router)
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(f"{base_url}/custom/openrpc.json")
@@ -78,12 +78,12 @@ async def test_openrpc_mountable_with_tigrbl_app_method_uvicorn():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_openrpc_mountable_with_tigrbl_api_method_uvicorn():
-    api = TigrblApi(engine=mem(async_=False), models=[Thing])
-    api.initialize()
-    api.mount_jsonrpc(prefix="/rpc")
-    api.mount_openrpc(path="/custom/openrpc.json", name="openrpc_custom")
+    router = TigrblRouter(engine=mem(async_=False), models=[Thing])
+    router.initialize()
+    router.mount_jsonrpc(prefix="/rpc")
+    router.mount_openrpc(path="/custom/openrpc.json", name="openrpc_custom")
 
-    base_url, server, task = await run_uvicorn_in_task(api)
+    base_url, server, task = await run_uvicorn_in_task(router)
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(f"{base_url}/custom/openrpc.json")

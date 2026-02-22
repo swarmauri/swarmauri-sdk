@@ -1,5 +1,5 @@
 from tigrbl.app.shortcuts import deriveApp
-from tigrbl.api.shortcuts import deriveApi
+from tigrbl.router.shortcuts import deriveRouter
 
 
 class Model:
@@ -12,17 +12,17 @@ def test_derive_app_prefills_model_registry() -> None:
     assert app.models["Model"] is Model
 
 
-def test_derive_api_prefills_model_registry() -> None:
-    ApiCls = deriveApi(models=[Model])
-    api = ApiCls()
-    assert api.models["Model"] is Model
+def test_derive_router_prefills_model_registry() -> None:
+    RouterCls = deriveRouter(models=[Model])
+    router = RouterCls()
+    assert router.models["Model"] is Model
 
 
 def test_registry_includes_alias_and_name() -> None:
     class AliasModel:
         __tablename__ = "alias_model"
 
-    ApiCls = deriveApi(models=[("Alias", AliasModel)])
-    api = ApiCls()
-    assert api.models["Alias"] is AliasModel
-    assert api.models["AliasModel"] is AliasModel
+    RouterCls = deriveRouter(models=[("Alias", AliasModel)])
+    router = RouterCls()
+    assert router.models["Alias"] is AliasModel
+    assert router.models["AliasModel"] is AliasModel

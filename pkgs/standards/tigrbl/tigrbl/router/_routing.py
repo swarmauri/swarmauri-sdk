@@ -20,7 +20,7 @@ def merge_tags(base_tags: list[str] | None, tags: list[str] | None) -> list[str]
     return merged or None
 
 
-def add_api_route(
+def add_route(
     router: Any,
     path: str,
     endpoint: Any,
@@ -42,6 +42,9 @@ def add_api_route(
     responses: dict[int, dict[str, Any]] | None = None,
     status_code: int | None = None,
     dependencies: list[Any] | None = None,
+    security_dependencies: list[Any] | None = None,
+    tigrbl_model: Any | None = None,
+    tigrbl_alias: str | None = None,
     **_: Any,
 ) -> None:
     full_path = router.prefix + (path if path.startswith("/") else "/" + path)
@@ -68,13 +71,16 @@ def add_api_route(
         responses=responses,
         status_code=status_code,
         dependencies=list(router.dependencies or []) + list(dependencies or []),
+        security_dependencies=list(security_dependencies or []),
+        tigrbl_model=tigrbl_model,
+        tigrbl_alias=tigrbl_alias,
     )
     router._routes.append(route)
 
 
 def route(router: Any, path: str, *, methods: Iterable[str], **kwargs: Any):
     def deco(fn: Any) -> Any:
-        add_api_route(router, path, fn, methods=methods, **kwargs)
+        add_route(router, path, fn, methods=methods, **kwargs)
         return fn
 
     return deco
@@ -139,5 +145,10 @@ def include_router(
                 status_code=getattr(r, "status_code", None),
                 dependencies=list(router.dependencies or [])
                 + list(getattr(r, "dependencies", None) or []),
+                security_dependencies=list(
+                    getattr(r, "security_dependencies", None) or []
+                ),
+                tigrbl_model=getattr(r, "tigrbl_model", None),
+                tigrbl_alias=getattr(r, "tigrbl_alias", None),
             )
         )
