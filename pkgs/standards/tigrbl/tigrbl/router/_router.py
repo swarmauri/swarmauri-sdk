@@ -12,6 +12,7 @@ from typing import Any, Callable
 
 from tigrbl.router._routing import (
     add_api_route,
+    include_router,
     merge_tags,
     normalize_prefix,
     route,
@@ -185,6 +186,9 @@ class Router(RouterSpec):
         self, path: str, *, methods: Any, **kwargs: Any
     ) -> Callable[[Handler], Handler]:
         return route(self, path, methods=methods, **kwargs)
+
+    def include_router(self, other: Any, **kwargs: Any) -> None:
+        include_router(self, other, **kwargs)
 
     def _route_match_priority(self, route: Route) -> tuple[int, int, int]:
         return _route_match_priority(route)

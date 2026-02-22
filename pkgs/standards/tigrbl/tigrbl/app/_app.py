@@ -10,6 +10,7 @@ from ..engine import install_from_objects
 from ..ddl import initialize as _ddl_initialize
 from ._model_registry import initialize_model_registry
 from .app_spec import AppSpec
+from .transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
 
 
 class App(AppSpec):
@@ -118,5 +119,14 @@ class App(AppSpec):
 
     async def _call_handler(self, route: Any, req: Any):
         return await self.router._call_handler(route, req)
+
+    async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        await self.asgi_app(scope, receive, send)
+
+    async def asgi_app(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        await _asgi_transport(self, scope, receive, send)
+
+    def wsgi_app(self, environ: dict[str, Any], start_response: Any) -> list[bytes]:
+        return _wsgi_transport(self, environ, start_response)
 
     initialize = _ddl_initialize
