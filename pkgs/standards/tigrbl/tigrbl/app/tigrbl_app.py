@@ -66,7 +66,7 @@ class TigrblApp(_App):
     LIFESPAN = None
     MIDDLEWARES: Sequence[Any] = ()
     APIS: Sequence[Any] = ()
-    MODELS: Sequence[Any] = ()
+    TABLES: Sequence[Any] = ()
 
     # --- optional auth knobs recognized by some middlewares/dispatchers (kept for back-compat) ---
     _authn: Any = None
@@ -122,7 +122,7 @@ class TigrblApp(_App):
         )
 
         # public containers (mirrors used by bindings.api)
-        self.models = initialize_model_registry(getattr(self, "MODELS", ()))
+        self.models = initialize_model_registry(getattr(self, "TABLES", ()))
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
         self.hooks = tuple(getattr(self, "HOOKS", ()))
@@ -275,7 +275,7 @@ class TigrblApp(_App):
             self.include_api(self._default_api)
         return self._default_api
 
-    def include_model(
+    def include_table(
         self, model: type, *, prefix: str | None = None, mount_router: bool = True
     ) -> Tuple[type, Any]:
         """
@@ -283,7 +283,7 @@ class TigrblApp(_App):
         """
         default_api = self._ensure_default_api()
 
-        result = default_api.include_model(
+        result = default_api.include_table(
             model,
             prefix=prefix,
             mount_router=False,
@@ -296,7 +296,7 @@ class TigrblApp(_App):
         self._sync_default_api_namespaces()
         return result
 
-    def include_models(
+    def include_tables(
         self,
         models: Sequence[type],
         *,
@@ -305,7 +305,7 @@ class TigrblApp(_App):
     ) -> Dict[str, Any]:
         default_api = self._ensure_default_api()
 
-        result = default_api.include_models(
+        result = default_api.include_tables(
             models,
             base_prefix=base_prefix,
             mount_router=False,

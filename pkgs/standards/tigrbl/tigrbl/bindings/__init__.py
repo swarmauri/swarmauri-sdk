@@ -29,8 +29,8 @@ Per-concern builders:
       • Router-level only; serializes responses iff a response schema exists.
 
 API integration:
-  - include_model(api, model, *, app=None, prefix=None, mount_router=True)
-  - include_models(api, models, *, app=None, base_prefix=None, mount_router=True)
+  - include_table(api, model, *, app=None, prefix=None, mount_router=True)
+  - include_tables(api, models, *, app=None, base_prefix=None, mount_router=True)
   - rpc_call(api, model_or_name, method, payload=None, *, db, request=None, ctx=None)
 """
 
@@ -49,7 +49,7 @@ from .rest import build_router_and_attach as build_rest
 from ..responses.bind import bind as bind_response
 
 # API facade integration
-from .api import include_model, include_models, rpc_call
+from .api import include_table, include_tables, rpc_call
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/__init__")
@@ -67,7 +67,7 @@ __all__ = [
     "build_rest",
     "bind_response",
     # api integration
-    "include_model",
-    "include_models",
+    "include_table",
+    "include_tables",
     "rpc_call",
 ]

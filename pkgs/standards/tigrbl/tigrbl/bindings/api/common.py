@@ -21,7 +21,7 @@ class AttrDict(dict):
         self[key] = value
 
 
-# Public type for the API facade object users pass to include_model(...)
+# Public type for the API facade object users pass to include_table(...)
 ApiLike = Any
 
 
