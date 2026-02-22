@@ -30,7 +30,7 @@ from ..bindings.router import (
     AttrDict,
 )
 from ..bindings.model import rebind as _rebind, bind as _bind
-from ..bindings.api.include import _inject_runtime_secdeps, _make_authorize_secdep
+from ..bindings.router.include import _inject_runtime_secdeps, _make_authorize_secdep
 from ..bindings.rest import build_router_and_attach as _build_router_and_attach
 from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_diagnostics as _mount_diagnostics
