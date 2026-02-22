@@ -8,7 +8,7 @@ from ...transport.dispatch import dispatch_operation
 from ...engine import resolver as _resolver
 
 logger = logging.getLogger("uvicorn")
-logger.debug("Loaded module v3/bindings/api/resource_proxy")
+logger.debug("Loaded module v3/bindings/router/resource_proxy")
 
 
 class _ResourceProxy:
@@ -68,7 +68,7 @@ class _ResourceProxy:
                 else (lambda r: r)
             )
 
-            # Acquire DB if one was not explicitly provided (op > model > api > app)
+            # Acquire DB if one was not explicitly provided (op > model > router > app)
             _release_db = None
             if db is None:
                 try:
@@ -78,7 +78,7 @@ class _ResourceProxy:
                         alias,
                     )
                     db, _release_db = _resolver.acquire(
-                        api=self._router, model=self._model, op_alias=alias
+                        router=self._router, model=self._model, op_alias=alias
                     )
                 except Exception:
                     logger.exception(
