@@ -48,7 +48,7 @@ def _make_member_endpoint(
     db_dep: Callable[..., Any],
     pk_param: str = "item_id",
     nested_vars: Sequence[str] | None = None,
-    api: Any | None = None,
+    router: Any | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
@@ -87,7 +87,7 @@ def _make_member_endpoint(
                 return out
 
             result = await dispatch_operation(
-                router=api,
+                router=router,
                 request=request,
                 db=db,
                 model_or_name=model,
@@ -172,7 +172,7 @@ def _make_member_endpoint(
                 return out
 
             result = await dispatch_operation(
-                router=api,
+                router=router,
                 request=request,
                 db=db,
                 model_or_name=model,
@@ -272,7 +272,7 @@ def _make_member_endpoint(
             return out
 
         result = await dispatch_operation(
-            router=api,
+            router=router,
             request=request,
             db=db,
             model_or_name=model,

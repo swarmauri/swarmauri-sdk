@@ -209,7 +209,7 @@ def _to_phase_map_for_alias(source: Any, alias: str) -> Dict[str, List[StepFn]]:
 def _merge_for_phase(
     phase: str,
     *,
-    api_map: Mapping[str, List[StepFn]] | None,
+    router_map: Mapping[str, List[StepFn]] | None,
     model_map: Mapping[str, List[StepFn]] | None,
     op_map: Mapping[str, List[StepFn]] | None,
 ) -> List[StepFn]:
@@ -225,8 +225,8 @@ def _merge_for_phase(
         return list(m.get(phase, []) or [])
 
     if _is_pre_like(phase):
-        return _get(api_map) + _get(model_map) + _get(op_map)
-    return _get(op_map) + _get(model_map) + _get(api_map)
+        return _get(router_map) + _get(model_map) + _get(op_map)
+    return _get(op_map) + _get(model_map) + _get(router_map)
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -264,10 +264,10 @@ def _attach_one(model: type, sp: OpSpec) -> None:
         setattr(ns, ph, [])
 
     # Resolve source maps for this alias
-    api_src = getattr(model, TIGRBL_ROUTER_HOOKS_ATTR, None)
+    router_src = getattr(model, TIGRBL_ROUTER_HOOKS_ATTR, None)
     model_src = getattr(model, TIGRBL_HOOKS_ATTR, None)
 
-    api_map = _to_phase_map_for_alias(api_src, alias)
+    router_map = _to_phase_map_for_alias(router_src, alias)
     model_map = _to_phase_map_for_alias(model_src, alias)
 
     # Op-level (from OpSpec.hooks)
@@ -279,7 +279,7 @@ def _attach_one(model: type, sp: OpSpec) -> None:
     # Build per-phase chains via precedence merge
     for ph in PHASES:
         merged = _merge_for_phase(
-            ph, api_map=api_map, model_map=model_map, op_map=op_map
+            ph, router_map=router_map, model_map=model_map, op_map=op_map
         )
 
         # Ephemeral operations: mark skip in PRE_TX_BEGIN

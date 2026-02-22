@@ -84,14 +84,14 @@ def resolve_cfg(
     op: Optional[str] = None,
     opspec: Any = None,
     tabspec: Any = None,
-    apispec: Any = None,
+    routerspec: Any = None,
     appspec: Any = None,
     overrides: Optional[Mapping[str, Any]] = None,
 ) -> CfgView:
     """
     Merge configuration from multiple scopes with precedence:
 
-      opspec > colspecs > tabspec > apispec > appspec > defaults
+      opspec > colspecs > tabspec > routerspec > appspec > defaults
 
     The result is normalized and returned as a read-only CfgView suitable for ctx.cfg.
 
@@ -108,8 +108,8 @@ def resolve_cfg(
     # 2) App / API / Tab scopes
     if appspec is not None:
         layers.append(_extract_cfg(appspec))
-    if apispec is not None:
-        layers.append(_extract_cfg(apispec))
+    if routerspec is not None:
+        layers.append(_extract_cfg(routerspec))
     if tabspec is not None:
         layers.append(_extract_cfg(tabspec))
 

@@ -74,7 +74,7 @@ def _make_collection_endpoint(
     resource: str,
     db_dep: Callable[..., Any],
     nested_vars: Sequence[str] | None = None,
-    api: Any | None = None,
+    router: Any | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias, target, nested_vars = sp.alias, sp.target, list(nested_vars or [])
     status_code = _status_for(sp)
@@ -100,7 +100,7 @@ def _make_collection_endpoint(
             if isinstance(h, Mapping):
                 payload = {**payload, **dict(h)}
             result = await dispatch_operation(
-                router=api,
+                router=router,
                 request=request,
                 db=db,
                 model_or_name=model,
@@ -184,7 +184,7 @@ def _make_collection_endpoint(
                     return out
 
                 result = await dispatch_operation(
-                    router=api,
+                    router=router,
                     request=request,
                     db=db,
                     model_or_name=model,
@@ -291,7 +291,7 @@ def _make_collection_endpoint(
                 return out
 
             result = await dispatch_operation(
-                router=api,
+                router=router,
                 request=request,
                 db=db,
                 model_or_name=model,
