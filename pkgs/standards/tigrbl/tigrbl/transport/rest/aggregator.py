@@ -27,24 +27,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Sequence
 
-try:
-    from ...types import Router, Depends
-except Exception:  # pragma: no cover
-    # Minimal shim to keep importable without ASGI
-    class Router:  # type: ignore
-        def __init__(self, *a, dependencies: Optional[Sequence[Any]] = None, **kw):
-            self.routes = []
-            self.includes = []
-            self.dependencies = list(dependencies or [])
-
-        def add_api_route(self, path: str, endpoint, methods: Sequence[str], **opts):
-            self.routes.append((path, methods, endpoint, opts))
-
-        def include_router(self, router: "Router", *, prefix: str = "", **opts):
-            self.includes.append((router, prefix, opts))
-
-    def Depends(fn):  # type: ignore
-        return fn
+from ...types import Depends, Router
 
 
 def _norm_prefix(p: Optional[str]) -> str:
