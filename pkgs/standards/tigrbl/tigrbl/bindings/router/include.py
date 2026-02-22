@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from typing import Any, Dict, Sequence, Tuple
 
 from .common import (
-    ApiLike,
+    RouterLike,
     _default_prefix,
     _ensure_router_ns,
     _has_include_router,
@@ -110,7 +110,7 @@ def _seed_security_and_deps(router: Any, model: type) -> None:
         logger.debug("No RPC dependencies for %s", model.__name__)
 
 
-def _attach_to_router(router: ApiLike, model: type) -> None:
+def _attach_to_router(router: RouterLike, model: type) -> None:
     """
     Attach the model’s bound namespaces to the router facade.
     """
@@ -164,7 +164,7 @@ def _attach_to_router(router: ApiLike, model: type) -> None:
 
 
 def include_table(
-    router: ApiLike,
+    router: RouterLike,
     model: type,
     *,
     app: Any | None = None,
@@ -247,7 +247,7 @@ def include_table(
 
 
 def include_tables(
-    router: ApiLike,
+    router: RouterLike,
     models: Sequence[type],
     *,
     app: Any | None = None,
