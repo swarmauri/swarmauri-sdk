@@ -17,7 +17,7 @@ def test_interns_providers_by_engine_spec() -> None:
 
     cfg = mem(async_=False)
     resolver.set_default(cfg)
-    resolver.register_api(Api, cfg)
+    resolver.register_route(Api, cfg)
     resolver.register_table(Model, cfg)
     resolver.register_op(Model, "create", cfg)
 
@@ -39,7 +39,7 @@ def test_warmup_builds_all_registered_providers() -> None:
 
     cfg = mem(async_=False)
     resolver.set_default(cfg)
-    resolver.register_api(Api, cfg)
+    resolver.register_route(Api, cfg)
 
     providers = resolver.iter_providers()
     assert len(providers) == 1

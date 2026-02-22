@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterable
 
-from .resolver import register_router, register_op, register_table, set_default
+from .resolver import register_route, register_op, register_table, set_default
 
 
 def bind(collected: Dict[str, Any]) -> None:
@@ -14,7 +14,7 @@ def bind(collected: Dict[str, Any]) -> None:
         set_default(default_db)
 
     for router_obj, db in collected.get("router", {}).items():
-        register_router(router_obj, db)
+        register_route(router_obj, db)
 
     for table_obj, db in collected.get("tables", {}).items():
         register_table(table_obj, db)

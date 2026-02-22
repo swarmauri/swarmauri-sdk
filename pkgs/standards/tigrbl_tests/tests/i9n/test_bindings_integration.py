@@ -58,7 +58,7 @@ def _make_db():
 def test_include_table_and_rpc_call():
     engine, db = _make_db()
     api = SimpleNamespace(engine=engine)
-    _resolver.register_router(api, engine)
+    _resolver.register_route(api, engine)
 
     include_table(api, Widget, mount_router=False)
 
@@ -90,7 +90,7 @@ def test_include_table_and_rpc_call():
 def test_include_tables():
     engine, db = _make_db()
     api = SimpleNamespace(engine=engine)
-    _resolver.register_router(api, engine)
+    _resolver.register_route(api, engine)
 
     include_tables(api, [Widget, Gizmo], mount_router=False)
 

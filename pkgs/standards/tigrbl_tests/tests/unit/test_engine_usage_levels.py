@@ -16,7 +16,7 @@ def test_engine_usage_levels_and_precedence():
         __name__ = "Model"
 
     resolver.set_default(mem(async_=False))
-    resolver.register_api(Api, mem(async_=True))
+    resolver.register_route(Api, mem(async_=True))
     resolver.register_table(Model, mem(async_=False))
     resolver.register_op(Model, "create", mem(async_=True))
 

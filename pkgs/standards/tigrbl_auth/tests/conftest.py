@@ -57,8 +57,8 @@ async def test_db_engine() -> AsyncGenerator[Engine, None]:
     provider = engine.provider
     original_surface = engine_resolver.resolve_provider(api=surface_api)
     original_app = engine_resolver.resolve_provider(api=app)
-    engine_resolver.register_api(surface_api, provider)
-    engine_resolver.register_api(app, provider)
+    engine_resolver.register_route(surface_api, provider)
+    engine_resolver.register_route(app, provider)
     setattr(surface_api, "_ddl_executed", False)
     await surface_api.initialize()
     try:
@@ -66,8 +66,8 @@ async def test_db_engine() -> AsyncGenerator[Engine, None]:
     finally:
         raw_engine, _ = provider.ensure()
         await raw_engine.dispose()
-        engine_resolver.register_api(surface_api, original_surface)
-        engine_resolver.register_api(app, original_app)
+        engine_resolver.register_route(surface_api, original_surface)
+        engine_resolver.register_route(app, original_app)
         setattr(surface_api, "_ddl_executed", False)
         db_path.unlink(missing_ok=True)
         db_path.with_suffix(".db-shm").unlink(missing_ok=True)

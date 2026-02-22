@@ -124,7 +124,7 @@ class Router(RouterSpec):
 
         _engine_ctx = engine if engine is not None else getattr(self, "ENGINE", None)
         if _engine_ctx is not None:
-            _resolver.register_router(self, _engine_ctx)
+            _resolver.register_route(self, _engine_ctx)
             _resolver.resolve_provider(api=self)
 
         if include_docs:

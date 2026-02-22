@@ -19,7 +19,7 @@ def test_precedence_op_over_model_over_api_over_app(tmp_path):
 
     # Register in resolver
     resolver.set_default(sqlitef(str(tmp_path / "app.sqlite")))
-    resolver.register_api(
+    resolver.register_route(
         api, {"kind": "postgres", "async": False, "host": "db", "db": "api_db"}
     )
     resolver.register_table(Model, {"kind": "sqlite", "async": False, "mode": "memory"})
