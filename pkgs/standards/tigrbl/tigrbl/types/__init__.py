@@ -52,7 +52,7 @@ from ..deps.pydantic import (
     ValidationError,
 )
 
-from ..router._router import APIRouter, Router
+from ..router._router import Router
 from ..core.crud.params import Body, Path
 from ..transport import Response
 from ..runtime.status.exceptions import HTTPException, StatusDetailError
@@ -154,7 +154,6 @@ __all__: list[str] = [
     # routing/dependency support (from deps)
     "Request",
     "Response",
-    "APIRouter",
     "Router",
     "Security",
     "Depends",

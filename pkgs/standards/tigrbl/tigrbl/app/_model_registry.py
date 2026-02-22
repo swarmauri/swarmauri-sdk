@@ -6,7 +6,7 @@ from typing import Any, Iterable
 
 
 def initialize_model_registry(models: Iterable[Any]) -> dict[str, Any]:
-    """Build the default ``models`` mapping for an App or Api instance.
+    """Build the default ``models`` mapping for an App or Router instance.
 
     ``defineAppSpec``/``defineRouterSpec`` allow authors to declare default models
     using bare model classes or ``("alias", Model)`` tuples.  Runtime facades,

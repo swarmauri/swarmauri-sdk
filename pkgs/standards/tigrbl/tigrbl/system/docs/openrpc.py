@@ -81,7 +81,7 @@ def _iter_models(router: Any) -> List[type]:
                 models.append(model)
 
     _add_from(getattr(router, "models", None) or {})
-    for child in getattr(router, "apis", ()) or ():
+    for child in getattr(router, "routers", ()) or ():
         _add_from(getattr(child, "models", None) or {})
 
     return models
