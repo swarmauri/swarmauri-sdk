@@ -6,10 +6,12 @@ OpSpec-centric building blocks to bind models, wire schemas/handlers/hooks,
 register RPC & REST, and (optionally) mount JSON-RPC and diagnostics.
 
 Quick start:
-    from tigrbl import include_table, build_jsonrpc_router, mount_diagnostics
+    from tigrbl import include_table, include_tables, build_jsonrpc_router, mount_diagnostics
     from tigrbl import OpSpec, hook_ctx, op_ctx, alias_ctx, schema_ctx, SchemaRef
 
     include_table(api, User, app=asgi_app)
+    # or include multiple in one call:
+    include_tables(api, [User, Team], app=asgi_app)
     app.include_router(build_jsonrpc_router(api), prefix="/rpc")
     app.include_router(mount_diagnostics(api), prefix="/system")
 
