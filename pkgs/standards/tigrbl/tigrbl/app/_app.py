@@ -12,7 +12,6 @@ from ._model_registry import initialize_model_registry
 from .app_spec import AppSpec
 from ..router._route import Route
 from ..router._routing import (
-    add_route as _add_route_impl,
     merge_tags as _merge_tags_impl,
     normalize_prefix as _normalize_prefix_impl,
 )
@@ -163,16 +162,6 @@ class App(AppSpec):
 
     def _merge_tags(self, tags: list[str] | None) -> list[str] | None:
         return _merge_tags_impl(getattr(self, "tags", None), tags)
-
-    def add_route(
-        self,
-        path: str,
-        endpoint: Any,
-        *,
-        methods: list[str] | tuple[str, ...],
-        **kwargs: Any,
-    ) -> None:
-        _add_route_impl(self, path, endpoint, methods=methods, **kwargs)
 
     def _router_call(self, *args: Any, **kwargs: Any):
         del kwargs
