@@ -109,22 +109,22 @@ async def test_tigrblapi_multi_table_engine_binding_uvicorn() -> None:
         __resource__ = "api-gadget"
         name = Column(String, nullable=False)
 
-    api = TigrblRouter(engine=api_engine)
-    api.include_models([ApiWidget, ApiGadget])
-    api.install_engines(models=tuple(api.models.values()))
-    api.mount_jsonrpc()
-    api.initialize()
+    router = TigrblRouter(engine=api_engine)
+    router.include_models([ApiWidget, ApiGadget])
+    router.install_engines(models=tuple(router.models.values()))
+    router.mount_jsonrpc()
+    router.initialize()
 
     app = TigrblApp()
-    app.include_router(api.router, prefix="/api")
+    app.include_router(router.router, prefix="/api")
 
     # Step 2: Assert resolver bindings (api vs table overrides).
-    api_provider = resolver.resolve_provider(api=api)
-    widget_provider = resolver.resolve_provider(api=api, model=ApiWidget)
-    gadget_provider = resolver.resolve_provider(api=api, model=ApiGadget)
+    api_provider = resolver.resolve_provider(api=router)
+    widget_provider = resolver.resolve_provider(api=router, model=ApiWidget)
+    gadget_provider = resolver.resolve_provider(api=router, model=ApiGadget)
     assert api_provider is widget_provider
     assert gadget_provider is not api_provider
-    assert api.engine == api_engine
+    assert router.engine == api_engine
     assert ApiGadget.table_config["engine"] == table_engine
 
     # Step 3: Start uvicorn and validate REST + JSON-RPC calls.

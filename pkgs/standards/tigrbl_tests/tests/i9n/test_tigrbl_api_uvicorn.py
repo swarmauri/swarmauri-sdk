@@ -25,17 +25,17 @@ class Gadget(Base, GUIDPk):
 
 @pytest_asyncio.fixture()
 async def running_api_app():
-    api = TigrblRouter(
+    router = TigrblRouter(
         engine=mem(async_=False),
         models=[Gadget],
         prefix="/gadgets",
         system_prefix="/diagnostics",
     )
-    await api.initialize()
+    await router.initialize()
 
     app = TigrblApp()
-    app.include_router(api.router)
-    api.attach_diagnostics(app=app)
+    app.include_router(router.router)
+    router.attach_diagnostics(app=app)
 
     base_url, server, task = await run_uvicorn_in_task(app)
     try:
