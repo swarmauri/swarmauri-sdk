@@ -68,14 +68,14 @@ def mount_favicon(
     _remove_existing_favicon_routes(router, path, ico_path)
 
     if resolved.suffix.lower() == ".svg":
-        router.add_api_route(
+        router.add_route(
             path,
             favicon_endpoint(favicon_path=resolved),
             methods=["GET"],
             name=name,
             include_in_schema=False,
         )
-        router.add_api_route(
+        router.add_route(
             ico_path,
             favicon_ico_redirect_endpoint(path=path),
             methods=["GET"],
@@ -84,7 +84,7 @@ def mount_favicon(
         )
         return router
 
-    router.add_api_route(
+    router.add_route(
         ico_path,
         favicon_endpoint(favicon_path=resolved),
         methods=["GET"],

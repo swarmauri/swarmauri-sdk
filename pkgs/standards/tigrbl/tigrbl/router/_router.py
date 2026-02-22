@@ -12,7 +12,7 @@ from ..engine import resolver as _resolver
 from ..engine.engine_spec import EngineCfg
 
 from tigrbl.router._routing import (
-    add_api_route as _add_api_route_impl,
+    add_route as _add_route_impl,
     merge_tags,
     normalize_prefix,
     route,
@@ -132,9 +132,6 @@ class Router(RouterSpec):
     def router(self) -> "Router":
         return self
 
-    def add_api_route(self, path: str, endpoint: Handler, **kwargs: Any) -> None:
-        self.add_route(path, endpoint, **kwargs)
-
     def add_route(
         self,
         path: str,
@@ -143,7 +140,7 @@ class Router(RouterSpec):
         methods: list[str] | tuple[str, ...],
         **kwargs: Any,
     ) -> None:
-        _add_api_route_impl(self, path, endpoint, methods=methods, **kwargs)
+        _add_route_impl(self, path, endpoint, methods=methods, **kwargs)
 
     def _merge_tags(self, tags: list[str] | None) -> list[str] | None:
         return merge_tags(self.tags, tags)

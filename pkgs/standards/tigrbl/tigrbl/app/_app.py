@@ -11,6 +11,12 @@ from ..ddl import initialize as _ddl_initialize
 from ._model_registry import initialize_model_registry
 from .app_spec import AppSpec
 from ..router._route import Route
+from ..router._routing import (
+    add_route as _add_route_impl,
+    merge_tags as _merge_tags_impl,
+    normalize_prefix as _normalize_prefix_impl,
+    route as _route_impl,
+)
 from ..runtime.dependencies import (
     execute_dependency_tokens as _execute_dependency_tokens_impl,
     execute_route_dependencies as _execute_route_dependencies_impl,
@@ -118,7 +124,44 @@ class App(AppSpec):
         return tables
 
     def __call__(self, *args: Any, **kwargs: Any):
+        return self._dispatch_call(*args, **kwargs)
+
+    def _dispatch_call(self, *args: Any, **kwargs: Any):
         return self._router_call(*args, **kwargs)
+
+    def _normalize_prefix(self, prefix: str) -> str:
+        return _normalize_prefix_impl(prefix)
+
+    def _merge_tags(self, tags: list[str] | None) -> list[str] | None:
+        return _merge_tags_impl(getattr(self, "tags", None), tags)
+
+    def add_route(
+        self,
+        path: str,
+        endpoint: Any,
+        *,
+        methods: list[str] | tuple[str, ...],
+        **kwargs: Any,
+    ) -> None:
+        _add_route_impl(self, path, endpoint, methods=methods, **kwargs)
+
+    def route(self, path: str, *, methods: Any, **kwargs: Any) -> Any:
+        return _route_impl(self, path, methods=methods, **kwargs)
+
+    def get(self, path: str, **kwargs: Any) -> Any:
+        return self.route(path, methods=["GET"], **kwargs)
+
+    def post(self, path: str, **kwargs: Any) -> Any:
+        return self.route(path, methods=["POST"], **kwargs)
+
+    def put(self, path: str, **kwargs: Any) -> Any:
+        return self.route(path, methods=["PUT"], **kwargs)
+
+    def patch(self, path: str, **kwargs: Any) -> Any:
+        return self.route(path, methods=["PATCH"], **kwargs)
+
+    def delete(self, path: str, **kwargs: Any) -> Any:
+        return self.route(path, methods=["DELETE"], **kwargs)
 
     def _router_call(self, *args: Any, **kwargs: Any):
         del kwargs
@@ -262,18 +305,3 @@ class App(AppSpec):
         return await _resolve_handler_kwargs_impl(self, route, req)
 
     initialize = _ddl_initialize
-
-
-for _router_method_name in (
-    "_merge_tags",
-    "_normalize_prefix",
-    "add_api_route",
-    "add_route",
-    "delete",
-    "get",
-    "patch",
-    "post",
-    "put",
-    "route",
-):
-    setattr(App, _router_method_name, getattr(Router, _router_method_name))
