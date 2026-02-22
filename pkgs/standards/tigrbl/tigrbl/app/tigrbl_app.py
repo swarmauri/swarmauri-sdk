@@ -22,7 +22,7 @@ from ..router.tigrbl_router import TigrblRouter
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
-from ..bindings.api import (
+from ..bindings.router import (
     rpc_call as _rpc_call,
     _seed_security_and_deps,
     _mount_router,
@@ -121,7 +121,7 @@ class TigrblApp(_App):
             else getattr(self, "SYSTEM_PREFIX", "/system")
         )
 
-        # public containers (mirrors used by bindings.api)
+        # public containers (mirrors used by bindings.router)
         self.models = initialize_model_registry(getattr(self, "TABLES", ()))
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()

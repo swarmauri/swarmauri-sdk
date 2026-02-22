@@ -49,7 +49,7 @@ from .rest import build_router_and_attach as build_rest
 from ..responses.bind import bind as bind_response
 
 # API facade integration
-from .api import include_table, include_tables, rpc_call
+from .router import include_table, include_tables, rpc_call
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/__init__")

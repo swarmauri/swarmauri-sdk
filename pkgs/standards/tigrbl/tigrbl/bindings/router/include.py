@@ -25,7 +25,7 @@ from ...config.constants import (
 from ...engine import resolver as _resolver
 
 logger = logging.getLogger("uvicorn")
-logger.debug("Loaded module v3/bindings/api/include")
+logger.debug("Loaded module v3/bindings/router/include")
 
 
 def _coerce_model_columns(columns: Any) -> Tuple[str, ...]:
@@ -242,7 +242,7 @@ def include_table(
     # 4) Attach all namespaces onto api
     _attach_to_api(api, model)
 
-    logger.debug("bindings.api: included %s at prefix %s", model.__name__, prefix)
+    logger.debug("bindings.router: included %s at prefix %s", model.__name__, prefix)
     return model, router
 
 

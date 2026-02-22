@@ -9,7 +9,7 @@ from ...engine import resolver as _resolver
 from ...core.crud.helpers.model import _single_pk_name
 
 logger = logging.getLogger("uvicorn")
-logger.debug("Loaded module v3/bindings/api/rpc")
+logger.debug("Loaded module v3/bindings/router/rpc")
 
 
 async def rpc_call(

@@ -8,7 +8,7 @@ from ...transport.dispatch import dispatch_operation
 from ...engine import resolver as _resolver
 
 logger = logging.getLogger("uvicorn")
-logger.debug("Loaded module v3/bindings/api/resource_proxy")
+logger.debug("Loaded module v3/bindings/router/resource_proxy")
 
 
 class _ResourceProxy:
