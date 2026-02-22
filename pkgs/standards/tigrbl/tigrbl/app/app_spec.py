@@ -15,6 +15,11 @@ class AppSpec:
 
     title: str = "Tigrbl"
     version: str = "0.1.0"
+    description: Optional[str] = None
+    openapi_url: str = "/openapi.json"
+    docs_url: str = "/docs"
+    debug: bool = False
+    swagger_ui_version: str = "5.31.0"
     engine: Optional[EngineCfg] = None
 
     # NEW: multi-router composition (store router classes or instances)
