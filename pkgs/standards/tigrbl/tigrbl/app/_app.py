@@ -37,6 +37,11 @@ class App(AppSpec):
     MODELS = ()
     SCHEMAS = ()
     HOOKS = ()
+    DESCRIPTION = None
+    OPENAPI_URL = "/openapi.json"
+    DOCS_URL = "/docs"
+    DEBUG = False
+    SWAGGER_UI_VERSION = "5.31.0"
     SECURITY_DEPS = ()
     DEPS = ()
     RESPONSE = None
@@ -59,8 +64,28 @@ class App(AppSpec):
         get_db = asgi_kwargs.pop("get_db", None)
         if get_db is not None:
             self.get_db = get_db
+        description = asgi_kwargs.pop("description", None)
+        if description is None:
+            description = getattr(self, "DESCRIPTION", None)
+        openapi_url = asgi_kwargs.pop("openapi_url", None)
+        if openapi_url is None:
+            openapi_url = getattr(self, "OPENAPI_URL", "/openapi.json")
+        docs_url = asgi_kwargs.pop("docs_url", None)
+        if docs_url is None:
+            docs_url = getattr(self, "DOCS_URL", "/docs")
+        debug = asgi_kwargs.pop("debug", None)
+        if debug is None:
+            debug = bool(getattr(self, "DEBUG", False))
+        swagger_ui_version = asgi_kwargs.pop("swagger_ui_version", None)
+        if swagger_ui_version is None:
+            swagger_ui_version = getattr(self, "SWAGGER_UI_VERSION", "5.31.0")
         self.title = self.TITLE
         self.version = self.VERSION
+        self.description = description
+        self.openapi_url = openapi_url
+        self.docs_url = docs_url
+        self.debug = debug
+        self.swagger_ui_version = swagger_ui_version
         self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
         self.routers = tuple(getattr(self, "ROUTERS", ()))
         self.ops = tuple(getattr(self, "OPS", ()))
@@ -81,6 +106,11 @@ class App(AppSpec):
             engine=self.engine,
             title=self.title,
             version=self.version,
+            description=self.description,
+            openapi_url=self.openapi_url,
+            docs_url=self.docs_url,
+            debug=self.debug,
+            swagger_ui_version=self.swagger_ui_version,
             include_docs=False,
             **asgi_kwargs,
         )
