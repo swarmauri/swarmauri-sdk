@@ -101,7 +101,6 @@ class TigrblApp(_App):
         if lifespan is not None:
             self.LIFESPAN = lifespan
         super().__init__(engine=engine, **asgi_kwargs)
-        self.router = self
         self._middlewares: list[tuple[Any, dict[str, Any]]] = []
         self.middlewares = tuple(getattr(self, "MIDDLEWARES", ()))
         self._favicon_path = favicon_path
@@ -485,6 +484,10 @@ class TigrblApp(_App):
     def openrpc(self) -> Dict[str, Any]:
         """Build and return the OpenRPC document for this app."""
         return _build_openrpc_spec(self)
+
+    def openapi(self) -> Dict[str, Any]:
+        """Build and return the OpenAPI document for this app."""
+        return self.router.openapi()
 
     def mount_lens(
         self,
