@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Callable, Optional
 
-from .compat import Router
+from ...types import Router
 from .healthz import build_healthz_endpoint
 from .methodz import build_methodz_endpoint
 from .hookz import build_hookz_endpoint
