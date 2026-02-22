@@ -18,6 +18,5 @@ Usage:
 from __future__ import annotations
 
 from .dispatcher import build_jsonrpc_router
-from .openrpc import build_openrpc_spec
 
-__all__ = ["build_jsonrpc_router", "build_openrpc_spec"]
+__all__ = ["build_jsonrpc_router"]

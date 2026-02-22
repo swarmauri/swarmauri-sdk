@@ -52,15 +52,9 @@ from ..deps.pydantic import (
     ValidationError,
 )
 
-from ..router._router import Router
-from ..core.crud.params import Body, Path
-from ..responses import Response
-from ..runtime.status.exceptions import HTTPException, StatusDetailError
-from ..security.dependencies import Depends, Security
-from ..requests import Request
 
 # ── Local Package ─────────────────────────────────────────────────────────
-from .op import _Op, _SchemaVerb
+
 from .uuid import PgUUID, SqliteUUID
 from .authn_abc import AuthNProvider
 from .table_config_provider import TableConfigProvider
@@ -86,8 +80,8 @@ TZDateTime = _DateTime(timezone=True)
 # ── Public Re-exports (Backwards Compatibility) ──────────────────────────
 __all__: list[str] = [
     # local
-    "_Op",
-    "_SchemaVerb",
+    # "_Op",
+    # "_SchemaVerb",
     "AuthNProvider",
     "TableConfigProvider",
     "NestedPathProvider",
@@ -151,14 +145,4 @@ __all__: list[str] = [
     "BaseModel",
     "Field",
     "ValidationError",
-    # routing/dependency support (from deps)
-    "Request",
-    "Response",
-    "Router",
-    "Security",
-    "Depends",
-    "Path",
-    "Body",
-    "HTTPException",
-    "StatusDetailError",
 ]

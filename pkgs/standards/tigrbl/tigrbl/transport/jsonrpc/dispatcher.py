@@ -34,50 +34,9 @@ from typing import (
     Sequence,
 )
 
-try:
-    from ...types import Router, Request, Body, Depends, HTTPException, Response
-    from ...responses import JSONResponse
-except Exception:  # pragma: no cover
-    # Minimal shims to keep this importable without ASGI (for typing/tools)
-    class Router:  # type: ignore
-        def __init__(self, *a, **kw):
-            self.routes = []
-            self.dependencies = kw.get("dependencies", [])  # for parity
+from ...types import Router, Request, Body, Depends, HTTPException, Response
+from ...responses import JSONResponse
 
-        def add_api_route(
-            self, path: str, endpoint: Callable, methods: Sequence[str], **opts
-        ):
-            self.routes.append((path, methods, endpoint, opts))
-
-    class Request:  # type: ignore
-        def __init__(self, scope=None):
-            self.scope = scope or {}
-            self.state = type("S", (), {})()
-            self.query_params = {}
-
-        async def json(self) -> Any:
-            return {}
-
-    def Body(default=None, **kw):  # type: ignore
-        return default
-
-    def Depends(fn):  # type: ignore
-        return fn
-
-    class Response:  # type: ignore
-        def __init__(self, status_code: int = 200, content: Any = None):
-            self.status_code = status_code
-            self.body = content
-
-    class JSONResponse(Response):  # type: ignore
-        def __init__(self, content: Any = None, status_code: int = 200):
-            super().__init__(status_code=status_code, content=content)
-
-    class HTTPException(Exception):  # type: ignore
-        def __init__(self, status_code: int, detail: Any = None):
-            super().__init__(detail)
-            self.status_code = status_code
-            self.detail = detail
 
 
 from ...runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP, http_exc_to_rpc
@@ -460,7 +419,7 @@ def build_jsonrpc_router(
         return Response(status_code=204, headers=headers)
 
     # Attach a single JSON-RPC POST route. Mount prefix controls final path.
-    router.add_api_route(
+    router.add_route(
         path="",
         endpoint=_options_endpoint,
         methods=["OPTIONS"],
@@ -469,7 +428,7 @@ def build_jsonrpc_router(
         include_in_schema=False,
     )
 
-    router.add_api_route(
+    router.add_route(
         path="",
         endpoint=_endpoint,
         methods=["POST"],

@@ -2,18 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, Mapping, Optional, Sequence
 
-try:
-    from ...types import Depends, HTTPException
-except Exception:  # pragma: no cover
+from ...types import Depends, HTTPException
 
-    def Depends(fn):  # type: ignore
-        return fn
-
-    class HTTPException(Exception):  # type: ignore
-        def __init__(self, status_code: int, detail: Any = None):
-            super().__init__(detail)
-            self.status_code = status_code
-            self.detail = detail
 
 
 def _ok(result: Any, id_: Any) -> Dict[str, Any]:
