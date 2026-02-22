@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Sequence, Type
 
 from .router_spec import RouterSpec
-from ._router import RouterCore
+from ._router import Router
 
 
 def defineRouterSpec(
@@ -34,9 +34,9 @@ def defineRouterSpec(
     return type("RouterSpec", (RouterSpec,), attrs)
 
 
-def deriveRouter(**kw: Any) -> Type[RouterCore]:
+def deriveRouter(**kw: Any) -> Type[Router]:
     spec = defineRouterSpec(**kw)
-    return type("RouterWithSpec", (spec, RouterCore), {})
+    return type("RouterWithSpec", (spec, Router), {})
 
 
 __all__ = ["defineRouterSpec", "deriveRouter"]

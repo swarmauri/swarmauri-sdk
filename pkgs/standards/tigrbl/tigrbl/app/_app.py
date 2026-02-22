@@ -2,7 +2,7 @@
 from __future__ import annotations
 from typing import Any
 
-from ..router._api import RouterCore
+from ..router._api import Router
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
@@ -11,7 +11,7 @@ from ._model_registry import initialize_model_registry
 from .app_spec import AppSpec
 
 
-class App(AppSpec, RouterCore):
+class App(AppSpec):
     TITLE = "Tigrbl"
     VERSION = "0.1.0"
     LIFESPAN = None
@@ -59,11 +59,12 @@ class App(AppSpec, RouterCore):
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
         self.lifespan = self.LIFESPAN
 
-        RouterCore.__init__(
+        Router.__init__(
             self,
+            engine=self.engine,
             title=self.title,
             version=self.version,
-            include_docs=True,
+            include_docs=False,
             **asgi_kwargs,
         )
         _engine_ctx = self.engine
@@ -104,16 +105,37 @@ class App(AppSpec, RouterCore):
                 tables.append(table)
         return tables
 
-    def _wsgi_app(self, environ: dict[str, Any], start_response: Any) -> list[bytes]:
-        return super()._wsgi_app(environ, start_response)
-
-    async def _asgi_app(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
-        await super()._asgi_app(scope, receive, send)
-
     async def _dispatch(self, req: Any):
-        return await super()._dispatch(req)
+        return await Router._dispatch(self, req)
 
     async def _call_handler(self, route: Any, req: Any):
-        return await super()._call_handler(route, req)
+        return await Router._call_handler(self, route, req)
 
     initialize = _ddl_initialize
+
+
+for _router_method_name in (
+    "__call__",
+    "_execute_dependency_tokens",
+    "_execute_route_dependencies",
+    "_invoke_dependency",
+    "_is_metadata_route",
+    "_merge_tags",
+    "_normalize_prefix",
+    "_request_from_asgi",
+    "_request_from_wsgi",
+    "_resolve_handler_kwargs",
+    "_route_match_priority",
+    "_router_call",
+    "add_api_route",
+    "add_route",
+    "call_handler",
+    "delete",
+    "dispatch",
+    "get",
+    "patch",
+    "post",
+    "put",
+    "route",
+):
+    setattr(App, _router_method_name, getattr(Router, _router_method_name))

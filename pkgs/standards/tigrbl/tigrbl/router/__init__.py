@@ -4,10 +4,14 @@ from __future__ import annotations
 
 from typing import Any
 
-__all__ = ["Router", "Route", "TigrblRouter"]
+__all__ = ["RouterSpec", "Router", "Route", "TigrblRouter"]
 
 
 def __getattr__(name: str) -> Any:
+    if name == "RouterSpec":
+        from .router_spec import RouterSpec
+
+        return RouterSpec
     if name == "Router":
         from ._router import Router
 

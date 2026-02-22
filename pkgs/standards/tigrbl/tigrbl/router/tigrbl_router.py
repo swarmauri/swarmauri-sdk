@@ -14,7 +14,7 @@ from typing import (
     Tuple,
 )
 
-from ._router import RouterCore as _Router
+from ._router import Router as _Router
 from ..engine.engine_spec import EngineCfg
 from ..ddl import initialize as _ddl_initialize
 from ..bindings.router import (
@@ -30,14 +30,8 @@ from ..bindings.model import rebind as _rebind, bind as _bind
 from ..bindings.rest import build_router_and_attach as _build_router_and_attach
 from ..op import get_registry, OpSpec
 from ..app._model_registry import initialize_model_registry
-from ..transport import mount_jsonrpc as _mount_jsonrpc
-from ..engine import resolver as _resolver
-from ..system import mount_diagnostics as _mount_diagnostics
-from ..system import mount_lens as _mount_lens
-from ..system import mount_openapi as _mount_openapi
-from ..system import mount_openrpc as _mount_openrpc
-from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..system.favicon import mount_favicon
+from ._routing import include_router as _include_router_impl
 
 
 class TigrblRouter(_Router):
@@ -165,7 +159,7 @@ class TigrblRouter(_Router):
             self, model, app=None, prefix=prefix, mount_router=mount_router
         )
         if mount_router and prefix is None and router is not None:
-            self.include_router(router, prefix=self.rest_prefix)
+            _include_router_impl(self, router, prefix=self.rest_prefix)
         return included_model, router
 
     def include_models(
@@ -187,7 +181,7 @@ class TigrblRouter(_Router):
         if mount_router and base_prefix is None:
             for router in included.values():
                 if router is not None:
-                    self.include_router(router, prefix=self.rest_prefix)
+                    _include_router_impl(self, router, prefix=self.rest_prefix)
         return included
 
     async def rpc_call(
@@ -203,71 +197,6 @@ class TigrblRouter(_Router):
         return await _rpc_call(
             self, model_or_name, method, payload, db=db, request=request, ctx=ctx
         )
-
-    # ------------------------- extras / mounting -------------------------
-
-    def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
-        """Mount JSON-RPC router onto this API."""
-        px = prefix if prefix is not None else self.jsonrpc_prefix
-        self.jsonrpc_prefix = px
-        prov = _resolver.resolve_provider(router=self)
-        get_db = prov.get_db if prov else None
-        return _mount_jsonrpc(
-            self,
-            self,
-            prefix=px,
-            get_db=get_db,
-        )
-
-    def mount_openapi(
-        self,
-        *,
-        path: str = "/openapi.json",
-        name: str = "__openapi__",
-    ) -> Any:
-        """Mount an OpenAPI JSON endpoint onto this instance."""
-        return _mount_openapi(self, path=path, name=name)
-
-    def mount_openrpc(
-        self,
-        *,
-        path: str = "/openrpc.json",
-        name: str = "openrpc_json",
-        tags: list[str] | None = None,
-    ) -> Any:
-        """Mount an OpenRPC JSON endpoint onto this instance."""
-        return _mount_openrpc(self, path=path, name=name, tags=tags)
-
-    def openrpc(self) -> Dict[str, Any]:
-        """Build and return the OpenRPC document for this API."""
-        return _build_openrpc_spec(self)
-
-    def mount_lens(
-        self,
-        *,
-        path: str = "/lens",
-        name: str = "__lens__",
-        spec_path: str | None = None,
-    ) -> Any:
-        """Mount a tigrbl-lens HTML endpoint onto this instance."""
-        return _mount_lens(self, path=path, name=name, spec_path=spec_path)
-
-    def attach_diagnostics(
-        self, *, prefix: str | None = None, app: Any | None = None
-    ) -> Any:
-        """Mount diagnostics router onto this API or provided app."""
-        px = prefix if prefix is not None else self.system_prefix
-        prov = _resolver.resolve_provider(router=self)
-        get_db = prov.get_db if prov else None
-        router = _mount_diagnostics(self, get_db=get_db)
-        include_self = getattr(self, "include_router", None)
-        if callable(include_self):
-            include_self(router, prefix=px)
-        if app is not None and app is not self:
-            include_other = getattr(app, "include_router", None)
-            if callable(include_other):
-                include_other(router, prefix=px)
-        return router
 
     # ------------------------- registry passthroughs -------------------------
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import inspect
+from contextlib import asynccontextmanager
 from pathlib import Path
 from types import SimpleNamespace
 from typing import (
@@ -19,6 +20,7 @@ from typing import (
 
 from ._app import App as _App
 from ..router.tigrbl_router import TigrblRouter
+from ..router._routing import include_router as _include_router_impl
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
@@ -37,6 +39,8 @@ from ..system import mount_diagnostics as _mount_diagnostics
 from ..system import mount_lens as _mount_lens
 from ..system import mount_openapi as _mount_openapi
 from ..system import mount_openrpc as _mount_openrpc
+from ..system.docs.openapi import build_openapi
+from ..system.docs.swagger import mount_swagger
 from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..op import get_registry, OpSpec
 from ._model_registry import initialize_model_registry
@@ -109,6 +113,7 @@ class TigrblApp(_App):
             mw_cls = getattr(mw, "cls", mw.__class__)
             self.add_middleware(mw_cls, **getattr(mw, "kwargs", {}))
         self._install_favicon()
+        self._install_builtin_routes()
         # capture initial routes so refreshes retain ASGI defaults
         self._base_routes = list(self.router.routes)
         self.jsonrpc_prefix = (
@@ -141,6 +146,7 @@ class TigrblApp(_App):
             "startup": [],
             "shutdown": [],
         }
+        self.lifespan_context = self._lifespan_context
 
         # Router-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
@@ -151,10 +157,32 @@ class TigrblApp(_App):
             self.included_routers.extend(list(routers))
             self.include_apis(self.included_routers)
 
+    def _wsgi_app(self, environ: dict[str, Any], start_response: Any) -> list[bytes]:
+        return super()._wsgi_app(environ, start_response)
+
+    async def _asgi_app(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        await super()._asgi_app(scope, receive, send)
+
     @property
     def event_handlers(self) -> Dict[str, list[Callable[..., Any]]]:
         """Expose registered startup and shutdown callbacks by event name."""
         return self._event_handlers
+
+    @property
+    def on_startup(self) -> list[Callable[..., Any]]:
+        return self._event_handlers["startup"]
+
+    @property
+    def on_shutdown(self) -> list[Callable[..., Any]]:
+        return self._event_handlers["shutdown"]
+
+    @asynccontextmanager
+    async def _lifespan_context(self, _: Any):
+        await self.run_event_handlers("startup")
+        try:
+            yield
+        finally:
+            await self.run_event_handlers("shutdown")
 
     def add_event_handler(
         self,
@@ -342,14 +370,16 @@ class TigrblApp(_App):
         return router_obj
 
     def include_router(self, router: Any, *args: Any, **kwargs: Any) -> None:
-        """Extend ASGI include_router to track Tigrbl routers."""
+        """Mount a router and track Tigrbl routers on this app."""
         if hasattr(router, "models") and hasattr(router, "initialize"):
             self.include_api(
                 router,
                 prefix=kwargs.get("prefix"),
                 mount_router=False,
             )
-        super().include_router(router, *args, **kwargs)
+        prefix = kwargs.get("prefix", "")
+        tags = kwargs.get("tags")
+        _include_router_impl(self, router, prefix=prefix, tags=tags)
 
     def include_apis(self, routers: Sequence[Any]) -> None:
         """Mount multiple routers, supporting optional per-item prefixes."""
@@ -440,6 +470,31 @@ class TigrblApp(_App):
         )
         self._base_routes = list(self.router.routes)
         return router
+
+    def openapi(self) -> Dict[str, Any]:
+        return build_openapi(self)
+
+    def _install_builtin_routes(self) -> None:
+        self.mount_openapi(path=self.openapi_url)
+        mount_swagger(self, path=self.docs_url)
+
+    def _swagger_ui_html(self, request: Any) -> str:
+        docs_route = next(
+            (route for route in self.routes if route.name == "__docs__"), None
+        )
+        if docs_route is None:
+            mount_swagger(self, path=self.docs_url)
+            docs_route = next(
+                (route for route in self.routes if route.name == "__docs__"), None
+            )
+        if docs_route is None:
+            raise RuntimeError("Unable to resolve mounted swagger docs route.")
+
+        response = docs_route.handler(request)
+        body = getattr(response, "body", b"")
+        if isinstance(body, bytes):
+            return body.decode("utf-8")
+        return str(body)
 
     def mount_openapi(
         self,
