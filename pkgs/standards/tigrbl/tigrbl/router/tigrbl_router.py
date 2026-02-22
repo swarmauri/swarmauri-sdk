@@ -17,7 +17,7 @@ from typing import (
 from ._router import Api as _Router
 from ..engine.engine_spec import EngineCfg
 from ..ddl import initialize as _ddl_initialize
-from ..bindings.api import (
+from ..bindings.router import (
     include_model as _include_model,
     include_models as _include_models,
     rpc_call as _rpc_call,
@@ -95,7 +95,7 @@ class TigrblRouter(_Router):
         )
         self.rest_prefix = getattr(self, "REST_PREFIX", "/api")
 
-        # public containers (mirrors used by bindings.api)
+        # public containers (mirrors used by bindings.router)
         self.models = initialize_model_registry(getattr(self, "MODELS", ()))
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
