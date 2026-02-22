@@ -83,15 +83,11 @@ from .table import Base
 from .op import Op
 from .security import APIKey, HTTPBearer, MutualTLS, OAuth2, OpenIdConnect
 
-TigrblApi = TigrblRouter
-
-
 __all__: list[str] = []
 
 __all__ += [
     "TigrblApp",
     "TigrblRouter",
-    "TigrblApi",
     "Router",
     "Base",
     "Op",

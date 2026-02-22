@@ -5,7 +5,7 @@ retrieved from the API instance and mounted on a host app, keeping the API
 responsible for its own diagnostic endpoints.
 """
 
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -20,7 +20,7 @@ def test_api_binding_mounts_diagnostics_router():
 
         name = Column(String, nullable=False)
 
-    api = TigrblApi(engine=mem(async_=False))
+    api = TigrblRouter(engine=mem(async_=False))
     api.include_model(Widget)
 
     app = TigrblApp()
@@ -38,7 +38,7 @@ def test_api_diagnostics_mounts_on_app_namespace():
 
         name = Column(String, nullable=False)
 
-    api = TigrblApi(engine=mem(async_=False))
+    api = TigrblRouter(engine=mem(async_=False))
     api.include_model(Widget)
 
     app = TigrblApp()

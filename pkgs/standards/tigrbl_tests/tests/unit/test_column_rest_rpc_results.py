@@ -1,7 +1,7 @@
 import pytest
 from httpx import ASGITransport, Client
 
-from tigrbl import TigrblApi, alias_ctx
+from tigrbl import TigrblRouter, alias_ctx
 from tigrbl.column import F, IO, S, makeColumn, makeVirtualColumn
 from tigrbl.engine.shortcuts import engine as build_engine, mem
 from tigrbl.orm.tables import Base
@@ -14,7 +14,7 @@ from tigrbl.types import Integer, Mapped, String
 
 def _setup_api(model):
     eng = build_engine(mem(async_=False))
-    api = TigrblApi(engine=eng)
+    api = TigrblRouter(engine=eng)
     api.include_model(model)
     api.initialize()
 

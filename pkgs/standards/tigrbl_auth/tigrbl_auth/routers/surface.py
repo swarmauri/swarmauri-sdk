@@ -8,7 +8,7 @@ Exports
 -------
 Base        : Declarative base for all models in **tigrbl_authn**.
 metadata    : Shared SQLAlchemy ``MetaData`` with a sane naming-convention.
-surface_api : ``TigrblApi`` combining Tigrbl resources and auth flows.
+surface_api : ``TigrblRouter`` combining Tigrbl resources and auth flows.
 
 The resulting ``surface_api`` exposes a symmetrical REST/RPC surface under
 namespaces like ``surface_api.core.User.create`` and
@@ -25,7 +25,7 @@ Notes
 
 from __future__ import annotations
 
-from tigrbl_auth.deps import TigrblApi
+from tigrbl_auth.deps import TigrblRouter
 from tigrbl_auth.orm import (
     Tenant,
     User,
@@ -43,7 +43,7 @@ from .auth_flows import api as flows_api
 # ----------------------------------------------------------------------
 # 3.  Build Tigrbl instance & router
 # ----------------------------------------------------------------------
-surface_api = TigrblApi(engine=dsn)
+surface_api = TigrblRouter(engine=dsn)
 
 surface_api.include_models(
     [

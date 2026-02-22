@@ -1,7 +1,7 @@
-from tigrbl_auth.deps import TigrblApi
+from tigrbl_auth.deps import TigrblRouter
 from tigrbl_auth.rfc import rfc6749_token, rfc7662_introspection
 
-api = TigrblApi()
+api = TigrblRouter()
 api.include_router(rfc6749_token.api)
 api.include_router(rfc7662_introspection.api)
 

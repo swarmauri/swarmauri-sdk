@@ -7,7 +7,7 @@ tables aligned and makes it easy to reference the SQLAlchemy table object
 directly from the API layer.
 """
 
-from tigrbl import Base, TigrblApi
+from tigrbl import Base, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -22,7 +22,7 @@ def test_table_binding_registers_table_on_api():
 
         name = Column(String, nullable=False)
 
-    api = TigrblApi(engine=mem(async_=False))
+    api = TigrblRouter(engine=mem(async_=False))
 
     api.include_model(Widget)
 
@@ -38,7 +38,7 @@ def test_table_registry_respects_model_identity():
 
         name = Column(String, nullable=False)
 
-    api = TigrblApi(engine=mem(async_=False))
+    api = TigrblRouter(engine=mem(async_=False))
 
     api.include_model(Widget)
 
