@@ -82,11 +82,11 @@ class TigrblApp(_App):
         self,
         *,
         engine: EngineCfg | None = None,
-        apis: Sequence[Any] | None = None,
+        routers: Sequence[Any] | None = None,
         jsonrpc_prefix: str | None = None,
         system_prefix: str | None = None,
         favicon_path: str | Path = FAVICON_PATH,
-        api_hooks: Mapping[str, Iterable[Callable]]
+        router_hooks: Mapping[str, Iterable[Callable]]
         | Mapping[str, Mapping[str, Iterable[Callable]]]
         | None = None,
         **asgi_kwargs: Any,
@@ -135,20 +135,20 @@ class TigrblApp(_App):
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
         self.core_raw = SimpleNamespace()
-        self.apis = list(getattr(self, "APIS", ()))
+        self.routers = list(getattr(self, "APIS", ()))
         self._event_handlers = {
             "startup": [],
             "shutdown": [],
         }
 
         # API-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
-        self._api_hooks_map = copy.deepcopy(api_hooks) if api_hooks else None
-        self._default_api: TigrblRouter | None = None
+        self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
+        self._default_router: TigrblRouter | None = None
         self.mount_openrpc(path="/openrpc.json")
         self.mount_lens(path="/rdocs", spec_path="/openrpc.json")
-        if apis:
-            self.apis.extend(list(apis))
-            self.include_apis(self.apis)
+        if routers:
+            self.routers.extend(list(routers))
+            self.include_routers(self.routers)
 
     @property
     def event_handlers(self) -> Dict[str, list[Callable[..., Any]]]:
@@ -222,19 +222,19 @@ class TigrblApp(_App):
     # ------------------------- internal helpers -------------------------
 
     @staticmethod
-    def _merge_api_hooks_into_model(model: type, hooks_map: Any) -> None:
+    def _merge_router_hooks_into_model(model: type, hooks_map: Any) -> None:
         """
         Install API-level hooks on the model so the binder can see them.
         Accepted shapes:
             {phase: [fn, ...]}                           # global, all aliases
             {alias: {phase: [fn, ...]}, "*": {...}}      # per-alias + wildcard
-        If the model already has __tigrbl_api_hooks__, we shallow-merge keys.
+        If the model already has __tigrbl_router_hooks__, we shallow-merge keys.
         """
         if not hooks_map:
             return
-        existing = getattr(model, "__tigrbl_api_hooks__", None)
+        existing = getattr(model, "__tigrbl_router_hooks__", None)
         if existing is None:
-            setattr(model, "__tigrbl_api_hooks__", copy.deepcopy(hooks_map))
+            setattr(model, "__tigrbl_router_hooks__", copy.deepcopy(hooks_map))
             return
 
         # shallow merge (alias or phase keys); values are lists we extend
@@ -249,31 +249,31 @@ class TigrblApp(_App):
                         merged[k].setdefault(ph, [])
                         merged[k][ph] = list(merged[k][ph]) + list(fns or [])
                 else:
-                    # fallback: prefer model-local value, then append api-level
+                    # fallback: prefer model-local value, then append router-level
                     if isinstance(merged[k], list):
                         merged[k] = list(merged[k]) + list(v or [])
                     else:
                         merged[k] = v
-        setattr(model, "__tigrbl_api_hooks__", merged)
+        setattr(model, "__tigrbl_router_hooks__", merged)
 
     # ------------------------- primary operations -------------------------
 
-    def _ensure_default_api(self) -> TigrblRouter:
+    def _ensure_default_router(self) -> TigrblRouter:
         """Create and register the app-scoped default API when needed."""
-        if self._default_api is None:
-            self._default_api = TigrblRouter(
+        if self._default_router is None:
+            self._default_router = TigrblRouter(
                 engine=self.engine,
-                api_hooks=self._api_hooks_map,
+                router_hooks=self._router_hooks_map,
             )
             # Mirror current app auth knobs onto the default API.
-            self._default_api.set_auth(
+            self._default_router.set_auth(
                 authn=self._authn,
                 allow_anon=self._allow_anon,
                 authorize=self._authorize,
                 optional_authn_dep=self._optional_authn_dep,
             )
-            self.include_api(self._default_api)
-        return self._default_api
+            self.include_router(self._default_router)
+        return self._default_router
 
     def include_table(
         self, model: type, *, prefix: str | None = None, mount_router: bool = True
@@ -281,9 +281,9 @@ class TigrblApp(_App):
         """
         Include a model through an internal ``TigrblRouter`` mounted on this app.
         """
-        default_api = self._ensure_default_api()
+        default_router = self._ensure_default_router()
 
-        result = default_api.include_table(
+        result = default_router.include_table(
             model,
             prefix=prefix,
             mount_router=False,
@@ -293,7 +293,7 @@ class TigrblApp(_App):
             if router is not None:
                 mount_prefix = prefix if prefix is not None else _default_prefix(model)
                 self.include_router(router, prefix=mount_prefix)
-        self._sync_default_api_namespaces()
+        self._sync_default_router_namespaces()
         return result
 
     def include_tables(
@@ -303,9 +303,9 @@ class TigrblApp(_App):
         base_prefix: str | None = None,
         mount_router: bool = True,
     ) -> Dict[str, Any]:
-        default_api = self._ensure_default_api()
+        default_router = self._ensure_default_router()
 
-        result = default_api.include_tables(
+        result = default_router.include_tables(
             models,
             base_prefix=base_prefix,
             mount_router=False,
@@ -325,67 +325,57 @@ class TigrblApp(_App):
                     else _default_prefix(model)
                 )
                 self.include_router(router, prefix=mount_prefix)
-        self._sync_default_api_namespaces()
+        self._sync_default_router_namespaces()
         return result
 
-    def _sync_default_api_namespaces(self) -> None:
+    def _sync_default_router_namespaces(self) -> None:
         """Mirror the auto-created API registries onto the app facade."""
-        if self._default_api is None:
+        if self._default_router is None:
             return
-        self.models = self._default_api.models
-        self.schemas = self._default_api.schemas
-        self.handlers = self._default_api.handlers
-        self.hooks = self._default_api.hooks
-        self.rpc = self._default_api.rpc
-        self.rest = self._default_api.rest
-        self.routers = self._default_api.routers
-        self.tables = self._default_api.tables
-        self.columns = self._default_api.columns
-        self.table_config = self._default_api.table_config
-        self.core = self._default_api.core
-        self.core_raw = self._default_api.core_raw
+        self.models = self._default_router.models
+        self.schemas = self._default_router.schemas
+        self.handlers = self._default_router.handlers
+        self.hooks = self._default_router.hooks
+        self.rpc = self._default_router.rpc
+        self.rest = self._default_router.rest
+        self.routers = self._default_router.routers
+        self.tables = self._default_router.tables
+        self.columns = self._default_router.columns
+        self.table_config = self._default_router.table_config
+        self.core = self._default_router.core
+        self.core_raw = self._default_router.core_raw
 
-    def include_api(
+    def include_router(
         self,
-        api: Any,
+        router: Any,
         *,
         prefix: str | None = None,
         mount_router: bool = True,
     ) -> Any:
         """Mount a Tigrbl API router onto this app and track it."""
-        if api not in self.apis:
-            self.apis.append(api)
+        if router not in self.routers:
+            self.routers.append(router)
         if not mount_router:
-            return api
-        router = getattr(api, "router", api)
+            return router
+        router = getattr(router, "router", router)
         if hasattr(self, "include_router"):
             self.include_router(router, prefix=prefix or "")
-        return api
+        return router
 
-    def include_router(self, router: Any, *args: Any, **kwargs: Any) -> None:
-        """Extend ASGI include_router to track Tigrbl APIs."""
-        if hasattr(router, "models") and hasattr(router, "initialize"):
-            self.include_api(
-                router,
-                prefix=kwargs.get("prefix"),
-                mount_router=False,
-            )
-        super().include_router(router, *args, **kwargs)
-
-    def include_apis(self, apis: Sequence[Any]) -> None:
+    def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple APIs, supporting optional per-item prefixes."""
-        for entry in apis:
+        for entry in routers:
             prefix = None
-            api = entry
+            router = entry
             if isinstance(entry, tuple) and entry:
-                api = entry[0]
+                router = entry[0]
                 if len(entry) > 1:
                     value = entry[1]
                     if isinstance(value, dict):
                         prefix = value.get("prefix")
                     elif isinstance(value, str):
                         prefix = value
-            self.include_api(api, prefix=prefix)
+            self.include_router(router, prefix=prefix)
 
     def initialize(
         self,
@@ -402,11 +392,11 @@ class TigrblApp(_App):
             tables=tables,
         )
 
-        api_results = []
-        for api in self.apis:
-            init = getattr(api, "initialize", None)
+        router_results = []
+        for router in self.routers:
+            init = getattr(router, "initialize", None)
             if callable(init):
-                api_results.append(
+                router_results.append(
                     init(
                         schemas=schemas,
                         sqlite_attachments=sqlite_attachments,
@@ -414,12 +404,12 @@ class TigrblApp(_App):
                     )
                 )
 
-        awaitables = [r for r in [result, *api_results] if inspect.isawaitable(r)]
+        awaitables = [r for r in [result, *router_results] if inspect.isawaitable(r)]
         if not awaitables:
             return None
 
         async def _inner():
-            for item in [result, *api_results]:
+            for item in [result, *router_results]:
                 if inspect.isawaitable(item):
                     await item
 
@@ -451,7 +441,7 @@ class TigrblApp(_App):
         """Mount JSON-RPC router onto this app."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
         self.jsonrpc_prefix = px
-        prov = _resolver.resolve_provider(api=self)
+        prov = _resolver.resolve_provider(router=self)
         get_db = prov.get_db if prov else None
         router = _mount_jsonrpc(
             self,
@@ -504,7 +494,7 @@ class TigrblApp(_App):
     ) -> Any:
         """Mount diagnostics router onto this app or the provided ``app``."""
         px = prefix if prefix is not None else self.system_prefix
-        prov = _resolver.resolve_provider(api=self)
+        prov = _resolver.resolve_provider(router=self)
         get_db = prov.get_db if prov else None
         router = _mount_diagnostics(self, get_db=get_db)
         include_self = getattr(self, "include_router", None)
@@ -526,7 +516,7 @@ class TigrblApp(_App):
 
     def bind(self, model: type) -> Tuple[OpSpec, ...]:
         """Bind/rebuild a model in place (without mounting)."""
-        self._merge_api_hooks_into_model(model, self._api_hooks_map)
+        self._merge_router_hooks_into_model(model, self._router_hooks_map)
         return _bind(model)
 
     def rebind(
@@ -539,7 +529,7 @@ class TigrblApp(_App):
 
     def transactional(self, *dargs, **dkw):
         """
-        Legacy-friendly decorator: @api.transactional(...)
+        Legacy-friendly decorator: @router.transactional(...)
         Wraps a function as a v3 custom op with START_TX/END_TX.
         """
         if _txn_decorator is None:
@@ -566,14 +556,14 @@ class TigrblApp(_App):
         if optional_authn_dep is not None:
             self._optional_authn_dep = optional_authn_dep
 
-        if self._default_api is not None:
-            self._default_api.set_auth(
+        if self._default_router is not None:
+            self._default_router.set_auth(
                 authn=self._authn,
                 allow_anon=self._allow_anon,
                 authorize=self._authorize,
                 optional_authn_dep=self._optional_authn_dep,
             )
-            self._sync_default_api_namespaces()
+            self._sync_default_router_namespaces()
 
         # Refresh already-included models so routers pick up new auth settings
         if self.models:
@@ -592,7 +582,7 @@ class TigrblApp(_App):
             router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
             if router is None:
                 continue
-            # update api-level references
+            # update router-level references
             mname = model.__name__
             rest_ns = getattr(self.rest, mname, SimpleNamespace())
             rest_ns.router = router
