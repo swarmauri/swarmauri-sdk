@@ -11,7 +11,7 @@ from types import SimpleNamespace
 from typing import Any, Callable
 
 from tigrbl.router._routing import (
-    add_api_route,
+    add_route,
     merge_tags,
     normalize_prefix,
     route,
@@ -138,7 +138,7 @@ class Router(RouterSpec):
         **kwargs: Any,
     ) -> None:
         """Compatibility alias for frameworks/tests expecting ``add_route``."""
-        self.add_api_route(path, endpoint, methods=methods, **kwargs)
+        self.add_route(path, endpoint, methods=methods, **kwargs)
 
     def install_engines(
         self, *, api: Any = None, models: tuple[Any, ...] | None = None
@@ -175,8 +175,8 @@ class Router(RouterSpec):
     def _normalize_prefix(self, prefix: str) -> str:
         return normalize_prefix(prefix)
 
-    def add_api_route(self, path: str, endpoint: Handler, **kwargs: Any) -> None:
-        return add_api_route(self, path, endpoint, **kwargs)
+    def add_route(self, path: str, endpoint: Handler, **kwargs: Any) -> None:
+        return add_route(self, path, endpoint, **kwargs)
 
     def _merge_tags(self, tags: list[str] | None) -> list[str] | None:
         return merge_tags(self.tags, tags)
