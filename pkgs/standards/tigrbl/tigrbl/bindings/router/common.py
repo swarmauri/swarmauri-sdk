@@ -21,13 +21,13 @@ class AttrDict(dict):
         self[key] = value
 
 
-# Public type for the API facade object users pass to include_table(...)
-ApiLike = Any
+# Public type for the Router facade object users pass to include_table(...)
+RouterLike = Any
 
 
 def _resource_name(model: type) -> str:
     """
-    Compute the API resource segment.
+    Compute the Router resource segment.
 
     Policy:
       - Prefer explicit `__resource__` when present (caller-controlled).
@@ -65,7 +65,7 @@ def _has_include_router(obj: Any) -> bool:
 def _mount_router(app_or_router: Any, router: Any, *, prefix: str) -> None:
     """
     Best-effort mount onto a ASGI app or Router.
-    If not available, we still attach router under api.routers for later use.
+    If not available, we still attach router under router.routers for later use.
     """
     if app_or_router is None:
         logger.debug("No app/router; skipping mount for prefix %s", prefix)
@@ -83,9 +83,9 @@ def _mount_router(app_or_router: Any, router: Any, *, prefix: str) -> None:
         logger.exception("Failed to mount router at %s", prefix)
 
 
-def _ensure_api_ns(api: ApiLike) -> None:
+def _ensure_router_ns(router: RouterLike) -> None:
     """
-    Ensure containers exist on the api facade object.
+    Ensure containers exist on the router facade object.
     """
     for attr, default in (
         ("models", {}),
@@ -101,8 +101,8 @@ def _ensure_api_ns(api: ApiLike) -> None:
         ("core", SimpleNamespace()),  # helper method proxies
         ("core_raw", SimpleNamespace()),
     ):
-        if not hasattr(api, attr):
-            setattr(api, attr, default)
-            logger.debug("Initialized api.%s", attr)
+        if not hasattr(router, attr):
+            setattr(router, attr, default)
+            logger.debug("Initialized router.%s", attr)
         else:
-            logger.debug("api already has attribute %s", attr)
+            logger.debug("router already has attribute %s", attr)

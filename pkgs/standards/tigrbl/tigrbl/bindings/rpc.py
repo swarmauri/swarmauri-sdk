@@ -331,7 +331,7 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         # 2) run through transport dispatcher
         seed_ctx: Dict[str, Any] = dict(ctx or {})
         result = await dispatch_operation(
-            router=getattr(model, "api", None),
+            router=getattr(model, "router", None),
             request=request,
             db=db,
             model_or_name=model,
