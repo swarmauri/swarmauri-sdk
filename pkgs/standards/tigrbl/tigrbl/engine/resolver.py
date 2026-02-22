@@ -137,7 +137,9 @@ def register_router(router: Any, ctx: EngineCfg | None) -> None:
         return
     with _LOCK:
         _ROUTER[id(router)] = prov
-        logger.debug("register_router: registered provider for router id %s", id(router))
+        logger.debug(
+            "register_router: registered provider for router id %s", id(router)
+        )
 
 
 def register_table(model: Any, ctx: EngineCfg | None) -> None:

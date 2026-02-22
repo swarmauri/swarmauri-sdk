@@ -3,10 +3,14 @@ import json
 
 from tigrbl.core.crud.params import Body, Query
 from tigrbl.runtime.status.mappings import status
-from tigrbl.types import Router, Depends, Request
 
 
 import pytest
+
+
+from tigrbl.router import Router
+from tigrbl.security import Depends
+from tigrbl.requests import Request
 
 
 @pytest.mark.xfail(

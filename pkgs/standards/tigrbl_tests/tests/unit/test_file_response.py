@@ -12,7 +12,7 @@ from tigrbl.bindings import (
     build_rest,
     build_schemas,
     register_rpc,
-    include_model,
+    include_table,
 )
 from tigrbl import TigrblApp as FastApp
 from tigrbl.types import Integer, Mapped, mapped_column
@@ -102,7 +102,7 @@ def test_file_response_api(tmp_path):
         yield None
 
     router.get_db = fake_db  # type: ignore[assignment]
-    include_model(router, Widget)
+    include_table(router, Widget)
 
     resp = asyncio.run(Widget.handlers.download.handler({}))
     assert resp.path == str(file_path)
@@ -131,7 +131,7 @@ def test_file_response_app(tmp_path):
         yield None
 
     router.get_db = fake_db  # type: ignore[assignment]
-    include_model(router, Widget)
+    include_table(router, Widget)
 
     class FilesApp(BaseApp):
         TITLE = "FilesApp"

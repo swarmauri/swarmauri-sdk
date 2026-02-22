@@ -5,7 +5,7 @@ import logging
 from functools import lru_cache
 from typing import Any, Callable, Dict, Iterable, Mapping
 
-from ..config.constants import TIGRBL_API_HOOKS_ATTR
+from ..config.constants import TIGRBL_ROUTER_HOOKS_ATTR
 
 logger = logging.getLogger("uvicorn")
 
@@ -21,7 +21,7 @@ def mro_collect_api_hooks(api: type) -> Dict[str, Dict[str, list[Callable[..., A
     logger.info("Collecting API hooks for %s", api.__name__)
     out: Dict[str, Dict[str, list[Callable[..., Any]]]] = {}
     for base in reversed(api.__mro__):
-        mapping = getattr(base, TIGRBL_API_HOOKS_ATTR, None)
+        mapping = getattr(base, TIGRBL_ROUTER_HOOKS_ATTR, None)
         if not isinstance(mapping, Mapping):
             continue
         for alias, phase_map in mapping.items():

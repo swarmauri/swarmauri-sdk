@@ -97,7 +97,11 @@ def collect_engine_config(
         for (model, alias), ocfg in _iter_declared_ops(m).items():
             ops[(model, alias)] = ocfg.get("engine")
 
-    router_map = {router: router_engine} if router_engine is not None and router is not None else {}
+    router_map = (
+        {router: router_engine}
+        if router_engine is not None and router is not None
+        else {}
+    )
 
     logger.debug("Collected engine config for %d models", len(models))
     return {

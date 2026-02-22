@@ -4,7 +4,9 @@ from httpx import ASGITransport, AsyncClient
 
 import pytest
 
-from tigrbl.types import Router, Request
+
+from tigrbl.router import Router
+from tigrbl.requests import Request
 
 
 @pytest.mark.asyncio()

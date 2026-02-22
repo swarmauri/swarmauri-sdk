@@ -150,7 +150,9 @@ def bind(
     _hooks_binding.normalize_and_attach(model, specs, only_keys=only_keys)
     _handlers_binding.build_and_attach(model, specs, only_keys=only_keys)
     _rpc_binding.register_and_attach(model, specs, only_keys=only_keys)
-    _rest_binding.build_router_and_attach(model, specs, router=router, only_keys=only_keys)
+    _rest_binding.build_router_and_attach(
+        model, specs, router=router, only_keys=only_keys
+    )
 
     # 6) Index on the model (always overwrite with fresh views)
     all_specs, by_key, by_alias = _index_specs(all_merged_specs)

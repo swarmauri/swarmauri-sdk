@@ -78,6 +78,7 @@ class Router(RouterSpec):
         tags: list[str] | None = None,
         dependencies: list[Any] | None = None,
         include_docs: bool = False,
+        **_: Any,
     ) -> None:
         # Initialize the RouterSpec field attributes expected by API surfaces.
         self.name = getattr(self, "NAME", "api")
@@ -93,7 +94,7 @@ class Router(RouterSpec):
         self.rest_prefix = getattr(self, "REST_PREFIX", "/api")
         self.rpc_prefix = getattr(self, "RPC_PREFIX", "/rpc")
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
-        self.models = initialize_model_registry(getattr(self, "MODELS", ()))
+        self.models = initialize_model_registry(getattr(self, "TABLES", ()))
 
         resolved_tags = self.tags if tags is None else tags
         resolved_dependencies = (
@@ -123,28 +124,17 @@ class Router(RouterSpec):
 
         _engine_ctx = engine if engine is not None else getattr(self, "ENGINE", None)
         if _engine_ctx is not None:
-            _resolver.register_api(self, _engine_ctx)
+            _resolver.register_router(self, _engine_ctx)
             _resolver.resolve_provider(api=self)
 
         if include_docs:
             self._install_builtin_routes()
 
-    def add_route(
-        self,
-        path: str,
-        endpoint: Any,
-        *,
-        methods: list[str] | tuple[str, ...],
-        **kwargs: Any,
-    ) -> None:
-        """Compatibility alias for frameworks/tests expecting ``add_route``."""
-        self.add_route(path, endpoint, methods=methods, **kwargs)
-
     def install_engines(
         self, *, api: Any = None, models: tuple[Any, ...] | None = None
     ) -> None:
         apis = (api,) if api is not None else self.APIS
-        models = models if models is not None else self.MODELS
+        models = models if models is not None else self.TABLES
         if apis:
             for a in apis:
                 install_from_objects(app=self, api=a, models=models)

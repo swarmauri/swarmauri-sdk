@@ -4,7 +4,10 @@ import io
 
 import pytest
 
-from tigrbl.types import Router, Request, Response
+
+from tigrbl.router import Router
+from tigrbl.requests import Request
+from tigrbl.responses import Response
 
 
 @pytest.mark.asyncio()
