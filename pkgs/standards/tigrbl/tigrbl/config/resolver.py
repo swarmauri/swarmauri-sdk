@@ -25,6 +25,8 @@ except Exception:  # pragma: no cover
         # misc buckets developers may use
         "openapi": {},
         "docs": {},
+        "openrpc": {},
+        "lens": {},
         "trace": {"enabled": True},
     }
 
@@ -34,6 +36,8 @@ _DEEP_KEYS = {
     "required_policy",
     "openapi",
     "docs",
+    "openrpc",
+    "lens",
     "trace",
     "policies",
 }

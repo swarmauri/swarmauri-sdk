@@ -52,7 +52,7 @@ VerbAliasPolicy = Literal["both", "alias_only", "canonical_only"]  # legacy expo
 
 
 # ───────────────────────────────────────────────────────────────────────────────
-# Engine binding (optional, used by resolver precedence: op > table > api > app)
+# Engine binding (optional, used by resolver precedence: op > table > router > app)
 # ───────────────────────────────────────────────────────────────────────────────
 
 
@@ -70,7 +70,7 @@ class OpSpec:
 
     Optional engine binding:
       - `engine` allows per-op routing (DSN string or structured mapping).
-        When present, it participates in resolver precedence (op > table > api > app).
+        When present, it participates in resolver precedence (op > table > router > app).
     """
 
     # Identity & exposure
