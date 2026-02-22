@@ -1,8 +1,4 @@
-"""Router primitives backing ``tigrbl.router.Api`` and ``tigrbl.app.App``.
-
-This compatibility router surface is slated for deprecation in favor of the
-higher-level ``Api``/``App`` interfaces.
-"""
+"""Router primitives backing ``tigrbl.router`` and ``tigrbl.app.App``."""
 
 from __future__ import annotations
 
@@ -519,10 +515,7 @@ def _build_options_response(req: Request, routes: list[Route]) -> Response:
 ensure_httpx_sync_transport()
 
 
-APIRouter = Router
-
-
-class Api(RouterSpec, Router):
+class RouterCore(RouterSpec, Router):
     """API router with model and table registries."""
 
     MODELS: tuple[Any, ...] = ()
@@ -538,7 +531,7 @@ class Api(RouterSpec, Router):
         return self is other
 
     @property
-    def router(self) -> "Api":
+    def router(self) -> "RouterCore":
         return self
 
     def __init__(
@@ -586,10 +579,10 @@ class Api(RouterSpec, Router):
     def install_engines(
         self, *, router: Any = None, models: tuple[Any, ...] | None = None
     ) -> None:
-        apis = (router,) if router is not None else self.APIS
+        routers = (router,) if router is not None else self.ROUTERS
         models = models if models is not None else self.MODELS
-        if apis:
-            for a in apis:
+        if routers:
+            for a in routers:
                 install_from_objects(app=self, router=a, models=models)
         else:
             install_from_objects(app=self, router=None, models=models)
@@ -607,4 +600,4 @@ class Api(RouterSpec, Router):
     initialize = _ddl_initialize
 
 
-__all__ = ["Router", "APIRouter", "Api"]
+__all__ = ["Router", "RouterCore"]

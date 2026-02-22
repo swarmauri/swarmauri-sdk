@@ -2,7 +2,7 @@
 from __future__ import annotations
 from typing import Any
 
-from ..router._api import APIRouter
+from ..router._api import RouterCore
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
@@ -11,11 +11,11 @@ from ._model_registry import initialize_model_registry
 from .app_spec import AppSpec
 
 
-class App(AppSpec, APIRouter):
+class App(AppSpec, RouterCore):
     TITLE = "Tigrbl"
     VERSION = "0.1.0"
     LIFESPAN = None
-    APIS = ()
+    ROUTERS = ()
     OPS = ()
     MODELS = ()
     SCHEMAS = ()
@@ -45,7 +45,7 @@ class App(AppSpec, APIRouter):
         self.title = self.TITLE
         self.version = self.VERSION
         self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
-        self.apis = tuple(getattr(self, "APIS", ()))
+        self.routers = tuple(getattr(self, "ROUTERS", ()))
         self.ops = tuple(getattr(self, "OPS", ()))
         # Runtime registries use mutable containers (dict/namespace), but the
         # dataclass fields expect sequences. Storing a dict here satisfies both.
@@ -59,7 +59,7 @@ class App(AppSpec, APIRouter):
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
         self.lifespan = self.LIFESPAN
 
-        APIRouter.__init__(
+        RouterCore.__init__(
             self,
             title=self.title,
             version=self.version,
@@ -74,11 +74,11 @@ class App(AppSpec, APIRouter):
     def install_engines(
         self, *, router: Any = None, models: tuple[Any, ...] | None = None
     ) -> None:
-        # If class declared APIS/MODELS, use them unless explicit args are passed.
-        apis = (router,) if router is not None else self.APIS
+        # If class declared ROUTERS/MODELS, use them unless explicit args are passed.
+        routers = (router,) if router is not None else self.ROUTERS
         models = models if models is not None else self.MODELS
-        if apis:
-            for a in apis:
+        if routers:
+            for a in routers:
                 install_from_objects(app=self, router=a, models=models)
         else:
             install_from_objects(app=self, router=None, models=models)

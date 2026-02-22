@@ -14,7 +14,7 @@ from typing import (
     Tuple,
 )
 
-from ._router import Api as _Router
+from ._router import RouterCore as _Router
 from ..engine.engine_spec import EngineCfg
 from ..ddl import initialize as _ddl_initialize
 from ..bindings.router import (
@@ -55,7 +55,7 @@ class TigrblRouter(_Router):
     RPC_PREFIX = "/rpc"
     SYSTEM_PREFIX = "/system"
     TAGS: Sequence[Any] = ()
-    APIS: Sequence[Any] = ()
+    ROUTERS: Sequence[Any] = ()
     MODELS: Sequence[Any] = ()
 
     # --- optional auth knobs recognized by some middlewares/dispatchers (kept for back-compat) ---
