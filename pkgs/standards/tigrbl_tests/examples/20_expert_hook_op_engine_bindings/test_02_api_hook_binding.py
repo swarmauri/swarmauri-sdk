@@ -5,7 +5,7 @@ are included. This pattern is preferred because it enables cross-cutting
 behavior (like auditing) to be configured once at the API layer.
 """
 
-from tigrbl import Base, TigrblApi
+from tigrbl import Base, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -18,7 +18,7 @@ def test_api_hook_binding_merges_into_model():
         return None
 
     api_hooks = {"*": {"PRE_HANDLER": [audit]}}
-    api = TigrblApi(engine=mem(async_=False), api_hooks=api_hooks)
+    api = TigrblRouter(engine=mem(async_=False), api_hooks=api_hooks)
 
     class Widget(Base, GUIDPk):
         __tablename__ = "lesson_api_hook_binding"
@@ -39,7 +39,7 @@ def test_api_hook_binding_respects_alias_namespace():
         return None
 
     api_hooks = {"*": {"PRE_HANDLER": [audit]}}
-    api = TigrblApi(engine=mem(async_=False), api_hooks=api_hooks)
+    api = TigrblRouter(engine=mem(async_=False), api_hooks=api_hooks)
 
     class Widget(Base, GUIDPk):
         __tablename__ = "lesson_api_hook_alias_binding"

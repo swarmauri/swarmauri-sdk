@@ -31,7 +31,7 @@ from .fastapi import (
 from .sqlalchemy import IntegrityError, Select, select, or_, delete
 from .tigrbl import (
     TigrblApp,
-    TigrblApi,
+    TigrblRouter,
     op_ctx,
     hook_ctx,
     engine_ctx,
@@ -114,7 +114,7 @@ __all__ = [
     "IntegrityError",
     # tigrbl
     "TigrblApp",
-    "TigrblApi",
+    "TigrblRouter",
     "op_ctx",
     "hook_ctx",
     "engine_ctx",

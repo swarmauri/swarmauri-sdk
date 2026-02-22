@@ -2,7 +2,7 @@ import httpx
 import pytest
 import pytest_asyncio
 
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -36,10 +36,10 @@ class BetaWidget(Base, GUIDPk):
 @pytest_asyncio.fixture()
 async def running_multi_api_app():
     engine = mem(async_=False)
-    alpha_api = TigrblApi(engine=engine)
+    alpha_api = TigrblRouter(engine=engine)
     alpha_api.include_model(AlphaWidget)
 
-    beta_api = TigrblApi(engine=engine)
+    beta_api = TigrblRouter(engine=engine)
     beta_api.include_model(BetaWidget)
 
     app = TigrblApp(engine=engine, apis=[alpha_api])

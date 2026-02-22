@@ -2,7 +2,7 @@ import httpx
 import pytest
 import pytest_asyncio
 
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 from tigrbl.types import Security
 from tigrbl.engine.shortcuts import mem
@@ -35,7 +35,7 @@ class Kappa(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class KappaApi(TigrblApi):
+class KappaApi(TigrblRouter):
     MODELS = (Kappa,)
 
 

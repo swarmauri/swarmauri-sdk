@@ -2,7 +2,7 @@ import httpx
 import pytest
 import pytest_asyncio
 
-from tigrbl import Base, TigrblApi
+from tigrbl import Base, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -25,7 +25,7 @@ class Gadget(Base, GUIDPk):
 
 @pytest_asyncio.fixture()
 async def running_api_app():
-    api = TigrblApi(
+    api = TigrblRouter(
         engine=mem(async_=False),
         models=[Gadget],
         prefix="/gadgets",

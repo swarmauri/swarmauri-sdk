@@ -86,7 +86,7 @@ Some objects also expose optional helpers:
 | Column | `column_spec.py` | `_column.py` | — | `shortcuts.py` | `collect.py` | — | — |
 | Engine | `engine_spec.py` | `_engine.py` | `decorators.py` | `shortcuts.py` | `collect.py` | `resolver.py` | `builders.py` |
 | Op | `types.py` | `_op.py` | `decorators.py` | — | `collect.py` | — | — |
-| API | `router_spec.py` | `_api.py` | — | `shortcuts.py` | — | — | — |
+| Router | `router_spec.py` | `_router.py` | — | `shortcuts.py` | — | — | — |
 | App | `app_spec.py` | `_app.py` | — | `shortcuts.py` | — | — | — |
 | Table | `table_spec.py` | `_table.py` | — | `shortcuts.py` | — | — | — |
 

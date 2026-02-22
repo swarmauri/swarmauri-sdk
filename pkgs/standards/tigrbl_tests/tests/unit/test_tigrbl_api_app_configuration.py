@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 from tigrbl.types import Security
 from tigrbl.engine.shortcuts import mem
@@ -28,7 +28,7 @@ class Iota(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class IotaApi(TigrblApi):
+class IotaApi(TigrblRouter):
     MODELS = (Iota,)
 
 

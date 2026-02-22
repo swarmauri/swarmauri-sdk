@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-__all__ = ["Router", "TigrblRouter", "TigrblApi"]
+__all__ = ["Router", "TigrblRouter"]
 
 
 def __getattr__(name: str) -> Any:
@@ -13,10 +13,6 @@ def __getattr__(name: str) -> Any:
 
         return Router
     if name == "TigrblRouter":
-        from .tigrbl_router import TigrblRouter
-
-        return TigrblRouter
-    if name == "TigrblApi":
         from .tigrbl_router import TigrblRouter
 
         return TigrblRouter
