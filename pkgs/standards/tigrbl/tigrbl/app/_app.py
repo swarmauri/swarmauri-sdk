@@ -15,7 +15,6 @@ from ..router._routing import (
     add_route as _add_route_impl,
     merge_tags as _merge_tags_impl,
     normalize_prefix as _normalize_prefix_impl,
-    route as _route_impl,
 )
 from ..runtime.dependencies import (
     execute_dependency_tokens as _execute_dependency_tokens_impl,
@@ -144,24 +143,6 @@ class App(AppSpec):
         **kwargs: Any,
     ) -> None:
         _add_route_impl(self, path, endpoint, methods=methods, **kwargs)
-
-    def route(self, path: str, *, methods: Any, **kwargs: Any) -> Any:
-        return _route_impl(self, path, methods=methods, **kwargs)
-
-    def get(self, path: str, **kwargs: Any) -> Any:
-        return self.route(path, methods=["GET"], **kwargs)
-
-    def post(self, path: str, **kwargs: Any) -> Any:
-        return self.route(path, methods=["POST"], **kwargs)
-
-    def put(self, path: str, **kwargs: Any) -> Any:
-        return self.route(path, methods=["PUT"], **kwargs)
-
-    def patch(self, path: str, **kwargs: Any) -> Any:
-        return self.route(path, methods=["PATCH"], **kwargs)
-
-    def delete(self, path: str, **kwargs: Any) -> Any:
-        return self.route(path, methods=["DELETE"], **kwargs)
 
     def _router_call(self, *args: Any, **kwargs: Any):
         del kwargs
