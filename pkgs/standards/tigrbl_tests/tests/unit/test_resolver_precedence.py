@@ -31,7 +31,7 @@ def test_precedence_op_over_model_over_api_over_app(tmp_path):
 
     # Resolve each level
     p_app = resolver.resolve_provider()
-    p_api = resolver.resolve_provider(api=api)
+    p_api = resolver.resolve_provider(router=api)
     p_model = resolver.resolve_provider(model=Model)
     p_op = resolver.resolve_provider(model=Model, op_alias="create")
 

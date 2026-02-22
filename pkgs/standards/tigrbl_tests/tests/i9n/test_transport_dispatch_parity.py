@@ -54,7 +54,7 @@ async def parity_env():
     app.include_model(Widget, prefix="")
     await app.initialize()
 
-    db, release = _resolver.acquire(api=app, model=Widget, op_alias="create")
+    db, release = _resolver.acquire(router=app, model=Widget, op_alias="create")
     try:
         yield app, Widget, db, trace
     finally:

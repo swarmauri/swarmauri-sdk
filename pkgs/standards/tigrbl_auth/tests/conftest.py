@@ -55,8 +55,8 @@ async def test_db_engine() -> AsyncGenerator[Engine, None]:
     spec = EngineSpec.from_any(test_database_url)
     engine = Engine(spec)
     provider = engine.provider
-    original_surface = engine_resolver.resolve_provider(api=surface_api)
-    original_app = engine_resolver.resolve_provider(api=app)
+    original_surface = engine_resolver.resolve_provider(router=surface_api)
+    original_app = engine_resolver.resolve_provider(router=app)
     engine_resolver.register_api(surface_api, provider)
     engine_resolver.register_api(app, provider)
     setattr(surface_api, "_ddl_executed", False)

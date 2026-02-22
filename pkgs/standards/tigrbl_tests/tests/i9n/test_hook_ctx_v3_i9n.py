@@ -24,7 +24,7 @@ def create_client(model_cls):
 
     from tigrbl.engine import resolver as _resolver
 
-    prov = _resolver.resolve_provider(api=api)
+    prov = _resolver.resolve_provider(router=api)
     engine, SessionLocal = prov.ensure()
     Base.metadata.create_all(engine)
 
