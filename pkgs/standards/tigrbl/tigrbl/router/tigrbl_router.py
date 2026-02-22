@@ -218,7 +218,7 @@ class TigrblRouter(Router):
         """Mount a JSON-RPC router onto this TigrblRouter instance."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
         self.jsonrpc_prefix = px
-        prov = _resolver.resolve_provider(api=self)
+        prov = _resolver.resolve_provider(router=self)
         get_db = prov.get_db if prov else None
         router = _mount_jsonrpc(
             self,
@@ -266,7 +266,7 @@ class TigrblRouter(Router):
     ) -> Any:
         """Mount a diagnostics router onto this TigrblRouter instance or ``app``."""
         px = prefix if prefix is not None else self.system_prefix
-        prov = _resolver.resolve_provider(api=self)
+        prov = _resolver.resolve_provider(router=self)
         get_db = prov.get_db if prov else None
         router = _mount_diagnostics(self, get_db=get_db)
         include_self = getattr(self, "include_router", None)

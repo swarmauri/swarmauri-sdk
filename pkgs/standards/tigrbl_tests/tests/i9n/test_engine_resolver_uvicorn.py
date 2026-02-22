@@ -119,9 +119,9 @@ async def test_tigrblapi_multi_table_engine_binding_uvicorn() -> None:
     app.include_router(router.router, prefix="/api")
 
     # Step 2: Assert resolver bindings (api vs table overrides).
-    api_provider = resolver.resolve_provider(api=router)
-    widget_provider = resolver.resolve_provider(api=router, model=ApiWidget)
-    gadget_provider = resolver.resolve_provider(api=router, model=ApiGadget)
+    api_provider = resolver.resolve_provider(router=router)
+    widget_provider = resolver.resolve_provider(router=router, model=ApiWidget)
+    gadget_provider = resolver.resolve_provider(router=router, model=ApiGadget)
     assert api_provider is widget_provider
     assert gadget_provider is not api_provider
     assert router.engine == api_engine
@@ -218,11 +218,11 @@ async def test_multi_api_precedence_dedupe_and_op_engine_uvicorn() -> None:
 
     # Step 2: Assert resolver precedence and dedupe across app/api/model/op.
     default_provider = resolver.resolve_provider()
-    api_one_provider = resolver.resolve_provider(api=api_one)
-    api_two_provider = resolver.resolve_provider(api=api_two)
-    beta_model_provider = resolver.resolve_provider(api=api_two, model=BetaWidget)
+    api_one_provider = resolver.resolve_provider(router=api_one)
+    api_two_provider = resolver.resolve_provider(router=api_two)
+    beta_model_provider = resolver.resolve_provider(router=api_two, model=BetaWidget)
     beta_op_provider = resolver.resolve_provider(
-        api=api_two, model=BetaWidget, op_alias="ping"
+        router=api_two, model=BetaWidget, op_alias="ping"
     )
 
     assert default_provider is api_one_provider

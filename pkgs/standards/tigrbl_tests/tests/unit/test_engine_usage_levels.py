@@ -23,13 +23,13 @@ def test_engine_usage_levels_and_precedence():
     api_inst = Api()
     model_inst = Model()
 
-    p = resolver.resolve_provider(api=api_inst, model=model_inst, op_alias="create")
+    p = resolver.resolve_provider(router=api_inst, model=model_inst, op_alias="create")
     assert p is not None and p.spec.async_ is True
 
-    p_model = resolver.resolve_provider(api=api_inst, model=model_inst)
+    p_model = resolver.resolve_provider(router=api_inst, model=model_inst)
     assert p_model is not None and p_model.spec.async_ is False
 
-    p_api = resolver.resolve_provider(api=api_inst)
+    p_api = resolver.resolve_provider(router=api_inst)
     assert p_api is not None and p_api.spec.async_ is True
 
     p_default = resolver.resolve_provider()
