@@ -163,7 +163,7 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
         setattr(api.core_raw, rtitle, core_raw_proxy)
 
 
-def include_model(
+def include_table(
     api: ApiLike,
     model: type,
     *,
@@ -188,7 +188,7 @@ def include_model(
     Returns:
         (model, router) – the model class and its Router (or None if not present).
     """
-    logger.debug("Including model %s", model.__name__)
+    logger.debug("Including table %s", model.__name__)
 
     # If another test or call disposed the SQLAlchemy registry, previously
     # imported models lose their table mapping.  Re-map on demand so tests that
@@ -246,7 +246,7 @@ def include_model(
     return model, router
 
 
-def include_models(
+def include_tables(
     api: ApiLike,
     models: Sequence[type],
     *,
@@ -260,14 +260,14 @@ def include_models(
     If ``base_prefix`` is provided, each model's router is mounted under that
     prefix. The model router itself already has its own `/{resource}` prefix.
     """
-    logger.debug("Including %d models", len(models))
+    logger.debug("Including %d tables", len(models))
     results: Dict[str, Any] = {}
     for mdl in models:
         px = base_prefix.rstrip("/") if base_prefix else None
         logger.debug("Including model %s with base prefix %s", mdl.__name__, px)
-        _, router = include_model(
+        _, router = include_table(
             api, mdl, app=app, prefix=px, mount_router=mount_router
         )
         results[mdl.__name__] = router
-    logger.debug("Finished including models")
+    logger.debug("Finished including tables")
     return results

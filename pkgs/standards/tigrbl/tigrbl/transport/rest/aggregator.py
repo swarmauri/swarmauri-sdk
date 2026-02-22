@@ -7,8 +7,8 @@ This does not build endpoints by itself — it simply collects the routers that
 
 Recommended workflow:
   1) Include models with `mount_router=False` so you don't double-mount:
-        api.include_model(User, mount_router=False)
-        api.include_model(Team, mount_router=False)
+        api.include_table(User, mount_router=False)
+        api.include_table(Team, mount_router=False)
   2) Aggregate and mount once:
         app.include_router(build_rest_router(api, base_prefix="/api"))
      or:

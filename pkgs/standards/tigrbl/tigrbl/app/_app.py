@@ -18,7 +18,7 @@ class App(AppSpec):
     LIFESPAN = None
     ROUTERS = ()
     OPS = ()
-    MODELS = ()
+    TABLES = ()
     SCHEMAS = ()
     HOOKS = ()
     SECURITY_DEPS = ()
@@ -50,7 +50,7 @@ class App(AppSpec):
         self.ops = tuple(getattr(self, "OPS", ()))
         # Runtime registries use mutable containers (dict/namespace), but the
         # dataclass fields expect sequences. Storing a dict here satisfies both.
-        self.models = initialize_model_registry(getattr(self, "MODELS", ()))
+        self.models = initialize_model_registry(getattr(self, "TABLES", ()))
         self.schemas = tuple(getattr(self, "SCHEMAS", ()))
         self.hooks = tuple(getattr(self, "HOOKS", ()))
         self.security_deps = tuple(getattr(self, "SECURITY_DEPS", ()))
@@ -83,9 +83,9 @@ class App(AppSpec):
     def install_engines(
         self, *, api: Any = None, models: tuple[Any, ...] | None = None
     ) -> None:
-        # If class declared APIS/MODELS, use them unless explicit args are passed.
+        # If class declared APIS/TABLES, use them unless explicit args are passed.
         routers = (api,) if api is not None else self.ROUTERS
-        models = models if models is not None else self.MODELS
+        models = models if models is not None else self.TABLES
         if routers:
             for a in routers:
                 install_from_objects(app=self.router, api=a, models=models)

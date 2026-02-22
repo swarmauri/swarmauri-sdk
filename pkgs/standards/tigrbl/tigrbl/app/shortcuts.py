@@ -43,7 +43,7 @@ def defineAppSpec(
         ENGINE=engine,
         APIS=tuple(apis or ()),
         OPS=tuple(ops or ()),
-        MODELS=tuple(models or ()),
+        TABLES=tuple(models or ()),
         SCHEMAS=tuple(schemas or ()),
         HOOKS=tuple(hooks or ()),
         SECURITY_DEPS=tuple(security_deps or ()),

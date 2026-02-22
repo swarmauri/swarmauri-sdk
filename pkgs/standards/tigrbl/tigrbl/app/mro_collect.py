@@ -89,7 +89,7 @@ def mro_collect_app_spec(app: type) -> AppSpec:
             reverse=include_inherited_apis,
         ),
         ops=_merge_seq_attr(app, "OPS"),
-        models=_merge_seq_attr(app, "MODELS"),
+        models=_merge_seq_attr(app, "TABLES"),
         schemas=_merge_seq_attr(app, "SCHEMAS"),
         hooks=_merge_seq_attr(app, "HOOKS"),
         security_deps=_merge_seq_attr(app, "SECURITY_DEPS"),
