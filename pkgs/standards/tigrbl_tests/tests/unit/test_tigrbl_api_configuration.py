@@ -49,11 +49,11 @@ def test_tigrbl_api_post_instantiation_set_auth_updates_state() -> None:
 
 @pytest.mark.unit
 def test_tigrbl_api_class_prefix_defaults() -> None:
-    assert TigrblRouter.REST_PREFIX == "/api"
+    assert TigrblRouter.REST_PREFIX == "/router"
     assert TigrblRouter.RPC_PREFIX == "/rpc"
     assert TigrblRouter.SYSTEM_PREFIX == "/system"
 
     router = TigrblRouter(engine=mem(async_=False))
-    assert router.rest_prefix == "/api"
+    assert router.rest_prefix == "/router"
     assert router.rpc_prefix == "/rpc"
     assert router.system_prefix == "/system"

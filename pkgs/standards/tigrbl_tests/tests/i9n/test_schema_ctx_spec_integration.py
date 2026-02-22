@@ -65,32 +65,32 @@ async def schema_ctx_client():
         }
 
     app = Tigrblv3()
-    api = Tigrblv3(engine=mem(async_=False))
-    api.include_model(Widget, prefix="")
-    api.mount_jsonrpc()
-    api.attach_diagnostics()
-    api.initialize()
+    router = Tigrblv3(engine=mem(async_=False))
+    router.include_model(Widget, prefix="")
+    router.mount_jsonrpc()
+    router.attach_diagnostics()
+    router.initialize()
     prov = _resolver.resolve_provider()
     _, SessionLocal = prov.ensure()
-    app.include_router(api.router)
+    app.include_router(router.router)
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
-    return client, api, Widget, SessionLocal
+    return client, router, Widget, SessionLocal
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_schema_ctx_binding(schema_ctx_client):
-    _, api, Widget, _ = schema_ctx_client
-    assert api.schemas.Widget.create.in_ is Widget.Create
-    assert api.schemas.Widget.read.out is Widget.Read
+    _, router, Widget, _ = schema_ctx_client
+    assert router.schemas.Widget.create.in_ is Widget.Create
+    assert router.schemas.Widget.read.out is Widget.Read
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_schema_ctx_request_response_schema(schema_ctx_client):
-    _, api, _, _ = schema_ctx_client
-    create_schema = api.schemas.Widget.create.in_
-    read_schema = api.schemas.Widget.read.out
+    _, router, _, _ = schema_ctx_client
+    create_schema = router.schemas.Widget.create.in_
+    read_schema = router.schemas.Widget.read.out
     assert "secret" in create_schema.model_fields
     assert "age" in read_schema.model_fields
 
@@ -116,9 +116,9 @@ async def test_schema_ctx_default_resolution(schema_ctx_client):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_schema_ctx_internal_orm(schema_ctx_client):
-    _, api, Widget, _ = schema_ctx_client
-    assert api.models["Widget"] is Widget
-    assert "age" in api.columns["Widget"]
+    _, router, Widget, _ = schema_ctx_client
+    assert router.models["Widget"] is Widget
+    assert "age" in router.columns["Widget"]
 
 
 @pytest.mark.i9n
@@ -174,7 +174,7 @@ async def test_schema_ctx_rpc_methods(schema_ctx_client):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_schema_ctx_core_crud(schema_ctx_client):
-    _, api, Widget, SessionLocal = schema_ctx_client
+    _, router, Widget, SessionLocal = schema_ctx_client
     with SessionLocal() as session:
         obj = await crud.create(Widget, {"name": "core", "secret": "def"}, db=session)
         session.commit()

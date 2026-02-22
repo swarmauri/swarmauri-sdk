@@ -51,7 +51,7 @@ def _seed_security_and_deps(router: Any, model: type) -> None:
     - __tigrbl_rpc_dependencies__   : list of extra dependencies for JSON-RPC router
     """
     # DB deps
-    prov = _resolver.resolve_provider(api=router)
+    prov = _resolver.resolve_provider(router=router)
     if prov is not None:
         logger.debug("Resolved provider for %s", model.__name__)
         setattr(model, TIGRBL_GET_DB_ATTR, prov.get_db)
@@ -296,7 +296,7 @@ def include_model(
     _seed_security_and_deps(router, model)
 
     # 1) Build/bind model namespaces (idempotent)
-    _binder.bind(model, api=router)
+    _binder.bind(model, router=router)
 
     auth_dep = getattr(model, TIGRBL_AUTH_DEP_ATTR, None)
     authorize_dep = _make_authorize_secdep(router)
@@ -313,7 +313,7 @@ def include_model(
     else:
         logger.debug("Using provided prefix '%s' for %s", prefix, model.__name__)
 
-    # 3) Always bind model router to the API object when possible
+    # 3) Always bind model router to the Router object when possible
     root_router = (
         router if _has_include_router(router) else getattr(router, "router", None)
     )

@@ -39,15 +39,15 @@ async def test_openapi_security_from_app_and_api_deps() -> None:
 
         name = Column(String, nullable=False)
 
-    # Instantiation: define the API with two security deps (shared + api-only).
+    # Instantiation: define the API with two security deps (shared + router-only).
     class SecuredApi(TigrblRouter):
         SECURITY_DEPS = (
             Security(shared_api_scheme),
             Security(api_only_scheme),
         )
 
-    api = SecuredApi(engine=mem(async_=False))
-    api.include_model(CombinedSecdepsWidget)
+    router = SecuredApi(engine=mem(async_=False))
+    router.include_model(CombinedSecdepsWidget)
 
     # Instantiation: build the app with two security deps (shared + app-only).
     app = TigrblApp(
@@ -57,7 +57,7 @@ async def test_openapi_security_from_app_and_api_deps() -> None:
             Security(app_only_scheme),
         ],
     )
-    app.include_router(api)
+    app.include_router(router)
 
     # Deployment: initialize storage and run the app with Uvicorn.
     init_result = app.initialize()
@@ -73,7 +73,7 @@ async def test_openapi_security_from_app_and_api_deps() -> None:
         schema = response.json()
         resource_path = f"/{CombinedSecdepsWidget.__name__.lower()}"
 
-        # Assertion: security schemes include shared + app-only + api-only keys.
+        # Assertion: security schemes include shared + app-only + router-only keys.
         assert response.status_code == 200
         security_items = schema["paths"][resource_path]["get"]["security"]
         security_keys = {key for item in security_items for key in item}

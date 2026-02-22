@@ -20,13 +20,13 @@ def test_app_router_registers_routes():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-    api = TigrblApp(engine=mem(async_=False))
+    router = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize to generate routes.
-    api.include_model(Widget)
-    api.initialize()
+    router.include_model(Widget)
+    router.initialize()
     # Deployment: mount the Tigrbl router on a FastAPI app.
     app = TigrblApp()
-    app.include_router(api.router)
+    app.include_router(router.router)
     # Exercise: list registered paths.
     routes = {route.path for route in app.router.routes}
     # Assertion: the model route exists for the widget resource.
@@ -49,12 +49,12 @@ def test_app_router_contains_model_route_once():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-    api = TigrblApp(engine=mem(async_=False))
+    router = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model, initialize, and mount on a FastAPI app.
-    api.include_model(Widget)
-    api.initialize()
+    router.include_model(Widget)
+    router.initialize()
     app = TigrblApp()
-    app.include_router(api.router)
+    app.include_router(router.router)
     # Exercise: collect route entries for the model path.
     model_path = f"/{Widget.__name__.lower()}"
     model_routes = [route for route in app.router.routes if route.path == model_path]

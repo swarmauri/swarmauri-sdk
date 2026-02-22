@@ -23,12 +23,12 @@ class API:
 
 def test_op_table_api_app_engines(tmp_path):
     app = App(sqlitef(str(tmp_path / "app.sqlite"), async_=False))
-    api = API(pgs(host="db", name="api_db"))
+    router = API(pgs(host="db", name="api_db"))
 
-    install_from_objects(app=app, api=api, models=[Model])
+    install_from_objects(app=app, router=router, models=[Model])
 
     p_app = resolver.resolve_provider()
-    p_api = resolver.resolve_provider(api=api)
+    p_api = resolver.resolve_provider(router=router)
     p_table = resolver.resolve_provider(model=Model)
     p_op = resolver.resolve_provider(model=Model, op_alias="create")
 

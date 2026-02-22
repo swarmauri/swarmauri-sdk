@@ -67,7 +67,7 @@ def engine_ctx(ctx: Optional[EngineCfg] = None, **kw: Any):
     """
     Object-agnostic decorator to attach engine configuration to:
       - App classes/instances     (app-level default)
-      - API classes/instances     (api-level default)
+      - API classes/instances     (router-level default)
       - ORM model classes         (table-level)
       - Op callables              (op-level)
 
@@ -78,7 +78,7 @@ def engine_ctx(ctx: Optional[EngineCfg] = None, **kw: Any):
 
     Downstream:
       • engine.install_from_objects(...) discovers these and registers
-        Providers with resolver precedence: op > table(model) > api > app.
+        Providers with resolver precedence: op > table(model) > router > app.
     """
     spec = _normalize(ctx, **kw)
 

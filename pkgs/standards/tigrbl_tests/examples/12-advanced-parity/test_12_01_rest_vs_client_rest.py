@@ -22,15 +22,15 @@ async def test_rest_and_client_rest_match() -> None:
 
         name = Column(String, nullable=False)
 
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Widget)
-    init_result = api.initialize()
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(Widget)
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
 
     app = TigrblApp()
-    app.include_router(api.router)
-    api.attach_diagnostics(prefix="", app=app)
+    app.include_router(router.router)
+    router.attach_diagnostics(prefix="", app=app)
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

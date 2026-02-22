@@ -25,14 +25,14 @@ async def test_response_ctx_alias_table_rpc():
         )
 
     eng = build_engine(mem(async_=False))
-    api = TigrblRouter(engine=eng)
-    api.include_model(Widget, mount_router=False)
-    api.initialize()
+    router = TigrblRouter(engine=eng)
+    router.include_model(Widget, mount_router=False)
+    router.initialize()
     raw_eng, _ = eng.raw()
     try:
         with eng.session() as session:
-            created = await api.rpc_call(Widget, "create", {"name": "a"}, db=session)
-            fetched = await api.rpc_call(
+            created = await router.rpc_call(Widget, "create", {"name": "a"}, db=session)
+            fetched = await router.rpc_call(
                 Widget, "fetch", {"id": created["id"]}, db=session
             )
             assert fetched["id"] == created["id"]

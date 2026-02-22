@@ -19,13 +19,13 @@ def test_jsonrpc_mount_adds_rpc_prefix():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-    api = TigrblApp(engine=mem(async_=False))
+    router = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize before mounting JSON-RPC.
-    api.include_model(Widget)
-    api.initialize()
-    api.mount_jsonrpc(prefix="/rpc")
+    router.include_model(Widget)
+    router.initialize()
+    router.mount_jsonrpc(prefix="/rpc")
     # Exercise: collect route paths after mounting RPC routes.
-    route_paths = {route.path for route in api.router.routes}
+    route_paths = {route.path for route in router.router.routes}
     # Assertion: the RPC prefix is registered.
     assert "/rpc" in route_paths
 
@@ -46,15 +46,15 @@ def test_jsonrpc_mount_preserves_existing_routes():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-    api = TigrblApp(engine=mem(async_=False))
+    router = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize routes.
-    api.include_model(Widget)
-    api.initialize()
+    router.include_model(Widget)
+    router.initialize()
     # Exercise: capture routes before enabling JSON-RPC.
-    initial_routes = {route.path for route in api.router.routes}
-    api.mount_jsonrpc(prefix="/rpc")
+    initial_routes = {route.path for route in router.router.routes}
+    router.mount_jsonrpc(prefix="/rpc")
     # Exercise: capture the expanded route set after mounting.
-    updated_routes = {route.path for route in api.router.routes}
+    updated_routes = {route.path for route in router.router.routes}
 
     # Assertion: existing routes remain available after adding JSON-RPC.
     assert initial_routes.issubset(updated_routes)

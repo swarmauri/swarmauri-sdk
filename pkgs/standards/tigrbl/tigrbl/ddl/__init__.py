@@ -259,7 +259,7 @@ def initialize(
 
     kwargs: Dict[str, Any] = {}
     if hasattr(obj, "_collect_tables"):
-        kwargs["api"] = obj
+        kwargs["router"] = obj
     elif hasattr(obj, "__table__"):
         kwargs["model"] = obj
 

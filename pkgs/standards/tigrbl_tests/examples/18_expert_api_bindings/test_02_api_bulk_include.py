@@ -26,11 +26,11 @@ def test_api_binding_includes_multiple_models():
 
         name = Column(String, nullable=False)
 
-    api = TigrblRouter(engine=mem(async_=False))
+    router = TigrblRouter(engine=mem(async_=False))
 
-    api.include_models([Widget, Gadget])
+    router.include_models([Widget, Gadget])
 
-    assert {Widget.__name__, Gadget.__name__}.issubset(api.models)
+    assert {Widget.__name__, Gadget.__name__}.issubset(router.models)
 
 
 def test_bulk_include_populates_schema_namespaces():
@@ -48,9 +48,9 @@ def test_bulk_include_populates_schema_namespaces():
 
         name = Column(String, nullable=False)
 
-    api = TigrblRouter(engine=mem(async_=False))
+    router = TigrblRouter(engine=mem(async_=False))
 
-    api.include_models([Widget, Gadget])
+    router.include_models([Widget, Gadget])
 
-    assert hasattr(api.schemas, Widget.__name__)
-    assert hasattr(api.schemas, Gadget.__name__)
+    assert hasattr(router.schemas, Widget.__name__)
+    assert hasattr(router.schemas, Gadget.__name__)

@@ -42,7 +42,7 @@ from ...transport.dispatcher import dispatch_operation
 logging.getLogger("uvicorn").debug("Loaded module v3/bindings/rest/collection")
 
 
-def _ctx(model, alias, target, request, db, payload, parent_kw, api):
+def _ctx(model, alias, target, request, db, payload, parent_kw, router):
     ctx: Dict[str, Any] = {
         "request": request,
         "db": db,
@@ -50,7 +50,7 @@ def _ctx(model, alias, target, request, db, payload, parent_kw, api):
         "path_params": parent_kw,
         # expose both API router and ASGI app; runtime opview resolution
         # relies on the app object, which must be hashable.
-        "api": api if api is not None else getattr(request, "app", None),
+        "router": router if router is not None else getattr(request, "app", None),
         "app": getattr(request, "app", None),
         "model": model,
         "op": alias,
@@ -100,7 +100,7 @@ def _make_collection_endpoint(
     resource: str,
     db_dep: Callable[..., Any],
     nested_vars: Sequence[str] | None = None,
-    api: Any | None = None,
+    router: Any | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias, target, nested_vars = sp.alias, sp.target, list(nested_vars or [])
     status_code = _status_for(sp)
@@ -125,12 +125,12 @@ def _make_collection_endpoint(
                 payload = dict(parent_kw)
             if isinstance(h, Mapping):
                 payload = {**payload, **dict(h)}
-            ctx = _ctx(model, alias, target, request, db, payload, parent_kw, api)
+            ctx = _ctx(model, alias, target, request, db, payload, parent_kw, router)
             ctx["response_serializer"] = lambda r: _serialize_output(
                 model, alias, target, sp, r
             )
             result = await dispatch_operation(
-                router=api,
+                router=router,
                 model_or_name=model,
                 alias=alias,
                 payload=ctx.get("payload"),
@@ -196,7 +196,9 @@ def _make_collection_endpoint(
                 payload: Mapping[str, Any] = dict(parent_kw)
                 if isinstance(h, Mapping):
                     payload = {**payload, **dict(h)}
-                ctx = _ctx(model, alias, target, request, db, payload, parent_kw, api)
+                ctx = _ctx(
+                    model, alias, target, request, db, payload, parent_kw, router
+                )
 
                 def _serializer(r, _ctx=ctx):
                     out = _serialize_output(model, alias, target, sp, r)
@@ -214,7 +216,7 @@ def _make_collection_endpoint(
 
                 ctx["response_serializer"] = _serializer
                 result = await dispatch_operation(
-                    router=api,
+                    router=router,
                     model_or_name=model,
                     alias=alias,
                     payload=ctx.get("payload"),
@@ -307,7 +309,7 @@ def _make_collection_endpoint(
                 else:
                     payload = [{**dict(item), **parent_kw} for item in payload]
             ctx = _ctx(
-                model, exec_alias, exec_target, request, db, payload, parent_kw, api
+                model, exec_alias, exec_target, request, db, payload, parent_kw, router
             )
 
             def _serializer(r, _ctx=ctx):
@@ -322,7 +324,7 @@ def _make_collection_endpoint(
 
             ctx["response_serializer"] = _serializer
             result = await dispatch_operation(
-                router=api,
+                router=router,
                 model_or_name=model,
                 alias=exec_alias,
                 payload=ctx.get("payload"),

@@ -30,12 +30,12 @@ def test_custom_op_ctx_registers_alias():
     LessonOp.search = search
 
     # Deployment: include the model in a TigrblApp and initialize bindings.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonOp)
-    api.initialize()
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(LessonOp)
+    router.initialize()
 
     # Test: collect aliases from the app-bound OpSpecs.
-    aliases = {spec.alias for spec in api.bind(LessonOp)}
+    aliases = {spec.alias for spec in router.bind(LessonOp)}
 
     # Assertion: the custom alias appears in the bound operation set.
     assert "search" in aliases

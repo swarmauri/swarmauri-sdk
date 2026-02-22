@@ -12,15 +12,15 @@ async def _get_json(app, path: str):
 
 def test_tigrbl_api_is_asgi_compatible():
     """TigrblRouter should serve routes as an ASGI app."""
-    api = TigrblRouter()
+    router = TigrblRouter()
 
-    @api.get("/health")
+    @router.get("/health")
     def health():
         return {"ok": True}
 
     import asyncio
 
-    response = asyncio.run(_get_json(api, "/health"))
+    response = asyncio.run(_get_json(router, "/health"))
 
     assert response.status_code == 200
     assert response.json() == {"ok": True}

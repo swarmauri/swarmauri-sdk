@@ -20,15 +20,15 @@ async def test_uvicorn_systemz_route():
 
         name = Column(String, nullable=False)
 
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Widget)
-    init_result = api.initialize()
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(Widget)
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
     app = TigrblApp()
-    app.include_router(api.router)
+    app.include_router(router.router)
     app.add_api_route("/systemz", lambda: {"system": True}, methods=["GET"])
-    api.attach_diagnostics(prefix="", app=app)
+    router.attach_diagnostics(prefix="", app=app)
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
     async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:

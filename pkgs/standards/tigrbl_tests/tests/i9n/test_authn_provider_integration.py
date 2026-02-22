@@ -40,11 +40,11 @@ def _build_client_with_auth():
         async def capture(cls, ctx):
             auth.ctx_principal = ctx.get("auth_context")
 
-    api = TigrblApp(engine=mem(async_=False))
-    api.set_auth(authn=auth.get_principal)
-    api.include_model(Tenant)
-    api.initialize()
-    transport = ASGITransport(app=api)
+    router = TigrblApp(engine=mem(async_=False))
+    router.set_auth(authn=auth.get_principal)
+    router.include_model(Tenant)
+    router.initialize()
+    transport = ASGITransport(app=router)
     return Client(transport=transport, base_url="http://test"), auth
 
 

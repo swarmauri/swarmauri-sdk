@@ -175,16 +175,16 @@ async def test_document_versions_many_to_many_links() -> None:
         )
 
     # Deployment: include all three models so tables are created.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_models([Document, DocumentVersion, DocumentVersionLink])
-    init_result = api.initialize()
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_models([Document, DocumentVersion, DocumentVersionLink])
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    api.mount_jsonrpc(prefix="/rpc")
+    router.mount_jsonrpc(prefix="/rpc")
 
     app = TigrblApp()
-    app.include_router(api.router)
-    api.attach_diagnostics(prefix="", app=app)
+    app.include_router(router.router)
+    router.attach_diagnostics(prefix="", app=app)
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

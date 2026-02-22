@@ -52,8 +52,8 @@ def test_rest_rpc_parity_for_default_verbs(alias, target, path, methods):
 
     Item.__tigrbl_ops__ = {verb: {"target": verb} for verb in CANON if verb != "custom"}
 
-    api = TigrblApp()
-    api.include_model(Item, mount_router=False)
+    router = TigrblApp()
+    router.include_model(Item, mount_router=False)
 
     routes = _route_map(Item.rest.router)
     if alias == "clear" and "bulk_delete" in routes:
@@ -66,7 +66,7 @@ def test_rest_rpc_parity_for_default_verbs(alias, target, path, methods):
         assert got_path.lower() == path.lower()
         assert got_methods == methods
 
-    assert hasattr(api.rpc.Item, alias)
+    assert hasattr(router.rpc.Item, alias)
 
 
 def test_non_bulkcapable_prefers_create() -> None:
@@ -76,11 +76,11 @@ def test_non_bulkcapable_prefers_create() -> None:
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
-    api = TigrblApp()
-    api.include_model(Item, mount_router=False)
+    router = TigrblApp()
+    router.include_model(Item, mount_router=False)
 
     routes = _route_map(Item.rest.router)
     assert "bulk_create" not in routes
     assert "create" in routes
-    assert hasattr(api.rpc.Item, "create")
-    assert not hasattr(api.rpc.Item, "bulk_create")
+    assert hasattr(router.rpc.Item, "create")
+    assert not hasattr(router.rpc.Item, "bulk_create")

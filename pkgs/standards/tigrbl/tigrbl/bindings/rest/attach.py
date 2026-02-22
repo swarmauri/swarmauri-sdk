@@ -15,7 +15,7 @@ def build_router_and_attach(
     model: type,
     specs: Sequence[OpSpec],
     *,
-    api: Any | None = None,
+    router: Any | None = None,
     only_keys: Optional[Sequence[_Key]] = None,
 ) -> None:
     """
@@ -23,7 +23,7 @@ def build_router_and_attach(
     For simplicity and correctness with ASGI, we **rebuild the entire router**
     on each call (ASGI does not support removing individual routes cleanly).
     """
-    router = _build_router(model, specs, api=api)
+    router = _build_router(model, specs, router=router)
     rest_ns = getattr(model, "rest", None) or SimpleNamespace()
     rest_ns.router = router
     setattr(model, "rest", rest_ns)

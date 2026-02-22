@@ -72,16 +72,16 @@ async def test_many_to_many_relationship_via_rest() -> None:
         )
 
     # Step 4: Build the API with all three models registered.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_models([Student, Course, Enrollment])
-    init_result = api.initialize()
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_models([Student, Course, Enrollment])
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
 
     # Step 5: Mount the API routes on the app.
     app = TigrblApp()
-    app.include_router(api.router)
-    api.attach_diagnostics(prefix="", app=app)
+    app.include_router(router.router)
+    router.attach_diagnostics(prefix="", app=app)
 
     # Step 6: Launch uvicorn and exercise the REST endpoints.
     port = pick_unique_port()

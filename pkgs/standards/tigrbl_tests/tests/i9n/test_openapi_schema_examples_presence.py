@@ -33,14 +33,14 @@ def _resolve_schema(spec, schema):
 async def test_openapi_examples_and_schemas_present(db_mode):
     fastapi_app = TigrblApp()
     engine = mem() if db_mode == "async" else mem(async_=False)
-    api = TigrblApp(engine=engine)
-    api.include_model(Widget)
+    router = TigrblApp(engine=engine)
+    router.include_model(Widget)
     if db_mode == "async":
-        await api.initialize()
+        await router.initialize()
     else:
-        api.initialize()
-    api.mount_jsonrpc()
-    fastapi_app.include_router(api.router)
+        router.initialize()
+    router.mount_jsonrpc()
+    fastapi_app.include_router(router.router)
 
     transport = ASGITransport(app=fastapi_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -72,8 +72,8 @@ async def test_openapi_examples_and_schemas_present(db_mode):
     }
     assert expected <= set(spec["components"]["schemas"])
 
-    assert hasattr(api.schemas, "Widget")
-    widget_ns = getattr(api.schemas, "Widget")
+    assert hasattr(router.schemas, "Widget")
+    widget_ns = getattr(router.schemas, "Widget")
     for alias in ["create", "read", "update", "replace", "delete", "list", "clear"]:
         assert hasattr(widget_ns, alias)
         op_ns = getattr(widget_ns, alias)

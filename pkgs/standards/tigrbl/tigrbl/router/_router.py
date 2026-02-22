@@ -527,7 +527,7 @@ class Api(RouterSpec, Router):
 
     MODELS: tuple[Any, ...] = ()
     TABLES: tuple[Any, ...] = ()
-    REST_PREFIX = "/api"
+    REST_PREFIX = "/router"
     RPC_PREFIX = "/rpc"
     SYSTEM_PREFIX = "/system"
 
@@ -544,7 +544,7 @@ class Api(RouterSpec, Router):
     def __init__(
         self, *, engine: EngineCfg | None = None, **router_kwargs: Any
     ) -> None:
-        self.name = getattr(self, "NAME", "api")
+        self.name = getattr(self, "NAME", "router")
         self.prefix = self.PREFIX
         self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
         self.tags = list(getattr(self, "TAGS", []))
@@ -554,7 +554,7 @@ class Api(RouterSpec, Router):
         self.security_deps = tuple(getattr(self, "SECURITY_DEPS", ()))
         self.deps = tuple(getattr(self, "DEPS", ()))
         self.response = getattr(self, "RESPONSE", None)
-        self.rest_prefix = getattr(self, "REST_PREFIX", "/api")
+        self.rest_prefix = getattr(self, "REST_PREFIX", "/router")
         self.rpc_prefix = getattr(self, "RPC_PREFIX", "/rpc")
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
         self.models = initialize_model_registry(getattr(self, "MODELS", ()))
@@ -571,7 +571,7 @@ class Api(RouterSpec, Router):
         _engine_ctx = engine if engine is not None else getattr(self, "ENGINE", None)
         if _engine_ctx is not None:
             _resolver.register_api(self, _engine_ctx)
-            _resolver.resolve_provider(api=self)
+            _resolver.resolve_provider(router=self)
 
     def add_route(
         self,
@@ -584,15 +584,15 @@ class Api(RouterSpec, Router):
         self.add_api_route(path, endpoint, methods=methods, **kwargs)
 
     def install_engines(
-        self, *, api: Any = None, models: tuple[Any, ...] | None = None
+        self, *, router: Any = None, models: tuple[Any, ...] | None = None
     ) -> None:
-        apis = (api,) if api is not None else self.APIS
+        apis = (router,) if router is not None else self.APIS
         models = models if models is not None else self.MODELS
         if apis:
             for a in apis:
-                install_from_objects(app=self, api=a, models=models)
+                install_from_objects(app=self, router=a, models=models)
         else:
-            install_from_objects(app=self, api=None, models=models)
+            install_from_objects(app=self, router=None, models=models)
 
     def _collect_tables(self) -> list[Any]:
         seen = set()

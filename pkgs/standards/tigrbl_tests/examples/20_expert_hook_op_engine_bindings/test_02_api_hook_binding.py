@@ -18,7 +18,7 @@ def test_api_hook_binding_merges_into_model():
         return None
 
     api_hooks = {"*": {"PRE_HANDLER": [audit]}}
-    api = TigrblRouter(engine=mem(async_=False), api_hooks=api_hooks)
+    router = TigrblRouter(engine=mem(async_=False), api_hooks=api_hooks)
 
     class Widget(Base, GUIDPk):
         __tablename__ = "lesson_api_hook_binding"
@@ -26,7 +26,7 @@ def test_api_hook_binding_merges_into_model():
 
         name = Column(String, nullable=False)
 
-    api.include_model(Widget)
+    router.include_model(Widget)
 
     hooks = Widget.hooks.create.PRE_HANDLER
     assert any(step.__name__ == "audit" for step in hooks)
@@ -39,7 +39,7 @@ def test_api_hook_binding_respects_alias_namespace():
         return None
 
     api_hooks = {"*": {"PRE_HANDLER": [audit]}}
-    api = TigrblRouter(engine=mem(async_=False), api_hooks=api_hooks)
+    router = TigrblRouter(engine=mem(async_=False), api_hooks=api_hooks)
 
     class Widget(Base, GUIDPk):
         __tablename__ = "lesson_api_hook_alias_binding"
@@ -47,6 +47,6 @@ def test_api_hook_binding_respects_alias_namespace():
 
         name = Column(String, nullable=False)
 
-    api.include_model(Widget)
+    router.include_model(Widget)
 
     assert isinstance(Widget.hooks.create.PRE_HANDLER, list)
