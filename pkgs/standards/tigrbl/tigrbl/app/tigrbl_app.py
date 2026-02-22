@@ -30,6 +30,7 @@ from ..bindings.api import (
     AttrDict,
 )
 from ..bindings.model import rebind as _rebind, bind as _bind
+from ..bindings.api.include import _inject_runtime_secdeps, _make_authorize_secdep
 from ..bindings.rest import build_router_and_attach as _build_router_and_attach
 from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_diagnostics as _mount_diagnostics
@@ -501,13 +502,13 @@ class TigrblApp(_App):
     def bind(self, model: type) -> Tuple[OpSpec, ...]:
         """Bind/rebuild a model in place (without mounting)."""
         self._merge_router_hooks_into_model(model, self._router_hooks_map)
-        return _bind(model)
+        return _bind(model, api=self)
 
     def rebind(
         self, model: type, *, changed_keys: Optional[set[tuple[str, str]]] = None
     ) -> Tuple[OpSpec, ...]:
         """Targeted rebuild of a bound model."""
-        return _rebind(model, changed_keys=changed_keys)
+        return _rebind(model, api=self, changed_keys=changed_keys)
 
     # ------------------------- legacy helpers -------------------------
 
@@ -560,9 +561,21 @@ class TigrblApp(_App):
         self._allow_anon_ops = set()
         for model in self.models.values():
             _seed_security_and_deps(self, model)
-            specs = getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ())
+            specs = self.bind(model)
+            auth_dep = getattr(model, "__tigrbl_auth_dep__", None)
+            authorize_dep = _make_authorize_secdep(self)
+            runtime_secdeps = tuple(
+                dep for dep in (auth_dep, authorize_dep) if dep is not None
+            )
+            allow_attr = getattr(model, "__tigrbl_allow_anon__", None)
+            allow_anon = set(
+                (allow_attr() if callable(allow_attr) else allow_attr) or ()
+            )
+            _inject_runtime_secdeps(model, runtime_secdeps, allow_anon)
             if specs:
-                _build_router_and_attach(model, list(specs))
+                _build_router_and_attach(
+                    model, list(getattr(model.ops, "all", specs)), api=self
+                )
             router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
             if router is None:
                 continue
