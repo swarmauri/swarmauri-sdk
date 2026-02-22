@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from tigrbl.app.shortcuts import deriveApp
-from tigrbl.router.shortcuts import deriveApi
+from tigrbl.router.shortcuts import deriveRouter
 from tigrbl.table.shortcuts import defineTableSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
@@ -13,14 +13,14 @@ class ExSchema(BaseModel):
 
 
 AppCls = deriveApp(schemas=[ExSchema])
-ApiCls = deriveApi(schemas=[ExSchema])
+ApiCls = deriveRouter(schemas=[ExSchema])
 
 
 def test_app_houses_schemas():
     assert ExSchema in AppCls.SCHEMAS
 
 
-def test_api_houses_schemas():
+def test_router_houses_schemas():
     assert ExSchema in ApiCls.SCHEMAS
 
 

@@ -5,6 +5,8 @@ through its class configuration and verify that the OpenAPI schema marks
 routes as secured when the API runs under Uvicorn.
 """
 
+from tigrbl.security import Security
+
 import inspect
 
 import httpx
@@ -16,7 +18,7 @@ from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Column, Security, String
+from tigrbl.types import Column, String
 
 
 @pytest.mark.asyncio

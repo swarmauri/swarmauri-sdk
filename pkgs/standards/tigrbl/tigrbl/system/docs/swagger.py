@@ -60,7 +60,7 @@ def mount_swagger(
     def _docs_handler(request: Any) -> Response:
         return Response.html(build_swagger_html(router, request))
 
-    router.add_api_route(
+    router.add_route(
         path,
         _docs_handler,
         methods=["GET"],

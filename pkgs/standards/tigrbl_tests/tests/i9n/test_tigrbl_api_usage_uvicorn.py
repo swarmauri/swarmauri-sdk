@@ -4,7 +4,6 @@ import pytest_asyncio
 
 from tigrbl import Base, TigrblRouter
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
-from tigrbl.types import Security
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -13,6 +12,8 @@ from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
+
+from tigrbl.security import Security
 
 bearer = HTTPBearer()
 

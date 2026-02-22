@@ -80,8 +80,8 @@ class App(AppSpec):
     def include_router(self, other: Any, **kwargs: Any) -> None:
         return include_router(self.router, other, **kwargs)
 
-    def add_api_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        self.router.add_api_route(path, endpoint, **kwargs)
+    def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
+        self.router.add_route(path, endpoint, **kwargs)
 
     def route(self, path: str, *, methods: Any, **kwargs: Any):
         return self.router.route(path, methods=methods, **kwargs)

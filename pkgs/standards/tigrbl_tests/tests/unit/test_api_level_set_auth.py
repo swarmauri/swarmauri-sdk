@@ -1,8 +1,11 @@
 from tigrbl import TigrblApp
 from tigrbl.security import HTTPBearer
-from tigrbl.types import Router, Security
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
+
+
+from tigrbl.router import Router
+from tigrbl.security import Security
 
 
 class Widget(Base, GUIDPk):

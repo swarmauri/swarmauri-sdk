@@ -5,6 +5,8 @@ combine when the API is mounted on the app, including shared scheme names that
 show OpenAPI precedence behavior.
 """
 
+from tigrbl.security import Security
+
 import inspect
 
 import httpx
@@ -15,7 +17,7 @@ from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Column, Security, String
+from tigrbl.types import Column, String
 
 
 @pytest.mark.asyncio

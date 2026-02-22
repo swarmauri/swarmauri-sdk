@@ -64,7 +64,9 @@ def _seed_security_and_deps(router: Any, model: type) -> None:
     if getattr(router, "_optional_authn_dep", None):
         auth_dep = router._optional_authn_dep
         logger.debug("Using optional auth dependency for %s", model.__name__)
-    elif getattr(router, "_allow_anon", True) is False and getattr(router, "_authn", None):
+    elif getattr(router, "_allow_anon", True) is False and getattr(
+        router, "_authn", None
+    ):
         auth_dep = router._authn
         logger.debug("Using required auth dependency for %s", model.__name__)
     elif getattr(router, "_authn", None):
@@ -211,7 +213,7 @@ def include_table(
     _binder.bind(model, router=router)
 
     # 2) Pick a router & mount prefix
-    router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
+    model_router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
     if prefix is None:
         prefix = _default_prefix(model)
         logger.debug("Computed default prefix '%s' for %s", prefix, model.__name__)
@@ -219,31 +221,33 @@ def include_table(
         logger.debug("Using provided prefix '%s' for %s", prefix, model.__name__)
 
     # 3) Always bind model router to the ROUTER object when possible
-    root_router = router if _has_include_router(router) else getattr(router, "router", None)
-    if router is not None:
+    root_router = (
+        router if _has_include_router(router) else getattr(router, "router", None)
+    )
+    if model_router is not None:
         logger.debug("Mounting model router for %s on router", model.__name__)
-        _mount_router(root_router, router, prefix=prefix)
+        _mount_router(root_router, model_router, prefix=prefix)
     else:
         logger.debug("Model %s has no router to mount", model.__name__)
 
     # Optionally mount onto a host app
     target_app = app or getattr(router, "app", None)
-    if mount_router and router is not None:
+    if mount_router and model_router is not None:
         logger.debug("Mounting router for %s on host app", model.__name__)
-        _mount_router(target_app, router, prefix=prefix)    
+        _mount_router(target_app, model_router, prefix=prefix)
     else:
         logger.debug(
             "Skipping host app mount for %s (mount_router=%s, router=%s)",
             model.__name__,
             mount_router,
-            router is not None,
+            model_router is not None,
         )
 
     # 4) Attach all namespaces onto router
     _attach_to_router(router, model)
 
     logger.debug("bindings.router: included %s at prefix %s", model.__name__, prefix)
-    return model, router
+    return model, model_router
 
 
 def include_tables(
@@ -265,9 +269,9 @@ def include_tables(
     for mdl in models:
         px = base_prefix.rstrip("/") if base_prefix else None
         logger.debug("Including model %s with base prefix %s", mdl.__name__, px)
-        _, router = include_table(
+        _, model_router = include_table(
             router, mdl, app=app, prefix=px, mount_router=mount_router
         )
-        results[mdl.__name__] = router
+        results[mdl.__name__] = model_router
     logger.debug("Finished including tables")
     return results
