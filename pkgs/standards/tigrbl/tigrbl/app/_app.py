@@ -14,6 +14,7 @@ from .app_spec import AppSpec
 
 class App(AppSpec):
     TITLE = "Tigrbl"
+    DESCRIPTION = None
     VERSION = "0.1.0"
     LIFESPAN = None
     ROUTERS = ()
@@ -34,6 +35,9 @@ class App(AppSpec):
         title = asgi_kwargs.pop("title", None)
         if title is not None:
             self.TITLE = title
+        description = asgi_kwargs.pop("description", None)
+        if description is not None:
+            self.DESCRIPTION = description
         version = asgi_kwargs.pop("version", None)
         if version is not None:
             self.VERSION = version
@@ -44,6 +48,7 @@ class App(AppSpec):
         if get_db is not None:
             self.get_db = get_db
         self.title = self.TITLE
+        self.description = getattr(self, "DESCRIPTION", None)
         self.version = self.VERSION
         self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
         self.routers = tuple(getattr(self, "ROUTERS", ()))
@@ -63,6 +68,7 @@ class App(AppSpec):
         self.router = Router(
             title=self.title,
             version=self.version,
+            description=self.description,
             include_docs=True,
             **asgi_kwargs,
         )
