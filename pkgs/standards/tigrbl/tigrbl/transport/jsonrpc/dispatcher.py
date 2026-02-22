@@ -34,12 +34,17 @@ from typing import (
     Sequence,
 )
 
-from ...types import Router, Request, Body, Depends, HTTPException, Response
-from ...responses import JSONResponse
-
-
-
-from ...runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP, http_exc_to_rpc
+from ...core.crud import Body
+from ...requests import Request
+from ...responses import JSONResponse, Response
+from ...router import Router
+from ...runtime.status import (
+    ERROR_MESSAGES,
+    HTTPException,
+    _RPC_TO_HTTP,
+    http_exc_to_rpc,
+)
+from ...security import Depends
 from ...transport.dispatch import dispatch_operation, resolve_operation
 from ...bindings.rpc import (
     _allowed_wrapper_keys,

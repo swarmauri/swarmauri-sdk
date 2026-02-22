@@ -77,6 +77,26 @@ DateTime = _DateTime(timezone=False)
 TZDateTime = _DateTime(timezone=True)
 
 
+_DEPRECATED_EXPORTS: dict[str, str] = {
+    "Router": "tigrbl.router",
+    "Request": "tigrbl.requests",
+    "Body": "tigrbl.core.crud",
+    "Depends": "tigrbl.security",
+    "HTTPException": "tigrbl.runtime.status",
+    "Response": "tigrbl.responses",
+}
+
+
+def __getattr__(name: str):
+    if name in _DEPRECATED_EXPORTS:
+        module = _DEPRECATED_EXPORTS[name]
+        raise AttributeError(
+            f"'tigrbl.types' no longer exports '{name}'. "
+            f"Import it from '{module}' instead."
+        )
+    raise AttributeError(name)
+
+
 # ── Public Re-exports (Backwards Compatibility) ──────────────────────────
 __all__: list[str] = [
     # local

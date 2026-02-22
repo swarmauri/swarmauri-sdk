@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, Mapping, Optional, Sequence
 
-from ...types import Depends, HTTPException
-
+from ...runtime.status import HTTPException
+from ...security import Depends
 
 
 def _ok(result: Any, id_: Any) -> Dict[str, Any]:
