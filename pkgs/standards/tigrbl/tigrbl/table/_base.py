@@ -355,7 +355,11 @@ class Base(DeclarativeBase):
 
         explicit_abstract = "__abstract__" in cls.__dict__
         if not explicit_abstract:
-            if not _has_mappable_columns() or not _has_primary_key():
+            # Mixins can contribute primary-key columns via ``@declared_attr``
+            # that are not fully materialized until SQLAlchemy mapping runs.
+            # Rely on SQLAlchemy to validate PK presence and only auto-mark
+            # classes abstract when they provide no mappable columns at all.
+            if not _has_mappable_columns():
                 cls.__abstract__ = True
             else:
                 cls.__abstract__ = False
