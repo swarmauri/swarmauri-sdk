@@ -12,16 +12,18 @@ class Widget(Base, GUIDPk):
 
 def test_api_level_auth_dep_applied_as_openapi_metadata_only():
     app = APIRouter()
-    api = TigrblApp()
+    router = TigrblApp()
 
     def authn(cred=Security(HTTPBearer())):
         return cred
 
-    api.set_auth(authn=authn, allow_anon=False)
-    api.include_models([Widget])
-    app.include_router(api.router)
+    router.set_auth(authn=authn, allow_anon=False)
+    router.include_models([Widget])
+    app.include_router(router.router)
     schema = app.openapi()
-    paths = {route.name: route.path_template for route in api.routers["Widget"].routes}
+    paths = {
+        route.name: route.path_template for route in router.routers["Widget"].routes
+    }
     list_sec = schema["paths"][paths["Widget.list"]]["get"].get("security")
     read_sec = schema["paths"][paths["Widget.read"]]["get"].get("security")
     assert not list_sec

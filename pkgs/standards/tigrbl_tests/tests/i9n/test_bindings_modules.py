@@ -10,7 +10,7 @@ from tigrbl.types import (
 )
 
 from tigrbl.bindings import (
-    api as api_binding,
+    router as api_binding,
     columns as columns_binding,
     handlers as handlers_binding,
     hooks as hooks_binding,
@@ -119,9 +119,9 @@ def test_model_bind_and_rebind(model_cls):
 @pytest.mark.asyncio
 async def test_api_include_and_rpc_call(monkeypatch, model_cls):
     model_binding.bind(model_cls)
-    api = SimpleNamespace()
-    api_binding.include_model(api, model_cls, mount_router=False)
-    assert model_cls.__name__ in api.models
+    router = SimpleNamespace()
+    api_binding.include_model(router, model_cls, mount_router=False)
+    assert model_cls.__name__ in router.models
     routers = api_binding.include_models(
         SimpleNamespace(), [model_cls], mount_router=False
     )
@@ -133,7 +133,7 @@ async def test_api_include_and_rpc_call(monkeypatch, model_cls):
     monkeypatch.setattr(_executor, "_invoke", fake_invoke)
     payload = {"name": "x"}
     result = await api_binding.rpc_call(
-        api, model_cls, "create", payload=payload, db=object()
+        router, model_cls, "create", payload=payload, db=object()
     )
     assert result == payload
 

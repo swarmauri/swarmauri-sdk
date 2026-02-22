@@ -7,12 +7,12 @@ This does not build endpoints by itself — it simply collects the routers that
 
 Recommended workflow:
   1) Include models with `mount_router=False` so you don't double-mount:
-        api.include_model(User, mount_router=False)
-        api.include_model(Team, mount_router=False)
+        router.include_model(User, mount_router=False)
+        router.include_model(Team, mount_router=False)
   2) Aggregate and mount once:
-        app.include_router(build_rest_router(api, base_prefix="/api"))
+        app.include_router(build_rest_router(router, base_prefix="/router"))
      or:
-        mount_rest(api, app, base_prefix="/api")
+        mount_rest(router, app, base_prefix="/router")
 
 Notes:
   • Router paths already include `/{resource}`; we only add `base_prefix`.
@@ -66,16 +66,16 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list:
     return out
 
 
-def _iter_models(api: Any, only: Optional[Sequence[type]] = None) -> Sequence[type]:
+def _iter_models(router: Any, only: Optional[Sequence[type]] = None) -> Sequence[type]:
     if only:
         return list(only)
-    models: Mapping[str, type] = getattr(api, "models", {}) or {}
+    models: Mapping[str, type] = getattr(router, "models", {}) or {}
     # deterministic iteration
     return [models[k] for k in sorted(models.keys())]
 
 
 def build_rest_router(
-    api: Any,
+    router: Any,
     *,
     models: Optional[Sequence[type]] = None,
     base_prefix: str = "",
@@ -85,9 +85,9 @@ def build_rest_router(
     Build a top-level Router that includes each model's router under `base_prefix`.
 
     Args:
-        api: your Tigrbl facade (or any object with `.models` dict).
+        router: your Tigrbl facade (or any object with `.models` dict).
         models: optional subset of models to include; defaults to all bound models.
-        base_prefix: prefix applied once for all included routers (e.g., "/api").
+        base_prefix: prefix applied once for all included routers (e.g., "/router").
         dependencies: additional router-level dependencies (Depends(...) or callables).
 
     Returns:
@@ -96,7 +96,7 @@ def build_rest_router(
     root = Router(dependencies=_normalize_deps(dependencies))
     prefix = _norm_prefix(base_prefix)
 
-    for model in _iter_models(api, models):
+    for model in _iter_models(router, models):
         rest_ns = getattr(model, "rest", None)
         router = getattr(rest_ns, "router", None) if rest_ns is not None else None
         if router is None:
@@ -108,7 +108,7 @@ def build_rest_router(
 
 
 def mount_rest(
-    api: Any,
+    router: Any,
     app: Any,
     *,
     models: Optional[Sequence[type]] = None,
@@ -121,7 +121,7 @@ def mount_rest(
     Returns the created router so you can keep a reference if desired.
     """
     router = build_rest_router(
-        api, models=models, base_prefix=base_prefix, dependencies=dependencies
+        router, models=models, base_prefix=base_prefix, dependencies=dependencies
     )
     include = getattr(app, "include_router", None)
     if callable(include):

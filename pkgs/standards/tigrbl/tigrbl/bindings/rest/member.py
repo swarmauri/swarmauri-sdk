@@ -51,7 +51,7 @@ def _make_member_endpoint(
     db_dep: Callable[..., Any],
     pk_param: str = "item_id",
     nested_vars: Sequence[str] | None = None,
-    api: Any | None = None,
+    router: Any | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
@@ -83,7 +83,9 @@ def _make_member_endpoint(
                 "payload": payload,
                 "path_params": path_params,
                 # expose contextual metadata for downstream atoms
-                "api": api if api is not None else getattr(request, "app", None),
+                "router": router
+                if router is not None
+                else getattr(request, "app", None),
                 "app": getattr(request, "app", None),
                 "model": model,
                 "op": alias,
@@ -110,7 +112,7 @@ def _make_member_endpoint(
 
             ctx["response_serializer"] = _serializer
             result = await dispatch_operation(
-                router=api,
+                router=router,
                 model_or_name=model,
                 alias=alias,
                 payload=ctx.get("payload"),
@@ -186,7 +188,9 @@ def _make_member_endpoint(
                 "payload": payload,
                 "path_params": path_params,
                 # expose contextual metadata for downstream atoms
-                "api": api if api is not None else getattr(request, "app", None),
+                "router": router
+                if router is not None
+                else getattr(request, "app", None),
                 "app": getattr(request, "app", None),
                 "model": model,
                 "op": alias,
@@ -213,7 +217,7 @@ def _make_member_endpoint(
 
             ctx["response_serializer"] = _serializer
             result = await dispatch_operation(
-                router=api,
+                router=router,
                 model_or_name=model,
                 alias=alias,
                 payload=ctx.get("payload"),
@@ -305,7 +309,7 @@ def _make_member_endpoint(
             "path_params": path_params,
             # expose contextual metadata for downstream atoms
             "app": getattr(request, "app", None),
-            "api": getattr(request, "app", None),
+            "router": getattr(request, "app", None),
             "model": model,
             "op": alias,
             "method": alias,
@@ -331,7 +335,7 @@ def _make_member_endpoint(
 
         ctx["response_serializer"] = _serializer
         result = await dispatch_operation(
-            router=api,
+            router=router,
             model_or_name=model,
             alias=alias,
             payload=ctx.get("payload"),

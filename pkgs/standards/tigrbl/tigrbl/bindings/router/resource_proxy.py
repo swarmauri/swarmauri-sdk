@@ -109,7 +109,7 @@ class _ResourceProxy:
                         alias,
                     )
                     db, _release_db = _resolver.acquire(
-                        api=self._router, model=self._model, op_alias=alias
+                        router=self._router, model=self._model, op_alias=alias
                     )
                 except Exception:
                     logger.exception(

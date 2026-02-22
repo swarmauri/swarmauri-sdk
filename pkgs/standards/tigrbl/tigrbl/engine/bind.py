@@ -13,7 +13,7 @@ def bind(collected: Dict[str, Any]) -> None:
     if default_db is not None:
         set_default(default_db)
 
-    for api_obj, db in collected.get("api", {}).items():
+    for api_obj, db in collected.get("router", {}).items():
         register_api(api_obj, db)
 
     for table_obj, db in collected.get("tables", {}).items():
@@ -24,10 +24,10 @@ def bind(collected: Dict[str, Any]) -> None:
 
 
 def install_from_objects(
-    *, app: Any | None = None, api: Any | None = None, models: Iterable[Any] = ()
+    *, app: Any | None = None, router: Any | None = None, models: Iterable[Any] = ()
 ) -> None:
     """Collect engine config from objects and bind them to the resolver."""
     from .collect import collect_engine_config
 
-    collected = collect_engine_config(app=app, api=api, models=models)
+    collected = collect_engine_config(app=app, router=router, models=models)
     bind(collected)

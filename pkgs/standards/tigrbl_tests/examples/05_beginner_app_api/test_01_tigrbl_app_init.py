@@ -20,12 +20,12 @@ def test_app_includes_model_and_registry():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-    api = TigrblApp(engine=mem(async_=False))
+    router = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize the API.
-    api.include_model(Widget)
-    api.initialize()
+    router.include_model(Widget)
+    router.initialize()
     # Exercise: retrieve the model registry entry.
-    registry = api.registry(Widget)
+    registry = router.registry(Widget)
     # Assertion: the registry entry exists after initialization.
     assert registry is not None
 
@@ -46,9 +46,9 @@ def test_app_model_map_tracks_the_model_class():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-    api = TigrblApp(engine=mem(async_=False))
+    router = TigrblApp(engine=mem(async_=False))
     # Deployment: include and initialize so the model map is populated.
-    api.include_model(Widget)
-    api.initialize()
+    router.include_model(Widget)
+    router.initialize()
     # Assertion: the model registry maps the class name to the model class.
-    assert api.models[Widget.__name__] is Widget
+    assert router.models[Widget.__name__] is Widget

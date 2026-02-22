@@ -36,35 +36,35 @@ class Widget(Base, GUIDPk):
 @pytest_asyncio.fixture
 async def widget_setup():
     app = TigrblApp()
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Widget, prefix="/widget")
-    api.mount_jsonrpc(prefix="/rpc")
-    api.attach_diagnostics(prefix="/system")
-    api.initialize()
-    app.include_router(api.router)
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(Widget, prefix="/widget")
+    router.mount_jsonrpc(prefix="/rpc")
+    router.attach_diagnostics(prefix="/system")
+    router.initialize()
+    app.include_router(router.router)
 
     prov = _resolver.resolve_provider()
     SessionLocal = prov.session
 
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    yield client, api, SessionLocal
+    yield client, router, SessionLocal
     await client.aclose()
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_request_schema_reflects_io_spec(widget_setup):
-    _, api, _ = widget_setup
-    schema = api.schemas.Widget.create.in_.model_json_schema()
+    _, router, _ = widget_setup
+    schema = router.schemas.Widget.create.in_.model_json_schema()
     assert set(schema["properties"]) == {"name", "secret", "created_at"}
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_response_schema_reflects_io_spec(widget_setup):
-    _, api, _ = widget_setup
-    schema = api.schemas.Widget.read.out.model_json_schema()
+    _, router, _ = widget_setup
+    schema = router.schemas.Widget.read.out.model_json_schema()
     assert set(schema["properties"]) == {"id", "name", "created_at", "secret"}
 
 

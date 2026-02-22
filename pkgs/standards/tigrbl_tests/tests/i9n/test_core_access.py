@@ -26,10 +26,10 @@ def sync_api():
     """Create a sync Tigrbl instance with CoreTestUser."""
     Base.metadata.clear()
     eng = build_engine(mem(async_=False))
-    api = TigrblApp(engine=eng)
-    api.include_model(CoreTestUser)
-    api.initialize()
-    return api, eng
+    router = TigrblApp(engine=eng)
+    router.include_model(CoreTestUser)
+    router.initialize()
+    return router, eng
 
 
 @pytest_asyncio.fixture
@@ -37,17 +37,17 @@ async def async_api():
     """Create an async Tigrbl instance with CoreTestUser."""
     Base.metadata.clear()
     eng = build_engine(mem(async_=True))
-    api = TigrblApp(engine=eng)
-    api.include_model(CoreTestUser)
-    await api.initialize()
-    return api, eng
+    router = TigrblApp(engine=eng)
+    router.include_model(CoreTestUser)
+    await router.initialize()
+    return router, eng
 
 
 def test_api_exposes_core_proxies(sync_api):
-    api, _ = sync_api
-    assert hasattr(api.core, "CoreTestUser")
-    assert hasattr(api.core_raw, "CoreTestUser")
-    schema_ns = api.schemas.CoreTestUser
+    router, _ = sync_api
+    assert hasattr(router.core, "CoreTestUser")
+    assert hasattr(router.core_raw, "CoreTestUser")
+    schema_ns = router.schemas.CoreTestUser
     for name in [
         "create",
         "read",
@@ -65,9 +65,9 @@ def test_api_exposes_core_proxies(sync_api):
 
 @pytest.mark.asyncio
 async def test_core_and_core_raw_sync_operations(sync_api):
-    api, eng = sync_api
+    router, eng = sync_api
     with eng.session() as db:
-        for proxy in (api.core, api.core_raw):
+        for proxy in (router.core, router.core_raw):
             model = proxy.CoreTestUser
             await model.clear({}, db=db)
 
@@ -149,16 +149,16 @@ async def test_core_and_core_raw_sync_operations(sync_api):
 
 @pytest.mark.asyncio
 async def test_core_read_not_found(sync_api):
-    api, eng = sync_api
+    router, eng = sync_api
     fake_id = "00000000-0000-0000-0000-000000000000"
     with eng.session() as db:
         with pytest.raises(HTTPException):
-            await api.core.CoreTestUser.read({"id": fake_id}, db=db)
+            await router.core.CoreTestUser.read({"id": fake_id}, db=db)
 
 
 @pytest.mark.asyncio
 async def test_async_api_initializes(async_api):
-    api, eng = async_api
-    assert hasattr(api.core, "CoreTestUser")
+    router, eng = async_api
+    assert hasattr(router.core, "CoreTestUser")
     async with eng.asession():
         pass

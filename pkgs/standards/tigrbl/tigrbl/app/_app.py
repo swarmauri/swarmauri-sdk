@@ -72,16 +72,16 @@ class App(AppSpec, APIRouter):
             _resolver.resolve_provider()
 
     def install_engines(
-        self, *, api: Any = None, models: tuple[Any, ...] | None = None
+        self, *, router: Any = None, models: tuple[Any, ...] | None = None
     ) -> None:
         # If class declared APIS/MODELS, use them unless explicit args are passed.
-        apis = (api,) if api is not None else self.APIS
+        apis = (router,) if router is not None else self.APIS
         models = models if models is not None else self.MODELS
         if apis:
             for a in apis:
-                install_from_objects(app=self, api=a, models=models)
+                install_from_objects(app=self, router=a, models=models)
         else:
-            install_from_objects(app=self, api=None, models=models)
+            install_from_objects(app=self, router=None, models=models)
 
     def _collect_tables(self) -> list[Any]:
         seen = set()

@@ -26,12 +26,12 @@ class WidgetApi(TigrblRouter):
 
 @pytest.mark.unit
 def test_tigrbl_api_instantiation_sets_containers() -> None:
-    api = WidgetApi(engine=mem(async_=False))
-    api_dir = dir(api)
+    router = WidgetApi(engine=mem(async_=False))
+    api_dir = dir(router)
 
     assert "models" in api_dir
     assert "routers" in api_dir
     assert "schemas" in api_dir
     assert "jsonrpc_prefix" in api_dir
     assert "system_prefix" in api_dir
-    assert api.models["Widget"] is Widget
+    assert router.models["Widget"] is Widget

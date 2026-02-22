@@ -41,8 +41,8 @@ class Table(Base, TableSpec):
             pass
 
     @classmethod
-    def install_engines(cls, *, api: Any | None = None) -> None:
-        install_from_objects(api=api, models=[cls])
+    def install_engines(cls, *, router: Any | None = None) -> None:
+        install_from_objects(router=router, models=[cls])
 
     @classmethod
     def acquire(

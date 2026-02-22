@@ -35,10 +35,10 @@ async def test_response_atom_in_diagnostics_kernelz(kind) -> None:
     class API:  # pragma: no cover - simple container
         pass
 
-    api = API()
-    api.models = {"Model": Model}
+    router = API()
+    router.models = {"Model": Model}
 
-    kernelz = _build_kernelz_endpoint(api)
+    kernelz = _build_kernelz_endpoint(router)
     data = await kernelz()
     assert "POST_RESPONSE:atom:response:template@out:dump" in data["Model"]["read"]
     assert "POST_RESPONSE:atom:response:negotiate@out:dump" in data["Model"]["read"]
@@ -71,10 +71,10 @@ async def test_response_atom_in_diagnostics_kernelz_template(tmp_path) -> None:
     class API:  # pragma: no cover - simple container
         pass
 
-    api = API()
-    api.models = {"Model": Model}
+    router = API()
+    router.models = {"Model": Model}
 
-    kernelz = _build_kernelz_endpoint(api)
+    kernelz = _build_kernelz_endpoint(router)
     data = await kernelz()
     assert "POST_RESPONSE:atom:response:template@out:dump" in data["Model"]["read"]
     assert "POST_RESPONSE:atom:response:negotiate@out:dump" in data["Model"]["read"]

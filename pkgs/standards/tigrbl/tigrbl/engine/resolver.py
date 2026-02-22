@@ -14,7 +14,7 @@ from .engine_spec import EngineSpec, EngineCfg
 
 logger = logging.getLogger("uvicorn")
 
-# Registry with strict precedence: op > model > api > app
+# Registry with strict precedence: op > model > router > app
 _LOCK = threading.RLock()
 _DEFAULT: Optional[Provider] = None
 _API: dict[int, Provider] = {}
@@ -126,18 +126,18 @@ def set_default(ctx: EngineCfg | None) -> None:
         _DEFAULT = prov
 
 
-def register_api(api: Any, ctx: EngineCfg | None) -> None:
+def register_api(router: Any, ctx: EngineCfg | None) -> None:
     """
     Register an API-level Provider.
     """
     prov = _coerce(ctx)
-    logger.debug("register_api: api=%r coerced provider=%r", api, prov)
+    logger.debug("register_api: router=%r coerced provider=%r", router, prov)
     if prov is None:
         logger.debug("register_api: no provider; skipping registration")
         return
     with _LOCK:
-        _API[id(api)] = prov
-        logger.debug("register_api: registered provider for api id %s", id(api))
+        _API[id(router)] = prov
+        logger.debug("register_api: registered provider for router id %s", id(router))
 
 
 def register_table(model: Any, ctx: EngineCfg | None) -> None:
@@ -177,17 +177,17 @@ def register_op(model: Any, alias: str, ctx: EngineCfg | None) -> None:
 
 def resolve_provider(
     *,
-    api: Any = None,
+    router: Any = None,
     model: Any = None,
     op_alias: str | None = None,
 ) -> Optional[Provider]:
     """
     Resolve the effective Provider using precedence:
-        op > model > api > app(default)
+        op > model > router > app(default)
     """
     logger.debug(
-        "resolve_provider called with api=%r model=%r op_alias=%r",
-        api,
+        "resolve_provider called with router=%r model=%r op_alias=%r",
+        router,
         model,
         op_alias,
     )
@@ -212,14 +212,14 @@ def resolve_provider(
                 if p:
                     logger.debug("resolve_provider: found model-level provider %r", p)
                     return p
-        if api is not None:
-            logger.debug("resolve_provider: checking api-level provider")
-            for a in _with_class(api):
-                logger.debug("resolve_provider: looking for api provider %r", a)
+        if router is not None:
+            logger.debug("resolve_provider: checking router-level provider")
+            for a in _with_class(router):
+                logger.debug("resolve_provider: looking for router provider %r", a)
                 # APIs are keyed by ``id`` to avoid relying on ``__hash__``
                 p = _API.get(id(a))
                 if p:
-                    logger.debug("resolve_provider: found api-level provider %r", p)
+                    logger.debug("resolve_provider: found router-level provider %r", p)
                     return p
         logger.debug("resolve_provider: returning default provider %r", _DEFAULT)
         return _DEFAULT
@@ -230,7 +230,7 @@ SessionT = Session | AsyncSession
 
 def acquire(
     *,
-    api: Any = None,
+    router: Any = None,
     model: Any = None,
     op_alias: str | None = None,
 ) -> tuple[SessionT, Callable[[], None]]:
@@ -244,15 +244,15 @@ def acquire(
         RuntimeError: if no Provider can be resolved and no default is set.
     """
     logger.debug(
-        "acquire called with api=%r model=%r op_alias=%r", api, model, op_alias
+        "acquire called with router=%r model=%r op_alias=%r", router, model, op_alias
     )
-    p = resolve_provider(api=api, model=model, op_alias=op_alias)
+    p = resolve_provider(router=router, model=model, op_alias=op_alias)
     if p is None:
         logger.debug("acquire: no provider resolved; raising error")
         raise RuntimeError(
             f"No database provider configured for op={op_alias} "
             f"model={getattr(model, '__name__', model)} "
-            f"api={type(api).__name__ if api else None} and no default"
+            f"router={type(router).__name__ if router else None} and no default"
         )
     db: SessionT = p.session()
     logger.debug("acquire: session %r acquired from provider %r", db, p)

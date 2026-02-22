@@ -42,11 +42,11 @@ def test_api_instantiation_is_transport_agnostic_and_kernel_plan_builds():
     DemoModel.ops = SimpleNamespace(by_alias={"read": (spec,)})
     DemoModel.hooks = SimpleNamespace(read=SimpleNamespace())
 
-    api = TigrblRouter()
-    api.models = {"DemoModel": DemoModel}
+    router = TigrblRouter()
+    router.models = {"DemoModel": DemoModel}
 
     kernel = Kernel()
-    payload = kernel.kernelz_payload(api)
+    payload = kernel.kernelz_payload(router)
 
     assert "DemoModel" in payload
     assert "read" in payload["DemoModel"]

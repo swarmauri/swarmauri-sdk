@@ -10,7 +10,7 @@ from .kernelz import build_kernelz_endpoint
 
 
 def mount_diagnostics(
-    api: Any,
+    router: Any,
     *,
     get_db: Optional[Callable[..., Any]] = None,
 ) -> Router:
@@ -36,7 +36,7 @@ def mount_diagnostics(
     )
     router.add_api_route(
         "/methodz",
-        build_methodz_endpoint(api),
+        build_methodz_endpoint(router),
         methods=["GET"],
         name="methodz",
         tags=["system"],
@@ -45,7 +45,7 @@ def mount_diagnostics(
     )
     router.add_api_route(
         "/hookz",
-        build_hookz_endpoint(api),
+        build_hookz_endpoint(router),
         methods=["GET"],
         name="hookz",
         tags=["system"],
@@ -59,7 +59,7 @@ def mount_diagnostics(
     )
     router.add_api_route(
         "/kernelz",
-        build_kernelz_endpoint(api),
+        build_kernelz_endpoint(router),
         methods=["GET"],
         name="kernelz",
         tags=["system"],

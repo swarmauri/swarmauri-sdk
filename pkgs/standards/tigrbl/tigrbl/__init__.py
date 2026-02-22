@@ -9,9 +9,9 @@ Quick start:
     from tigrbl import include_model, build_jsonrpc_router, mount_diagnostics
     from tigrbl import OpSpec, hook_ctx, op_ctx, alias_ctx, schema_ctx, SchemaRef
 
-    include_model(api, User, app=asgi_app)
-    app.include_router(build_jsonrpc_router(api), prefix="/rpc")
-    app.include_router(mount_diagnostics(api), prefix="/system")
+    include_model(router, User, app=asgi_app)
+    app.include_router(build_jsonrpc_router(router), prefix="/rpc")
+    app.include_router(mount_diagnostics(router), prefix="/system")
 
     # Example: custom op using an existing schema
     @op_ctx(alias="search", target="custom", arity="collection",

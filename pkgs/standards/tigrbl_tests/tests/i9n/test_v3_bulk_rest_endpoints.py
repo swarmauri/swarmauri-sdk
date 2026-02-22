@@ -22,10 +22,10 @@ async def v3_client() -> Iterator[tuple[AsyncClient, type]]:
         description = Column(String, nullable=True)
 
     app = TigrblApp()
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Widget)
-    api.initialize()
-    app.include_router(api.router)
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(Widget)
+    router.initialize()
+    app.include_router(router.router)
 
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
     try:

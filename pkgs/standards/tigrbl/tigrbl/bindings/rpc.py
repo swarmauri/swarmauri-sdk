@@ -359,11 +359,11 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         app_ref = (
             getattr(request, "app", None)
             or base_ctx.get("app")
-            or getattr(model, "api", None)
+            or getattr(model, "router", None)
             or model
         )
         base_ctx.setdefault("app", app_ref)
-        base_ctx.setdefault("api", base_ctx.get("api") or app_ref)
+        base_ctx.setdefault("router", base_ctx.get("router") or app_ref)
         base_ctx.setdefault("model", model)
         base_ctx.setdefault("op", alias)
         base_ctx.setdefault("method", alias)
@@ -377,7 +377,7 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         )
 
         result = await dispatch_operation(
-            router=getattr(model, "api", None),
+            router=getattr(model, "router", None),
             model_or_name=model,
             alias=alias,
             payload=base_ctx.get("payload"),

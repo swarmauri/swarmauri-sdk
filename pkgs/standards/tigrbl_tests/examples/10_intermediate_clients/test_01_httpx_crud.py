@@ -28,16 +28,16 @@ async def test_httpx_crud_roundtrip():
         name = Column(String, nullable=False)
 
     # Deployment: create the API, include the model, and mount diagnostics.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonHttpx)
-    init_result = api.initialize()
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(LessonHttpx)
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    api.mount_jsonrpc(prefix="/rpc")
+    router.mount_jsonrpc(prefix="/rpc")
 
     app = FastAPI()
-    app.include_router(api.router)
-    api.attach_diagnostics(prefix="", app=app)
+    app.include_router(router)
+    router.attach_diagnostics(prefix="", app=app)
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
@@ -71,16 +71,16 @@ async def test_httpx_list_returns_collection():
         name = Column(String, nullable=False)
 
     # Deployment: include the model and mount diagnostics on the app.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonHttpxList)
-    init_result = api.initialize()
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(LessonHttpxList)
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    api.mount_jsonrpc(prefix="/rpc")
+    router.mount_jsonrpc(prefix="/rpc")
 
     app = FastAPI()
-    app.include_router(api.router)
-    api.attach_diagnostics(prefix="", app=app)
+    app.include_router(router)
+    router.attach_diagnostics(prefix="", app=app)
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from ...op.types import PHASES
 
 
-def build_hookz_endpoint(api: Any):
+def build_hookz_endpoint(router: Any):
     cache: Optional[Dict[str, Dict[str, Dict[str, List[str]]]]] = None
 
     async def _hookz():
@@ -24,7 +24,7 @@ def build_hookz_endpoint(api: Any):
         from . import _model_iter, _opspecs, _label_callable
 
         out: Dict[str, Dict[str, Dict[str, List[str]]]] = {}
-        for model in _model_iter(api):
+        for model in _model_iter(router):
             mname = getattr(model, "__name__", "Model")
             hooks_root = getattr(model, "hooks", SimpleNamespace())
             alias_sources = set()

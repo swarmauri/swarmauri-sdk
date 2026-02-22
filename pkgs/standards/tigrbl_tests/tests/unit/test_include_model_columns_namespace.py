@@ -15,8 +15,8 @@ class Widget(Table):
 
 
 def test_include_model_coerces_columns_namespace() -> None:
-    api = SimpleNamespace()
+    router = SimpleNamespace()
 
-    include_model(api, Widget, mount_router=False)
+    include_model(router, Widget, mount_router=False)
 
-    assert api.columns["Widget"] == ("id", "name")
+    assert router.columns["Widget"] == ("id", "name")

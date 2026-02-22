@@ -228,7 +228,7 @@ class TigrblApp(_App):
                         merged[k].setdefault(ph, [])
                         merged[k][ph] = list(merged[k][ph]) + list(fns or [])
                 else:
-                    # fallback: prefer model-local value, then append api-level
+                    # fallback: prefer model-local value, then append router-level
                     if isinstance(merged[k], list):
                         merged[k] = list(merged[k]) + list(v or [])
                     else:
@@ -251,7 +251,7 @@ class TigrblApp(_App):
                 authorize=self._authorize,
                 optional_authn_dep=self._optional_authn_dep,
             )
-            self.include_api(self._default_router)
+            self.include_router(self._default_router)
         return self._default_router
 
     def include_model(
@@ -430,7 +430,7 @@ class TigrblApp(_App):
         """Mount JSON-RPC router onto this app."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
         self.jsonrpc_prefix = px
-        prov = _resolver.resolve_provider(api=self)
+        prov = _resolver.resolve_provider(router=self)
         get_db = prov.get_db if prov else None
         router = _mount_jsonrpc(
             self,
@@ -479,7 +479,7 @@ class TigrblApp(_App):
     ) -> Any:
         """Mount diagnostics router onto this app or the provided ``app``."""
         px = prefix if prefix is not None else self.system_prefix
-        prov = _resolver.resolve_provider(api=self)
+        prov = _resolver.resolve_provider(router=self)
         get_db = prov.get_db if prov else None
         router = _mount_diagnostics(self, get_db=get_db)
         include_self = getattr(self, "include_router", None)
@@ -502,19 +502,19 @@ class TigrblApp(_App):
     def bind(self, model: type) -> Tuple[OpSpec, ...]:
         """Bind/rebuild a model in place (without mounting)."""
         self._merge_router_hooks_into_model(model, self._router_hooks_map)
-        return _bind(model, api=self)
+        return _bind(model, router=self)
 
     def rebind(
         self, model: type, *, changed_keys: Optional[set[tuple[str, str]]] = None
     ) -> Tuple[OpSpec, ...]:
         """Targeted rebuild of a bound model."""
-        return _rebind(model, api=self, changed_keys=changed_keys)
+        return _rebind(model, router=self, changed_keys=changed_keys)
 
     # ------------------------- legacy helpers -------------------------
 
     def transactional(self, *dargs, **dkw):
         """
-        Legacy-friendly decorator: @api.transactional(...)
+        Legacy-friendly decorator: @router.transactional(...)
         Wraps a function as a v3 custom op with START_TX/END_TX.
         """
         if _txn_decorator is None:
@@ -574,12 +574,12 @@ class TigrblApp(_App):
             _inject_runtime_secdeps(model, runtime_secdeps, allow_anon)
             if specs:
                 _build_router_and_attach(
-                    model, list(getattr(model.ops, "all", specs)), api=self
+                    model, list(getattr(model.ops, "all", specs)), router=self
                 )
             router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
             if router is None:
                 continue
-            # update api-level references
+            # update router-level references
             mname = model.__name__
             rest_ns = getattr(self.rest, mname, SimpleNamespace())
             rest_ns.router = router

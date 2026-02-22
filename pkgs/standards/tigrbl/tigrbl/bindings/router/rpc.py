@@ -57,7 +57,9 @@ async def rpc_call(
             logger.debug(
                 "Acquiring DB for rpc_call %s.%s", getattr(mdl, "__name__", mdl), method
             )
-            db, _release_db = _resolver.acquire(api=router, model=mdl, op_alias=method)
+            db, _release_db = _resolver.acquire(
+                router=router, model=mdl, op_alias=method
+            )
         except Exception:
             logger.exception(
                 "DB acquire failed for rpc_call %s.%s; no default configured?",

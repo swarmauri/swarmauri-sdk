@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 
-def build_methodz_endpoint(api: Any):
+def build_methodz_endpoint(router: Any):
     cache: Optional[Dict[str, List[Dict[str, Any]]]] = None
 
     async def _methodz():
@@ -16,7 +16,7 @@ def build_methodz_endpoint(api: Any):
 
         methods: List[Dict[str, Any]] = []
         per_model: Dict[str, List[Dict[str, Any]]] = {}
-        for model in _model_iter(api):
+        for model in _model_iter(router):
             mname = getattr(model, "__name__", "Model")
             for sp in _opspecs(model):
                 if not getattr(sp, "expose_rpc", True):

@@ -41,21 +41,21 @@ async def test_openapi_security_from_api_constructor_deps() -> None:
     class SecuredApi(TigrblRouter):
         SECURITY_DEPS = (Security(bearer_scheme),)
 
-    api = SecuredApi(engine=mem(async_=False))
-    api.include_model(ApiSecdepsWidget)
+    router = SecuredApi(engine=mem(async_=False))
+    router.include_model(ApiSecdepsWidget)
 
     # Deployment: initialize storage and attach OpenAPI to the API router.
-    init_result = api.initialize()
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
 
     def openapi_endpoint(_request) -> JSONResponse:
-        return JSONResponse(api.openapi())
+        return JSONResponse(router.openapi())
 
-    api.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
+    router.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
 
     port = pick_unique_port()
-    base_url, server, task = await start_uvicorn(api, port=port)
+    base_url, server, task = await start_uvicorn(router, port=port)
 
     # Usage: request the OpenAPI schema from the running API.
     async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:

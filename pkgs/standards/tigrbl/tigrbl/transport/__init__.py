@@ -11,15 +11,15 @@ Quick usage:
     )
 
     # JSON-RPC
-    app.include_router(build_jsonrpc_router(api), prefix="/rpc")
+    app.include_router(build_jsonrpc_router(router), prefix="/rpc")
     # or supply a DB dependency from an Engine or Provider:
-    mount_jsonrpc(api, app, prefix="/rpc", get_db=my_engine.get_db)
+    mount_jsonrpc(router, app, prefix="/rpc", get_db=my_engine.get_db)
 
     # REST (aggregate all model routers under one prefix)
     # after you include models with mount_router=False
-    app.include_router(build_rest_router(api, base_prefix="/api"))
+    app.include_router(build_rest_router(router, base_prefix="/router"))
     # or:
-    mount_rest(api, app, base_prefix="/api")
+    mount_rest(router, app, base_prefix="/router")
 """
 
 from __future__ import annotations
@@ -68,7 +68,7 @@ def mount_rest(*args: Any, **kwargs: Any):
 
 
 def mount_jsonrpc(
-    api: Any,
+    router: Any,
     app: Any,
     *,
     prefix: str = "/rpc",
@@ -76,7 +76,7 @@ def mount_jsonrpc(
     tags: Sequence[str] | None = ("rpc",),
 ):
     """
-    Build a JSON-RPC router for `api` and include it on the given ASGI `app`
+    Build a JSON-RPC router for `router` and include it on the given ASGI `app`
     (or any object exposing `include_router`).
 
     Returns the created router so you can keep a reference if desired.
@@ -88,9 +88,9 @@ def mount_jsonrpc(
         ``("rpc",)``.
     """
     normalized_prefix = prefix if str(prefix).startswith("/") else f"/{prefix}"
-    setattr(api, "jsonrpc_prefix", normalized_prefix.rstrip("/") or "/")
+    setattr(router, "jsonrpc_prefix", normalized_prefix.rstrip("/") or "/")
 
-    router = build_jsonrpc_router(api, get_db=get_db, tags=tags)
+    router = build_jsonrpc_router(router, get_db=get_db, tags=tags)
     include_router = getattr(app, "include_router", None)
     if callable(include_router):
         include_router(router, prefix=normalized_prefix)

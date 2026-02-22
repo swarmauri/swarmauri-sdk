@@ -1,4 +1,4 @@
-# tigrbl/v3/api/tigrbl_api.py
+# tigrbl/v3/router/tigrbl_api.py
 from __future__ import annotations
 
 import copy
@@ -51,7 +51,7 @@ class TigrblRouter(_Router):
     """
 
     PREFIX = ""
-    REST_PREFIX = "/api"
+    REST_PREFIX = "/router"
     RPC_PREFIX = "/rpc"
     SYSTEM_PREFIX = "/system"
     TAGS: Sequence[Any] = ()
@@ -93,7 +93,7 @@ class TigrblRouter(_Router):
             if system_prefix is not None
             else getattr(self, "SYSTEM_PREFIX", "/system")
         )
-        self.rest_prefix = getattr(self, "REST_PREFIX", "/api")
+        self.rest_prefix = getattr(self, "REST_PREFIX", "/router")
 
         # public containers (mirrors used by bindings.router)
         self.models = initialize_model_registry(getattr(self, "MODELS", ()))
@@ -144,7 +144,7 @@ class TigrblRouter(_Router):
                         merged[k].setdefault(ph, [])
                         merged[k][ph] = list(merged[k][ph]) + list(fns or [])
                 else:
-                    # fallback: prefer model-local value, then append api-level
+                    # fallback: prefer model-local value, then append router-level
                     if isinstance(merged[k], list):
                         merged[k] = list(merged[k]) + list(v or [])
                     else:
@@ -210,7 +210,7 @@ class TigrblRouter(_Router):
         """Mount JSON-RPC router onto this API."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
         self.jsonrpc_prefix = px
-        prov = _resolver.resolve_provider(api=self)
+        prov = _resolver.resolve_provider(router=self)
         get_db = prov.get_db if prov else None
         return _mount_jsonrpc(
             self,
@@ -257,7 +257,7 @@ class TigrblRouter(_Router):
     ) -> Any:
         """Mount diagnostics router onto this API or provided app."""
         px = prefix if prefix is not None else self.system_prefix
-        prov = _resolver.resolve_provider(api=self)
+        prov = _resolver.resolve_provider(router=self)
         get_db = prov.get_db if prov else None
         router = _mount_diagnostics(self, get_db=get_db)
         include_self = getattr(self, "include_router", None)
@@ -323,7 +323,7 @@ class TigrblRouter(_Router):
             router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
             if router is None:
                 continue
-            # update api-level references
+            # update router-level references
             mname = model.__name__
             rest_ns = getattr(self.rest, mname, SimpleNamespace())
             rest_ns.router = router
