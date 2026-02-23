@@ -37,7 +37,7 @@ class TestMountFaviconOnTigrblApp:
     async def test_mount_favicon_supports_custom_svg_path(self) -> None:
         """A custom SVG mount path should be the target for ICO redirects."""
         app = TigrblApp()
-        app.mount_favicon(path="/assets/favicon.svg", name="favicon_assets_route")
+        app.mount_favicon(svg_path="/assets/favicon.svg", name="favicon_assets_route")
 
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -51,13 +51,42 @@ class TestMountFaviconOnTigrblApp:
         assert ico_response.headers["location"] == "/assets/favicon.svg"
 
     @pytest.mark.asyncio
+    async def test_mount_favicon_supports_prefix_and_custom_ico_path(self) -> None:
+        """Prefix and custom ICO paths should mount and redirect consistently."""
+        app = TigrblApp()
+        app.mount_favicon(
+            prefix="/brand",
+            svg_path="/favicon.svg",
+            ico_path="/favicon.ico",
+            name="favicon_prefixed_route",
+        )
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            svg_response = await client.get("/brand/favicon.svg")
+            ico_response = await client.get(
+                "/brand/favicon.ico", follow_redirects=False
+            )
+            default_ico_response = await client.get(
+                "/favicon.ico", follow_redirects=False
+            )
+
+        assert svg_response.status_code == 200
+        assert svg_response.headers["content-type"].startswith("image/svg+xml")
+
+        assert ico_response.status_code == 307
+        assert ico_response.headers["location"] == "/brand/favicon.svg"
+
+        assert default_ico_response.status_code == 404
+
+    @pytest.mark.asyncio
     async def test_mount_favicon_serves_ico_file_directly(self, tmp_path: Path) -> None:
         """When an ICO file is configured, only ICO should be served directly."""
         app = TigrblApp()
         favicon_ico = tmp_path / "favicon.ico"
         favicon_ico.write_bytes(b"\x00\x00\x01\x00")
 
-        app.mount_favicon(favicon_path=favicon_ico, name="favicon_ico_route")
+        app.mount_favicon(file_path=favicon_ico, name="favicon_ico_route")
 
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:

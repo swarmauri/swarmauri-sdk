@@ -31,17 +31,17 @@ async def test_app_mount_favicon_default_route() -> None:
 
 @pytest.mark.asyncio
 async def test_app_mount_favicon_custom_route() -> None:
-    """Mount a namespaced favicon asset while preserving default ICO redirect."""
+    """Mount favicon routes under a custom prefix and validate redirect targets."""
     app = TigrblApp()
 
-    app.mount_favicon(path="/assets/favicon.svg", name="lesson_app_assets_favicon")
+    app.mount_favicon(prefix="/assets", name="lesson_app_assets_favicon")
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         svg_response = await client.get("/assets/favicon.svg")
-        ico_response = await client.get("/favicon.ico", follow_redirects=False)
+        ico_response = await client.get("/assets/favicon.ico", follow_redirects=False)
 
     assert svg_response.status_code == 200
     assert svg_response.headers["content-type"].startswith("image/svg+xml")
     assert ico_response.status_code == 307
-    assert ico_response.headers["location"] == "/favicon.svg"
+    assert ico_response.headers["location"] == "/assets/favicon.svg"

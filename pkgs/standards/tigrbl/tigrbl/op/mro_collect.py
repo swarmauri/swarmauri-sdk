@@ -37,6 +37,7 @@ def _wrap_ctx_core(table: type, func: Callable[..., Any]) -> Callable[..., Any]:
 
     core.__name__ = getattr(func, "__name__", "core")
     core.__qualname__ = getattr(func, "__qualname__", core.__name__)
+    core.__tigrbl_ctx_wrapper__ = True
     return core
 
 
