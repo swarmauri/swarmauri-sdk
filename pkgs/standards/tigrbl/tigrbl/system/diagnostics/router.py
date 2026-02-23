@@ -21,6 +21,7 @@ def mount_diagnostics(
       GET /hookz
       GET /kernelz
     """
+    source_router = router
     router = Router()
 
     dep = get_db
@@ -36,7 +37,7 @@ def mount_diagnostics(
     )
     router.add_route(
         "/methodz",
-        build_methodz_endpoint(router),
+        build_methodz_endpoint(source_router),
         methods=["GET"],
         name="methodz",
         tags=["system"],
@@ -45,7 +46,7 @@ def mount_diagnostics(
     )
     router.add_route(
         "/hookz",
-        build_hookz_endpoint(router),
+        build_hookz_endpoint(source_router),
         methods=["GET"],
         name="hookz",
         tags=["system"],
@@ -59,7 +60,7 @@ def mount_diagnostics(
     )
     router.add_route(
         "/kernelz",
-        build_kernelz_endpoint(router),
+        build_kernelz_endpoint(source_router),
         methods=["GET"],
         name="kernelz",
         tags=["system"],
