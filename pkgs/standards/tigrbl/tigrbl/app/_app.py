@@ -73,6 +73,9 @@ class App(AppSpec):
             include_docs=True,
             **asgi_kwargs,
         )
+        self.openapi_url = self.router.openapi_url
+        self.docs_url = self.router.docs_url
+        self.swagger_ui_version = self.router.swagger_ui_version
         _engine_ctx = self.engine
         if _engine_ctx is not None:
             _resolver.set_default(_engine_ctx)
