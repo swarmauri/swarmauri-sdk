@@ -12,13 +12,13 @@ logger = logging.getLogger("uvicorn")
 
 @lru_cache(maxsize=None)
 def mro_collect_router_hooks(router: type) -> Dict[str, Dict[str, list[Callable[..., Any]]]]:
-    """Collect API-level hook declarations across ``router``'s MRO.
+    """Collect Router-level hook declarations across ``router``'s MRO.
 
     The accepted shape mirrors the hooks mapping used by the bindings:
         {alias: {phase: Iterable[callable]}}
     Hooks from base classes are merged with subclass definitions taking precedence.
     """
-    logger.info("Collecting API hooks for %s", router.__name__)
+    logger.info("Collecting Router hooks for %s", router.__name__)
     out: Dict[str, Dict[str, list[Callable[..., Any]]]] = {}
     for base in reversed(router.__mro__):
         mapping = getattr(base, TIGRBL_ROUTER_HOOKS_ATTR, None)
@@ -36,7 +36,7 @@ def mro_collect_router_hooks(router: type) -> Dict[str, Dict[str, list[Callable[
                             lst.append(fn)
                 elif callable(items):
                     lst.append(items)
-    logger.debug("Collected API hooks for aliases: %s", list(out.keys()))
+    logger.debug("Collected Router hooks for aliases: %s", list(out.keys()))
     return out
 
 
