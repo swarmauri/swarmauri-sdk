@@ -105,7 +105,7 @@ def _is_persistent(chains: Mapping[str, Sequence[StepFn]]) -> bool:
 
 
 def _label_dep_atom(*, subject: str, anchor: str, index: int) -> str:
-    return f"atom:dep:{subject}:{index}@{anchor}"
+    return f"hook:dep:{subject}:{index}@{anchor}"
 
 
 def _make_dep_atom_step(run_fn: _AtomRun, dep: Any, *, label: str) -> StepFn:
