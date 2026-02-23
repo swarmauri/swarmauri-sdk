@@ -32,7 +32,7 @@ async def schema_ctx_client():
             age: int
 
     cfg = mem()
-    app = TigrblApp()
+    app = TigrblApp(engine=cfg)
     router = TigrblRouter(engine=cfg)
     app.include_table(Widget, prefix="")
     app.mount_jsonrpc()

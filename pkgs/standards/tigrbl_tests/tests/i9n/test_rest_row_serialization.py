@@ -31,7 +31,7 @@ async def client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name}
 
-    app = TigrblApp()
+    app = TigrblApp(engine=mem())
     router = TigrblRouter(engine=mem())
     app.include_table(Widget, prefix="")
     await app.initialize()

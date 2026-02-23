@@ -64,7 +64,7 @@ async def schema_ctx_client():
             "secret": secret,
         }
 
-    app = TigrblApp()
+    app = TigrblApp(engine=mem(async_=False))
     router = TigrblRouter(engine=mem(async_=False))
     router.include_table(Widget, prefix="")
     router.mount_jsonrpc()
