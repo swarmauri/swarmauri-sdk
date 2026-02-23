@@ -159,7 +159,7 @@ async def test_multi_router_precedence_dedupe_and_op_engine_uvicorn() -> None:
     """Cover multi-API precedence, dedupe, and op-level engine overrides.
 
     Steps:
-        1) Build two APIs with multiple tables and distinct engine configs.
+        1) Build two Routers with multiple tables and distinct engine configs.
         2) Attach an op with a unique engine to one table.
         3) Assert resolver precedence + interning, then validate REST/RPC calls.
     """
