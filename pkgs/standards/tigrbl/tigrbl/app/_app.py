@@ -93,10 +93,10 @@ class App(AppSpec):
         routers = (router,) if router is not None else self.ROUTERS
         models = models if models is not None else self.TABLES
         if routers:
-            for a in routers:
-                install_from_objects(app=self.router, router=a, models=models)
+            for entry in routers:
+                install_from_objects(app=self, router=entry, models=models)
         else:
-            install_from_objects(app=self.router, router=None, models=models)
+            install_from_objects(app=self, router=None, models=models)
 
     def _collect_tables(self) -> list[Any]:
         seen = set()
