@@ -50,9 +50,8 @@ async def resolve_handler_kwargs(router: Any, route: Any, req: Any) -> dict[str,
             continue
         default = param.default
         if isinstance(default, Dependency) or dependency_marker is not None:
-            dep = default.dependency if isinstance(default, Dependency) else None
-            dep = dep or dependency_marker.dependency
-            kwargs[name] = await invoke_dependency(router, dep, req)
+            # Router-level compatibility surfaces no longer execute dependency
+            # callables during handler argument resolution.
             continue
         if isinstance(default, Param) or param_marker is not None:
             marker = default if isinstance(default, Param) else param_marker

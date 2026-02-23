@@ -241,12 +241,9 @@ class Router(RouterSpec):
         )
 
     async def call_handler(self, route: Route, req: Request) -> Response:
-        """Resolve dependencies, invoke the handler, and normalize its output."""
+        """Invoke the handler and normalize its output."""
 
-        dependency_cleanups: list[Callable[[], Any]] = []
-        setattr(req.state, "_dependency_cleanups", dependency_cleanups)
         try:
-            await self._resolve_route_dependencies(route, req)
             kwargs = await self._resolve_handler_kwargs(route, req)
             out = route.handler(**kwargs)
             if inspect.isawaitable(out):
@@ -267,14 +264,6 @@ class Router(RouterSpec):
                     headers=getattr(exc, "headers", None),
                 )
             raise
-        finally:
-            for cleanup in reversed(dependency_cleanups):
-                try:
-                    result = cleanup()
-                    if inspect.isawaitable(result):
-                        await result
-                except Exception:
-                    pass
 
         if isinstance(out, Response):
             return out
