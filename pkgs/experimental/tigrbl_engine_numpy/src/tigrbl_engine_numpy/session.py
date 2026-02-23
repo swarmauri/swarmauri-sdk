@@ -246,6 +246,13 @@ class NumpySession(TigrblSessionBase):
             if (model, ident) in self._dels:
                 continue
             row = {c: getattr(obj, c, None) for c in _model_columns(model)}
+            baseline = self._resolve_row(model, ident)
+            if baseline is None:
+                continue
+            if row == dict(baseline):
+                continue
+            if self._spec and self._spec.read_only:
+                raise RuntimeError("read-only session: writes detected during flush")
             self._puts[(model, ident)] = row
 
     async def _refresh_impl(self, obj: Any) -> None:
