@@ -26,7 +26,7 @@ class ThetaRouter(TigrblRouter):
 
 @pytest.mark.unit
 def test_tigrbl_router_app_instantiation_sets_composed_state() -> None:
-    router = ThetaApi(engine=mem(async_=False))
+    router = ThetaRouter(engine=mem(async_=False))
 
     class ThetaApp(TigrblApp):
         ROUTERS = (router,)
