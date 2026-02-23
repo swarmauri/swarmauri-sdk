@@ -1,7 +1,7 @@
 import httpx
 import pytest
 
-from tigrbl import TigrblRouter, TigrblApp
+from tigrbl import TigrblApp
 from tigrbl.system import mount_openapi
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
@@ -27,10 +27,10 @@ async def test_openapi_mountable_on_tigrbl_app_uvicorn():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_openapi_mountable_on_tigrbl_router_uvicorn():
-    router = TigrblRouter()
-    mount_openapi(router, path="/custom/openapi.json", name="openapi_custom")
+    app = TigrblApp()
+    mount_openapi(app, path="/custom/openapi.json", name="openapi_custom")
 
-    base_url, server, task = await run_uvicorn_in_task(router)
+    base_url, server, task = await run_uvicorn_in_task(app)
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(f"{base_url}/custom/openapi.json")
