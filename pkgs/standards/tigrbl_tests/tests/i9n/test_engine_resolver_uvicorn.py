@@ -109,7 +109,7 @@ async def test_tigrblrouter_multi_table_engine_binding_uvicorn() -> None:
         __resource__ = "api-gadget"
         name = Column(String, nullable=False)
 
-    router = TigrblRouter(engine=api_engine)
+    router = TigrblRouter(engine=router_engine)
     router.include_tables([ApiWidget, ApiGadget])
     router.install_engines(models=tuple(router.models.values()))
     router.mount_jsonrpc()
@@ -119,7 +119,7 @@ async def test_tigrblrouter_multi_table_engine_binding_uvicorn() -> None:
     app.include_router(router.router, prefix="/api")
 
     # Step 2: Assert resolver bindings (router vs table overrides).
-        _provider = resolver.resolve_provider(router=router)
+    router_provider = resolver.resolve_provider(router=router)
     widget_provider = resolver.resolve_provider(router=router, model=ApiWidget)
     gadget_provider = resolver.resolve_provider(router=router, model=ApiGadget)
     assert router_provider is widget_provider
