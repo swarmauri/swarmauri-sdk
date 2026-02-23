@@ -61,7 +61,7 @@ def test_op_ctx_engine_requires_install_engines_after_bind() -> None:
     assert provider is not None
     assert provider.spec.async_ is False
 
-    app.install_engines(models=(Gadget,))
+    app.install_engines(tables=(Gadget,))
     provider = _resolver.resolve_provider(model=Gadget, op_alias="ping")
     assert provider is not None
     assert provider.spec.async_ is False
