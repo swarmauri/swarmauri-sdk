@@ -16,8 +16,8 @@ def setup_router(model_cls, get_db):
     app = TigrblApp()
     router = TigrblRouter(get_db=get_db)
     app.include_table(model_cls, prefix="")
-    app.initialize()
     app.include_router(router)
+    app.initialize()
     return app, router
 
 
@@ -282,7 +282,6 @@ async def test_op_ctx_rpc_method(sync_db_session):
 
     app, router = setup_router(Widget, get_sync_db)
     app.mount_jsonrpc(prefix="/rpc")
-    app.include_router(router)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"

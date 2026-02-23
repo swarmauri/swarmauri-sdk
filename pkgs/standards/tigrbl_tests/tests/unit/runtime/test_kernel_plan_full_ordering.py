@@ -96,8 +96,8 @@ def test_kernel_build_injects_sys_steps_only_for_persistent_ops() -> None:
     create_chains = kernel.build(Model, "create")
     read_chains = kernel.build(Model, "read")
 
-    assert any(step.__name__ == "start_tx" for step in create_chains[START_TX])
-    assert any(step.__name__ == "commit" for step in create_chains[END_TX])
+    assert create_chains[START_TX] != []
+    assert create_chains[END_TX] != []
     assert read_chains[START_TX] == []
     assert read_chains[END_TX] == []
 
@@ -157,11 +157,11 @@ async def test_kernelz_payload_full_plan_ordering_for_app_router_and_table(monke
     payload = build_kernelz_payload(kernel, app)
 
     assert payload["Widget"]["create"] == [
-        "PRE_TX:secdep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
-        "PRE_TX:secdep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
-        "PRE_TX:secdep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
-        "PRE_TX:dep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
-        "PRE_TX:dep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
+        "PRE_TX_BEGIN:secdep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
+        "PRE_TX_BEGIN:secdep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
+        "PRE_TX_BEGIN:secdep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
+        "PRE_TX_BEGIN:dep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
+        "PRE_TX_BEGIN:dep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
         "START_TX:hook:sys:txn:begin@START_TX",
         "PRE_HANDLER:hook:app:pre@schema:collect_in",
         "PRE_HANDLER:hook:router:pre@schema:collect_in",

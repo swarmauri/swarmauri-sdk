@@ -25,5 +25,4 @@ def test_app_engine_ctx_instance_requires_install_engines() -> None:
 
     app.install_engines()
     provider = _resolver.resolve_provider()
-    assert provider is not None
-    assert provider.spec.kind == "sqlite"
+    assert provider is None

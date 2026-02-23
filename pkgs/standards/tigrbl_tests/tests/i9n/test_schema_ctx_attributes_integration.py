@@ -37,10 +37,10 @@ async def schema_ctx_client():
     app.include_table(Widget, prefix="")
     app.mount_jsonrpc()
     app.attach_diagnostics()
-    await app.initialize()
-    prov = _resolver.resolve_provider()
-    _, sessionmaker = prov.ensure()
     app.include_router(router)
+    await app.initialize()
+    prov = _resolver.resolve_provider(router=router)
+    _, sessionmaker = prov.ensure()
 
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
     return client, router, Widget, sessionmaker
