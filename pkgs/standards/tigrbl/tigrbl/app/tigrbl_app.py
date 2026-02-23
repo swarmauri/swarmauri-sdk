@@ -123,7 +123,8 @@ class TigrblApp(_App):
         )
 
         # public containers (mirrors used by bindings.router)
-        self.models = initialize_model_registry(getattr(self, "TABLES", ()))
+        declared_models = getattr(self, "TABLES", ()) or getattr(self, "MODELS", ())
+        self.models = initialize_model_registry(declared_models)
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
         self.hooks = tuple(getattr(self, "HOOKS", ()))
@@ -361,8 +362,12 @@ class TigrblApp(_App):
                 or getattr(router, "__name__", None)
                 or str(id(router))
             )
-            if key not in self.routers:
-                self.routers[key] = router
+            existing = self.routers.get(key)
+            if existing is not router:
+                if existing is None:
+                    self.routers[key] = router
+                else:
+                    self.routers[f"{key}:{id(router)}"] = router
         else:
             if router not in self.routers:
                 self.routers.append(router)
@@ -429,7 +434,10 @@ class TigrblApp(_App):
         )
 
         router_results = []
-        for router in self.routers:
+        attached_routers = list(
+            self.routers.values() if isinstance(self.routers, dict) else self.routers
+        )
+        for router in attached_routers:
             init = getattr(router, "initialize", None)
             if callable(init):
                 router_results.append(
