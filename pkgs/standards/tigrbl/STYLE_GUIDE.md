@@ -13,6 +13,6 @@
 
 - Tigrbl packages must use **Tigrbl-native APIs only** for application and router construction.
 - Do **not** introduce ASGI- or Starlette-specific application objects, routers, lifecycle hooks, request/response abstractions, or middleware as core framework dependencies.
-- Treat Tigrbl as a pure ASGI/WSGI framework surface: build services with `TigrblApp`, `TigrblApi`, and related Tigrbl primitives.
+- Treat Tigrbl as a pure ASGI/WSGI framework surface: build services with `TigrblApp`, `TigrblRouter`, and related Tigrbl primitives.
 - **No ASGI, no Starlette.** Do not introduce runtime or test dependencies on either framework.
 

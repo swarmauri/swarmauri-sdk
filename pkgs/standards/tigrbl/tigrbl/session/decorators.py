@@ -15,7 +15,7 @@ def session_ctx(cfg: Optional[SessionCfg] = None, /, **kw: Any):
     Attach a SessionSpec to an App, API, Model/Table, or op handler.
 
     Precedence is evaluated by the resolver using:
-        op > model > api > app
+        op > model > router > app
     (Resolver is part of the runtime/engine layer and is independent of this decorator.)
     """
     spec = _normalize(cfg, **kw)

@@ -20,7 +20,7 @@ def merge_tags(base_tags: list[str] | None, tags: list[str] | None) -> list[str]
     return merged or None
 
 
-def add_api_route(
+def add_route(
     router: Any,
     path: str,
     endpoint: Any,
@@ -74,7 +74,7 @@ def add_api_route(
 
 def route(router: Any, path: str, *, methods: Iterable[str], **kwargs: Any):
     def deco(fn: Any) -> Any:
-        add_api_route(router, path, fn, methods=methods, **kwargs)
+        add_route(router, path, fn, methods=methods, **kwargs)
         return fn
 
     return deco

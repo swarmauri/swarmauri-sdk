@@ -13,7 +13,7 @@ class Widget(Base, GUIDPk):
 
 def _build_app() -> TigrblApp:
     app = TigrblApp(engine=mem(async_=False))
-    app.include_model(Widget)
+    app.include_table(Widget)
     app.initialize()
     app.mount_jsonrpc()
     return app

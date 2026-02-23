@@ -18,15 +18,8 @@ from typing import (
 from pydantic import BaseModel
 
 from ..op import OpSpec
-from ..op.types import PHASES
-from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
+from ..transport.dispatch import dispatch_operation
 from ..runtime.status import HTTPException
-
-# Prefer Kernel phase-chains if available (atoms + system steps + hooks)
-try:
-    from ..runtime.kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore
-except Exception:  # pragma: no cover
-    _kernel_build_phase_chains = None  # type: ignore
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rpc")
@@ -113,30 +106,6 @@ def _ns(obj: Any, name: str) -> Any:
         ns = SimpleNamespace()
         setattr(obj, name, ns)
     return ns
-
-
-def _get_phase_chains(
-    model: type, alias: str
-) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
-    """
-    Prefer building via runtime Kernel (atoms + system steps + hooks in one lifecycle).
-    Fallback: read the pre-built model.hooks.<alias> chains directly.
-    """
-    if _kernel_build_phase_chains is not None:
-        try:
-            return _kernel_build_phase_chains(model, alias)
-        except Exception:
-            logger.exception(
-                "Kernel build_phase_chains failed for %s.%s; falling back to hooks",
-                getattr(model, "__name__", model),
-                alias,
-            )
-    hooks_root = _ns(model, "hooks")
-    alias_ns = getattr(hooks_root, alias, None)
-    out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
-    for ph in PHASES:
-        out[ph] = list(getattr(alias_ns, ph, []) or [])
-    return out
 
 
 def _coerce_payload(payload: Any) -> Any:
@@ -359,50 +328,19 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
             for key, value in norm_payload.items():
                 merged_payload[key] = value
 
-        # 2) build executor context & phases
-        base_ctx: Dict[str, Any] = dict(ctx or {})
-        base_ctx.setdefault("payload", merged_payload)
-        base_ctx.setdefault("db", db)
-        if request is not None:
-            base_ctx.setdefault("request", request)
-        # surface contextual metadata for runtime atoms
-        app_ref = (
-            getattr(request, "app", None)
-            or base_ctx.get("app")
-            or getattr(model, "api", None)
-            or model
-        )
-        base_ctx.setdefault("app", app_ref)
-        base_ctx.setdefault("api", base_ctx.get("api") or app_ref)
-        base_ctx.setdefault("model", model)
-        base_ctx.setdefault("op", alias)
-        base_ctx.setdefault("method", alias)
-        base_ctx.setdefault("target", target)
-        # helpful env metadata
-        base_ctx.setdefault(
-            "env",
-            SimpleNamespace(
-                method=alias, params=merged_payload, target=target, model=model
-            ),
-        )
-
-        phases = _get_phase_chains(model, alias)
-        # RPC methods should return JSON-serializable data, not transport
-        # Response objects. Kernel-composed POST_RESPONSE chains include
-        # renderer atoms that convert payloads into Response instances. Keep
-        # only explicit user hooks for RPC execution.
-        model_hooks = getattr(getattr(model, "hooks", None), alias, None)
-        phases["POST_RESPONSE"] = list(getattr(model_hooks, "POST_RESPONSE", []) or [])
-
-        base_ctx["response_serializer"] = lambda r: _serialize_output(
-            model, alias, target, r
-        )
-        # 3) run executor
-        result = await _executor._invoke(
+        # 2) run through transport dispatcher
+        seed_ctx: Dict[str, Any] = dict(ctx or {})
+        result = await dispatch_operation(
+            router=getattr(model, "router", None),
             request=request,
             db=db,
-            phases=phases,
-            ctx=base_ctx,
+            model_or_name=model,
+            alias=alias,
+            target=target,
+            payload=merged_payload,
+            seed_ctx=seed_ctx,
+            rpc_mode=True,
+            response_serializer=lambda r: _serialize_output(model, alias, target, r),
         )
 
         return result

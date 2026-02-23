@@ -15,23 +15,21 @@ from tigrbl.hook import hook_ctx
 
 
 def create_client(model_cls):
-    """Build a FastAPI app with Tigrbl v3 and return an AsyncClient."""
-    app = TigrblApp()
-    api = TigrblApp(engine={"kind": "sqlite", "memory": True})
-    api.include_model(model_cls)
-    api.mount_jsonrpc()
-    api.attach_diagnostics()
+    """Build a TigrblApp app with Tigrbl and return an AsyncClient."""
+    app = TigrblApp(engine={"kind": "sqlite", "memory": True})
+    app.include_table(model_cls)
+    app.mount_jsonrpc()
+    app.attach_diagnostics()
+    app.initialize()
 
     from tigrbl.engine import resolver as _resolver
 
-    prov = _resolver.resolve_provider(api=api)
-    engine, SessionLocal = prov.ensure()
-    Base.metadata.create_all(engine)
+    prov = _resolver.resolve_provider()
+    _, SessionLocal = prov.ensure()
 
-    app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, api, SessionLocal
+    return client, app, SessionLocal
 
 
 # ---------------------------------------------------------------------------
@@ -53,8 +51,8 @@ async def test_hook_ctx_binding_i9n():
         async def flag(cls, ctx):
             ctx["flagged"] = True
 
-    client, api, _ = create_client(Item)
-    assert any(callable(h) for h in api.hooks.Item.create.PRE_HANDLER)
+    client, app, _ = create_client(Item)
+    assert any(callable(h) for h in app.hooks.Item.create.PRE_HANDLER)
     await client.aclose()
 
 
@@ -75,7 +73,7 @@ async def test_hook_ctx_request_response_schema_i9n():
 
         @hook_ctx(ops="create", phase="POST_RESPONSE")
         async def modify(cls, ctx):
-            ctx["response"].result["hook"] = True
+            ctx["result"]["hook"] = True
 
     client, _, _ = create_client(Item)
     res = await client.post("/item", json={"name": "a"})
@@ -105,7 +103,7 @@ async def test_hook_ctx_columns_i9n():
 
         @hook_ctx(ops="create", phase="POST_RESPONSE")
         async def expose(cls, ctx):
-            ctx["response"].result["cols"] = ctx["cols"]
+            ctx["result"]["cols"] = ctx["cols"]
 
     client, _, _ = create_client(Item)
     res = await client.post("/item", json={"name": "x"})
@@ -161,7 +159,7 @@ async def test_hook_ctx_internal_model_i9n():
 
         @hook_ctx(ops="create", phase="POST_RESPONSE")
         async def expose_model(cls, ctx):
-            ctx["response"].result["model"] = ctx["model_name"]
+            ctx["result"]["model"] = ctx["model_name"]
 
     client, _, _ = create_client(Item)
     res = await client.post("/item", json={"name": "a"})
@@ -216,7 +214,7 @@ async def test_hook_ctx_storage_sqlalchemy_i9n():
 
         @hook_ctx(ops="create", phase="POST_RESPONSE")
         async def expose_count(cls, ctx):
-            ctx["response"].result["count"] = ctx["count"]
+            ctx["result"]["count"] = ctx["count"]
 
     client, _, _ = create_client(Item)
     res = await client.post("/item", json={"name": "a"})
@@ -241,7 +239,7 @@ async def test_hook_ctx_rest_call_i9n():
 
         @hook_ctx(ops="create", phase="POST_RESPONSE")
         async def mark(cls, ctx):
-            ctx["response"].result["phase"] = "rest"
+            ctx["result"]["phase"] = "rest"
 
     client, _, _ = create_client(Item)
     res = await client.post("/item", json={"name": "a"})
@@ -266,7 +264,7 @@ async def test_hook_ctx_rpc_method_i9n():
 
         @hook_ctx(ops="create", phase="POST_RESPONSE")
         async def mark(cls, ctx):
-            ctx["response"].result["phase"] = "rpc"
+            ctx["result"]["phase"] = "rpc"
 
     client, _, _ = create_client(Item)
     res = await client.post(
@@ -299,11 +297,11 @@ async def test_hook_ctx_core_crud_i9n():
 
         @hook_ctx(ops="create", phase="POST_COMMIT")
         async def mark(cls, ctx):
-            ctx["response"].result["via"] = "core"
+            ctx["result"]["via"] = "core"
 
-    client, api, SessionLocal = create_client(Item)
+    client, app, SessionLocal = create_client(Item)
     with SessionLocal() as session:
-        result = await api.core.Item.create({"name": "x"}, db=session)
+        result = await app.core.Item.create({"name": "x"}, db=session)
     assert result["via"] == "core"
     await client.aclose()
 
@@ -356,7 +354,7 @@ async def test_hook_ctx_atomz_i9n():
 
         @hook_ctx(ops="create", phase="POST_RESPONSE")
         async def expose(cls, ctx):
-            ctx["response"].result["captured"] = ctx["captured"]
+            ctx["result"]["captured"] = ctx["captured"]
 
     client, _, _ = create_client(Item)
     res = await client.post("/item", json={"name": "alpha"})

@@ -9,7 +9,7 @@ from typing import Any, AsyncIterator
 from urllib.parse import parse_qs
 
 from tigrbl import TigrblApp
-from tigrbl.api._api import Router
+from tigrbl.router import Router
 from tigrbl.engine.shortcuts import engine as build_engine
 from tigrbl.responses import Response
 from tigrbl.runtime.status import HTTPException

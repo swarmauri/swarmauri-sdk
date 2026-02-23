@@ -34,23 +34,32 @@ def _remove_existing_favicon_routes(router: Any, *paths: str) -> None:
     """Remove existing routes matching favicon paths so remounts take precedence."""
 
     path_set = set(paths)
-    routes = getattr(router, "_routes", None)
-    if routes is None:
-        routes = getattr(router, "routes", None)
-    if routes is None:
-        return
 
-    filtered = [
-        route
-        for route in routes
-        if (getattr(route, "path_template", None) or getattr(route, "path", None))
-        not in path_set
-    ]
+    def _prune_routes(target: Any) -> bool:
+        routes = getattr(target, "_routes", None)
+        if routes is None:
+            routes = getattr(target, "routes", None)
+        if routes is None:
+            return False
 
-    if hasattr(router, "_routes"):
-        router._routes = filtered
-    if hasattr(router, "routes"):
-        router.routes = filtered
+        filtered = [
+            route
+            for route in routes
+            if (getattr(route, "path_template", None) or getattr(route, "path", None))
+            not in path_set
+        ]
+
+        if hasattr(target, "_routes"):
+            target._routes = filtered
+        if hasattr(target, "routes"):
+            target.routes = filtered
+        return True
+
+    _prune_routes(router)
+
+    nested_router = getattr(router, "router", None)
+    if nested_router is not None:
+        _prune_routes(nested_router)
 
 
 def mount_favicon(
@@ -68,14 +77,14 @@ def mount_favicon(
     _remove_existing_favicon_routes(router, path, ico_path)
 
     if resolved.suffix.lower() == ".svg":
-        router.add_api_route(
+        router.add_route(
             path,
             favicon_endpoint(favicon_path=resolved),
             methods=["GET"],
             name=name,
             include_in_schema=False,
         )
-        router.add_api_route(
+        router.add_route(
             ico_path,
             favicon_ico_redirect_endpoint(path=path),
             methods=["GET"],
@@ -84,7 +93,7 @@ def mount_favicon(
         )
         return router
 
-    router.add_api_route(
+    router.add_route(
         ico_path,
         favicon_endpoint(favicon_path=resolved),
         methods=["GET"],

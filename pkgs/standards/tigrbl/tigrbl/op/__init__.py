@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from ._op import Op
+from .alias import Alias
+from .alias_spec import AliasSpec
 from .types import (
     OpSpec,
     OpHook,
@@ -27,6 +29,8 @@ from .decorators import alias, alias_ctx, op_alias, op_ctx
 
 __all__ = [
     "Op",
+    "Alias",
+    "AliasSpec",
     "OpSpec",
     "OpHook",
     "TargetOp",

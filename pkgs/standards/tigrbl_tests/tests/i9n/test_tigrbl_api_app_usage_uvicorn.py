@@ -2,9 +2,8 @@ import httpx
 import pytest
 import pytest_asyncio
 
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
-from tigrbl.types import Security
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -12,6 +11,8 @@ from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
+
+from tigrbl.security import Security
 
 bearer = HTTPBearer()
 
@@ -23,7 +24,7 @@ def auth_dependency(
 
 
 class Kappa(Base, GUIDPk):
-    __tablename__ = "kappa_api_app_usage"
+    __tablename__ = "kappa_router_app_usage"
     __allow_unmapped__ = True
 
     name: Mapped[str] = acol(
@@ -35,22 +36,22 @@ class Kappa(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class KappaApi(TigrblApi):
-    MODELS = (Kappa,)
+class KappaApi(TigrblRouter):
+    TABLES = (Kappa,)
 
 
 @pytest_asyncio.fixture()
-async def running_api_app():
-    api = KappaApi(engine=mem(async_=False))
-    api.set_auth(authn=auth_dependency, allow_anon=False)
-    api.include_models([Kappa])
-    api.initialize()
+async def running_router_app():
+    router = KappaApi(engine=mem(async_=False))
+    router.set_auth(authn=auth_dependency, allow_anon=False)
+    router.include_tables([Kappa])
+    router.initialize()
 
     class KappaApp(TigrblApp):
-        APIS = (api,)
+        ROUTERS = (router,)
 
     app = KappaApp(engine=mem(async_=False))
-    app.include_router(api)
+    app.include_router(router)
 
     base_url, server, task = await run_uvicorn_in_task(app)
     try:
@@ -61,8 +62,8 @@ async def running_api_app():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_api_app_deploys_and_serves_openapi(running_api_app) -> None:
-    base_url = running_api_app
+async def test_tigrbl_router_app_deploys_and_serves_openapi(running_router_app) -> None:
+    base_url = running_router_app
 
     async with httpx.AsyncClient() as client:
         openapi_resp = await client.get(f"{base_url}/openapi.json")
@@ -82,8 +83,10 @@ async def test_tigrbl_api_app_deploys_and_serves_openapi(running_api_app) -> Non
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_api_app_handles_authenticated_request(running_api_app) -> None:
-    base_url = running_api_app
+async def test_tigrbl_router_app_handles_authenticated_request(
+    running_router_app,
+) -> None:
+    base_url = running_router_app
     headers = {"Authorization": "Bearer demo"}
 
     async with httpx.AsyncClient() as client:

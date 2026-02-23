@@ -25,7 +25,7 @@ class Widget(Base, GUIDPk):
 @pytest_asyncio.fixture()
 async def running_app():
     app = TigrblApp(engine=mem(async_=False))
-    app.include_model(Widget)
+    app.include_table(Widget)
     app.attach_diagnostics()
     await app.initialize()
 

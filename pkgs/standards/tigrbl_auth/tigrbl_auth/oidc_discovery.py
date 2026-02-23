@@ -11,12 +11,12 @@ import json
 from functools import lru_cache
 from typing import Any
 
-from tigrbl_auth.deps import TigrblApi, TigrblApp
+from tigrbl_auth.deps import TigrblRouter, TigrblApp
 
 from .rfc.rfc8414_metadata import ISSUER, JWKS_PATH
 from .runtime_cfg import settings
 
-api = TigrblApi()
+api = TigrblRouter()
 router = api
 
 

@@ -22,10 +22,10 @@ class Op(OpSpec):
         owner.__tigrbl_ops__ = tuple(ops)
 
     def install_engines(
-        self, *, api: Any | None = None, model: type | None = None
+        self, *, router: Any | None = None, model: type | None = None
     ) -> None:
         from ..engine import install_from_objects
 
         m = model if model is not None else self.table
         if m is not None:
-            install_from_objects(api=api, models=[m])
+            install_from_objects(router=router, models=[m])

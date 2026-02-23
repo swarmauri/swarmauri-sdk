@@ -29,7 +29,7 @@ def _serialize_output(
     can JSON-encode the response.
     """
 
-    from ...types import Response as _Response  # local import to avoid cycles
+    from ...responses import Response as _Response  # local import to avoid cycles
 
     if isinstance(result, _Response):
         return result

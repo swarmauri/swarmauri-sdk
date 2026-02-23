@@ -9,7 +9,7 @@ from uuid import UUID
 
 from tigrbl.security.dependencies import Depends as TigrblDepends
 from tigrbl_auth.deps import (
-    TigrblApi,
+    TigrblRouter,
     AsyncSession,
     HTTPException,
     JSONResponse,
@@ -47,7 +47,7 @@ from ..routers.shared import (
 )
 from ..runtime_cfg import settings
 
-api = TigrblApi()
+api = TigrblRouter()
 router = api
 
 

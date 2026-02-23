@@ -2,7 +2,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from tigrbl.types import BaseModel, Column, String, UUID
 
-from tigrbl import TigrblApp, op_ctx, schema_ctx, hook_ctx
+from tigrbl import TigrblApp, TigrblRouter, op_ctx, schema_ctx, hook_ctx
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.runtime.kernel import build_phase_chains
@@ -11,14 +11,14 @@ from tigrbl.runtime.kernel import build_phase_chains
 # helper to set up Tigrbl with sync DB from fixture
 
 
-def setup_api(model_cls, get_db):
+def setup_router(model_cls, get_db):
     Base.metadata.clear()
     app = TigrblApp()
-    api = TigrblApp(get_db=get_db)
-    api.include_model(model_cls, prefix="")
-    api.initialize()
-    app.include_router(api.router)
-    return app, api
+    router = TigrblRouter(get_db=get_db)
+    app.include_table(model_cls, prefix="")
+    app.include_router(router)
+    app.initialize()
+    return app, router
 
 
 @pytest.mark.i9n
@@ -50,7 +50,7 @@ async def test_op_ctx_request_response_schemas(sync_db_session):
             payload = ctx.get("payload") or {}
             return {"text": str(payload.get("text"))}
 
-    app, api = setup_api(Widget, get_sync_db)
+    app, router = setup_router(Widget, get_sync_db)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -74,8 +74,8 @@ def test_op_ctx_columns(sync_db_session):
         def ping(cls, ctx):
             return {}
 
-    _, api = setup_api(Gadget, get_sync_db)
-    assert set(api.columns["Gadget"]) == {"id", "name", "flag"}
+    _, router = setup_router(Gadget, get_sync_db)
+    assert set(router.columns["Gadget"]) == {"id", "name", "flag"}
 
 
 @pytest.mark.i9n
@@ -93,7 +93,7 @@ async def test_op_ctx_defaults_value_resolution(sync_db_session):
         def make(cls, ctx):
             pass
 
-    app, api = setup_api(Thing, get_sync_db)
+    app, router = setup_router(Thing, get_sync_db)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -127,7 +127,7 @@ async def test_op_ctx_internal_orm_models(sync_db_session):
         def seed(cls, ctx):
             pass
 
-    app, api = setup_api(Item, get_sync_db)
+    app, router = setup_router(Item, get_sync_db)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -136,7 +136,7 @@ async def test_op_ctx_internal_orm_models(sync_db_session):
     assert res.status_code == 201
     item_id = UUID(res.json()["id"])
 
-    assert api.models["Item"] is Item
+    assert router.models["Item"] is Item
     gen = get_sync_db()
     session = next(gen)
     assert isinstance(session.get(Item, item_id), Item)
@@ -147,7 +147,7 @@ async def test_op_ctx_internal_orm_models(sync_db_session):
 
 
 @pytest.mark.i9n
-def test_op_ctx_openapi_json(sync_db_session):
+def test_op_ctx_openrouter_json(sync_db_session):
     _, get_sync_db = sync_db_session
 
     class Widget(Base, GUIDPk):
@@ -159,7 +159,7 @@ def test_op_ctx_openapi_json(sync_db_session):
         def ping(cls, ctx):
             return {}
 
-    app, _ = setup_api(Widget, get_sync_db)
+    app, _ = setup_router(Widget, get_sync_db)
     spec = app.openapi()
     assert "/widget/ping" in spec["paths"]
     assert "post" in spec["paths"]["/widget/ping"]
@@ -191,7 +191,7 @@ async def test_op_ctx_preserves_canon_schemas(sync_db_session):
         def register(cls, ctx):
             return TokenPair(access="x")
 
-    app, _ = setup_api(Widget, get_sync_db)
+    app, _ = setup_router(Widget, get_sync_db)
     spec = app.openapi()
     schemas = spec["components"]["schemas"].keys()
     assert "WidgetCreateRequest" in schemas
@@ -214,7 +214,7 @@ async def test_op_ctx_storage_sqlalchemy(sync_db_session):
         def make(cls, ctx):
             pass
 
-    app, _ = setup_api(Widget, get_sync_db)
+    app, _ = setup_router(Widget, get_sync_db)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -256,7 +256,7 @@ async def test_op_ctx_rest_call(sync_db_session):
         def ping(cls, ctx):
             return {"msg": "ok"}
 
-    app, _ = setup_api(Gadget, get_sync_db)
+    app, _ = setup_router(Gadget, get_sync_db)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -280,9 +280,8 @@ async def test_op_ctx_rpc_method(sync_db_session):
         def ping(cls, ctx):
             return {"ok": True}
 
-    app, api = setup_api(Widget, get_sync_db)
-    api.mount_jsonrpc(prefix="/rpc")
-    app.include_router(api.router)
+    app, router = setup_router(Widget, get_sync_db)
+    app.mount_jsonrpc(prefix="/rpc")
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -307,7 +306,7 @@ async def test_op_ctx_core_crud(sync_db_session):
         def fetch(cls, ctx, obj):
             return obj
 
-    app, _ = setup_api(Widget, get_sync_db)
+    app, _ = setup_router(Widget, get_sync_db)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -347,7 +346,7 @@ async def test_op_ctx_hookz(sync_db_session):
         async def record(cls, ctx):
             calls.append("hooked")
 
-    app, _ = setup_api(Widget, get_sync_db)
+    app, _ = setup_router(Widget, get_sync_db)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -369,7 +368,7 @@ def test_op_ctx_atom_plan(sync_db_session):
         def make(cls, ctx):
             pass
 
-    _, api = setup_api(Widget, get_sync_db)
+    _, router = setup_router(Widget, get_sync_db)
     chains = build_phase_chains(Widget, "make")
     names = [fn.__name__ for funcs in chains.values() for fn in funcs]
     assert "create" in names
@@ -388,7 +387,7 @@ def test_op_ctx_system_steps(sync_db_session):
         def ping(cls, ctx):
             return {}
 
-    _, api = setup_api(Widget, get_sync_db)
+    _, router = setup_router(Widget, get_sync_db)
     chains = build_phase_chains(Widget, "ping")
 
     assert chains["START_TX"]
