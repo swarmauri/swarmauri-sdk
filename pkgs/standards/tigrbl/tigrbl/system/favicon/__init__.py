@@ -79,7 +79,19 @@ def mount_favicon(
     mounted_svg_path = f"{base_prefix}{svg_path}"
     mounted_ico_path = f"{base_prefix}{ico_path}"
 
-    _remove_existing_favicon_routes(router, mounted_svg_path, mounted_ico_path)
+    # ``TigrblApp`` installs a default root-level favicon during initialization.
+    # When callers remount under a custom prefix, remove those defaults so only
+    # the explicit mount location remains active.
+    default_svg_path = f"{svg_path}" if svg_path.startswith("/") else f"/{svg_path}"
+    default_ico_path = f"{ico_path}" if ico_path.startswith("/") else f"/{ico_path}"
+
+    _remove_existing_favicon_routes(
+        router,
+        mounted_svg_path,
+        mounted_ico_path,
+        default_svg_path,
+        default_ico_path,
+    )
 
     if resolved.suffix.lower() == ".svg":
         router.add_route(
