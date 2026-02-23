@@ -357,10 +357,9 @@ class TigrblApp(_App):
             self.routers.append(router)
         if not mount_router:
             return router
-        router = getattr(router, "router", router)
-        if hasattr(self, "include_router"):
-            self.include_router(router, prefix=prefix or "")
-        return router
+        routed = getattr(router, "router", router)
+        super().include_router(routed, prefix=prefix or "")
+        return routed
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""
