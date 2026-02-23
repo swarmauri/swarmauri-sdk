@@ -65,27 +65,18 @@ def _remove_existing_favicon_routes(router: Any, *paths: str) -> None:
 def mount_favicon(
     router: Any,
     *,
-    filepath: str | Path | None = FAVICON_PATH,
-    file_path: str | Path | None = None,
+    file_path: str | Path | None = FAVICON_PATH,
     svg_path: str = "/favicon.svg",
     ico_path: str = "/favicon.ico",
     prefix: str = "",
     name: str = "__favicon__",
-    favicon_path: str | Path | None = None,
-    path: str | None = None,
 ) -> Any:
     """Mount a favicon endpoint onto ``router``."""
 
-    resolved_path = filepath
-    if file_path is not None:
-        resolved_path = file_path
-    if favicon_path is not None:
-        resolved_path = favicon_path
-
-    resolved = Path(FAVICON_PATH if resolved_path is None else resolved_path)
+    resolved = Path(FAVICON_PATH if file_path is None else file_path)
 
     base_prefix = f"/{prefix.strip('/')}" if prefix else ""
-    mounted_svg_path = f"{base_prefix}{svg_path}" if path is None else path
+    mounted_svg_path = f"{base_prefix}{svg_path}"
     mounted_ico_path = f"{base_prefix}{ico_path}"
 
     _remove_existing_favicon_routes(router, mounted_svg_path, mounted_ico_path)
