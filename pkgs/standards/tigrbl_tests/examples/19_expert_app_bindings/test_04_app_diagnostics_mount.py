@@ -5,6 +5,8 @@ their construction. The design keeps diagnostic routes colocated with app
 configuration and avoids manual router wiring.
 """
 
+from fastapi import FastAPI
+
 from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
@@ -23,7 +25,7 @@ def test_app_binding_mounts_diagnostics_router():
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(Widget)
 
-    host = TigrblApp()
+    host = FastAPI()
     router = app.attach_diagnostics(app=host)
 
     assert router is not None
@@ -41,7 +43,7 @@ def test_app_diagnostics_attach_to_host_routes():
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(Widget)
 
-    host = TigrblApp()
+    host = FastAPI()
     router = app.attach_diagnostics(app=host)
 
     assert router is not None
