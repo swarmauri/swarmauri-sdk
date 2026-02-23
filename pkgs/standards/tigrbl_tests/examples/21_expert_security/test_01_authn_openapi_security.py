@@ -49,7 +49,7 @@ async def test_openapi_security_from_app_authn_dependency() -> None:
     # Instantiation: build the app, apply authn, and include the model.
     app = TigrblApp(engine=mem(async_=False))
     app.set_auth(authn=authn_dependency)
-    app.include_model(SecureWidget)
+    app.include_table(SecureWidget)
 
     # Deployment: initialize storage and run the app with Uvicorn.
     init_result = app.initialize()
@@ -102,7 +102,7 @@ async def test_openapi_security_from_api_authn_dependency() -> None:
     # Instantiation: build the API, apply authn, and include the model.
     api = TigrblRouter(engine=mem(async_=False))
     api.set_auth(authn=authn_dependency)
-    api.include_model(SecureApiWidget)
+    api.include_table(SecureApiWidget)
 
     # Deployment: initialize storage, attach OpenAPI, and run with Uvicorn.
     init_result = api.initialize()

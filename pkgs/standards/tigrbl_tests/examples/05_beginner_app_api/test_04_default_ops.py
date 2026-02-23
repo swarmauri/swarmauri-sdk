@@ -22,7 +22,7 @@ def test_default_ops_register_core_verbs():
 
     api = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize default operations.
-    api.include_model(Widget)
+    api.include_table(Widget)
     api.initialize()
     # Exercise: gather the operation aliases bound to the model.
     verbs = {spec.alias for spec in api.bind(Widget)}
@@ -47,7 +47,7 @@ def test_default_ops_are_exposed_as_aliases():
 
     api = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize operations.
-    api.include_model(Widget)
+    api.include_table(Widget)
     api.initialize()
     # Exercise: list bound operation aliases.
     aliases = {spec.alias for spec in api.bind(Widget)}

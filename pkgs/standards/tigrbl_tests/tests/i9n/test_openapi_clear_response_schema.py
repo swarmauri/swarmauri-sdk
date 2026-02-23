@@ -17,7 +17,7 @@ async def test_openapi_clear_response_schema() -> None:
 
     app = TigrblApp()
     api = TigrblApp()
-    api.include_model(Widget)
+    api.include_table(Widget)
     app.include_router(api.router)
 
     async with AsyncClient(

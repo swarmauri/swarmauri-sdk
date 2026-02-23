@@ -22,7 +22,7 @@ async def test_async_client_get() -> None:
         name = Column(String, nullable=False)
 
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Widget)
+    api.include_table(Widget)
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result

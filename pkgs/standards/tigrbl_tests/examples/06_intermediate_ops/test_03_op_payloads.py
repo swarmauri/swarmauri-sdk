@@ -31,7 +31,7 @@ def test_custom_op_returns_payload():
 
     # Deployment: build an app and include the model so OpSpecs resolve.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonPayload)
+    api.include_table(LessonPayload)
     api.initialize()
 
     # Test: locate the OpSpec for the custom alias on the bound model.
@@ -65,7 +65,7 @@ def test_custom_op_exposes_target_and_handler():
 
     # Deployment: create an app, include the model, and initialize bindings.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonPayloadMeta)
+    api.include_table(LessonPayloadMeta)
     api.initialize()
 
     # Test: pull the spec from the bound model set.

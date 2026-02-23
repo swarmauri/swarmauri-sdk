@@ -26,7 +26,7 @@ async def test_response_ctx_alias_table_rpc():
 
     eng = build_engine(mem(async_=False))
     router = TigrblRouter(engine=eng)
-    router.include_model(Widget, mount_router=False)
+    router.include_table(Widget, mount_router=False)
     router.initialize()
     raw_eng, _ = eng.raw()
     try:

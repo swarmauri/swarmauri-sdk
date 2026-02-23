@@ -39,7 +39,7 @@ async def fs_app():
     Base.metadata.create_all(engine)
     app = TigrblApp()
     api = TigrblApp(engine=cfg)
-    api.include_model(FSItem)
+    api.include_table(FSItem)
     api.initialize()
     app.include_router(api.router)
     transport = ASGITransport(app=app)

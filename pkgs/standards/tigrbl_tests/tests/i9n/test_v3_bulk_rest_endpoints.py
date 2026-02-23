@@ -23,7 +23,7 @@ async def v3_client() -> Iterator[tuple[AsyncClient, type]]:
 
     app = TigrblApp()
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Widget)
+    api.include_table(Widget)
     api.initialize()
     app.include_router(api.router)
 

@@ -19,11 +19,11 @@ async def setup_client(db_mode, Tenant, Item):
     """Create an Tigrbl client for the provided models."""
     if db_mode == "async":
         app = TigrblApp(engine=mem())
-        app.include_models([Tenant, Item])
+        app.include_tables([Tenant, Item])
         await app.initialize()
     else:
         app = TigrblApp(engine=mem(async_=False))
-        app.include_models([Tenant, Item])
+        app.include_tables([Tenant, Item])
         app.initialize()
 
     app.mount_jsonrpc()

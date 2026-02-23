@@ -51,7 +51,7 @@ async def parity_env():
             trace[bucket].append("POST_COMMIT")
 
     app = TigrblApp(engine=mem())
-    app.include_model(Widget, prefix="")
+    app.include_table(Widget, prefix="")
     await app.initialize()
 
     db, release = _resolver.acquire(router=app, model=Widget, op_alias="create")

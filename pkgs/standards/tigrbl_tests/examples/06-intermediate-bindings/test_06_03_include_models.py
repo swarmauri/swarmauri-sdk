@@ -14,7 +14,7 @@ async def test_include_models_registers_resources() -> None:
     gadget = make_widget_model(model_name="WidgetB", table_name="widget_b")
 
     api = TigrblApp(engine=mem(async_=False))
-    api.include_models([widget, gadget], base_prefix="")
+    api.include_tables([widget, gadget], base_prefix="")
     await api.initialize()
 
     assert "WidgetA" in api.models

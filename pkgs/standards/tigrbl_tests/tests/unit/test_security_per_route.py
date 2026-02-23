@@ -37,7 +37,7 @@ def test_set_auth_after_include_model_applies_security():
         __tablename__ = "gadgets_security"
 
     app = TigrblApp()
-    app.include_model(Gadget)
+    app.include_table(Gadget)
     app.set_auth(authn=lambda cred=Security(HTTPBearer()): cred, allow_anon=False)
     router = Router()
     router.include_router(app.router)

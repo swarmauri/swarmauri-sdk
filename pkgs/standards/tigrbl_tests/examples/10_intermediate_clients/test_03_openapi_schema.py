@@ -29,7 +29,7 @@ async def test_openapi_schema_contains_widget_paths():
 
     # Deployment: build an API, include the model, and mount diagnostics.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonOpenAPI)
+    api.include_table(LessonOpenAPI)
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result
@@ -70,7 +70,7 @@ async def test_openapi_schema_includes_get_and_post():
 
     # Deployment: initialize the app and attach diagnostics.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonOpenAPIPaths)
+    api.include_table(LessonOpenAPIPaths)
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result

@@ -15,7 +15,7 @@ from tigrbl.types import Integer, Mapped, String
 def _setup_api(model):
     eng = build_engine(mem(async_=False))
     router = TigrblRouter(engine=eng)
-    router.include_model(model)
+    router.include_table(model)
     router.initialize()
 
     app = TigrblApp()

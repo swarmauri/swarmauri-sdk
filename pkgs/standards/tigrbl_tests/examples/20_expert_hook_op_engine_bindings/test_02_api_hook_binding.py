@@ -26,7 +26,7 @@ def test_api_hook_binding_merges_into_model():
 
         name = Column(String, nullable=False)
 
-    api.include_model(Widget)
+    api.include_table(Widget)
 
     hooks = Widget.hooks.create.PRE_HANDLER
     assert any(step.__name__ == "audit" for step in hooks)
@@ -47,6 +47,6 @@ def test_api_hook_binding_respects_alias_namespace():
 
         name = Column(String, nullable=False)
 
-    api.include_model(Widget)
+    api.include_table(Widget)
 
     assert isinstance(Widget.hooks.create.PRE_HANDLER, list)

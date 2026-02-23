@@ -29,7 +29,7 @@ async def test_httpx_crud_roundtrip():
 
     # Deployment: create the API, include the model, and mount diagnostics.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonHttpx)
+    api.include_table(LessonHttpx)
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result
@@ -72,7 +72,7 @@ async def test_httpx_list_returns_collection():
 
     # Deployment: include the model and mount diagnostics on the app.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonHttpxList)
+    api.include_table(LessonHttpxList)
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result

@@ -53,7 +53,7 @@ class Delta(Base, GUIDPk):
 async def running_app():
     app = TigrblApp(engine=mem(async_=False))
     app.set_auth(authn=auth_dependency, allow_anon=False)
-    app.include_models([Gamma, Delta])
+    app.include_tables([Gamma, Delta])
     app.initialize()
 
     base_url, server, task = await run_uvicorn_in_task(app)

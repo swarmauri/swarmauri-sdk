@@ -30,7 +30,7 @@ async def test_rpc_call_works_over_jsonrpc():
 
     # Deployment: build the API, mount JSON-RPC, and attach diagnostics.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonRPCClient)
+    api.include_table(LessonRPCClient)
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result
@@ -70,7 +70,7 @@ async def test_rpc_list_reflects_rest_creates():
 
     # Deployment: initialize app, mount JSON-RPC, and attach diagnostics.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonRPCClientList)
+    api.include_table(LessonRPCClientList)
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result

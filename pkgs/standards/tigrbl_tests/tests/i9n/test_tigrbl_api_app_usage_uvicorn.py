@@ -44,7 +44,7 @@ class KappaApi(TigrblRouter):
 async def running_api_app():
     router = KappaApi(engine=mem(async_=False))
     router.set_auth(authn=auth_dependency, allow_anon=False)
-    router.include_models([Kappa])
+    router.include_tables([Kappa])
     router.initialize()
 
     class KappaApp(TigrblApp):

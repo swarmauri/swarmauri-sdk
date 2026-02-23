@@ -36,7 +36,7 @@ async def test_api_key_creation_requires_valid_payload(sync_db_session):
 
     app = TigrblApp()
     api = TigrblApp(get_db=get_sync_db)
-    api.include_models([ConcreteApiKey])
+    api.include_tables([ConcreteApiKey])
     api.initialize()
     app.include_router(api.router)
     transport = ASGITransport(app=app)

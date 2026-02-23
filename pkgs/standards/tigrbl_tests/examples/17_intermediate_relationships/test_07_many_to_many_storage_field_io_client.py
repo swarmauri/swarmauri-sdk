@@ -111,7 +111,7 @@ async def test_many_to_many_relationship_storage_field_io_client_experience() ->
         )
 
     api = TigrblApp(engine=mem(async_=False))
-    api.include_models([Learner, Workshop, LearnerWorkshop])
+    api.include_tables([Learner, Workshop, LearnerWorkshop])
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result

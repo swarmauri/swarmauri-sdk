@@ -44,7 +44,7 @@ async def test_openapi_security_from_api_constructor_deps() -> None:
         SECURITY_DEPS = (Security(bearer_scheme),)
 
     api = SecuredApi(engine=mem(async_=False))
-    api.include_model(ApiSecdepsWidget)
+    api.include_table(ApiSecdepsWidget)
 
     # Deployment: initialize storage and attach OpenAPI to the API router.
     init_result = api.initialize()

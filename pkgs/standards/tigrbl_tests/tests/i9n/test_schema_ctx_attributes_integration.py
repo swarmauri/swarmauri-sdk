@@ -34,7 +34,7 @@ async def schema_ctx_client():
     cfg = mem()
     app = TigrblApp()
     api = TigrblApp(engine=cfg)
-    api.include_model(Widget, prefix="")
+    api.include_table(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()
     await api.initialize()

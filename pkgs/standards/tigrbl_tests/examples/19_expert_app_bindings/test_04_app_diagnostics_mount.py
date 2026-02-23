@@ -21,7 +21,7 @@ def test_app_binding_mounts_diagnostics_router():
         name = Column(String, nullable=False)
 
     app = TigrblApp(engine=mem(async_=False))
-    app.include_model(Widget)
+    app.include_table(Widget)
 
     host = TigrblApp()
     router = app.attach_diagnostics(app=host)
@@ -39,7 +39,7 @@ def test_app_diagnostics_attach_to_host_routes():
         name = Column(String, nullable=False)
 
     app = TigrblApp(engine=mem(async_=False))
-    app.include_model(Widget)
+    app.include_table(Widget)
 
     host = TigrblApp()
     router = app.attach_diagnostics(app=host)

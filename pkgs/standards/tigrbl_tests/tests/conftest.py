@@ -181,7 +181,7 @@ def create_test_api():
         """Create Tigrbl instance with a single model for testing."""
         Base.metadata.clear()
         api = TigrblApp(engine=mem(async_=False))
-        api.include_model(model_class)
+        api.include_table(model_class)
         api.initialize()
         return api
 
@@ -195,7 +195,7 @@ async def create_test_api_async():
     def _create_api_async(model_class):
         Base.metadata.clear()
         api = TigrblApp(engine=mem())
-        api.include_model(model_class)
+        api.include_table(model_class)
         return api
 
     return _create_api_async
@@ -256,12 +256,12 @@ async def api_client(db_mode):
 
     if db_mode == "async":
         api = TigrblApp(engine=mem())
-        api.include_models([Tenant, Item])
+        api.include_tables([Tenant, Item])
         await api.initialize()
 
     else:
         api = TigrblApp(engine=mem(async_=False))
-        api.include_models([Tenant, Item])
+        api.include_tables([Tenant, Item])
         api.initialize()
 
     api.mount_jsonrpc()
@@ -334,7 +334,7 @@ async def api_client_v3():
     cfg = mem()
     fastapi_app = TigrblApp()
     api = TigrblApp(engine=cfg)
-    api.include_model(Widget, prefix="")
+    api.include_table(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()
     await api.initialize()

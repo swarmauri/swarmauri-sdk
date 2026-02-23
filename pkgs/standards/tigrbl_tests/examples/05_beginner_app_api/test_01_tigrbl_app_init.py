@@ -22,7 +22,7 @@ def test_app_includes_model_and_registry():
 
     api = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize the API.
-    api.include_model(Widget)
+    api.include_table(Widget)
     api.initialize()
     # Exercise: retrieve the model registry entry.
     registry = api.registry(Widget)
@@ -48,7 +48,7 @@ def test_app_model_map_tracks_the_model_class():
 
     api = TigrblApp(engine=mem(async_=False))
     # Deployment: include and initialize so the model map is populated.
-    api.include_model(Widget)
+    api.include_table(Widget)
     api.initialize()
     # Assertion: the model registry maps the class name to the model class.
     assert api.models[Widget.__name__] is Widget

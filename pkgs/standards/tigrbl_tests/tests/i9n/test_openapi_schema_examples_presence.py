@@ -34,7 +34,7 @@ async def test_openapi_examples_and_schemas_present(db_mode):
     fastapi_app = TigrblApp()
     engine = mem() if db_mode == "async" else mem(async_=False)
     api = TigrblApp(engine=engine)
-    api.include_model(Widget)
+    api.include_table(Widget)
     if db_mode == "async":
         await api.initialize()
     else:

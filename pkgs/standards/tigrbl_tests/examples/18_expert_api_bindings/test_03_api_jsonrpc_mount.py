@@ -22,7 +22,7 @@ def test_api_binding_mounts_jsonrpc_router():
         name = Column(String, nullable=False)
 
     api = TigrblRouter(engine=mem(async_=False))
-    api.include_model(Widget)
+    api.include_table(Widget)
 
     router = api.mount_jsonrpc()
 
@@ -39,7 +39,7 @@ def test_jsonrpc_mount_uses_configured_prefix():
         name = Column(String, nullable=False)
 
     api = TigrblRouter(engine=mem(async_=False), jsonrpc_prefix="/rpc-demo")
-    api.include_model(Widget)
+    api.include_table(Widget)
 
     router = api.mount_jsonrpc()
 

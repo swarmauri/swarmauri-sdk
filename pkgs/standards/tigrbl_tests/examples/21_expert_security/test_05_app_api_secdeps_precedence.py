@@ -49,7 +49,7 @@ async def test_openapi_security_from_app_and_api_deps() -> None:
         )
 
     api = SecuredApi(engine=mem(async_=False))
-    api.include_model(CombinedSecdepsWidget)
+    api.include_table(CombinedSecdepsWidget)
 
     # Instantiation: build the app with two security deps (shared + app-only).
     app = TigrblApp(

@@ -81,7 +81,7 @@ async def test_one_to_one_relationship_storage_field_io_client_experience() -> N
 
     # Build the Tigrbl API from model metadata.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_models([Account, Profile])
+    api.include_tables([Account, Profile])
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result

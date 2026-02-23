@@ -9,7 +9,7 @@ def test_op_ctx_dynamic_attach_auto_discovers_ops():
         __tablename__ = "book"
         id: Mapped[int] = mapped_column(primary_key=True)
 
-    router.include_model(Book, mount_router=False)
+    router.include_table(Book, mount_router=False)
     assert "publish" not in [sp.alias for sp in Book.ops.all]
 
     @op_ctx(bind=Book)

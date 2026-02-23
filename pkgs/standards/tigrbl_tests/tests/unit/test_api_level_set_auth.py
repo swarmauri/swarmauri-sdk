@@ -17,7 +17,7 @@ def test_api_level_auth_dep_applied_per_route():
     router = Router()
     app = TigrblApp()
     app.set_auth(authn=lambda cred=Security(HTTPBearer()): cred, allow_anon=False)
-    app.include_models([Widget])
+    app.include_tables([Widget])
     router.include_router(app.router)
     schema = router.openapi()
     paths = {route.name: route.path_template for route in app.routers["Widget"].routes}

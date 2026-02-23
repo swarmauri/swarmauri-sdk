@@ -22,7 +22,7 @@ def test_default_ops_include_list():
 
     # Deployment: include the model in a Tigrbl app so ops are bound.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonDefaultOps)
+    api.include_table(LessonDefaultOps)
     api.initialize()
 
     # Test: collect the aliases that the app binds for the model.
@@ -49,7 +49,7 @@ def test_default_ops_include_read_and_create():
 
     # Deployment: bind the model within an app context.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonDefaultOpsCore)
+    api.include_table(LessonDefaultOpsCore)
     api.initialize()
 
     # Test: read all bound aliases for the model.
