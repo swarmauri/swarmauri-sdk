@@ -152,7 +152,7 @@ def _client_for_tenant(
     authn = DummyAuth(user_id, tenant_id)
     app = TigrblApp(engine=engine)
     app.set_auth(authn=authn.get_principal)
-    
+
     router = TigrblRouter()
     router.include_tables([Tenant, Item])
     app.include_router(router)

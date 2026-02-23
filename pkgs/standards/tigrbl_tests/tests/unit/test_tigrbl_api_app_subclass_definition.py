@@ -20,7 +20,7 @@ class Zeta(Base, GUIDPk):
 
 
 class ZetaRouter(TigrblRouter):
-    MODELS = (Zeta,)
+    TABLES = (Zeta,)
 
 
 class ZetaApp(TigrblApp):
@@ -34,5 +34,5 @@ def test_tigrbl_router_app_subclass_declares_composition() -> None:
 
     assert "MODELS" in router_dir
     assert "ROUTERS" in app_dir
-    assert ZetaRouter.MODELS == (Zeta,)
+    assert ZetaRouter.TABLES == (Zeta,)
     assert ZetaApp.ROUTERS == (ZetaRouter,)

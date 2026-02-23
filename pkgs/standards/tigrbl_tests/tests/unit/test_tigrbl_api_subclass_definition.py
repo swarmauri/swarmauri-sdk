@@ -22,7 +22,7 @@ class Widget(Base, GUIDPk):
 class WidgerRouter(TigrblRouter):
     PREFIX = "/widgets"
     TAGS = ("widgets",)
-    MODELS = (Widget,)
+    TABLES = (Widget,)
 
 
 @pytest.mark.unit
@@ -32,6 +32,6 @@ def test_tigrbl_router_subclass_declares_metadata() -> None:
     assert "MODELS" in class_dir
     assert "TAGS" in class_dir
     assert "PREFIX" in class_dir
-    assert WidgerRouter.MODELS == (Widget,)
+    assert WidgerRouter.TABLES == (Widget,)
     assert WidgerRouter.TAGS == ("widgets",)
     assert WidgerRouter.PREFIX == "/widgets"
