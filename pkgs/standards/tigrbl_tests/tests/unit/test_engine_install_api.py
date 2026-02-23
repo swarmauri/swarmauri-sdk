@@ -22,7 +22,7 @@ def test_api_engine_ctx_instance_requires_install_engines() -> None:
 
     assert _resolver.resolve_provider(router=router) is None
 
-    router.install_engines(api=router)
+    router.install_engines(router=router)
     provider = _resolver.resolve_provider(router=router)
     assert provider is not None
     assert provider.spec.kind == "sqlite"
