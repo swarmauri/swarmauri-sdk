@@ -1,7 +1,7 @@
 import httpx
 import pytest
 
-from tigrbl import TigrblRouter, TigrblApp
+from tigrbl import TigrblApp
 from tigrbl.system import mount_favicon
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
@@ -32,10 +32,10 @@ async def test_favicon_mountable_on_tigrbl_router_uvicorn():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_favicon_mountable_on_tigrbl_router_uvicorn_instance():
-    router = TigrblRouter()
-    mount_favicon(router, path="/custom/favicon.svg", name="favicon_custom")
+    app = TigrblApp()
+    mount_favicon(app, path="/custom/favicon.svg", name="favicon_custom")
 
-    base_url, server, task = await run_uvicorn_in_task(router)
+    base_url, server, task = await run_uvicorn_in_task(app)
     try:
         async with httpx.AsyncClient() as client:
             svg_response = await client.get(f"{base_url}/custom/favicon.svg")

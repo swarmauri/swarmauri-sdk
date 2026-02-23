@@ -37,7 +37,7 @@ from ..system import mount_openapi as _mount_openapi
 from ..system import mount_openrpc as _mount_openrpc
 from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..op import get_registry, OpSpec
-from ..app._model_registry import initialize_model_registry
+from ..app._model_registry import initialize_table_registry
 
 
 class TigrblRouter(Router):
@@ -95,7 +95,7 @@ class TigrblRouter(Router):
         self.rest_prefix = getattr(self, "REST_PREFIX", "/api")
 
         # public containers (mirrors used by bindings.router)
-        self.models = initialize_model_registry(getattr(self, "TABLES", ()))
+        self.models = initialize_table_registry(getattr(self, "TABLES", ()))
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
         self.hooks = SimpleNamespace()

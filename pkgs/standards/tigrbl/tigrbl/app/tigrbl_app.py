@@ -39,7 +39,7 @@ from ..system import mount_openapi as _mount_openapi
 from ..system import mount_openrpc as _mount_openrpc
 from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..op import get_registry, OpSpec
-from ._model_registry import initialize_model_registry
+from ._model_registry import initialize_table_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
 from .transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
 
@@ -124,7 +124,7 @@ class TigrblApp(_App):
 
         # public containers (mirrors used by bindings.router)
         declared_models = getattr(self, "TABLES", ()) or getattr(self, "MODELS", ())
-        self.models = initialize_model_registry(declared_models)
+        self.models = initialize_table_registry(declared_models)
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
         self.hooks = tuple(getattr(self, "HOOKS", ()))
