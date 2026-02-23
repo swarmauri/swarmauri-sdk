@@ -67,7 +67,10 @@ def _make_label(anchor: str, run: _AtomRun) -> Optional[str]:
 
 def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
     async def _step(ctx: Any) -> Any:
-        rv = run(None, ctx)
+        try:
+            rv = run(None, ctx)
+        except TypeError:
+            rv = run(ctx)  # type: ignore[misc]
         if hasattr(rv, "__await__"):
             return await cast(Any, rv)
         return rv
