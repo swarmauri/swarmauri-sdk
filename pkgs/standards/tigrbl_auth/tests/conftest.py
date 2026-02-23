@@ -88,11 +88,11 @@ async def db_session(test_db_engine: Engine) -> AsyncGenerator[HybridSession, No
 def override_get_db(test_db_engine: Engine):
     """Override database dependencies and tigrbl engine for tests."""
 
-    app.dependency_overrides[get_db] = test_db_engine.provider.get_db
+    app.router.dependency_overrides[get_db] = test_db_engine.provider.get_db
     try:
         yield
     finally:
-        app.dependency_overrides.clear()
+        app.router.dependency_overrides.clear()
 
 
 @pytest.fixture

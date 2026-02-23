@@ -30,8 +30,9 @@ router = api
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
-@api.get(
+@api.route(
     "/.well-known/oauth-authorization-server",
+    methods=["GET"],
     include_in_schema=False,
     tags=[".well-known"],
 )
@@ -47,7 +48,9 @@ async def authorization_server_metadata():
 def include_rfc8414(app: TigrblApp) -> None:
     """Attach discovery routes to *app* if enabled."""
     if settings.enable_rfc8414 and not any(
-        route.path == "/.well-known/oauth-authorization-server" for route in app.routes
+        (getattr(route, "path", None) or getattr(route, "path_template", None))
+        == "/.well-known/oauth-authorization-server"
+        for route in app.router.routes
     ):
         app.include_router(api)
 

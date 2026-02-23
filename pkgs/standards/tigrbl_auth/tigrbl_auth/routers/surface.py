@@ -45,7 +45,7 @@ from .auth_flows import api as flows_api
 # ----------------------------------------------------------------------
 surface_api = TigrblRouter(engine=dsn)
 
-surface_api.include_models(
+surface_api.include_tables(
     [
         Tenant,
         User,
