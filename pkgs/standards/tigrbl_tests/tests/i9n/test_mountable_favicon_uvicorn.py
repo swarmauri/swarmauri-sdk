@@ -31,7 +31,7 @@ async def test_favicon_mountable_on_tigrbl_router_uvicorn():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_favicon_mountable_on_tigrbl_router_uvicorn():
+async def test_favicon_mountable_on_tigrbl_router_uvicorn_instance():
     router = TigrblRouter()
     mount_favicon(router, path="/custom/favicon.svg", name="favicon_custom")
 

@@ -239,7 +239,7 @@ def build_jsonrpc_router(
     extra_router_deps = _normalize_deps(
         getattr(source_router, "rpc_dependencies", None)
     )
-    router = Router(dependencies=extra_router_deps or None)
+    endpoint_router = Router(dependencies=extra_router_deps or None)
 
     dep = get_db
     auth_dep = _select_auth_dep(source_router)
@@ -428,7 +428,7 @@ def build_jsonrpc_router(
         return Response(status_code=204, headers=headers)
 
     # Attach a single JSON-RPC POST route. Mount prefix controls final path.
-    router.add_route(
+    endpoint_router.add_route(
         path="",
         endpoint=_options_endpoint,
         methods=["OPTIONS"],
@@ -437,7 +437,7 @@ def build_jsonrpc_router(
         include_in_schema=False,
     )
 
-    router.add_route(
+    endpoint_router.add_route(
         path="",
         endpoint=_endpoint,
         methods=["POST"],
@@ -448,7 +448,7 @@ def build_jsonrpc_router(
         response_model=RPCResponse | list[RPCResponse],
         # extra router deps already applied via Router(dependencies=...)
     )
-    return router
+    return endpoint_router
 
 
 __all__ = ["build_jsonrpc_router"]

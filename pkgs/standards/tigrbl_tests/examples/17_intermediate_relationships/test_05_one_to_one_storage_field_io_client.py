@@ -18,7 +18,7 @@ import pytest
 import uvicorn
 from tigrbl_client import TigrblClient
 
-from tigrbl import Base, TigrblApp
+from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -80,12 +80,12 @@ async def test_one_to_one_relationship_storage_field_io_client_experience() -> N
         )
 
     # Build the Tigrbl API from model metadata.
-    app = TigrblApp(engine=mem(async_=False))
-    app.include_tables([Account, Profile])
-    init_result = app.initialize()
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_tables([Account, Profile])
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    app.mount_jsonrpc(prefix="/rpc")
+    router.mount_jsonrpc(prefix="/rpc")
 
     app = TigrblApp()
     app.include_router(router)
