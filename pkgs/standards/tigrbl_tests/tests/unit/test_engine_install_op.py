@@ -55,13 +55,13 @@ def test_op_ctx_engine_requires_install_engines_after_bind() -> None:
             return {"ok": True, "ctx": ctx}
 
     app = TigrblApp(engine=mem(async_=False))
-    app.include_table(Gadget)
+    app.include_model(Gadget)
 
     provider = _resolver.resolve_provider(model=Gadget, op_alias="ping")
     assert provider is not None
     assert provider.spec.async_ is False
 
-    app.install_engines(tables=(Gadget,))
+    app.install_engines(models=(Gadget,))
     provider = _resolver.resolve_provider(model=Gadget, op_alias="ping")
     assert provider is not None
     assert provider.spec.async_ is False

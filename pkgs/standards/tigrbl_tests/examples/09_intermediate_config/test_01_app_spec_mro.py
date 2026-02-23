@@ -54,11 +54,11 @@ def test_app_spec_mro_merges_sequence_attributes():
 
     # Setup: base app declares Widget.
     class BaseApp(TigrblApp):
-        TABLES = (Widget,)
+        MODELS = (Widget,)
 
     # Setup: child app overrides with Gadget for precedence.
     class ChildApp(BaseApp):
-        TABLES = (Gadget,)
+        MODELS = (Gadget,)
 
     # Deployment: instantiate the child app to materialize model registry.
     app = ChildApp()

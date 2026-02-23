@@ -2,14 +2,11 @@ import pytest
 import pytest_asyncio
 from typing import Any, Mapping
 
-from tigrbl.types import UUID, Column, Integer, String, uuid4
+from tigrbl.types import HTTPException, UUID, Column, Integer, String, uuid4
 
 from tigrbl import TigrblApp, Base
 from tigrbl.engine.shortcuts import engine as build_engine, mem
 from tigrbl.orm.mixins import GUIDPk, BulkCapable, Replaceable
-
-
-from tigrbl.runtime.status import HTTPException
 
 
 class CoreTestUser(Base, GUIDPk, BulkCapable, Replaceable):
@@ -25,32 +22,32 @@ def _get(obj: Any, attr: str) -> Any:
 
 
 @pytest.fixture
-def sync_app():
+def sync_api():
     """Create a sync Tigrbl instance with CoreTestUser."""
     Base.metadata.clear()
     eng = build_engine(mem(async_=False))
-    app = TigrblApp(engine=eng)
-    app.include_table(CoreTestUser)
-    app.initialize()
-    return app, eng
+    api = TigrblApp(engine=eng)
+    api.include_model(CoreTestUser)
+    api.initialize()
+    return api, eng
 
 
 @pytest_asyncio.fixture
-async def async_app():
+async def async_api():
     """Create an async Tigrbl instance with CoreTestUser."""
     Base.metadata.clear()
     eng = build_engine(mem(async_=True))
-    app = TigrblApp(engine=eng)
-    app.include_table(CoreTestUser)
-    await app.initialize()
-    return app, eng
+    api = TigrblApp(engine=eng)
+    api.include_model(CoreTestUser)
+    await api.initialize()
+    return api, eng
 
 
-def test_app_exposes_core_proxies(sync_app):
-    app, _ = sync_app
-    assert hasattr(app.core, "CoreTestUser")
-    assert hasattr(app.core_raw, "CoreTestUser")
-    schema_ns = app.schemas.CoreTestUser
+def test_api_exposes_core_proxies(sync_api):
+    api, _ = sync_api
+    assert hasattr(api.core, "CoreTestUser")
+    assert hasattr(api.core_raw, "CoreTestUser")
+    schema_ns = api.schemas.CoreTestUser
     for name in [
         "create",
         "read",
@@ -67,10 +64,10 @@ def test_app_exposes_core_proxies(sync_app):
 
 
 @pytest.mark.asyncio
-async def test_core_and_core_raw_sync_operations(sync_app):
-    app, eng = sync_app
+async def test_core_and_core_raw_sync_operations(sync_api):
+    api, eng = sync_api
     with eng.session() as db:
-        for proxy in (app.core, app.core_raw):
+        for proxy in (api.core, api.core_raw):
             model = proxy.CoreTestUser
             await model.clear({}, db=db)
 
@@ -151,17 +148,17 @@ async def test_core_and_core_raw_sync_operations(sync_app):
 
 
 @pytest.mark.asyncio
-async def test_core_read_not_found(sync_app):
-    app, eng = sync_app
+async def test_core_read_not_found(sync_api):
+    api, eng = sync_api
     fake_id = "00000000-0000-0000-0000-000000000000"
     with eng.session() as db:
         with pytest.raises(HTTPException):
-            await app.core.CoreTestUser.read({"id": fake_id}, db=db)
+            await api.core.CoreTestUser.read({"id": fake_id}, db=db)
 
 
 @pytest.mark.asyncio
-async def test_async_app_initializes(async_app):
-    app, eng = async_app
-    assert hasattr(app.core, "CoreTestUser")
+async def test_async_api_initializes(async_api):
+    api, eng = async_api
+    assert hasattr(api.core, "CoreTestUser")
     async with eng.asession():
         pass

@@ -2,7 +2,7 @@ import httpx
 import pytest
 import pytest_asyncio
 
-from tigrbl import Base, TigrblRouter, TigrblApp
+from tigrbl import Base, TigrblApi, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -45,19 +45,16 @@ class ZetaWidget(Base, GUIDPk):
 
 
 @pytest_asyncio.fixture()
-async def running_app_with_routers():
+async def running_app_with_apis():
     engine = mem(async_=False)
-    router = TigrblRouter(engine=engine, models=[AlphaWidget], prefix="/alpha")
+    alpha_api = TigrblApi(engine=engine, models=[AlphaWidget], prefix="/alpha")
+    beta_api = TigrblApi(engine=engine)
+    beta_api.include_model(BetaWidget)
+    zeta_api = TigrblApi(engine=engine)
+    zeta_api.include_model(ZetaWidget)
 
-    app = TigrblApp(engine=engine, routers=[router])
-
-    router = TigrblRouter(engine=engine)
-    router.include_table(BetaWidget)
-    app.include_router(router, prefix="/beta")
-
-    router = TigrblRouter(engine=engine)
-    router.include_table(ZetaWidget)
-    app.include_router(router, prefix="/zeta")
+    app = TigrblApp(engine=engine, apis=[alpha_api, (zeta_api, "/zeta")])
+    app.include_api(beta_api, prefix="/beta")
     await app.initialize()
 
     base_url, server, task = await run_uvicorn_in_task(app)
@@ -68,18 +65,16 @@ async def running_app_with_routers():
 
 
 @pytest_asyncio.fixture()
-async def running_app_with_router():
+async def running_app_with_api_router():
     engine = mem(async_=False)
-    router = TigrblRouter(engine=engine)
-    router.include_table(AlphaWidget)
-    alpha_router = router.router
+    alpha_api = TigrblApi(engine=engine)
+    alpha_api.include_model(AlphaWidget)
+    beta_api = TigrblApi(engine=engine)
+    beta_api.include_model(BetaWidget)
 
-    app = TigrblApp(engine=engine, routers=[router])
-
-    router = TigrblRouter(engine=engine)
-    router.include_table(BetaWidget)
-    app.include_router(router, prefix="/beta")
-    app.include_router(alpha_router, prefix="/alpha")
+    app = TigrblApp(engine=engine, apis=[alpha_api])
+    app.include_api(beta_api, prefix="/beta")
+    app.include_api(alpha_api.router, prefix="/alpha")
     await app.initialize()
 
     base_url, server, task = await run_uvicorn_in_task(app)
@@ -91,10 +86,10 @@ async def running_app_with_router():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_app_router_list_alpha(running_app_with_routers):
+async def test_tigrbl_app_api_list_alpha(running_app_with_apis):
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{running_app_with_routers}/alpha/alpha-widget", json={"name": "ace"}
+            f"{running_app_with_apis}/alpha/alpha-widget", json={"name": "ace"}
         )
 
     assert response.status_code == 201
@@ -104,10 +99,10 @@ async def test_tigrbl_app_router_list_alpha(running_app_with_routers):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_app_include_router_beta(running_app_with_routers):
+async def test_tigrbl_app_include_api_beta(running_app_with_apis):
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{running_app_with_routers}/beta/beta-widget", json={"name": "bolt"}
+            f"{running_app_with_apis}/beta/beta-widget", json={"name": "bolt"}
         )
 
     assert response.status_code == 201
@@ -117,10 +112,10 @@ async def test_tigrbl_app_include_router_beta(running_app_with_routers):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_app_router_list_zeta(running_app_with_routers):
+async def test_tigrbl_app_api_list_zeta(running_app_with_apis):
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{running_app_with_routers}/zeta/zeta-widget", json={"name": "zen"}
+            f"{running_app_with_apis}/zeta/zeta-widget", json={"name": "zen"}
         )
 
     assert response.status_code == 201
@@ -130,10 +125,10 @@ async def test_tigrbl_app_router_list_zeta(running_app_with_routers):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_app_include_router_alpha(running_app_with_router):
+async def test_tigrbl_app_include_api_router_alpha(running_app_with_api_router):
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{running_app_with_router}/alpha/alpha-widget", json={"name": "ace"}
+            f"{running_app_with_api_router}/alpha/alpha-widget", json={"name": "ace"}
         )
 
     assert response.status_code == 201
@@ -143,10 +138,10 @@ async def test_tigrbl_app_include_router_alpha(running_app_with_router):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_app_include_router_beta_single(running_app_with_router):
+async def test_tigrbl_app_include_api_router_beta(running_app_with_api_router):
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{running_app_with_router}/beta/beta-widget", json={"name": "bolt"}
+            f"{running_app_with_api_router}/beta/beta-widget", json={"name": "bolt"}
         )
 
     assert response.status_code == 201

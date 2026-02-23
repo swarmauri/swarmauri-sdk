@@ -28,7 +28,7 @@ def test_app_binding_includes_multiple_models():
 
     app = TigrblApp(engine=mem(async_=False))
 
-    app.include_tables([Widget, Gadget])
+    app.include_models([Widget, Gadget])
 
     assert {Widget.__name__, Gadget.__name__}.issubset(app.models)
 
@@ -50,7 +50,7 @@ def test_app_model_registry_exposes_named_entries():
 
     app = TigrblApp(engine=mem(async_=False))
 
-    app.include_tables([Widget, Gadget])
+    app.include_models([Widget, Gadget])
 
     assert app.models[Widget.__name__] is Widget
     assert app.models[Gadget.__name__] is Gadget

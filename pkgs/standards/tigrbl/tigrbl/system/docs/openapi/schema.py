@@ -1,4 +1,4 @@
-"""OpenAPI document builder for std routers."""
+"""OpenAPI document builder for stdapi routers."""
 
 from __future__ import annotations
 

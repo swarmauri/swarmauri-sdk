@@ -60,7 +60,7 @@ def _ensure_op_ctx_attach_hook(model: type) -> None:
 
         orig_meta_setattr(cls, name, value)
         fn = getattr(value, "__func__", value)
-        decl = getattr(fn, "__tigrbl_op_spec__", None)
+        decl = getattr(fn, "__tigrbl_op_decl__", None)
         if decl and getattr(cls, "__tigrbl_op_ctx_watch__", False):
             alias = decl.alias or name
             target = decl.target or "custom"

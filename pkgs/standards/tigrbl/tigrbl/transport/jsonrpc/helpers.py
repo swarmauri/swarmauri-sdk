@@ -2,8 +2,18 @@ from __future__ import annotations
 
 from typing import Any, Dict, Mapping, Optional, Sequence
 
-from ...runtime.status import HTTPException
-from ...security import Depends
+try:
+    from ...types import Depends, HTTPException
+except Exception:  # pragma: no cover
+
+    def Depends(fn):  # type: ignore
+        return fn
+
+    class HTTPException(Exception):  # type: ignore
+        def __init__(self, status_code: int, detail: Any = None):
+            super().__init__(detail)
+            self.status_code = status_code
+            self.detail = detail
 
 
 def _ok(result: Any, id_: Any) -> Dict[str, Any]:
@@ -37,19 +47,29 @@ def _normalize_params(params: Any) -> Any:
     )
 
 
+def _model_for(api: Any, name: str) -> Optional[type]:
+    models: Dict[str, type] = getattr(api, "models", {}) or {}
+    mdl = models.get(name)
+    if mdl is not None:
+        return mdl
+    lower = name.lower()
+    for k, v in models.items():
+        if k.lower() == lower:
+            return v
+    return None
+
+
 def _user_from_request(request: Any) -> Any | None:
     return getattr(request.state, "user", None)
 
 
-def _select_auth_dep(router: Any):
-    if getattr(router, "_optional_authn_dep", None):
-        return router._optional_authn_dep
-    if getattr(router, "_allow_anon", True) is False and getattr(
-        router, "_authn", None
-    ):
-        return router._authn
-    if getattr(router, "_authn", None):
-        return router._authn
+def _select_auth_dep(api: Any):
+    if getattr(api, "_optional_authn_dep", None):
+        return api._optional_authn_dep
+    if getattr(api, "_allow_anon", True) is False and getattr(api, "_authn", None):
+        return api._authn
+    if getattr(api, "_authn", None):
+        return api._authn
     return None
 
 
@@ -65,14 +85,14 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list:
 
 
 def _authorize(
-    router: Any,
+    api: Any,
     request: Any,
     model: type,
     alias: str,
     payload: Mapping[str, Any],
     user: Any | None,
 ):
-    fn = getattr(router, "_authorize", None) or getattr(
+    fn = getattr(api, "_authorize", None) or getattr(
         model, "__tigrbl_authorize__", None
     )
     if not fn:
@@ -91,6 +111,7 @@ __all__ = [
     "_ok",
     "_err",
     "_normalize_params",
+    "_model_for",
     "_user_from_request",
     "_select_auth_dep",
     "_normalize_deps",

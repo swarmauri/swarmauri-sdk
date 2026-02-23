@@ -6,9 +6,10 @@ import pytest
 from tigrbl_client import TigrblClient
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
+from tigrbl import TigrblApp as FastAPI
 from tigrbl.types import Column, String
 
 
@@ -28,16 +29,16 @@ async def test_rpc_call_works_over_jsonrpc():
         name = Column(String, nullable=False)
 
     # Deployment: build the API, mount JSON-RPC, and attach diagnostics.
-    router = TigrblRouter(engine=mem(async_=False))
-    router.include_table(LessonRPCClient)
-    init_result = router.initialize()
+    api = TigrblApp(engine=mem(async_=False))
+    api.include_model(LessonRPCClient)
+    init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    router.mount_jsonrpc(prefix="/rpc")
+    api.mount_jsonrpc(prefix="/rpc")
 
-    app = TigrblApp()
-    app.include_router(router)
-    app.attach_diagnostics(prefix="")
+    app = FastAPI()
+    app.include_router(api.router)
+    api.attach_diagnostics(prefix="", app=app)
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
@@ -68,16 +69,16 @@ async def test_rpc_list_reflects_rest_creates():
         name = Column(String, nullable=False)
 
     # Deployment: initialize app, mount JSON-RPC, and attach diagnostics.
-    router = TigrblRouter(engine=mem(async_=False))
-    router.include_table(LessonRPCClientList)
-    init_result = router.initialize()
+    api = TigrblApp(engine=mem(async_=False))
+    api.include_model(LessonRPCClientList)
+    init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    router.mount_jsonrpc(prefix="/rpc")
+    api.mount_jsonrpc(prefix="/rpc")
 
-    app = TigrblApp()
-    app.include_router(router)
-    app.attach_diagnostics(prefix="")
+    app = FastAPI()
+    app.include_router(api.router)
+    api.attach_diagnostics(prefix="", app=app)
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

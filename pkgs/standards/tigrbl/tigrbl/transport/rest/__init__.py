@@ -3,21 +3,19 @@
 Tigrbl v3 – REST transport wrapper.
 
 Use this when you prefer to mount a single top-level router that aggregates all
-model routers (instead of mounting each one inside include_tables).
+model routers (instead of mounting each one inside include_model).
 
 Typical usage:
     from tigrbl.transport.rest import build_rest_router, mount_rest
 
     # When including models, skip mounting per-model:
-    router.include_table(User, mount_router=False)
-    router.include_table(Team, mount_router=False)
-    # or:
-    router.include_tables([User, Team], mount_router=False)
+    api.include_model(User, mount_router=False)
+    api.include_model(Team, mount_router=False)
 
     # Then aggregate & mount once:
-    app.include_router(build_rest_router(router, base_prefix="/router"))
+    app.include_router(build_rest_router(api, base_prefix="/api"))
     # or:
-    mount_rest(router, app, base_prefix="/router")
+    mount_rest(api, app, base_prefix="/api")
 """
 
 from __future__ import annotations

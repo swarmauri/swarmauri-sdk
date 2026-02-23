@@ -18,7 +18,7 @@ import pytest
 import uvicorn
 from tigrbl_client import TigrblClient
 
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -80,16 +80,16 @@ async def test_one_to_one_relationship_storage_field_io_client_experience() -> N
         )
 
     # Build the Tigrbl API from model metadata.
-    router = TigrblRouter(engine=mem(async_=False))
-    router.include_tables([Account, Profile])
-    init_result = router.initialize()
+    api = TigrblApp(engine=mem(async_=False))
+    api.include_models([Account, Profile])
+    init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    router.mount_jsonrpc(prefix="/rpc")
+    api.mount_jsonrpc(prefix="/rpc")
 
     app = TigrblApp()
-    app.include_router(router)
-    app.attach_diagnostics(prefix="")
+    app.include_router(api.router)
+    api.attach_diagnostics(prefix="", app=app)
 
     # Start a real uvicorn server so the example mirrors production usage.
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:

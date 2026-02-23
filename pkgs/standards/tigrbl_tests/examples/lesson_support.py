@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Iterable, Sequence
 
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.specs import F, IO, S, acol, vcol
 from tigrbl.types import Integer, String
@@ -53,12 +53,12 @@ async def build_widget_app(
     diagnostics_prefixes: Iterable[str] = ("", "/systemz"),
 ) -> tuple[TigrblApp, TigrblApp]:
     app = TigrblApp()
-    router = TigrblRouter(engine=mem(async_=False))
-    app.include_table(model, prefix="")
-    await app.initialize()
+    api = TigrblApp(engine=mem(async_=False))
+    api.include_model(model, prefix="")
+    await api.initialize()
     if jsonrpc:
-        app.mount_jsonrpc()
+        api.mount_jsonrpc()
     for prefix in diagnostics_prefixes:
-        router.attach_diagnostics(prefix=prefix, app=app)
-    app.include_router(router)
-    return app, router
+        api.attach_diagnostics(prefix=prefix, app=app)
+    app.include_router(api.router)
+    return app, api

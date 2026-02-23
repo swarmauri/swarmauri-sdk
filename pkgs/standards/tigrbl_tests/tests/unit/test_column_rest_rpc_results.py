@@ -1,7 +1,7 @@
 import pytest
 from httpx import ASGITransport, Client
 
-from tigrbl import TigrblRouter, alias_ctx
+from tigrbl import TigrblApi, alias_ctx
 from tigrbl.column import F, IO, S, makeColumn, makeVirtualColumn
 from tigrbl.engine.shortcuts import engine as build_engine, mem
 from tigrbl.orm.tables import Base
@@ -12,17 +12,17 @@ from tigrbl.types import Integer, Mapped, String
 # Helper to bootstrap API and test client for a model
 
 
-def _setup_router(model):
+def _setup_api(model):
     eng = build_engine(mem(async_=False))
-    router = TigrblRouter(engine=eng)
-    router.include_table(model)
-    router.initialize()
+    api = TigrblApi(engine=eng)
+    api.include_model(model)
+    api.initialize()
 
     app = TigrblApp()
-    app.include_router(router)
+    app.include_router(api)
     transport = ASGITransport(app=app)
     client = Client(transport=transport, base_url="http://test")
-    return router, client, eng
+    return api, client, eng
 
 
 @pytest.mark.parametrize("use_mapped", [True, False])
@@ -45,14 +45,12 @@ async def test_make_column_only_rest_rpc(use_mapped):
             )
             name = makeColumn(storage=S(type_=String, nullable=False))
 
-    router, client, eng = _setup_router(Thing)
+    api, client, eng = _setup_api(Thing)
     try:
         with eng.session() as db:
-            created = await router.rpc_call(Thing, "create", {"name": "x"}, db=db)
-            db_read = await router.core.Thing.read({"id": created["id"]}, db=db)
-            rpc_read = await router.rpc_call(
-                Thing, "read", {"id": created["id"]}, db=db
-            )
+            created = await api.rpc_call(Thing, "create", {"name": "x"}, db=db)
+            db_read = await api.core.Thing.read({"id": created["id"]}, db=db)
+            rpc_read = await api.rpc_call(Thing, "read", {"id": created["id"]}, db=db)
         resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
@@ -93,14 +91,12 @@ async def test_make_virtual_column_only_rest_rpc(use_mapped):
                 nullable=True,
             )
 
-    router, client, eng = _setup_router(Thing)
+    api, client, eng = _setup_api(Thing)
     try:
         with eng.session() as db:
-            created = await router.rpc_call(Thing, "create", {}, db=db)
-            db_read = await router.core.Thing.read({"id": created["id"]}, db=db)
-            rpc_read = await router.rpc_call(
-                Thing, "read", {"id": created["id"]}, db=db
-            )
+            created = await api.rpc_call(Thing, "create", {}, db=db)
+            db_read = await api.core.Thing.read({"id": created["id"]}, db=db)
+            rpc_read = await api.rpc_call(Thing, "read", {"id": created["id"]}, db=db)
         resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
@@ -132,14 +128,12 @@ async def test_make_column_with_alias_rest_rpc(use_mapped):
             )
             name = makeColumn(storage=S(type_=String, nullable=False))
 
-    router, client, eng = _setup_router(Thing)
+    api, client, eng = _setup_api(Thing)
     try:
         with eng.session() as db:
-            created = await router.rpc_call(Thing, "create", {"name": "y"}, db=db)
-            db_read = await router.core.Thing.fetch({"id": created["id"]}, db=db)
-            rpc_read = await router.rpc_call(
-                Thing, "fetch", {"id": created["id"]}, db=db
-            )
+            created = await api.rpc_call(Thing, "create", {"name": "y"}, db=db)
+            db_read = await api.core.Thing.fetch({"id": created["id"]}, db=db)
+            rpc_read = await api.rpc_call(Thing, "fetch", {"id": created["id"]}, db=db)
         resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
@@ -181,14 +175,12 @@ async def test_make_virtual_column_with_aliases_rest_rpc(use_mapped):
                 nullable=True,
             )
 
-    router, client, eng = _setup_router(Thing)
+    api, client, eng = _setup_api(Thing)
     try:
         with eng.session() as db:
-            created = await router.rpc_call(Thing, "register", {}, db=db)
-            db_read = await router.core.Thing.fetch({"id": created["id"]}, db=db)
-            rpc_read = await router.rpc_call(
-                Thing, "fetch", {"id": created["id"]}, db=db
-            )
+            created = await api.rpc_call(Thing, "register", {}, db=db)
+            db_read = await api.core.Thing.fetch({"id": created["id"]}, db=db)
+            rpc_read = await api.rpc_call(Thing, "fetch", {"id": created["id"]}, db=db)
         resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
@@ -231,14 +223,12 @@ async def test_make_column_and_virtual_rest_rpc(use_mapped):
                 nullable=True,
             )
 
-    router, client, eng = _setup_router(Thing)
+    api, client, eng = _setup_api(Thing)
     try:
         with eng.session() as db:
-            created = await router.rpc_call(Thing, "create", {"name": "Ada"}, db=db)
-            db_read = await router.core.Thing.read({"id": created["id"]}, db=db)
-            rpc_read = await router.rpc_call(
-                Thing, "read", {"id": created["id"]}, db=db
-            )
+            created = await api.rpc_call(Thing, "create", {"name": "Ada"}, db=db)
+            db_read = await api.core.Thing.read({"id": created["id"]}, db=db)
+            rpc_read = await api.rpc_call(Thing, "read", {"id": created["id"]}, db=db)
         resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
@@ -291,14 +281,12 @@ async def test_make_column_and_virtual_with_alias_rest_rpc(use_mapped):
                 nullable=True,
             )
 
-    router, client, eng = _setup_router(Thing)
+    api, client, eng = _setup_api(Thing)
     try:
         with eng.session() as db:
-            created = await router.rpc_call(Thing, "register", {"name": "Bob"}, db=db)
-            db_read = await router.core.Thing.fetch({"id": created["id"]}, db=db)
-            rpc_read = await router.rpc_call(
-                Thing, "fetch", {"id": created["id"]}, db=db
-            )
+            created = await api.rpc_call(Thing, "register", {"name": "Bob"}, db=db)
+            db_read = await api.core.Thing.fetch({"id": created["id"]}, db=db)
+            rpc_read = await api.rpc_call(Thing, "fetch", {"id": created["id"]}, db=db)
         resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()

@@ -1,6 +1,6 @@
 import pytest
 import pytest_asyncio
-from tigrbl import TigrblApp, Base, TigrblRouter
+from tigrbl import TigrblApp, Base
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from httpx import ASGITransport, AsyncClient
@@ -9,7 +9,7 @@ from tigrbl.types import PgUUID
 
 
 @pytest_asyncio.fixture
-async def three_level_app_client(db_mode):
+async def three_level_api_client(db_mode):
     Base.metadata.clear()
     Base.registry.dispose()
 
@@ -45,12 +45,12 @@ async def three_level_app_client(db_mode):
     if db_mode == "async":
         pytest.skip("async database mode is currently unsupported")
     else:
-        app = TigrblApp(engine=mem(async_=False))
-        app.include_tables([Company, Department, Employee])
-        app.initialize()
+        api = TigrblApp(engine=mem(async_=False))
+        api.include_models([Company, Department, Employee])
+        api.initialize()
 
-    router = TigrblRouter()
-    app.include_router(router)
+    app = TigrblApp()
+    app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     return client
@@ -58,8 +58,8 @@ async def three_level_app_client(db_mode):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_nested_routing_depth(three_level_app_client):
-    client = three_level_app_client
+async def test_nested_routing_depth(three_level_api_client):
+    client = three_level_api_client
 
     # Create company
     res = await client.post("/company", json={"name": "Acme"})

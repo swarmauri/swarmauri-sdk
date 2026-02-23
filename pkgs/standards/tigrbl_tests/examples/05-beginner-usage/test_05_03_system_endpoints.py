@@ -20,13 +20,15 @@ async def test_system_endpoints_are_available() -> None:
 
         name = Column(String, nullable=False)
 
-    app = TigrblApp(engine=mem(async_=False))
-    app.include_table(Widget)
-    init_result = app.initialize()
+    api = TigrblApp(engine=mem(async_=False))
+    api.include_model(Widget)
+    init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result
 
-    app.attach_diagnostics(prefix="", app=app)
+    app = TigrblApp()
+    app.include_router(api.router)
+    api.attach_diagnostics(prefix="", app=app)
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

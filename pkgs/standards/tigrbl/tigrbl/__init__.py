@@ -5,6 +5,20 @@ Tigrbl – public API
 OpSpec-centric building blocks to bind models, wire schemas/handlers/hooks,
 register RPC & REST, and (optionally) mount JSON-RPC and diagnostics.
 
+Quick start:
+    from tigrbl import include_model, build_jsonrpc_router, mount_diagnostics
+    from tigrbl import OpSpec, hook_ctx, op_ctx, alias_ctx, schema_ctx, SchemaRef
+
+    include_model(api, User, app=asgi_app)
+    app.include_router(build_jsonrpc_router(api), prefix="/rpc")
+    app.include_router(mount_diagnostics(api), prefix="/system")
+
+    # Example: custom op using an existing schema
+    @op_ctx(alias="search", target="custom", arity="collection",
+            request_schema=SchemaRef("Search", "in"),
+            response_schema=SchemaRef("Search", "out"))
+    def search(cls, ctx):
+        ...
 """
 
 from __future__ import annotations
@@ -32,7 +46,7 @@ from .schema.decorators import schema_ctx
 from .responses.decorators import response_ctx
 from .responses.types import ResponseSpec
 
-# ── Bindings (model + Router orchestration) ───────────────────────────────────────
+# ── Bindings (model + API orchestration) ───────────────────────────────────────
 from .bindings import (
     bind,
     rebind,
@@ -41,8 +55,8 @@ from .bindings import (
     build_handlers,
     register_rpc,
     build_rest,
-    include_table,
-    include_tables,
+    include_model,
+    include_models,
     rpc_call,
 )
 
@@ -62,19 +76,19 @@ from .ddl import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
 from .app.tigrbl_app import TigrblApp
-from .router import Router, TigrblRouter, route_ctx
-
+from .api import Api, TigrblApi
 
 from .table import Base
 from .op import Op
 from .security import APIKey, HTTPBearer, MutualTLS, OAuth2, OpenIdConnect
 
+
 __all__: list[str] = []
 
 __all__ += [
     "TigrblApp",
-    "TigrblRouter",
-    "Router",
+    "TigrblApi",
+    "Api",
     "Base",
     "Op",
     "HTTPBearer",
@@ -100,7 +114,6 @@ __all__ += [
     # Ctx-only decorators
     "alias_ctx",
     "op_ctx",
-    "route_ctx",
     "hook_ctx",
     "schema_ctx",
     "response_ctx",
@@ -116,8 +129,8 @@ __all__ += [
     "build_handlers",
     "register_rpc",
     "build_rest",
-    "include_table",
-    "include_tables",
+    "include_model",
+    "include_models",
     "rpc_call",
     # Runtime
     "_invoke",

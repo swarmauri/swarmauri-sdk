@@ -22,9 +22,6 @@ DEFAULTS: Mapping[str, Any] = {
     # ── docs/openapi knobs (deep-merged) ──────────────────────────────────────
     "openapi": {},
     "docs": {},
-    # ── lens/openrpc knobs (deep-merged) ──────────────────────────────────────
-    "openrpc": {},
-    "lens": {},
     # ── tracing (deep-merged) ─────────────────────────────────────────────────
     "trace": {
         "enabled": True,

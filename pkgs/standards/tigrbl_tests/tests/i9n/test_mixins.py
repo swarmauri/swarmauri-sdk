@@ -156,9 +156,9 @@ class DummyModelMetaJSON(Base, GUIDPk, MetaJSON):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_timestamped_mixin(create_test_app):
+async def test_timestamped_mixin(create_test_api):
     """Test that Timestamped mixin adds created_at and updated_at fields."""
-    create_test_app(DummyModelTimestamped)
+    create_test_api(DummyModelTimestamped)
 
     # Get schemas
     create_schema = _build_schema(DummyModelTimestamped, verb="create")
@@ -181,9 +181,9 @@ async def test_timestamped_mixin(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_created_mixin(create_test_app):
+async def test_created_mixin(create_test_api):
     """Test that Created mixin adds created_at field."""
-    create_test_app(DummyModelCreated)
+    create_test_api(DummyModelCreated)
 
     # Get schemas
     create_schema = _build_schema(DummyModelCreated, verb="create")
@@ -196,9 +196,9 @@ async def test_created_mixin(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_last_used_mixin(create_test_app):
+async def test_last_used_mixin(create_test_api):
     """Test that LastUsed mixin adds last_used_at field and touch method."""
-    create_test_app(DummyModelLastUsed)
+    create_test_api(DummyModelLastUsed)
 
     # Get schemas
     read_schema = _build_schema(DummyModelLastUsed, verb="read")
@@ -220,9 +220,9 @@ async def test_last_used_mixin(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_active_toggle_mixin(create_test_app):
+async def test_active_toggle_mixin(create_test_api):
     """Test that ActiveToggle mixin adds is_active field."""
-    create_test_app(DummyModelActiveToggle)
+    create_test_api(DummyModelActiveToggle)
 
     # Get schemas
     create_schema = _build_schema(DummyModelActiveToggle, verb="create")
@@ -239,9 +239,9 @@ async def test_active_toggle_mixin(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_soft_delete_mixin(create_test_app):
+async def test_soft_delete_mixin(create_test_api):
     """Test that SoftDelete mixin adds deleted_at field."""
-    create_test_app(DummyModelSoftDelete)
+    create_test_api(DummyModelSoftDelete)
 
     # Get schemas
     read_schema = _build_schema(DummyModelSoftDelete, verb="read")
@@ -252,9 +252,9 @@ async def test_soft_delete_mixin(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_versioned_mixin(create_test_app):
+async def test_versioned_mixin(create_test_api):
     """Test that Versioned mixin adds revision and prev_id fields."""
-    create_test_app(DummyModelVersioned)
+    create_test_api(DummyModelVersioned)
 
     # Get schemas
     create_schema = _build_schema(DummyModelVersioned, verb="create")
@@ -271,12 +271,12 @@ async def test_versioned_mixin(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_bulk_capable_mixin(create_test_app):
+async def test_bulk_capable_mixin(create_test_api):
     """Test that BulkCapable mixin enables bulk operations."""
-    app = create_test_app(DummyModelBulkCapable)
+    api = create_test_api(DummyModelBulkCapable)
 
     # Check that bulk routes are available
-    routes = [route.path for route in app.router.routes]
+    routes = [route.path for route in api.router.routes]
 
     # Bulk operations now share the base collection path
     expected_path = f"/{DummyModelBulkCapable.__name__.lower()}"
@@ -285,9 +285,9 @@ async def test_bulk_capable_mixin(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_replaceable_mixin(create_test_app):
+async def test_replaceable_mixin(create_test_api):
     """Test that Replaceable mixin enables replacement operations."""
-    create_test_app(DummyModelReplaceable)
+    create_test_api(DummyModelReplaceable)
 
     # Get schemas
     create_schema = _build_schema(DummyModelReplaceable, verb="create")
@@ -306,9 +306,9 @@ async def test_replaceable_mixin(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_async_capable_mixin(create_test_app):
+async def test_async_capable_mixin(create_test_api):
     """Test that AsyncCapable mixin is a marker mixin."""
-    create_test_app(DummyModelAsyncCapable)
+    create_test_api(DummyModelAsyncCapable)
 
     # Get schemas
     read_schema = _build_schema(DummyModelAsyncCapable, verb="read")
@@ -321,9 +321,9 @@ async def test_async_capable_mixin(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_slugged_mixin(create_test_app):
+async def test_slugged_mixin(create_test_api):
     """Test that Slugged mixin adds slug field."""
-    create_test_app(DummyModelSlugged)
+    create_test_api(DummyModelSlugged)
 
     # Get schemas
     create_schema = _build_schema(DummyModelSlugged, verb="create")
@@ -336,9 +336,9 @@ async def test_slugged_mixin(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_status_column(create_test_app):
+async def test_status_column(create_test_api):
     """Test that StatusColumn adds status field."""
-    create_test_app(DummyModelStatusColumn)
+    create_test_api(DummyModelStatusColumn)
 
     # Get schemas
     create_schema = _build_schema(DummyModelStatusColumn, verb="create")
@@ -355,9 +355,9 @@ async def test_status_column(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_validity_window_mixin(create_test_app):
+async def test_validity_window_mixin(create_test_api):
     """Test that ValidityWindow mixin adds valid_from and valid_until fields."""
-    create_test_app(DummyModelValidityWindow)
+    create_test_api(DummyModelValidityWindow)
 
     # Get schemas
     create_schema = _build_schema(DummyModelValidityWindow, verb="create")
@@ -372,9 +372,9 @@ async def test_validity_window_mixin(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_validity_window_default(create_test_app):
-    app = create_test_app(DummyModelValidityWindow)
-    session, release = _resolver.acquire(router=app)
+async def test_validity_window_default(create_test_api):
+    api = create_test_api(DummyModelValidityWindow)
+    session, release = _resolver.acquire(api=api)
     try:
         vf_default = tzutcnow()
         vt_default = tzutcnow_plus_day()
@@ -412,9 +412,9 @@ async def test_tzutcnow_plus_day():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_monetary_mixin(create_test_app):
+async def test_monetary_mixin(create_test_api):
     """Test that Monetary mixin adds currency and amount fields."""
-    create_test_app(DummyModelMonetary)
+    create_test_api(DummyModelMonetary)
 
     # Get schemas
     create_schema = _build_schema(DummyModelMonetary, verb="create")
@@ -433,9 +433,9 @@ async def test_monetary_mixin(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_ext_ref_mixin(create_test_app):
+async def test_ext_ref_mixin(create_test_api):
     """Test that ExtRef mixin adds external_id field."""
-    create_test_app(DummyModelExtRef)
+    create_test_api(DummyModelExtRef)
 
     # Get schemas
     create_schema = _build_schema(DummyModelExtRef, verb="create")
@@ -449,9 +449,9 @@ async def test_ext_ref_mixin(create_test_app):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 @pytest.mark.skip(reason="JSONB type not supported in SQLite test environment")
-async def test_meta_json_mixin(create_test_app):
+async def test_meta_json_mixin(create_test_api):
     """Test that MetaJSON mixin adds meta field."""
-    create_test_app(DummyModelMetaJSON)
+    create_test_api(DummyModelMetaJSON)
 
     # Get schemas
     create_schema = _build_schema(DummyModelMetaJSON, verb="create")
@@ -468,7 +468,7 @@ async def test_meta_json_mixin(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_marker_mixins(create_test_app):
+async def test_marker_mixins(create_test_api):
     """Test that marker mixins (Audited, Streamable, etc.) don't add fields."""
 
     # Create dummy models for other marker mixins
@@ -487,7 +487,7 @@ async def test_marker_mixins(create_test_app):
     marker_models = [DummyAudited, DummyStreamable, DummyRelationEdge]
 
     for model in marker_models:
-        create_test_app(model)
+        create_test_api(model)
 
         read_schema = _build_schema(model, verb="read")
 
@@ -499,7 +499,7 @@ async def test_marker_mixins(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_multiple_mixins_combination(create_test_app):
+async def test_multiple_mixins_combination(create_test_api):
     """Test that multiple mixins can be combined correctly."""
 
     class DummyMultipleMixins(
@@ -508,7 +508,7 @@ async def test_multiple_mixins_combination(create_test_app):
         __tablename__ = "dummy_multiple_mixins"
         name = NAME_FIELD
 
-    create_test_app(DummyMultipleMixins)
+    create_test_api(DummyMultipleMixins)
 
     # Get schemas
     create_schema = _build_schema(DummyMultipleMixins, verb="create")
