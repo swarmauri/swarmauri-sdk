@@ -34,7 +34,7 @@ async def test_app_mount_favicon_custom_route() -> None:
     """Mount a namespaced favicon asset while preserving default ICO redirect."""
     app = TigrblApp()
 
-    app.mount_favicon(path="/assets/favicon.svg", name="lesson_app_assets_favicon")
+    app.mount_favicon(svg_path="/assets/favicon.svg", name="lesson_app_assets_favicon")
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:

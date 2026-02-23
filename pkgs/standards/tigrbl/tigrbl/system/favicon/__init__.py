@@ -65,28 +65,42 @@ def _remove_existing_favicon_routes(router: Any, *paths: str) -> None:
 def mount_favicon(
     router: Any,
     *,
-    path: str = "/favicon.svg",
+    filepath: str | Path | None = FAVICON_PATH,
+    file_path: str | Path | None = None,
+    svg_path: str = "/favicon.svg",
     ico_path: str = "/favicon.ico",
-    favicon_path: str | Path | None = FAVICON_PATH,
+    prefix: str = "",
     name: str = "__favicon__",
+    favicon_path: str | Path | None = None,
+    path: str | None = None,
 ) -> Any:
     """Mount a favicon endpoint onto ``router``."""
 
-    resolved = Path(FAVICON_PATH if favicon_path is None else favicon_path)
+    resolved_path = filepath
+    if file_path is not None:
+        resolved_path = file_path
+    if favicon_path is not None:
+        resolved_path = favicon_path
 
-    _remove_existing_favicon_routes(router, path, ico_path)
+    resolved = Path(FAVICON_PATH if resolved_path is None else resolved_path)
+
+    base_prefix = f"/{prefix.strip('/')}" if prefix else ""
+    mounted_svg_path = f"{base_prefix}{svg_path}" if path is None else path
+    mounted_ico_path = f"{base_prefix}{ico_path}"
+
+    _remove_existing_favicon_routes(router, mounted_svg_path, mounted_ico_path)
 
     if resolved.suffix.lower() == ".svg":
         router.add_route(
-            path,
+            mounted_svg_path,
             favicon_endpoint(favicon_path=resolved),
             methods=["GET"],
             name=name,
             include_in_schema=False,
         )
         router.add_route(
-            ico_path,
-            favicon_ico_redirect_endpoint(path=path),
+            mounted_ico_path,
+            favicon_ico_redirect_endpoint(path=f"{base_prefix}{svg_path}"),
             methods=["GET"],
             name=f"{name}_ico_redirect",
             include_in_schema=False,
@@ -94,7 +108,7 @@ def mount_favicon(
         return router
 
     router.add_route(
-        ico_path,
+        mounted_ico_path,
         favicon_endpoint(favicon_path=resolved),
         methods=["GET"],
         name=name,

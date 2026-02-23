@@ -220,7 +220,7 @@ class TigrblApp(_App):
         self._middlewares.append((middleware_class, options))
 
     def _install_favicon(self) -> None:
-        self.mount_favicon(favicon_path=self._favicon_path)
+        self.mount_favicon(filepath=self._favicon_path)
 
     # ------------------------- internal helpers -------------------------
 

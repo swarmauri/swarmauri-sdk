@@ -36,7 +36,7 @@ async def test_router_mount_favicon_custom_route() -> None:
     router = TigrblRouter()
 
     app = TigrblApp()
-    app.mount_favicon(path="/brand/favicon.svg", name="lesson_router_brand_favicon")
+    app.mount_favicon(svg_path="/brand/favicon.svg", name="lesson_router_brand_favicon")
     app.include_router(router)
 
     transport = ASGITransport(app=app)
