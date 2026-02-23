@@ -39,9 +39,7 @@ def _response_text(
     resp = Response.text(content, status_code=status_code, headers=headers)
     if media_type:
         resp.media_type = media_type
-        resp.headers = [
-            (k, v) if k != "content-type" else (k, media_type) for k, v in resp.headers
-        ]
+        resp.headers["content-type"] = media_type
     return resp
 
 
@@ -83,7 +81,7 @@ def build_app(
     else:
         cfg = engine_cfg
     app = TigrblApp(engine=build_engine(cfg))
-    app.include_models([OpenPGPKey], base_prefix="/admin")
+    app.include_tables([OpenPGPKey], base_prefix="/admin")
     app.attach_diagnostics(prefix="/system")
 
     router = Router(prefix="/pks")
@@ -95,7 +93,7 @@ def build_app(
     def _not_found(detail: str = "Not found") -> HTTPException:
         return HTTPException(status_code=404, detail=detail, headers=HPKS_CORS_HEADERS)
 
-    @router.post("/add")
+    @router.route("/add", methods=["POST"])
     async def legacy_add(
         request: Request, *, db: Any = Depends(get_session)
     ) -> Response:
@@ -116,7 +114,7 @@ def build_app(
             ) from exc
         return _response_text("OK\n", headers=HPKS_CORS_HEADERS)
 
-    @router.get("/lookup")
+    @router.route("/lookup", methods=["GET"])
     async def legacy_lookup(request: Request, *, db: Any = Depends(get_session)):
         op = request.query_param("op") or ""
         search = request.query_param("search") or ""
@@ -154,7 +152,7 @@ def build_app(
             headers=HPKS_CORS_HEADERS,
         )
 
-    @router.post("/{fingerprint}")
+    @router.route("/{fingerprint}", methods=["POST"])
     async def merge_fingerprint(
         request: Request,
         *,
@@ -172,7 +170,7 @@ def build_app(
             ) from exc
         return _response_json(pks_ops.to_v2_document(record), headers=HPKS_CORS_HEADERS)
 
-    @router.post("/v2/add")
+    @router.route("/v2/add", methods=["POST"])
     async def v2_add(request: Request, *, db: Any = Depends(get_session)) -> Response:
         content_type = request.headers.get("content-type", "")
         if "application/pgp-keys" not in content_type:
@@ -194,7 +192,7 @@ def build_app(
             ) from exc
         return _response_json(summary, status_code=202, headers=HPKS_CORS_HEADERS)
 
-    @router.get("/v2/index/{query}")
+    @router.route("/v2/index/{query}", methods=["GET"])
     async def v2_index(query: str, *, db: Any = Depends(get_session)) -> Response:
         results = await pks_ops.search_index(db=db, search=query)
         if not results:
@@ -202,7 +200,7 @@ def build_app(
         payload = [pks_ops.to_v2_document(rec) for rec in results]
         return _response_json(payload, headers=HPKS_CORS_HEADERS)
 
-    @router.get("/v2/vfpget/{fingerprint}")
+    @router.route("/v2/vfpget/{fingerprint}", methods=["GET"])
     async def vfpget(fingerprint: str, *, db: Any = Depends(get_session)) -> Response:
         record = await pks_ops.lookup_by_fingerprint(db=db, fingerprint=fingerprint)
         if record is None:
@@ -213,7 +211,7 @@ def build_app(
             headers=HPKS_CORS_HEADERS,
         )
 
-    @router.get("/v2/kidget/{keyid}")
+    @router.route("/v2/kidget/{keyid}", methods=["GET"])
     async def kidget(keyid: str, *, db: Any = Depends(get_session)) -> Response:
         record = await pks_ops.lookup_by_keyid(db=db, key_id=keyid)
         if record is None or (record.version and record.version > 4):
@@ -224,7 +222,7 @@ def build_app(
             headers=HPKS_CORS_HEADERS,
         )
 
-    @router.get("/v2/authget/{identifier}")
+    @router.route("/v2/authget/{identifier}", methods=["GET"])
     async def authget(identifier: str, *, db: Any = Depends(get_session)) -> Response:
         matches = await pks_ops.search_index(db=db, search=identifier)
         lowered = identifier.lower()
@@ -244,7 +242,7 @@ def build_app(
             headers=HPKS_CORS_HEADERS,
         )
 
-    @router.get("/v2/prefixlog/{since}")
+    @router.route("/v2/prefixlog/{since}", methods=["GET"])
     async def prefixlog_route(
         since: str, *, db: Any = Depends(get_session)
     ) -> Response:
@@ -265,7 +263,7 @@ def build_app(
         body = "\r\n".join(prefixes)
         return _response_text(body, headers=HPKS_CORS_HEADERS)
 
-    @router.post("/v2/tokensend")
+    @router.route("/v2/tokensend", methods=["POST"])
     async def tokensend(_: Request) -> Response:
         return Response(status_code=501, headers=list(HPKS_CORS_HEADERS.items()))
 

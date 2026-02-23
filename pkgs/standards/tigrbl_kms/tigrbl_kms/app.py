@@ -39,6 +39,7 @@ app = TigrblApp(
 
 # Custom ops return raw dicts so no finalize hook needed
 app.include_tables([Key, KeyVersion], base_prefix="/kms")
+app.mount_jsonrpc(prefix="/kms/rpc")
 app.attach_diagnostics(prefix="/system")
 # Backward-compatible alias used by tests and older integrations.
 app.routes = app.router.routes
