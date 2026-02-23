@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 from tigrbl import Router, op_ctx, TigrblApp
+from tigrbl.op import OpSpec
 
 
 def test_op_ctx_internal_binding_returns_classmethod_with_decl():
@@ -14,6 +15,7 @@ def test_op_ctx_internal_binding_returns_classmethod_with_decl():
     method = Widget.__dict__["lookup"]
     assert isinstance(method, classmethod)
     decl = method.__func__.__tigrbl_op_decl__
+    assert isinstance(decl, OpSpec)
     assert decl.alias == "search"
     assert decl.target == "custom"
     assert decl.status_code == 201
@@ -35,6 +37,7 @@ def test_op_ctx_external_binding_to_multiple_table_classes():
         method = model.__dict__["touch"]
         assert isinstance(method, classmethod)
         decl = method.__func__.__tigrbl_op_decl__
+        assert isinstance(decl, OpSpec)
         assert decl.alias == "touch"
         assert decl.target == "custom"
 

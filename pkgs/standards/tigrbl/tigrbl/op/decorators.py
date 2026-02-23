@@ -151,16 +151,18 @@ def op_ctx(
         cm = _ensure_cm(fn)
         f = _unwrap(cm)
         f.__tigrbl_ctx_only__ = True
-        f.__tigrbl_op_decl__ = {
-            "alias": alias,
-            "target": target,
-            "arity": arity,
-            "rest": rest,
-            "request_schema": request_schema,
-            "response_schema": response_schema,
-            "persist": persist,
-            "status_code": status_code,
-        }
+        resolved_target = target or "custom"
+        resolved_alias = alias or f.__name__
+        f.__tigrbl_op_decl__ = OpSpec(
+            alias=resolved_alias,
+            target=resolved_target,
+            arity=arity or _infer_arity(resolved_target),
+            expose_routes=bool(rest) if rest is not None else True,
+            request_model=request_schema,
+            response_model=response_schema,
+            persist=_normalize_persist(persist),
+            status_code=status_code,
+        )
 
         if bind is not None:
             targets = (
