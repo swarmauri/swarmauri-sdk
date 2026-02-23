@@ -12,15 +12,18 @@ from tigrbl.specs import IO, S, acol
 from tigrbl.types import String
 
 
-class RouterKeyModel(Base, GUIDPk, KeyDigest):
-    __tablename__ = "apikey_schema_selection"
-    __resource__ = "apikey"
-    __allow_unmapped__ = True
+def _build_router_key_model() -> type:
+    class RouterKeyModel(Base, GUIDPk, KeyDigest):
+        __tablename__ = "apikey_schema_selection"
+        __resource__ = "apikey"
+        __allow_unmapped__ = True
 
-    label = acol(
-        storage=S(String, nullable=False),
-        io=IO(in_verbs=("create",), out_verbs=("read", "list", "create")),
-    )
+        label = acol(
+            storage=S(String, nullable=False),
+            io=IO(in_verbs=("create",), out_verbs=("read", "list", "create")),
+        )
+
+    return RouterKeyModel
 
 
 @pytest.mark.parametrize(
@@ -46,9 +49,10 @@ def test_default_schema_selection_for_all_canonical_targets(
     expected_out_item: str | None,
     expect_deleted_out: bool,
 ):
+    model = _build_router_key_model()
     spec = OpSpec(alias=target, target=target)
 
-    defaults = _default_schemas_for_spec(RouterKeyModel, spec)
+    defaults = _default_schemas_for_spec(model, spec)
 
     assert defaults["in_"] is not None
     assert defaults["out"] is not None
@@ -63,22 +67,24 @@ def test_default_schema_selection_for_all_canonical_targets(
     if expect_deleted_out:
         assert "deleted" in defaults["out"].model_fields
     elif expected_out_item == "read":
-        assert defaults["out_item"] is _build_schema(RouterKeyModel, verb="read")
+        assert defaults["out_item"] is _build_schema(model, verb="read")
 
 
 def test_default_create_out_schema_matches_read_schema():
+    model = _build_router_key_model()
     spec = OpSpec(alias="create", target="create")
 
-    defaults = _default_schemas_for_spec(RouterKeyModel, spec)
-    read_schema = _build_schema(RouterKeyModel, verb="read")
+    defaults = _default_schemas_for_spec(model, spec)
+    read_schema = _build_schema(model, verb="read")
 
     assert defaults["out"] is read_schema
 
 
 def test_default_create_out_schema_excludes_create_only_alias_fields():
+    model = _build_router_key_model()
     spec = OpSpec(alias="create", target="create")
 
-    defaults = _default_schemas_for_spec(RouterKeyModel, spec)
+    defaults = _default_schemas_for_spec(model, spec)
 
     assert defaults["out"] is not None
     assert "digest" in defaults["out"].model_fields

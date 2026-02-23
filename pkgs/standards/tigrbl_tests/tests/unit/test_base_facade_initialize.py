@@ -10,12 +10,6 @@ from tigrbl.engine.shortcuts import mem
 from tigrbl.table import Base
 
 
-class Widget(Base):
-    __tablename__ = "widgets"
-
-    id = Column(Integer, primary_key=True)
-
-
 class SimpleApp(_App):
     TITLE = "TestApp"
     VERSION = "0.0"
@@ -31,6 +25,11 @@ class SimpleApi(_Api):
 
 
 def test_base_app_supports_initialize():
+    class Widget(Base):
+        __tablename__ = "widgets"
+
+        id = Column(Integer, primary_key=True)
+
     app = SimpleApp(engine=mem(async_=False))
     app.models["Widget"] = Widget
 
@@ -46,6 +45,11 @@ def test_base_app_supports_initialize():
 
 
 def test_base_router_supports_initialize_sync():
+    class Widget(Base):
+        __tablename__ = "widgets_sync"
+
+        id = Column(Integer, primary_key=True)
+
     router = SimpleApi(engine=mem(async_=False))
     router.models["Widget"] = Widget
 

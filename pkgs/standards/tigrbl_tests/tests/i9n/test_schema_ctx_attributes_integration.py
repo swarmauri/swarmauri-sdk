@@ -43,7 +43,7 @@ async def schema_ctx_client():
     _, sessionmaker = prov.ensure()
 
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
-    return client, router, Widget, sessionmaker
+    return client, app, Widget, sessionmaker
 
 
 @pytest.mark.i9n
