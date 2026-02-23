@@ -188,6 +188,20 @@ def create_test_router():
     return _create_router
 
 
+@pytest.fixture
+def create_test_app():
+    """Factory fixture to create initialized TigrblApp instances for tests."""
+
+    def _create_app(model_class):
+        Base.metadata.clear()
+        app = TigrblApp(engine=mem(async_=False))
+        app.include_table(model_class)
+        app.initialize()
+        return app
+
+    return _create_app
+
+
 @pytest_asyncio.fixture
 async def create_test_router_async():
     """Factory fixture to create async Tigrbl instances for testing individual models."""
