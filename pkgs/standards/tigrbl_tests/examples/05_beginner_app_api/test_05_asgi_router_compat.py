@@ -32,9 +32,10 @@ def test_tigrbl_app_is_asgi_compatible():
     """TigrblApp should serve routes as an ASGI app."""
     app = TigrblApp()
 
-    @app.get("/health")
-    def health():
+    def health(_request):
         return {"ok": True}
+
+    app.add_route("/health", health, methods=["GET"])
 
     import asyncio
 

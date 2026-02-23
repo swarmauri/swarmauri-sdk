@@ -109,14 +109,17 @@ async def test_openapi_security_from_router_authn_dependency() -> None:
     if inspect.isawaitable(init_result):
         await init_result
 
-    # Deployment: add an OpenAPI endpoint directly on the router-only API.
-    def openapi_endpoint(_request) -> JSONResponse:
-        return JSONResponse(router.openapi())
+    # Deployment: mount the router in an app and expose OpenAPI on the host app.
+    app = TigrblApp()
+    app.include_router(router)
 
-    router.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
+    def openapi_endpoint(_request) -> JSONResponse:
+        return JSONResponse(app.openapi())
+
+    app.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
 
     port = pick_unique_port()
-    base_url, server, task = await start_uvicorn(router, port=port)
+    base_url, server, task = await start_uvicorn(app, port=port)
 
     # Usage: request the OpenAPI schema from the running API.
     async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
