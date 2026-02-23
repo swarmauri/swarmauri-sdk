@@ -35,13 +35,13 @@ class Widget(Base, GUIDPk):
 
 @pytest_asyncio.fixture
 async def widget_setup():
-    app = TigrblApp()
+    app = TigrblApp(engine=mem(async_=False))
     router = TigrblRouter(engine=mem(async_=False))
     app.include_table(Widget, prefix="/widget")
     router.mount_jsonrpc(prefix="/rpc")
     router.attach_diagnostics(prefix="/system")
-    app.initialize()
     app.include_router(router)
+    app.initialize()
 
     prov = _resolver.resolve_provider()
     SessionLocal = prov.session
@@ -99,7 +99,7 @@ async def test_orm_model_carries_io_spec(widget_setup):
 @pytest.mark.asyncio
 async def test_openapp_reflects_io_spec(widget_setup):
     client, _, _ = widget_setup
-    spec = (await client.get("/openapp.json")).json()
+    spec = (await client.get("/openapi.json")).json()
     props = spec["components"]["schemas"]["WidgetReadResponse"]["properties"]
     assert "secret" in props
 

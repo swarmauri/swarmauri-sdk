@@ -34,12 +34,12 @@ async def widget_client():
         async def echo(cls, ctx):
             return ctx["payload"]
 
-    app = TigrblApp()
+    app = TigrblApp(engine=mem())
     router = TigrblRouter(engine=mem())
     router.include_table(Widget, prefix="")
     app.mount_jsonrpc()
-    await app.initialize()
     app.include_router(router)
+    await app.initialize()
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"

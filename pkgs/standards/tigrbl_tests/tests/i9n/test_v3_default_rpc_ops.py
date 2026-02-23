@@ -40,7 +40,7 @@ async def client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
-    app = TigrblApp()
+    app = TigrblApp(engine=mem())
     router = TigrblRouter(engine=mem())
     router.include_table(Gadget, prefix="")
     router.mount_jsonrpc(prefix="/rpc")
@@ -160,7 +160,7 @@ async def wrapper_field_client_and_model():
 
         __tigrbl_cols__ = {"id": id, "data": data}
 
-    app = TigrblApp()
+    app = TigrblApp(engine=mem())
     router = TigrblRouter(engine=mem())
     app.include_table(WrapperNamed, prefix="")
     router.mount_jsonrpc(prefix="/rpc")
@@ -260,7 +260,7 @@ async def bulk_client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
-    app = TigrblApp()
+    app = TigrblApp(engine=mem())
     router = TigrblRouter(engine=mem())
     app.include_table(Gadget, prefix="")
     router.mount_jsonrpc(prefix="/rpc")

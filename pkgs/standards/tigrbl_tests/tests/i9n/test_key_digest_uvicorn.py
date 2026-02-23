@@ -84,7 +84,6 @@ async def test_create_response_fields(running_app):
         resp = await client.post(f"{base_url}/apikey", json=_payload())
     body = resp.json()
     expected = {
-        "api_key",
         "label",
         "service_id",
         "valid_from",
@@ -95,6 +94,7 @@ async def test_create_response_fields(running_app):
         "id",
     }
     assert set(body) == expected
+    assert "api_key" not in body
 
 
 @pytest.mark.i9n
