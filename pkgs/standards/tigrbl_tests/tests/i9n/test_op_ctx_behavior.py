@@ -74,8 +74,8 @@ def test_op_ctx_columns(sync_db_session):
         def ping(cls, ctx):
             return {}
 
-    _, router = setup_router(Gadget, get_sync_db)
-    assert set(router.columns["Gadget"]) == {"id", "name", "flag"}
+    app, _ = setup_router(Gadget, get_sync_db)
+    assert set(app.columns["Gadget"]) == {"id", "name", "flag"}
 
 
 @pytest.mark.i9n
@@ -127,7 +127,7 @@ async def test_op_ctx_internal_orm_models(sync_db_session):
         def seed(cls, ctx):
             pass
 
-    app, router = setup_router(Item, get_sync_db)
+    app, _ = setup_router(Item, get_sync_db)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -136,7 +136,7 @@ async def test_op_ctx_internal_orm_models(sync_db_session):
     assert res.status_code == 201
     item_id = UUID(res.json()["id"])
 
-    assert router.models["Item"] is Item
+    assert app.models["Item"] is Item
     gen = get_sync_db()
     session = next(gen)
     assert isinstance(session.get(Item, item_id), Item)
