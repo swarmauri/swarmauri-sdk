@@ -2,7 +2,7 @@ import inspect
 
 import httpx
 import pytest
-from tigrbl import Base, TigrblApp, op_ctx, TigrblRouter
+from tigrbl import Base, TigrblApp, op_ctx
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl.engine.shortcuts import mem
@@ -24,16 +24,16 @@ async def test_custom_op_exposed_on_rest_routes():
         def status(cls, ctx):
             return [{"status": "ok"}]
 
-    app = TigrblApp(engine=mem(async_=False))
-    app.include_table(Widget)
-    init_result = app.initialize()
+    api = TigrblApp(engine=mem(async_=False))
+    api.include_model(Widget)
+    init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    app.mount_jsonrpc(prefix="/rpc")
+    api.mount_jsonrpc(prefix="/rpc")
 
-    router = TigrblRouter()
-    app.include_router(router)
-    app.attach_diagnostics(prefix="")
+    app = TigrblApp()
+    app.include_router(api.router)
+    api.attach_diagnostics(prefix="", app=app)
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

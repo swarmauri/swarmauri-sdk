@@ -28,7 +28,7 @@ def test_http_bearer_reads_authorization_header() -> None:
 
 
 @pytest.mark.unit
-def test_router_key_reads_value_from_query_params() -> None:
+def test_api_key_reads_value_from_query_params() -> None:
     dep = APIKey(name="api_key", in_="query")
     request = SimpleNamespace(headers={}, query_params={"api_key": "secret-value"})
 
@@ -36,7 +36,7 @@ def test_router_key_reads_value_from_query_params() -> None:
 
 
 @pytest.mark.unit
-def test_router_key_missing_value_raises_when_auto_error_enabled() -> None:
+def test_api_key_missing_value_raises_when_auto_error_enabled() -> None:
     dep = APIKey(name="api_key", in_="header", auto_error=True)
     request = SimpleNamespace(headers={}, query_params={})
 

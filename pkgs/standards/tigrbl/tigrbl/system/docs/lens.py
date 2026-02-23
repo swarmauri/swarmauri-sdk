@@ -88,7 +88,7 @@ def mount_lens(
             build_lens_html(router, request, spec_path=resolved_spec_path)
         )
 
-    router.add_route(
+    router.add_api_route(
         path,
         _lens_handler,
         methods=["GET"],

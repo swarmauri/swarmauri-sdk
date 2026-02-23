@@ -67,10 +67,10 @@ async def test_hookz_cached_call_faster(monkeypatch) -> None:
 
     orig_model_iter = _diag._model_iter
 
-    def slow_model_iter(router):
+    def slow_model_iter(api):
         calls["iter"] += 1
         sleep(0.01)
-        return orig_model_iter(router)
+        return orig_model_iter(api)
 
     monkeypatch.setattr(_diag, "_model_iter", slow_model_iter)
 

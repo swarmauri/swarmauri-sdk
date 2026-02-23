@@ -4,7 +4,7 @@ from tigrbl.transport import build_jsonrpc_router
 
 
 def test_jsonrpc_router_default_tag():
-    app = SimpleNamespace()
-    router = build_jsonrpc_router(app)
+    api = SimpleNamespace()
+    router = build_jsonrpc_router(api)
     route = router.routes[0]
     assert route.tags == ["rpc"]

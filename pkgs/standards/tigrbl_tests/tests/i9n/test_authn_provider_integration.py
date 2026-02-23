@@ -2,16 +2,12 @@ from httpx import ASGITransport, Client
 
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 from tigrbl.engine.shortcuts import mem
+from tigrbl.types import HTTPException, Request, Security
 
 from tigrbl import TigrblApp, Base, hook_ctx
 from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types.authn_abc import AuthNProvider
-
-
-from tigrbl.runtime.status import HTTPException
-from tigrbl.requests import Request
-from tigrbl.security import Security
 
 
 class HookedAuth(AuthNProvider):
@@ -44,11 +40,11 @@ def _build_client_with_auth():
         async def capture(cls, ctx):
             auth.ctx_principal = ctx.get("auth_context")
 
-    app = TigrblApp(engine=mem(async_=False))
-    app.set_auth(authn=auth.get_principal)
-    app.include_table(Tenant)
-    app.initialize()
-    transport = ASGITransport(app=app)
+    api = TigrblApp(engine=mem(async_=False))
+    api.set_auth(authn=auth.get_principal)
+    api.include_model(Tenant)
+    api.initialize()
+    transport = ASGITransport(app=api)
     return Client(transport=transport, base_url="http://test"), auth
 
 

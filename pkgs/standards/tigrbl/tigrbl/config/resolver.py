@@ -25,8 +25,6 @@ except Exception:  # pragma: no cover
         # misc buckets developers may use
         "openapi": {},
         "docs": {},
-        "openrpc": {},
-        "lens": {},
         "trace": {"enabled": True},
     }
 
@@ -36,8 +34,6 @@ _DEEP_KEYS = {
     "required_policy",
     "openapi",
     "docs",
-    "openrpc",
-    "lens",
     "trace",
     "policies",
 }
@@ -84,14 +80,14 @@ def resolve_cfg(
     op: Optional[str] = None,
     opspec: Any = None,
     tabspec: Any = None,
-    routerspec: Any = None,
+    apispec: Any = None,
     appspec: Any = None,
     overrides: Optional[Mapping[str, Any]] = None,
 ) -> CfgView:
     """
     Merge configuration from multiple scopes with precedence:
 
-      opspec > colspecs > tabspec > routerspec > appspec > defaults
+      opspec > colspecs > tabspec > apispec > appspec > defaults
 
     The result is normalized and returned as a read-only CfgView suitable for ctx.cfg.
 
@@ -108,8 +104,8 @@ def resolve_cfg(
     # 2) App / API / Tab scopes
     if appspec is not None:
         layers.append(_extract_cfg(appspec))
-    if routerspec is not None:
-        layers.append(_extract_cfg(routerspec))
+    if apispec is not None:
+        layers.append(_extract_cfg(apispec))
     if tabspec is not None:
         layers.append(_extract_cfg(tabspec))
 

@@ -31,9 +31,9 @@ Both are useful for implementers.
   - storage, field, and IO basics with mapped model columns.
 - `03-beginner-mixins` / `03_beginner_specs`
   - common mixins and reusable column specification patterns.
-- `04-beginner-app-router` / `04_beginner_tables_columns`
+- `04-beginner-app-api` / `04_beginner_tables_columns`
   - app/table specification and model inclusion in API routers.
-- `05-beginner-usage` / `05_beginner_app_router`
+- `05-beginner-usage` / `05_beginner_app_api`
   - first REST and JSON-RPC usage flows.
 
 ### Intermediate lessons
@@ -69,7 +69,7 @@ Both are useful for implementers.
 
 - `16_expert_table_bindings`
 - `17_expert_column_bindings`
-- `18_expert_router_bindings`
+- `18_expert_api_bindings`
 - `19_expert_app_bindings`
 - `20_expert_hook_op_engine_bindings` / `20_expert_mounts`
 - `21_expert_security`

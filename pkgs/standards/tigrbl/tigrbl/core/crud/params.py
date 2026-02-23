@@ -1,4 +1,4 @@
-"""Parameter marker helpers for std dependency resolution."""
+"""Parameter marker helpers for stdapi dependency resolution."""
 
 from __future__ import annotations
 

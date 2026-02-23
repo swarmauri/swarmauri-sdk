@@ -16,16 +16,16 @@ def test_app_includes_model_and_registry():
 
     # Setup: define a model and a Tigrbl API instance.
     class Widget(Base, GUIDPk):
-        __tablename__ = "lessonapp"
+        __tablename__ = "lessonapi"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-    app = TigrblApp(engine=mem(async_=False))
+    api = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize the API.
-    app.include_table(Widget)
-    app.initialize()
+    api.include_model(Widget)
+    api.initialize()
     # Exercise: retrieve the model registry entry.
-    registry = app.registry(Widget)
+    registry = api.registry(Widget)
     # Assertion: the registry entry exists after initialization.
     assert registry is not None
 
@@ -42,13 +42,13 @@ def test_app_model_map_tracks_the_model_class():
 
     # Setup: declare a model and API instance.
     class Widget(Base, GUIDPk):
-        __tablename__ = "lessonappregistry"
+        __tablename__ = "lessonapiregistry"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-    app = TigrblApp(engine=mem(async_=False))
+    api = TigrblApp(engine=mem(async_=False))
     # Deployment: include and initialize so the model map is populated.
-    app.include_table(Widget)
-    app.initialize()
+    api.include_model(Widget)
+    api.initialize()
     # Assertion: the model registry maps the class name to the model class.
-    assert app.models[Widget.__name__] is Widget
+    assert api.models[Widget.__name__] is Widget

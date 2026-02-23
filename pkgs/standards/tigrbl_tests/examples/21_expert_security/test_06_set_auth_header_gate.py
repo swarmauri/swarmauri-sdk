@@ -10,10 +10,6 @@ It also shows how to keep selected routes/methods anonymous by combining the
 header gate with ``__tigrbl_allow_anon__``.
 """
 
-from tigrbl.runtime.status import HTTPException
-from tigrbl.requests import Request
-from tigrbl.security import Security
-
 import inspect
 
 import httpx
@@ -24,7 +20,7 @@ from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Column, String
+from tigrbl.types import Column, HTTPException, Request, Security, String
 
 
 ADMIN_KEY = "admin-secret"
@@ -88,7 +84,7 @@ async def test_set_auth_header_gate_for_rest_paths() -> None:
         return None
 
     app.set_auth(authn=header_gate, optional_authn_dep=header_gate, allow_anon=False)
-    app.include_table(HeaderGateRestWidget)
+    app.include_model(HeaderGateRestWidget)
 
     init_result = app.initialize()
     if inspect.isawaitable(init_result):
@@ -179,7 +175,7 @@ async def test_set_auth_header_gate_for_rpc_methods() -> None:
         return None
 
     app.set_auth(authn=header_gate, optional_authn_dep=header_gate, allow_anon=False)
-    app.include_table(HeaderGateRpcWidget)
+    app.include_model(HeaderGateRpcWidget)
 
     init_result = app.initialize()
     if inspect.isawaitable(init_result):

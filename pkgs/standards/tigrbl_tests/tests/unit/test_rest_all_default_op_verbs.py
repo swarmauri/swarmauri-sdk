@@ -13,7 +13,7 @@ def _route_map(router) -> dict[str, tuple[str, set[str]]]:
             name = getattr(r, "name")
             path = getattr(r, "path")
             methods = set(getattr(r, "methods", []) or [])
-        else:  # pragma: no cover - fallback when ASGI Route entries are tuple-based
+        else:  # pragma: no cover - fallback when FastAPI is missing
             path, methods, _, opts = r
             name = opts.get("name")
             methods = set(methods)

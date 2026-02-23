@@ -43,4 +43,4 @@ def test_custom_op_binding_populates_model_registry():
 
     bind(Widget)
 
-    assert hasattr(Widget.healthcheck, "__tigrbl_op_spec__")
+    assert hasattr(Widget.healthcheck, "__tigrbl_op_decl__")

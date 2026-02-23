@@ -22,7 +22,7 @@ def test_app_binding_attaches_model_router():
 
     app = TigrblApp(engine=mem(async_=False))
 
-    _, router = app.include_table(Widget)
+    _, router = app.include_model(Widget)
 
     assert router is not None
     assert app.routers[Widget.__name__] is router
@@ -39,7 +39,7 @@ def test_app_router_registry_keeps_model_name():
 
     app = TigrblApp(engine=mem(async_=False))
 
-    _, router = app.include_table(Widget)
+    _, router = app.include_model(Widget)
 
     assert Widget.__name__ in app.routers
     assert app.routers[Widget.__name__] is router

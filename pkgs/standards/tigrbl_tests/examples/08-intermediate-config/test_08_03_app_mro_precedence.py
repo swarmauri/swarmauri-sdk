@@ -5,12 +5,10 @@ from tigrbl.app.shortcuts import defineAppSpec
 
 
 def test_app_mro_precedence() -> None:
-    class BaseSpec(defineAppSpec(title="Base", version="1.0", routers=("base",))):
+    class BaseSpec(defineAppSpec(title="Base", version="1.0", apis=("base",))):
         pass
 
-    class OverrideSpec(
-        defineAppSpec(title="Override", version="2.0", routers=("extra",))
-    ):
+    class OverrideSpec(defineAppSpec(title="Override", version="2.0", apis=("extra",))):
         pass
 
     class AppCls(OverrideSpec, BaseSpec):
@@ -18,4 +16,4 @@ def test_app_mro_precedence() -> None:
 
     spec = mro_collect_app_spec(AppCls)
     assert spec.title == "Override"
-    assert spec.routers == ("base", "base", "extra", "extra", "extra")
+    assert spec.apis == ("base", "base", "extra", "extra", "extra")

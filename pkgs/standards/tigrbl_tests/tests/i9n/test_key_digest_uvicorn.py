@@ -4,7 +4,7 @@ import httpx
 import pytest
 import pytest_asyncio
 
-from tigrbl import TigrblApp, TigrblRouter
+from tigrbl import TigrblApp
 from tigrbl.orm.mixins import (
     GUIDPk,
     Created,
@@ -45,10 +45,10 @@ async def running_app(sync_db_session):
     engine, get_sync_db = sync_db_session
 
     app = TigrblApp()
-    router = TigrblRouter(get_db=get_sync_db)
-    app.include_tables([ApiKey])
-    await app.initialize()
-    app.include_router(router)
+    api = TigrblApp(get_db=get_sync_db)
+    api.include_models([ApiKey])
+    await api.initialize()
+    app.include_router(api.router)
 
     base_url, server, task = await run_uvicorn_in_task(app)
     try:
@@ -120,7 +120,7 @@ async def test_persisted_columns(running_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_read_excludes_router_key(running_app):
+async def test_read_excludes_api_key(running_app):
     base_url, _ = running_app
     async with httpx.AsyncClient() as client:
         resp = await client.post(f"{base_url}/apikey", json=_payload())
@@ -143,7 +143,7 @@ async def test_rejects_digest_in_request(running_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_rejects_router_key_in_request(running_app):
+async def test_rejects_api_key_in_request(running_app):
     base_url, _ = running_app
     bad = _payload() | {"api_key": "raw"}
     async with httpx.AsyncClient() as client:
