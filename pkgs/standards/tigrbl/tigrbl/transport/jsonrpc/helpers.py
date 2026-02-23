@@ -44,7 +44,9 @@ def _user_from_request(request: Any) -> Any | None:
 def _select_auth_dep(router: Any):
     if getattr(router, "_optional_authn_dep", None):
         return router._optional_authn_dep
-    if getattr(router, "_allow_anon", True) is False and getattr(router, "_authn", None):
+    if getattr(router, "_allow_anon", True) is False and getattr(
+        router, "_authn", None
+    ):
         return router._authn
     if getattr(router, "_authn", None):
         return router._authn

@@ -75,7 +75,7 @@ async def test_hook_ctx_request_response_schema_i9n():
 
         @hook_ctx(ops="create", phase="POST_RESPONSE")
         async def modify(cls, ctx):
-            ctx["response"].result["hook"] = True
+            ctx["result"]["hook"] = True
 
     client, _, _ = create_client(Item)
     res = await client.post("/item", json={"name": "a"})
@@ -105,7 +105,7 @@ async def test_hook_ctx_columns_i9n():
 
         @hook_ctx(ops="create", phase="POST_RESPONSE")
         async def expose(cls, ctx):
-            ctx["response"].result["cols"] = ctx["cols"]
+            ctx["result"]["cols"] = ctx["cols"]
 
     client, _, _ = create_client(Item)
     res = await client.post("/item", json={"name": "x"})
@@ -161,7 +161,7 @@ async def test_hook_ctx_internal_model_i9n():
 
         @hook_ctx(ops="create", phase="POST_RESPONSE")
         async def expose_model(cls, ctx):
-            ctx["response"].result["model"] = ctx["model_name"]
+            ctx["result"]["model"] = ctx["model_name"]
 
     client, _, _ = create_client(Item)
     res = await client.post("/item", json={"name": "a"})
@@ -216,7 +216,7 @@ async def test_hook_ctx_storage_sqlalchemy_i9n():
 
         @hook_ctx(ops="create", phase="POST_RESPONSE")
         async def expose_count(cls, ctx):
-            ctx["response"].result["count"] = ctx["count"]
+            ctx["result"]["count"] = ctx["count"]
 
     client, _, _ = create_client(Item)
     res = await client.post("/item", json={"name": "a"})
@@ -241,7 +241,7 @@ async def test_hook_ctx_rest_call_i9n():
 
         @hook_ctx(ops="create", phase="POST_RESPONSE")
         async def mark(cls, ctx):
-            ctx["response"].result["phase"] = "rest"
+            ctx["result"]["phase"] = "rest"
 
     client, _, _ = create_client(Item)
     res = await client.post("/item", json={"name": "a"})
@@ -266,7 +266,7 @@ async def test_hook_ctx_rpc_method_i9n():
 
         @hook_ctx(ops="create", phase="POST_RESPONSE")
         async def mark(cls, ctx):
-            ctx["response"].result["phase"] = "rpc"
+            ctx["result"]["phase"] = "rpc"
 
     client, _, _ = create_client(Item)
     res = await client.post(
@@ -299,7 +299,7 @@ async def test_hook_ctx_core_crud_i9n():
 
         @hook_ctx(ops="create", phase="POST_COMMIT")
         async def mark(cls, ctx):
-            ctx["response"].result["via"] = "core"
+            ctx["result"]["via"] = "core"
 
     client, app, SessionLocal = create_client(Item)
     with SessionLocal() as session:
@@ -356,7 +356,7 @@ async def test_hook_ctx_atomz_i9n():
 
         @hook_ctx(ops="create", phase="POST_RESPONSE")
         async def expose(cls, ctx):
-            ctx["response"].result["captured"] = ctx["captured"]
+            ctx["result"]["captured"] = ctx["captured"]
 
     client, _, _ = create_client(Item)
     res = await client.post("/item", json={"name": "alpha"})

@@ -83,7 +83,9 @@ async def test_tigrbl_router_app_deploys_and_serves_openapi(running_router_app) 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_router_app_handles_authenticated_request(running_router_app) -> None:
+async def test_tigrbl_router_app_handles_authenticated_request(
+    running_router_app,
+) -> None:
     base_url = running_router_app
     headers = {"Authorization": "Bearer demo"}
 

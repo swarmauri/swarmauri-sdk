@@ -11,7 +11,9 @@ logger = logging.getLogger("uvicorn")
 
 
 @lru_cache(maxsize=None)
-def mro_collect_router_hooks(router: type) -> Dict[str, Dict[str, list[Callable[..., Any]]]]:
+def mro_collect_router_hooks(
+    router: type,
+) -> Dict[str, Dict[str, list[Callable[..., Any]]]]:
     """Collect Router-level hook declarations across ``router``'s MRO.
 
     The accepted shape mirrors the hooks mapping used by the bindings:
