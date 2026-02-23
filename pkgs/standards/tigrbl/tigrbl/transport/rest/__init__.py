@@ -23,14 +23,7 @@ Typical usage:
 from __future__ import annotations
 
 from .aggregator import build_rest_router, mount_rest
-from .decorators import delete, get, patch, post, put
-
 __all__ = [
     "build_rest_router",
     "mount_rest",
-    "get",
-    "post",
-    "put",
-    "patch",
-    "delete",
 ]
