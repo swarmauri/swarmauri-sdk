@@ -26,5 +26,5 @@ class RouterSpec:
 
     response: Optional[ResponseSpec] = None
 
-    # optional: models this router exposes (auto-install)
-    models: Sequence[Any] = field(default_factory=tuple)
+    # optional: tables this router exposes (auto-install)
+    tables: Sequence[Any] = field(default_factory=tuple)
