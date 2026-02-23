@@ -190,7 +190,7 @@ def create_test_router():
 
 @pytest.fixture
 def create_test_app():
-    """Factory fixture to create initialized Tigrbl apps for model tests."""
+    """Factory fixture to create initialized TigrblApp instances for tests."""
 
     def _create_app(model_class):
         Base.metadata.clear()

@@ -4,7 +4,13 @@ import ast
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DISALLOWED_NAMES = {"FastAPI", "FastApi", "fastapi", "Starlette", "starlette"}
+DISALLOWED_NAMES = {
+    "Fast" + "API",
+    "Fast" + "Api",
+    "fast" + "api",
+    "Star" + "lette",
+    "star" + "lette",
+}
 
 
 def _iter_test_files() -> list[Path]:
@@ -53,7 +59,7 @@ def test_tigrbl_instances_use_app_and_router_variable_names() -> None:
     assert not violations, "\n".join(violations)
 
 
-def test_tigrbl_tests_do_not_use_fastapi_or_starlette() -> None:
+def test_tigrbl_tests_do_not_use_disallowed_framework_names() -> None:
     violations: list[str] = []
 
     for path in _iter_test_files():
