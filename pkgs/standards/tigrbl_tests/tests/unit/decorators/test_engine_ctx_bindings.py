@@ -1,4 +1,4 @@
-from tigrbl import Api, engine_ctx, TigrblApp
+from tigrbl import Router, engine_ctx, TigrblApp
 
 
 def test_engine_ctx_binding_on_function_sets_attributes():
@@ -20,15 +20,15 @@ def test_engine_ctx_internal_binding_on_table_class():
     assert cfg["db"] == "sqlite:///mem.db"
 
 
-def test_engine_ctx_external_binding_on_api_class():
-    class ExampleApi(Api):
+def test_engine_ctx_external_binding_on_router_class():
+    class ExampleRouter(Router):
         PREFIX = ""
         NAME = "example"
 
-    engine_ctx("postgresql+asyncpg://db")(ExampleApi)
+    engine_ctx("postgresql+asyncpg://db")(ExampleRouter)
 
-    assert ExampleApi.engine == "postgresql+asyncpg://db"
-    assert ExampleApi.db == "postgresql+asyncpg://db"
+    assert ExampleRouter.engine == "postgresql+asyncpg://db"
+    assert ExampleRouter.db == "postgresql+asyncpg://db"
 
 
 def test_engine_ctx_binding_on_app_instance():

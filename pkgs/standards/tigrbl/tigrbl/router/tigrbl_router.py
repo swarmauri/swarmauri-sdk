@@ -1,4 +1,4 @@
-# tigrbl/v3/api/tigrbl_api.py
+# tigrbl/v3/router/tigrbl_router.py
 from __future__ import annotations
 
 import copy
@@ -14,13 +14,14 @@ from typing import (
     Tuple,
 )
 
-from ._api import Api as _Api
+from ._router import Router
+from ._routing import include_router as _include_router_impl
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
-from ..bindings.api import (
-    include_model as _include_model,
-    include_models as _include_models,
+from ..bindings.router import (
+    include_table as _include_table,
+    include_tables as _include_tables,
     rpc_call as _rpc_call,
     _seed_security_and_deps,
     _mount_router,
@@ -35,12 +36,11 @@ from ..system import mount_lens as _mount_lens
 from ..system import mount_openapi as _mount_openapi
 from ..system import mount_openrpc as _mount_openrpc
 from ..system import build_openrpc_spec as _build_openrpc_spec
-from ..system.favicon import mount_favicon
 from ..op import get_registry, OpSpec
-from ..app._model_registry import initialize_model_registry
+from ..app._model_registry import initialize_table_registry
 
 
-class TigrblApi(_Api):
+class TigrblRouter(Router):
     """
     Canonical router-focused facade that owns:
       • containers (models, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
@@ -56,8 +56,8 @@ class TigrblApi(_Api):
     RPC_PREFIX = "/rpc"
     SYSTEM_PREFIX = "/system"
     TAGS: Sequence[Any] = ()
-    APIS: Sequence[Any] = ()
-    MODELS: Sequence[Any] = ()
+    ROUTERS: Sequence[Any] = ()
+    TABLES: Sequence[Any] = ()
 
     # --- optional auth knobs recognized by some middlewares/dispatchers (kept for back-compat) ---
     _authn: Any = None
@@ -65,8 +65,6 @@ class TigrblApi(_Api):
     _authorize: Any = None
     _optional_authn_dep: Any = None
     _allow_anon_ops: set[str] = set()
-
-    mount_favicon = mount_favicon
 
     def __init__(
         self,
@@ -76,14 +74,14 @@ class TigrblApi(_Api):
         prefix: str | None = None,
         jsonrpc_prefix: str | None = None,
         system_prefix: str | None = None,
-        api_hooks: Mapping[str, Iterable[Callable]]
+        router_hooks: Mapping[str, Iterable[Callable]]
         | Mapping[str, Mapping[str, Iterable[Callable]]]
         | None = None,
         **router_kwargs: Any,
     ) -> None:
         if prefix is not None:
             self.PREFIX = prefix
-        _Api.__init__(self, engine=engine, **router_kwargs)
+        Router.__init__(self, engine=engine, **router_kwargs)
         self.jsonrpc_prefix = (
             jsonrpc_prefix
             if jsonrpc_prefix is not None
@@ -96,8 +94,8 @@ class TigrblApi(_Api):
         )
         self.rest_prefix = getattr(self, "REST_PREFIX", "/api")
 
-        # public containers (mirrors used by bindings.api)
-        self.models = initialize_model_registry(getattr(self, "MODELS", ()))
+        # public containers (mirrors used by bindings.router)
+        self.models = initialize_table_registry(getattr(self, "TABLES", ()))
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
         self.hooks = SimpleNamespace()
@@ -114,26 +112,26 @@ class TigrblApi(_Api):
         self.mount_jsonrpc()
 
         # API-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
-        self._api_hooks_map = copy.deepcopy(api_hooks) if api_hooks else None
+        self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
         if models:
-            self.include_models(list(models))
+            self.include_tables(list(models))
 
     # ------------------------- internal helpers -------------------------
 
     @staticmethod
-    def _merge_api_hooks_into_model(model: type, hooks_map: Any) -> None:
+    def _merge_router_hooks_into_model(model: type, hooks_map: Any) -> None:
         """
         Install API-level hooks on the model so the binder can see them.
         Accepted shapes:
             {phase: [fn, ...]}                           # global, all aliases
             {alias: {phase: [fn, ...]}, "*": {...}}      # per-alias + wildcard
-        If the model already has __tigrbl_api_hooks__, we shallow-merge keys.
+        If the model already has __tigrbl_router_hooks__, we shallow-merge keys.
         """
         if not hooks_map:
             return
-        existing = getattr(model, "__tigrbl_api_hooks__", None)
+        existing = getattr(model, "__tigrbl_router_hooks__", None)
         if existing is None:
-            setattr(model, "__tigrbl_api_hooks__", copy.deepcopy(hooks_map))
+            setattr(model, "__tigrbl_router_hooks__", copy.deepcopy(hooks_map))
             return
 
         # shallow merge (alias or phase keys); values are lists we extend
@@ -153,26 +151,29 @@ class TigrblApi(_Api):
                         merged[k] = list(merged[k]) + list(v or [])
                     else:
                         merged[k] = v
-        setattr(model, "__tigrbl_api_hooks__", merged)
+        setattr(model, "__tigrbl_router_hooks__", merged)
 
     # ------------------------- primary operations -------------------------
 
-    def include_model(
+    def include_router(self, other: Any, **kwargs: Any) -> None:
+        return _include_router_impl(self, other, **kwargs)
+
+    def include_table(
         self, model: type, *, prefix: str | None = None, mount_router: bool = True
     ) -> Tuple[type, Any]:
         """
         Bind a model, mount its REST router, and attach all namespaces to this facade.
         """
         # inject API-level hooks so the binder merges them
-        self._merge_api_hooks_into_model(model, self._api_hooks_map)
-        included_model, router = _include_model(
+        self._merge_router_hooks_into_model(model, self._router_hooks_map)
+        included_model, router = _include_table(
             self, model, app=None, prefix=prefix, mount_router=mount_router
         )
         if mount_router and prefix is None and router is not None:
             self.include_router(router, prefix=self.rest_prefix)
         return included_model, router
 
-    def include_models(
+    def include_tables(
         self,
         models: Sequence[type],
         *,
@@ -180,8 +181,8 @@ class TigrblApi(_Api):
         mount_router: bool = True,
     ) -> Dict[str, Any]:
         for m in models:
-            self._merge_api_hooks_into_model(m, self._api_hooks_map)
-        included = _include_models(
+            self._merge_router_hooks_into_model(m, self._router_hooks_map)
+        included = _include_tables(
             self,
             models,
             app=None,
@@ -211,10 +212,10 @@ class TigrblApi(_Api):
     # ------------------------- extras / mounting -------------------------
 
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
-        """Mount a JSON-RPC router onto this TigrblApi instance."""
+        """Mount a JSON-RPC router onto this TigrblRouter instance."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
         self.jsonrpc_prefix = px
-        prov = _resolver.resolve_provider(api=self)
+        prov = _resolver.resolve_provider(router=self)
         get_db = prov.get_db if prov else None
         router = _mount_jsonrpc(
             self,
@@ -260,9 +261,9 @@ class TigrblApi(_Api):
     def attach_diagnostics(
         self, *, prefix: str | None = None, app: Any | None = None
     ) -> Any:
-        """Mount a diagnostics router onto this TigrblApi instance or ``app``."""
+        """Mount a diagnostics router onto this TigrblRouter instance or ``app``."""
         px = prefix if prefix is not None else self.system_prefix
-        prov = _resolver.resolve_provider(api=self)
+        prov = _resolver.resolve_provider(router=self)
         get_db = prov.get_db if prov else None
         router = _mount_diagnostics(self, get_db=get_db)
         include_self = getattr(self, "include_router", None)
@@ -282,7 +283,7 @@ class TigrblApi(_Api):
 
     def bind(self, model: type) -> Tuple[OpSpec, ...]:
         """Bind/rebuild a model in place (without mounting)."""
-        self._merge_api_hooks_into_model(model, self._api_hooks_map)
+        self._merge_router_hooks_into_model(model, self._router_hooks_map)
         return _bind(model)
 
     def rebind(
@@ -358,4 +359,4 @@ class TigrblApi(_Api):
         models = list(getattr(self, "models", {}))
         rpc_ns = getattr(self, "rpc", None)
         rpc_keys = list(getattr(rpc_ns, "__dict__", {}).keys()) if rpc_ns else []
-        return f"<TigrblApi models={models} rpc={rpc_keys}>"
+        return f"<TigrblRouter models={models} rpc={rpc_keys}>"

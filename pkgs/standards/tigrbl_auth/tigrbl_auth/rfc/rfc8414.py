@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from tigrbl_auth.deps import TigrblApi, TigrblApp, HTTPException, status
+from tigrbl_auth.deps import TigrblRouter, TigrblApp, HTTPException, status
 
 from ..runtime_cfg import settings
 from ..oidc_discovery import (
@@ -23,7 +23,7 @@ from ..oidc_discovery import (
 
 RFC8414_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc8414"
 
-api = TigrblApi()
+api = TigrblRouter()
 router = api
 
 

@@ -84,7 +84,7 @@ def _query_param_schemas_from_model(
 
 
 def _build_router(
-    model: type, specs: Sequence[OpSpec], *, api: Any | None = None
+    model: type, specs: Sequence[OpSpec], *, router: Any | None = None
 ) -> Router:
     resource = _resource_name(model)
 
@@ -249,7 +249,7 @@ def _build_router(
                 db_dep=db_dep,
                 pk_param=pk_param,
                 nested_vars=nested_vars,
-                api=api,
+                router=router,
             )
         else:
             endpoint = _make_collection_endpoint(
@@ -258,7 +258,7 @@ def _build_router(
                 resource=resource,
                 db_dep=db_dep,
                 nested_vars=nested_vars,
-                api=api,
+                router=router,
             )
 
         # Status codes
@@ -328,7 +328,7 @@ def _build_router(
         ):
             route_kwargs["include_in_schema"] = False
 
-        router.add_api_route(**route_kwargs)
+        router.add_route(**route_kwargs)
 
         logger.debug(
             "rest: registered %s %s -> %s.%s (response_model=%s)",

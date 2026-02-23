@@ -5,7 +5,7 @@ from httpx import ASGITransport, AsyncClient
 
 from tigrbl.types import BaseModel, Column, Integer, String
 
-from tigrbl import TigrblApp, Base, schema_ctx
+from tigrbl import TigrblApp, Base, schema_ctx, TigrblRouter
 from tigrbl.core import crud
 from tigrbl.engine.shortcuts import mem
 from tigrbl.engine import resolver as _resolver
@@ -32,18 +32,18 @@ async def schema_ctx_client():
             age: int
 
     cfg = mem()
-    app = TigrblApp()
-    api = TigrblApp(engine=cfg)
-    api.include_model(Widget, prefix="")
-    api.mount_jsonrpc()
-    api.attach_diagnostics()
-    await api.initialize()
-    prov = _resolver.resolve_provider()
+    app = TigrblApp(engine=cfg)
+    router = TigrblRouter(engine=cfg)
+    app.include_table(Widget, prefix="")
+    app.mount_jsonrpc()
+    app.attach_diagnostics()
+    app.include_router(router)
+    await app.initialize()
+    prov = _resolver.resolve_provider(router=router)
     _, sessionmaker = prov.ensure()
-    app.include_router(api.router)
 
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
-    return client, api, Widget, sessionmaker
+    return client, router, Widget, sessionmaker
 
 
 @pytest.mark.i9n
@@ -58,9 +58,9 @@ async def test_schema_ctx_bindings(schema_ctx_client):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_schema_ctx_request_response_schema(schema_ctx_client):
-    _, api, _, _ = schema_ctx_client
-    create_schema = api.schemas.Widget.create.in_
-    read_schema = api.schemas.Widget.read.out
+    _, router, _, _ = schema_ctx_client
+    create_schema = router.schemas.Widget.create.in_
+    read_schema = router.schemas.Widget.read.out
     assert create_schema.model_fields["name"].is_required()
     assert "age" in read_schema.model_fields
 
@@ -86,14 +86,14 @@ async def test_schema_ctx_default_resolution(schema_ctx_client):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_schema_ctx_internal_orm(schema_ctx_client):
-    _, api, Widget, _ = schema_ctx_client
-    assert api.models["Widget"] is Widget
-    assert "age" in api.columns["Widget"]
+    _, router, Widget, _ = schema_ctx_client
+    assert router.models["Widget"] is Widget
+    assert "age" in router.columns["Widget"]
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_schema_ctx_openapi(schema_ctx_client):
+async def test_schema_ctx_openrouter(schema_ctx_client):
     client, _, _, _ = schema_ctx_client
     spec = (await client.get("/openapi.json")).json()
     schemas = spec["components"]["schemas"]

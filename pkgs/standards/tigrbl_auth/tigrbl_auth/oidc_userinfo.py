@@ -14,7 +14,7 @@ from __future__ import annotations
 import inspect
 
 from tigrbl_auth.deps import (
-    TigrblApi,
+    TigrblRouter,
     TigrblApp,
     HTTPException,
     Request,
@@ -28,7 +28,7 @@ from .orm import User
 from .rfc.rfc6750 import extract_bearer_token
 from .deps import JWAAlg
 
-api = TigrblApi()
+api = TigrblRouter()
 router = api
 
 

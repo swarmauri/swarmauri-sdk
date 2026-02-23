@@ -4,8 +4,8 @@ import logging
 from functools import lru_cache
 from typing import Any, Callable, Dict
 
-from .types import OpSpec
-from .decorators import _maybe_await, _OpDecl, _infer_arity, _normalize_persist, _unwrap
+from .op_spec import OpSpec
+from .decorators import _maybe_await, _normalize_persist, _unwrap
 from ..runtime.executor import _Ctx
 
 logger = logging.getLogger("uvicorn")
@@ -53,41 +53,38 @@ def mro_collect_decorated_ops(table: type) -> list[OpSpec]:
             if name in seen:
                 continue
             func = _unwrap(attr)
-            decl: _OpDecl | None = getattr(func, "__tigrbl_op_decl__", None)
-            if not decl:
+            op_spec: OpSpec | None = getattr(func, "__tigrbl_op_spec__", None)
+            if op_spec is None:
+                op_spec = getattr(func, "__tigrbl_op_decl__", None)
+            if op_spec is None:
                 continue
-
-            target = decl.target or "custom"
-            arity = decl.arity or _infer_arity(target)
-            persist = _normalize_persist(decl.persist)
-            alias = decl.alias or name
-
-            expose_kwargs: dict[str, Any] = {}
-            extra: dict[str, Any] = {}
-            if decl.rest is not None:
-                expose_kwargs["expose_routes"] = bool(decl.rest)
-            elif alias != target and target in {
-                "read",
-                "update",
-                "delete",
-                "list",
-                "clear",
-            }:
-                expose_kwargs["expose_routes"] = False
 
             spec = OpSpec(
                 table=table,
-                alias=alias,
-                target=target,
-                arity=arity,
-                persist=persist,
+                alias=op_spec.alias or name,
+                target=op_spec.target,
+                arity=op_spec.arity,
+                persist=_normalize_persist(op_spec.persist),
                 handler=_wrap_ctx_core(table, func),
-                request_model=decl.request_schema,
-                response_model=decl.response_schema,
-                hooks=(),
-                status_code=decl.status_code,
-                extra=extra,
-                **expose_kwargs,
+                http_methods=op_spec.http_methods,
+                path_suffix=op_spec.path_suffix,
+                tags=tuple(op_spec.tags or ()),
+                request_model=op_spec.request_model,
+                response_model=op_spec.response_model,
+                hooks=tuple(op_spec.hooks or ()),
+                status_code=op_spec.status_code,
+                expose_routes=op_spec.expose_routes,
+                expose_rpc=op_spec.expose_rpc,
+                expose_method=op_spec.expose_method,
+                engine=op_spec.engine,
+                response=op_spec.response,
+                returns=op_spec.returns,
+                rbac_guard_op=op_spec.rbac_guard_op,
+                core=op_spec.core,
+                core_raw=op_spec.core_raw,
+                extra=dict(op_spec.extra),
+                deps=tuple(op_spec.deps),
+                secdeps=tuple(op_spec.secdeps),
             )
             out.append(spec)
             seen.add(name)

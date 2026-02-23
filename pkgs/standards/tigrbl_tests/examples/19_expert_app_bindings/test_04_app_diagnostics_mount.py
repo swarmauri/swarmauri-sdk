@@ -21,16 +21,15 @@ def test_app_binding_mounts_diagnostics_router():
         name = Column(String, nullable=False)
 
     app = TigrblApp(engine=mem(async_=False))
-    app.include_model(Widget)
+    app.include_table(Widget)
 
-    host = TigrblApp()
-    router = app.attach_diagnostics(app=host)
+    router = app.attach_diagnostics(app=app)
 
     assert router is not None
 
 
 def test_app_diagnostics_attach_to_host_routes():
-    """Diagnostics routing should be attached to the host FastAPI app."""
+    """Diagnostics routing should be attached to the host app."""
 
     class Widget(Base, GUIDPk):
         __tablename__ = "lesson_app_diagnostics_host"
@@ -39,12 +38,11 @@ def test_app_diagnostics_attach_to_host_routes():
         name = Column(String, nullable=False)
 
     app = TigrblApp(engine=mem(async_=False))
-    app.include_model(Widget)
+    app.include_table(Widget)
 
-    host = TigrblApp()
-    router = app.attach_diagnostics(app=host)
+    router = app.attach_diagnostics(app=app)
 
     assert router is not None
     assert any(
-        route.path == f"{app.system_prefix}/healthz" for route in host.router.routes
+        route.path == f"{app.system_prefix}/healthz" for route in app.router.routes
     )

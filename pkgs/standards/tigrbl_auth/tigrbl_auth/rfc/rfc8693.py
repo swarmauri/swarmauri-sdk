@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional, Union
 from enum import Enum
 import warnings
 from tigrbl_auth.deps import (
-    TigrblApi,
+    TigrblRouter,
     TigrblApp,
     Form,
     HTTPException,
@@ -32,7 +32,7 @@ RFC8693_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8693"
 # Token Exchange Grant Type
 TOKEN_EXCHANGE_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:token-exchange"
 
-api = TigrblApi()
+api = TigrblRouter()
 router = api
 
 

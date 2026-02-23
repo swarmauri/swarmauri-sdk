@@ -18,7 +18,7 @@ source of truth for the remaining follow-ups.
 - [ ] `Header` helpers location (align with request/transport decisions).
 - [ ] `Handler` utilities might live in `core.crud` (confirm the final location).
 - [ ] `Route` structure location (routing/transport decision).
-- [ ] Rename `APIRouter` to `Router`, then inherit `Router` into `TigrblApi` and
+- [ ] Rename `APIRouter` to `Router`, then inherit `Router` into `TigrblRouter` and
   `TigrblApp`.
 - [ ] Make `openapi.json` a system-mountable endpoint, mounted by default.
 - [ ] Support middleware registration (TigrblApp only).

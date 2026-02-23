@@ -31,7 +31,7 @@ async def test_app_mount_favicon_default_route() -> None:
 
 @pytest.mark.asyncio
 async def test_app_mount_favicon_custom_route() -> None:
-    """Mount a namespaced favicon route for advanced app layouts."""
+    """Mount a namespaced favicon asset while preserving default ICO redirect."""
     app = TigrblApp()
 
     app.mount_favicon(path="/assets/favicon.svg", name="lesson_app_assets_favicon")
@@ -44,4 +44,4 @@ async def test_app_mount_favicon_custom_route() -> None:
     assert svg_response.status_code == 200
     assert svg_response.headers["content-type"].startswith("image/svg+xml")
     assert ico_response.status_code == 307
-    assert ico_response.headers["location"] == "/assets/favicon.svg"
+    assert ico_response.headers["location"] == "/favicon.svg"

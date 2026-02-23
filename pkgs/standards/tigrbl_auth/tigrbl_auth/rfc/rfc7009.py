@@ -13,13 +13,13 @@ from urllib.parse import parse_qs
 
 from typing import Final, Set
 
-from tigrbl_auth.deps import TigrblApi, TigrblApp, HTTPException, Request, status
+from tigrbl_auth.deps import TigrblRouter, TigrblApp, HTTPException, Request, status
 
 from ..runtime_cfg import settings
 
 RFC7009_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7009"
 
-api = TigrblApi()
+api = TigrblRouter()
 router = api
 
 # In-memory set storing revoked tokens for demonstration and testing purposes
