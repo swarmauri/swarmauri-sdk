@@ -2,6 +2,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from tigrbl import TigrblRouter, TigrblApp
+from tigrbl.router.decorators import route_ctx
 
 
 async def _get_json(app, path: str):
@@ -32,10 +33,9 @@ def test_tigrbl_app_is_asgi_compatible():
     """TigrblApp should serve routes as an ASGI app."""
     app = TigrblApp()
 
+    @route_ctx(router=app, path="/health", methods=["GET"])
     def health(_request):
         return {"ok": True}
-
-    app.add_route("/health", health, methods=["GET"])
 
     import asyncio
 
