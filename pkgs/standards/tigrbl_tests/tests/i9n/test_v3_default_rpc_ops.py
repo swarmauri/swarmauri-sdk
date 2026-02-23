@@ -44,8 +44,8 @@ async def client_and_model():
     router = TigrblRouter(engine=mem(async_=False))
     router.include_table(Gadget, prefix="")
     router.mount_jsonrpc(prefix="/rpc")
+    await router.initialize()
     app.include_router(router)
-    await app.initialize()
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
@@ -164,8 +164,8 @@ async def wrapper_field_client_and_model():
     router = TigrblRouter(engine=mem(async_=False))
     router.include_table(WrapperNamed, prefix="")
     router.mount_jsonrpc(prefix="/rpc")
+    await router.initialize()
     app.include_router(router)
-    await app.initialize()
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
@@ -264,8 +264,8 @@ async def bulk_client_and_model():
     router = TigrblRouter(engine=mem(async_=False))
     router.include_table(Gadget, prefix="")
     router.mount_jsonrpc(prefix="/rpc")
+    await router.initialize()
     app.include_router(router)
-    await app.initialize()
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
