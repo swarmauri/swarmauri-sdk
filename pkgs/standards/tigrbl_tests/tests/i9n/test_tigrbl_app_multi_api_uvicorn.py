@@ -36,15 +36,15 @@ class BetaWidget(Base, GUIDPk):
 @pytest_asyncio.fixture()
 async def running_multi_router_app():
     engine = mem(async_=False)
-    alpha_router = TigrblRouter(engine=engine)
-    alpha_router.include_table(AlphaWidget)
+    routers = [TigrblRouter(engine=engine), TigrblRouter(engine=engine)]
+    router = routers[0]
+    router.include_table(AlphaWidget)
 
-    beta_router = TigrblRouter(engine=engine)
-    beta_router.include_table(BetaWidget)
+    routers[1].include_table(BetaWidget)
 
-    app = TigrblApp(engine=engine, routers=[alpha_router])
-    app.include_router(beta_router, prefix="/beta")
-    app.include_router(alpha_router.router, prefix="/alpha")
+    app = TigrblApp(engine=engine, routers=[router])
+    app.include_router(routers[1], prefix="/beta")
+    app.include_router(router.router, prefix="/alpha")
     await app.initialize()
 
     base_url, server, task = await run_uvicorn_in_task(app)

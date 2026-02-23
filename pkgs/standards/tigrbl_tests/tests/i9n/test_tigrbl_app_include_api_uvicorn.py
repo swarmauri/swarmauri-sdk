@@ -47,14 +47,17 @@ class ZetaWidget(Base, GUIDPk):
 @pytest_asyncio.fixture()
 async def running_app_with_routers():
     engine = mem(async_=False)
-    alpha_router = TigrblRouter(engine=engine, models=[AlphaWidget], prefix="/alpha")
-    beta_router = TigrblRouter(engine=engine)
-    beta_app.include_table(BetaWidget)
-    zeta_router = TigrblRouter(engine=engine)
-    zeta_app.include_table(ZetaWidget)
+    routers = [
+        TigrblRouter(engine=engine, models=[AlphaWidget], prefix="/alpha"),
+        TigrblRouter(engine=engine),
+        TigrblRouter(engine=engine),
+    ]
+    router = routers[0]
+    routers[1].include_table(BetaWidget)
+    routers[2].include_table(ZetaWidget)
 
-    app = TigrblApp(engine=engine, routers=[alpha_router, (zeta_router, "/zeta")])
-    app.include_router(beta_router, prefix="/beta")
+    app = TigrblApp(engine=engine, routers=[router, (routers[2], "/zeta")])
+    app.include_router(routers[1], prefix="/beta")
     await app.initialize()
 
     base_url, server, task = await run_uvicorn_in_task(app)
@@ -67,14 +70,14 @@ async def running_app_with_routers():
 @pytest_asyncio.fixture()
 async def running_app_with_router():
     engine = mem(async_=False)
-    alpha_router = TigrblRouter(engine=engine)
-    alpha_app.include_table(AlphaWidget)
-    beta_router = TigrblRouter(engine=engine)
-    beta_app.include_table(BetaWidget)
+    routers = [TigrblRouter(engine=engine), TigrblRouter(engine=engine)]
+    router = routers[0]
+    router.include_table(AlphaWidget)
+    routers[1].include_table(BetaWidget)
 
-    app = TigrblApp(engine=engine, routers=[alpha_router])
-    app.include_router(beta_router, prefix="/beta")
-    app.include_router(alpha_router.router, prefix="/alpha")
+    app = TigrblApp(engine=engine, routers=[router])
+    app.include_router(routers[1], prefix="/beta")
+    app.include_router(router.router, prefix="/alpha")
     await app.initialize()
 
     base_url, server, task = await run_uvicorn_in_task(app)
@@ -138,7 +141,7 @@ async def test_tigrbl_app_include_router_alpha(running_app_with_router):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_app_include_router_beta(running_app_with_router):
+async def test_tigrbl_app_include_router_beta_with_single_router_seed(running_app_with_router):
     async with httpx.AsyncClient() as client:
         response = await client.post(
             f"{running_app_with_router}/beta/beta-widget", json={"name": "bolt"}

@@ -7,8 +7,9 @@ from tigrbl.engine.shortcuts import mem
 
 @pytest.mark.unit
 def test_app_engine_param_registers_default_provider() -> None:
-    _ = TigrblApp(engine=mem(async_=False))
+    app = TigrblApp(engine=mem(async_=False))
 
+    assert app is not None
     provider = _resolver.resolve_provider()
     assert provider is not None
     assert provider.spec.kind == "sqlite"
