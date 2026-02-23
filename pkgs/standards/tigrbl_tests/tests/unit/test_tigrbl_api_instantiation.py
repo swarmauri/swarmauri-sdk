@@ -21,7 +21,7 @@ class Widget(Base, GUIDPk):
 
 
 class WidgerRouter(TigrblRouter):
-    MODELS = (Widget,)
+    TABLES = (Widget,)
 
 
 @pytest.mark.unit

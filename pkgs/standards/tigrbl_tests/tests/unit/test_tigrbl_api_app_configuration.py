@@ -31,7 +31,7 @@ class Iota(Base, GUIDPk):
 
 
 class IotaRouter(TigrblRouter):
-    MODELS = (Iota,)
+    TABLES = (Iota,)
 
 
 @pytest.mark.unit
@@ -58,7 +58,8 @@ def test_tigrbl_router_app_constructor_configuration_applies_metadata() -> None:
     assert router.system_prefix == "/systemx"
     assert app.TITLE == "Iota App"
     assert app.VERSION == "9.9.9"
-    assert app.routers == [router]
+    assert isinstance(app.routers, dict)
+    assert router in app.routers.values()
 
 
 @pytest.mark.unit

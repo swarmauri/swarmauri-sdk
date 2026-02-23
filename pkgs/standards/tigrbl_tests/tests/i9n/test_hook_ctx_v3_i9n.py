@@ -1,5 +1,5 @@
 import pytest
-from tigrbl import TigrblApp, TigrblRouter
+from tigrbl import TigrblApp
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import func, select
 
@@ -16,19 +16,17 @@ from tigrbl.hook import hook_ctx
 
 def create_client(model_cls):
     """Build a TigrblApp app with Tigrbl and return an AsyncClient."""
-    app = TigrblApp()
-    router = TigrblRouter(engine={"kind": "sqlite", "memory": True})
+    app = TigrblApp(engine={"kind": "sqlite", "memory": True})
     app.include_table(model_cls)
     app.mount_jsonrpc()
     app.attach_diagnostics()
+    app.initialize()
 
     from tigrbl.engine import resolver as _resolver
 
-    prov = _resolver.resolve_provider(router=router)
-    engine, SessionLocal = prov.ensure()
-    Base.metadata.create_all(engine)
+    prov = _resolver.resolve_provider()
+    _, SessionLocal = prov.ensure()
 
-    app.include_router(router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     return client, app, SessionLocal

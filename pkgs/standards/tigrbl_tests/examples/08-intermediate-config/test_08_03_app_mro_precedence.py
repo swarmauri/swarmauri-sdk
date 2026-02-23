@@ -8,7 +8,9 @@ def test_app_mro_precedence() -> None:
     class BaseSpec(defineAppSpec(title="Base", version="1.0", routers=("base",))):
         pass
 
-    class OverrideSpec(defineAppSpec(title="Override", version="2.0", routers=("extra",))):
+    class OverrideSpec(
+        defineAppSpec(title="Override", version="2.0", routers=("extra",))
+    ):
         pass
 
     class AppCls(OverrideSpec, BaseSpec):

@@ -21,7 +21,7 @@ class Theta(Base, GUIDPk):
 
 
 class ThetaRouter(TigrblRouter):
-    MODELS = (Theta,)
+    TABLES = (Theta,)
 
 
 @pytest.mark.unit
@@ -39,4 +39,5 @@ def test_tigrbl_router_app_instantiation_sets_composed_state() -> None:
     assert "models" in router_dir
     assert router.models["Theta"] is Theta
     assert "routers" in app_dir
-    assert app.routers == [router]
+    assert isinstance(app.routers, dict)
+    assert router in app.routers.values()
