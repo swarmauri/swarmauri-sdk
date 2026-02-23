@@ -5,7 +5,7 @@ from functools import lru_cache
 from typing import Any, Callable, Dict
 
 from .op_spec import OpSpec
-from .decorators import _maybe_await, _infer_arity, _normalize_persist, _unwrap
+from .decorators import _maybe_await, _normalize_persist, _unwrap
 from ..runtime.executor import _Ctx
 
 logger = logging.getLogger("uvicorn")
@@ -53,44 +53,36 @@ def mro_collect_decorated_ops(table: type) -> list[OpSpec]:
             if name in seen:
                 continue
             func = _unwrap(attr)
-            decl: dict[str, Any] | None = getattr(func, "__tigrbl_op_decl__", None)
-            if not decl:
+            decl: OpSpec | None = getattr(func, "__tigrbl_op_decl__", None)
+            if decl is None:
                 continue
-
-            target = decl.get("target") or "custom"
-            arity = decl.get("arity") or _infer_arity(target)
-            persist = _normalize_persist(decl.get("persist"))
-            alias = decl.get("alias") or name
-
-            expose_kwargs: dict[str, Any] = {}
-            extra: dict[str, Any] = {}
-            if decl.get("rest") is not None:
-                expose_kwargs["expose_routes"] = bool(decl.get("rest"))
-            elif alias != target and target in {
-                "read",
-                "update",
-                "delete",
-                "list",
-                "clear",
-            }:
-                expose_kwargs["expose_routes"] = False
 
             spec = OpSpec(
                 table=table,
-                alias=alias,
-                target=target,
-                arity=arity,
-                persist=persist,
+                alias=decl.alias or name,
+                target=decl.target,
+                arity=decl.arity,
+                persist=_normalize_persist(decl.persist),
                 handler=_wrap_ctx_core(table, func),
-                http_methods=decl.get("http_methods"),
-                path_suffix=decl.get("path_suffix"),
-                tags=tuple(decl.get("tags") or ()),
-                request_model=decl.get("request_schema"),
-                response_model=decl.get("response_schema"),
-                hooks=(),
-                status_code=decl.get("status_code"),
-                extra=extra,
-                **expose_kwargs,
+                http_methods=decl.http_methods,
+                path_suffix=decl.path_suffix,
+                tags=tuple(decl.tags or ()),
+                request_model=decl.request_model,
+                response_model=decl.response_model,
+                hooks=tuple(decl.hooks or ()),
+                status_code=decl.status_code,
+                expose_routes=decl.expose_routes,
+                expose_rpc=decl.expose_rpc,
+                expose_method=decl.expose_method,
+                engine=decl.engine,
+                response=decl.response,
+                returns=decl.returns,
+                rbac_guard_op=decl.rbac_guard_op,
+                core=decl.core,
+                core_raw=decl.core_raw,
+                extra=dict(decl.extra),
+                deps=tuple(decl.deps),
+                secdeps=tuple(decl.secdeps),
             )
             out.append(spec)
             seen.add(name)

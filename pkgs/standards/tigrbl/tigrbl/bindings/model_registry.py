@@ -62,8 +62,8 @@ def _ensure_op_ctx_attach_hook(model: type) -> None:
         fn = getattr(value, "__func__", value)
         decl = getattr(fn, "__tigrbl_op_decl__", None)
         if decl and getattr(cls, "__tigrbl_op_ctx_watch__", False):
-            alias = decl.get("alias") or name
-            target = decl.get("target") or "custom"
+            alias = decl.alias or name
+            target = decl.target or "custom"
             mro_collect_decorated_ops.cache_clear()
             rebind(cls, changed_keys={(alias, target)})
 

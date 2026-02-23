@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Iterable, Optional, Sequence
 
 from ..op.decorators import _unwrap, op_ctx
@@ -70,14 +71,16 @@ def route_ctx(
         )(fn)
 
         base_fn = _unwrap(decorated)
-        decl = dict(getattr(base_fn, "__tigrbl_op_decl__", {}) or {})
+        decl = getattr(base_fn, "__tigrbl_op_decl__", None)
+        if decl is None:
+            return decorated
 
         if normalized_methods is not None:
-            decl["http_methods"] = normalized_methods
+            decl = replace(decl, http_methods=normalized_methods)
         if path_suffix is not None:
-            decl["path_suffix"] = path_suffix
+            decl = replace(decl, path_suffix=path_suffix)
         if normalized_tags:
-            decl["tags"] = normalized_tags
+            decl = replace(decl, tags=normalized_tags)
 
         base_fn.__tigrbl_op_decl__ = decl
         return decorated
