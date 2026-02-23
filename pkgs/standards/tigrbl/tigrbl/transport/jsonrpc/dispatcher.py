@@ -70,6 +70,15 @@ Json = Mapping[str, Any]
 Batch = Sequence[Mapping[str, Any]]
 
 
+def _jsonrpc_operation_id(prefix: Any) -> str:
+    if not isinstance(prefix, str) or not prefix:
+        return "jsonrpc"
+    suffix = prefix.strip("/").replace("/", "_")
+    if not suffix:
+        return "jsonrpc"
+    return f"jsonrpc_{suffix}"
+
+
 def _log_rpc_success(method: Any, rid: Any) -> None:
     logger.info(
         "jsonrpc response method=%s id=%s status_code=%s",
@@ -442,6 +451,9 @@ def build_jsonrpc_router(
         endpoint=_endpoint,
         methods=["POST"],
         name="jsonrpc",
+        operation_id=_jsonrpc_operation_id(
+            getattr(source_router, "jsonrpc_prefix", None)
+        ),
         tags=list(tags) if tags else None,
         summary="JSONRPC",
         description="JSON-RPC 2.0 endpoint.",

@@ -286,6 +286,8 @@ class TigrblApp(_App):
         if self._default_router is None:
             self._default_router = TigrblRouter(
                 engine=self.engine,
+                jsonrpc_prefix=self.jsonrpc_prefix,
+                system_prefix=self.system_prefix,
                 router_hooks=self._router_hooks_map,
             )
             # Mirror current app auth knobs onto the default Router.
