@@ -56,7 +56,7 @@ def test_openapi_schema_excludes_openrpc_even_if_route_is_schema_visible() -> No
     def openrpc_override(_request):
         return {"openrpc": "1.2.6"}
 
-    app.add_api_route(
+    app.add_router_route(
         "/openrpc.json",
         openrpc_override,
         methods=["GET"],

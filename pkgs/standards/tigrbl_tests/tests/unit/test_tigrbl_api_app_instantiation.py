@@ -8,7 +8,7 @@ from tigrbl.types import Mapped, String
 
 
 class Theta(Base, GUIDPk):
-    __tablename__ = "theta_api_app_inst"
+    __tablename__ = "theta_router_app_inst"
     __allow_unmapped__ = True
 
     name: Mapped[str] = acol(
@@ -20,23 +20,23 @@ class Theta(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class ThetaApi(TigrblRouter):
+class ThetaRouter(TigrblRouter):
     MODELS = (Theta,)
 
 
 @pytest.mark.unit
-def test_tigrbl_api_app_instantiation_sets_composed_state() -> None:
+def test_tigrbl_router_app_instantiation_sets_composed_state() -> None:
     router = ThetaApi(engine=mem(async_=False))
 
     class ThetaApp(TigrblApp):
-        APIS = (router,)
+        ROUTERS = (router,)
 
     app = ThetaApp(engine=mem(async_=False))
 
-    api_dir = dir(router)
+    router_dir = dir(router)
     app_dir = dir(app)
 
-    assert "models" in api_dir
+    assert "models" in router_dir
     assert router.models["Theta"] is Theta
-    assert "apis" in app_dir
-    assert app.apis == [router]
+    assert "routers" in app_dir
+    assert app.routers == [router]

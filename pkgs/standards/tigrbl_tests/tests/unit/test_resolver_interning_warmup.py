@@ -22,11 +22,11 @@ def test_interns_providers_by_engine_spec() -> None:
     resolver.register_op(Model, "create", cfg)
 
     p_default = resolver.resolve_provider()
-    p_api = resolver.resolve_provider(router=Api())
+    p_router = resolver.resolve_provider(router=Api())
     p_model = resolver.resolve_provider(model=Model)
     p_op = resolver.resolve_provider(model=Model, op_alias="create")
 
-    assert p_default is p_api is p_model is p_op
+    assert p_default is p_router is p_model is p_op
 
     _reset_resolver_state()
 

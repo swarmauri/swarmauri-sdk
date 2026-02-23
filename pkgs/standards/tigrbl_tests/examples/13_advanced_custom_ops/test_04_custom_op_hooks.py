@@ -30,5 +30,5 @@ def test_custom_op_hooks_register():
         import asyncio
 
         asyncio.run(init_result)
-    api.bind(Widget)
+    app.bind(Widget)
     assert len(getattr(Widget.hooks, "report").POST_RESPONSE) == 1

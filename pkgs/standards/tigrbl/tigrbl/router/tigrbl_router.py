@@ -57,7 +57,7 @@ class TigrblRouter(Router):
     RPC_PREFIX = "/rpc"
     SYSTEM_PREFIX = "/system"
     TAGS: Sequence[Any] = ()
-    APIS: Sequence[Any] = ()
+    ROUTERS: Sequence[Any] = ()
     TABLES: Sequence[Any] = ()
 
     # --- optional auth knobs recognized by some middlewares/dispatchers (kept for back-compat) ---

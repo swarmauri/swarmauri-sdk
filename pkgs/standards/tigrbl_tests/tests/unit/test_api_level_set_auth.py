@@ -9,11 +9,11 @@ from tigrbl.security import Security
 
 
 class Widget(Base, GUIDPk):
-    __tablename__ = "widgets_api_level_set_auth"
+    __tablename__ = "widgets_router_level_set_auth"
     __tigrbl_allow_anon__ = ["list"]
 
 
-def test_api_level_auth_dep_applied_per_route():
+def test_router_level_auth_dep_applied_per_route():
     router = Router()
     app = TigrblApp()
     app.set_auth(authn=lambda cred=Security(HTTPBearer()): cred, allow_anon=False)

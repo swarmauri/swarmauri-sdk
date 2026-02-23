@@ -6,7 +6,7 @@ from tigrbl.engine.shortcuts import mem
 
 
 @pytest.mark.unit
-def test_api_engine_param_registers_api_provider() -> None:
+def test_router_engine_param_registers_router_provider() -> None:
     router = TigrblRouter(engine=mem(async_=False))
 
     provider = _resolver.resolve_provider(router=router)
@@ -16,7 +16,7 @@ def test_api_engine_param_registers_api_provider() -> None:
 
 
 @pytest.mark.unit
-def test_api_engine_ctx_instance_requires_install_engines() -> None:
+def test_router_engine_ctx_instance_requires_install_engines() -> None:
     router = TigrblRouter()
     engine_ctx(mem(async_=False))(router)
 

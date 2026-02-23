@@ -44,7 +44,7 @@ async def widget_client():
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        yield client, api, Widget
+        yield client, app, Widget
 
 
 @pytest.mark.i9n

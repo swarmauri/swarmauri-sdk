@@ -20,7 +20,7 @@ class SimpleApp(_App):
     TITLE = "TestApp"
     VERSION = "0.0"
     LIFESPAN = None
-    APIS: tuple = ()
+    ROUTERS: tuple = ()
     MODELS: tuple = ()
     MIDDLEWARES: tuple = ()
 
@@ -45,7 +45,7 @@ def test_base_app_supports_initialize():
     assert getattr(tables, "Widget", None) is Widget.__table__
 
 
-def test_base_api_supports_initialize_sync():
+def test_base_router_supports_initialize_sync():
     router = SimpleApi(engine=mem(async_=False))
     router.models["Widget"] = Widget
 
@@ -56,7 +56,7 @@ def test_base_api_supports_initialize_sync():
 
 
 @pytest.mark.asyncio
-async def test_base_api_supports_initialize_async():
+async def test_base_router_supports_initialize_async():
     class Gadget(Base):
         __tablename__ = "gadgets"
 

@@ -43,7 +43,7 @@ Handler = Callable[..., Any]
 
 class Router(RouterSpec):
     PREFIX = ""
-    APIS: tuple[Any, ...] = ()
+    ROUTERS: tuple[Any, ...] = ()
     MODELS: tuple[Any, ...] = ()
     TABLES: tuple[Any, ...] = ()
     REST_PREFIX = "/api"
@@ -133,7 +133,7 @@ class Router(RouterSpec):
     def install_engines(
         self, *, router: Any = None, models: tuple[Any, ...] | None = None
     ) -> None:
-        routers = (router,) if router is not None else self.APIS
+        routers = (router,) if router is not None else self.ROUTERS
         models = models if models is not None else self.TABLES
         if routers:
             for a in routers:

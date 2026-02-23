@@ -21,7 +21,7 @@ class Router:
         self.engine = engine
 
 
-def test_op_table_api_app_engines(tmp_path):
+def test_op_table_router_app_engines(tmp_path):
     app = App(sqlitef(str(tmp_path / "app.sqlite"), async_=False))
     router = Router(pgs(host="db", name="api_db"))
 

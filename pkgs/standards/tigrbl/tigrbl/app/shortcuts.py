@@ -41,7 +41,7 @@ def defineAppSpec(
         TITLE=title,
         VERSION=version,
         ENGINE=engine,
-        APIS=tuple(routers or ()),
+        ROUTERS=tuple(routers or ()),
         OPS=tuple(ops or ()),
         TABLES=tuple(models or ()),
         SCHEMAS=tuple(schemas or ()),

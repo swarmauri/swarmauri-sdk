@@ -75,7 +75,7 @@ async def test_openapi_security_from_app_authn_dependency() -> None:
 
 
 @pytest.mark.asyncio
-async def test_openapi_security_from_api_authn_dependency() -> None:
+async def test_openapi_security_from_router_authn_dependency() -> None:
     """Show API-level authn dependencies mark secured routes in OpenAPI.
 
     This test configures a bearer-token authn dependency on ``TigrblRouter``,
@@ -93,7 +93,7 @@ async def test_openapi_security_from_api_authn_dependency() -> None:
 
     # Configuration: declare a model with anonymous list access.
     class SecureApiWidget(Base, GUIDPk):
-        __tablename__ = "lesson_security_authn_api_widget"
+        __tablename__ = "lesson_security_authn_router_widget"
         __allow_unmapped__ = True
         __tigrbl_allow_anon__ = ("list",)
 

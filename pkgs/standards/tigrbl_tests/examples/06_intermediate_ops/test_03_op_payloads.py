@@ -35,7 +35,7 @@ def test_custom_op_returns_payload():
     app.initialize()
 
     # Test: locate the OpSpec for the custom alias on the bound model.
-    spec = next(sp for sp in api.bind(LessonPayload) if sp.alias == "summary")
+    spec = next(sp for sp in app.bind(LessonPayload) if sp.alias == "summary")
 
     # Assertion: the custom op has a handler attached.
     assert spec.handler is not None
@@ -69,7 +69,7 @@ def test_custom_op_exposes_target_and_handler():
     app.initialize()
 
     # Test: pull the spec from the bound model set.
-    spec = next(sp for sp in api.bind(LessonPayloadMeta) if sp.alias == "describe")
+    spec = next(sp for sp in app.bind(LessonPayloadMeta) if sp.alias == "describe")
 
     # Assertion: the spec advertises the custom target and a handler.
     assert spec.target == "custom"

@@ -26,7 +26,7 @@ async def test_openapi_mountable_on_tigrbl_app_uvicorn():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_openapi_mountable_on_tigrbl_api_uvicorn():
+async def test_openapi_mountable_on_tigrbl_router_uvicorn():
     router = TigrblRouter()
     mount_openapi(router, path="/custom/openapi.json", name="openapi_custom")
 

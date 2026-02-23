@@ -31,6 +31,6 @@ def test_custom_op_declares_schema_refs():
     app.include_table(Widget)
     app.initialize()
     # Exercise: locate the summarized operation in the bound ops.
-    op = next(spec for spec in api.bind(Widget) if spec.alias == "summarize")
+    op = next(spec for spec in app.bind(Widget) if spec.alias == "summarize")
     # Assertion: request schemas are resolved for the op.
     assert op.request_model is not None

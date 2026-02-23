@@ -13,15 +13,15 @@ def test_derive_app_prefills_model_registry() -> None:
 
 
 def test_derive_router_prefills_model_registry() -> None:
-    ApiCls = deriveRouter(tables=[Model])
-    api = ApiCls()
-    assert api.models["Model"] is Model
+    RouterCls = deriveRouter(tables=[Model])
+    router = RouterCls()
+    assert router.models["Model"] is Model
 
 
 def test_registry_includes_alias_and_name() -> None:
     class AliasModel:
         __tablename__ = "alias_model"
 
-    ApiCls = deriveRouter(tables=[AliasModel])
-    api = ApiCls()
-    assert api.models["AliasModel"] is AliasModel
+    RouterCls = deriveRouter(tables=[AliasModel])
+    router = RouterCls()
+    assert router.models["AliasModel"] is AliasModel

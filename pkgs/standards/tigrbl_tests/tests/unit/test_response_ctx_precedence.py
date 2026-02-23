@@ -19,7 +19,7 @@ def test_response_ctx_precedence():
     class App:  # pragma: no cover - simple container
         pass
 
-    @response_ctx(headers={"A": "api", "B": "api"})
+    @response_ctx(headers={"A": "router", "B": "router"})
     class API:  # pragma: no cover - simple container
         pass
 
@@ -32,7 +32,7 @@ def test_response_ctx_precedence():
         pass
 
     app_spec = AppSpec(response=ResponseSpec(status_code=200))
-    api_spec = RouterSpec(response=ResponseSpec(status_code=201))
+    router_spec = RouterSpec(response=ResponseSpec(status_code=201))
     table_spec = TableSpec(
         model=SimpleNamespace(), response=ResponseSpec(status_code=202)
     )
@@ -40,7 +40,7 @@ def test_response_ctx_precedence():
 
     merged = resolve_response_spec(
         app_spec.response,
-        api_spec.response,
+        router_spec.response,
         table_spec.response,
         op_spec.response,
     )
@@ -55,7 +55,7 @@ def test_response_ctx_precedence():
     hints, envelope, default_media = infer_hints(merged)
     assert hints.status_code == 203
     assert hints.headers["A"] == "op"
-    assert hints.headers["B"] == "api"
+    assert hints.headers["B"] == "router"
     assert hints.headers["C"] == "table"
     assert hints.headers["D"] == "op"
     assert envelope is None

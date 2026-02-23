@@ -79,7 +79,7 @@ async def test_transport_dispatch_parity_success_trace_and_kernelz(parity_env):
     )
 
     rpc_result = await _dispatch_one(
-        api=app,
+        router=app,
         request=_Req("/rpc", {"authorization": "Bearer ok"}, app),
         db=db,
         obj={
@@ -122,7 +122,7 @@ async def test_transport_dispatch_parity_secdep_failures(parity_env):
         )
 
     rpc_response = await _dispatch_one(
-        api=app,
+        router=app,
         request=_Req("/rpc", app=app),
         db=db,
         obj={

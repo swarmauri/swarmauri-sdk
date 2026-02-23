@@ -120,7 +120,7 @@ async def test_persisted_columns(running_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_read_excludes_api_key(running_app):
+async def test_read_excludes_router_key(running_app):
     base_url, _ = running_app
     async with httpx.AsyncClient() as client:
         resp = await client.post(f"{base_url}/apikey", json=_payload())
@@ -143,7 +143,7 @@ async def test_rejects_digest_in_request(running_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_rejects_api_key_in_request(running_app):
+async def test_rejects_router_key_in_request(running_app):
     base_url, _ = running_app
     bad = _payload() | {"api_key": "raw"}
     async with httpx.AsyncClient() as client:
