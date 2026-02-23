@@ -72,7 +72,9 @@ def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
             return await cast(Any, rv)
         return rv
 
-    label = _make_label(anchor, run)
+    label = getattr(run, "__tigrbl_label", None)
+    if not isinstance(label, str):
+        label = _make_label(anchor, run)
     if label:
         setattr(_step, "__tigrbl_label", label)
     return _step
