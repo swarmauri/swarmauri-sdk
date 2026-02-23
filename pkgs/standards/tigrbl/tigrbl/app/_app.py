@@ -99,9 +99,9 @@ class App(AppSpec):
         app_target = self.__class__
         if routers:
             for entry in routers:
-                install_from_objects(app=app_target, router=entry, models=tables)
+                install_from_objects(app=app_target, router=entry, tables=tables)
         else:
-            install_from_objects(app=app_target, router=None, models=tables)
+            install_from_objects(app=app_target, router=None, tables=tables)
 
     def _collect_tables(self) -> list[Any]:
         seen = set()
