@@ -8,7 +8,7 @@ from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
 from ..ddl import initialize as _ddl_initialize
-from ._model_registry import initialize_model_registry
+from ._model_registry import initialize_table_registry
 from .app_spec import AppSpec
 
 
@@ -55,7 +55,8 @@ class App(AppSpec):
         self.ops = tuple(getattr(self, "OPS", ()))
         # Runtime registries use mutable containers (dict/namespace), but the
         # dataclass fields expect sequences. Storing a dict here satisfies both.
-        self.models = initialize_model_registry(getattr(self, "TABLES", ()))
+        self.tables = initialize_table_registry(getattr(self, "TABLES", ()))
+        self.models = self.tables
         self.schemas = tuple(getattr(self, "SCHEMAS", ()))
         self.hooks = tuple(getattr(self, "HOOKS", ()))
         self.security_deps = tuple(getattr(self, "SECURITY_DEPS", ()))
