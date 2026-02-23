@@ -36,15 +36,13 @@ class Widget(Base, GUIDPk):
 @pytest_asyncio.fixture
 async def widget_setup():
     app = TigrblApp(engine=mem(async_=False))
-    router = TigrblRouter(engine=mem(async_=False))
     app.include_table(Widget, prefix="/widget")
-    router.mount_jsonrpc(prefix="/rpc")
-    router.attach_diagnostics(prefix="/system")
-    app.include_router(router)
+    app.mount_jsonrpc(prefix="/rpc")
+    app.attach_diagnostics(prefix="/system")
     app.initialize()
 
     prov = _resolver.resolve_provider()
-    SessionLocal = prov.session
+    _, SessionLocal = prov.ensure()
 
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")

@@ -1,6 +1,6 @@
 import pytest
 import pytest_asyncio
-from tigrbl import TigrblApp, TigrblRouter, Base
+from tigrbl import TigrblApp, Base
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.column.storage_spec import StorageTransform
@@ -202,20 +202,6 @@ def create_test_router():
     return _create_router
 
 
-@pytest.fixture
-def create_test_app():
-    """Factory fixture to create initialized TigrblApp instances for tests."""
-
-    def _create_app(model_class):
-        Base.metadata.clear()
-        app = TigrblApp(engine=mem(async_=False))
-        app.include_table(model_class)
-        app.initialize()
-        return app
-
-    return _create_app
-
-
 @pytest_asyncio.fixture
 async def create_test_router_async():
     """Factory fixture to create async Tigrbl instances for testing individual models."""
@@ -365,15 +351,13 @@ async def router_client_v3():
         }
 
     cfg = mem()
-    app = TigrblApp()
-    router = TigrblRouter(engine=cfg)
+    app = TigrblApp(engine=cfg)
     app.include_table(Widget, prefix="")
     app.mount_jsonrpc()
     app.attach_diagnostics()
     await app.initialize()
     prov = _resolver.resolve_provider()
     _, session_maker = prov.ensure()
-    app.include_router(router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, router, Widget, session_maker
+    return client, app, Widget, session_maker
