@@ -36,8 +36,22 @@ _Key = Tuple[str, str]  # (alias, target)
 #   post/error:  OP  → MODEL → ROUTER
 # ───────────────────────────────────────────────────────────────────────────────
 
-_PRE_LIKE = frozenset({"PRE_TX_BEGIN", "START_TX", "PRE_HANDLER", "PRE_COMMIT"})
-_POST_LIKE = frozenset({"POST_HANDLER", "POST_COMMIT", "POST_RESPONSE", "FINAL"})
+_PRE_LIKE = frozenset(
+    {
+        "PRE_TX_BEGIN",
+        "START_TX",
+        "PRE_HANDLER",
+        "PRE_COMMIT",
+    }
+)
+_POST_LIKE = frozenset(
+    {
+        "POST_HANDLER",
+        "POST_COMMIT",
+        "POST_RESPONSE",
+        "FINAL",
+    }
+)
 _ERROR_LIKE = frozenset(
     {
         "ON_ROLLBACK",
