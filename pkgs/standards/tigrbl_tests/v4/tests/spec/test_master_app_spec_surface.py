@@ -188,7 +188,7 @@ def test_master_app_spec_v4_surface_accepts_model_refs_and_router_owned_tables(
         response=ResponseSpec(kind="json"),
         jsonrpc_prefix="/rpc",
         system_prefix="/system",
-        models=(),
+        tables=(),
         ops=(),
         routers=(rest_router,),
         schemas=(),
@@ -204,4 +204,4 @@ def test_master_app_spec_v4_surface_accepts_model_refs_and_router_owned_tables(
         v4_library_spec_parts["author_table"],
         v4_library_spec_parts["book_table"],
     )
-    assert app_spec.models == ()
+    assert app_spec.tables == ()
