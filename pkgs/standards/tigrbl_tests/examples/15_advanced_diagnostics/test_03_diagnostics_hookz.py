@@ -35,7 +35,7 @@ async def test_diagnostics_hookz_reports_hooks():
     app.include_router(router)
     app.attach_diagnostics(prefix="")
 
-    api.bind(Widget)
+    app.bind(Widget)
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
     async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:

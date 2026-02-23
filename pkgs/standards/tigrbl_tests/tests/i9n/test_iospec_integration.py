@@ -48,23 +48,23 @@ async def widget_setup():
 
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    yield client, api, SessionLocal
+    yield client, app, SessionLocal
     await client.aclose()
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_request_schema_reflects_io_spec(widget_setup):
-    _, api, _ = widget_setup
-    schema = api.schemas.Widget.create.in_.model_json_schema()
+    _, app, _ = widget_setup
+    schema = app.schemas.Widget.create.in_.model_json_schema()
     assert set(schema["properties"]) == {"name", "secret", "created_at"}
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_response_schema_reflects_io_spec(widget_setup):
-    _, api, _ = widget_setup
-    schema = api.schemas.Widget.read.out.model_json_schema()
+    _, app, _ = widget_setup
+    schema = app.schemas.Widget.read.out.model_json_schema()
     assert set(schema["properties"]) == {"id", "name", "created_at", "secret"}
 
 
@@ -97,9 +97,9 @@ async def test_orm_model_carries_io_spec(widget_setup):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_openapi_reflects_io_spec(widget_setup):
+async def test_openapp_reflects_io_spec(widget_setup):
     client, _, _ = widget_setup
-    spec = (await client.get("/openapi.json")).json()
+    spec = (await client.get("/openapp.json")).json()
     props = spec["components"]["schemas"]["WidgetReadResponse"]["properties"]
     assert "secret" in props
 

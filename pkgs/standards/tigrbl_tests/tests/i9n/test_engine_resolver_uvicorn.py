@@ -86,17 +86,17 @@ async def test_tigrblapp_multi_table_engine_precedence_uvicorn() -> None:
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrblapi_multi_table_engine_binding_uvicorn() -> None:
+async def test_tigrblrouter_multi_table_engine_binding_uvicorn() -> None:
     """Validate API-level engine defaults and table overrides via uvicorn.
 
     Steps:
         1) Build a TigrblRouter with two tables and a table override.
-        2) Assert resolver bindings for api + models.
+        2) Assert resolver bindings for router + models.
         3) Exercise REST + JSON-RPC routes in uvicorn.
     """
     # Step 1: Define models and engine configs for the API.
-    api_engine = {**mem(async_=False), "tag": "api-default"}
-    table_engine = {**mem(async_=False), "tag": "api-table"}
+    router_engine = {**mem(async_=False), "tag": "router-default"}
+    table_engine = {**mem(async_=False), "tag": "router-table"}
 
     class ApiWidget(Base, GUIDPk):
         __tablename__ = "api_widgets"
@@ -118,13 +118,13 @@ async def test_tigrblapi_multi_table_engine_binding_uvicorn() -> None:
     app = TigrblApp()
     app.include_router(router.router, prefix="/api")
 
-    # Step 2: Assert resolver bindings (api vs table overrides).
-    api_provider = resolver.resolve_provider(router=router)
+    # Step 2: Assert resolver bindings (router vs table overrides).
+        _provider = resolver.resolve_provider(router=router)
     widget_provider = resolver.resolve_provider(router=router, model=ApiWidget)
     gadget_provider = resolver.resolve_provider(router=router, model=ApiGadget)
-    assert api_provider is widget_provider
-    assert gadget_provider is not api_provider
-    assert router.engine == api_engine
+    assert router_provider is widget_provider
+    assert gadget_provider is not router_provider
+    assert router.engine == router_engine
     assert ApiGadget.table_config["engine"] == table_engine
 
     # Step 3: Start uvicorn and validate REST + JSON-RPC calls.
@@ -155,7 +155,7 @@ async def test_tigrblapi_multi_table_engine_binding_uvicorn() -> None:
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_multi_api_precedence_dedupe_and_op_engine_uvicorn() -> None:
+async def test_multi_router_precedence_dedupe_and_op_engine_uvicorn() -> None:
     """Cover multi-API precedence, dedupe, and op-level engine overrides.
 
     Steps:
@@ -165,8 +165,8 @@ async def test_multi_api_precedence_dedupe_and_op_engine_uvicorn() -> None:
     """
     # Step 1: Define engine configs and models.
     app_engine = {**mem(async_=False), "tag": "app-shared"}
-    api_one_engine = {**mem(async_=False), "tag": "app-shared"}
-    api_two_engine = {**mem(async_=False), "tag": "api-two"}
+    router_one_engine = {**mem(async_=False), "tag": "app-shared"}
+    router_two_engine = {**mem(async_=False), "tag": "api-two"}
     model_engine = {**mem(async_=False), "tag": "model-two"}
     op_engine = {**mem(async_=False), "tag": "op-override"}
 
@@ -196,42 +196,42 @@ async def test_multi_api_precedence_dedupe_and_op_engine_uvicorn() -> None:
         __resource__ = "beta-gadget"
         name = Column(String, nullable=False)
 
-    api_one = TigrblRouter(engine=api_one_engine)
-    api_one.include_tables([AlphaWidget, AlphaGadget])
-    api_one.initialize()
-    api_one.install_engines(models=tuple(api_one.models.values()))
-    api_one.mount_jsonrpc()
+    router_one = TigrblRouter(engine=router_one_engine)
+    router_one.include_tables([AlphaWidget, AlphaGadget])
+    router_one.initialize()
+    router_one.install_engines(models=tuple(router_one.models.values()))
+    router_one.mount_jsonrpc()
 
-    api_two = TigrblRouter(engine=api_two_engine)
-    api_two.include_tables([BetaWidget, BetaGadget])
-    api_two.initialize()
-    api_two.install_engines(models=tuple(api_two.models.values()))
-    api_two.mount_jsonrpc()
+    router_two = TigrblRouter(engine=router_two_engine)
+    router_two.include_tables([BetaWidget, BetaGadget])
+    router_two.initialize()
+    router_two.install_engines(models=tuple(router_two.models.values()))
+    router_two.mount_jsonrpc()
     # Step 1a: Explicitly register the op override to mirror resolver precedence.
     resolver.register_op(BetaWidget, "ping", op_engine)
 
-    app = TigrblApp(engine=app_engine, apis=[api_one, api_two])
-    app.include_router(api_one.router, prefix="/alpha")
-    app.include_router(api_two.router, prefix="/beta")
+    app = TigrblApp(engine=app_engine, routers=[router_one, router_two])
+    app.include_router(router_one.router, prefix="/alpha")
+    app.include_router(router_two.router, prefix="/beta")
     app.install_engines(models=tuple(app.models.values()))
     app.initialize()
 
-    # Step 2: Assert resolver precedence and dedupe across app/api/model/op.
+    # Step 2: Assert resolver precedence and dedupe across app/router/model/op.
     default_provider = resolver.resolve_provider()
-    api_one_provider = resolver.resolve_provider(router=api_one)
-    api_two_provider = resolver.resolve_provider(router=api_two)
-    beta_model_provider = resolver.resolve_provider(router=api_two, model=BetaWidget)
+    router_one_provider = resolver.resolve_provider(router=router_one)
+    router_two_provider = resolver.resolve_provider(router=router_two)
+    beta_model_provider = resolver.resolve_provider(router=router_two, model=BetaWidget)
     beta_op_provider = resolver.resolve_provider(
-        router=api_two, model=BetaWidget, op_alias="ping"
+        router=router_two, model=BetaWidget, op_alias="ping"
     )
 
-    assert default_provider is api_one_provider
-    assert api_two_provider is not default_provider
-    assert beta_model_provider is not api_two_provider
+    assert default_provider is router_one_provider
+    assert router_two_provider is not default_provider
+    assert beta_model_provider is not router_two_provider
     assert beta_op_provider is not beta_model_provider
-    assert beta_op_provider is not api_two_provider
-    assert api_one.engine == api_one_engine
-    assert api_two.engine == api_two_engine
+    assert beta_op_provider is not router_two_provider
+    assert router_one.engine == router_one_engine
+    assert router_two.engine == router_two_engine
     assert BetaWidget.table_config["engine"] == model_engine
 
     # Step 3: Validate REST + JSON-RPC routing through uvicorn.

@@ -13,7 +13,7 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
 
-def test_table_binding_registers_table_on_api():
+def test_table_binding_registers_table_on_app():
     """The API table registry should map model names to SQLAlchemy tables."""
 
     class Widget(Base, GUIDPk):

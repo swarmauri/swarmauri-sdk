@@ -45,7 +45,7 @@ async def fs_app():
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
-        yield client, api, SessionLocal, FSItem
+        yield client, app, SessionLocal, FSItem
     finally:
         await client.aclose()
         engine.dispose()
@@ -90,18 +90,18 @@ async def test_field_spec_allow_null_update(fs_app):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_field_spec_rpc_required(fs_app):
-    _, api, SessionLocal, FSItem = fs_app
+    _, app, SessionLocal, FSItem = fs_app
     with SessionLocal() as session:
         with pytest.raises(Exception):
-            await api.rpc_call(FSItem, "create", payload={}, db=session)
+            await app.rpc_call(FSItem, "create", payload={}, db=session)
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_field_spec_core_crud_create(fs_app):
-    _, api, SessionLocal, FSItem = fs_app
+    _, app, SessionLocal, FSItem = fs_app
     with SessionLocal() as session:
-        obj = await api.core.FSItem.create({"name": "hi"}, db=session)
+        obj = await app.core.FSItem.create({"name": "hi"}, db=session)
         assert obj["name"] == "hi"
 
 

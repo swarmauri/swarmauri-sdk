@@ -12,7 +12,7 @@ from tigrbl.engine.engine_spec import EngineSpec
 from tigrbl.engine._engine import Engine
 
 
-def setup_api(model_cls):
+def setup_app(model_cls):
     Base.metadata.clear()
     spec = EngineSpec.from_any(mem(async_=False))
     engine = Engine(spec)
@@ -78,7 +78,7 @@ async def test_op_ctx_alias(
                 ctx["result"] = {"cleared": True}
             return ctx.get("obj") or ctx.get("result")
 
-    app, engine = setup_api(Widget)
+    app, engine = setup_app(Widget)
     get_sync_db = engine.get_db
 
     async with AsyncClient(
@@ -161,7 +161,7 @@ async def test_op_ctx_override(verb, http_method, arity, needs_id):
             ctx["result"] = {"custom": True}
             return ctx["result"]
 
-    app, engine = setup_api(Widget)
+    app, engine = setup_app(Widget)
     get_sync_db = engine.get_db
 
     async with AsyncClient(

@@ -10,7 +10,7 @@ from ._router import Router
 def defineRouterSpec(
     *,
     # identity
-    name: str = "api",
+    name: str = "",
     prefix: str = "",
     tags: Sequence[str] = (),
     # engine

@@ -11,12 +11,12 @@ from tigrbl import TigrblRouter, TigrblApp
 
 
 @pytest.mark.asyncio
-async def test_api_mount_favicon_default_route() -> None:
+async def test_router_mount_favicon_default_route() -> None:
     """Mount SVG favicon route and redirect ``/favicon.ico``."""
     router = TigrblRouter()
 
     app = TigrblApp()
-    app.mount_favicon(name="lesson_api_default_favicon")
+    app.mount_favicon(name="lesson_router_default_favicon")
     app.include_router(router)
 
     transport = ASGITransport(app=app)
@@ -31,12 +31,12 @@ async def test_api_mount_favicon_default_route() -> None:
 
 
 @pytest.mark.asyncio
-async def test_api_mount_favicon_custom_route() -> None:
+async def test_router_mount_favicon_custom_route() -> None:
     """Mount a custom favicon path when branding routes are namespaced."""
     router = TigrblRouter()
 
     app = TigrblApp()
-    app.mount_favicon(path="/brand/favicon.svg", name="lesson_api_brand_favicon")
+    app.mount_favicon(path="/brand/favicon.svg", name="lesson_router_brand_favicon")
     app.include_router(router)
 
     transport = ASGITransport(app=app)

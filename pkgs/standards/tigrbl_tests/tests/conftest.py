@@ -45,7 +45,7 @@ def _run_coro_sync(coro):
     return result.get("value")
 
 
-def _patch_httpx_asgi_transport_sync_api() -> None:
+def _patch_httpx_asgi_transport_sync_router() -> None:
     """Bridge HTTPX ASGITransport async-only API for sync httpx.Client tests."""
 
     if not hasattr(ASGITransport, "close"):
@@ -75,7 +75,7 @@ def _patch_httpx_asgi_transport_sync_api() -> None:
         ASGITransport.handle_request = handle_request
 
 
-_patch_httpx_asgi_transport_sync_api()
+_patch_httpx_asgi_transport_sync_router()
 
 
 def _reset_tigrbl_state() -> None:
@@ -183,7 +183,7 @@ def create_test_router():
         app = TigrblApp(engine=mem(async_=False))
         app.include_table(model_class)
         app.initialize()
-        return api
+        return router
 
     return _create_router
 
@@ -226,7 +226,7 @@ def test_models():
 
 
 @pytest_asyncio.fixture()
-async def api_client(db_mode):
+async def router_client(db_mode):
     """Main fixture for integration tests with Tenant and Item models."""
     Base.metadata.clear()
 
@@ -289,7 +289,7 @@ def sample_item_data():
 
 
 @pytest_asyncio.fixture()
-async def api_client_v3():
+async def router_client_v3():
     Base.metadata.clear()
 
     class Widget(Base):
@@ -343,4 +343,4 @@ async def api_client_v3():
     app.include_router(router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, api, Widget, session_maker
+    return client, router, Widget, session_maker

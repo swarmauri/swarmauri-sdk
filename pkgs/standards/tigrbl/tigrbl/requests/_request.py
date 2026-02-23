@@ -1,4 +1,4 @@
-"""Transport-level HTTP request model used by stdapi adapters."""
+"""Transport-level HTTP request model used by std adapters."""
 
 from __future__ import annotations
 

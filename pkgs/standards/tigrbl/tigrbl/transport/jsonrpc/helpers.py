@@ -41,13 +41,13 @@ def _user_from_request(request: Any) -> Any | None:
     return getattr(request.state, "user", None)
 
 
-def _select_auth_dep(api: Any):
-    if getattr(api, "_optional_authn_dep", None):
-        return api._optional_authn_dep
-    if getattr(api, "_allow_anon", True) is False and getattr(api, "_authn", None):
-        return api._authn
-    if getattr(api, "_authn", None):
-        return api._authn
+def _select_auth_dep(router: Any):
+    if getattr(router, "_optional_authn_dep", None):
+        return router._optional_authn_dep
+    if getattr(router, "_allow_anon", True) is False and getattr(router, "_authn", None):
+        return router._authn
+    if getattr(router, "_authn", None):
+        return router._authn
     return None
 
 
@@ -63,14 +63,14 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list:
 
 
 def _authorize(
-    api: Any,
+    router: Any,
     request: Any,
     model: type,
     alias: str,
     payload: Mapping[str, Any],
     user: Any | None,
 ):
-    fn = getattr(api, "_authorize", None) or getattr(
+    fn = getattr(router, "_authorize", None) or getattr(
         model, "__tigrbl_authorize__", None
     )
     if not fn:

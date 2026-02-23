@@ -15,4 +15,4 @@ async def test_rest_router_is_attached() -> None:
     app.include_table(widget, prefix="")
     await app.initialize()
 
-    assert api.routers["WidgetRouter"] is widget.rest.router
+    assert app.routers["WidgetRouter"] is widget.rest.router

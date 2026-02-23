@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from .app import shortcuts as app_shortcuts
-from .router import shortcuts as api_shortcuts
+from .router import shortcuts as router_shortcuts
 from .engine import shortcuts as engine_shortcuts
 from .specs import shortcuts as specs_shortcuts
 from .table import shortcuts as table_shortcuts
@@ -15,7 +15,7 @@ from .table.shortcuts import *  # noqa: F401,F403
 
 __all__ = [
     *app_shortcuts.__all__,
-    *api_shortcuts.__all__,
+    *router_shortcuts.__all__,
     *engine_shortcuts.__all__,
     *specs_shortcuts.__all__,
     *table_shortcuts.__all__,

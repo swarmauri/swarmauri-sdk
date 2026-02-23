@@ -60,10 +60,10 @@ def _build_client():
 
     cfg = mem(async_=False)
     auth = DummyAuth()
-    app = TigrblApp(engine=cfg)
-    api.set_auth(authn=auth.get_principal)
-    app.include_tables([Tenant, Item])
-    app.initialize()
+    router = TigrblRouter(engine=cfg)
+    router.set_auth(authn=auth.get_principal)
+    router.include_tables([Tenant, Item])
+    router.initialize()
     app = TigrblApp()
     app.include_router(router)
     prov = _resolver.resolve_provider()
@@ -92,11 +92,11 @@ def _build_client_attr():
 
     cfg = mem(async_=False)
     auth = DummyAuth()
-    app = TigrblApp(engine=cfg)
-    app.set_auth(authn=auth.get_principal)
-    app.include_tables([Tenant, Item])
-    app.initialize()
-    router = TigrblRouter()
+    router = TigrblRouter(engine=cfg)
+    router.set_auth(authn=auth.get_principal)
+    router.include_tables([Tenant, Item])
+    router.initialize()
+    app = TigrblApp()
     app.include_router(router)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
@@ -161,9 +161,10 @@ def _build_client_create_noauth():
             return {"create", "bulk_create"}
 
     cfg = mem(async_=False)
-    app = TigrblApp(engine=cfg)
-    app.include_tables([Tenant, Item])
-    app.initialize()
+    router = TigrblRouter(engine=cfg)
+    router.include_tables([Tenant, Item])
+    router.initialize()
+
     app = TigrblApp()
     app.include_router(router)
     prov = _resolver.resolve_provider()
@@ -191,9 +192,10 @@ def _build_client_create_attr_noauth():
         __tigrbl_allow_anon__ = {"create", "bulk_create"}
 
     cfg = mem(async_=False)
-    app = TigrblApp(engine=cfg)
-    app.include_tables([Tenant, Item])
-    app.initialize()
+    router = TigrblRouter(engine=cfg)
+    router.include_tables([Tenant, Item])
+    router.initialize()
+
     app = TigrblApp()
     app.include_router(router)
     prov = _resolver.resolve_provider()

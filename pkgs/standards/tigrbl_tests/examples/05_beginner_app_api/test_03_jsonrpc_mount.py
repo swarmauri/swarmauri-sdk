@@ -25,7 +25,7 @@ def test_jsonrpc_mount_adds_rpc_prefix():
     app.initialize()
     app.mount_jsonrpc(prefix="/rpc")
     # Exercise: collect route paths after mounting RPC routes.
-    route_paths = {route.path for route in api.router.routes}
+    route_paths = {route.path for route in app.router.routes}
     # Assertion: the RPC prefix is registered.
     assert "/rpc" in route_paths
 
@@ -51,10 +51,10 @@ def test_jsonrpc_mount_preserves_existing_routes():
     app.include_table(Widget)
     app.initialize()
     # Exercise: capture routes before enabling JSON-RPC.
-    initial_routes = {route.path for route in api.router.routes}
+    initial_routes = {route.path for route in app.router.routes}
     app.mount_jsonrpc(prefix="/rpc")
     # Exercise: capture the expanded route set after mounting.
-    updated_routes = {route.path for route in api.router.routes}
+    updated_routes = {route.path for route in app.router.routes}
 
     # Assertion: existing routes remain available after adding JSON-RPC.
     assert initial_routes.issubset(updated_routes)

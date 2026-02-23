@@ -72,8 +72,8 @@ async def test_openapi_examples_and_schemas_present(db_mode):
     }
     assert expected <= set(spec["components"]["schemas"])
 
-    assert hasattr(api.schemas, "Widget")
-    widget_ns = getattr(api.schemas, "Widget")
+    assert hasattr(app.schemas, "Widget")
+    widget_ns = getattr(app.schemas, "Widget")
     for alias in ["create", "read", "update", "replace", "delete", "list", "clear"]:
         assert hasattr(widget_ns, alias)
         op_ns = getattr(widget_ns, alias)

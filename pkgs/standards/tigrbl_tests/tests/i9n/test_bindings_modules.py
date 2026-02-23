@@ -115,11 +115,11 @@ def test_model_bind_and_rebind(model_cls):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_api_include_and_rpc_call(monkeypatch, model_cls):
+async def test_router_include_and_rpc_call(monkeypatch, model_cls):
     model_binding.bind(model_cls)
-    api = SimpleNamespace()
-    router_binding.include_table(api, model_cls, mount_router=False)
-    assert model_cls.__name__ in api.models
+    router = SimpleNamespace()
+    router_binding.include_table(router, model_cls, mount_router=False)
+    assert model_cls.__name__ in router.models
     routers = router_binding.include_tables(
         SimpleNamespace(), [model_cls], mount_router=False
     )
@@ -131,7 +131,7 @@ async def test_api_include_and_rpc_call(monkeypatch, model_cls):
     monkeypatch.setattr(_executor, "_invoke", fake_invoke)
     payload = {"name": "x"}
     result = await router_binding.rpc_call(
-        api, model_cls, "create", payload=payload, db=object()
+        router, model_cls, "create", payload=payload, db=object()
     )
     assert result == payload
 

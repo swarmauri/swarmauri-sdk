@@ -35,7 +35,7 @@ def test_custom_op_ctx_registers_alias():
     app.initialize()
 
     # Test: collect aliases from the app-bound OpSpecs.
-    aliases = {spec.alias for spec in api.bind(LessonOp)}
+    aliases = {spec.alias for spec in app.bind(LessonOp)}
 
     # Assertion: the custom alias appears in the bound operation set.
     assert "search" in aliases

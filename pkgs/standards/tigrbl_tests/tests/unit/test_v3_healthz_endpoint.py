@@ -25,9 +25,9 @@ async def test_healthz_endpoint_select_case_fallback():
     def get_db():
         return db
 
-    api = SimpleNamespace(models={})
+    router = SimpleNamespace(models={})
     app = TigrblApp()
-    app.include_router(mount_diagnostics(api, get_db=get_db), prefix="/system")
+    app.include_router(mount_diagnostics(router, get_db=get_db), prefix="/system")
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"

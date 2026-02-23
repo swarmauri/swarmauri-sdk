@@ -9,10 +9,10 @@ from ..responses.types import ResponseSpec
 @dataclass
 class RouterSpec:
     """
-    Used to *produce a router subclass* via Api.from_spec().
+    Used to *produce a router subclass* via Router.from_spec().
     """
 
-    name: str = "api"
+    name: str = ""
     prefix: str = ""
     engine: Optional[EngineCfg] = None
     tags: Sequence[str] = field(default_factory=tuple)

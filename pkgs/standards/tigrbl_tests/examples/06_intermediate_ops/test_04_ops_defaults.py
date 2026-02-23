@@ -26,7 +26,7 @@ def test_default_ops_include_list():
     app.initialize()
 
     # Test: collect the aliases that the app binds for the model.
-    aliases = {spec.alias for spec in api.bind(LessonDefaultOps)}
+    aliases = {spec.alias for spec in app.bind(LessonDefaultOps)}
 
     # Assertion: the list operation is present by default.
     assert "list" in aliases
@@ -53,7 +53,7 @@ def test_default_ops_include_read_and_create():
     app.initialize()
 
     # Test: read all bound aliases for the model.
-    aliases = {spec.alias for spec in api.bind(LessonDefaultOpsCore)}
+    aliases = {spec.alias for spec in app.bind(LessonDefaultOpsCore)}
 
     # Assertion: core CRUD verbs are part of the default set.
     assert {"create", "read"}.issubset(aliases)

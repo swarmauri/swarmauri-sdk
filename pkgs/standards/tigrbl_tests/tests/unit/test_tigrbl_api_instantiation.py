@@ -8,7 +8,7 @@ from tigrbl.types import Mapped, String
 
 
 class Widget(Base, GUIDPk):
-    __tablename__ = "widgets_api_inst"
+    __tablename__ = "widgets_router_inst"
     __allow_unmapped__ = True
 
     name: Mapped[str] = acol(
@@ -20,18 +20,18 @@ class Widget(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class WidgetApi(TigrblRouter):
+class WidgerRouter(TigrblRouter):
     MODELS = (Widget,)
 
 
 @pytest.mark.unit
-def test_tigrbl_api_instantiation_sets_containers() -> None:
-    router = WidgetApi(engine=mem(async_=False))
-    api_dir = dir(router)
+def test_tigrbl_router_instantiation_sets_containers() -> None:
+    router = WidgerRouter(engine=mem(async_=False))
+    router_dir = dir(router)
 
-    assert "models" in api_dir
-    assert "routers" in api_dir
-    assert "schemas" in api_dir
-    assert "jsonrpc_prefix" in api_dir
-    assert "system_prefix" in api_dir
+    assert "models" in router_dir
+    assert "routers" in router_dir
+    assert "schemas" in router_dir
+    assert "jsonrpc_prefix" in router_dir
+    assert "system_prefix" in router_dir
     assert router.models["Widget"] is Widget

@@ -28,7 +28,7 @@ def test_alias_ctx_registers_custom_name():
     app.initialize()
 
     # Test: inspect the aliases produced by binding the model into the app.
-    aliases = {spec.alias for spec in api.bind(LessonAlias)}
+    aliases = {spec.alias for spec in app.bind(LessonAlias)}
 
     # Assertion: the alias is present in the operation set.
     assert "lookup" in aliases
@@ -57,7 +57,7 @@ def test_alias_ctx_override_applies_arity():
     app.initialize()
 
     # Test: find the bound spec with the overridden alias.
-    spec = next(sp for sp in api.bind(LessonAliasOverride) if sp.alias == "peek")
+    spec = next(sp for sp in app.bind(LessonAliasOverride) if sp.alias == "peek")
 
     # Assertion: the alias keeps the canonical target but updates arity.
     assert spec.target == "read"

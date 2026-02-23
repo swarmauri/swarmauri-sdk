@@ -9,7 +9,7 @@ from tigrbl.types import PgUUID
 
 
 @pytest_asyncio.fixture
-async def three_level_api_client(db_mode):
+async def three_level_app_client(db_mode):
     Base.metadata.clear()
     Base.registry.dispose()
 
@@ -58,8 +58,8 @@ async def three_level_api_client(db_mode):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_nested_routing_depth(three_level_api_client):
-    client = three_level_api_client
+async def test_nested_routing_depth(three_level_app_client):
+    client = three_level_app_client
 
     # Create company
     res = await client.post("/company", json={"name": "Acme"})

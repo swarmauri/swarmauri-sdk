@@ -150,10 +150,11 @@ def _client_for_tenant(
         session.commit()
 
     authn = DummyAuth(user_id, tenant_id)
-    api = TigrblApp(engine=engine)
-    api.set_auth(authn=authn.get_principal)
-    app.include_tables([Tenant, Item])
-    app = TigrblApp()
+    app = TigrblApp(engine=engine)
+    app.set_auth(authn=authn.get_principal)
+    
+    router = TigrblRouter()
+    router.include_tables([Tenant, Item])
     app.include_router(router)
     app.initialize()
     transport = ASGITransport(app=app)

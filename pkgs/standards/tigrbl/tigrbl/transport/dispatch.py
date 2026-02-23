@@ -83,7 +83,7 @@ def build_ctx(
     ctx.setdefault("payload", payload)
     ctx.setdefault("path_params", dict(path_params or {}))
     ctx.setdefault("app", app_ref)
-    ctx.setdefault("api", router if router is not None else app_ref)
+    ctx.setdefault("router", router if router is not None else app_ref)
     ctx.setdefault("model", model)
     ctx.setdefault("op", alias)
     ctx.setdefault("method", alias)

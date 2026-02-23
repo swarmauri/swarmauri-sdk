@@ -7,7 +7,7 @@ from tigrbl.types import Mapped, String
 
 
 class Widget(Base, GUIDPk):
-    __tablename__ = "widgets_api_decl"
+    __tablename__ = "widgets_router_decl"
     __allow_unmapped__ = True
 
     name: Mapped[str] = acol(
@@ -19,19 +19,19 @@ class Widget(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class WidgetApi(TigrblRouter):
+class WidgerRouter(TigrblRouter):
     PREFIX = "/widgets"
     TAGS = ("widgets",)
     MODELS = (Widget,)
 
 
 @pytest.mark.unit
-def test_tigrbl_api_subclass_declares_metadata() -> None:
-    class_dir = dir(WidgetApi)
+def test_tigrbl_router_subclass_declares_metadata() -> None:
+    class_dir = dir(WidgerRouter)
 
     assert "MODELS" in class_dir
     assert "TAGS" in class_dir
     assert "PREFIX" in class_dir
-    assert WidgetApi.MODELS == (Widget,)
-    assert WidgetApi.TAGS == ("widgets",)
-    assert WidgetApi.PREFIX == "/widgets"
+    assert WidgerRouter.MODELS == (Widget,)
+    assert WidgerRouter.TAGS == ("widgets",)
+    assert WidgerRouter.PREFIX == "/widgets"

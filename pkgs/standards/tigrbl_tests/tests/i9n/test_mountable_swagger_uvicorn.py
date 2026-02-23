@@ -26,7 +26,7 @@ async def test_swagger_mountable_on_tigrbl_app_uvicorn():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_swagger_mountable_on_tigrbl_api_uvicorn():
+async def test_swagger_mountable_on_tigrbl_router_uvicorn():
     router = TigrblRouter()
     mount_swagger(router, path="/custom/docs", name="swagger_custom")
 

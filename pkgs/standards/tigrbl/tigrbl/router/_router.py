@@ -80,8 +80,8 @@ class Router(RouterSpec):
         include_docs: bool = False,
         **_: Any,
     ) -> None:
-        # Initialize the RouterSpec field attributes expected by API surfaces.
-        self.name = getattr(self, "NAME", "api")
+        # Initialize the RouterSpec field attributes expected by Router surfaces.
+        self.name = getattr(self, "NAME", "router")
         self.prefix = self.PREFIX
         self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
         self.tags = list(getattr(self, "TAGS", []))
@@ -131,15 +131,15 @@ class Router(RouterSpec):
             self._install_builtin_routes()
 
     def install_engines(
-        self, *, api: Any = None, models: tuple[Any, ...] | None = None
+        self, *, router: Any = None, models: tuple[Any, ...] | None = None
     ) -> None:
-        apis = (api,) if api is not None else self.APIS
+        routers = (router,) if router is not None else self.APIS
         models = models if models is not None else self.TABLES
-        if apis:
-            for a in apis:
-                install_from_objects(app=self, api=a, models=models)
+        if routers:
+            for a in routers:
+                install_from_objects(app=self, router=a, models=models)
         else:
-            install_from_objects(app=self, api=None, models=models)
+            install_from_objects(app=self, router=None, models=models)
 
     def _collect_tables(self) -> list[Any]:
         seen = set()

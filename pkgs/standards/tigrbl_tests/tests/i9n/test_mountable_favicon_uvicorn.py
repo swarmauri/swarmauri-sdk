@@ -9,7 +9,7 @@ from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_favicon_mountable_on_tigrbl_app_uvicorn():
+async def test_favicon_mountable_on_tigrbl_router_uvicorn():
     app = TigrblApp()
     mount_favicon(app, path="/custom/favicon.svg", name="favicon_custom")
 
@@ -31,7 +31,7 @@ async def test_favicon_mountable_on_tigrbl_app_uvicorn():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_favicon_mountable_on_tigrbl_api_uvicorn():
+async def test_favicon_mountable_on_tigrbl_router_uvicorn():
     router = TigrblRouter()
     mount_favicon(router, path="/custom/favicon.svg", name="favicon_custom")
 

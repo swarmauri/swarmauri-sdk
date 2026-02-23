@@ -4,12 +4,12 @@ JSON-RPC 2.0 dispatcher for Tigrbl v3.
 
 This module exposes a single helper:
 
-    build_jsonrpc_router(api, *, get_db=None) -> Router
+    build_jsonrpc_router(router, *, get_db=None) -> Router
 
 - It mounts a POST endpoint at "/" that accepts either a single JSON-RPC request
   object or a batch (array) of request objects.
 - Each JSON-RPC `method` must be of the form "Model.alias". The dispatcher will
-  look up `api.models["Model"]`, then call the bound coroutine at
+  look up `router.models["Model"]`, then call the bound coroutine at
   `Model.rpc.<alias>(params, *, db, request, ctx)`.
 - Input validation and output shaping are handled by the per-op RPC wrappers
   built in `tigrbl.bindings.rpc`.
@@ -18,7 +18,7 @@ This module exposes a single helper:
 
 You would usually mount the returned router at `/rpc`, e.g.:
 
-    app.include_router(build_jsonrpc_router(api), prefix="/rpc")
+    app.include_router(build_jsonrpc_router(router), prefix="/rpc")
 """
 
 from __future__ import annotations
@@ -101,7 +101,7 @@ def _request_obj_to_mapping(obj: RPCRequest | Mapping[str, Any]) -> Mapping[str,
 
 async def _dispatch_one(
     *,
-    api: Any,
+    router: Any,
     request: Request,
     db: Any,
     obj: Mapping[str, Any],
@@ -132,7 +132,7 @@ async def _dispatch_one(
         model_name, alias = method.split(".", 1)
         try:
             model, target = resolve_operation(
-                router=api, model_or_name=model_name, alias=alias, strict=True
+                router=router, model_or_name=model_name, alias=alias, strict=True
             )
         except LookupError:
             return _rpc_error(-32601, f"Method not found: {model_name}.{alias}")
@@ -165,19 +165,19 @@ async def _dispatch_one(
                 payload = norm_payload
 
         # Enforce auth when required
-        if getattr(api, "_authn", None):
+        if getattr(router, "_authn", None):
             method_id = f"{model.__name__}.{alias}"
-            allow = getattr(api, "_allow_anon_ops", set())
+            allow = getattr(router, "_allow_anon_ops", set())
             user = _user_from_request(request)
             if method_id not in allow and user is None:
                 raise HTTPException(status_code=401, detail="Unauthorized")
 
         # Authorize (auth dep may already have raised; user may be on request.state)
-        _authorize(api, request, model, alias, payload, _user_from_request(request))
+        _authorize(router, request, model, alias, payload, _user_from_request(request))
 
         # Execute through unified transport dispatcher
         result = await dispatch_operation(
-            router=api,
+            router=router,
             request=request,
             db=db,
             model_or_name=model,
@@ -211,7 +211,7 @@ async def _dispatch_one(
 
 
 def build_jsonrpc_router(
-    api: Any,
+    router: Any,
     *,
     get_db: Optional[Callable[..., Any]] = None,
     tags: Sequence[str] | None = ("rpc",),
@@ -225,20 +225,20 @@ def build_jsonrpc_router(
     the dispatcher will try to use `request.state.db` (or pass `db=None`).
 
     Security:
-        • If `api._authn` (or `api._optional_authn_dep`) is set, we inject it as a dependency
+        • If `router._authn` (or `router._optional_authn_dep`) is set, we inject it as a dependency
           so it runs before dispatch. It may set `request.state.user` and/or raise 401.
-        • If `api._authorize` is set, we call it before executing the op; False/exception → 403.
-        • Additional router-level dependencies can be provided via `api.rpc_dependencies`.
+        • If `router._authorize` is set, we call it before executing the op; False/exception → 403.
+        • Additional router-level dependencies can be provided via `router.rpc_dependencies`.
 
     The generated endpoint is tagged as "rpc" by default. Supply a custom
     sequence via ``tags`` to override or set ``None`` to omit tags.
     """
     # Extra router-level deps (e.g., tracing, IP allowlist)
-    extra_router_deps = _normalize_deps(getattr(api, "rpc_dependencies", None))
+    extra_router_deps = _normalize_deps(getattr(router, "rpc_dependencies", None))
     router = Router(dependencies=extra_router_deps or None)
 
     dep = get_db
-    auth_dep = _select_auth_dep(api)
+    auth_dep = _select_auth_dep(router)
 
     if dep is not None and auth_dep is not None:
         # Inject both DB and user via Depends
@@ -259,7 +259,7 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api,
+                        router=router,
                         request=request,
                         db=db,
                         obj=_request_obj_to_mapping(item),
@@ -271,7 +271,7 @@ def build_jsonrpc_router(
                 )
             elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
-                    api=api,
+                    router=router,
                     request=request,
                     db=db,
                     obj=_request_obj_to_mapping(body),
@@ -296,7 +296,7 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api,
+                        router=router,
                         request=request,
                         db=db,
                         obj=_request_obj_to_mapping(item),
@@ -308,7 +308,7 @@ def build_jsonrpc_router(
                 )
             elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
-                    api=api,
+                    router=router,
                     request=request,
                     db=db,
                     obj=_request_obj_to_mapping(body),
@@ -340,7 +340,7 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api,
+                        router=router,
                         request=request,
                         db=db,
                         obj=_request_obj_to_mapping(item),
@@ -352,7 +352,7 @@ def build_jsonrpc_router(
                 )
             elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
-                    api=api,
+                    router=router,
                     request=request,
                     db=db,
                     obj=_request_obj_to_mapping(body),
@@ -374,7 +374,7 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api,
+                        router=router,
                         request=request,
                         db=db,
                         obj=_request_obj_to_mapping(item),
@@ -386,7 +386,7 @@ def build_jsonrpc_router(
                 )
             elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
-                    api=api,
+                    router=router,
                     request=request,
                     db=db,
                     obj=_request_obj_to_mapping(body),
