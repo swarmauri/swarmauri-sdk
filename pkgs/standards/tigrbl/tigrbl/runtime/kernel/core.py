@@ -111,15 +111,23 @@ class Kernel:
         labels: list[str] = []
         chains = self.build(model, alias)
         ordered_anchors = _ev.all_events_ordered()
-        phase_for = {
-            anchor: _ev.get_anchor_info(anchor).phase for anchor in ordered_anchors
-        }
-        for anchor in ordered_anchors:
-            phase = phase_for[anchor]
-            for step in chains.get(phase, []) or []:
+        ranked: list[tuple[int, int, str]] = []
+        anchor_idx = {anchor: i for i, anchor in enumerate(ordered_anchors)}
+        order = 0
+        for phase_steps in chains.values():
+            for step in phase_steps or ():
                 label = getattr(step, "__tigrbl_label", None)
-                if isinstance(label, str) and label.endswith(f"@{anchor}"):
-                    labels.append(label)
+                if not isinstance(label, str) or "@" not in label:
+                    order += 1
+                    continue
+                anchor = label.rsplit("@", 1)[-1]
+                idx = anchor_idx.get(anchor)
+                if idx is not None:
+                    ranked.append((idx, order, label))
+                order += 1
+
+        ranked.sort(key=lambda item: (item[0], item[1]))
+        labels.extend(label for _, _, label in ranked)
         return labels
 
     async def invoke(
