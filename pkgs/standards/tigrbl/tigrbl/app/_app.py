@@ -91,16 +91,17 @@ class App(AppSpec):
         return self.router.route(path, methods=methods, **kwargs)
 
     def install_engines(
-        self, *, router: Any = None, models: tuple[Any, ...] | None = None
+        self, *, router: Any = None, tables: tuple[Any, ...] | None = None
     ) -> None:
         # If class declared ROUTERS/TABLES, use them unless explicit args are passed.
         routers = (router,) if router is not None else self.ROUTERS
-        models = models if models is not None else self.TABLES
+        tables = tables if tables is not None else self.TABLES
+        app_target = self.__class__
         if routers:
             for entry in routers:
-                install_from_objects(app=self, router=entry, models=models)
+                install_from_objects(app=app_target, router=entry, models=tables)
         else:
-            install_from_objects(app=self, router=None, models=models)
+            install_from_objects(app=app_target, router=None, models=tables)
 
     def _collect_tables(self) -> list[Any]:
         seen = set()

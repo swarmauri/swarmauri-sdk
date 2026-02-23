@@ -45,7 +45,7 @@ async def test_tigrblapp_multi_table_engine_precedence_uvicorn() -> None:
 
     app = TigrblApp(engine=app_engine)
     app.include_tables([AppWidget, AppGadget])
-    app.install_engines(models=tuple(app.models.values()))
+    app.install_engines(tables=tuple(app.models.values()))
     app.mount_jsonrpc()
     app.initialize()
 
@@ -216,7 +216,7 @@ async def test_multi_router_precedence_dedupe_and_op_engine_uvicorn() -> None:
     app = TigrblApp(engine=app_engine, routers=routers)
     app.include_router(routers[0].router, prefix="/alpha")
     app.include_router(routers[1].router, prefix="/beta")
-    app.install_engines(models=tuple(app.models.values()))
+    app.install_engines(tables=tuple(app.models.values()))
     app.initialize()
 
     # Step 2: Assert resolver precedence and dedupe across app/router/model/op.
