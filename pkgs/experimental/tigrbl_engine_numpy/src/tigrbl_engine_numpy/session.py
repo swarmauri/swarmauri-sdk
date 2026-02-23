@@ -69,6 +69,7 @@ class NumpySession(TigrblSessionBase):
         self._puts: dict[tuple[type, Any], dict[str, Any]] = {}
         self._dels: set[tuple[type, Any]] = set()
         self._tracked: dict[tuple[type, Any], Any] = {}
+        self._tracked: dict[tuple[type, Any], Any] = {}
 
     def to_records(self) -> list[dict[str, Any]]:
         pk = self._engine.catalog.pk
@@ -168,6 +169,7 @@ class NumpySession(TigrblSessionBase):
         self._puts.clear()
         self._dels.clear()
         self._tracked.clear()
+        self._tracked.clear()
 
     async def _tx_commit_impl(self) -> None:
         iso = (self._spec.isolation if self._spec else None) or "read_committed"
@@ -197,6 +199,7 @@ class NumpySession(TigrblSessionBase):
                 )
         self._puts.clear()
         self._dels.clear()
+        self._tracked.clear()
         self._tracked.clear()
 
     async def _tx_rollback_impl(self) -> None:
@@ -235,6 +238,7 @@ class NumpySession(TigrblSessionBase):
         ident = getattr(obj, pk)
         self._puts.pop((model, ident), None)
         self._dels.add((model, ident))
+        self._tracked.pop((model, ident), None)
         self._tracked.pop((model, ident), None)
 
     async def _flush_impl(self) -> None:
@@ -403,6 +407,27 @@ class NumpySession(TigrblSessionBase):
                     found = _find_by_table(name)
                     if found is not None:
                         return found
+
+        table = getattr(stmt, "table", None)
+        name = getattr(table, "name", None)
+        if isinstance(name, str):
+            found = _find_by_table(name)
+            if found is not None:
+                return found
+
+        raw_columns = getattr(stmt, "_raw_columns", None) or getattr(
+            stmt, "columns", None
+        )
+        if raw_columns is not None:
+            if isinstance(raw_columns, (list, tuple)) and not raw_columns:
+                raise RuntimeError("Cannot resolve model from statement")
+            entity = raw_columns[0]
+            table = getattr(entity, "table", None)
+            name = getattr(table, "name", None)
+            if isinstance(name, str):
+                found = _find_by_table(name)
+                if found is not None:
+                    return found
         raise RuntimeError("Cannot resolve model from statement")
 
     def _extract_predicates(self, stmt: Any) -> list[Tuple[str, str, Any]]:

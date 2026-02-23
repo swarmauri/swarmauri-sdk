@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import tempfile
+import uuid
 
 from typing import (
     TYPE_CHECKING,
@@ -122,6 +123,7 @@ class XlsxSession(TigrblSessionBase):
         self._snap_ver: Dict[str, int] = {}
         self._puts: Dict[Tuple[type, Any], Dict[str, Any]] = {}
         self._dels: set[Tuple[type, Any]] = set()
+        self._tracked: Dict[Tuple[type, Any], Any] = {}
 
     def workbook(self):
         return self._cat.workbook
@@ -130,7 +132,19 @@ class XlsxSession(TigrblSessionBase):
         return self._cat.workbook[name]
 
     def table(self, name: str) -> list[dict[str, Any]]:
-        return [dict(row) for row in self._cat.get_live(name)]
+        rows = [dict(row) for row in self._cat.get_live(name)]
+        pk = self._pk_of(name)
+        by_pk = {row.get(pk): row for row in rows}
+
+        for (model, ident), row in self._puts.items():
+            if self._table(model) == name:
+                by_pk[ident] = dict(row)
+
+        for model, ident in self._dels:
+            if self._table(model) == name:
+                by_pk.pop(ident, None)
+
+        return list(by_pk.values())
 
     async def run_sync(self, fn: Callable[[Any], Any]) -> Any:
         out = fn(self)
@@ -141,6 +155,7 @@ class XlsxSession(TigrblSessionBase):
         self._snap_ver.clear()
         self._puts.clear()
         self._dels.clear()
+        self._tracked.clear()
 
     async def _tx_commit_impl(self) -> None:
         iso = (self._spec.isolation if self._spec else None) or "read_committed"
@@ -179,22 +194,51 @@ class XlsxSession(TigrblSessionBase):
 
         self._puts.clear()
         self._dels.clear()
+        self._tracked.clear()
 
     async def _tx_rollback_impl(self) -> None:
         self._snap.clear()
         self._snap_ver.clear()
         self._puts.clear()
         self._dels.clear()
+        self._tracked.clear()
+
+    @staticmethod
+    def _pk_default(model: type, pk: str) -> Any:
+        table = getattr(model, "__table__", None)
+        if table is None:
+            return None
+        try:
+            column = table.columns.get(pk)
+        except Exception:
+            return None
+        if column is None:
+            return None
+        default = getattr(column, "default", None)
+        if default is None:
+            return None
+        arg = getattr(default, "arg", None)
+        if callable(arg):
+            try:
+                return arg()
+            except TypeError:
+                return arg(None)
+        return arg
 
     def _add_impl(self, obj: Any) -> Any:
         model = obj.__class__
         pk = _single_pk_name(model)
         ident = getattr(obj, pk)
         if ident is None:
+            ident = self._pk_default(model, pk)
+            if ident is not None:
+                setattr(obj, pk, ident)
+        if ident is None:
             raise ValueError(f"primary key {pk!r} must be set")
         row = {column: getattr(obj, column, None) for column in _model_columns(model)}
         self._puts[(model, ident)] = row
         self._dels.discard((model, ident))
+        self._tracked[(model, ident)] = obj
         return None
 
     async def _delete_impl(self, obj: Any) -> None:
@@ -203,8 +247,16 @@ class XlsxSession(TigrblSessionBase):
         ident = getattr(obj, pk)
         self._puts.pop((model, ident), None)
         self._dels.add((model, ident))
+        self._tracked.pop((model, ident), None)
 
     async def _flush_impl(self) -> None:
+        for (model, ident), obj in list(self._tracked.items()):
+            if (model, ident) in self._dels:
+                continue
+            row = {
+                column: getattr(obj, column, None) for column in _model_columns(model)
+            }
+            self._puts[(model, ident)] = row
         return
 
     async def _refresh_impl(self, obj: Any) -> None:
@@ -217,16 +269,19 @@ class XlsxSession(TigrblSessionBase):
             setattr(obj, column, getattr(fresh, column, None))
 
     async def _get_impl(self, model: type, ident: Any) -> Any | None:
+        tracked = self._tracked.get((model, ident))
+        if tracked is not None:
+            return tracked
         row = self._puts.get((model, ident))
         if row is not None:
-            return self._inflate(model, row)
+            return self._inflate_tracked(model, ident, row)
         if (model, ident) in self._dels:
             return None
         table_rows = self._rows_for(model)
         pk = _single_pk_name(model)
         for table_row in table_rows:
             if table_row.get(pk) == ident:
-                return self._inflate(model, table_row)
+                return self._inflate_tracked(model, ident, table_row)
         return None
 
     async def _execute_impl(self, stmt: Any) -> Any:
@@ -245,6 +300,7 @@ class XlsxSession(TigrblSessionBase):
                 ident = getattr(obj, pk)
                 self._puts.pop((model, ident), None)
                 self._dels.add((model, ident))
+                self._tracked.pop((model, ident), None)
             result = _ExecuteResult([])
             result.rowcount = len(items)
             return result
@@ -280,13 +336,22 @@ class XlsxSession(TigrblSessionBase):
                 setattr(obj, column, data[column])
         return obj
 
+    def _inflate_tracked(self, model: type, ident: Any, data: Mapping[str, Any]) -> Any:
+        obj = self._tracked.get((model, ident))
+        if obj is None:
+            obj = self._inflate(model, data)
+            self._tracked[(model, ident)] = obj
+        return obj
+
     def _scan_model(self, model: type) -> List[Any]:
         out = [self._inflate(model, row) for row in self._rows_for(model)]
         pk = _single_pk_name(model)
         by_id = {getattr(obj, pk): obj for obj in out}
         for (known_model, ident), row in self._puts.items():
             if known_model is model:
-                by_id[ident] = self._inflate(model, row)
+                by_id[ident] = self._inflate_tracked(model, ident, row)
+        for ident, obj in list(by_id.items()):
+            self._tracked[(model, ident)] = obj
         for known_model, ident in self._dels:
             if known_model is model:
                 by_id.pop(ident, None)
@@ -309,8 +374,14 @@ class XlsxSession(TigrblSessionBase):
                 columns = [self._pk_of(table)]
             sheet.append(columns)
             for row in rows:
-                sheet.append([row.get(col) for col in columns])
+                sheet.append([self._excel_value(row.get(col)) for col in columns])
         self._atomic_save_workbook(workbook, self._cat.path)
+
+    @staticmethod
+    def _excel_value(value: Any) -> Any:
+        if isinstance(value, uuid.UUID):
+            return str(value)
+        return value
 
     def _atomic_save_workbook(self, workbook: Any, path: str) -> None:
         directory = os.path.dirname(path) or "."
@@ -351,12 +422,18 @@ class XlsxSession(TigrblSessionBase):
                 return entity
 
         def _all_subclasses(base: type) -> list[type]:
+            def _safe_subclasses(cls: type) -> list[type]:
+                try:
+                    return list(cls.__subclasses__())
+                except TypeError:
+                    return []
+
             out: list[type] = []
-            stack = list(base.__subclasses__())
+            stack = _safe_subclasses(base)
             while stack:
                 cls = stack.pop()
                 out.append(cls)
-                stack.extend(cls.__subclasses__())
+                stack.extend(_safe_subclasses(cls))
             return out
 
         def _find_by_table(name: str) -> type | None:
