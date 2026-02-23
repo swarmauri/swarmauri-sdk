@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, Literal, Mapping, Optional, Tuple
 from ..engine.engine_spec import EngineCfg
 from ..hook import HookSpec as OpHook
 from ..hook.types import StepFn
-from ..responses.types import ResponseSpec
 
 PersistPolicy = Literal["default", "prepend", "append", "override", "skip"]
 Arity = Literal["collection", "member"]
@@ -28,6 +27,7 @@ TargetOp = Literal[
 ]
 
 if TYPE_CHECKING:  # pragma: no cover
+    from ..responses.types import ResponseSpec
     from ..schema.types import SchemaArg
 
 
@@ -65,7 +65,7 @@ class OpSpec:
     path_suffix: Optional[str] = None
     tags: Tuple[str, ...] = field(default_factory=tuple)
     status_code: Optional[int] = None
-    response: Optional[ResponseSpec] = None
+    response: Optional["ResponseSpec"] = None
 
     # Persistence
     persist: PersistPolicy = "default"
