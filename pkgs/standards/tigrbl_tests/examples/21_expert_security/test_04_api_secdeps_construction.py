@@ -15,7 +15,7 @@ from tigrbl.security import HTTPBearer
 from tigrbl.responses import JSONResponse
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblRouter
+from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -46,7 +46,7 @@ async def test_openapi_security_from_router_constructor_deps() -> None:
     router = SecuredRouter(engine=mem(async_=False))
     router.include_table(RouterSecdepsWidget)
 
-    # Deployment: initialize storage and attach OpenAPI to the router.
+    # Deployment: initialize storage, attach OpenAPI, mount router, and run with Uvicorn.
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
@@ -56,8 +56,11 @@ async def test_openapi_security_from_router_constructor_deps() -> None:
 
     router.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
 
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_router(router)
+
     port = pick_unique_port()
-    base_url, server, task = await start_uvicorn(router, port=port)
+    base_url, server, task = await start_uvicorn(app, port=port)
 
     # Usage: request the OpenAPI schema from the running API.
     async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
