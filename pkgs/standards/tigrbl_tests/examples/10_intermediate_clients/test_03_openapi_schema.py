@@ -8,7 +8,6 @@ from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl import TigrblApp as FastAPI
 from tigrbl.types import Column, String
 
 
@@ -29,11 +28,11 @@ async def test_openapi_schema_contains_widget_paths():
 
     # Deployment: build an API, include the model, and mount diagnostics.
     router = TigrblRouter(engine=mem(async_=False))
-    app.include_table(LessonOpenAPI)
-    init_result = app.initialize()
+    router.include_table(LessonOpenAPI)
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    app.mount_jsonrpc(prefix="/rpc")
+    router.mount_jsonrpc(prefix="/rpc")
 
     app = TigrblApp()
     app.include_router(router)
@@ -69,14 +68,14 @@ async def test_openapi_schema_includes_get_and_post():
         name = Column(String, nullable=False)
 
     # Deployment: initialize the app and attach diagnostics.
-    app = TigrblApp(engine=mem(async_=False))
-    app.include_table(LessonOpenAPIPaths)
-    init_result = app.initialize()
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_table(LessonOpenAPIPaths)
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    app.mount_jsonrpc(prefix="/rpc")
+    router.mount_jsonrpc(prefix="/rpc")
 
-    app = FastAPI()
+    app = TigrblApp()
     app.include_router(router)
     app.attach_diagnostics(prefix="")
 

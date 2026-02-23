@@ -49,7 +49,7 @@ async def test_one_to_many_relationship_via_rest() -> None:
     if inspect.isawaitable(init_result):
         await init_result
 
-    # Step 4: Mount the API routes on a FastAPI-compatible app.
+    # Step 4: Mount the API routes on an app.
     router = TigrblRouter()
     app.include_router(router)
     app.attach_diagnostics(prefix="")

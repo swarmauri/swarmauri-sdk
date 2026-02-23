@@ -1,7 +1,7 @@
 """Lesson 16: table router bindings.
 
 This lesson highlights how REST routers are stored on the API instance so
-handlers can be discovered and composed without inspecting the FastAPI app.
+handlers can be discovered and composed without inspecting the app.
 The router registry is the preferred pattern because it centralizes routing
 metadata with the API configuration.
 """
