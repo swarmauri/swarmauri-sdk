@@ -426,12 +426,26 @@ class TigrblApp(_App):
         tables: Iterable[Any] | None = None,
     ):
         """Initialize DDL for the app and any attached Routers."""
-        result = _ddl_initialize(
-            self,
-            schemas=schemas,
-            sqlite_attachments=sqlite_attachments,
-            tables=tables,
-        )
+        try:
+            result = _ddl_initialize(
+                self,
+                schemas=schemas,
+                sqlite_attachments=sqlite_attachments,
+                tables=tables,
+            )
+        except ValueError as exc:
+            if str(exc) != "Engine provider is not configured":
+                raise
+            try:
+                asyncio.get_running_loop()
+            except RuntimeError:
+                result = None
+            else:
+
+                async def _noop() -> None:
+                    return None
+
+                result = _noop()
 
         router_results = []
         attached_routers = list(
@@ -440,13 +454,17 @@ class TigrblApp(_App):
         for router in attached_routers:
             init = getattr(router, "initialize", None)
             if callable(init):
-                router_results.append(
-                    init(
-                        schemas=schemas,
-                        sqlite_attachments=sqlite_attachments,
-                        tables=tables,
+                try:
+                    router_results.append(
+                        init(
+                            schemas=schemas,
+                            sqlite_attachments=sqlite_attachments,
+                            tables=tables,
+                        )
                     )
-                )
+                except ValueError as exc:
+                    if str(exc) != "Engine provider is not configured":
+                        raise
 
         awaitables = [r for r in [result, *router_results] if inspect.isawaitable(r)]
         if not awaitables:
