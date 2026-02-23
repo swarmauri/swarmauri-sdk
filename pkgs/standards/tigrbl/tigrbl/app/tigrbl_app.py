@@ -135,7 +135,7 @@ class TigrblApp(_App):
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
         self.core_raw = SimpleNamespace()
-        self.routers = list(getattr(self, "ROUTERS", ()))
+        initial_routers = list(getattr(self, "ROUTERS", ()))
         self._event_handlers = {
             "startup": [],
             "shutdown": [],
@@ -147,8 +147,9 @@ class TigrblApp(_App):
         self.mount_openrpc(path="/openrpc.json")
         self.mount_lens(path="/rdocs", spec_path="/openrpc.json")
         if routers:
-            self.routers.extend(list(routers))
-            self.include_routers(self.routers)
+            initial_routers.extend(list(routers))
+        if initial_routers:
+            self.include_routers(initial_routers)
 
     @property
     def event_handlers(self) -> Dict[str, list[Callable[..., Any]]]:
@@ -353,13 +354,32 @@ class TigrblApp(_App):
         mount_router: bool = True,
     ) -> Any:
         """Mount a Tigrbl Router router onto this app and track it."""
-        if router not in self.routers:
-            self.routers.append(router)
+        if isinstance(self.routers, dict):
+            key = (
+                getattr(router, "name", None)
+                or getattr(router, "__name__", None)
+                or str(id(router))
+            )
+            if key not in self.routers:
+                self.routers[key] = router
+        else:
+            if router not in self.routers:
+                self.routers.append(router)
+        router_engine = getattr(router, "engine", None)
+        if router_engine is not None and getattr(self, "engine", None) is None:
+            self.engine = router_engine
+            if _resolver.resolve_provider() is None:
+                _resolver.set_default(router_engine)
+
         if not mount_router:
             return router
         routed = getattr(router, "router", router)
         super().include_router(routed, prefix=prefix or "")
         return routed
+
+    def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
+        """Back-compat alias for adding a route directly on the app router."""
+        self.add_route(path, endpoint, **kwargs)
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""
