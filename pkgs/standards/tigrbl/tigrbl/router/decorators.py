@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import Iterable, Optional, Sequence
+from typing import Any, Callable, Iterable, Optional, Sequence
 
 from ..op.decorators import _unwrap, op_ctx
 from ..op.types import Arity, PersistPolicy, TargetOp
 from ..schema.types import SchemaArg
+
+Handler = Callable[..., Any]
 
 
 def _normalize_methods(methods: Sequence[str] | str | None) -> tuple[str, ...] | None:
@@ -91,4 +93,23 @@ def route_ctx(
     return deco
 
 
-__all__ = ["route_ctx"]
+def route(
+    router: Any,
+    path: str,
+    *,
+    methods: Sequence[str] | str,
+    **kwargs: Any,
+) -> Callable[[Handler], Handler]:
+    """Register an HTTP route against a router instance.
+
+    This decorator mirrors :meth:`tigrbl.router.Router.route` as a standalone
+    helper so callers can use ``@route(router, ...)`` style declarations.
+    """
+
+    normalized_methods = _normalize_methods(methods)
+    if normalized_methods is None:
+        raise ValueError("methods must include at least one HTTP verb")
+    return router.route(path, methods=normalized_methods, **kwargs)
+
+
+__all__ = ["route_ctx", "route"]
