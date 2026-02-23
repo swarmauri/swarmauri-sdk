@@ -28,7 +28,7 @@ from tigrbl.transport.httpx import ensure_httpx_sync_transport
 
 from ._route import Route
 from .router_spec import RouterSpec
-from ..app._model_registry import initialize_model_registry
+from ..app._model_registry import initialize_table_registry
 from ..ddl import initialize as _ddl_initialize
 from ..engine import install_from_objects
 from ..engine import resolver as _resolver
@@ -94,7 +94,8 @@ class Router(RouterSpec):
         self.rest_prefix = getattr(self, "REST_PREFIX", "/api")
         self.rpc_prefix = getattr(self, "RPC_PREFIX", "/rpc")
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
-        self.models = initialize_model_registry(getattr(self, "TABLES", ()))
+        self.tables = initialize_table_registry(getattr(self, "TABLES", ()))
+        self.models = self.tables
 
         resolved_tags = self.tags if tags is None else tags
         resolved_dependencies = (
