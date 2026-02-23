@@ -8,7 +8,7 @@ import httpx
 import pytest
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp
+from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.types import Column, ForeignKey, Integer, String, relationship
 
@@ -32,9 +32,9 @@ async def test_self_referential_relationship_via_rest() -> None:
         )
 
     # Step 2: Build the API with a memory engine for speed.
-    app = TigrblApp(engine=mem(async_=False))
-    app.include_table(Category)
-    init_result = app.initialize()
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_table(Category)
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
 

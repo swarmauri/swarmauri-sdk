@@ -1,6 +1,6 @@
 import pytest
 import pytest_asyncio
-from tigrbl import TigrblApp, Base
+from tigrbl import TigrblApp, TigrblRouter, Base
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
 from tigrbl.router import TigrblRouter
 from tigrbl.specs import F, IO, S, acol

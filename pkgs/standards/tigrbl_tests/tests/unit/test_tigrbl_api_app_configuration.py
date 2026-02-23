@@ -63,7 +63,7 @@ def test_tigrbl_router_app_constructor_configuration_applies_metadata() -> None:
 
 @pytest.mark.unit
 def test_tigrbl_router_app_post_instantiation_updates_auth_state() -> None:
-    router = IotaApi(engine=mem(async_=False))
+    router = IotaRouter(engine=mem(async_=False))
 
     class IotaApp(TigrblApp):
         ROUTERS = (router,)

@@ -22,12 +22,12 @@ async def test_rpc_parity_with_httpx() -> None:
 
         name = Column(String, nullable=False)
 
-    app = TigrblApp(engine=mem(async_=False))
-    app.include_table(Widget)
-    init_result = app.initialize()
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_table(Widget)
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    app.mount_jsonrpc(prefix="/rpc")
+    router.mount_jsonrpc(prefix="/rpc")
 
     app = TigrblApp()
     app.include_router(router)
