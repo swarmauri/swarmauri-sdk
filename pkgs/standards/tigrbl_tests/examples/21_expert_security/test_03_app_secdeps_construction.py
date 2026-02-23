@@ -5,8 +5,6 @@ construction time and confirm the OpenAPI schema reflects those requirements
 for every route.
 """
 
-from tigrbl.security import Security
-
 import inspect
 
 import httpx
@@ -17,7 +15,7 @@ from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Column, String
+from tigrbl.types import Column, Security, String
 
 
 @pytest.mark.asyncio
@@ -41,7 +39,7 @@ async def test_openapi_security_from_app_constructor_deps() -> None:
 
     # Instantiation: create the app with constructor-level security deps.
     app = TigrblApp(engine=mem(async_=False), dependencies=[app_security_dep])
-    app.include_table(AppSecdepsWidget)
+    app.include_model(AppSecdepsWidget)
 
     # Deployment: initialize storage and run the app with Uvicorn.
     init_result = app.initialize()

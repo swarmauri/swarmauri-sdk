@@ -18,7 +18,7 @@ import pytest
 import uvicorn
 from tigrbl_client import TigrblClient
 
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -78,16 +78,16 @@ async def test_one_to_many_relationship_storage_field_io_client_experience() -> 
             "Project", back_populates="tasks", lazy="joined"
         )
 
-    app = TigrblApp(engine=mem(async_=False))
-    app.include_tables([Project, Task])
-    init_result = app.initialize()
+    api = TigrblApp(engine=mem(async_=False))
+    api.include_models([Project, Task])
+    init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    app.mount_jsonrpc(prefix="/rpc")
+    api.mount_jsonrpc(prefix="/rpc")
 
-    router = TigrblRouter()
-    app.include_router(router)
-    router.attach_diagnostics(prefix="", app=app)
+    app = TigrblApp()
+    app.include_router(api.router)
+    api.attach_diagnostics(prefix="", app=app)
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.bind(("127.0.0.1", 0))

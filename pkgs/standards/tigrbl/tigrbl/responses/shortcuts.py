@@ -117,7 +117,7 @@ def as_stream(
     headers: Optional[Headers] = None,
 ) -> Response:
     if hasattr(chunks, "__aiter__"):
-        raise TypeError("AsyncIterable streaming is not supported in shortcuts")
+        raise TypeError("AsyncIterable streaming is not supported in stdapi shortcuts")
     return _with_headers(
         StreamingResponse(chunks, status_code=status, media_type=media_type),
         headers,

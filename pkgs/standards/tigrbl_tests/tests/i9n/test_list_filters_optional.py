@@ -3,8 +3,8 @@ import pytest
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_list_filters_optional(app_client):
-    client, _, _ = app_client
+async def test_list_filters_optional(api_client):
+    client, _, _ = api_client
 
     spec = (await client.get("/openapi.json")).json()
     params = spec["paths"]["/tenant"]["get"].get("parameters", [])

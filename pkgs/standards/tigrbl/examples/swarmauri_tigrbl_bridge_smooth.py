@@ -102,7 +102,8 @@ class SmoothMessage(Base):
 
 
 app = TigrblApp(title="Swarmauri/Tigrbl Smooth Bridge", version="0.1.0")
-app.include_tables([Conversation, SmoothMessage])
+app.include_model(Conversation)
+app.include_model(SmoothMessage)
 
 app.mount_openapi(path="/openapi.json")
 app.mount_openrpc(path="/openrpc.json")

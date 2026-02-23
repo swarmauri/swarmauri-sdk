@@ -9,13 +9,15 @@ from tigrbl.types import (
     String,
 )
 
-import tigrbl.bindings.columns as columns_binding
-import tigrbl.bindings.handlers as handlers_binding
-import tigrbl.bindings.hooks as hooks_binding
-import tigrbl.bindings.model as model_binding
-import tigrbl.bindings.rest as rest_binding
-import tigrbl.bindings.router as router_binding
-import tigrbl.bindings.rpc as rpc_binding
+from tigrbl.bindings import (
+    api as api_binding,
+    columns as columns_binding,
+    handlers as handlers_binding,
+    hooks as hooks_binding,
+    model as model_binding,
+    rest as rest_binding,
+    rpc as rpc_binding,
+)
 from tigrbl.bindings.schemas import build_and_attach as schemas_build_and_attach
 from tigrbl.specs import ColumnSpec, F, IO, S
 from tigrbl.op import resolve
@@ -115,12 +117,12 @@ def test_model_bind_and_rebind(model_cls):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_router_include_and_rpc_call(monkeypatch, model_cls):
+async def test_api_include_and_rpc_call(monkeypatch, model_cls):
     model_binding.bind(model_cls)
-    router = SimpleNamespace()
-    router_binding.include_table(router, model_cls, mount_router=False)
-    assert model_cls.__name__ in router.models
-    routers = router_binding.include_tables(
+    api = SimpleNamespace()
+    api_binding.include_model(api, model_cls, mount_router=False)
+    assert model_cls.__name__ in api.models
+    routers = api_binding.include_models(
         SimpleNamespace(), [model_cls], mount_router=False
     )
     assert model_cls.__name__ in routers
@@ -130,8 +132,8 @@ async def test_router_include_and_rpc_call(monkeypatch, model_cls):
 
     monkeypatch.setattr(_executor, "_invoke", fake_invoke)
     payload = {"name": "x"}
-    result = await router_binding.rpc_call(
-        router, model_cls, "create", payload=payload, db=object()
+    result = await api_binding.rpc_call(
+        api, model_cls, "create", payload=payload, db=object()
     )
     assert result == payload
 

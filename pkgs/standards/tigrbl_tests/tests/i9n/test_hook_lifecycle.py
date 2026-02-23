@@ -7,6 +7,7 @@ Tests all hook phases and their behavior across CRUD, nested CRUD, and RPC opera
 import pytest
 
 from tigrbl import Base, TigrblApp
+from tigrbl.types import APIRouter
 from tigrbl.hook import hook_ctx
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
@@ -17,19 +18,22 @@ from tigrbl.types import PgUUID
 
 async def setup_client(db_mode, Tenant, Item):
     """Create an Tigrbl client for the provided models."""
-    if db_mode == "async":
-        app = TigrblApp(engine=mem())
-        app.include_tables([Tenant, Item])
-        await app.initialize()
-    else:
-        app = TigrblApp(engine=mem(async_=False))
-        app.include_tables([Tenant, Item])
-        app.initialize()
+    fastapi_app = APIRouter()
 
-    app.mount_jsonrpc()
-    transport = ASGITransport(app=app)
+    if db_mode == "async":
+        api = TigrblApp(engine=mem())
+        api.include_models([Tenant, Item])
+        await api.initialize()
+    else:
+        api = TigrblApp(engine=mem(async_=False))
+        api.include_models([Tenant, Item])
+        api.initialize()
+
+    api.mount_jsonrpc()
+    fastapi_app.include_router(api.router)
+    transport = ASGITransport(app=fastapi_app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, app
+    return client, api
 
 
 @pytest.mark.i9n

@@ -16,7 +16,7 @@ class Widget(Base):
 @pytest.mark.asyncio
 async def test_initialize_returns_task_for_async_engine():
     app = TigrblApp(engine=mem())
-    app.include_table(Widget, prefix="")
+    app.include_model(Widget, prefix="")
 
     result = app.initialize()
 

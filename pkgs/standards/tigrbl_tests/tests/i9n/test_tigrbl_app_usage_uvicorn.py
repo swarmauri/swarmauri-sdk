@@ -4,6 +4,7 @@ import pytest_asyncio
 
 from tigrbl import Base, TigrblApp
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
+from tigrbl.types import Security
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -11,8 +12,6 @@ from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
-
-from tigrbl.security import Security
 
 bearer = HTTPBearer()
 
@@ -53,7 +52,7 @@ class Delta(Base, GUIDPk):
 async def running_app():
     app = TigrblApp(engine=mem(async_=False))
     app.set_auth(authn=auth_dependency, allow_anon=False)
-    app.include_tables([Gamma, Delta])
+    app.include_models([Gamma, Delta])
     app.initialize()
 
     base_url, server, task = await run_uvicorn_in_task(app)

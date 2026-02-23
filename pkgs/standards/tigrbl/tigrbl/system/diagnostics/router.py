@@ -10,7 +10,7 @@ from .kernelz import build_kernelz_endpoint
 
 
 def mount_diagnostics(
-    router: Any,
+    api: Any,
     *,
     get_db: Optional[Callable[..., Any]] = None,
 ) -> Router:
@@ -21,12 +21,11 @@ def mount_diagnostics(
       GET /hookz
       GET /kernelz
     """
-    source_router = router
     router = Router()
 
     dep = get_db
 
-    router.add_route(
+    router.add_api_route(
         "/healthz",
         build_healthz_endpoint(dep),
         methods=["GET"],
@@ -35,18 +34,18 @@ def mount_diagnostics(
         summary="Health",
         description="Database connectivity check.",
     )
-    router.add_route(
+    router.add_api_route(
         "/methodz",
-        build_methodz_endpoint(source_router),
+        build_methodz_endpoint(api),
         methods=["GET"],
         name="methodz",
         tags=["system"],
         summary="Methods",
         description="Ordered, canonical operation list.",
     )
-    router.add_route(
+    router.add_api_route(
         "/hookz",
-        build_hookz_endpoint(source_router),
+        build_hookz_endpoint(api),
         methods=["GET"],
         name="hookz",
         tags=["system"],
@@ -58,9 +57,9 @@ def mount_diagnostics(
             "global (None) hooks, then method-specific hooks."
         ),
     )
-    router.add_route(
+    router.add_api_route(
         "/kernelz",
-        build_kernelz_endpoint(source_router),
+        build_kernelz_endpoint(api),
         methods=["GET"],
         name="kernelz",
         tags=["system"],

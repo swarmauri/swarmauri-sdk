@@ -12,8 +12,8 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import IO, S, acol
 from tigrbl.bindings import (
     bind,
-    include_table,
-    include_tables,
+    include_model,
+    include_models,
     rpc_call,
     rebind,
 )
@@ -55,24 +55,24 @@ def _make_db():
     return engine, db
 
 
-def test_include_table_and_rpc_call():
+def test_include_model_and_rpc_call():
     engine, db = _make_db()
-    router = SimpleNamespace(engine=engine)
-    _resolver.register_router(router, engine)
+    api = SimpleNamespace(engine=engine)
+    _resolver.register_api(api, engine)
 
-    include_table(router, Widget, mount_router=False)
+    include_model(api, Widget, mount_router=False)
 
-    # router facade populated
-    assert router.models["Widget"] is Widget
-    assert hasattr(router.schemas, "Widget")
-    assert hasattr(router.handlers, "Widget")
-    assert hasattr(router.hooks, "Widget")
-    assert hasattr(router.rpc, "Widget")
-    assert hasattr(router.rest, "Widget")
-    assert "Widget" in router.routers
-    assert "Widget" in router.columns
-    assert "Widget" in router.table_config
-    assert hasattr(router.core, "Widget")
+    # api facade populated
+    assert api.models["Widget"] is Widget
+    assert hasattr(api.schemas, "Widget")
+    assert hasattr(api.handlers, "Widget")
+    assert hasattr(api.hooks, "Widget")
+    assert hasattr(api.rpc, "Widget")
+    assert hasattr(api.rest, "Widget")
+    assert "Widget" in api.routers
+    assert "Widget" in api.columns
+    assert "Widget" in api.table_config
+    assert hasattr(api.core, "Widget")
 
     # model namespaces
     assert hasattr(Widget, TIGRBL_GET_DB_ATTR)
@@ -82,21 +82,21 @@ def test_include_table_and_rpc_call():
     phases = build_phase_chains(Widget, "create")
     assert phases["HANDLER"], "phase lifecycle must contain handler step"
 
-    asyncio.run(rpc_call(router, Widget, "create", {"id": uuid4(), "name": "w"}, db=db))
-    rows = asyncio.run(rpc_call(router, Widget, "list", {}, db=db))
+    asyncio.run(rpc_call(api, Widget, "create", {"id": uuid4(), "name": "w"}, db=db))
+    rows = asyncio.run(rpc_call(api, Widget, "list", {}, db=db))
     assert rows and rows[0]["name"] == "w"
 
 
-def test_include_tables():
+def test_include_models():
     engine, db = _make_db()
-    router = SimpleNamespace(engine=engine)
-    _resolver.register_router(router, engine)
+    api = SimpleNamespace(engine=engine)
+    _resolver.register_api(api, engine)
 
-    include_tables(router, [Widget, Gizmo], mount_router=False)
+    include_models(api, [Widget, Gizmo], mount_router=False)
 
-    assert set(router.models) == {"Widget", "Gizmo"}
-    assert hasattr(router.schemas, "Widget")
-    assert hasattr(router.schemas, "Gizmo")
+    assert set(api.models) == {"Widget", "Gizmo"}
+    assert hasattr(api.schemas, "Widget")
+    assert hasattr(api.schemas, "Gizmo")
 
 
 def test_bind_and_rebind():

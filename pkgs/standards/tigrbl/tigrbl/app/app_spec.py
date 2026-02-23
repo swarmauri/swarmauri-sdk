@@ -14,12 +14,11 @@ class AppSpec:
     """
 
     title: str = "Tigrbl"
-    description: str | None = None
     version: str = "0.1.0"
     engine: Optional[EngineCfg] = None
 
-    # NEW: multi-Router composition (store Router classes or instances)
-    routers: Sequence[Any] = field(default_factory=tuple)
+    # NEW: multi-API composition (store API classes or instances)
+    apis: Sequence[Any] = field(default_factory=tuple)
 
     # NEW: orchestration/topology knobs
     ops: Sequence[Any] = field(default_factory=tuple)  # op descriptors or specs

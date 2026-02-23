@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -20,15 +20,15 @@ async def test_healthz_ok() -> None:
 
         name = Column(String, nullable=False)
 
-    app = TigrblApp(engine=mem(async_=False))
-    app.include_table(Widget)
-    init_result = app.initialize()
+    api = TigrblApp(engine=mem(async_=False))
+    api.include_model(Widget)
+    init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result
 
-    router = TigrblRouter()
-    app.include_router(router)
-    app.attach_diagnostics(prefix="")
+    app = TigrblApp()
+    app.include_router(api.router)
+    api.attach_diagnostics(prefix="", app=app)
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

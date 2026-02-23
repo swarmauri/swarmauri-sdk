@@ -18,7 +18,7 @@ def test_compiles_opview_for_new_model_after_prime():
 
     bind(A)
     app = TigrblApp()
-    app.include_table(A, mount_router=False)
+    app.include_model(A, mount_router=False)
     # prime kernel for first model
     K.get_opview(app, A, "read")
 
@@ -30,7 +30,7 @@ def test_compiles_opview_for_new_model_after_prime():
         )
 
     bind(B)
-    app.include_table(B, mount_router=False)
+    app.include_model(B, mount_router=False)
 
     # should compile opview without raising
     ov = K.get_opview(app, B, "read")

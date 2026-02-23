@@ -15,13 +15,13 @@ class Widget(Base):
 
 @pytest.mark.asyncio
 async def test_initialize_schedules_task_for_sync_engine():
-    app = TigrblApp(engine=mem(async_=False))
-    app.models["Widget"] = Widget
+    api = TigrblApp(engine=mem(async_=False))
+    api.models["Widget"] = Widget
 
-    result = app.initialize()
+    result = api.initialize()
 
     assert isinstance(result, asyncio.Task)
 
     await result
 
-    assert getattr(app, "_ddl_executed", False) is True
+    assert getattr(api, "_ddl_executed", False) is True

@@ -1,6 +1,4 @@
-from tigrbl.runtime.status import HTTPException
-from tigrbl.requests import Request
-from tigrbl.responses import Response
+from tigrbl.types import HTTPException, Request, Response
 
 
 def test_request_parses_json_and_query_params():

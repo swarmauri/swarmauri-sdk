@@ -1,11 +1,9 @@
 """Lesson 21.1: Authn dependencies update OpenAPI security per route.
 
 This example demonstrates how to configure authn dependencies on both
-``TigrblApp`` and ``TigrblRouter``, allow anonymous access to selected operations,
+``TigrblApp`` and ``TigrblApi``, allow anonymous access to selected operations,
 and confirm OpenAPI reflects security requirements on a per-route basis.
 """
-
-from tigrbl.security import Security
 
 import inspect
 
@@ -15,10 +13,10 @@ from tigrbl.responses import JSONResponse
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import Base, TigrblApi, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Column, String
+from tigrbl.types import Column, Security, String
 
 
 @pytest.mark.asyncio
@@ -49,7 +47,7 @@ async def test_openapi_security_from_app_authn_dependency() -> None:
     # Instantiation: build the app, apply authn, and include the model.
     app = TigrblApp(engine=mem(async_=False))
     app.set_auth(authn=authn_dependency)
-    app.include_table(SecureWidget)
+    app.include_model(SecureWidget)
 
     # Deployment: initialize storage and run the app with Uvicorn.
     init_result = app.initialize()
@@ -75,10 +73,10 @@ async def test_openapi_security_from_app_authn_dependency() -> None:
 
 
 @pytest.mark.asyncio
-async def test_openapi_security_from_router_authn_dependency() -> None:
+async def test_openapi_security_from_api_authn_dependency() -> None:
     """Show API-level authn dependencies mark secured routes in OpenAPI.
 
-    This test configures a bearer-token authn dependency on ``TigrblRouter``,
+    This test configures a bearer-token authn dependency on ``TigrblApi``,
     allows anonymous access to list operations, and asserts that only the
     secured routes include OpenAPI security metadata.
     """
@@ -93,36 +91,30 @@ async def test_openapi_security_from_router_authn_dependency() -> None:
 
     # Configuration: declare a model with anonymous list access.
     class SecureApiWidget(Base, GUIDPk):
-        __tablename__ = "lesson_security_authn_router_widget"
+        __tablename__ = "lesson_security_authn_api_widget"
         __allow_unmapped__ = True
         __tigrbl_allow_anon__ = ("list",)
 
         name = Column(String, nullable=False)
 
     # Instantiation: build the API, apply authn, and include the model.
-    router = TigrblRouter(engine=mem(async_=False))
-    router.set_auth(authn=authn_dependency)
-    router.include_table(SecureApiWidget)
+    api = TigrblApi(engine=mem(async_=False))
+    api.set_auth(authn=authn_dependency)
+    api.include_model(SecureApiWidget)
 
-    # Deployment: initialize storage, attach OpenAPI, mount router, and run with Uvicorn.
-    init_result = router.initialize()
+    # Deployment: initialize storage, attach OpenAPI, and run with Uvicorn.
+    init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result
 
-    # Deployment: mount the router in an app and expose OpenAPI on the host app.
-    app = TigrblApp()
-    app.include_router(router)
-
+    # Deployment: add an OpenAPI endpoint directly on the router-only API.
     def openapi_endpoint(_request) -> JSONResponse:
-        return JSONResponse(app.openapi())
+        return JSONResponse(api.openapi())
 
-    app.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
-
-    app = TigrblApp(engine=mem(async_=False))
-    app.include_router(router)
+    api.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
 
     port = pick_unique_port()
-    base_url, server, task = await start_uvicorn(app, port=port)
+    base_url, server, task = await start_uvicorn(api, port=port)
 
     # Usage: request the OpenAPI schema from the running API.
     async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:

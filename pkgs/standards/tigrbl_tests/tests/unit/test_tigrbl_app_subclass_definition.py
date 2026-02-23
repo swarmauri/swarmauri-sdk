@@ -22,7 +22,7 @@ class Widget(Base, GUIDPk):
 class WidgetApp(TigrblApp):
     TITLE = "Widget App"
     VERSION = "1.0.0"
-    TABLES = (Widget,)
+    MODELS = (Widget,)
 
 
 @pytest.mark.unit
@@ -31,7 +31,7 @@ def test_tigrbl_app_subclass_declares_metadata() -> None:
 
     assert "TITLE" in class_dir
     assert "VERSION" in class_dir
-    assert "TABLES" in class_dir
+    assert "MODELS" in class_dir
     assert WidgetApp.TITLE == "Widget App"
     assert WidgetApp.VERSION == "1.0.0"
-    assert WidgetApp.TABLES == (Widget,)
+    assert WidgetApp.MODELS == (Widget,)

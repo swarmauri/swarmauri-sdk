@@ -24,7 +24,7 @@ class EngineWidget(Base, GUIDPk):
 @pytest_asyncio.fixture()
 async def running_engine_app():
     app = TigrblApp(engine=mem(async_=False))
-    app.include_table(EngineWidget)
+    app.include_model(EngineWidget)
     app.mount_jsonrpc(prefix="/rpc")
     app.initialize()
 

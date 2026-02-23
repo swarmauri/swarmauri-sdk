@@ -12,7 +12,7 @@ async def test_hookz_omits_empty_phases_and_operations():
     def dummy(ctx):
         pass
 
-    class Router:
+    class API:
         pass
 
     class Model:
@@ -25,10 +25,10 @@ async def test_hookz_omits_empty_phases_and_operations():
     )
     Model.rpc = SimpleNamespace(foo=None, bar=None)
 
-    router = Router()
-    router.models = {"Model": Model}
+    api = API()
+    api.models = {"Model": Model}
 
-    hookz = _build_hookz_endpoint(router)
+    hookz = _build_hookz_endpoint(api)
     data = await hookz()
 
     assert "Model" in data

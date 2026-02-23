@@ -15,7 +15,6 @@ from .schema import REGISTRY as _SCHEMA
 from .storage import REGISTRY as _STORAGE
 from .wire import REGISTRY as _WIRE
 from .response import REGISTRY as _RESPONSE
-from .dep import REGISTRY as _DEP
 
 # Runner signature: (obj|None, ctx) -> None
 RunFn = Callable[[Optional[object], Any], None]
@@ -49,7 +48,6 @@ _add_bulk(_SCHEMA)
 _add_bulk(_STORAGE)
 _add_bulk(_WIRE)
 _add_bulk(_RESPONSE)
-_add_bulk(_DEP)
 
 logger.info("Loaded %d runtime atoms", len(REGISTRY))
 

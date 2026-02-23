@@ -23,12 +23,12 @@ def test_custom_op_hooks_register():
         def audit(cls, ctx):
             return None
 
-    app = TigrblApp(engine=mem(async_=False))
-    app.include_table(Widget)
-    init_result = app.initialize()
+    api = TigrblApp(engine=mem(async_=False))
+    api.include_model(Widget)
+    init_result = api.initialize()
     if inspect.isawaitable(init_result):
         import asyncio
 
         asyncio.run(init_result)
-    app.bind(Widget)
+    api.bind(Widget)
     assert len(getattr(Widget.hooks, "report").POST_RESPONSE) == 1

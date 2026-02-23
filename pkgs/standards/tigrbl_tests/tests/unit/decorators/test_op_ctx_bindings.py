@@ -1,10 +1,9 @@
 from types import SimpleNamespace
 
-from tigrbl import Router, op_ctx, TigrblApp
-from tigrbl.op import OpSpec
+from tigrbl import Api, op_ctx, TigrblApp
 
 
-def test_op_ctx_internal_binding_returns_classmethod_with_spec():
+def test_op_ctx_internal_binding_returns_classmethod_with_decl():
     @op_ctx(alias="search", target="custom", status_code=201)
     def search(cls, ctx):
         return ctx
@@ -14,8 +13,7 @@ def test_op_ctx_internal_binding_returns_classmethod_with_spec():
 
     method = Widget.__dict__["lookup"]
     assert isinstance(method, classmethod)
-    decl = method.__func__.__tigrbl_op_spec__
-    assert isinstance(decl, OpSpec)
+    decl = method.__func__.__tigrbl_op_decl__
     assert decl.alias == "search"
     assert decl.target == "custom"
     assert decl.status_code == 201
@@ -36,8 +34,7 @@ def test_op_ctx_external_binding_to_multiple_table_classes():
     for model in (Alpha, Beta):
         method = model.__dict__["touch"]
         assert isinstance(method, classmethod)
-        decl = method.__func__.__tigrbl_op_spec__
-        assert isinstance(decl, OpSpec)
+        decl = method.__func__.__tigrbl_op_decl__
         assert decl.alias == "touch"
         assert decl.target == "custom"
 
@@ -56,21 +53,21 @@ def test_op_ctx_binding_to_app_instance_uses_classmethod_descriptor():
 
     bound = app.__dict__["diagnostics"]
     assert isinstance(bound, classmethod)
-    assert bound.__func__.__tigrbl_op_spec__.alias == "diagnostics"
+    assert bound.__func__.__tigrbl_op_decl__.alias == "diagnostics"
 
 
-def test_op_ctx_binding_to_router_class():
-    class ExampleRouter(Router):
+def test_op_ctx_binding_to_api_class():
+    class ExampleApi(Api):
         PREFIX = ""
         NAME = "example"
 
-    @op_ctx(alias="hook", target="custom", bind=ExampleRouter)
+    @op_ctx(alias="hook", target="custom", bind=ExampleApi)
     def hook(cls, ctx):
         return None
 
-    method = ExampleRouter.__dict__["hook"]
+    method = ExampleApi.__dict__["hook"]
     assert isinstance(method, classmethod)
-    assert method.__func__.__tigrbl_op_spec__.alias == "hook"
+    assert method.__func__.__tigrbl_op_decl__.alias == "hook"
 
 
 def test_op_ctx_binding_to_plain_object():
@@ -82,4 +79,4 @@ def test_op_ctx_binding_to_plain_object():
 
     bound = target.__dict__["noop"]
     assert isinstance(bound, classmethod)
-    assert bound.__func__.__tigrbl_op_spec__.alias == "noop"
+    assert bound.__func__.__tigrbl_op_decl__.alias == "noop"

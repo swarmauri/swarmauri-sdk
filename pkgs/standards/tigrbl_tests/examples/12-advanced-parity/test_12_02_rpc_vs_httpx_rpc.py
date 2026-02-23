@@ -8,7 +8,7 @@ import pytest
 from tigrbl_client import TigrblClient
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -22,16 +22,16 @@ async def test_rpc_parity_with_httpx() -> None:
 
         name = Column(String, nullable=False)
 
-    router = TigrblRouter(engine=mem(async_=False))
-    router.include_table(Widget)
-    init_result = router.initialize()
+    api = TigrblApp(engine=mem(async_=False))
+    api.include_model(Widget)
+    init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    router.mount_jsonrpc(prefix="/rpc")
+    api.mount_jsonrpc(prefix="/rpc")
 
     app = TigrblApp()
-    app.include_router(router)
-    app.attach_diagnostics(prefix="")
+    app.include_router(api.router)
+    api.attach_diagnostics(prefix="", app=app)
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
