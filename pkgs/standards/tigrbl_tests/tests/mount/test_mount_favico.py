@@ -37,7 +37,7 @@ class TestMountFaviconOnTigrblApp:
     async def test_mount_favicon_supports_custom_svg_path(self) -> None:
         """A custom SVG mount path should be the target for ICO redirects."""
         app = TigrblApp()
-        app.mount_favicon(path="/assets/favicon.svg", name="favicon_assets_route")
+        app.mount_favicon(svg_path="/assets/favicon.svg", name="favicon_assets_route")
 
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -57,7 +57,7 @@ class TestMountFaviconOnTigrblApp:
         favicon_ico = tmp_path / "favicon.ico"
         favicon_ico.write_bytes(b"\x00\x00\x01\x00")
 
-        app.mount_favicon(favicon_path=favicon_ico, name="favicon_ico_route")
+        app.mount_favicon(filepath=favicon_ico, name="favicon_ico_route")
 
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
