@@ -115,7 +115,9 @@ def _describe_method(model: type, spec: OpSpec) -> str | None:
 
 
 def build_openrpc_spec(router: Any, request: Any | None = None) -> JsonObject:
-    info_title = getattr(router, "title", None) or getattr(router, "name", None) or "API"
+    info_title = (
+        getattr(router, "title", None) or getattr(router, "name", None) or "API"
+    )
     info_version = getattr(router, "version", None) or "0.1.0"
     jsonrpc_url = _jsonrpc_path(router)
     origin = _request_origin(request)
@@ -170,22 +172,20 @@ def build_openrpc_spec(router: Any, request: Any | None = None) -> JsonObject:
 
 def mount_openrpc(
     router: Any,
-    router: Any | None = None,
     *,
     path: str = "/openrpc.json",
     name: str = "openrpc_json",
     tags: list[str] | None = None,
 ) -> Any:
-    """Mount an OpenRPC JSON endpoint onto ``router`` or ``router``."""
+    """Mount an OpenRPC JSON endpoint onto ``router``."""
 
-    target_router = router if router is not None else router
     normalized_path = _with_leading_slash(path)
     setattr(router, "openrpc_path", normalized_path)
 
     def _openrpc_endpoint(request: Any) -> Response:
         return Response.json(build_openrpc_spec(router, request=request))
 
-    target_router.add_route(
+    router.add_route(
         normalized_path,
         _openrpc_endpoint,
         methods=["GET"],
@@ -195,7 +195,7 @@ def mount_openrpc(
         summary="OpenRPC",
         description="OpenRPC 1.2.6 schema for JSON-RPC methods.",
     )
-    return target_router
+    return router
 
 
 __all__ = ["build_openrpc_spec", "mount_openrpc"]

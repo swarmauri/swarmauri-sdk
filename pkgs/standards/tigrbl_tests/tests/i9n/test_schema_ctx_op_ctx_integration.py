@@ -37,8 +37,8 @@ async def widget_client():
     app = TigrblApp()
     router = TigrblRouter(engine=mem())
     router.include_table(Widget, prefix="")
-    router.mount_jsonrpc()
-    await router.initialize()
+    app.mount_jsonrpc()
+    await app.initialize()
     app.include_router(router)
 
     async with AsyncClient(

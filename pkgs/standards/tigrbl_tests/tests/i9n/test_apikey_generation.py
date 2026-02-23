@@ -1,5 +1,6 @@
 import pytest
-from tigrbl import TigrblApp, TigrblRouter
+from tigrbl import TigrblApp
+from tigrbl.engine.shortcuts import mem
 from tigrbl.types import Mapped, String
 from httpx import ASGITransport, AsyncClient
 
@@ -34,11 +35,9 @@ async def test_router_key_creation_requires_valid_payload(sync_db_session):
     """Posting without required fields yields an unprocessable entity response."""
     cfg, _ = sync_db_session
 
-    app = TigrblApp()
-    router = TigrblRouter(engine=cfg)
+    app = TigrblApp(engine=mem(async_=False))
     app.include_tables([ConcreteApiKey])
     app.initialize()
-    app.include_router(router)
     transport = ASGITransport(app=app)
 
     async with AsyncClient(transport=transport, base_url="http://test") as client:
