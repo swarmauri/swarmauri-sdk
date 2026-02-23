@@ -153,6 +153,26 @@ class TigrblApp(_App):
         if initial_routers:
             self.include_routers(initial_routers)
 
+        if (
+            self._has_local_op_declarations()
+            and self.__class__.__name__ not in self.models
+        ):
+            self.include_table(self.__class__)
+
+    def _has_local_op_declarations(self) -> bool:
+        """Return True when the app subclass declares op_alias/op_ctx operations."""
+        app_cls = self.__class__
+        if getattr(app_cls, "__tigrbl_ops__", ()):
+            return True
+
+        for attr in app_cls.__dict__.values():
+            fn = getattr(attr, "__func__", attr)
+            if getattr(fn, "__tigrbl_op_spec__", None) is not None:
+                return True
+            if getattr(fn, "__tigrbl_op_decl__", None) is not None:
+                return True
+        return False
+
     @property
     def event_handlers(self) -> Dict[str, list[Callable[..., Any]]]:
         """Expose registered startup and shutdown callbacks by event name."""
