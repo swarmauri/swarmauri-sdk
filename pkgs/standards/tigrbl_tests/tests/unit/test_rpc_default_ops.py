@@ -11,7 +11,7 @@ from tigrbl.engine import resolver as _resolver
 
 
 @pytest.fixture()
-def api_and_session() -> Iterator[tuple[TigrblApp, Session, type[Base]]]:
+def app_and_session() -> Iterator[tuple[TigrblApp, Session, type[Base]]]:
     class Widget(Base, GUIDPk, BulkCapable):
         __tablename__ = "widgets_rpc_ops"
         __allow_unmapped__ = True
@@ -26,39 +26,39 @@ def api_and_session() -> Iterator[tuple[TigrblApp, Session, type[Base]]]:
             ),
         )
 
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_table(Widget, mount_router=False)
-    api.initialize()
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(Widget, mount_router=False)
+    app.initialize()
     prov = _resolver.resolve_provider()
     _, SessionLocal = prov.ensure()
 
     session: Session = SessionLocal()
     try:
-        yield api, session, Widget
+        yield app, session, Widget
     finally:
         session.close()
 
 
 @pytest.mark.asyncio
-async def test_rpc_create(api_and_session):
-    api, db, Widget = api_and_session
-    result = await api.rpc_call(Widget, "create", {"name": "a"}, db=db)
+async def test_rpc_create(app_and_session):
+    app, db, Widget = app_and_session
+    result = await app.rpc_call(Widget, "create", {"name": "a"}, db=db)
     assert result["name"] == "a"
 
 
 @pytest.mark.asyncio
-async def test_rpc_read(api_and_session):
-    api, db, Widget = api_and_session
-    created = await api.rpc_call(Widget, "create", {"name": "b"}, db=db)
-    fetched = await api.rpc_call(Widget, "read", {"id": created["id"]}, db=db)
+async def test_rpc_read(app_and_session):
+    app, db, Widget = app_and_session
+    created = await app.rpc_call(Widget, "create", {"name": "b"}, db=db)
+    fetched = await app.rpc_call(Widget, "read", {"id": created["id"]}, db=db)
     assert fetched["id"] == created["id"]
 
 
 @pytest.mark.asyncio
-async def test_rpc_update(api_and_session):
-    api, db, Widget = api_and_session
-    created = await api.rpc_call(Widget, "create", {"name": "c"}, db=db)
-    updated = await api.rpc_call(
+async def test_rpc_update(app_and_session):
+    app, db, Widget = app_and_session
+    created = await app.rpc_call(Widget, "create", {"name": "c"}, db=db)
+    updated = await app.rpc_call(
         Widget,
         "update",
         {"id": created["id"], "name": "c2"},
@@ -68,10 +68,10 @@ async def test_rpc_update(api_and_session):
 
 
 @pytest.mark.asyncio
-async def test_rpc_replace(api_and_session):
-    api, db, Widget = api_and_session
-    created = await api.rpc_call(Widget, "create", {"name": "d"}, db=db)
-    replaced = await api.rpc_call(
+async def test_rpc_replace(app_and_session):
+    app, db, Widget = app_and_session
+    created = await app.rpc_call(Widget, "create", {"name": "d"}, db=db)
+    replaced = await app.rpc_call(
         Widget,
         "replace",
         {"id": created["id"], "name": "d2"},
@@ -81,10 +81,10 @@ async def test_rpc_replace(api_and_session):
 
 
 @pytest.mark.asyncio
-async def test_rpc_delete(api_and_session):
-    api, db, Widget = api_and_session
-    created = await api.rpc_call(Widget, "create", {"name": "e"}, db=db)
-    deleted = await api.rpc_call(
+async def test_rpc_delete(app_and_session):
+    app, db, Widget = app_and_session
+    created = await app.rpc_call(Widget, "create", {"name": "e"}, db=db)
+    deleted = await app.rpc_call(
         Widget,
         "delete",
         {"id": created["id"]},
@@ -94,18 +94,18 @@ async def test_rpc_delete(api_and_session):
 
 
 @pytest.mark.asyncio
-async def test_rpc_list(api_and_session):
-    api, db, Widget = api_and_session
-    await api.rpc_call(Widget, "create", {"name": "f1"}, db=db)
-    await api.rpc_call(Widget, "create", {"name": "f2"}, db=db)
-    rows = await api.rpc_call(Widget, "list", {}, db=db)
+async def test_rpc_list(app_and_session):
+    app, db, Widget = app_and_session
+    await app.rpc_call(Widget, "create", {"name": "f1"}, db=db)
+    await app.rpc_call(Widget, "create", {"name": "f2"}, db=db)
+    rows = await app.rpc_call(Widget, "list", {}, db=db)
     assert {r["name"] for r in rows} == {"f1", "f2"}
 
 
 @pytest.mark.asyncio
-async def test_rpc_clear(api_and_session):
-    api, db, Widget = api_and_session
-    await api.rpc_call(Widget, "create", {"name": "g1"}, db=db)
-    await api.rpc_call(Widget, "create", {"name": "g2"}, db=db)
-    result = await api.rpc_call(Widget, "clear", {"filters": {}}, db=db)
+async def test_rpc_clear(app_and_session):
+    app, db, Widget = app_and_session
+    await app.rpc_call(Widget, "create", {"name": "g1"}, db=db)
+    await app.rpc_call(Widget, "create", {"name": "g2"}, db=db)
+    result = await app.rpc_call(Widget, "clear", {"filters": {}}, db=db)
     assert result["deleted"] == 2

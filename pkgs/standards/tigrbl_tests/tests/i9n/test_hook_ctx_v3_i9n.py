@@ -1,5 +1,5 @@
 import pytest
-from tigrbl import TigrblApp
+from tigrbl import TigrblApp, TigrblRouter
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import func, select
 
@@ -17,10 +17,10 @@ from tigrbl.hook import hook_ctx
 def create_client(model_cls):
     """Build a FastAPI app with Tigrbl v3 and return an AsyncClient."""
     app = TigrblApp()
-    api = TigrblApp(engine={"kind": "sqlite", "memory": True})
-    api.include_table(model_cls)
-    api.mount_jsonrpc()
-    api.attach_diagnostics()
+    router = TigrblRouter(engine={"kind": "sqlite", "memory": True})
+    app.include_table(model_cls)
+    app.mount_jsonrpc()
+    app.attach_diagnostics()
 
     from tigrbl.engine import resolver as _resolver
 
@@ -28,7 +28,7 @@ def create_client(model_cls):
     engine, SessionLocal = prov.ensure()
     Base.metadata.create_all(engine)
 
-    app.include_router(api.router)
+    app.include_router(router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     return client, api, SessionLocal

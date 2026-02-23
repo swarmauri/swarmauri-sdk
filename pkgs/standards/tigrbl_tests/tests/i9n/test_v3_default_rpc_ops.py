@@ -4,7 +4,7 @@ from tigrbl.orm.mixins import BulkCapable, Replaceable, Mergeable
 from tigrbl.types import Integer, Mapped, String, uuid4
 from httpx import AsyncClient, ASGITransport
 
-from tigrbl import TigrblApp as Tigrblv3
+from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.tables import Base as Base3
 from tigrbl.specs import F, IO, S, acol
@@ -40,12 +40,12 @@ async def client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
-    app = Tigrblv3()
-    api = Tigrblv3(engine=mem())
-    api.include_table(Gadget, prefix="")
-    api.mount_jsonrpc(prefix="/rpc")
-    await api.initialize()
-    app.include_router(api.router)
+    app = TigrblApp()
+    router = TigrblRouter(engine=mem())
+    router.include_table(Gadget, prefix="")
+    router.mount_jsonrpc(prefix="/rpc")
+    await router.initialize()
+    app.include_router(router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
@@ -160,12 +160,12 @@ async def wrapper_field_client_and_model():
 
         __tigrbl_cols__ = {"id": id, "data": data}
 
-    app = Tigrblv3()
-    api = Tigrblv3(engine=mem())
-    api.include_table(WrapperNamed, prefix="")
-    api.mount_jsonrpc(prefix="/rpc")
-    await api.initialize()
-    app.include_router(api.router)
+    app = TigrblApp()
+    router = TigrblRouter(engine=mem())
+    app.include_table(WrapperNamed, prefix="")
+    router.mount_jsonrpc(prefix="/rpc")
+    await app.initialize()
+    app.include_router(router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
@@ -260,12 +260,12 @@ async def bulk_client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
-    app = Tigrblv3()
-    api = Tigrblv3(engine=mem())
-    api.include_table(Gadget, prefix="")
-    api.mount_jsonrpc(prefix="/rpc")
-    await api.initialize()
-    app.include_router(api.router)
+    app = TigrblApp()
+    router = TigrblRouter(engine=mem())
+    app.include_table(Gadget, prefix="")
+    router.mount_jsonrpc(prefix="/rpc")
+    await app.initialize()
+    app.include_router(router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:

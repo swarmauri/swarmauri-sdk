@@ -30,9 +30,9 @@ def test_custom_op_returns_payload():
     LessonPayload.summary = summary
 
     # Deployment: build an app and include the model so OpSpecs resolve.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_table(LessonPayload)
-    api.initialize()
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(LessonPayload)
+    app.initialize()
 
     # Test: locate the OpSpec for the custom alias on the bound model.
     spec = next(sp for sp in api.bind(LessonPayload) if sp.alias == "summary")
@@ -64,9 +64,9 @@ def test_custom_op_exposes_target_and_handler():
     LessonPayloadMeta.describe = describe
 
     # Deployment: create an app, include the model, and initialize bindings.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_table(LessonPayloadMeta)
-    api.initialize()
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(LessonPayloadMeta)
+    app.initialize()
 
     # Test: pull the spec from the bound model set.
     spec = next(sp for sp in api.bind(LessonPayloadMeta) if sp.alias == "describe")

@@ -20,7 +20,7 @@ def _model():
 async def test_initialize_with_sync_engine():
     Base.metadata.clear()
     Widget = _model()
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_table(Widget)
-    await api.initialize()
-    assert getattr(api.tables, "Widget").name == "widgets"
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(Widget)
+    await app.initialize()
+    assert getattr(app.tables, "Widget").name == "widgets"

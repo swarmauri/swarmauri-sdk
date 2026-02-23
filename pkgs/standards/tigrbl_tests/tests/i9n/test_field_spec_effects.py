@@ -38,10 +38,10 @@ async def fs_app():
 
     Base.metadata.create_all(engine)
     app = TigrblApp()
-    api = TigrblApp(engine=cfg)
-    api.include_table(FSItem)
-    api.initialize()
-    app.include_router(api.router)
+    router = TigrblRouter(engine=cfg)
+    app.include_table(FSItem)
+    app.initialize()
+    app.include_router(router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:

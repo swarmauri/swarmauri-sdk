@@ -23,9 +23,9 @@ def test_custom_op_hooks_register():
         def audit(cls, ctx):
             return None
 
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_table(Widget)
-    init_result = api.initialize()
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(Widget)
+    init_result = app.initialize()
     if inspect.isawaitable(init_result):
         import asyncio
 

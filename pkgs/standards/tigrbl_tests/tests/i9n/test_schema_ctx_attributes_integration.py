@@ -5,7 +5,7 @@ from httpx import ASGITransport, AsyncClient
 
 from tigrbl.types import BaseModel, Column, Integer, String
 
-from tigrbl import TigrblApp, Base, schema_ctx
+from tigrbl import TigrblApp, Base, schema_ctx, TigrblRouter
 from tigrbl.core import crud
 from tigrbl.engine.shortcuts import mem
 from tigrbl.engine import resolver as _resolver
@@ -33,14 +33,14 @@ async def schema_ctx_client():
 
     cfg = mem()
     app = TigrblApp()
-    api = TigrblApp(engine=cfg)
-    api.include_table(Widget, prefix="")
-    api.mount_jsonrpc()
-    api.attach_diagnostics()
-    await api.initialize()
+    router = TigrblRouter(engine=cfg)
+    app.include_table(Widget, prefix="")
+    app.mount_jsonrpc()
+    app.attach_diagnostics()
+    await app.initialize()
     prov = _resolver.resolve_provider()
     _, sessionmaker = prov.ensure()
-    app.include_router(api.router)
+    app.include_router(router)
 
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
     return client, api, Widget, sessionmaker

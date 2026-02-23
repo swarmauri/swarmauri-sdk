@@ -8,7 +8,7 @@ import httpx
 import pytest
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp
+from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.types import Column, ForeignKey, Integer, String, relationship
 
@@ -42,17 +42,17 @@ async def test_one_to_many_relationship_via_rest() -> None:
         author = relationship("Author", back_populates="books")
 
     # Step 3: Build the API with an in-memory engine for fast feedback.
-    api = TigrblApp(engine=mem(async_=False))
+    app = TigrblApp(engine=mem(async_=False))
     # Register both models so their REST routes are generated.
-    api.include_tables([Author, Book])
-    init_result = api.initialize()
+    app.include_tables([Author, Book])
+    init_result = app.initialize()
     if inspect.isawaitable(init_result):
         await init_result
 
     # Step 4: Mount the API routes on a FastAPI-compatible app.
-    app = TigrblApp()
-    app.include_router(api.router)
-    api.attach_diagnostics(prefix="", app=app)
+    router = TigrblRouter()
+    app.include_router(router)
+    app.attach_diagnostics(prefix="")
 
     # Step 5: Launch uvicorn and exercise the REST endpoints.
     port = pick_unique_port()

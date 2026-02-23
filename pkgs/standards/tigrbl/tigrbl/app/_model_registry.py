@@ -1,4 +1,4 @@
-"""Utilities for initializing model registries on App and API facades."""
+"""Utilities for initializing model registries on App and Router facades."""
 
 from __future__ import annotations
 

@@ -12,7 +12,7 @@ from tigrbl.types import Session, String, uuid4
 
 
 @pytest.fixture()
-def api_and_session() -> Iterator[tuple[TigrblApp, Session]]:
+def app_and_session() -> Iterator[tuple[TigrblApp, Session]]:
     class Widget(Base, GUIDPk, BulkCapable, Replaceable):
         __tablename__ = "widgets_rpc_all_ops"
         __allow_unmapped__ = True
@@ -62,35 +62,35 @@ def api_and_session() -> Iterator[tuple[TigrblApp, Session]]:
         )
 
     cfg = mem(async_=False)
-    api = TigrblApp(engine=cfg)
-    api.include_table(Widget, mount_router=False)
-    api.initialize()
+    app = TigrblApp(engine=cfg)
+    app.include_table(Widget, mount_router=False)
+    app.initialize()
 
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     session: Session = maker()
     try:
-        yield api, session
+        yield app, session
     finally:
         session.close()
         engine.dispose()
         _resolver.set_default(None)
 
 
-async def _op_create(api, db):
-    result = await api.rpc.Widget.create({"name": "a"}, db=db)
+async def _op_create(app, db):
+    result = await app.rpc.Widget.create({"name": "a"}, db=db)
     assert result["name"] == "a"
 
 
-async def _op_read(api, db):
-    created = await api.rpc.Widget.create({"name": "b"}, db=db)
-    result = await api.rpc.Widget.read({"id": created["id"]}, db=db)
+async def _op_read(app, db):
+    created = await app.rpc.Widget.create({"name": "b"}, db=db)
+    result = await app.rpc.Widget.read({"id": created["id"]}, db=db)
     assert result["id"] == created["id"]
 
 
-async def _op_update(api, db):
-    created = await api.rpc.Widget.create({"name": "c"}, db=db)
-    result = await api.rpc.Widget.update(
+async def _op_update(app, db):
+    created = await app.rpc.Widget.create({"name": "c"}, db=db)
+    result = await app.rpc.Widget.update(
         {"name": "c2"},
         db=db,
         ctx={"path_params": {"id": created["id"]}},
@@ -98,9 +98,9 @@ async def _op_update(api, db):
     assert result["name"] == "c2"
 
 
-async def _op_replace(api, db):
-    created = await api.rpc.Widget.create({"name": "d"}, db=db)
-    result = await api.rpc.Widget.replace(
+async def _op_replace(app, db):
+    created = await app.rpc.Widget.create({"name": "d"}, db=db)
+    result = await app.rpc.Widget.replace(
         {"name": "d2"},
         db=db,
         ctx={"path_params": {"id": created["id"]}},
@@ -108,9 +108,9 @@ async def _op_replace(api, db):
     assert result["name"] == "d2"
 
 
-async def _op_delete(api, db):
-    created = await api.rpc.Widget.create({"name": "e"}, db=db)
-    result = await api.rpc.Widget.delete(
+async def _op_delete(app, db):
+    created = await app.rpc.Widget.create({"name": "e"}, db=db)
+    result = await app.rpc.Widget.delete(
         {},
         db=db,
         ctx={"path_params": {"id": created["id"]}},
@@ -118,30 +118,30 @@ async def _op_delete(api, db):
     assert result["deleted"] == 1
 
 
-async def _op_list(api, db):
-    await api.rpc.Widget.create({"name": "f1"}, db=db)
-    await api.rpc.Widget.create({"name": "f2"}, db=db)
-    result = await api.rpc.Widget.list({}, db=db)
+async def _op_list(app, db):
+    await app.rpc.Widget.create({"name": "f1"}, db=db)
+    await app.rpc.Widget.create({"name": "f2"}, db=db)
+    result = await app.rpc.Widget.list({}, db=db)
     assert {r["name"] for r in result} == {"f1", "f2"}
 
 
-async def _op_clear(api, db):
-    await api.rpc.Widget.create({"name": "g1"}, db=db)
-    await api.rpc.Widget.create({"name": "g2"}, db=db)
-    result = await api.rpc.Widget.clear({"filters": {}}, db=db)
+async def _op_clear(app, db):
+    await app.rpc.Widget.create({"name": "g1"}, db=db)
+    await app.rpc.Widget.create({"name": "g2"}, db=db)
+    result = await app.rpc.Widget.clear({"filters": {}}, db=db)
     assert result["deleted"] == 2
 
 
-async def _op_bulk_create(api, db):
-    result = await api.rpc.Widget.bulk_create(
+async def _op_bulk_create(app, db):
+    result = await app.rpc.Widget.bulk_create(
         [{"name": "h1"}, {"name": "h2"}],
         db=db,
     )
     assert {r["name"] for r in result} == {"h1", "h2"}
 
 
-async def _op_bulk_update(api, db):
-    rows = await api.rpc.Widget.bulk_create(
+async def _op_bulk_update(app, db):
+    rows = await app.rpc.Widget.bulk_create(
         [{"name": "i1"}, {"name": "i2"}],
         db=db,
     )
@@ -149,12 +149,12 @@ async def _op_bulk_update(api, db):
         {"id": rows[0]["id"], "name": "i1u"},
         {"id": rows[1]["id"], "name": "i2u"},
     ]
-    result = await api.rpc.Widget.bulk_update(payload, db=db)
+    result = await app.rpc.Widget.bulk_update(payload, db=db)
     assert {r["name"] for r in result} == {"i1u", "i2u"}
 
 
-async def _op_bulk_replace(api, db):
-    rows = await api.rpc.Widget.bulk_create(
+async def _op_bulk_replace(app, db):
+    rows = await app.rpc.Widget.bulk_create(
         [{"name": "j1"}, {"name": "j2"}],
         db=db,
     )
@@ -162,32 +162,32 @@ async def _op_bulk_replace(api, db):
         {"id": rows[0]["id"], "name": "j1r"},
         {"id": rows[1]["id"], "name": "j2r"},
     ]
-    result = await api.rpc.Widget.bulk_replace(payload, db=db)
+    result = await app.rpc.Widget.bulk_replace(payload, db=db)
     assert {r["name"] for r in result} == {"j1r", "j2r"}
 
 
-async def _op_bulk_delete(api, db):
-    rows = await api.rpc.Widget.bulk_create(
+async def _op_bulk_delete(app, db):
+    rows = await app.rpc.Widget.bulk_create(
         [{"name": "k1"}, {"name": "k2"}],
         db=db,
     )
     ids = [r["id"] for r in rows]
-    result = await api.rpc.Widget.bulk_delete(ids[:1], db=db)
+    result = await app.rpc.Widget.bulk_delete(ids[:1], db=db)
     assert result["deleted"] == 1
-    remaining = await api.rpc.Widget.list({}, db=db)
+    remaining = await app.rpc.Widget.list({}, db=db)
     assert len(remaining) == 1 and remaining[0]["id"] == ids[1]
 
 
-async def _op_merge(api, db):
+async def _op_merge(app, db):
     ident = str(uuid4())
-    created = await api.rpc.Widget.merge({"id": ident, "name": "u1"}, db=db)
+    created = await app.rpc.Widget.merge({"id": ident, "name": "u1"}, db=db)
     assert created["name"] == "u1"
-    updated = await api.rpc.Widget.merge({"id": ident, "name": "u1u"}, db=db)
+    updated = await app.rpc.Widget.merge({"id": ident, "name": "u1u"}, db=db)
     assert updated["name"] == "u1u"
 
 
-async def _op_bulk_merge(api, db):
-    rows = await api.rpc.Widget.bulk_merge(
+async def _op_bulk_merge(app, db):
+    rows = await app.rpc.Widget.bulk_merge(
         [{"id": str(uuid4()), "name": "b1"}, {"id": str(uuid4()), "name": "b2"}],
         db=db,
     )
@@ -196,7 +196,7 @@ async def _op_bulk_merge(api, db):
         {"id": ids[0], "name": "b1u"},
         {"id": str(uuid4()), "name": "b3"},
     ]
-    result = await api.rpc.Widget.bulk_merge(None, db=db, ctx={"payload": payload})
+    result = await app.rpc.Widget.bulk_merge(None, db=db, ctx={"payload": payload})
     assert {r["name"] for r in result} == {"b1u", "b3"}
 
 
@@ -219,6 +219,6 @@ OPS = [
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("op", OPS, ids=[fn.__name__ for fn in OPS])
-async def test_rpc_all_default_op_verbs(op, api_and_session):
-    api, db = api_and_session
-    await op(api, db)
+async def test_rpc_all_default_op_verbs(op, app_and_session):
+    app, db = app_and_session
+    await op(app, db)

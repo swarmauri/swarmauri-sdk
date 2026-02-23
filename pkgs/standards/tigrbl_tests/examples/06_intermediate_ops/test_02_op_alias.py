@@ -23,9 +23,9 @@ def test_alias_ctx_registers_custom_name():
         name = Column(String, nullable=False)
 
     # Deployment: create an app and include the model so specs are bound.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_table(LessonAlias)
-    api.initialize()
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(LessonAlias)
+    app.initialize()
 
     # Test: inspect the aliases produced by binding the model into the app.
     aliases = {spec.alias for spec in api.bind(LessonAlias)}
@@ -52,9 +52,9 @@ def test_alias_ctx_override_applies_arity():
         name = Column(String, nullable=False)
 
     # Deployment: bind the model into an API so OpSpecs resolve with overrides.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_table(LessonAliasOverride)
-    api.initialize()
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(LessonAliasOverride)
+    app.initialize()
 
     # Test: find the bound spec with the overridden alias.
     spec = next(sp for sp in api.bind(LessonAliasOverride) if sp.alias == "peek")

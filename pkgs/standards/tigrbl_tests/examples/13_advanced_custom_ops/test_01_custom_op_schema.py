@@ -27,9 +27,9 @@ def test_custom_op_declares_schema_refs():
     Widget.summarize = summarize
 
     # Deployment: include the model on a Tigrbl API and initialize.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_table(Widget)
-    api.initialize()
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(Widget)
+    app.initialize()
     # Exercise: locate the summarized operation in the bound ops.
     op = next(spec for spec in api.bind(Widget) if spec.alias == "summarize")
     # Assertion: request schemas are resolved for the op.

@@ -3,7 +3,7 @@ from httpx import ASGITransport, Client
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped
 
-from tigrbl import TigrblApp as Tigrblv3
+from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.orm.tables import Base as Base3
@@ -38,15 +38,15 @@ def client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
-    api = Tigrblv3(engine=mem(async_=False))
-    api.include_table(Gadget, prefix="")
-    api.initialize()
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(Gadget, prefix="")
+    app.initialize()
 
     # Remove generated out schemas to exercise jsonable fallback
     Gadget.schemas.read.out = None  # type: ignore[attr-defined]
     Gadget.schemas.list.out = None  # type: ignore[attr-defined]
 
-    transport = ASGITransport(app=api)
+    transport = ASGITransport(app=app)
     with Client(transport=transport, base_url="http://test") as client:
         yield client, Gadget
 

@@ -1,7 +1,7 @@
 """Router primitives backing ``tigrbl.router.Router`` and ``tigrbl.app.App``.
 
 This compatibility router surface is slated for deprecation in favor of the
-higher-level ``Api``/``App`` interfaces.
+higher-level ``Router``/``App`` interfaces.
 """
 
 from __future__ import annotations

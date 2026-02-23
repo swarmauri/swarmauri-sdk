@@ -1,4 +1,4 @@
-from tigrbl import Base, TigrblApp
+from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -20,13 +20,13 @@ def test_app_router_registers_routes():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-    api = TigrblApp(engine=mem(async_=False))
+    app = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize to generate routes.
-    api.include_table(Widget)
-    api.initialize()
+    app.include_table(Widget)
+    app.initialize()
     # Deployment: mount the Tigrbl router on a FastAPI app.
-    app = TigrblApp()
-    app.include_router(api.router)
+    router = TigrblRouter()
+    app.include_router(router)
     # Exercise: list registered paths.
     routes = {route.path for route in app.router.routes}
     # Assertion: the model route exists for the widget resource.
@@ -49,12 +49,12 @@ def test_app_router_contains_model_route_once():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-    api = TigrblApp(engine=mem(async_=False))
+    app = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model, initialize, and mount on a FastAPI app.
-    api.include_table(Widget)
-    api.initialize()
-    app = TigrblApp()
-    app.include_router(api.router)
+    app.include_table(Widget)
+    app.initialize()
+    router = TigrblRouter()
+    app.include_router(router)
     # Exercise: collect route entries for the model path.
     model_path = f"/{Widget.__name__.lower()}"
     model_routes = [route for route in app.router.routes if route.path == model_path]

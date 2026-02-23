@@ -26,8 +26,8 @@ def _rest_param_names(route):
 
 
 def _assert_symmetry(model, verbs, rest_params):
-    api = TigrblApp()
-    api.include_table(model, mount_router=False)
+    app = TigrblApp()
+    app.include_table(model, mount_router=False)
 
     expected_verbs = set(verbs)
     rpc_aliases = set(getattr(model.rpc, "__dict__", {}).keys())

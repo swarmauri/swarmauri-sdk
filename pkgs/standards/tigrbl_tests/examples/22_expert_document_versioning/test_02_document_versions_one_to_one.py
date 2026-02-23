@@ -166,16 +166,16 @@ async def test_document_versions_one_to_one_current_pointer() -> None:
         )
 
     # Deployment: register models and JSON-RPC routes.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_tables([Document, DocumentVersion])
-    init_result = api.initialize()
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_tables([Document, DocumentVersion])
+    init_result = app.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    api.mount_jsonrpc(prefix="/rpc")
+    app.mount_jsonrpc(prefix="/rpc")
 
-    app = TigrblApp()
-    app.include_router(api.router)
-    api.attach_diagnostics(prefix="", app=app)
+    router = TigrblRouter()
+    app.include_router(router)
+    app.attach_diagnostics(prefix="")
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

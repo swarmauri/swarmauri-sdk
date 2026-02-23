@@ -4,7 +4,7 @@ import httpx
 import pytest
 import pytest_asyncio
 
-from tigrbl import TigrblApp
+from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.orm.mixins import (
     GUIDPk,
     Created,
@@ -45,10 +45,10 @@ async def running_app(sync_db_session):
     engine, get_sync_db = sync_db_session
 
     app = TigrblApp()
-    api = TigrblApp(get_db=get_sync_db)
-    api.include_tables([ApiKey])
-    await api.initialize()
-    app.include_router(api.router)
+    router = TigrblRouter(get_db=get_sync_db)
+    app.include_tables([ApiKey])
+    await app.initialize()
+    app.include_router(router)
 
     base_url, server, task = await run_uvicorn_in_task(app)
     try:

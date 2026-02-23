@@ -4,7 +4,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Integer, String, select
 from sqlalchemy.orm import Mapped
 
-from tigrbl import TigrblApp as Tigrblv3
+from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.engine import resolver as _resolver
 from tigrbl.engine.shortcuts import mem
 from tigrbl.specs import S, acol
@@ -29,9 +29,9 @@ async def client():
 
         __tigrbl_cols__ = {"id": id, "name": name}
 
-    api = Tigrblv3(engine=mem())
-    api.include_table(Widget, prefix="")
-    await api.initialize()
+    app = TigrblApp(engine=mem())
+    app.include_table(Widget, prefix="")
+    await app.initialize()
     prov = _resolver.resolve_provider()
     engine, session_maker = prov.ensure()
     async with session_maker() as session:
@@ -56,8 +56,8 @@ async def client():
     crud.read = row_read  # type: ignore
     crud.list = row_list  # type: ignore
 
-    app = Tigrblv3()
-    app.include_router(api.router)
+    router = TigrblRouter()
+    app.include_router(router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:

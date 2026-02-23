@@ -21,9 +21,9 @@ def test_table_binding_attaches_rest_router():
 
         name = Column(String, nullable=False)
 
-    api = TigrblRouter(engine=mem(async_=False))
+    app = TigrblRouter(engine=mem(async_=False))
 
-    _, router = api.include_table(Widget)
+    _, router = app.include_table(Widget)
 
     assert router is not None
     assert api.routers[Widget.__name__] is router
@@ -38,9 +38,9 @@ def test_router_registry_tracks_model_alias():
 
         name = Column(String, nullable=False)
 
-    api = TigrblRouter(engine=mem(async_=False))
+    app = TigrblRouter(engine=mem(async_=False))
 
-    _, router = api.include_table(Widget)
+    _, router = app.include_table(Widget)
 
     assert Widget.__name__ in api.routers
     assert api.routers[Widget.__name__] is router

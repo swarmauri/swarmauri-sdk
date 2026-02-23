@@ -3,7 +3,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from tigrbl import Base, TigrblApp, hook_ctx, op_ctx
+from tigrbl import Base, TigrblApp, hook_ctx, op_ctx, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.types import Integer, Mapped, String
@@ -37,10 +37,10 @@ async def test_custom_op_with_hook() -> None:
             ctx["result"]["meta"] = "hooked"
 
     app = TigrblApp()
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_table(Widget, prefix="")
-    await api.initialize()
-    app.include_router(api.router)
+    router = TigrblRouter(engine=mem(async_=False))
+    app.include_table(Widget, prefix="")
+    await app.initialize()
+    app.include_router(router)
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

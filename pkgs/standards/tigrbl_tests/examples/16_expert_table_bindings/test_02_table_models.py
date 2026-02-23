@@ -20,9 +20,9 @@ def test_table_binding_registers_model():
 
         name = Column(String, nullable=False)
 
-    api = TigrblRouter(engine=mem(async_=False))
+    app = TigrblRouter(engine=mem(async_=False))
 
-    api.include_table(Widget)
+    app.include_table(Widget)
 
     assert api.models[Widget.__name__] is Widget
 
@@ -42,10 +42,10 @@ def test_model_registry_supports_multiple_models():
 
         name = Column(String, nullable=False)
 
-    api = TigrblRouter(engine=mem(async_=False))
+    app = TigrblRouter(engine=mem(async_=False))
 
-    api.include_table(Widget)
-    api.include_table(Gadget)
+    app.include_table(Widget)
+    app.include_table(Gadget)
 
     assert api.models[Widget.__name__] is Widget
     assert api.models[Gadget.__name__] is Gadget

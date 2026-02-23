@@ -1,4 +1,4 @@
-# tigrbl/tigrbl/v3/app/_app.py
+# tigrbl/tigrbl/app/_app.py
 from __future__ import annotations
 from typing import Any
 
@@ -87,16 +87,16 @@ class App(AppSpec):
         return self.router.route(path, methods=methods, **kwargs)
 
     def install_engines(
-        self, *, api: Any = None, models: tuple[Any, ...] | None = None
+        self, *, router: Any = None, models: tuple[Any, ...] | None = None
     ) -> None:
-        # If class declared APIS/TABLES, use them unless explicit args are passed.
-        routers = (api,) if api is not None else self.ROUTERS
+        # If class declared ROUTERS/TABLES, use them unless explicit args are passed.
+        routers = (router,) if router is not None else self.ROUTERS
         models = models if models is not None else self.TABLES
         if routers:
             for a in routers:
-                install_from_objects(app=self.router, api=a, models=models)
+                install_from_objects(app=self.router, router=a, models=models)
         else:
-            install_from_objects(app=self.router, api=None, models=models)
+            install_from_objects(app=self.router, router=None, models=models)
 
     def _collect_tables(self) -> list[Any]:
         seen = set()

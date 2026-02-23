@@ -5,7 +5,7 @@ from pydantic import Field
 from sqlalchemy import Column, String
 from uuid import uuid4
 
-from tigrbl import TigrblApp, Base
+from tigrbl import TigrblApp, Base, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.schema import _build_schema
 
@@ -25,16 +25,16 @@ async def api_client_with_extras(db_mode):
         }
 
     if db_mode == "async":
-        api = TigrblApp(engine=mem())
-        api.include_table(Widget)
-        await api.initialize()
+        app = TigrblApp(engine=mem())
+        app.include_table(Widget)
+        await app.initialize()
     else:
-        api = TigrblApp(engine=mem(async_=False))
-        api.include_table(Widget)
-        api.initialize()
+        app = TigrblApp(engine=mem(async_=False))
+        app.include_table(Widget)
+        app.initialize()
 
-    app = TigrblApp()
-    app.include_router(api.router)
+    router = TigrblRouter()
+    app.include_router(router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     return client, api, Widget

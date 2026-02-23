@@ -5,7 +5,7 @@ import pytest
 import uuid
 from sqlalchemy import Column, String
 
-from tigrbl import TigrblApp, Base
+from tigrbl import TigrblApp, Base, TigrblRouter
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.mixins.ownable import Ownable, OwnerPolicy
@@ -72,12 +72,12 @@ def _client_for_owner(
         session.commit()
 
     authn = DummyAuth(user_id, tenant_id)
-    api = TigrblApp(engine=engine)
-    api.set_auth(authn=authn.get_principal)
-    api.include_tables([User, Item])
-    app = TigrblApp()
-    app.include_router(api.router)
-    api.initialize()
+    app = TigrblApp(engine=engine)
+    app.set_auth(authn=authn.get_principal)
+    app.include_tables([User, Item])
+    router = TigrblRouter()
+    app.include_router(router)
+    app.initialize()
     transport = ASGITransport(app=app)
     return Client(transport=transport, base_url="http://test")
 
@@ -152,10 +152,10 @@ def _client_for_tenant(
     authn = DummyAuth(user_id, tenant_id)
     api = TigrblApp(engine=engine)
     api.set_auth(authn=authn.get_principal)
-    api.include_tables([Tenant, Item])
+    app.include_tables([Tenant, Item])
     app = TigrblApp()
-    app.include_router(api.router)
-    api.initialize()
+    app.include_router(router)
+    app.initialize()
     transport = ASGITransport(app=app)
     return Client(transport=transport, base_url="http://test")
 

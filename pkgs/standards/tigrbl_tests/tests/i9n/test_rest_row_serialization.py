@@ -4,7 +4,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Integer, String, select
 from sqlalchemy.orm import Mapped
 
-from tigrbl import TigrblApp as Tigrblv3
+from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.orm.tables import Base as Base3
@@ -31,15 +31,15 @@ async def client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name}
 
-    app = Tigrblv3()
-    api = Tigrblv3(engine=mem())
-    api.include_table(Widget, prefix="")
-    await api.initialize()
+    app = TigrblApp()
+    router = TigrblRouter(engine=mem())
+    app.include_table(Widget, prefix="")
+    await app.initialize()
     # Remove output schemas to trigger fallback serialization
     Widget.schemas.read.out = None
     Widget.schemas.list.out = None
 
-    app.include_router(api.router)
+    app.include_router(router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:

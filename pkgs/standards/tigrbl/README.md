@@ -30,7 +30,7 @@ A high-leverage ASGI meta-framework that turns plain SQLAlchemy models into a fu
 
 - **Tenant** 🏢 – a namespace used to group related resources.
 - **Principal** 👤 – an owner of resources, such as an individual user or an organization.
-- **Resource** 📦 – a logical collection of data or functionality exposed by the API.
+- **Resource** 📦 – a logical collection of data or functionality exposed by the router.
 - **Engine** ⚙️ – the database connection and transaction manager backing a resource.
 - **Model / Table** 🧱 – the ORM or database representation of a resource's records.
 - **Column** 📏 – a field on a model that maps to a table column.
@@ -277,7 +277,7 @@ increasing order of precedence:
 
 1. defaults
 2. app config
-3. API config
+3. router config
 4. table config
 5. column config
 6. operation spec
@@ -285,7 +285,7 @@ increasing order of precedence:
 
 Later entries override earlier ones, so request overrides win over all other
 sources. This can be summarized as
-`overrides > opspec > colspecs > tabspec > apispec > appspec > defaults`.
+`overrides > opspec > colspecs > tabspec > routerspec > appspec > defaults`.
 
 ### Schema Config Precedence 🧬
 
@@ -294,7 +294,7 @@ Later layers override earlier ones, with the precedence order:
 
 1. defaults (lowest)
 2. app configuration
-3. API configuration
+3. router configuration
 4. table configuration
 5. column-level `cfg` values
 6. op-specific `cfg`
@@ -334,7 +334,7 @@ This hierarchy ensures that the most specific settings always win. 🥇
 When assembling values for persistence, defaults are resolved in this order:
 
 1. Client-supplied value
-2. API `default_factory`
+2. router `default_factory`
 3. ORM default
 4. Database `server_default`
 5. HTTP 422 if the field is required and still missing
@@ -375,11 +375,11 @@ approved usage. These are not optional—adhering to them keeps the runtime
 predictable, preserves hook lifecycle guarantees, and ensures schema
 consistency across REST and RPC surfaces.
 
-### 1) Never import SQLAlchemy directly or bypass Tigrbl APIs
+### 1) Never import SQLAlchemy directly or bypass Tigrbl routers
 
 **Why:** Direct imports bypass Tigrbl's compatibility layer and make it
 harder to evolve internal dependencies. Use the Tigrbl exports so your
-code stays aligned with the framework’s versioned ASGI API.
+code stays aligned with the framework’s versioned ASGI router.
 
 ✅ **Preferred:**
 ```python
@@ -419,7 +419,7 @@ item_id = UUID(str(payload["id"]))
 ### 3) Use engine specs for persistence, not ad-hoc engines
 
 **Why:** Engine specs make persistence declarative, testable, and
-compatible with engine resolution across app, API, table, and op scopes.
+compatible with engine resolution across app, router, table, and op scopes.
 
 ✅ **Preferred:**
 ```python
@@ -555,9 +555,9 @@ async def rotate_keys(payload, *, ctx):
 
 🚫 **Avoid:**
 ```python
-from some_framework import APIRouter
+from some_framework import routerRouter
 
-router = APIRouter()
+router = routerRouter()
 
 @router.post("/keys/rotate")
 async def rotate_keys(payload):
@@ -631,8 +631,8 @@ When engine contexts are declared at multiple scopes, Tigrbl resolves them
 with strict precedence:
 
 1. **Op level** – bindings attached directly to an operation take highest priority.
-2. **Table/Model level** – definitions on a model or table override API and app defaults.
-3. **API level** – bindings on the API class apply when no model-specific context exists.
+2. **Table/Model level** – definitions on a model or table override router and app defaults.
+3. **router level** – bindings on the router class apply when no model-specific context exists.
 4. **App level** – the default engine supplied to the application is used last.
 
 This ordering ensures that the most specific engine context always wins.
@@ -646,7 +646,7 @@ from tigrbl.engine.shortcuts import prov, engine
 app = SimpleNamespace(db=prov(kind="sqlite", mode="memory"))
 alt = SimpleNamespace(db=engine(kind="sqlite", mode="memory"))
 
-class API:
+class router:
     db = {"kind": "sqlite", "memory": True}
 
 class Item:
@@ -675,7 +675,7 @@ class App:
     pass
 
 @engine_ctx(engine(kind="sqlite", mode="memory"))
-class DecoratedAPI:
+class Decoratedrouter:
     pass
 
 @engine_ctx(kind="sqlite", mode="memory")
@@ -702,7 +702,7 @@ The bridge examples cover two integration styles:
   * A Swarmauri `Factory` invocation during `PRE_HANDLER` via `hook_ctx`.
   * Tigrbl default verbs (`create`, `get`, `list`, `update`, `delete`) plus a custom op.
   * `engine_ctx` at model and operation scope.
-  * Generated OpenAPI and OpenRPC documents mounted from the same model bindings.
+  * Generated Openrouter and OpenRPC documents mounted from the same model bindings.
 
 * **Smoother direct-model flow** (`swarmauri_tigrbl_bridge_smooth.py`)
   * Uses hooks + default `create` persistence to normalize Swarmauri payloads.

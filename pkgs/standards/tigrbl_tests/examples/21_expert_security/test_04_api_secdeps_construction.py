@@ -1,4 +1,4 @@
-"""Lesson 21.4: API-level security deps via construction params.
+"""Lesson 21.4: Router-level security deps via construction params.
 
 This example shows how to supply security dependencies for a ``TigrblRouter``
 through its class configuration and verify that the OpenAPI schema marks
@@ -22,48 +22,48 @@ from tigrbl.types import Column, String
 
 
 @pytest.mark.asyncio
-async def test_openapi_security_from_api_constructor_deps() -> None:
-    """Confirm API-level constructor deps appear in OpenAPI security metadata.
+async def test_openapi_security_from_router_constructor_deps() -> None:
+    """Confirm Router-level constructor deps appear in OpenAPI security metadata.
 
     This test defines a ``TigrblRouter`` subclass with security deps and verifies
     that the OpenAPI schema marks both list and create routes as secured.
     """
 
-    # Configuration: define a bearer-token scheme for API-wide security.
+    # Configuration: define a bearer-token scheme for Router-wide security.
     bearer_scheme = HTTPBearer(scheme_name="ApiToken")
 
     # Configuration: declare a model for API routing.
-    class ApiSecdepsWidget(Base, GUIDPk):
-        __tablename__ = "lesson_security_api_secdeps_widget"
+    class RouterSecdepsWidget(Base, GUIDPk):
+        __tablename__ = "lesson_security_router_secdeps_widget"
         __allow_unmapped__ = True
 
         name = Column(String, nullable=False)
 
     # Instantiation: define the API class with constructor-level security deps.
-    class SecuredApi(TigrblRouter):
+    class SecuredRouter(TigrblRouter):
         SECURITY_DEPS = (Security(bearer_scheme),)
 
-    api = SecuredApi(engine=mem(async_=False))
-    api.include_table(ApiSecdepsWidget)
+    router = SecuredRouter(engine=mem(async_=False))
+    router.include_table(RouterSecdepsWidget)
 
-    # Deployment: initialize storage and attach OpenAPI to the API router.
-    init_result = api.initialize()
+    # Deployment: initialize storage and attach OpenAPI to the router.
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
 
     def openapi_endpoint(_request) -> JSONResponse:
-        return JSONResponse(api.openapi())
+        return JSONResponse(router.openapi())
 
-    api.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
+    router.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
 
     port = pick_unique_port()
-    base_url, server, task = await start_uvicorn(api, port=port)
+    base_url, server, task = await start_uvicorn(router, port=port)
 
     # Usage: request the OpenAPI schema from the running API.
     async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
         response = await client.get("/openapi.json")
         schema = response.json()
-        resource_path = f"/{ApiSecdepsWidget.__name__.lower()}"
+        resource_path = f"/{RouterSecdepsWidget.__name__.lower()}"
 
         # Assertion: API routes are secured and scheme is registered.
         assert response.status_code == 200

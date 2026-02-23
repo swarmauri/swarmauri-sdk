@@ -22,11 +22,11 @@ def test_table_binding_registers_table_on_api():
 
         name = Column(String, nullable=False)
 
-    api = TigrblRouter(engine=mem(async_=False))
+    app = TigrblRouter(engine=mem(async_=False))
 
-    api.include_table(Widget)
+    app.include_table(Widget)
 
-    assert api.tables[Widget.__name__] is Widget.__table__
+    assert app.tables[Widget.__name__] is Widget.__table__
 
 
 def test_table_registry_respects_model_identity():
@@ -38,9 +38,9 @@ def test_table_registry_respects_model_identity():
 
         name = Column(String, nullable=False)
 
-    api = TigrblRouter(engine=mem(async_=False))
+    app = TigrblRouter(engine=mem(async_=False))
 
-    api.include_table(Widget)
+    app.include_table(Widget)
 
-    assert Widget.__name__ in api.tables
-    assert api.tables[Widget.__name__].name == Widget.__table__.name
+    assert Widget.__name__ in app.tables
+    assert app.tables[Widget.__name__].name == Widget.__table__.name

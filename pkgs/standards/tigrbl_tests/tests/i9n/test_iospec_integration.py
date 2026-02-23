@@ -4,7 +4,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 from types import SimpleNamespace
 
-from tigrbl import TigrblApp
+from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.engine import resolver as _resolver
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.tables import Base
@@ -36,12 +36,12 @@ class Widget(Base, GUIDPk):
 @pytest_asyncio.fixture
 async def widget_setup():
     app = TigrblApp()
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_table(Widget, prefix="/widget")
-    api.mount_jsonrpc(prefix="/rpc")
-    api.attach_diagnostics(prefix="/system")
-    api.initialize()
-    app.include_router(api.router)
+    router = TigrblRouter(engine=mem(async_=False))
+    app.include_table(Widget, prefix="/widget")
+    router.mount_jsonrpc(prefix="/rpc")
+    router.attach_diagnostics(prefix="/system")
+    app.initialize()
+    app.include_router(router)
 
     prov = _resolver.resolve_provider()
     SessionLocal = prov.session

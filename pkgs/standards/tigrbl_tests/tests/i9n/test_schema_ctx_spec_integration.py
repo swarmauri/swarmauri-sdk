@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped
 
-from tigrbl import TigrblApp as Tigrblv3
+from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.engine import resolver as _resolver
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.tables import Base as Base3
@@ -64,15 +64,15 @@ async def schema_ctx_client():
             "secret": secret,
         }
 
-    app = Tigrblv3()
-    api = Tigrblv3(engine=mem(async_=False))
-    api.include_table(Widget, prefix="")
-    api.mount_jsonrpc()
-    api.attach_diagnostics()
-    api.initialize()
+    app = TigrblApp()
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_table(Widget, prefix="")
+    router.mount_jsonrpc()
+    router.attach_diagnostics()
+    app.initialize()
     prov = _resolver.resolve_provider()
     _, SessionLocal = prov.ensure()
-    app.include_router(api.router)
+    app.include_router(router)
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
     return client, api, Widget, SessionLocal
 
