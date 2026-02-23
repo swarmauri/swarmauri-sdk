@@ -13,7 +13,7 @@ api = TigrblRouter()
 router = api
 
 
-@api.post("/introspect", response_model=IntrospectOut)
+@api.route("/introspect", methods=["POST"], response_model=IntrospectOut)
 async def introspect(request: Request):
     _require_tls(request)
     if not settings.enable_rfc7662:

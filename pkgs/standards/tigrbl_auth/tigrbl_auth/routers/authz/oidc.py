@@ -26,7 +26,7 @@ from ..shared import _require_tls
 from . import api
 
 
-@api.get("/authorize")
+@api.route("/authorize", methods=["GET"])
 async def authorize(
     request: Request,
     response_type: str | None = None,
