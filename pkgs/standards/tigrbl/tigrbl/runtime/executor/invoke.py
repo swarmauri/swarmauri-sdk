@@ -23,8 +23,8 @@ async def _invoke(
     """Execute an operation through explicit phases with strict write policies."""
 
     ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
-    if getattr(ctx, "app", None) is None and getattr(ctx, "api", None) is not None:
-        ctx.app = ctx.api
+    if getattr(ctx, "app", None) is None and getattr(ctx, "router", None) is not None:
+        ctx.app = ctx.router
     if getattr(ctx, "op", None) is None and getattr(ctx, "method", None) is not None:
         ctx.op = ctx.method
     if getattr(ctx, "model", None) is None:

@@ -5,10 +5,10 @@ from tigrbl.types import String
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_storage_spec_request_response_schema(api_client_v3):
-    client, api, Widget, _ = api_client_v3
-    create_schema = api.schemas.Widget.create.in_
-    read_schema = api.schemas.Widget.read.out
+async def test_storage_spec_request_response_schema(router_client_v3):
+    client, router, Widget, _ = router_client_v3
+    create_schema = router.schemas.Widget.create.in_
+    read_schema = router.schemas.Widget.read.out
     assert create_schema.model_fields["name"].is_required()
     assert not create_schema.model_fields["age"].is_required()
     assert "secret" in read_schema.model_fields
@@ -16,8 +16,8 @@ async def test_storage_spec_request_response_schema(api_client_v3):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_storage_spec_columns(api_client_v3):
-    _, _, Widget, _ = api_client_v3
+async def test_storage_spec_columns(router_client_v3):
+    _, _, Widget, _ = router_client_v3
     table = Widget.__table__
     assert table.c.name.nullable is False
     assert table.c.age.default.arg == 5
@@ -25,8 +25,8 @@ async def test_storage_spec_columns(api_client_v3):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_storage_spec_default_resolution(api_client_v3):
-    client, _, _, _ = api_client_v3
+async def test_storage_spec_default_resolution(router_client_v3):
+    client, _, _, _ = router_client_v3
     resp = await client.post("/widget", json={"name": "A", "secret": "s"})
     assert resp.status_code == 201
     assert resp.json()["age"] == 5
@@ -34,16 +34,16 @@ async def test_storage_spec_default_resolution(api_client_v3):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_storage_spec_internal_orm(api_client_v3):
-    _, api, Widget, _ = api_client_v3
-    assert api.models["Widget"] is Widget
-    assert "age" in api.columns["Widget"]
+async def test_storage_spec_internal_orm(router_client_v3):
+    _, router, Widget, _ = router_client_v3
+    assert router.models["Widget"] is Widget
+    assert "age" in router.columns["Widget"]
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_storage_spec_openapi(api_client_v3):
-    client, _, _, _ = api_client_v3
+async def test_storage_spec_openapi(router_client_v3):
+    client, _, _, _ = router_client_v3
     spec = (await client.get("/openapi.json")).json()
     schema = spec["components"]["schemas"]["WidgetCreateRequest"]
     assert "name" in schema["required"]
@@ -52,8 +52,8 @@ async def test_storage_spec_openapi(api_client_v3):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_storage_spec_storage_sqlalchemy(api_client_v3):
-    client, _, Widget, session_maker = api_client_v3
+async def test_storage_spec_storage_sqlalchemy(router_client_v3):
+    client, _, Widget, session_maker = router_client_v3
     resp = await client.post("/widget", json={"name": "B", "secret": "abc"})
     item_id = resp.json()["id"]
     async with session_maker() as session:
@@ -63,8 +63,8 @@ async def test_storage_spec_storage_sqlalchemy(api_client_v3):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_storage_spec_rest_calls(api_client_v3):
-    client, _, _, _ = api_client_v3
+async def test_storage_spec_rest_calls(router_client_v3):
+    client, _, _, _ = router_client_v3
     resp = await client.post("/widget", json={"name": "C", "secret": "xyz"})
     item_id = resp.json()["id"]
     read = await client.get(f"/widget/{item_id}")
@@ -74,8 +74,8 @@ async def test_storage_spec_rest_calls(api_client_v3):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_storage_spec_rpc_methods(api_client_v3):
-    client, _, _, _ = api_client_v3
+async def test_storage_spec_rpc_methods(router_client_v3):
+    client, _, _, _ = router_client_v3
     payload = {"name": "rpc", "secret": "mno"}
     resp = await client.post(
         "/rpc/",
@@ -91,8 +91,8 @@ async def test_storage_spec_rpc_methods(api_client_v3):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_storage_spec_core_crud(api_client_v3):
-    _, api, Widget, session_maker = api_client_v3
+async def test_storage_spec_core_crud(router_client_v3):
+    _, router, Widget, session_maker = router_client_v3
     async with session_maker() as session:
         obj = await crud.create(Widget, {"name": "core", "secret": "def"}, db=session)
         await session.commit()
@@ -101,8 +101,8 @@ async def test_storage_spec_core_crud(api_client_v3):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_storage_spec_hookz(api_client_v3):
-    client, _, _, _ = api_client_v3
+async def test_storage_spec_hookz(router_client_v3):
+    client, _, _, _ = router_client_v3
     hooks = (await client.get("/system/hookz")).json()
     assert "Widget" in hooks
     assert "create" in hooks["Widget"]
@@ -110,8 +110,8 @@ async def test_storage_spec_hookz(api_client_v3):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_storage_spec_atomz(api_client_v3):
-    client, _, _, _ = api_client_v3
+async def test_storage_spec_atomz(router_client_v3):
+    client, _, _, _ = router_client_v3
     kernelz = (await client.get("/system/kernelz")).json()
     steps = kernelz["Widget"]["create"]
     assert "HANDLER:hook:wire:tigrbl:core:crud:ops:create@HANDLER" in steps
@@ -119,8 +119,8 @@ async def test_storage_spec_atomz(api_client_v3):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_storage_spec_system_steps(api_client_v3):
-    client, _, _, _ = api_client_v3
+async def test_storage_spec_system_steps(router_client_v3):
+    client, _, _, _ = router_client_v3
     kernelz = (await client.get("/system/kernelz")).json()
     assert "Widget" in kernelz
     assert "create" in kernelz["Widget"]

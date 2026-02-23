@@ -19,14 +19,14 @@ def opview_from_ctx(ctx: Any):
 
     Preferred resolution path is via ``ctx.opview`` which should be attached by
     the caller.  Falling back to kernel lookups requires ``ctx.app`` (or
-    ``ctx.api``), ``ctx.model`` (or derivable from ``ctx.obj``), and ``ctx.op``
+    ``ctx.router``), ``ctx.model`` (or derivable from ``ctx.obj``), and ``ctx.op``
     (or ``ctx.method``).
     """
     ov = getattr(ctx, "opview", None)
     if ov is not None:
         return ov
 
-    app = getattr(ctx, "app", None) or getattr(ctx, "api", None)
+    app = getattr(ctx, "app", None) or getattr(ctx, "router", None)
     model = getattr(ctx, "model", None)
     if model is None:
         obj = getattr(ctx, "obj", None)

@@ -7,8 +7,8 @@ from typing import Any, Iterable
 from sqlalchemy import text
 
 
-def model_iter(api: Any) -> Iterable[type]:
-    models = getattr(api, "models", {}) or {}
+def model_iter(router: Any) -> Iterable[type]:
+    models = getattr(router, "models", {}) or {}
     return models.values()
 
 

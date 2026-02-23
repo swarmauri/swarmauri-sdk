@@ -29,10 +29,20 @@ def _serialize_output(
     can JSON-encode the response.
     """
 
-    from ...types import Response as _Response  # local import to avoid cycles
+    from ...responses import Response as _Response  # local import to avoid cycles
 
     if isinstance(result, _Response):
         return result
+
+    def _merge_passthrough(mapping_like: Any, dumped: Dict[str, Any]) -> Dict[str, Any]:
+        if not isinstance(mapping_like, Mapping):
+            return dumped
+        out = dict(dumped)
+        for key, value in mapping_like.items():
+            if key in out:
+                continue
+            out[key] = _ensure_jsonable(value)
+        return out
 
     def _final(val: Any) -> Any:
         if target == "list" and isinstance(val, (list, tuple)):
@@ -54,15 +64,18 @@ def _serialize_output(
         return _final(result)
     try:
         if target == "list" and isinstance(result, (list, tuple)):
-            return [
-                out_model.model_validate(x).model_dump(
+            rows: list[Any] = []
+            for item in result:
+                dumped = out_model.model_validate(item).model_dump(
                     exclude_none=False, by_alias=True
                 )
-                for x in result
-            ]
-        return out_model.model_validate(result).model_dump(
+                rows.append(_merge_passthrough(item, dumped))
+            return rows
+
+        dumped = out_model.model_validate(result).model_dump(
             exclude_none=False, by_alias=True
         )
+        return _merge_passthrough(result, dumped)
     except Exception:
         logger.debug(
             "rest output serialization failed for %s.%s",

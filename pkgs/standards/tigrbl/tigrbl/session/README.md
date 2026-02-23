@@ -7,7 +7,7 @@
 - `SessionSpec`: per-session policy (isolation, read-only, timeouts, retries, etc.).
 - `TigrblSessionBase`: abstract base with guardrails (read-only enforcement, queued add()).
 - `DefaultSession`: delegating wrapper for native driver sessions.
-- `session_ctx` / `read_only_session`: decorators to attach policy at app/api/model/op scopes.
+- `session_ctx` / `read_only_session`: decorators to attach policy at app/router/model/op scopes.
 - `session_spec` / `tx_*` / `readonly`: shortcuts to build policy objects.
 - `wrap_sessionmaker`: helper to adapt provider session factories to Tigrbl sessions.
 

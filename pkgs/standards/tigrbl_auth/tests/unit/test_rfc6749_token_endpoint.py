@@ -7,6 +7,7 @@ from httpx import ASGITransport, AsyncClient, BasicAuth
 from unittest.mock import AsyncMock
 
 from tigrbl_auth.fastapi_deps import get_db
+from tigrbl_auth.deps import TigrblApp
 from tigrbl_auth.routers.auth_flows import router
 from tigrbl_auth.runtime_cfg import settings
 from tigrbl_auth.orm import Client
@@ -35,8 +36,9 @@ async def _override_db():
 
 @pytest_asyncio.fixture()
 async def client(monkeypatch):
-    app = router
-    app.dependency_overrides[get_db] = _override_db
+    app = TigrblApp()
+    app.include_router(router)
+    app.router.dependency_overrides[get_db] = _override_db
     monkeypatch.setattr(
         Client.handlers.read,
         "core",

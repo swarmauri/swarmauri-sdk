@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from tigrbl_auth.deps import TigrblApi, TigrblApp, HTTPException, status
+from tigrbl_auth.deps import TigrblRouter, TigrblApp, HTTPException, status
 
 from ..runtime_cfg import settings
 from ..oidc_discovery import (
@@ -23,15 +23,16 @@ from ..oidc_discovery import (
 
 RFC8414_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc8414"
 
-api = TigrblApi()
+api = TigrblRouter()
 router = api
 
 
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
-@api.get(
+@api.route(
     "/.well-known/oauth-authorization-server",
+    methods=["GET"],
     include_in_schema=False,
     tags=[".well-known"],
 )
@@ -47,7 +48,9 @@ async def authorization_server_metadata():
 def include_rfc8414(app: TigrblApp) -> None:
     """Attach discovery routes to *app* if enabled."""
     if settings.enable_rfc8414 and not any(
-        route.path == "/.well-known/oauth-authorization-server" for route in app.routes
+        (getattr(route, "path", None) or getattr(route, "path_template", None))
+        == "/.well-known/oauth-authorization-server"
+        for route in app.router.routes
     ):
         app.include_router(api)
 

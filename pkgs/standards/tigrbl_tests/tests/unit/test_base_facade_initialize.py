@@ -4,23 +4,17 @@ import pytest
 from sqlalchemy import Column, Integer
 
 from tigrbl.app._app import App as _App
-from tigrbl.api._api import Api as _Api
+from tigrbl.router._router import Router as _Api
 from tigrbl.engine import resolver as _resolver
 from tigrbl.engine.shortcuts import mem
 from tigrbl.table import Base
-
-
-class Widget(Base):
-    __tablename__ = "widgets"
-
-    id = Column(Integer, primary_key=True)
 
 
 class SimpleApp(_App):
     TITLE = "TestApp"
     VERSION = "0.0"
     LIFESPAN = None
-    APIS: tuple = ()
+    ROUTERS: tuple = ()
     MODELS: tuple = ()
     MIDDLEWARES: tuple = ()
 
@@ -31,6 +25,11 @@ class SimpleApi(_Api):
 
 
 def test_base_app_supports_initialize():
+    class Widget(Base):
+        __tablename__ = "widgets"
+
+        id = Column(Integer, primary_key=True)
+
     app = SimpleApp(engine=mem(async_=False))
     app.models["Widget"] = Widget
 
@@ -45,27 +44,32 @@ def test_base_app_supports_initialize():
     assert getattr(tables, "Widget", None) is Widget.__table__
 
 
-def test_base_api_supports_initialize_sync():
-    api = SimpleApi(engine=mem(async_=False))
-    api.models["Widget"] = Widget
+def test_base_router_supports_initialize_sync():
+    class Widget(Base):
+        __tablename__ = "widgets_sync"
 
-    api.initialize()
+        id = Column(Integer, primary_key=True)
 
-    assert getattr(api, "_ddl_executed", False) is True
-    assert api.tables["Widget"] is Widget.__table__
+    router = SimpleApi(engine=mem(async_=False))
+    router.models["Widget"] = Widget
+
+    router.initialize()
+
+    assert getattr(router, "_ddl_executed", False) is True
+    assert router.tables["Widget"] is Widget.__table__
 
 
 @pytest.mark.asyncio
-async def test_base_api_supports_initialize_async():
+async def test_base_router_supports_initialize_async():
     class Gadget(Base):
         __tablename__ = "gadgets"
 
         id = Column(Integer, primary_key=True)
 
-    api = SimpleApi(engine=mem())
-    api.models["Gadget"] = Gadget
+    router = SimpleApi(engine=mem())
+    router.models["Gadget"] = Gadget
 
-    await api.initialize()
+    await router.initialize()
 
-    assert getattr(api, "_ddl_executed", False) is True
-    assert api.tables["Gadget"] is Gadget.__table__
+    assert getattr(router, "_ddl_executed", False) is True
+    assert router.tables["Gadget"] is Gadget.__table__

@@ -14,7 +14,7 @@ from __future__ import annotations
 import inspect
 
 from tigrbl_auth.deps import (
-    TigrblApi,
+    TigrblRouter,
     TigrblApp,
     HTTPException,
     Request,
@@ -28,7 +28,7 @@ from .orm import User
 from .rfc.rfc6750 import extract_bearer_token
 from .deps import JWAAlg
 
-api = TigrblApi()
+api = TigrblRouter()
 router = api
 
 
@@ -47,7 +47,7 @@ async def _resolve_current_user(request: Request) -> User:
     return await get_current_principal(request)
 
 
-@api.get("/userinfo", response_model=None)
+@api.route("/userinfo", methods=["GET"], response_model=None)
 async def userinfo(request: Request) -> Response | dict[str, str]:
     """Return claims about the authenticated user.
 
@@ -101,7 +101,11 @@ async def userinfo(request: Request) -> Response | dict[str, str]:
 def include_oidc_userinfo(app: TigrblApp) -> None:
     """Attach the UserInfo endpoint to *app* if not already present."""
 
-    if not any(route.path == "/userinfo" for route in app.routes):
+    if not any(
+        (getattr(route, "path", None) or getattr(route, "path_template", None))
+        == "/userinfo"
+        for route in app.router.routes
+    ):
         app.include_router(api)
 
 

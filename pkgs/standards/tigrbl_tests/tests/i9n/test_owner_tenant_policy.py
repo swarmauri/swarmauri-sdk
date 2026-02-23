@@ -1,4 +1,3 @@
-from tigrbl.types import HTTPException, Request, Security
 from typing import Iterable
 
 from httpx import ASGITransport, Client
@@ -6,13 +5,18 @@ import pytest
 import uuid
 from sqlalchemy import Column, String
 
-from tigrbl import TigrblApp, Base
+from tigrbl import TigrblApp, Base, TigrblRouter
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.mixins.ownable import Ownable, OwnerPolicy
 from tigrbl.orm.mixins.tenant_bound import TenantBound, TenantPolicy
 from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl.types.authn_abc import AuthNProvider
+
+
+from tigrbl.runtime.status import HTTPException
+from tigrbl.requests import Request
+from tigrbl.security import Security
 
 
 class DummyAuth(AuthNProvider):
@@ -68,12 +72,12 @@ def _client_for_owner(
         session.commit()
 
     authn = DummyAuth(user_id, tenant_id)
-    api = TigrblApp(engine=engine)
-    api.set_auth(authn=authn.get_principal)
-    api.include_models([User, Item])
-    app = TigrblApp()
-    app.include_router(api.router)
-    api.initialize()
+    app = TigrblApp(engine=engine)
+    app.set_auth(authn=authn.get_principal)
+    app.include_tables([User, Item])
+    router = TigrblRouter()
+    app.include_router(router)
+    app.initialize()
     transport = ASGITransport(app=app)
     return Client(transport=transport, base_url="http://test")
 
@@ -146,12 +150,13 @@ def _client_for_tenant(
         session.commit()
 
     authn = DummyAuth(user_id, tenant_id)
-    api = TigrblApp(engine=engine)
-    api.set_auth(authn=authn.get_principal)
-    api.include_models([Tenant, Item])
-    app = TigrblApp()
-    app.include_router(api.router)
-    api.initialize()
+    app = TigrblApp(engine=engine)
+    app.set_auth(authn=authn.get_principal)
+
+    router = TigrblRouter()
+    router.include_tables([Tenant, Item])
+    app.include_router(router)
+    app.initialize()
     transport = ASGITransport(app=app)
     return Client(transport=transport, base_url="http://test")
 

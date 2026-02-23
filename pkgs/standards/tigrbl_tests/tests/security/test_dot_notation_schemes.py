@@ -20,7 +20,7 @@ def test_http_bearer_reads_authorization_from_request_headers_attribute() -> Non
     assert creds.credentials == "token-123"
 
 
-def test_api_key_reads_query_value_from_request_query_params_attribute() -> None:
+def test_router_key_reads_query_value_from_request_query_params_attribute() -> None:
     request = Request(
         method="GET",
         path="/secure",

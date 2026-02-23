@@ -70,7 +70,7 @@ class SessionSpec:
     def merge(self, higher: "SessionSpec | Mapping[str, Any] | None") -> "SessionSpec":
         """
         Overlay another spec on top of this one (non-None fields take precedence).
-        Use to implement op > model > api > app precedence.
+        Use to implement op > model > router > app precedence.
         """
         if higher is None:
             return self
