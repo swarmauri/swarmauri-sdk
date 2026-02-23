@@ -32,7 +32,7 @@ async def test_router_mount_favicon_default_route() -> None:
 
 @pytest.mark.asyncio
 async def test_router_mount_favicon_custom_route() -> None:
-    """Mount a custom favicon path when branding routes are namespaced."""
+    """Mount a custom favicon asset while keeping the default ICO redirect."""
     router = TigrblRouter()
 
     app = TigrblApp()
@@ -47,4 +47,4 @@ async def test_router_mount_favicon_custom_route() -> None:
     assert svg_response.status_code == 200
     assert svg_response.headers["content-type"].startswith("image/svg+xml")
     assert ico_response.status_code == 307
-    assert ico_response.headers["location"] == "/brand/favicon.svg"
+    assert ico_response.headers["location"] == "/favicon.svg"
