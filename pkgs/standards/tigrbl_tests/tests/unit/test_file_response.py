@@ -17,7 +17,7 @@ from tigrbl.bindings import (
 from tigrbl import TigrblApp as FastApp
 from tigrbl.types import Integer, Mapped, mapped_column
 from tigrbl.table import Table
-from tigrbl.router._router import Router
+from tigrbl.router import TigrblRouter
 from tigrbl.app._app import App as BaseApp
 
 
@@ -93,10 +93,7 @@ def test_file_response_api(tmp_path):
     Widget = _build_model(Table, file_path, bind=False)
     Widget.columns = ()
 
-    class FilesRouter(Router):
-        PREFIX = ""
-
-    router = FilesRouter()
+    router = TigrblRouter(prefix="")
 
     async def fake_db():
         yield None
@@ -122,10 +119,7 @@ def test_file_response_app(tmp_path):
     Widget = _build_model(Table, file_path, bind=False)
     Widget.columns = ()
 
-    class FilesRouter(Router):
-        PREFIX = ""
-
-    router = FilesRouter()
+    router = TigrblRouter(prefix="")
 
     async def fake_db():
         yield None

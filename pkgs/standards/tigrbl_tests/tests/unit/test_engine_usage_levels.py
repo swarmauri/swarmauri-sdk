@@ -5,7 +5,7 @@ from tigrbl.engine.shortcuts import mem
 def test_engine_usage_levels_and_precedence():
     # Start from a clean registry to avoid cross-test pollution
     resolver.set_default(None)
-    resolver._API.clear()
+    resolver._ROUTER.clear()
     resolver._TAB.clear()
     resolver._OP.clear()
 
@@ -23,7 +23,9 @@ def test_engine_usage_levels_and_precedence():
     router_inst = Router()
     model_inst = Model()
 
-    p = resolver.resolve_provider(router=router_inst, model=model_inst, op_alias="create")
+    p = resolver.resolve_provider(
+        router=router_inst, model=model_inst, op_alias="create"
+    )
     assert p is not None and p.spec.async_ is True
 
     p_model = resolver.resolve_provider(router=router_inst, model=model_inst)
