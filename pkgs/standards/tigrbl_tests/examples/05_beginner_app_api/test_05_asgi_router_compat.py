@@ -61,8 +61,8 @@ def test_tigrbl_app_op_ctx_binds_handler():
 
     bound = CtxOnlyApp.__dict__["health"]
     assert isinstance(bound, classmethod)
-    assert bound.__func__.__tigrbl_op_decl__.alias == "health"
-    assert bound.__func__.__tigrbl_op_decl__.target == "custom"
+    assert bound.__func__.__tigrbl_op_spec__.alias == "health"
+    assert bound.__func__.__tigrbl_op_spec__.target == "custom"
 
 
 def test_tigrbl_app_is_asgi_compatible_with_op_alias_and_op_ctx():

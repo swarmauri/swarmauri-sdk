@@ -53,36 +53,38 @@ def mro_collect_decorated_ops(table: type) -> list[OpSpec]:
             if name in seen:
                 continue
             func = _unwrap(attr)
-            decl: OpSpec | None = getattr(func, "__tigrbl_op_decl__", None)
-            if decl is None:
+            op_spec: OpSpec | None = getattr(func, "__tigrbl_op_spec__", None)
+            if op_spec is None:
+                op_spec = getattr(func, "__tigrbl_op_decl__", None)
+            if op_spec is None:
                 continue
 
             spec = OpSpec(
                 table=table,
-                alias=decl.alias or name,
-                target=decl.target,
-                arity=decl.arity,
-                persist=_normalize_persist(decl.persist),
+                alias=op_spec.alias or name,
+                target=op_spec.target,
+                arity=op_spec.arity,
+                persist=_normalize_persist(op_spec.persist),
                 handler=_wrap_ctx_core(table, func),
-                http_methods=decl.http_methods,
-                path_suffix=decl.path_suffix,
-                tags=tuple(decl.tags or ()),
-                request_model=decl.request_model,
-                response_model=decl.response_model,
-                hooks=tuple(decl.hooks or ()),
-                status_code=decl.status_code,
-                expose_routes=decl.expose_routes,
-                expose_rpc=decl.expose_rpc,
-                expose_method=decl.expose_method,
-                engine=decl.engine,
-                response=decl.response,
-                returns=decl.returns,
-                rbac_guard_op=decl.rbac_guard_op,
-                core=decl.core,
-                core_raw=decl.core_raw,
-                extra=dict(decl.extra),
-                deps=tuple(decl.deps),
-                secdeps=tuple(decl.secdeps),
+                http_methods=op_spec.http_methods,
+                path_suffix=op_spec.path_suffix,
+                tags=tuple(op_spec.tags or ()),
+                request_model=op_spec.request_model,
+                response_model=op_spec.response_model,
+                hooks=tuple(op_spec.hooks or ()),
+                status_code=op_spec.status_code,
+                expose_routes=op_spec.expose_routes,
+                expose_rpc=op_spec.expose_rpc,
+                expose_method=op_spec.expose_method,
+                engine=op_spec.engine,
+                response=op_spec.response,
+                returns=op_spec.returns,
+                rbac_guard_op=op_spec.rbac_guard_op,
+                core=op_spec.core,
+                core_raw=op_spec.core_raw,
+                extra=dict(op_spec.extra),
+                deps=tuple(op_spec.deps),
+                secdeps=tuple(op_spec.secdeps),
             )
             out.append(spec)
             seen.add(name)
