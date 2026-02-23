@@ -71,7 +71,7 @@ async def test_openapi_security_from_app_and_router_deps() -> None:
 
     # Usage: request the OpenAPI schema from the running app.
     async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
-        response = await client.get("/openrouter.json")
+        response = await client.get("/openapi.json")
         schema = response.json()
         resource_path = f"/{CombinedSecdepsWidget.__name__.lower()}"
 
