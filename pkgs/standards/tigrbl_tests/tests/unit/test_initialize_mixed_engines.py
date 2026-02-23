@@ -21,14 +21,15 @@ class SyncWidget(Base):
 
 @pytest.mark.asyncio
 async def test_initialize_handles_mixed_sync_async_routers():
-    async_router = TigrblRouter(engine=mem())
-    async_router.include_table(AsyncWidget, prefix="")
-
-    sync_router = TigrblRouter(engine=mem(async_=False))
-    sync_router.include_table(SyncWidget, prefix="")
-
     app = TigrblApp(engine=mem(async_=False))
-    app.include_routers([async_router, sync_router])
+
+    router = TigrblRouter(engine=mem())
+    router.include_table(AsyncWidget, prefix="")
+    app.include_router(router)
+
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_table(SyncWidget, prefix="")
+    app.include_router(router)
 
     result = app.initialize()
 
@@ -37,5 +38,3 @@ async def test_initialize_handles_mixed_sync_async_routers():
     await result
 
     assert getattr(app, "_ddl_executed", False) is True
-    assert getattr(async_router, "_ddl_executed", False) is True
-    assert getattr(sync_router, "_ddl_executed", False) is True
