@@ -8,7 +8,7 @@ import httpx
 import pytest
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp
+from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.types import Column, ForeignKey, Integer, String, relationship
 
@@ -72,9 +72,9 @@ async def test_many_to_many_relationship_via_rest() -> None:
         )
 
     # Step 4: Build the API with all three models registered.
-    app = TigrblApp(engine=mem(async_=False))
-    app.include_tables([Student, Course, Enrollment])
-    init_result = app.initialize()
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_tables([Student, Course, Enrollment])
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
 

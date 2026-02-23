@@ -37,7 +37,7 @@ async def app_client_with_extras(db_mode):
     app.include_router(router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, api, Widget
+    return client, app, Widget
 
 
 @pytest.mark.i9n

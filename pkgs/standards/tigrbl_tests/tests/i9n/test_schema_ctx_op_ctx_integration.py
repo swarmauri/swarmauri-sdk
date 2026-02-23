@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
 
-from tigrbl import TigrblApp, Base, op_ctx, schema_ctx
+from tigrbl import TigrblApp, TigrblRouter, Base, op_ctx, schema_ctx
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 
@@ -35,10 +35,10 @@ async def widget_client():
             return ctx["payload"]
 
     app = TigrblApp()
-    app = TigrblApp(engine=mem())
-    app.include_table(Widget, prefix="")
-    app.mount_jsonrpc()
-    await app.initialize()
+    router = TigrblRouter(engine=mem())
+    router.include_table(Widget, prefix="")
+    router.mount_jsonrpc()
+    await router.initialize()
     app.include_router(router)
 
     async with AsyncClient(

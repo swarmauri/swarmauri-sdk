@@ -10,7 +10,7 @@ import pytest
 from tigrbl_client import TigrblClient
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, hook_ctx
+from tigrbl import Base, TigrblApp, TigrblRouter, hook_ctx
 from tigrbl.engine import resolver
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
