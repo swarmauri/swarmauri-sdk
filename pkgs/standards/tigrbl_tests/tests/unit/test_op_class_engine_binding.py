@@ -25,7 +25,7 @@ def test_op_table_api_app_engines(tmp_path):
     app = App(sqlitef(str(tmp_path / "app.sqlite"), async_=False))
     router = Router(pgs(host="db", name="api_db"))
 
-    install_from_objects(app=app, api=router, models=[Model])
+    install_from_objects(app=app, router=router, models=[Model])
 
     p_app = resolver.resolve_provider()
     p_api = resolver.resolve_provider(router=router)
