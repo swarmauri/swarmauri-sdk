@@ -49,9 +49,9 @@ async def running_app_with_apis():
     engine = mem(async_=False)
     alpha_api = TigrblRouter(engine=engine, models=[AlphaWidget], prefix="/alpha")
     beta_api = TigrblRouter(engine=engine)
-    beta_api.include_model(BetaWidget)
+    beta_api.include_table(BetaWidget)
     zeta_api = TigrblRouter(engine=engine)
-    zeta_api.include_model(ZetaWidget)
+    zeta_api.include_table(ZetaWidget)
 
     app = TigrblApp(engine=engine, apis=[alpha_api, (zeta_api, "/zeta")])
     app.include_router(beta_api, prefix="/beta")
@@ -68,9 +68,9 @@ async def running_app_with_apis():
 async def running_app_with_api_router():
     engine = mem(async_=False)
     alpha_api = TigrblRouter(engine=engine)
-    alpha_api.include_model(AlphaWidget)
+    alpha_api.include_table(AlphaWidget)
     beta_api = TigrblRouter(engine=engine)
-    beta_api.include_model(BetaWidget)
+    beta_api.include_table(BetaWidget)
 
     app = TigrblApp(engine=engine, apis=[alpha_api])
     app.include_router(beta_api, prefix="/beta")

@@ -17,7 +17,7 @@ def test_include_models_base_prefix_avoids_duplicate_segments():
         name = Column(String, nullable=False)
 
     api = TigrblApp()
-    api.include_models([Key, KeyVersion], base_prefix="/kms")
+    api.include_tables([Key, KeyVersion], base_prefix="/kms")
     app.include_router(api.router)
 
     paths = {r.path for r in app.router.routes}

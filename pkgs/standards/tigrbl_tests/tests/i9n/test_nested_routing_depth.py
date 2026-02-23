@@ -46,7 +46,7 @@ async def three_level_api_client(db_mode):
         pytest.skip("async database mode is currently unsupported")
     else:
         api = TigrblApp(engine=mem(async_=False))
-        api.include_models([Company, Department, Employee])
+        api.include_tables([Company, Department, Employee])
         api.initialize()
 
     app = TigrblApp()

@@ -17,7 +17,7 @@ def test_default_resource_and_rpc_prefixes():
         name = Column(String, nullable=False)
 
     api = TigrblApp()
-    api.include_model(Item, mount_router=False)
+    api.include_table(Item, mount_router=False)
 
     paths = {p.lower() for p in _router_paths(api, "Item")}
     assert "/item" in paths
@@ -33,7 +33,7 @@ def test_resource_override_affects_prefixes():
         name = Column(String, nullable=False)
 
     api = TigrblApp()
-    api.include_model(Item, mount_router=False)
+    api.include_table(Item, mount_router=False)
 
     paths = {p.lower() for p in _router_paths(api, "Item")}
     assert "/test" in paths

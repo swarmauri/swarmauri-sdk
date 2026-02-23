@@ -28,7 +28,7 @@ def test_hook_scopes_apply_to_specific_ops():
 
     # Deployment: include the model in an app and bind to build hook registries.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonHookScope)
+    api.include_table(LessonHookScope)
     api.initialize()
     api.bind(LessonHookScope)
 
@@ -63,7 +63,7 @@ def test_hook_scopes_exclude_unlisted_ops():
 
     # Deployment: bind the model in an app to populate hook registries.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonHookScopeIsolation)
+    api.include_table(LessonHookScopeIsolation)
     api.initialize()
     api.bind(LessonHookScopeIsolation)
 

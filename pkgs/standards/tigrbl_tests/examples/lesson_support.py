@@ -54,7 +54,7 @@ async def build_widget_app(
 ) -> tuple[TigrblApp, TigrblApp]:
     app = TigrblApp()
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(model, prefix="")
+    api.include_table(model, prefix="")
     await api.initialize()
     if jsonrpc:
         api.mount_jsonrpc()

@@ -125,7 +125,7 @@ def test_binding_attaches_internal_model_namespaces():
         )
 
     api = TigrblApp()
-    api.include_model(Thing, mount_router=False)
+    api.include_table(Thing, mount_router=False)
     assert "Thing" in api.models
     assert hasattr(api.schemas, "Thing")
     assert "name" in Thing.__tigrbl_cols__
@@ -212,7 +212,7 @@ def test_rest_call_respects_aliases():
         )
 
     api = TigrblApp(engine=eng)
-    api.include_model(Thing)
+    api.include_table(Thing)
     Base.metadata.create_all(eng.raw()[0])
     transport = ASGITransport(app=api)
     with Client(transport=transport, base_url="http://test") as client:
@@ -273,7 +273,7 @@ async def test_core_crud_helpers_operate():
         )
 
     api = TigrblApp(engine=eng)
-    api.include_model(Thing)
+    api.include_table(Thing)
     Base.metadata.create_all(eng.raw()[0])
 
     with eng.session() as session:

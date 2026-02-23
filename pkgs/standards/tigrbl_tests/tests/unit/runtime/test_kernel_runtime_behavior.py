@@ -18,7 +18,7 @@ def test_kernel_get_opview_caches_runtime_result() -> None:
 
     bind(RuntimeKernelModel)
     app = TigrblApp()
-    app.include_model(RuntimeKernelModel, mount_router=False)
+    app.include_table(RuntimeKernelModel, mount_router=False)
 
     first = K.get_opview(app, RuntimeKernelModel, "read")
     second = K.get_opview(app, RuntimeKernelModel, "read")

@@ -21,7 +21,7 @@ def test_jsonrpc_mount_adds_rpc_prefix():
 
     api = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize before mounting JSON-RPC.
-    api.include_model(Widget)
+    api.include_table(Widget)
     api.initialize()
     api.mount_jsonrpc(prefix="/rpc")
     # Exercise: collect route paths after mounting RPC routes.
@@ -48,7 +48,7 @@ def test_jsonrpc_mount_preserves_existing_routes():
 
     api = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize routes.
-    api.include_model(Widget)
+    api.include_table(Widget)
     api.initialize()
     # Exercise: capture routes before enabling JSON-RPC.
     initial_routes = {route.path for route in api.router.routes}

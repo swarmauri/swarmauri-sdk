@@ -27,7 +27,7 @@ def api_and_session() -> Iterator[tuple[TigrblApp, Session, type[Base]]]:
         )
 
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Widget, mount_router=False)
+    api.include_table(Widget, mount_router=False)
     api.initialize()
     prov = _resolver.resolve_provider()
     _, SessionLocal = prov.ensure()

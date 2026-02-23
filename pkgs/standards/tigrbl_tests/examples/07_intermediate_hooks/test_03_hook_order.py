@@ -31,7 +31,7 @@ def test_hook_order_collects_multiple_hooks():
 
     # Deployment: bind the model in an app to materialize hook registries.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonHookOrder)
+    api.include_table(LessonHookOrder)
     api.initialize()
     api.bind(LessonHookOrder)
 
@@ -68,7 +68,7 @@ def test_hook_order_preserves_declaration_sequence():
 
     # Deployment: include the model in the app and bind hooks.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonHookOrderSequence)
+    api.include_table(LessonHookOrderSequence)
     api.initialize()
     api.bind(LessonHookOrderSequence)
 

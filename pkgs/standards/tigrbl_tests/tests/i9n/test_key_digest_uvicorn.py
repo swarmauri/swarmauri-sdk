@@ -46,7 +46,7 @@ async def running_app(sync_db_session):
 
     app = TigrblApp()
     api = TigrblApp(get_db=get_sync_db)
-    api.include_models([ApiKey])
+    api.include_tables([ApiKey])
     await api.initialize()
     app.include_router(api.router)
 

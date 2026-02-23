@@ -12,7 +12,7 @@ from examples.lesson_support import make_widget_model
 async def test_app_includes_model_namespaces() -> None:
     widget = make_widget_model(model_name="WidgetApi", table_name="widget_api")
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(widget, prefix="")
+    api.include_table(widget, prefix="")
     await api.initialize()
 
     assert "WidgetApi" in api.models

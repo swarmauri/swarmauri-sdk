@@ -21,7 +21,7 @@ def test_app_binding_mounts_jsonrpc_router():
         name = Column(String, nullable=False)
 
     app = TigrblApp(engine=mem(async_=False))
-    app.include_model(Widget)
+    app.include_table(Widget)
 
     router = app.mount_jsonrpc()
 
@@ -38,7 +38,7 @@ def test_app_jsonrpc_mount_uses_prefix_setting():
         name = Column(String, nullable=False)
 
     app = TigrblApp(engine=mem(async_=False), jsonrpc_prefix="/rpc-app")
-    app.include_model(Widget)
+    app.include_table(Widget)
 
     router = app.mount_jsonrpc()
 

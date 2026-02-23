@@ -47,7 +47,7 @@ async def client_and_model():
     # synchronous in-memory engine instead so the REST operations run without
     # requiring greenlet magic.
     api = Tigrblv3(engine=mem(async_=False))
-    api.include_model(Gadget, prefix="")
+    api.include_table(Gadget, prefix="")
     await api.initialize()
     app.include_router(api.router)
     transport = ASGITransport(app=app)

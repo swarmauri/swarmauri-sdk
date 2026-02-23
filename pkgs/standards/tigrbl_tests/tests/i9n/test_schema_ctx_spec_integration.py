@@ -66,7 +66,7 @@ async def schema_ctx_client():
 
     app = Tigrblv3()
     api = Tigrblv3(engine=mem(async_=False))
-    api.include_model(Widget, prefix="")
+    api.include_table(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()
     api.initialize()

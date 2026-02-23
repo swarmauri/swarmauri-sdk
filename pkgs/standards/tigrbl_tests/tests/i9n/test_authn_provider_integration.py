@@ -46,7 +46,7 @@ def _build_client_with_auth():
 
     api = TigrblApp(engine=mem(async_=False))
     api.set_auth(authn=auth.get_principal)
-    api.include_model(Tenant)
+    api.include_table(Tenant)
     api.initialize()
     transport = ASGITransport(app=api)
     return Client(transport=transport, base_url="http://test"), auth

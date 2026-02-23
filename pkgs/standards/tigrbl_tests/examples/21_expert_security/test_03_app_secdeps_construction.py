@@ -41,7 +41,7 @@ async def test_openapi_security_from_app_constructor_deps() -> None:
 
     # Instantiation: create the app with constructor-level security deps.
     app = TigrblApp(engine=mem(async_=False), dependencies=[app_security_dep])
-    app.include_model(AppSecdepsWidget)
+    app.include_table(AppSecdepsWidget)
 
     # Deployment: initialize storage and run the app with Uvicorn.
     init_result = app.initialize()

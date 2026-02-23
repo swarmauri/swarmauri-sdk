@@ -18,7 +18,7 @@ def setup_api(model_cls):
     engine = Engine(spec)
     app = TigrblApp(engine=engine)
     api = TigrblApp(engine=engine)
-    api.include_model(model_cls, prefix="")
+    api.include_table(model_cls, prefix="")
     api.initialize()
     app.include_router(api.router)
     return app, engine

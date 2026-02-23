@@ -38,7 +38,7 @@ async def test_custom_op_with_hook() -> None:
 
     app = TigrblApp()
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Widget, prefix="")
+    api.include_table(Widget, prefix="")
     await api.initialize()
     app.include_router(api.router)
 

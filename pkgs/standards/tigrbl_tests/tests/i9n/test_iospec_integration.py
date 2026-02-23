@@ -37,7 +37,7 @@ class Widget(Base, GUIDPk):
 async def widget_setup():
     app = TigrblApp()
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Widget, prefix="/widget")
+    api.include_table(Widget, prefix="/widget")
     api.mount_jsonrpc(prefix="/rpc")
     api.attach_diagnostics(prefix="/system")
     api.initialize()

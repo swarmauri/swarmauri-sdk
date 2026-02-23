@@ -34,7 +34,7 @@ async def test_hook_modifies_response() -> None:
 
     app = TigrblApp()
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Item, prefix="")
+    api.include_table(Item, prefix="")
     await api.initialize()
     app.include_router(api.router)
 

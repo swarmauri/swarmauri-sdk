@@ -55,7 +55,7 @@ def test_op_ctx_engine_requires_install_engines_after_bind() -> None:
             return {"ok": True, "ctx": ctx}
 
     app = TigrblApp(engine=mem(async_=False))
-    app.include_model(Gadget)
+    app.include_table(Gadget)
 
     provider = _resolver.resolve_provider(model=Gadget, op_alias="ping")
     assert provider is not None

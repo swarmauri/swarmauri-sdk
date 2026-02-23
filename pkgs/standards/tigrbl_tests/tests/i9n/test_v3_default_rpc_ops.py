@@ -42,7 +42,7 @@ async def client_and_model():
 
     app = Tigrblv3()
     api = Tigrblv3(engine=mem())
-    api.include_model(Gadget, prefix="")
+    api.include_table(Gadget, prefix="")
     api.mount_jsonrpc(prefix="/rpc")
     await api.initialize()
     app.include_router(api.router)
@@ -162,7 +162,7 @@ async def wrapper_field_client_and_model():
 
     app = Tigrblv3()
     api = Tigrblv3(engine=mem())
-    api.include_model(WrapperNamed, prefix="")
+    api.include_table(WrapperNamed, prefix="")
     api.mount_jsonrpc(prefix="/rpc")
     await api.initialize()
     app.include_router(api.router)
@@ -262,7 +262,7 @@ async def bulk_client_and_model():
 
     app = Tigrblv3()
     api = Tigrblv3(engine=mem())
-    api.include_model(Gadget, prefix="")
+    api.include_table(Gadget, prefix="")
     api.mount_jsonrpc(prefix="/rpc")
     await api.initialize()
     app.include_router(api.router)

@@ -21,7 +21,7 @@ def test_api_binding_mounts_diagnostics_router():
         name = Column(String, nullable=False)
 
     api = TigrblRouter(engine=mem(async_=False))
-    api.include_model(Widget)
+    api.include_table(Widget)
 
     app = TigrblApp()
     router = api.attach_diagnostics(app=app)
@@ -39,7 +39,7 @@ def test_api_diagnostics_mounts_on_app_namespace():
         name = Column(String, nullable=False)
 
     api = TigrblRouter(engine=mem(async_=False))
-    api.include_model(Widget)
+    api.include_table(Widget)
 
     app = TigrblApp()
     router = api.attach_diagnostics(app=app)
