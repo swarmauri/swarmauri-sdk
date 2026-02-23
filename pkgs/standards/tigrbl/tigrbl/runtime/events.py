@@ -12,6 +12,9 @@ from typing import Dict, Iterable, List, Literal, Tuple
 # ──────────────────────────────────────────────────────────────────────────────
 
 Phase = Literal[
+    "INGRESS_BEGIN",
+    "INGRESS_PARSE",
+    "INGRESS_ROUTE",
     "PRE_TX_BEGIN",
     "START_TX",
     "PRE_HANDLER",
@@ -20,6 +23,8 @@ Phase = Literal[
     "PRE_COMMIT",
     "END_TX",
     "POST_COMMIT",
+    "EGRESS_SHAPE",
+    "EGRESS_FINALIZE",
     "POST_RESPONSE",
     "ON_ERROR",
     "ON_PRE_TX_BEGIN_ERROR",
@@ -35,6 +40,9 @@ Phase = Literal[
 ]
 
 PHASES: Tuple[Phase, ...] = (
+    "INGRESS_BEGIN",
+    "INGRESS_PARSE",
+    "INGRESS_ROUTE",
     "PRE_TX_BEGIN",
     "START_TX",  # system-only
     "PRE_HANDLER",
@@ -43,6 +51,8 @@ PHASES: Tuple[Phase, ...] = (
     "PRE_COMMIT",  # system-only
     "END_TX",  # system-only
     "POST_COMMIT",  # system-only
+    "EGRESS_SHAPE",
+    "EGRESS_FINALIZE",
     "POST_RESPONSE",
     "ON_ERROR",
     "ON_PRE_TX_BEGIN_ERROR",

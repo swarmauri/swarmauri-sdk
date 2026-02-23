@@ -17,7 +17,10 @@ def test_prune_events_for_persist_keeps_non_persist_tied_only() -> None:
 
 
 def test_phases_follow_expected_kernel_execution_order() -> None:
-    assert _ev.PHASES[:9] == (
+    assert _ev.PHASES[:14] == (
+        "INGRESS_BEGIN",
+        "INGRESS_PARSE",
+        "INGRESS_ROUTE",
         "PRE_TX_BEGIN",
         "START_TX",
         "PRE_HANDLER",
@@ -26,5 +29,7 @@ def test_phases_follow_expected_kernel_execution_order() -> None:
         "PRE_COMMIT",
         "END_TX",
         "POST_COMMIT",
+        "EGRESS_SHAPE",
+        "EGRESS_FINALIZE",
         "POST_RESPONSE",
     )

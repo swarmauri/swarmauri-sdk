@@ -4,6 +4,9 @@ from tigrbl.runtime import events as _ev
 def test_phases_constant_lists_all_phases_in_order() -> None:
     """Ensure PHASES exports the complete ordered phase sequence."""
     assert _ev.PHASES == (
+        "INGRESS_BEGIN",
+        "INGRESS_PARSE",
+        "INGRESS_ROUTE",
         "PRE_TX_BEGIN",
         "START_TX",
         "PRE_HANDLER",
@@ -12,6 +15,8 @@ def test_phases_constant_lists_all_phases_in_order() -> None:
         "PRE_COMMIT",
         "END_TX",
         "POST_COMMIT",
+        "EGRESS_SHAPE",
+        "EGRESS_FINALIZE",
         "POST_RESPONSE",
         "ON_ERROR",
         "ON_PRE_TX_BEGIN_ERROR",

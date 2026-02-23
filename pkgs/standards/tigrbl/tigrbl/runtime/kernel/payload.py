@@ -4,7 +4,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any, Dict, List
 
-from ...op.types import PHASES
+from .. import events as _ev
 
 if TYPE_CHECKING:
     from .core import Kernel
@@ -42,7 +42,7 @@ def build_kernelz_payload(
 
             chains = kernel.build(model, sp.alias)
             persist = getattr(sp, "persist", "default") != "skip"
-            for phase in PHASES:
+            for phase in _ev.PHASES:
                 if phase == "START_TX" and persist:
                     seq.append("START_TX:hook:sys:txn:begin@START_TX")
 

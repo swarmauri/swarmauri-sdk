@@ -16,7 +16,8 @@ from typing import (
     cast,
 )
 
-from ...op.types import PHASES, StepFn
+from ...hook.types import PHASES as HOOK_PHASES
+from ...op.types import StepFn
 from .. import events as _ev, ordering as _ordering, system as _sys
 
 logger = logging.getLogger(__name__)
@@ -86,10 +87,10 @@ def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
 def _hook_phase_chains(model: type, alias: str) -> Dict[str, List[StepFn]]:
     hooks_root = getattr(model, "hooks", None) or SimpleNamespace()
     alias_ns = getattr(hooks_root, alias, None)
-    out: Dict[str, List[StepFn]] = {ph: [] for ph in PHASES}
+    out: Dict[str, List[StepFn]] = {ph: [] for ph in HOOK_PHASES}
     if alias_ns is None:
         return out
-    for phase in PHASES:
+    for phase in HOOK_PHASES:
         out[phase] = list(getattr(alias_ns, phase, []) or [])
     return out
 
@@ -165,19 +166,25 @@ def _inject_atoms(
         return anchor_idx, token_idx
 
     for anchor, run in sorted(atoms, key=_sort_key):
-        try:
+        if _ev.is_valid_event(anchor):
             info = _ev.get_anchor_info(anchor)
-        except Exception:
+            phase = info.phase
+            persist_tied = info.persist_tied
+        elif anchor in _ev.PHASES:
+            phase = anchor
+            persist_tied = False
+        else:
             continue
-        if info.phase in ("START_TX", "END_TX"):
+
+        if phase in ("START_TX", "END_TX"):
             continue
-        if not persistent and info.persist_tied:
+        if not persistent and persist_tied:
             continue
         domain, _subject = _infer_domain_subject(run)
         if domain == "dep":
             continue
 
-        chains.setdefault(info.phase, []).append(_wrap_atom(run, anchor=anchor))
+        chains.setdefault(phase, []).append(_wrap_atom(run, anchor=anchor))
 
 
 def _inject_txn_system_steps(chains: Dict[str, List[StepFn]]) -> None:
