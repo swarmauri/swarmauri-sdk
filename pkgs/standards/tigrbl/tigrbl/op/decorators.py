@@ -48,7 +48,7 @@ def _maybe_await(v):
 
 def alias(name: str, **kw) -> AliasSpec:
     """Convenience helper: alias('get', response_schema=..., rest=False)."""
-    return Alias(alias=name, **kw)
+    return Alias(_alias=name, **{f"_{k}": v for k, v in kw.items()})
 
 
 def alias_ctx(**verb_to_alias_or_decl: Union[str, AliasSpec]):
