@@ -1,5 +1,5 @@
 import pytest
-from tigrbl import TigrblApp, Base
+from tigrbl import TigrblApp, Base, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, S, acol
@@ -31,18 +31,18 @@ def _resolve_schema(spec, schema):
 @pytest.mark.asyncio
 @pytest.mark.i9n
 async def test_openapi_examples_and_schemas_present(db_mode):
-    fastapi_app = TigrblApp()
+    app = TigrblApp()
     engine = mem() if db_mode == "async" else mem(async_=False)
-    api = TigrblApp(engine=engine)
-    api.include_model(Widget)
+    router = TigrblRouter(engine=engine)
+    app.include_table(Widget)
     if db_mode == "async":
-        await api.initialize()
+        await app.initialize()
     else:
-        api.initialize()
-    api.mount_jsonrpc()
-    fastapi_app.include_router(api.router)
+        app.initialize()
+    app.mount_jsonrpc()
+    app.include_router(router)
 
-    transport = ASGITransport(app=fastapi_app)
+    transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         spec = (await client.get("/openapi.json")).json()
 
@@ -72,8 +72,8 @@ async def test_openapi_examples_and_schemas_present(db_mode):
     }
     assert expected <= set(spec["components"]["schemas"])
 
-    assert hasattr(api.schemas, "Widget")
-    widget_ns = getattr(api.schemas, "Widget")
+    assert hasattr(app.schemas, "Widget")
+    widget_ns = getattr(app.schemas, "Widget")
     for alias in ["create", "read", "update", "replace", "delete", "list", "clear"]:
         assert hasattr(widget_ns, alias)
         op_ns = getattr(widget_ns, alias)

@@ -2,7 +2,7 @@ import httpx
 import pytest
 import pytest_asyncio
 
-from tigrbl import Base, TigrblApi
+from tigrbl import Base, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -24,18 +24,18 @@ class Gadget(Base, GUIDPk):
 
 
 @pytest_asyncio.fixture()
-async def running_api_app():
-    api = TigrblApi(
+async def running_router_app():
+    router = TigrblRouter(
         engine=mem(async_=False),
         models=[Gadget],
         prefix="/gadgets",
         system_prefix="/diagnostics",
     )
-    await api.initialize()
+    await router.initialize()
 
     app = TigrblApp()
-    app.include_router(api.router)
-    api.attach_diagnostics(app=app)
+    app.include_router(router.router)
+    router.attach_diagnostics(app=app)
 
     base_url, server, task = await run_uvicorn_in_task(app)
     try:
@@ -46,10 +46,10 @@ async def running_api_app():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_api_create_gadget(running_api_app):
+async def test_tigrbl_router_create_gadget(running_router_app):
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{running_api_app}/gadgets/gadget", json={"name": "gyro"}
+            f"{running_router_app}/gadgets/gadget", json={"name": "gyro"}
         )
 
     assert response.status_code == 201
@@ -60,9 +60,9 @@ async def test_tigrbl_api_create_gadget(running_api_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_api_healthz(running_api_app):
+async def test_tigrbl_router_healthz(running_router_app):
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"{running_api_app}/diagnostics/healthz")
+        response = await client.get(f"{running_router_app}/diagnostics/healthz")
 
     assert response.status_code == 200
     assert response.json()["ok"] is True

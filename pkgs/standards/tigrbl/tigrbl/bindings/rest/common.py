@@ -11,7 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from ...api._api import APIRouter as Router
+from ...router._router import Router
 from ...core.crud.params import Body, Path, Query
 from ...responses import Response
 from ...runtime.status.exceptions import HTTPException
@@ -67,7 +67,7 @@ logger.debug("Loaded module v3/bindings/rest/common")
 
 
 def _is_http_response(obj: Any) -> bool:
-    """Best-effort response detection across stdapi and Starlette response types."""
+    """Best-effort response detection across Tigrbl and Starlette response types."""
     if isinstance(obj, Response):
         return True
     return (

@@ -5,20 +5,26 @@ from typing import Any
 from ...responses import Response
 
 
+def _resolve_docs_owner(target: Any) -> Any:
+    """Resolve the object that carries OpenAPI and Swagger metadata."""
+
+    owner = getattr(target, "router", None)
+    return owner if owner is not None else target
+
+
 def build_swagger_html(router: Any, request: Any) -> str:
+    docs_owner = _resolve_docs_owner(router)
     base = (getattr(request, "script_name", "") or "").rstrip("/")
-    openapi_url = (
-        router.openapi_url
-        if router.openapi_url.startswith("/")
-        else f"/{router.openapi_url}"
-    )
+    openapi_path = getattr(docs_owner, "openapi_url", "/openapi.json")
+    openapi_url = openapi_path if openapi_path.startswith("/") else f"/{openapi_path}"
     spec_url = f"{base}{openapi_url}"
-    version = router.swagger_ui_version
+    version = getattr(docs_owner, "swagger_ui_version", "5.31.0")
+    title = getattr(docs_owner, "title", getattr(router, "title", "API"))
     return f"""<!doctype html>
 <html>
   <head>
     <meta charset=\"utf-8\" />
-    <title>{router.title} — API Docs</title>
+    <title>{title} — API Docs</title>
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
     <link rel=\"stylesheet\" href=\"https://unpkg.com/swagger-ui-dist@{version}/swagger-ui.css\" />
     <style>
@@ -60,7 +66,7 @@ def mount_swagger(
     def _docs_handler(request: Any) -> Response:
         return Response.html(build_swagger_html(router, request))
 
-    router.add_api_route(
+    router.add_route(
         path,
         _docs_handler,
         methods=["GET"],

@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl_engine_bigquery"
-version = "0.1.1.dev2"
+version = "0.1.1.dev3"
 description = "Tigrbl engine plugin for Google BigQuery."
 readme = "README.md"
 license = { text = "Apache-2.0" }

@@ -151,20 +151,4 @@ def wsgi_app(
     return [resp.body]
 
 
-def router_call(router: Any, *args: Any, **kwargs: Any):
-    del kwargs
-    if len(args) == 2 and isinstance(args[0], dict) and callable(args[1]):
-        return wsgi_app(router, args[0], args[1])
-    if len(args) == 1 and isinstance(args[0], dict):
-        scope = args[0]
-
-        async def _asgi2_instance(receive: Callable, send: Callable) -> None:
-            await asgi_app(router, scope, receive, send)
-
-        return _asgi2_instance
-    if len(args) == 3 and isinstance(args[0], dict):
-        return asgi_app(router, args[0], args[1], args[2])
-    raise TypeError("Invalid ASGI/WSGI invocation")
-
-
-__all__ = ["asgi_app", "router_call", "wsgi_app"]
+__all__ = ["asgi_app", "wsgi_app"]

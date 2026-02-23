@@ -5,8 +5,8 @@ from tigrbl.types import BaseModel
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_schema_generation(api_client):
-    client, _, Item = api_client
+async def test_schema_generation(app_client):
+    client, _, Item = app_client
 
     bulk_model = Item.schemas.bulk_create.in_item
     read_model = _build_schema(Item, verb="read")
@@ -37,8 +37,8 @@ async def test_schema_generation(api_client):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_bulk_operation_schema(api_client):
-    client, _, _ = api_client
+async def test_bulk_operation_schema(app_client):
+    client, _, _ = app_client
     spec = (await client.get("/openapi.json")).json()
     assert "/tenant/{tenant_id}/item" in spec["paths"]
     ops = spec["paths"]["/tenant/{tenant_id}/item"]

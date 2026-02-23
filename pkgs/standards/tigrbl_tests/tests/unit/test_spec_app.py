@@ -2,12 +2,12 @@ from tigrbl.app.mro_collect import mro_collect_app_spec
 from tigrbl.app.shortcuts import defineAppSpec, deriveApp
 
 
-class BaseAppSpec(defineAppSpec(title="Base", version="1.0", apis=("base",))):
+class BaseAppSpec(defineAppSpec(title="Base", version="1.0", routers=("base",))):
     pass
 
 
 class ChildApp(BaseAppSpec):
-    APIS = ("child",)
+    ROUTERS = ("child",)
     OPS = ("read",)
 
 
@@ -15,7 +15,7 @@ def test_app_spec_defaults_and_merge():
     spec = mro_collect_app_spec(ChildApp)
     assert spec.title == "Base"
     assert spec.version == "1.0"
-    assert spec.apis == ("child", "base")
+    assert spec.routers == ("child", "base")
     assert spec.ops == ("read",)
     assert spec.models == ()
     assert spec.schemas == ()

@@ -14,7 +14,7 @@ from __future__ import annotations
 from typing import Any
 
 from pydantic import BaseModel, Field
-from tigrbl import Base, TigrblApp, engine_ctx, hook_ctx, include_model, op_ctx
+from tigrbl import Base, TigrblApp, engine_ctx, hook_ctx, include_table, op_ctx
 from tigrbl.system import build_openrpc_spec, mount_openapi, mount_openrpc
 
 from swarmauri_standard.factories.Factory import Factory as SwarmauriFactory
@@ -89,7 +89,7 @@ class MessageEnvelope(Base):
 
 
 app = TigrblApp(title="Swarmauri/Tigrbl Bridge", version="0.1.0")
-include_model(app, MessageEnvelope)
+include_table(app, MessageEnvelope)
 
 # OpenAPI + OpenRPC endpoints/document builders.
 mount_openapi(app, path="/openapi.json")

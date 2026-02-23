@@ -44,8 +44,8 @@ async def test_op_ctx_persist_options(
 
     monkeypatch.setattr(_diag._default_kernel, "build", fake_build)
 
-    api = SimpleNamespace(models={"Model": Model})
-    kernelz = _diag._build_kernelz_endpoint(api)
+    router = SimpleNamespace(models={"Model": Model})
+    kernelz = _diag._build_kernelz_endpoint(router)
     data = await kernelz()
     seq = data["Model"]["create"]
 

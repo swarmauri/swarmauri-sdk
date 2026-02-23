@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 from sqlalchemy import Integer, String
 
-from tigrbl.bindings import include_model
+from tigrbl.bindings import include_table
 from tigrbl.column import ColumnSpec, S
 from tigrbl.table import Table
 
@@ -15,8 +15,8 @@ class Widget(Table):
 
 
 def test_include_model_coerces_columns_namespace() -> None:
-    api = SimpleNamespace()
+    app = SimpleNamespace()
 
-    include_model(api, Widget, mount_router=False)
+    include_table(app, Widget, mount_router=False)
 
-    assert api.columns["Widget"] == ("id", "name")
+    assert app.columns["Widget"] == ("id", "name")

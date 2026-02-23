@@ -26,6 +26,7 @@ from .oidc_discovery import include_oidc_discovery
 from .rfc.rfc8693 import include_rfc8693
 from .oidc_userinfo import include_oidc_userinfo
 from .rfc.rfc7009 import include_rfc7009
+from .rfc.rfc8932 import include_rfc8932
 
 
 import logging
@@ -59,6 +60,9 @@ if settings.enable_rfc7009:
 if settings.enable_rfc8414:
     include_rfc8414(app)
     include_oidc_discovery(app)
+
+if settings.enable_rfc8932:
+    include_rfc8932(app)
 
 
 async def _startup() -> None:

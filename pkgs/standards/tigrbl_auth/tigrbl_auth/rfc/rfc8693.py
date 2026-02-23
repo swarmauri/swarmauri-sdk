@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional, Union
 from enum import Enum
 import warnings
 from tigrbl_auth.deps import (
-    TigrblApi,
+    TigrblRouter,
     TigrblApp,
     Form,
     HTTPException,
@@ -32,7 +32,7 @@ RFC8693_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8693"
 # Token Exchange Grant Type
 TOKEN_EXCHANGE_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:token-exchange"
 
-api = TigrblApi()
+api = TigrblRouter()
 router = api
 
 
@@ -40,7 +40,9 @@ def include_rfc8693(app: TigrblApp) -> None:
     """Attach the RFC 8693 router to *app* if enabled."""
 
     if runtime_cfg.settings.enable_rfc8693 and not any(
-        route.path == "/token/exchange" for route in app.routes
+        (getattr(route, "path", None) or getattr(route, "path_template", None))
+        == "/token/exchange"
+        for route in app.router.routes
     ):
         app.include_router(api)
 
@@ -295,7 +297,7 @@ def exchange_token(
     )
 
 
-@api.post("/token/exchange")
+@api.route("/token/exchange", methods=["POST"])
 async def token_exchange_endpoint(
     request: Request,
     grant_type: str = Form(...),

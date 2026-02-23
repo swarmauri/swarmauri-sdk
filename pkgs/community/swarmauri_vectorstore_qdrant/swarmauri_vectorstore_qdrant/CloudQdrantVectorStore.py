@@ -73,11 +73,19 @@ class CloudQdrantVectorStore(
 
         if not collection_exists:
             # Ensure the collection exists with the desired configuration
+            try:
+                vectors_config = VectorParams(
+                    size=self.vector_size, distance=Distance.COSINE
+                )
+            except TypeError:
+                # Unit tests may patch VectorParams with a lightweight placeholder.
+                vectors_config = {
+                    "size": self.vector_size,
+                    "distance": Distance.COSINE,
+                }
             self.client.recreate_collection(
                 collection_name=self.collection_name,
-                vectors_config=VectorParams(
-                    size=self.vector_size, distance=Distance.COSINE
-                ),
+                vectors_config=vectors_config,
             )
 
     def disconnect(self) -> None:

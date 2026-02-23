@@ -32,15 +32,17 @@ app = TigrblApp(
     version="0.1.0",
     openapi_url="/openapi.json",
     docs_url="/docs",
+    jsonrpc_prefix="/kms/rpc",
     engine=ENGINE,
-    api_hooks={"*": {"PRE_TX_BEGIN": [_stash_ctx]}},
+    router_hooks={"*": {"PRE_TX_BEGIN": [_stash_ctx]}},
 )
 
 
 # Custom ops return raw dicts so no finalize hook needed
-app.include_models([Key, KeyVersion], base_prefix="/kms")
-app.mount_jsonrpc(prefix="/kms/rpc")
+app.include_tables([Key, KeyVersion], base_prefix="/kms")
 app.attach_diagnostics(prefix="/system")
+# Backward-compatible alias used by tests and older integrations.
+app.routes = app.router.routes
 
 
 # Initialize database tables on startup

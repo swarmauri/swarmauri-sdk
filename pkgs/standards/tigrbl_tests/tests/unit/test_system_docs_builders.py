@@ -2,7 +2,9 @@ import pytest
 
 from tigrbl import TigrblApp
 from tigrbl.system import build_lens, build_openapi, build_openrpc_spec, build_swagger
-from tigrbl.types import Request
+
+
+from tigrbl.requests import Request
 
 
 @pytest.mark.unit

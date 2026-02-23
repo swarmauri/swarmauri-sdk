@@ -1,7 +1,7 @@
 import pytest
 import pytest_asyncio
 from typing import Iterator
-from tigrbl import TigrblApp
+from tigrbl import TigrblApp, TigrblRouter
 from httpx import AsyncClient, ASGITransport
 
 from tigrbl.engine.shortcuts import mem
@@ -22,10 +22,10 @@ async def v3_client() -> Iterator[tuple[AsyncClient, type]]:
         description = Column(String, nullable=True)
 
     app = TigrblApp()
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Widget)
-    api.initialize()
-    app.include_router(api.router)
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_table(Widget)
+    app.initialize()
+    app.include_router(router)
 
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
     try:

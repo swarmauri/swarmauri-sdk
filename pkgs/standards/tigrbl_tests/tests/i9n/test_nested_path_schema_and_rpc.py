@@ -3,8 +3,8 @@ import pytest
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_nested_path_schema_and_rpc(api_client):
-    client, _, Item = api_client
+async def test_nested_path_schema_and_rpc(app_client):
+    client, _, Item = app_client
 
     # Create a tenant
     tenant_res = await client.post("/tenant", json={"name": "Acme"})

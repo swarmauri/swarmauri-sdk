@@ -20,16 +20,14 @@ async def test_rpc_create_via_client() -> None:
 
         name = Column(String, nullable=False)
 
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Widget)
-    init_result = api.initialize()
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(Widget)
+    init_result = app.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    api.mount_jsonrpc(prefix="/rpc")
+    app.mount_jsonrpc(prefix="/rpc")
 
-    app = TigrblApp()
-    app.include_router(api.router)
-    api.attach_diagnostics(prefix="", app=app)
+    app.attach_diagnostics(prefix="", app=app)
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

@@ -1,4 +1,4 @@
-"""Decorators for attaching middleware specs to apps/apis."""
+"""Decorators for attaching middleware specs to apps/routers."""
 
 from __future__ import annotations
 

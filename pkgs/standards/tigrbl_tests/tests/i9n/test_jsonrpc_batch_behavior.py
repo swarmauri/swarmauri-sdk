@@ -3,8 +3,8 @@ import pytest
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_jsonrpc_batch_executes_in_order(api_client):
-    client, _, _ = api_client
+async def test_jsonrpc_batch_executes_in_order(app_client):
+    client, _, _ = app_client
 
     batch_resp = await client.post(
         "/rpc/",
@@ -33,8 +33,8 @@ async def test_jsonrpc_batch_executes_in_order(api_client):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_jsonrpc_batch_reports_errors_per_item(api_client):
-    client, _, _ = api_client
+async def test_jsonrpc_batch_reports_errors_per_item(app_client):
+    client, _, _ = app_client
 
     batch_resp = await client.post(
         "/rpc/",

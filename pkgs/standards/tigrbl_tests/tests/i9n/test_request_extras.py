@@ -5,13 +5,13 @@ from pydantic import Field
 from sqlalchemy import Column, String
 from uuid import uuid4
 
-from tigrbl import TigrblApp, Base
+from tigrbl import TigrblApp, Base, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.schema import _build_schema
 
 
 @pytest_asyncio.fixture()
-async def api_client_with_extras(db_mode):
+async def app_client_with_extras(db_mode):
     Base.metadata.clear()
 
     class Widget(Base):
@@ -25,25 +25,25 @@ async def api_client_with_extras(db_mode):
         }
 
     if db_mode == "async":
-        api = TigrblApp(engine=mem())
-        api.include_model(Widget)
-        await api.initialize()
+        app = TigrblApp(engine=mem())
+        app.include_table(Widget)
+        await app.initialize()
     else:
-        api = TigrblApp(engine=mem(async_=False))
-        api.include_model(Widget)
-        api.initialize()
+        app = TigrblApp(engine=mem(async_=False))
+        app.include_table(Widget)
+        app.initialize()
 
-    app = TigrblApp()
-    app.include_router(api.router)
+    router = TigrblRouter()
+    app.include_router(router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, api, Widget
+    return client, app, Widget
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_request_extras_schema(api_client_with_extras):
-    _, _, Widget = api_client_with_extras
+async def test_request_extras_schema(app_client_with_extras):
+    _, _, Widget = app_client_with_extras
     create_schema = _build_schema(Widget, verb="create")
     update_schema = _build_schema(Widget, verb="update")
     assert {"token", "create_note"} <= set(create_schema.model_fields)
@@ -52,8 +52,8 @@ async def test_request_extras_schema(api_client_with_extras):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_request_extras_runtime(api_client_with_extras):
-    client, _, _ = api_client_with_extras
+async def test_request_extras_runtime(app_client_with_extras):
+    client, _, _ = app_client_with_extras
     res = await client.post(
         "/widget",
         json={"name": "w1", "token": "t", "create_note": "note"},
