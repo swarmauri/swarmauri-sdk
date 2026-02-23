@@ -214,20 +214,18 @@ async def test_multi_router_precedence_dedupe_and_op_engine_uvicorn() -> None:
     resolver.register_op(BetaWidget, "ping", op_engine)
 
     app = TigrblApp(engine=app_engine, routers=routers)
-    app.include_router(app.routers[0].router, prefix="/alpha")
-    app.include_router(app.routers[1].router, prefix="/beta")
+    app.include_router(routers[0].router, prefix="/alpha")
+    app.include_router(routers[1].router, prefix="/beta")
     app.install_engines(models=tuple(app.models.values()))
     app.initialize()
 
     # Step 2: Assert resolver precedence and dedupe across app/router/model/op.
     default_provider = resolver.resolve_provider()
-    router_provider = resolver.resolve_provider(router=app.routers[0])
-    second_router_provider = resolver.resolve_provider(router=app.routers[1])
-    beta_model_provider = resolver.resolve_provider(
-        router=app.routers[1], model=BetaWidget
-    )
+    router_provider = resolver.resolve_provider(router=routers[0])
+    second_router_provider = resolver.resolve_provider(router=routers[1])
+    beta_model_provider = resolver.resolve_provider(router=routers[1], model=BetaWidget)
     beta_op_provider = resolver.resolve_provider(
-        router=app.routers[1], model=BetaWidget, op_alias="ping"
+        router=routers[1], model=BetaWidget, op_alias="ping"
     )
 
     assert default_provider is router_provider
@@ -235,8 +233,8 @@ async def test_multi_router_precedence_dedupe_and_op_engine_uvicorn() -> None:
     assert beta_model_provider is not second_router_provider
     assert beta_op_provider is not beta_model_provider
     assert beta_op_provider is not second_router_provider
-    assert app.routers[0].engine == router_one_engine
-    assert app.routers[1].engine == router_two_engine
+    assert routers[0].engine == router_one_engine
+    assert routers[1].engine == router_two_engine
     assert BetaWidget.table_config["engine"] == model_engine
 
     # Step 3: Validate REST + JSON-RPC routing through uvicorn.

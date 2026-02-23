@@ -272,6 +272,12 @@ async def router_client(db_mode):
     return client, app, Item
 
 
+@pytest_asyncio.fixture()
+async def app_client(router_client):
+    """Backwards-compatible alias for integration tests expecting app_client."""
+    return router_client
+
+
 @pytest.fixture
 def sample_tenant_data():
     """Sample tenant data for testing."""

@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import pytest
 import pytest_asyncio
 from tigrbl import TigrblApp
+from tigrbl.router import TigrblRouter
 from httpx import ASGITransport, AsyncClient
 from tigrbl.engine import resolver as _resolver
 from tigrbl.engine.shortcuts import mem

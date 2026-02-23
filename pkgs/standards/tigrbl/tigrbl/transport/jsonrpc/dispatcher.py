@@ -233,12 +233,16 @@ def build_jsonrpc_router(
     The generated endpoint is tagged as "rpc" by default. Supply a custom
     sequence via ``tags`` to override or set ``None`` to omit tags.
     """
+    source_router = router
+
     # Extra router-level deps (e.g., tracing, IP allowlist)
-    extra_router_deps = _normalize_deps(getattr(router, "rpc_dependencies", None))
+    extra_router_deps = _normalize_deps(
+        getattr(source_router, "rpc_dependencies", None)
+    )
     router = Router(dependencies=extra_router_deps or None)
 
     dep = get_db
-    auth_dep = _select_auth_dep(router)
+    auth_dep = _select_auth_dep(source_router)
 
     if dep is not None and auth_dep is not None:
         # Inject both DB and user via Depends
@@ -259,7 +263,7 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        router=router,
+                        router=source_router,
                         request=request,
                         db=db,
                         obj=_request_obj_to_mapping(item),
@@ -271,7 +275,7 @@ def build_jsonrpc_router(
                 )
             elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
-                    router=router,
+                    router=source_router,
                     request=request,
                     db=db,
                     obj=_request_obj_to_mapping(body),
@@ -296,7 +300,7 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        router=router,
+                        router=source_router,
                         request=request,
                         db=db,
                         obj=_request_obj_to_mapping(item),
@@ -308,7 +312,7 @@ def build_jsonrpc_router(
                 )
             elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
-                    router=router,
+                    router=source_router,
                     request=request,
                     db=db,
                     obj=_request_obj_to_mapping(body),
@@ -340,7 +344,7 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        router=router,
+                        router=source_router,
                         request=request,
                         db=db,
                         obj=_request_obj_to_mapping(item),
@@ -352,7 +356,7 @@ def build_jsonrpc_router(
                 )
             elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
-                    router=router,
+                    router=source_router,
                     request=request,
                     db=db,
                     obj=_request_obj_to_mapping(body),
@@ -374,7 +378,7 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        router=router,
+                        router=source_router,
                         request=request,
                         db=db,
                         obj=_request_obj_to_mapping(item),
@@ -386,7 +390,7 @@ def build_jsonrpc_router(
                 )
             elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
-                    router=router,
+                    router=source_router,
                     request=request,
                     db=db,
                     obj=_request_obj_to_mapping(body),
