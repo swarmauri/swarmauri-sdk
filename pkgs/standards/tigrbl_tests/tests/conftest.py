@@ -174,6 +174,20 @@ async def async_db_session():
 
 
 @pytest.fixture
+def create_test_app():
+    """Factory fixture to create initialized app instances for single-model tests."""
+
+    def _create_app(model_class):
+        Base.metadata.clear()
+        app = TigrblApp(engine=mem(async_=False))
+        app.include_table(model_class)
+        app.initialize()
+        return app
+
+    return _create_app
+
+
+@pytest.fixture
 def create_test_router():
     """Factory fixture to create Tigrbl instances for testing individual models."""
 
