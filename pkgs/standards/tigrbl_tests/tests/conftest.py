@@ -2,6 +2,7 @@ import pytest
 import pytest_asyncio
 from tigrbl import TigrblApp, Base
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
+from tigrbl.router import TigrblRouter
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.column.storage_spec import StorageTransform
 from tigrbl.schema import builder as v3_builder
@@ -183,7 +184,7 @@ def create_test_router():
         app = TigrblApp(engine=mem(async_=False))
         app.include_table(model_class)
         app.initialize()
-        return router
+        return app.router
 
     return _create_router
 
@@ -265,7 +266,6 @@ async def router_client(db_mode):
         app.initialize()
 
     app.mount_jsonrpc()
-    app.include_router(router)
     transport = ASGITransport(app=app)
 
     client = AsyncClient(transport=transport, base_url="http://test")
