@@ -45,7 +45,7 @@ def app_and_db(tmp_path: Path) -> tuple[TigrblApp, object]:
     db = session_factory()
 
     api = TigrblApp(engine=spec)
-    api.include_model(XlsxWidget, mount_router=False)
+    api.include_table(XlsxWidget, mount_router=False)
     api.initialize()
     return api, db
 

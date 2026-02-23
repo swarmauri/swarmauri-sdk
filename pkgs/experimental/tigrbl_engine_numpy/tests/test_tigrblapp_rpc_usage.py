@@ -44,7 +44,7 @@ def app_and_db() -> tuple[TigrblApp, object]:
     db = session_factory()
 
     api = TigrblApp(engine=spec)
-    api.include_model(NumpyWidget, mount_router=False)
+    api.include_table(NumpyWidget, mount_router=False)
     api.initialize()
     return api, db
 
