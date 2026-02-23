@@ -24,7 +24,7 @@ def build_app(
     else:
         cfg = engine_cfg
     app = TigrblApp(engine=build_engine(cfg))
-    app.include_models([CronJob, CronJobResult], base_prefix="/cron")
+    app.include_tables([CronJob, CronJobResult], base_prefix="/cron")
     app.attach_diagnostics(prefix="/system")
     return app
 
