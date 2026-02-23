@@ -21,6 +21,6 @@ async def test_initialize_with_sync_engine():
     Base.metadata.clear()
     Widget = _model()
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Widget)
+    api.include_table(Widget)
     await api.initialize()
     assert getattr(api.tables, "Widget").name == "widgets"

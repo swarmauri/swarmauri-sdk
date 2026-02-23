@@ -31,7 +31,7 @@ def test_custom_op_ctx_registers_alias():
 
     # Deployment: include the model in a TigrblApp and initialize bindings.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonOp)
+    api.include_table(LessonOp)
     api.initialize()
 
     # Test: collect aliases from the app-bound OpSpecs.

@@ -25,7 +25,7 @@ async def test_custom_op_via_rpc():
             return [{"ok": True}]
 
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Widget)
+    api.include_table(Widget)
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result

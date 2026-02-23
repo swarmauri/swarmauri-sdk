@@ -28,7 +28,7 @@ def test_model_hooks_bind_on_rebind():
 
     # Deployment: include the model in an app so binding occurs.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonHook)
+    api.include_table(LessonHook)
     api.initialize()
     api.bind(LessonHook)
 
@@ -60,7 +60,7 @@ def test_model_hook_scopes_do_not_leak_to_other_ops():
 
     # Deployment: include the model and bind hooks through the app.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonHookScopeIsolation)
+    api.include_table(LessonHookScopeIsolation)
     api.initialize()
     api.bind(LessonHookScopeIsolation)
 

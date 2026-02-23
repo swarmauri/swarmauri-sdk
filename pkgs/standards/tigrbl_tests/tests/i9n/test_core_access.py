@@ -30,7 +30,7 @@ def sync_api():
     Base.metadata.clear()
     eng = build_engine(mem(async_=False))
     api = TigrblApp(engine=eng)
-    api.include_model(CoreTestUser)
+    api.include_table(CoreTestUser)
     api.initialize()
     return api, eng
 
@@ -41,7 +41,7 @@ async def async_api():
     Base.metadata.clear()
     eng = build_engine(mem(async_=True))
     api = TigrblApp(engine=eng)
-    api.include_model(CoreTestUser)
+    api.include_table(CoreTestUser)
     await api.initialize()
     return api, eng
 

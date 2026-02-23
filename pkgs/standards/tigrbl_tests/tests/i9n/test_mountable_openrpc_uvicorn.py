@@ -19,7 +19,7 @@ class Thing(Base, GUIDPk):
 @pytest.mark.asyncio
 async def test_openrpc_mountable_on_tigrbl_app_uvicorn():
     app = TigrblApp(engine=mem(async_=False))
-    app.include_model(Thing)
+    app.include_table(Thing)
     app.initialize()
     app.mount_jsonrpc(prefix="/rpc")
     mount_openrpc(app, path="/custom/openrpc.json", name="openrpc_custom")
@@ -60,7 +60,7 @@ async def test_openrpc_mountable_on_tigrbl_api_uvicorn():
 @pytest.mark.asyncio
 async def test_openrpc_mountable_with_tigrbl_app_method_uvicorn():
     app = TigrblApp(engine=mem(async_=False))
-    app.include_model(Thing)
+    app.include_table(Thing)
     app.initialize()
     app.mount_jsonrpc(prefix="/rpc")
     app.mount_openrpc(path="/custom/openrpc.json", name="openrpc_custom")

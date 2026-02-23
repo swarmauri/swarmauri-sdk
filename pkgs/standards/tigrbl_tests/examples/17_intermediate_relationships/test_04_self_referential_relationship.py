@@ -33,7 +33,7 @@ async def test_self_referential_relationship_via_rest() -> None:
 
     # Step 2: Build the API with a memory engine for speed.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(Category)
+    api.include_table(Category)
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result

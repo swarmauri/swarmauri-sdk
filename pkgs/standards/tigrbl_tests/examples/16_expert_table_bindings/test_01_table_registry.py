@@ -24,7 +24,7 @@ def test_table_binding_registers_table_on_api():
 
     api = TigrblRouter(engine=mem(async_=False))
 
-    api.include_model(Widget)
+    api.include_table(Widget)
 
     assert api.tables[Widget.__name__] is Widget.__table__
 
@@ -40,7 +40,7 @@ def test_table_registry_respects_model_identity():
 
     api = TigrblRouter(engine=mem(async_=False))
 
-    api.include_model(Widget)
+    api.include_table(Widget)
 
     assert Widget.__name__ in api.tables
     assert api.tables[Widget.__name__].name == Widget.__table__.name

@@ -18,7 +18,7 @@ def create_client(model_cls):
     """Build a FastAPI app with Tigrbl v3 and return an AsyncClient."""
     app = TigrblApp()
     api = TigrblApp(engine={"kind": "sqlite", "memory": True})
-    api.include_model(model_cls)
+    api.include_table(model_cls)
     api.mount_jsonrpc()
     api.attach_diagnostics()
 

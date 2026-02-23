@@ -176,7 +176,7 @@ async def test_document_versions_many_to_many_links() -> None:
 
     # Deployment: include all three models so tables are created.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_models([Document, DocumentVersion, DocumentVersionLink])
+    api.include_tables([Document, DocumentVersion, DocumentVersionLink])
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result

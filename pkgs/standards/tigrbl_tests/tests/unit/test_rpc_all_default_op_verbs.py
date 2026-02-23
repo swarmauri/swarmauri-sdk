@@ -63,7 +63,7 @@ def api_and_session() -> Iterator[tuple[TigrblApp, Session]]:
 
     cfg = mem(async_=False)
     api = TigrblApp(engine=cfg)
-    api.include_model(Widget, mount_router=False)
+    api.include_table(Widget, mount_router=False)
     api.initialize()
 
     prov = _resolver.resolve_provider()

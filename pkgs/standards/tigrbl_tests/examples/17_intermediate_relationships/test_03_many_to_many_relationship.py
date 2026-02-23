@@ -73,7 +73,7 @@ async def test_many_to_many_relationship_via_rest() -> None:
 
     # Step 4: Build the API with all three models registered.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_models([Student, Course, Enrollment])
+    api.include_tables([Student, Course, Enrollment])
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result

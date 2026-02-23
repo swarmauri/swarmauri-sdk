@@ -31,7 +31,7 @@ async def test_tigrbl_client_matches_httpx_response():
 
     # Deployment: build the API, include the model, and mount diagnostics.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonClient)
+    api.include_table(LessonClient)
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result
@@ -84,7 +84,7 @@ async def test_tigrbl_client_list_returns_created_items():
 
     # Deployment: initialize the API and attach diagnostics.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonClientList)
+    api.include_table(LessonClientList)
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result

@@ -44,7 +44,7 @@ async def test_tigrblapp_multi_table_engine_precedence_uvicorn() -> None:
         name = Column(String, nullable=False)
 
     app = TigrblApp(engine=app_engine)
-    app.include_models([AppWidget, AppGadget])
+    app.include_tables([AppWidget, AppGadget])
     app.install_engines(models=tuple(app.models.values()))
     app.mount_jsonrpc()
     app.initialize()
@@ -110,7 +110,7 @@ async def test_tigrblapi_multi_table_engine_binding_uvicorn() -> None:
         name = Column(String, nullable=False)
 
     router = TigrblRouter(engine=api_engine)
-    router.include_models([ApiWidget, ApiGadget])
+    router.include_tables([ApiWidget, ApiGadget])
     router.install_engines(models=tuple(router.models.values()))
     router.mount_jsonrpc()
     router.initialize()
@@ -197,13 +197,13 @@ async def test_multi_api_precedence_dedupe_and_op_engine_uvicorn() -> None:
         name = Column(String, nullable=False)
 
     api_one = TigrblRouter(engine=api_one_engine)
-    api_one.include_models([AlphaWidget, AlphaGadget])
+    api_one.include_tables([AlphaWidget, AlphaGadget])
     api_one.initialize()
     api_one.install_engines(models=tuple(api_one.models.values()))
     api_one.mount_jsonrpc()
 
     api_two = TigrblRouter(engine=api_two_engine)
-    api_two.include_models([BetaWidget, BetaGadget])
+    api_two.include_tables([BetaWidget, BetaGadget])
     api_two.initialize()
     api_two.install_engines(models=tuple(api_two.models.values()))
     api_two.mount_jsonrpc()

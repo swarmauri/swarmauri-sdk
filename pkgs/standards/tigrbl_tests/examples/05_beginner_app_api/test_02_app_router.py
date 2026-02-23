@@ -22,7 +22,7 @@ def test_app_router_registers_routes():
 
     api = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize to generate routes.
-    api.include_model(Widget)
+    api.include_table(Widget)
     api.initialize()
     # Deployment: mount the Tigrbl router on a FastAPI app.
     app = TigrblApp()
@@ -51,7 +51,7 @@ def test_app_router_contains_model_route_once():
 
     api = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model, initialize, and mount on a FastAPI app.
-    api.include_model(Widget)
+    api.include_table(Widget)
     api.initialize()
     app = TigrblApp()
     app.include_router(api.router)

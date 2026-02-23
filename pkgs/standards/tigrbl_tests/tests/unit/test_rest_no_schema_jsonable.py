@@ -39,7 +39,7 @@ def client_and_model():
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
     api = Tigrblv3(engine=mem(async_=False))
-    api.include_model(Gadget, prefix="")
+    api.include_table(Gadget, prefix="")
     api.initialize()
 
     # Remove generated out schemas to exercise jsonable fallback

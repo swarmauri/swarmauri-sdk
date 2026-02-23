@@ -150,7 +150,7 @@ async def test_document_versions_one_to_many() -> None:
 
     # Deployment: build the API and include the version table for migrations.
     api = TigrblApp(engine=mem(async_=False))
-    api.include_models([Document, DocumentVersion])
+    api.include_tables([Document, DocumentVersion])
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result

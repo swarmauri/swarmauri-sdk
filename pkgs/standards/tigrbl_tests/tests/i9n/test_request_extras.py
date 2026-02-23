@@ -26,11 +26,11 @@ async def api_client_with_extras(db_mode):
 
     if db_mode == "async":
         api = TigrblApp(engine=mem())
-        api.include_model(Widget)
+        api.include_table(Widget)
         await api.initialize()
     else:
         api = TigrblApp(engine=mem(async_=False))
-        api.include_model(Widget)
+        api.include_table(Widget)
         api.initialize()
 
     app = TigrblApp()

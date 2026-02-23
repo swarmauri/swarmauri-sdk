@@ -22,10 +22,10 @@ class SyncWidget(Base):
 @pytest.mark.asyncio
 async def test_initialize_handles_mixed_sync_async_apis():
     async_api = TigrblRouter(engine=mem())
-    async_api.include_model(AsyncWidget, prefix="")
+    async_api.include_table(AsyncWidget, prefix="")
 
     sync_api = TigrblRouter(engine=mem(async_=False))
-    sync_api.include_model(SyncWidget, prefix="")
+    sync_api.include_table(SyncWidget, prefix="")
 
     app = TigrblApp(engine=mem(async_=False))
     app.include_apis([async_api, sync_api])

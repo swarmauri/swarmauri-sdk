@@ -30,7 +30,7 @@ async def client():
         __tigrbl_cols__ = {"id": id, "name": name}
 
     api = Tigrblv3(engine=mem())
-    api.include_model(Widget, prefix="")
+    api.include_table(Widget, prefix="")
     await api.initialize()
     prov = _resolver.resolve_provider()
     engine, session_maker = prov.ensure()

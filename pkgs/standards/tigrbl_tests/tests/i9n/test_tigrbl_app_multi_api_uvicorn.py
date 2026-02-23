@@ -37,10 +37,10 @@ class BetaWidget(Base, GUIDPk):
 async def running_multi_api_app():
     engine = mem(async_=False)
     alpha_api = TigrblRouter(engine=engine)
-    alpha_api.include_model(AlphaWidget)
+    alpha_api.include_table(AlphaWidget)
 
     beta_api = TigrblRouter(engine=engine)
-    beta_api.include_model(BetaWidget)
+    beta_api.include_table(BetaWidget)
 
     app = TigrblApp(engine=engine, apis=[alpha_api])
     app.include_router(beta_api, prefix="/beta")

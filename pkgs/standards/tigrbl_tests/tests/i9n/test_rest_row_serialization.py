@@ -33,7 +33,7 @@ async def client_and_model():
 
     app = Tigrblv3()
     api = Tigrblv3(engine=mem())
-    api.include_model(Widget, prefix="")
+    api.include_table(Widget, prefix="")
     await api.initialize()
     # Remove output schemas to trigger fallback serialization
     Widget.schemas.read.out = None

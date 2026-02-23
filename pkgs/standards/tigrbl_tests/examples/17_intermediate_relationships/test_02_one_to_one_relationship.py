@@ -43,7 +43,7 @@ async def test_one_to_one_relationship_via_rest() -> None:
     # Step 3: Initialize the API with an in-memory engine.
     api = TigrblApp(engine=mem(async_=False))
     # Register the related models so both REST resources are available.
-    api.include_models([User, Profile])
+    api.include_tables([User, Profile])
     init_result = api.initialize()
     if inspect.isawaitable(init_result):
         await init_result

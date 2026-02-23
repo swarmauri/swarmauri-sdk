@@ -23,7 +23,7 @@ def test_api_binding_attaches_namespaces():
 
     api = TigrblRouter(engine=mem(async_=False))
 
-    api.include_model(Widget)
+    api.include_table(Widget)
 
     assert hasattr(api.schemas, Widget.__name__)
     assert hasattr(api.handlers, Widget.__name__)
@@ -40,7 +40,7 @@ def test_api_namespace_entries_are_model_scoped():
 
     api = TigrblRouter(engine=mem(async_=False))
 
-    api.include_model(Widget)
+    api.include_table(Widget)
 
     assert Widget.__name__ in api.schemas.__dict__
     assert Widget.__name__ in api.handlers.__dict__

@@ -11,7 +11,7 @@ def _build_app():
         name = Column(String, nullable=False)
 
     app = TigrblApp(engine=mem(async_=False))
-    app.include_model(Widget)
+    app.include_table(Widget)
     app.initialize()
     app.mount_jsonrpc()
     return app, Widget
@@ -127,7 +127,7 @@ def test_openrpc_server_url_respects_api_mount_jsonrpc_prefix_argument():
         name = Column(String, nullable=False)
 
     router = TigrblRouter(engine=mem(async_=False))
-    router.include_model(Widget)
+    router.include_table(Widget)
     router.initialize()
     router.mount_jsonrpc(prefix="/jsonrpc")
     router.mount_openrpc()

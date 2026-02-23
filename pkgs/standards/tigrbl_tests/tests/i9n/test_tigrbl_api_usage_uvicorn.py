@@ -55,7 +55,7 @@ async def running_api():
     app = TigrblApp()
     router = TigrblRouter(engine=mem(async_=False))
     router.set_auth(authn=auth_dependency, allow_anon=False)
-    router.include_models([Alpha, Beta])
+    router.include_tables([Alpha, Beta])
     router.initialize()
     app.include_router(router)
 

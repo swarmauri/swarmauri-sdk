@@ -88,7 +88,7 @@ async def test_set_auth_header_gate_for_rest_paths() -> None:
         return None
 
     app.set_auth(authn=header_gate, optional_authn_dep=header_gate, allow_anon=False)
-    app.include_model(HeaderGateRestWidget)
+    app.include_table(HeaderGateRestWidget)
 
     init_result = app.initialize()
     if inspect.isawaitable(init_result):
@@ -179,7 +179,7 @@ async def test_set_auth_header_gate_for_rpc_methods() -> None:
         return None
 
     app.set_auth(authn=header_gate, optional_authn_dep=header_gate, allow_anon=False)
-    app.include_model(HeaderGateRpcWidget)
+    app.include_table(HeaderGateRpcWidget)
 
     init_result = app.initialize()
     if inspect.isawaitable(init_result):

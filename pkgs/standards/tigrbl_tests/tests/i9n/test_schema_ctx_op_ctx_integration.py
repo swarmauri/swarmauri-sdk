@@ -36,7 +36,7 @@ async def widget_client():
 
     app = TigrblApp()
     api = TigrblApp(engine=mem())
-    api.include_model(Widget, prefix="")
+    api.include_table(Widget, prefix="")
     api.mount_jsonrpc()
     await api.initialize()
     app.include_router(api.router)

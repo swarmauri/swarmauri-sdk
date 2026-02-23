@@ -12,7 +12,7 @@ from examples.lesson_support import make_widget_model
 async def test_rest_router_is_attached() -> None:
     widget = make_widget_model(model_name="WidgetRouter", table_name="widget_router")
     api = TigrblApp(engine=mem(async_=False))
-    api.include_model(widget, prefix="")
+    api.include_table(widget, prefix="")
     await api.initialize()
 
     assert api.routers["WidgetRouter"] is widget.rest.router
