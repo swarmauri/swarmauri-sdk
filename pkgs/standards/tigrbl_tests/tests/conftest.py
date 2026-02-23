@@ -2,7 +2,6 @@ import pytest
 import pytest_asyncio
 from tigrbl import TigrblApp, TigrblRouter, Base
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
-from tigrbl.router import TigrblRouter
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.column.storage_spec import StorageTransform
 from tigrbl.schema import builder as v3_builder
