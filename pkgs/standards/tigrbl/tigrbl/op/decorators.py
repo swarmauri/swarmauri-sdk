@@ -153,7 +153,7 @@ def op_ctx(
         f.__tigrbl_ctx_only__ = True
         resolved_target = target or "custom"
         resolved_alias = alias or f.__name__
-        f.__tigrbl_op_decl__ = OpSpec(
+        op_spec = OpSpec(
             alias=resolved_alias,
             target=resolved_target,
             arity=arity or _infer_arity(resolved_target),
@@ -163,6 +163,10 @@ def op_ctx(
             persist=_normalize_persist(persist),
             status_code=status_code,
         )
+        # New canonical attribute name (OpSpec-first terminology).
+        f.__tigrbl_op_spec__ = op_spec
+        # Backwards-compatible alias for older call sites.
+        f.__tigrbl_op_decl__ = op_spec
 
         if bind is not None:
             targets = (

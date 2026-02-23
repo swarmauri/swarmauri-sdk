@@ -48,7 +48,7 @@ def route_ctx(
     """Declare a ctx operation with explicit route metadata.
 
     This decorator composes :func:`op_ctx` and then enriches the underlying
-    ``__tigrbl_op_decl__`` payload so ``mro_collect_decorated_ops`` can build a
+    ``__tigrbl_op_spec__`` payload so ``mro_collect_decorated_ops`` can build a
     corresponding :class:`~tigrbl.op.OpSpec` that carries route hints
     (``path_suffix``, ``http_methods``, and optional ``tags``).
     """
@@ -71,18 +71,21 @@ def route_ctx(
         )(fn)
 
         base_fn = _unwrap(decorated)
-        decl = getattr(base_fn, "__tigrbl_op_decl__", None)
-        if decl is None:
+        op_spec = getattr(base_fn, "__tigrbl_op_spec__", None)
+        if op_spec is None:
+            op_spec = getattr(base_fn, "__tigrbl_op_decl__", None)
+        if op_spec is None:
             return decorated
 
         if normalized_methods is not None:
-            decl = replace(decl, http_methods=normalized_methods)
+            op_spec = replace(op_spec, http_methods=normalized_methods)
         if path_suffix is not None:
-            decl = replace(decl, path_suffix=path_suffix)
+            op_spec = replace(op_spec, path_suffix=path_suffix)
         if normalized_tags:
-            decl = replace(decl, tags=normalized_tags)
+            op_spec = replace(op_spec, tags=normalized_tags)
 
-        base_fn.__tigrbl_op_decl__ = decl
+        base_fn.__tigrbl_op_spec__ = op_spec
+        base_fn.__tigrbl_op_decl__ = op_spec
         return decorated
 
     return deco

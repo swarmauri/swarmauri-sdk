@@ -64,7 +64,7 @@ def test_op_ctx_metadata_records_target_and_arity():
     LessonOpMeta.summary = summary
 
     # Test: inspect the op declaration metadata on the underlying function.
-    decl = LessonOpMeta.summary.__func__.__tigrbl_op_decl__
+    decl = LessonOpMeta.summary.__func__.__tigrbl_op_spec__
 
     # Assertion: the declaration retains alias, target, and arity intent.
     assert decl.alias == "summary"
