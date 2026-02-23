@@ -67,7 +67,15 @@ def _ensure_op_ctx_attach_hook(model: type) -> None:
             mro_collect_decorated_ops.cache_clear()
             rebind(cls, changed_keys={(alias, target)})
 
-    meta.__setattr__ = _meta_setattr  # type: ignore[attr-defined]
+    try:
+        meta.__setattr__ = _meta_setattr  # type: ignore[attr-defined]
+    except (TypeError, AttributeError):
+        logger.debug(
+            "Skipping op_ctx metaclass patch for immutable metaclass %s",
+            getattr(meta, "__name__", repr(meta)),
+        )
+        return
+
     setattr(meta, "__tigrbl_op_ctx_meta_patch__", True)
 
 

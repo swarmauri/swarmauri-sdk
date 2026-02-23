@@ -116,7 +116,16 @@ def bind(
     for sp in base_specs:
         merged_by_key[_key(sp)] = sp
     for sp in ctx_specs:
-        merged_by_key[_key(sp)] = sp
+        key = _key(sp)
+        base = merged_by_key.get(key)
+        if base is not None:
+            sp = replace(
+                sp,
+                http_methods=sp.http_methods or base.http_methods,
+                path_suffix=sp.path_suffix or base.path_suffix,
+                tags=sp.tags or base.tags,
+            )
+        merged_by_key[key] = sp
 
     all_merged_specs: List[OpSpec] = list(merged_by_key.values())
 
