@@ -62,7 +62,7 @@ from .ddl import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
 from .app.tigrbl_app import TigrblApp
-from .router import Router, TigrblRouter
+from .router import Router, TigrblRouter, route_ctx
 
 
 from .table import Base
@@ -100,6 +100,7 @@ __all__ += [
     # Ctx-only decorators
     "alias_ctx",
     "op_ctx",
+    "route_ctx",
     "hook_ctx",
     "schema_ctx",
     "response_ctx",
