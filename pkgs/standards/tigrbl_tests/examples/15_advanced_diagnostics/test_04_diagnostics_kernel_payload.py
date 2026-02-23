@@ -27,7 +27,7 @@ async def test_kernelz_returns_operation_plan():
         await init_result
     app.mount_jsonrpc(prefix="/rpc")
 
-    router = TigrblApp()
+    router = TigrblRouter()
     app.include_router(router)
     app.attach_diagnostics(prefix="")
 
