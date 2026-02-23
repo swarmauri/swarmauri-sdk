@@ -24,10 +24,15 @@ def bind(collected: Dict[str, Any]) -> None:
 
 
 def install_from_objects(
-    *, app: Any | None = None, router: Any | None = None, tables: Iterable[Any] = ()
+    *,
+    app: Any | None = None,
+    router: Any | None = None,
+    tables: Iterable[Any] = (),
+    models: Iterable[Any] | None = None,
 ) -> None:
     """Collect engine config from objects and bind them to the resolver."""
     from .collect import collect_engine_config
 
-    collected = collect_engine_config(app=app, router=router, tables=tables)
+    effective_tables = tuple(models) if models is not None else tables
+    collected = collect_engine_config(app=app, router=router, tables=effective_tables)
     bind(collected)
