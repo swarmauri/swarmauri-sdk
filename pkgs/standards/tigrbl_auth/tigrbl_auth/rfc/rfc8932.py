@@ -210,8 +210,9 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
     return result
 
 
-@api.get(
+@api.route(
     "/.well-known/oauth-authorization-server-enhanced",
+    methods=["GET"],
     include_in_schema=False,
     tags=[".well-known"],
 )
@@ -332,6 +333,16 @@ def get_capability_matrix() -> Dict[str, Dict[str, Any]]:
     }
 
 
+def include_rfc8932(app) -> None:
+    """Register RFC 8932 enhanced metadata endpoint on *app* once."""
+    if not any(
+        (getattr(route, "path", None) or getattr(route, "path_template", None))
+        == "/.well-known/oauth-authorization-server-enhanced"
+        for route in app.router.routes
+    ):
+        app.include_router(api)
+
+
 __all__ = [
     "enforce_encrypted_dns",
     "get_enhanced_authorization_server_metadata",
@@ -341,5 +352,6 @@ __all__ = [
     "api",
     "router",
     "RFC8932_SPEC_URL",
+    "include_rfc8932",
     "enforce_encrypted_dns",
 ]

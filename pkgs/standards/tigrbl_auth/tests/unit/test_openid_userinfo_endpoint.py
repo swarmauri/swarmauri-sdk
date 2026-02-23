@@ -30,7 +30,9 @@ async def test_userinfo_returns_claims_json(async_client):
     async def override_get_current_principal():
         return user
 
-    app.dependency_overrides[get_current_principal] = override_get_current_principal
+    app.router.dependency_overrides[get_current_principal] = (
+        override_get_current_principal
+    )
 
     mock_coder = MagicMock()
     mock_coder.async_decode = AsyncMock(
@@ -41,7 +43,7 @@ async def test_userinfo_returns_claims_json(async_client):
     with patch("tigrbl_auth.oidc_userinfo.JWTCoder.default", return_value=mock_coder):
         resp = await async_client.get("/userinfo", headers=headers)
 
-    app.dependency_overrides.pop(get_current_principal, None)
+    app.router.dependency_overrides.pop(get_current_principal, None)
 
     assert resp.status_code == status.HTTP_200_OK
     assert resp.json() == {
@@ -61,7 +63,9 @@ async def test_userinfo_signed_jwt(async_client):
     async def override_get_current_principal():
         return user
 
-    app.dependency_overrides[get_current_principal] = override_get_current_principal
+    app.router.dependency_overrides[get_current_principal] = (
+        override_get_current_principal
+    )
 
     mock_coder = MagicMock()
     mock_coder.async_decode = AsyncMock(return_value={"scope": ""})
@@ -75,7 +79,7 @@ async def test_userinfo_signed_jwt(async_client):
     ):
         resp = await async_client.get("/userinfo", headers=headers)
 
-    app.dependency_overrides.pop(get_current_principal, None)
+    app.router.dependency_overrides.pop(get_current_principal, None)
 
     assert resp.status_code == status.HTTP_200_OK
     assert resp.headers["content-type"] == "application/jwt"

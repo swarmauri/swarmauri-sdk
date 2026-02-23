@@ -8,7 +8,10 @@ from tigrbl_auth.routers.auth_flows import router
 
 def _collect_paths(app: TigrblApp) -> set[str]:
     """Return the set of route paths registered on ``app``."""
-    return {route.path for route in app.routes}
+    return {
+        (getattr(route, "path", None) or getattr(route, "path_template", None))
+        for route in app.router.routes
+    }
 
 
 @pytest.mark.unit

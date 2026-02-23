@@ -92,13 +92,13 @@ def refresh_discovery_cache() -> None:
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
-@api.get("/.well-known/openid-configuration", tags=[".well-known"])
+@api.route("/.well-known/openid-configuration", methods=["GET"], tags=[".well-known"])
 async def openid_configuration():
     """Return OpenID Connect discovery metadata."""
     return _cached_openid_config(_settings_signature())
 
 
-@api.get(JWKS_PATH, tags=[".well-known"])
+@api.route(JWKS_PATH, methods=["GET"], tags=[".well-known"])
 async def jwks():
     """Publish all public keys in RFC 7517 JWKS format."""
     from .oidc_id_token import ensure_rsa_jwt_key, rsa_key_provider
@@ -120,7 +120,9 @@ async def jwks():
 def include_oidc_discovery(app: TigrblApp) -> None:
     """Attach OIDC discovery routes to *app* if not already present."""
     if not any(
-        route.path == "/.well-known/openid-configuration" for route in app.routes
+        (getattr(route, "path", None) or getattr(route, "path_template", None))
+        == "/.well-known/openid-configuration"
+        for route in app.router.routes
     ):
         app.include_router(api)
 

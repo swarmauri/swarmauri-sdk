@@ -71,7 +71,7 @@ async def _parse_request_form(request: Request) -> tuple[dict[str, str], list[st
     return data, resources
 
 
-@api.post("/token", response_model=TokenPair)
+@api.route("/token", methods=["POST"], response_model=TokenPair)
 async def token(
     request: Request, db: AsyncSession = TigrblDepends(get_db)
 ) -> TokenPair:
@@ -295,7 +295,7 @@ async def token(
     )
 
 
-@api.post("/token/refresh", response_model=TokenPair)
+@api.route("/token/refresh", methods=["POST"], response_model=TokenPair)
 async def refresh(body: RefreshIn, request: Request):
     _require_tls(request)
     try:
