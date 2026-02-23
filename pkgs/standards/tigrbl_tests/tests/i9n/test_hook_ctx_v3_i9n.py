@@ -15,7 +15,7 @@ from tigrbl.hook import hook_ctx
 
 
 def create_client(model_cls):
-    """Build a FastAPI app with Tigrbl v3 and return an AsyncClient."""
+    """Build a TigrblApp app with Tigrbl and return an AsyncClient."""
     app = TigrblApp()
     router = TigrblRouter(engine={"kind": "sqlite", "memory": True})
     app.include_table(model_cls)
