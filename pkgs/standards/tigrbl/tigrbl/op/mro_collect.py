@@ -4,8 +4,8 @@ import logging
 from functools import lru_cache
 from typing import Any, Callable, Dict
 
-from .types import OpSpec
-from .decorators import _maybe_await, _OpDecl, _infer_arity, _normalize_persist, _unwrap
+from .op_spec import OpSpec
+from .decorators import _maybe_await, _infer_arity, _normalize_persist, _unwrap
 from ..runtime.executor import _Ctx
 
 logger = logging.getLogger("uvicorn")
@@ -53,19 +53,19 @@ def mro_collect_decorated_ops(table: type) -> list[OpSpec]:
             if name in seen:
                 continue
             func = _unwrap(attr)
-            decl: _OpDecl | None = getattr(func, "__tigrbl_op_decl__", None)
+            decl: dict[str, Any] | None = getattr(func, "__tigrbl_op_decl__", None)
             if not decl:
                 continue
 
-            target = decl.target or "custom"
-            arity = decl.arity or _infer_arity(target)
-            persist = _normalize_persist(decl.persist)
-            alias = decl.alias or name
+            target = decl.get("target") or "custom"
+            arity = decl.get("arity") or _infer_arity(target)
+            persist = _normalize_persist(decl.get("persist"))
+            alias = decl.get("alias") or name
 
             expose_kwargs: dict[str, Any] = {}
             extra: dict[str, Any] = {}
-            if decl.rest is not None:
-                expose_kwargs["expose_routes"] = bool(decl.rest)
+            if decl.get("rest") is not None:
+                expose_kwargs["expose_routes"] = bool(decl.get("rest"))
             elif alias != target and target in {
                 "read",
                 "update",
@@ -82,10 +82,10 @@ def mro_collect_decorated_ops(table: type) -> list[OpSpec]:
                 arity=arity,
                 persist=persist,
                 handler=_wrap_ctx_core(table, func),
-                request_model=decl.request_schema,
-                response_model=decl.response_schema,
+                request_model=decl.get("request_schema"),
+                response_model=decl.get("response_schema"),
                 hooks=(),
-                status_code=decl.status_code,
+                status_code=decl.get("status_code"),
                 extra=extra,
                 **expose_kwargs,
             )
