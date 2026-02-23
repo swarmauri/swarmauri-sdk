@@ -71,6 +71,12 @@ def build_ctx(
     rpc_id: Any | None = None,
 ) -> MutableMapping[str, Any]:
     ctx: Dict[str, Any] = {}
+    if isinstance(seed_ctx, MutableMapping):
+        # Preserve a shared scratch buffer so serializers that close over
+        # seed_ctx can observe runtime-emitted extras (e.g., one-time api_key).
+        seed_temp = seed_ctx.get("temp")
+        if not isinstance(seed_temp, dict):
+            seed_ctx["temp"] = {}
     req_ctx = getattr(getattr(request, "state", None), "ctx", None)
     if isinstance(req_ctx, Mapping):
         ctx.update(req_ctx)
