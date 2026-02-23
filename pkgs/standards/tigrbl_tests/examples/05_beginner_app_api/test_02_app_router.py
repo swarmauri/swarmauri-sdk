@@ -5,9 +5,9 @@ from tigrbl.types import Column, String
 
 
 def test_app_router_registers_routes():
-    """Verify that the API router is attached to the FastAPI app.
+    """Verify that the API router is attached to the app.
 
-    Purpose: show how the Tigrbl router becomes part of the FastAPI routing
+    Purpose: show how the Tigrbl router becomes part of the app routing
     table, making model endpoints discoverable.
 
     Best practice: keep routing central and declarative so endpoints are easy
@@ -24,7 +24,7 @@ def test_app_router_registers_routes():
     # Deployment: include the model and initialize to generate routes.
     app.include_table(Widget)
     app.initialize()
-    # Deployment: mount the Tigrbl router on a FastAPI app.
+    # Deployment: mount the Tigrbl router on an app.
     router = TigrblRouter()
     app.include_router(router)
     # Exercise: list registered paths.
@@ -50,7 +50,7 @@ def test_app_router_contains_model_route_once():
         name = Column(String, nullable=False)
 
     app = TigrblApp(engine=mem(async_=False))
-    # Deployment: include the model, initialize, and mount on a FastAPI app.
+    # Deployment: include the model, initialize, and mount on an app.
     app.include_table(Widget)
     app.initialize()
     router = TigrblRouter()

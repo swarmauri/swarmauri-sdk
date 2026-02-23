@@ -9,7 +9,6 @@ from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl import TigrblApp as FastAPI
 from tigrbl.types import Column, String
 
 
@@ -34,7 +33,7 @@ async def test_rpc_call_works_over_jsonrpc():
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    app.mount_jsonrpc(prefix="/rpc")
+    router.mount_jsonrpc(prefix="/rpc")
 
     app = TigrblApp()
     app.include_router(router)
@@ -69,14 +68,14 @@ async def test_rpc_list_reflects_rest_creates():
         name = Column(String, nullable=False)
 
     # Deployment: initialize app, mount JSON-RPC, and attach diagnostics.
-    app = TigrblApp(engine=mem(async_=False))
-    app.include_table(LessonRPCClientList)
-    init_result = app.initialize()
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_table(LessonRPCClientList)
+    init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    app.mount_jsonrpc(prefix="/rpc")
+    router.mount_jsonrpc(prefix="/rpc")
 
-    app = FastAPI()
+    app = TigrblApp()
     app.include_router(router)
     app.attach_diagnostics(prefix="")
 
