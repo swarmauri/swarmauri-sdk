@@ -1,7 +1,7 @@
 """Focused mount tests for bound ``mount_favicon`` helpers.
 
-These tests verify both ``TigrblApp`` and ``TigrblRouter`` expose the system
-mount method directly, with SVG redirect and ICO file fallback behavior intact.
+These tests verify ``TigrblApp`` exposes the system mount method directly,
+with SVG redirect and ICO file fallback behavior intact.
 """
 
 from pathlib import Path
@@ -72,49 +72,10 @@ class TestMountFaviconOnTigrblApp:
 
 
 class TestMountFaviconOnTigrblRouter:
-    """Validate favicon mounting behavior for ``TigrblRouter`` instances."""
+    """Validate ``TigrblRouter`` no longer exposes favicon mounting."""
 
-    def test_tigrbl_router_binds_mount_favicon_method(self) -> None:
-        """``TigrblRouter`` should expose ``mount_favicon`` as an instance API."""
+    def test_tigrbl_router_does_not_bind_mount_favicon_method(self) -> None:
+        """Routers should not expose ``mount_favicon`` directly."""
         router = TigrblRouter()
 
-        assert hasattr(router, "mount_favicon")
-
-    @pytest.mark.asyncio
-    async def test_bound_mount_favicon_supports_router_instances(self) -> None:
-        """The bound method should mount favicon routes on APIs."""
-        router = TigrblRouter()
-        router.mount_favicon(path="/branding/favicon.svg", name="router_branding_favicon")
-
-        app = TigrblApp()
-        app.include_router(router.router)
-
-        transport = ASGITransport(app=app)
-        async with AsyncClient(transport=transport, base_url="http://test") as client:
-            svg_response = await client.get("/branding/favicon.svg")
-            ico_response = await client.get("/favicon.ico", follow_redirects=False)
-
-        assert svg_response.status_code == 200
-        assert svg_response.headers["content-type"].startswith("image/svg+xml")
-        assert ico_response.status_code == 307
-        assert ico_response.headers["location"] == "/branding/favicon.svg"
-
-    @pytest.mark.asyncio
-    async def test_bound_mount_favicon_retains_default_fallback(self) -> None:
-        """Passing ``None`` for favicon path should use the default SVG asset."""
-        router = TigrblRouter()
-        router.mount_favicon(path="/fallback/favicon.svg", favicon_path=None)
-
-        app = TigrblApp()
-        app.include_router(router.router)
-
-        transport = ASGITransport(app=app)
-        async with AsyncClient(transport=transport, base_url="http://test") as client:
-            svg_response = await client.get("/fallback/favicon.svg")
-            ico_response = await client.get("/favicon.ico", follow_redirects=False)
-
-        assert svg_response.status_code == 200
-        assert svg_response.headers["content-type"].startswith("image/svg+xml")
-        assert svg_response.content
-        assert ico_response.status_code == 307
-        assert ico_response.headers["location"] == "/fallback/favicon.svg"
+        assert not hasattr(router, "mount_favicon")
