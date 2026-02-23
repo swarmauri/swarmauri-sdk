@@ -38,7 +38,7 @@ app = TigrblApp(
 
 
 # Custom ops return raw dicts so no finalize hook needed
-app.include_models([Key, KeyVersion], base_prefix="/kms")
+app.include_tables([Key, KeyVersion], base_prefix="/kms")
 app.mount_jsonrpc(prefix="/kms/rpc")
 app.attach_diagnostics(prefix="/system")
 
