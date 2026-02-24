@@ -79,6 +79,9 @@ class App(AppSpec):
         swagger_ui_version = asgi_kwargs.pop("swagger_ui_version", None)
         if swagger_ui_version is None:
             swagger_ui_version = getattr(self, "SWAGGER_UI_VERSION", "5.31.0")
+        include_docs = asgi_kwargs.pop("include_docs", None)
+        if include_docs is None:
+            include_docs = bool(getattr(self, "INCLUDE_DOCS", False))
         self.title = self.TITLE
         self.version = self.VERSION
         self.description = description
@@ -111,7 +114,7 @@ class App(AppSpec):
             docs_url=self.docs_url,
             debug=self.debug,
             swagger_ui_version=self.swagger_ui_version,
-            include_docs=False,
+            include_docs=include_docs,
             **asgi_kwargs,
         )
         _engine_ctx = self.engine
