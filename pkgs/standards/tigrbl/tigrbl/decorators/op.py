@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import inspect
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Iterable, Optional, Sequence, Union
 
 from ..op.types import OpSpec, Arity, TargetOp, PersistPolicy
 from ..schema.types import SchemaArg
@@ -142,19 +142,6 @@ def op_alias(
 # ---------------------------------------------------------------------------
 
 
-@dataclass
-class _OpDecl:
-    alias: Optional[str]
-    target: Optional[TargetOp]
-    arity: Optional[Arity]
-    http_methods: Optional[Tuple[str, ...]]
-    rest: Optional[bool]
-    request_schema: Optional[SchemaArg]
-    response_schema: Optional[SchemaArg]
-    persist: Optional[PersistPolicy]
-    status_code: Optional[int]
-
-
 def op_ctx(
     *,
     bind: Any | Iterable[Any] | None = None,
@@ -174,19 +161,20 @@ def op_ctx(
         cm = _ensure_cm(fn)
         f = _unwrap(cm)
         f.__tigrbl_ctx_only__ = True
-        op_decl = _OpDecl(
-            alias=alias,
-            target=target,
-            arity=arity,
+        spec = OpSpec(
+            alias=alias or "",
+            target=target or "custom",
+            arity=arity or _infer_arity(target or "custom"),
             http_methods=tuple(http_methods) if http_methods else None,
-            rest=rest,
-            request_schema=request_schema,
-            response_schema=response_schema,
-            persist=persist,
+            expose_routes=True if rest is None else bool(rest),
+            request_model=request_schema,
+            response_model=response_schema,
+            persist=_normalize_persist(persist),
             status_code=status_code,
         )
-        f.__tigrbl_op_decl__ = op_decl
-        f.__tigrbl_op_spec__ = op_decl
+        f.__tigrbl_op_spec__ = spec
+        # Backward-compatible attr name; value is always OpSpec.
+        f.__tigrbl_op_decl__ = spec
 
         if bind is not None:
             targets = (
