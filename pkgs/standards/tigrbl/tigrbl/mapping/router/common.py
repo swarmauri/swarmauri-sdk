@@ -88,7 +88,6 @@ def _ensure_router_ns(router: RouterLike) -> None:
     Ensure containers exist on the router facade object.
     """
     for attr, default in (
-        ("models", {}),
         ("tables", AttrDict()),
         ("schemas", SimpleNamespace()),
         ("handlers", SimpleNamespace()),
