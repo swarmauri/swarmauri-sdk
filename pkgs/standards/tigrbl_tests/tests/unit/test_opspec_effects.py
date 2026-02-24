@@ -7,7 +7,7 @@ from tigrbl import TigrblApp
 from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
 
-from tigrbl.bindings.model import bind
+from tigrbl.mapping.model import bind
 from tigrbl.op.types import PHASES
 from tigrbl.runtime.kernel import build_phase_chains
 from tigrbl.runtime import system as runtime_system

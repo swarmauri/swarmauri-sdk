@@ -44,8 +44,8 @@ def test_jsonrpc_dispatcher_uses_unified_dispatch_only():
 
 
 def test_rest_and_rpc_call_transport_dispatcher_operation():
-    rest_collection = ROOT / "bindings" / "rest" / "collection.py"
-    rest_member = ROOT / "bindings" / "rest" / "member.py"
+    rest_collection = ROOT / "mapping" / "rest" / "collection.py"
+    rest_member = ROOT / "mapping" / "rest" / "member.py"
     rpc_dispatcher = ROOT / "transport" / "jsonrpc" / "dispatcher.py"
 
     for path in (rest_collection, rest_member, rpc_dispatcher):
@@ -55,7 +55,7 @@ def test_rest_and_rpc_call_transport_dispatcher_operation():
 
 def test_only_transport_dispatcher_invokes_runtime_executor_directly():
     violations: list[str] = []
-    targets = [ROOT / "transport", ROOT / "bindings" / "rest"]
+    targets = [ROOT / "transport", ROOT / "mapping" / "rest"]
     for target in targets:
         for path in target.rglob("*.py"):
             rel = path.relative_to(ROOT)

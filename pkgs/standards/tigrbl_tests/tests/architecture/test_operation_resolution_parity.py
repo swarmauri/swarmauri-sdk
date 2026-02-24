@@ -37,7 +37,7 @@ async def test_canonical_and_custom_resolution_targets():
 
 @pytest.mark.asyncio
 async def test_rest_and_rpc_paths_execute_same_handler_once():
-    from tigrbl.bindings.rpc import register_and_attach
+    from tigrbl.mapping.rpc import register_and_attach
     from tigrbl.op.types import OpSpec
     from tigrbl.transport.dispatcher import dispatch_operation
 

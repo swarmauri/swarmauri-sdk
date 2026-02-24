@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 from tigrbl import alias_ctx, alias, schema_ctx
 from tigrbl.op import resolve
-from tigrbl.bindings import build_schemas, build_handlers
+from tigrbl.mapping import build_schemas, build_handlers
 
 
 def _get_spec(model, target):
