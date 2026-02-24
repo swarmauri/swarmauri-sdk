@@ -29,7 +29,6 @@ from ..mapping.model import rebind as _rebind, bind as _bind
 from ..mapping.rest import build_router_and_attach as _build_router_and_attach
 from ..op import get_registry, OpSpec
 from ..app._model_registry import initialize_table_registry
-from ..system.favicon import mount_favicon
 from ..router._routing import include_router as _include_router_impl
 from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_openrpc as _mount_openrpc
@@ -61,8 +60,6 @@ class TigrblRouter(_Router):
     _authorize: Any = None
     _optional_authn_dep: Any = None
     _allow_anon_ops: set[str] = set()
-
-    mount_favicon = mount_favicon
 
     def __init__(
         self,
@@ -109,6 +106,14 @@ class TigrblRouter(_Router):
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
         if models:
             self.include_tables(list(models))
+
+    def __getattr__(self, name: str) -> Any:
+        """Back-compat attribute alias for ``models`` after tables are bound."""
+        if name == "models":
+            tables = getattr(self, "tables", None)
+            if tables:
+                return tables
+        raise AttributeError(name)
 
     # ------------------------- internal helpers -------------------------
 
@@ -217,7 +222,7 @@ class TigrblRouter(_Router):
     ) -> Any:
         """Mount an OpenRPC JSON endpoint onto this router instance."""
         return _mount_openrpc(self, path=path, name=name, tags=tags)
-      
+
     def attach_diagnostics(
         self, *, prefix: str | None = None, app: Any | None = None
     ) -> Any:
