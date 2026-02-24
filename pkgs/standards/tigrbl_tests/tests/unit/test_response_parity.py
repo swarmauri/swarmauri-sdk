@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl.bindings import rpc_call
+from tigrbl.mapping import rpc_call
 from tigrbl import TigrblApp
 from .response_utils import build_ping_model
 

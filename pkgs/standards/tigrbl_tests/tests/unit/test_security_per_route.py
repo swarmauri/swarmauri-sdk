@@ -5,7 +5,7 @@ from tigrbl.security import HTTPBearer
 from tigrbl.op import OpSpec
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.bindings.rest.router import _build_router
+from tigrbl.mapping.rest.router import _build_router
 
 
 from tigrbl.router import Router

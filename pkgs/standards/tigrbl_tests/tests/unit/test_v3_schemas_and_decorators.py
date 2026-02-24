@@ -9,7 +9,7 @@ from tigrbl import (
 )
 from tigrbl.op import resolve
 from tigrbl.op.mro_collect import mro_collect_decorated_ops
-from tigrbl.bindings import build_schemas, build_hooks, build_handlers, build_rest
+from tigrbl.mapping import build_schemas, build_hooks, build_handlers, build_rest
 
 # REST test client
 from httpx import ASGITransport, Client
