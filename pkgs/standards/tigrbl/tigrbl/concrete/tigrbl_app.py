@@ -18,7 +18,7 @@ from typing import (
     Tuple,
 )
 
-from ..app._app import App as _App
+from .._concrete._app import App as _App
 from ..router.tigrbl_router import TigrblRouter
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
