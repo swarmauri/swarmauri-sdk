@@ -4,7 +4,7 @@ from httpx import ASGITransport, AsyncClient
 
 from tigrbl.types import Integer, Mapped, String
 
-from tigrbl import TigrblApp, TigrblRouter
+from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.orm.tables import Base as Base3
@@ -40,16 +40,14 @@ async def client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
-    app = TigrblApp()
     # TigrblApp/Tigrbl dropped the ``get_db`` attribute in favor of using the
     # engine facade. Using an async SQLite engine in this test triggers a
     # ``MissingGreenlet`` error when SQLAlchemy performs I/O. Configure a
     # synchronous in-memory engine instead so the REST operations run without
     # requiring greenlet magic.
-    router = TigrblRouter(engine=mem(async_=False))
-    router.include_table(Gadget, prefix="")
-    await router.initialize()
-    app.include_router(router)
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(Gadget, prefix="")
+    await app.initialize()
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
