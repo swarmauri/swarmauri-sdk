@@ -7,6 +7,7 @@ from typing import Any, Dict, Mapping, Optional, MutableMapping, cast
 from ..config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from ..runtime import executor as _executor
 from ..runtime import trace as _trace
+from ..engine import resolver as _resolver
 from ..op.types import PHASES
 
 try:
@@ -119,6 +120,11 @@ async def dispatch_operation(
     if callable(response_serializer):
         base_ctx["response_serializer"] = response_serializer
 
+    release_db = None
+    if db is None:
+        db, release_db = _resolver.acquire(router=router, model=model, op_alias=alias)
+        base_ctx["db"] = db
+
     phases = _get_phase_chains(model, alias)
     if rpc_mode:
         model_hooks = getattr(getattr(model, "hooks", None), alias, None)
@@ -132,7 +138,13 @@ async def dispatch_operation(
     except Exception:
         pass
 
-    return await _executor._invoke(request=request, db=db, phases=phases, ctx=base_ctx)
+    try:
+        return await _executor._invoke(
+            request=request, db=db, phases=phases, ctx=base_ctx
+        )
+    finally:
+        if release_db is not None:
+            release_db()
 
 
 __all__ = ["OperationResolution", "dispatch_operation", "resolve_operation"]

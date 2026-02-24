@@ -4,6 +4,7 @@ import logging
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence
 
 from ...runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP, http_exc_to_rpc
+from ...engine import resolver as _resolver
 from ...runtime.status.exceptions import HTTPException
 from ...security.dependencies import Depends
 from ...transport import JSONResponse, Request, Response
@@ -123,7 +124,16 @@ def build_jsonrpc_router(
 
         async def _endpoint(request: Request, body: Any = Body(...)):
             db = getattr(request.state, "db", None)
-            return await _handle_body(router=router, request=request, db=db, body=body)
+            release_db = None
+            if db is None:
+                db, release_db = _resolver.acquire(router=router)
+            try:
+                return await _handle_body(
+                    router=router, request=request, db=db, body=body
+                )
+            finally:
+                if release_db is not None:
+                    release_db()
 
     async def _options_endpoint(request: Request):
         allow = "OPTIONS,POST"
