@@ -33,10 +33,9 @@ async def test_rpc_call_works_over_jsonrpc():
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    router.mount_jsonrpc(prefix="/rpc")
-
     app = TigrblApp()
     app.include_router(router)
+    app.mount_jsonrpc(prefix="/rpc")
     app.attach_diagnostics(prefix="")
 
     port = pick_unique_port()
@@ -73,10 +72,9 @@ async def test_rpc_list_reflects_rest_creates():
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    router.mount_jsonrpc(prefix="/rpc")
-
     app = TigrblApp()
     app.include_router(router)
+    app.mount_jsonrpc(prefix="/rpc")
     app.attach_diagnostics(prefix="")
 
     port = pick_unique_port()
