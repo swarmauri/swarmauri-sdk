@@ -275,23 +275,9 @@ def initialize(
             tables=ts,
         )
 
-        registry = getattr(obj, "tables", None)
-        if isinstance(registry, dict):
-            tables_map = {
-                name: getattr(model, "__table__", None)
-                for name, model in registry.items()
-                if hasattr(model, "__table__")
-            }
-            setattr(obj, "sqla_tables", tables_map)
-
-            # Preserve long-standing app behavior where ``app.tables`` points to
-            # SQLAlchemy ``Table`` objects after DDL initialization while keeping
-            # router registries model-centric for runtime resolution.
-            if hasattr(obj, "_default_router"):
-                for name, table in tables_map.items():
-                    current = registry.get(name)
-                    if current is None or hasattr(current, "__table__"):
-                        registry[name] = table
+        # Keep ``obj.tables`` as a model registry. Runtime routing, docs generation,
+        # and diagnostics all read that mapping expecting model classes, not
+        # SQLAlchemy ``Table`` objects.
 
     def _close_without_loop(db):
         close = getattr(db, "close", None)

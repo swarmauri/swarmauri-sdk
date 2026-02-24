@@ -134,6 +134,11 @@ def openapi(router: Any) -> dict[str, Any]:
                 sp_list = specs.get(alias) or ()
                 if sp_list:
                     security_deps.extend(list(getattr(sp_list[0], "secdeps", ()) or ()))
+
+            for dep in tuple(getattr(route, "dependencies", ()) or ()):
+                if dep not in security_deps:
+                    security_deps.append(dep)
+
             sec = _security_from_dependencies(security_deps)
             if sec:
                 op["security"] = sec
