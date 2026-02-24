@@ -24,7 +24,6 @@ async def test_diagnostics_hookz_reports_hooks():
         def audit(cls, ctx):
             return None
 
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(Widget)
     init_result = app.initialize()
@@ -37,20 +36,6 @@ async def test_diagnostics_hookz_reports_hooks():
     app.attach_diagnostics(prefix="")
 
     app.bind(Widget)
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_model(Widget)
-    init_result = router.initialize()
-    if inspect.isawaitable(init_result):
-        await init_result
-    router.mount_jsonrpc(prefix="/rpc")
-
-    app = TigrblApp()
-    app.include_router(router.router)
-    router.attach_diagnostics(prefix="", app=app)
-
-    router.bind(Widget)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
     async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:

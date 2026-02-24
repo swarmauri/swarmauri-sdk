@@ -37,17 +37,10 @@ async def test_custom_op_with_hook() -> None:
             ctx["result"]["meta"] = "hooked"
 
     app = TigrblApp()
-<<<<<<< HEAD
     router = TigrblRouter(engine=mem(async_=False))
     app.include_table(Widget, prefix="")
     await app.initialize()
     app.include_router(router)
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_model(Widget, prefix="")
-    await router.initialize()
-    app.include_router(router.router)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
