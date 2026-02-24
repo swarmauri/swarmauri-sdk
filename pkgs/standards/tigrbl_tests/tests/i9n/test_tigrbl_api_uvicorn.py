@@ -24,7 +24,7 @@ class Gadget(Base, GUIDPk):
 
 
 @pytest_asyncio.fixture()
-async def running_api_app():
+async def running_router_app():
     router = TigrblRouter(
         engine=mem(async_=False),
         models=[Gadget],
@@ -46,10 +46,10 @@ async def running_api_app():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_api_create_gadget(running_api_app):
+async def test_tigrbl_router_create_gadget(running_router_app):
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{running_api_app}/gadgets/gadget", json={"name": "gyro"}
+            f"{running_router_app}/gadgets/gadget", json={"name": "gyro"}
         )
 
     assert response.status_code == 201
@@ -60,9 +60,9 @@ async def test_tigrbl_api_create_gadget(running_api_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_api_healthz(running_api_app):
+async def test_tigrbl_router_healthz(running_router_app):
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"{running_api_app}/diagnostics/healthz")
+        response = await client.get(f"{running_router_app}/diagnostics/healthz")
 
     assert response.status_code == 200
     assert response.json()["ok"] is True

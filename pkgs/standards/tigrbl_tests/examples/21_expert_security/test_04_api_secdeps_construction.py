@@ -20,7 +20,7 @@ from tigrbl.types import Column, Security, String
 
 
 @pytest.mark.asyncio
-async def test_openapi_security_from_api_constructor_deps() -> None:
+async def test_openapi_security_from_router_constructor_deps() -> None:
     """Confirm API-level constructor deps appear in OpenAPI security metadata.
 
     This test defines a ``TigrblRouter`` subclass with security deps and verifies
@@ -31,18 +31,18 @@ async def test_openapi_security_from_api_constructor_deps() -> None:
     bearer_scheme = HTTPBearer(scheme_name="ApiToken")
 
     # Configuration: declare a model for API routing.
-    class ApiSecdepsWidget(Base, GUIDPk):
-        __tablename__ = "lesson_security_api_secdeps_widget"
+    class RouterSecdepsWidget(Base, GUIDPk):
+        __tablename__ = "lesson_security_router_secdeps_widget"
         __allow_unmapped__ = True
 
         name = Column(String, nullable=False)
 
     # Instantiation: define the API class with constructor-level security deps.
-    class SecuredApi(TigrblRouter):
+    class SecuredRouter(TigrblRouter):
         SECURITY_DEPS = (Security(bearer_scheme),)
 
-    router = SecuredApi(engine=mem(async_=False))
-    router.include_model(ApiSecdepsWidget)
+    router = SecuredRouter(engine=mem(async_=False))
+    router.include_model(RouterSecdepsWidget)
 
     # Deployment: initialize storage and attach OpenAPI to the API router.
     init_result = router.initialize()
@@ -61,7 +61,7 @@ async def test_openapi_security_from_api_constructor_deps() -> None:
     async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
         response = await client.get("/openapi.json")
         schema = response.json()
-        resource_path = f"/{ApiSecdepsWidget.__name__.lower()}"
+        resource_path = f"/{RouterSecdepsWidget.__name__.lower()}"
 
         # Assertion: API routes are secured and scheme is registered.
         assert response.status_code == 200

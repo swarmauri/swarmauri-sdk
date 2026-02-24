@@ -121,9 +121,9 @@ def test_mount_lens_uses_latest_openrpc_path_by_default() -> None:
     assert "/schema/openrpc.json" in html
 
 
-def test_openrpc_server_url_respects_api_mount_jsonrpc_prefix_argument():
+def test_openrpc_server_url_respects_router_mount_jsonrpc_prefix_argument():
     class Widget(Base, GUIDPk):
-        __tablename__ = "widgets_openrpc_api_mount_prefix"
+        __tablename__ = "widgets_openrpc_router_mount_prefix"
         name = Column(String, nullable=False)
 
     router = TigrblRouter(engine=mem(async_=False))

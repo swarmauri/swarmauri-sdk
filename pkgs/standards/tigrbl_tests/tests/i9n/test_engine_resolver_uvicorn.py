@@ -119,11 +119,11 @@ async def test_tigrblapi_multi_table_engine_binding_uvicorn() -> None:
     app.include_router(router.router, prefix="/router")
 
     # Step 2: Assert resolver bindings (router vs table overrides).
-    api_provider = resolver.resolve_provider(router=router)
+    router_provider = resolver.resolve_provider(router=router)
     widget_provider = resolver.resolve_provider(router=router, model=ApiWidget)
     gadget_provider = resolver.resolve_provider(router=router, model=ApiGadget)
-    assert api_provider is widget_provider
-    assert gadget_provider is not api_provider
+    assert router_provider is widget_provider
+    assert gadget_provider is not router_provider
     assert router.engine == api_engine
     assert ApiGadget.table_config["engine"] == table_engine
 
@@ -157,7 +157,7 @@ async def test_tigrblapi_multi_table_engine_binding_uvicorn() -> None:
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_multi_api_precedence_dedupe_and_op_engine_uvicorn() -> None:
+async def test_multi_router_precedence_dedupe_and_op_engine_uvicorn() -> None:
     """Cover multi-API precedence, dedupe, and op-level engine overrides.
 
     Steps:

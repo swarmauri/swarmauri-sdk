@@ -16,7 +16,7 @@ def _auth_dependency(
 
 
 class Iota(Base, GUIDPk):
-    __tablename__ = "iota_api_app_cfg"
+    __tablename__ = "iota_router_app_cfg"
     __allow_unmapped__ = True
 
     name: Mapped[str] = acol(
@@ -33,7 +33,7 @@ class IotaApi(TigrblRouter):
 
 
 @pytest.mark.unit
-def test_tigrbl_api_app_constructor_configuration_applies_metadata() -> None:
+def test_tigrbl_router_app_constructor_configuration_applies_metadata() -> None:
     router = IotaApi(
         engine=mem(async_=False),
         jsonrpc_prefix="/rpcx",
@@ -41,7 +41,7 @@ def test_tigrbl_api_app_constructor_configuration_applies_metadata() -> None:
     )
 
     class IotaApp(TigrblApp):
-        APIS = (router,)
+        ROUTERS = (router,)
 
     app = IotaApp(engine=mem(async_=False), title="Iota App", version="9.9.9")
 
@@ -60,11 +60,11 @@ def test_tigrbl_api_app_constructor_configuration_applies_metadata() -> None:
 
 
 @pytest.mark.unit
-def test_tigrbl_api_app_post_instantiation_updates_auth_state() -> None:
+def test_tigrbl_router_app_post_instantiation_updates_auth_state() -> None:
     router = IotaApi(engine=mem(async_=False))
 
     class IotaApp(TigrblApp):
-        APIS = (router,)
+        ROUTERS = (router,)
 
     app = IotaApp(engine=mem(async_=False))
     router.set_auth(authn=_auth_dependency, allow_anon=False)

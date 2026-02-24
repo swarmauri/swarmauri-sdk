@@ -29,7 +29,7 @@ def test_docs_generation_reads_secdeps_metadata():
     assert 'item["name"]' in openrpc
 
 
-def test_api_instantiation_is_transport_agnostic_and_kernel_plan_builds():
+def test_router_instantiation_is_transport_agnostic_and_kernel_plan_builds():
     from tigrbl.router.tigrbl_router import TigrblRouter
     from tigrbl.op.types import OpSpec
     from tigrbl.runtime.kernel import Kernel

@@ -11,12 +11,12 @@ from tigrbl import TigrblRouter
 
 
 @pytest.mark.asyncio
-async def test_api_mount_favicon_default_route() -> None:
+async def test_router_mount_favicon_default_route() -> None:
     """Mount SVG favicon route and redirect ``/favicon.ico``."""
     router = TigrblRouter()
 
     # Pedagogical pattern: use the bound helper directly from the API object.
-    router.mount_favicon(name="lesson_api_default_favicon")
+    router.mount_favicon(name="lesson_router_default_favicon")
 
     transport = ASGITransport(app=router)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -30,10 +30,10 @@ async def test_api_mount_favicon_default_route() -> None:
 
 
 @pytest.mark.asyncio
-async def test_api_mount_favicon_custom_route() -> None:
+async def test_router_mount_favicon_custom_route() -> None:
     """Mount a custom favicon path when branding routes are namespaced."""
     router = TigrblRouter()
-    router.mount_favicon(path="/brand/favicon.svg", name="lesson_api_brand_favicon")
+    router.mount_favicon(path="/brand/favicon.svg", name="lesson_router_brand_favicon")
 
     transport = ASGITransport(app=router)
     async with AsyncClient(transport=transport, base_url="http://test") as client:

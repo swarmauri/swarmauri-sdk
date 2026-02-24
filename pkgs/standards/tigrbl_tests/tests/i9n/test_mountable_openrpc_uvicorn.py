@@ -38,7 +38,7 @@ async def test_openrpc_mountable_on_tigrbl_app_uvicorn():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_openrpc_mountable_on_tigrbl_api_uvicorn():
+async def test_openrpc_mountable_on_tigrbl_router_uvicorn():
     router = TigrblRouter(engine=mem(async_=False), models=[Thing])
     router.initialize()
     router.mount_jsonrpc(prefix="/rpc")
@@ -77,7 +77,7 @@ async def test_openrpc_mountable_with_tigrbl_app_method_uvicorn():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_openrpc_mountable_with_tigrbl_api_method_uvicorn():
+async def test_openrpc_mountable_with_tigrbl_router_method_uvicorn():
     router = TigrblRouter(engine=mem(async_=False), models=[Thing])
     router.initialize()
     router.mount_jsonrpc(prefix="/rpc")

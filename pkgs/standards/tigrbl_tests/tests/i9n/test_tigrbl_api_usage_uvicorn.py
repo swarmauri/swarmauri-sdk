@@ -24,7 +24,7 @@ def auth_dependency(
 
 
 class Alpha(Base, GUIDPk):
-    __tablename__ = "alpha_api_usage"
+    __tablename__ = "alpha_router_usage"
     __allow_unmapped__ = True
 
     name: Mapped[str] = acol(
@@ -37,7 +37,7 @@ class Alpha(Base, GUIDPk):
 
 
 class Beta(Base, GUIDPk):
-    __tablename__ = "beta_api_usage"
+    __tablename__ = "beta_router_usage"
     __allow_unmapped__ = True
 
     name: Mapped[str] = acol(
@@ -67,7 +67,7 @@ async def running_api():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_api_deploys_and_serves_openapi(running_api) -> None:
+async def test_tigrbl_router_deploys_and_serves_openapi(running_api) -> None:
     base_url = running_api
 
     async with httpx.AsyncClient() as client:
@@ -90,7 +90,7 @@ async def test_tigrbl_api_deploys_and_serves_openapi(running_api) -> None:
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_api_handles_authenticated_request(running_api) -> None:
+async def test_tigrbl_router_handles_authenticated_request(running_api) -> None:
     base_url = running_api
     headers = {"Authorization": "Bearer demo"}
 

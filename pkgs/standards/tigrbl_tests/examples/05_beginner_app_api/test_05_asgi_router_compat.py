@@ -12,7 +12,7 @@ async def _get_json(app, path: str):
     return response
 
 
-def test_tigrbl_api_is_asgi_compatible():
+def test_tigrbl_router_is_asgi_compatible():
     """TigrblRouter should serve routes as an ASGI app."""
     router = TigrblRouter()
 

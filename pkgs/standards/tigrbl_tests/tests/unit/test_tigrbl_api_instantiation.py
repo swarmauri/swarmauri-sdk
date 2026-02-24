@@ -8,7 +8,7 @@ from tigrbl.types import Mapped, String
 
 
 class Widget(Base, GUIDPk):
-    __tablename__ = "widgets_api_inst"
+    __tablename__ = "widgets_router_inst"
     __allow_unmapped__ = True
 
     name: Mapped[str] = acol(
@@ -25,7 +25,7 @@ class WidgetApi(TigrblRouter):
 
 
 @pytest.mark.unit
-def test_tigrbl_api_instantiation_sets_containers() -> None:
+def test_tigrbl_router_instantiation_sets_containers() -> None:
     router = WidgetApi(engine=mem(async_=False))
     api_dir = dir(router)
 

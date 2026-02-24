@@ -6,7 +6,7 @@ from tigrbl.orm.tables import Base
 
 
 class Widget(Base, GUIDPk):
-    __tablename__ = "widgets_api_level_set_auth"
+    __tablename__ = "widgets_router_level_set_auth"
     __tigrbl_allow_anon__ = ["list"]
 
 
