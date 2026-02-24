@@ -1,30 +1,5 @@
-# tigrbl/tigrbl/v3/router/router_spec.py
-from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Any, Callable, Optional, Sequence
-from ..engine.engine_spec import EngineCfg
-from ..responses.types import ResponseSpec
+"""Backwards-compatible router spec import path."""
 
+from ..specs.router_spec import RouterSpec
 
-@dataclass
-class RouterSpec:
-    """
-    Used to *produce a router subclass* via Router.from_spec().
-    """
-
-    name: str = ""
-    prefix: str = ""
-    engine: Optional[EngineCfg] = None
-    tags: Sequence[str] = field(default_factory=tuple)
-
-    # NEW
-    ops: Sequence[Any] = field(default_factory=tuple)
-    schemas: Sequence[Any] = field(default_factory=tuple)
-    hooks: Sequence[Callable[..., Any]] = field(default_factory=tuple)
-    security_deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
-    deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
-
-    response: Optional[ResponseSpec] = None
-
-    # optional: tables this router exposes (auto-install)
-    tables: Sequence[Any] = field(default_factory=tuple)
+__all__ = ["RouterSpec"]
