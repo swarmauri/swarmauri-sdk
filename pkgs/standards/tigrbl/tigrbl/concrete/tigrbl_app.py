@@ -46,7 +46,6 @@ from ..router._routing import (
     include_router as _include_router_impl,
 )
 from ..app.transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
-from ..router._routing import include_router as _include_router_impl
 
 
 # optional compat: legacy transactional decorator
@@ -69,6 +68,7 @@ class TigrblApp(_App):
 
     TITLE = "TigrblApp"
     VERSION = "0.1.0"
+    DESCRIPTION: str | None = None
     LIFESPAN = None
     MIDDLEWARES: Sequence[Any] = ()
     ROUTERS: Sequence[Any] = ()
@@ -103,6 +103,9 @@ class TigrblApp(_App):
         version = asgi_kwargs.pop("version", None)
         if version is not None:
             self.VERSION = version
+        description = asgi_kwargs.pop("description", None)
+        if description is not None:
+            self.DESCRIPTION = description
         lifespan = asgi_kwargs.pop("lifespan", None)
         if lifespan is not None:
             self.LIFESPAN = lifespan
@@ -112,12 +115,6 @@ class TigrblApp(_App):
         declared_tables = getattr(self, "TABLES", ())
         self._table_registry = initialize_table_registry(declared_tables)
         self._favicon_path = favicon_path
-        for mw in self.middlewares:
-            mw_cls = getattr(mw, "cls", mw.__class__)
-            self.add_middleware(mw_cls, **getattr(mw, "kwargs", {}))
-        self._install_favicon()
-        # capture initial routes so refreshes retain ASGI defaults
-        self._base_routes = list(self._routes)
         self.jsonrpc_prefix = (
             jsonrpc_prefix
             if jsonrpc_prefix is not None
@@ -128,6 +125,11 @@ class TigrblApp(_App):
             if system_prefix is not None
             else getattr(self, "SYSTEM_PREFIX", "/system")
         )
+        self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
+        self._default_router: TigrblRouter | None = None
+        for mw in self.middlewares:
+            mw_cls = getattr(mw, "cls", mw.__class__)
+            self.add_middleware(mw_cls, **getattr(mw, "kwargs", {}))
 
         # public containers (mirrors used by bindings.router)
         self.schemas = SimpleNamespace()
@@ -137,20 +139,22 @@ class TigrblApp(_App):
         self.rpc = SimpleNamespace()
         self.rest = SimpleNamespace()
         self.routers: Dict[str, Any] = {}
+        self.models = self._table_registry
         self.tables = AttrDict()
         self.columns: Dict[str, Tuple[str, ...]] = {}
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
         self.core_raw = SimpleNamespace()
+        self._install_favicon()
+        # capture initial routes so refreshes retain ASGI defaults
+        self._base_routes = list(self._routes)
         initial_routers = list(getattr(self, "ROUTERS", ()))
         self._event_handlers = {
             "startup": [],
             "shutdown": [],
         }
 
-        # Router-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
-        self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
-        self._default_router: TigrblRouter | None = None
+        self.mount_openapi(path="/openapi.json")
         self.mount_openrpc(path="/openrpc.json")
         self.mount_lens(path="/rdocs", spec_path="/openrpc.json")
         if routers:
@@ -228,6 +232,11 @@ class TigrblApp(_App):
             result = handler()
             if inspect.isawaitable(result):
                 await result
+
+    @property
+    def router(self) -> "TigrblApp":
+        """Compatibility alias exposing this app as a router-like object."""
+        return self
 
     async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
         """Expose ``TigrblApp`` as a native ASGI callable for uvicorn/gunicorn."""
@@ -369,6 +378,7 @@ class TigrblApp(_App):
         self.rest = self._default_router.rest
         self.routers = self._default_router.routers
         self._table_registry = self._default_router.models
+        self.models = self._default_router.models
         self.tables = self._default_router.tables
         self.columns = self._default_router.columns
         self.table_config = self._default_router.table_config
@@ -415,8 +425,9 @@ class TigrblApp(_App):
         self._ensure_default_router().add_route(path, endpoint, **kwargs)
 
     def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Register a route using the app-managed default ``TigrblRouter``."""
-        self._ensure_default_router().add_route(path, endpoint, **kwargs)
+        """Register an app-level route directly on this app."""
+        methods = kwargs.pop("methods", ["GET"])
+        _add_route_impl(self, path, endpoint, methods=methods, **kwargs)
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""

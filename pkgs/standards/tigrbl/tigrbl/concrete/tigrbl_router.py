@@ -45,7 +45,7 @@ class TigrblRouter(_Router):
     """
 
     PREFIX = ""
-    REST_PREFIX = "/router"
+    REST_PREFIX = "/api"
     RPC_PREFIX = "/rpc"
     SYSTEM_PREFIX = "/system"
     TAGS: Sequence[Any] = ()
@@ -76,7 +76,10 @@ class TigrblRouter(_Router):
     ) -> None:
         if prefix is not None:
             self.PREFIX = prefix
+        get_db = router_kwargs.pop("get_db", None)
         _Router.__init__(self, engine=engine, **router_kwargs)
+        if get_db is not None:
+            self.get_db = get_db
         self.jsonrpc_prefix = (
             jsonrpc_prefix
             if jsonrpc_prefix is not None
