@@ -51,4 +51,4 @@ def test_app_model_map_tracks_the_model_class():
     app.include_table(Widget)
     app.initialize()
     # Assertion: the model registry maps the class name to the model class.
-    assert app.models[Widget.__name__] is Widget
+    assert app.tables[Widget.__name__] is Widget

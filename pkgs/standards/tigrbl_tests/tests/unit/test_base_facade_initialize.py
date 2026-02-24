@@ -31,7 +31,7 @@ def test_base_app_supports_initialize():
         id = Column(Integer, primary_key=True)
 
     app = SimpleApp(engine=mem(async_=False))
-    app.models["Widget"] = Widget
+    app.tables["Widget"] = Widget
 
     try:
         app.initialize()

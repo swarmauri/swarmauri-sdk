@@ -8,6 +8,9 @@ from sqlalchemy import text
 
 
 def model_iter(router: Any) -> Iterable[type]:
+    tables = getattr(router, "tables", None)
+    if isinstance(tables, dict) and tables:
+        return tables.values()
     models = getattr(router, "models", {}) or {}
     return models.values()
 

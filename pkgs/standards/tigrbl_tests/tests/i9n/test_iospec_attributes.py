@@ -126,7 +126,7 @@ def test_binding_attaches_internal_model_namespaces():
 
     app = TigrblApp()
     app.include_table(Thing, mount_router=False)
-    assert "Thing" in app.models
+    assert "Thing" in app.tables
     assert hasattr(app.schemas, "Thing")
     assert "name" in Thing.__tigrbl_cols__
 
