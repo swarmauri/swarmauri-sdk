@@ -32,10 +32,9 @@ async def test_httpx_crud_roundtrip():
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    router.mount_jsonrpc(prefix="/rpc")
-
     app = TigrblApp()
     app.include_router(router)
+    app.mount_jsonrpc(prefix="/rpc")
     app.attach_diagnostics(prefix="")
 
     port = pick_unique_port()
@@ -75,10 +74,9 @@ async def test_httpx_list_returns_collection():
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    router.mount_jsonrpc(prefix="/rpc")
-
     app = TigrblApp()
     app.include_router(router)
+    app.mount_jsonrpc(prefix="/rpc")
     app.attach_diagnostics(prefix="")
 
     port = pick_unique_port()
