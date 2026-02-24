@@ -101,7 +101,6 @@ ROUTE_CTX_FINALIZE = "route.ctx.finalize"
 # PRE_TX_BEGIN
 DEP_SECURITY = "prex_tx_begin:secdep"
 DEP_EXTRA = "prex_tx_begin:dep"
-
 # PRE_HANDLER
 SCHEMA_COLLECT_IN = "schema:collect_in"
 IN_VALIDATE = "in:validate"
