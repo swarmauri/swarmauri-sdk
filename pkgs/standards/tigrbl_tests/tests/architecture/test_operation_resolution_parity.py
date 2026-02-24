@@ -22,7 +22,7 @@ async def test_canonical_and_custom_resolution_targets():
         }
     )
 
-    router = SimpleNamespace(models={"DemoModel": DemoModel})
+    router = SimpleNamespace(tables={"DemoModel": DemoModel})
 
     read = resolve_operation(router=router, model_or_name="DemoModel", alias="read")
     custom = resolve_operation(
@@ -72,7 +72,7 @@ async def test_rest_and_rpc_paths_execute_same_handler_once():
 
     register_and_attach(DemoModel, (read_spec,))
 
-    router = SimpleNamespace(models={"DemoModel": DemoModel})
+    router = SimpleNamespace(tables={"DemoModel": DemoModel})
 
     class DummyDB:
         def commit(self):
