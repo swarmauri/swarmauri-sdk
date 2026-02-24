@@ -90,7 +90,6 @@ class TigrblRouter(_Router):
         self.rest_prefix = getattr(self, "REST_PREFIX", "/router")
 
         # public containers (mirrors used by bindings.router)
-        self.models = initialize_table_registry(getattr(self, "TABLES", ()))
         self.tables = initialize_table_registry(getattr(self, "TABLES", ()))
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
@@ -244,7 +243,7 @@ class TigrblRouter(_Router):
             self._optional_authn_dep = optional_authn_dep
 
         # Refresh already-included models so routers pick up new auth settings
-        if self.models:
+        if self.tables:
             self._refresh_security()
 
     def _refresh_security(self) -> None:
@@ -252,7 +251,7 @@ class TigrblRouter(_Router):
         # Reset routes and allow_anon ops cache
         self.routes = []
         self._allow_anon_ops = set()
-        for model in self.models.values():
+        for model in self.tables.values():
             _seed_security_and_deps(self, model)
             specs = getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ())
             if specs:
@@ -273,7 +272,7 @@ class TigrblRouter(_Router):
         # dedupe; handle multiple DeclarativeBases (multiple metadatas)
         seen = set()
         tables = []
-        for m in self.models.values():
+        for m in self.tables.values():
             t = getattr(m, "__table__", None)
             if t is not None and not t.columns:
                 continue
@@ -287,7 +286,7 @@ class TigrblRouter(_Router):
     # ------------------------- repr -------------------------
 
     def __repr__(self) -> str:  # pragma: no cover
-        models = list(getattr(self, "models", {}))
+        models = list(getattr(self, "tables", {}))
         rpc_ns = getattr(self, "rpc", None)
         rpc_keys = list(getattr(rpc_ns, "__dict__", {}).keys()) if rpc_ns else []
         return f"<TigrblRouter models={models} rpc={rpc_keys}>"
