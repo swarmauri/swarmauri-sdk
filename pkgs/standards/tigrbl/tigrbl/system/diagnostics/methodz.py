@@ -12,11 +12,11 @@ def build_methodz_endpoint(router: Any):
         if cache is not None:
             return cache
 
-        from . import _model_iter, _opspecs
+        from . import _table_iter, _opspecs
 
         methods: List[Dict[str, Any]] = []
         per_model: Dict[str, List[Dict[str, Any]]] = {}
-        for model in _model_iter(router):
+        for model in _table_iter(router):
             mname = getattr(model, "__name__", "Model")
             for sp in _opspecs(model):
                 if not getattr(sp, "expose_rpc", True):

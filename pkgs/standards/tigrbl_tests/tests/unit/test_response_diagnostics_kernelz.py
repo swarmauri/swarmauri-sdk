@@ -36,7 +36,7 @@ async def test_response_atom_in_diagnostics_kernelz(kind) -> None:
         pass
 
     router = Router()
-    router.models = {"Model": Model}
+    router.tables = {"Model": Model}
 
     kernelz = _build_kernelz_endpoint(router)
     data = await kernelz()
@@ -72,7 +72,7 @@ async def test_response_atom_in_diagnostics_kernelz_template(tmp_path) -> None:
         pass
 
     router = Router()
-    router.models = {"Model": Model}
+    router.tables = {"Model": Model}
 
     kernelz = _build_kernelz_endpoint(router)
     data = await kernelz()

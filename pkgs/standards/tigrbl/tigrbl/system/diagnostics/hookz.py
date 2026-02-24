@@ -21,10 +21,10 @@ def build_hookz_endpoint(router: Any):
         if cache is not None:
             return cache
 
-        from . import _model_iter, _opspecs, _label_callable
+        from . import _table_iter, _opspecs, _label_callable
 
         out: Dict[str, Dict[str, Dict[str, List[str]]]] = {}
-        for model in _model_iter(router):
+        for model in _table_iter(router):
             mname = getattr(model, "__name__", "Model")
             hooks_root = getattr(model, "hooks", SimpleNamespace())
             alias_sources = set()

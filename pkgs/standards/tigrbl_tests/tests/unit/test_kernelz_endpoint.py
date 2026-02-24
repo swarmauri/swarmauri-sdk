@@ -42,7 +42,7 @@ async def test_kernelz_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
     router = Router()
-    router.models = {"Model": Model}
+    router.tables = {"Model": Model}
 
     def fake_build(model, alias):
         assert model is Model and alias == "create"
