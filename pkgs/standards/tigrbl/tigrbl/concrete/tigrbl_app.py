@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 import copy
 import inspect
-import warnings
 from pathlib import Path
 from types import SimpleNamespace
 from typing import (
@@ -42,11 +41,12 @@ from ..system.docs import build_openapi as _build_openapi
 from ..op import get_registry, OpSpec
 from ..app._model_registry import initialize_table_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
-from ..app.transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
 from ..router._routing import (
-    include_router as _include_router_impl,
     add_route as _add_route_impl,
+    include_router as _include_router_impl,
 )
+from ..app.transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
+from ..router._routing import include_router as _include_router_impl
 
 
 # optional compat: legacy transactional decorator
@@ -411,26 +411,12 @@ class TigrblApp(_App):
         return routed
 
     def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Back-compat alias for adding a route directly on the app router."""
-        warnings.warn(
-            "TigrblApp.add_router_route() is deprecated and will not be supported "
-            "in a future release. Use include_router() with a TigrblRouter instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        methods = kwargs.pop("methods", ["GET"])
-        _add_route_impl(self, path, endpoint, methods=methods, **kwargs)
+        """Register a route using the app-managed default ``TigrblRouter``."""
+        self._ensure_default_router().add_route(path, endpoint, **kwargs)
 
     def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Deprecated compatibility hook for adding routes directly on the app."""
-        warnings.warn(
-            "TigrblApp.add_route() is deprecated and will not be supported in a "
-            "future release. Use include_router() with a TigrblRouter instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        methods = kwargs.pop("methods", ["GET"])
-        _add_route_impl(self, path, endpoint, methods=methods, **kwargs)
+        """Register a route using the app-managed default ``TigrblRouter``."""
+        self._ensure_default_router().add_route(path, endpoint, **kwargs)
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""

@@ -93,30 +93,40 @@ def mount_favicon(
         default_ico_path,
     )
 
-    if resolved.suffix.lower() == ".svg":
-        router.add_route(
-            mounted_svg_path,
-            favicon_endpoint(favicon_path=resolved),
+    def _register(path: str, endpoint: Any, route_name: str) -> None:
+        add_route = getattr(router, "add_route", None)
+        if callable(add_route):
+            add_route(
+                path,
+                endpoint,
+                methods=["GET"],
+                name=route_name,
+                include_in_schema=False,
+            )
+            return
+
+        route = getattr(router, "route", None)
+        if not callable(route):
+            raise AttributeError(
+                "Router-like object must provide add_route(...) or route(...)."
+            )
+        route(
+            path,
             methods=["GET"],
-            name=name,
+            name=route_name,
             include_in_schema=False,
-        )
-        router.add_route(
+        )(endpoint)
+
+    if resolved.suffix.lower() == ".svg":
+        _register(mounted_svg_path, favicon_endpoint(favicon_path=resolved), name)
+        _register(
             mounted_ico_path,
             favicon_ico_redirect_endpoint(path=f"{base_prefix}{svg_path}"),
-            methods=["GET"],
-            name=f"{name}_ico_redirect",
-            include_in_schema=False,
+            f"{name}_ico_redirect",
         )
         return router
 
-    router.add_route(
-        mounted_ico_path,
-        favicon_endpoint(favicon_path=resolved),
-        methods=["GET"],
-        name=name,
-        include_in_schema=False,
-    )
+    _register(mounted_ico_path, favicon_endpoint(favicon_path=resolved), name)
     return router
 
 

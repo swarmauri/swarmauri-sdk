@@ -31,6 +31,7 @@ from ..op import get_registry, OpSpec
 from ..app._model_registry import initialize_table_registry
 from ..system.favicon import mount_favicon
 from ..router._routing import include_router as _include_router_impl
+from ..transport import mount_jsonrpc as _mount_jsonrpc
 
 
 class TigrblRouter(_Router):
@@ -196,6 +197,14 @@ class TigrblRouter(_Router):
         return await _rpc_call(
             self, model_or_name, method, payload, db=db, request=request, ctx=ctx
         )
+
+    def mount_jsonrpc(
+        self, *, prefix: str | None = None, tags: Sequence[str] | None = ("rpc",)
+    ) -> Any:
+        """Build and mount a JSON-RPC router on this router instance."""
+        px = prefix if prefix is not None else self.jsonrpc_prefix
+        self.jsonrpc_prefix = px
+        return _mount_jsonrpc(self, self, prefix=px, tags=tags)
 
     # ------------------------- registry passthroughs -------------------------
 
