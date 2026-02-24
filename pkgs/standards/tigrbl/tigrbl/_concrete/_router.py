@@ -53,7 +53,6 @@ async def _default_lifespan_context(app: Any):
 class Router(RouterSpec):
     """API router with transport, dependency, and model/table registry support."""
 
-    MODELS: tuple[Any, ...] = ()
     TABLES: tuple[Any, ...] = ()
     REST_PREFIX = "/router"
     RPC_PREFIX = "/rpc"
@@ -108,11 +107,10 @@ class Router(RouterSpec):
         self.rest_prefix = getattr(self, "REST_PREFIX", "/router")
         self.rpc_prefix = getattr(self, "RPC_PREFIX", "/rpc")
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
-        self.models = initialize_model_registry(getattr(self, "MODELS", ()))
+        self.tables = initialize_table_registry(getattr(self, "TABLES", ()))
 
         default_dependencies = list(self.security_deps) + list(self.deps)
         self.dependencies = list(dependencies or default_dependencies)
-        self.tables: dict[str, Any] = {}
 
         _engine_ctx = engine if engine is not None else getattr(self, "ENGINE", None)
         if _engine_ctx is not None:
