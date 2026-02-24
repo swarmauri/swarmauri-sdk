@@ -1,12 +1,7 @@
 from __future__ import annotations
 
-from ..specs.response_types import (
-    Response,
-    ResponseKind,
-    ResponseSpec,
-    Template,
-    TemplateSpec,
-)
+from .._concrete._response import Response, Template
+from .response_spec import ResponseKind, ResponseSpec, TemplateSpec
 
 __all__ = [
     "TemplateSpec",
