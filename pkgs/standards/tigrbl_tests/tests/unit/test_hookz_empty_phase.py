@@ -26,7 +26,7 @@ async def test_hookz_omits_empty_phases_and_operations():
     Model.rpc = SimpleNamespace(foo=None, bar=None)
 
     router = Router()
-    router.models = {"Model": Model}
+    router.tables = {"Model": Model}
 
     hookz = _build_hookz_endpoint(router)
     data = await hookz()
