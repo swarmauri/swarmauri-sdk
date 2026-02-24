@@ -14,7 +14,7 @@ from tigrbl.types import Column, String
 
 
 def test_table_binding_registers_table_on_router():
-    """The API table registry should map model names to SQLAlchemy tables."""
+    """The API table registry should map model names to registered table classes."""
 
     class Widget(Base, GUIDPk):
         __tablename__ = "lesson_table_registry"
@@ -26,11 +26,11 @@ def test_table_binding_registers_table_on_router():
 
     router.include_table(Widget)
 
-    assert router.tables[Widget.__name__] is Widget.__table__
+    assert router.tables[Widget.__name__] is Widget
 
 
 def test_table_registry_respects_model_identity():
-    """The table registry keeps a stable reference for each model's table."""
+    """The table registry keeps a stable reference for each registered class."""
 
     class Widget(Base, GUIDPk):
         __tablename__ = "lesson_table_registry_identity"
@@ -43,4 +43,4 @@ def test_table_registry_respects_model_identity():
     router.include_table(Widget)
 
     assert Widget.__name__ in router.tables
-    assert router.tables[Widget.__name__].name == Widget.__table__.name
+    assert router.tables[Widget.__name__].__table__.name == Widget.__table__.name
