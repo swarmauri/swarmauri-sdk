@@ -43,10 +43,6 @@ from ..op import get_registry, OpSpec
 from ..app._model_registry import initialize_table_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
 from ..app.transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
-from ..router._routing import (
-    include_router as _include_router_impl,
-    add_route as _add_route_impl,
-)
 
 
 # optional compat: legacy transactional decorator
