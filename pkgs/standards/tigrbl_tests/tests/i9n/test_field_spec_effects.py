@@ -38,6 +38,7 @@ async def fs_app():
 
     Base.metadata.create_all(engine)
     app = TigrblApp()
+<<<<<<< HEAD
     router = TigrblRouter(engine=cfg)
     app.include_table(FSItem)
     app.initialize()
@@ -46,6 +47,16 @@ async def fs_app():
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
         yield client, app, SessionLocal, FSItem
+=======
+    router = TigrblApp(engine=cfg)
+    router.include_model(FSItem)
+    router.initialize()
+    app.include_router(router.router)
+    transport = ASGITransport(app=app)
+    client = AsyncClient(transport=transport, base_url="http://test")
+    try:
+        yield client, router, SessionLocal, FSItem
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     finally:
         await client.aclose()
         engine.dispose()
@@ -90,18 +101,31 @@ async def test_field_spec_allow_null_update(fs_app):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_field_spec_rpc_required(fs_app):
+<<<<<<< HEAD
     _, app, SessionLocal, FSItem = fs_app
     with SessionLocal() as session:
         with pytest.raises(Exception):
             await app.rpc_call(FSItem, "create", payload={}, db=session)
+=======
+    _, router, SessionLocal, FSItem = fs_app
+    with SessionLocal() as session:
+        with pytest.raises(Exception):
+            await router.rpc_call(FSItem, "create", payload={}, db=session)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_field_spec_core_crud_create(fs_app):
+<<<<<<< HEAD
     _, app, SessionLocal, FSItem = fs_app
     with SessionLocal() as session:
         obj = await app.core.FSItem.create({"name": "hi"}, db=session)
+=======
+    _, router, SessionLocal, FSItem = fs_app
+    with SessionLocal() as session:
+        obj = await router.core.FSItem.create({"name": "hi"}, db=session)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
         assert obj["name"] == "hi"
 
 

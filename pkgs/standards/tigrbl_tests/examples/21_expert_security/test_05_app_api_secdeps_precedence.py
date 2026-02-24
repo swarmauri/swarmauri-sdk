@@ -5,8 +5,6 @@ combine when the API is mounted on the app, including shared scheme names that
 show OpenAPI precedence behavior.
 """
 
-from tigrbl.security import Security
-
 import inspect
 
 import httpx
@@ -17,11 +15,11 @@ from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Column, String
+from tigrbl.types import Column, Security, String
 
 
 @pytest.mark.asyncio
-async def test_openapi_security_from_app_and_router_deps() -> None:
+async def test_openapi_security_from_app_and_api_deps() -> None:
     """Confirm shared security schemes merge when app and API deps combine.
 
     This test configures two security deps on the API, two on the app, and
@@ -30,13 +28,13 @@ async def test_openapi_security_from_app_and_router_deps() -> None:
 
     # Configuration: define bearer schemes with one shared scheme name.
     shared_app_scheme = HTTPBearer(scheme_name="SharedToken")
-    shared_router_scheme = HTTPBearer(scheme_name="SharedToken")
+    shared_api_scheme = HTTPBearer(scheme_name="SharedToken")
     app_only_scheme = HTTPBearer(scheme_name="AppOnly")
-    router_only_scheme = HTTPBearer(scheme_name="ApiOnly")
+    api_only_scheme = HTTPBearer(scheme_name="ApiOnly")
 
     # Configuration: declare a model to mount on the API.
     class CombinedSecdepsWidget(Base, GUIDPk):
-        __tablename__ = "lesson_security_app_router_secdeps_widget"
+        __tablename__ = "lesson_security_app_api_secdeps_widget"
         __allow_unmapped__ = True
 
         name = Column(String, nullable=False)
@@ -44,12 +42,12 @@ async def test_openapi_security_from_app_and_router_deps() -> None:
     # Instantiation: define the API with two security deps (shared + router-only).
     class SecuredApi(TigrblRouter):
         SECURITY_DEPS = (
-            Security(shared_router_scheme),
-            Security(router_only_scheme),
+            Security(shared_api_scheme),
+            Security(api_only_scheme),
         )
 
     router = SecuredApi(engine=mem(async_=False))
-    router.include_table(CombinedSecdepsWidget)
+    router.include_model(CombinedSecdepsWidget)
 
     # Instantiation: build the app with two security deps (shared + app-only).
     app = TigrblApp(

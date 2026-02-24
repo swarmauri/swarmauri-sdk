@@ -11,42 +11,42 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
 
-def test_router_hook_binding_merges_into_model():
+def test_api_hook_binding_merges_into_model():
     """API hooks should populate the model's hook namespace."""
 
     def audit(cls, ctx):
         return None
 
-    router_hooks = {"*": {"PRE_HANDLER": [audit]}}
-    router = TigrblRouter(engine=mem(async_=False), router_hooks=router_hooks)
+    api_hooks = {"*": {"PRE_HANDLER": [audit]}}
+    router = TigrblRouter(engine=mem(async_=False), api_hooks=api_hooks)
 
     class Widget(Base, GUIDPk):
-        __tablename__ = "lesson_router_hook_binding"
+        __tablename__ = "lesson_api_hook_binding"
         __allow_unmapped__ = True
 
         name = Column(String, nullable=False)
 
-    router.include_table(Widget)
+    router.include_model(Widget)
 
     hooks = Widget.hooks.create.PRE_HANDLER
     assert any(step.__name__ == "audit" for step in hooks)
 
 
-def test_router_hook_binding_respects_alias_namespace():
+def test_api_hook_binding_respects_alias_namespace():
     """Merged hooks should appear under the model's alias namespace."""
 
     def audit(cls, ctx):
         return None
 
-    router_hooks = {"*": {"PRE_HANDLER": [audit]}}
-    router = TigrblRouter(engine=mem(async_=False), router_hooks=router_hooks)
+    api_hooks = {"*": {"PRE_HANDLER": [audit]}}
+    router = TigrblRouter(engine=mem(async_=False), api_hooks=api_hooks)
 
     class Widget(Base, GUIDPk):
-        __tablename__ = "lesson_router_hook_alias_binding"
+        __tablename__ = "lesson_api_hook_alias_binding"
         __allow_unmapped__ = True
 
         name = Column(String, nullable=False)
 
-    router.include_table(Widget)
+    router.include_model(Widget)
 
     assert isinstance(Widget.hooks.create.PRE_HANDLER, list)

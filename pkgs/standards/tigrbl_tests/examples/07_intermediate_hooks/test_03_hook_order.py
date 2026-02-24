@@ -30,10 +30,17 @@ def test_hook_order_collects_multiple_hooks():
             return None
 
     # Deployment: bind the model in an app to materialize hook registries.
+<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(LessonHookOrder)
     app.initialize()
     app.bind(LessonHookOrder)
+=======
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(LessonHookOrder)
+    router.initialize()
+    router.bind(LessonHookOrder)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Test: read the PRE_HANDLER hooks for create.
     hooks = LessonHookOrder.__tigrbl_hooks__["create"]["PRE_HANDLER"]
@@ -67,10 +74,17 @@ def test_hook_order_preserves_declaration_sequence():
             return None
 
     # Deployment: include the model in the app and bind hooks.
+<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(LessonHookOrderSequence)
     app.initialize()
     app.bind(LessonHookOrderSequence)
+=======
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(LessonHookOrderSequence)
+    router.initialize()
+    router.bind(LessonHookOrderSequence)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Test: inspect hook ordering for the create PRE_HANDLER phase.
     hooks = LessonHookOrderSequence.__tigrbl_hooks__["create"]["PRE_HANDLER"]

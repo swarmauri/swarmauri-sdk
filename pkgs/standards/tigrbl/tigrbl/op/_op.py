@@ -1,6 +1,6 @@
-# tigrbl/tigrbl/v3/op/_op.py
-from __future__ import annotations
+from .._concrete._op import Op
 
+<<<<<<< HEAD
 from dataclasses import replace
 from typing import Any
 
@@ -29,3 +29,6 @@ class Op(OpSpec):
         m = model if model is not None else self.table
         if m is not None:
             install_from_objects(router=router, tables=[m])
+=======
+__all__ = ["Op"]
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

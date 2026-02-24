@@ -2,8 +2,18 @@ from __future__ import annotations
 
 from typing import Any, Dict, Mapping, Optional, Sequence
 
-from ...runtime.status import HTTPException
-from ...security import Depends
+try:
+    from ...types import Depends, HTTPException
+except Exception:  # pragma: no cover
+
+    def Depends(fn):  # type: ignore
+        return fn
+
+    class HTTPException(Exception):  # type: ignore
+        def __init__(self, status_code: int, detail: Any = None):
+            super().__init__(detail)
+            self.status_code = status_code
+            self.detail = detail
 
 
 def _ok(result: Any, id_: Any) -> Dict[str, Any]:
@@ -37,22 +47,6 @@ def _normalize_params(params: Any) -> Any:
     )
 
 
-def _user_from_request(request: Any) -> Any | None:
-    return getattr(request.state, "user", None)
-
-
-def _select_auth_dep(router: Any):
-    if getattr(router, "_optional_authn_dep", None):
-        return router._optional_authn_dep
-    if getattr(router, "_allow_anon", True) is False and getattr(
-        router, "_authn", None
-    ):
-        return router._authn
-    if getattr(router, "_authn", None):
-        return router._authn
-    return None
-
-
 def _normalize_deps(deps: Optional[Sequence[Any]]) -> list:
     out = []
     for d in deps or ():
@@ -64,35 +58,9 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list:
     return out
 
 
-def _authorize(
-    router: Any,
-    request: Any,
-    model: type,
-    alias: str,
-    payload: Mapping[str, Any],
-    user: Any | None,
-):
-    fn = getattr(router, "_authorize", None) or getattr(
-        model, "__tigrbl_authorize__", None
-    )
-    if not fn:
-        return
-    try:
-        rv = fn(request=request, model=model, alias=alias, payload=payload, user=user)
-        if rv is False:
-            raise HTTPException(status_code=403, detail="Forbidden")
-    except HTTPException:
-        raise
-    except Exception:
-        raise HTTPException(status_code=403, detail="Forbidden")
-
-
 __all__ = [
     "_ok",
     "_err",
     "_normalize_params",
-    "_user_from_request",
-    "_select_auth_dep",
     "_normalize_deps",
-    "_authorize",
 ]

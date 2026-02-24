@@ -58,9 +58,15 @@ def _make_db():
 def test_include_table_and_rpc_call():
     engine, db = _make_db()
     router = SimpleNamespace(engine=engine)
+<<<<<<< HEAD
     _resolver.register_router(router, engine)
 
     include_table(router, Widget, mount_router=False)
+=======
+    _resolver.register_api(router, engine)
+
+    include_model(router, Widget, mount_router=False)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # router facade populated
     assert router.models["Widget"] is Widget
@@ -90,9 +96,15 @@ def test_include_table_and_rpc_call():
 def test_include_tables():
     engine, db = _make_db()
     router = SimpleNamespace(engine=engine)
+<<<<<<< HEAD
     _resolver.register_router(router, engine)
 
     include_tables(router, [Widget, Gizmo], mount_router=False)
+=======
+    _resolver.register_api(router, engine)
+
+    include_models(router, [Widget, Gizmo], mount_router=False)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     assert set(router.models) == {"Widget", "Gizmo"}
     assert hasattr(router.schemas, "Widget")

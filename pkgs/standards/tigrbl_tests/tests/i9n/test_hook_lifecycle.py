@@ -18,6 +18,7 @@ from tigrbl.types import PgUUID
 async def setup_client(db_mode, Tenant, Item):
     """Create an Tigrbl client for the provided models."""
     if db_mode == "async":
+<<<<<<< HEAD
         app = TigrblApp(engine=mem())
         app.include_tables([Tenant, Item])
         await app.initialize()
@@ -30,6 +31,21 @@ async def setup_client(db_mode, Tenant, Item):
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     return client, app
+=======
+        router = TigrblApp(engine=mem())
+        router.include_models([Tenant, Item])
+        await router.initialize()
+    else:
+        router = TigrblApp(engine=mem(async_=False))
+        router.include_models([Tenant, Item])
+        router.initialize()
+
+    router.mount_jsonrpc()
+    fastapi_app.include_router(router.router)
+    transport = ASGITransport(app=fastapi_app)
+    client = AsyncClient(transport=transport, base_url="http://test")
+    return client, router
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 
 @pytest.mark.i9n

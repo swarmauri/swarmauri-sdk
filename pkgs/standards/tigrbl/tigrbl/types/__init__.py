@@ -52,9 +52,15 @@ from ..deps.pydantic import (
     ValidationError,
 )
 
+from ..router._router import Router
+from ..core.crud.params import Body, Path
+from ..transport import Response
+from ..runtime.status.exceptions import HTTPException, StatusDetailError
+from ..security.dependencies import Depends, Security
+from ..transport import Request
 
 # ── Local Package ─────────────────────────────────────────────────────────
-
+from .op import _Op, _SchemaVerb
 from .uuid import PgUUID, SqliteUUID
 from .authn_abc import AuthNProvider
 from .table_config_provider import TableConfigProvider
@@ -77,31 +83,11 @@ DateTime = _DateTime(timezone=False)
 TZDateTime = _DateTime(timezone=True)
 
 
-_DEPRECATED_EXPORTS: dict[str, str] = {
-    "Router": "tigrbl.router",
-    "Request": "tigrbl.requests",
-    "Body": "tigrbl.core.crud",
-    "Depends": "tigrbl.security",
-    "HTTPException": "tigrbl.runtime.status",
-    "Response": "tigrbl.responses",
-}
-
-
-def __getattr__(name: str):
-    if name in _DEPRECATED_EXPORTS:
-        module = _DEPRECATED_EXPORTS[name]
-        raise AttributeError(
-            f"'tigrbl.types' no longer exports '{name}'. "
-            f"Import it from '{module}' instead."
-        )
-    raise AttributeError(name)
-
-
 # ── Public Re-exports (Backwards Compatibility) ──────────────────────────
 __all__: list[str] = [
     # local
-    # "_Op",
-    # "_SchemaVerb",
+    "_Op",
+    "_SchemaVerb",
     "AuthNProvider",
     "TableConfigProvider",
     "NestedPathProvider",
@@ -165,4 +151,14 @@ __all__: list[str] = [
     "BaseModel",
     "Field",
     "ValidationError",
+    # routing/dependency support (from deps)
+    "Request",
+    "Response",
+    "Router",
+    "Security",
+    "Depends",
+    "Path",
+    "Body",
+    "HTTPException",
+    "StatusDetailError",
 ]

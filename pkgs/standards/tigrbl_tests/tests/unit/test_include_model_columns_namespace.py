@@ -15,8 +15,16 @@ class Widget(Table):
 
 
 def test_include_model_coerces_columns_namespace() -> None:
+<<<<<<< HEAD
     app = SimpleNamespace()
 
     include_table(app, Widget, mount_router=False)
 
     assert app.columns["Widget"] == ("id", "name")
+=======
+    router = SimpleNamespace()
+
+    include_model(router, Widget, mount_router=False)
+
+    assert router.columns["Widget"] == ("id", "name")
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

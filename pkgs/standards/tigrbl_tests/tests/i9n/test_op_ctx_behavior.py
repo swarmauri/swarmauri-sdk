@@ -14,10 +14,17 @@ from tigrbl.runtime.kernel import build_phase_chains
 def setup_router(model_cls, get_db):
     Base.metadata.clear()
     app = TigrblApp()
+<<<<<<< HEAD
     router = TigrblRouter(get_db=get_db)
     app.include_table(model_cls, prefix="")
     app.include_router(router)
     app.initialize()
+=======
+    router = TigrblApp(get_db=get_db)
+    router.include_model(model_cls, prefix="")
+    router.initialize()
+    app.include_router(router.router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     return app, router
 
 
@@ -50,7 +57,11 @@ async def test_op_ctx_request_response_schemas(sync_db_session):
             payload = ctx.get("payload") or {}
             return {"text": str(payload.get("text"))}
 
+<<<<<<< HEAD
     app, router = setup_router(Widget, get_sync_db)
+=======
+    app, router = setup_api(Widget, get_sync_db)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -74,8 +85,13 @@ def test_op_ctx_columns(sync_db_session):
         def ping(cls, ctx):
             return {}
 
+<<<<<<< HEAD
     app, _ = setup_router(Gadget, get_sync_db)
     assert set(app.columns["Gadget"]) == {"id", "name", "flag"}
+=======
+    _, router = setup_api(Gadget, get_sync_db)
+    assert set(router.columns["Gadget"]) == {"id", "name", "flag"}
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 
 @pytest.mark.i9n
@@ -93,7 +109,11 @@ async def test_op_ctx_defaults_value_resolution(sync_db_session):
         def make(cls, ctx):
             pass
 
+<<<<<<< HEAD
     app, router = setup_router(Thing, get_sync_db)
+=======
+    app, router = setup_api(Thing, get_sync_db)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -127,7 +147,11 @@ async def test_op_ctx_internal_orm_models(sync_db_session):
         def seed(cls, ctx):
             pass
 
+<<<<<<< HEAD
     app, _ = setup_router(Item, get_sync_db)
+=======
+    app, router = setup_api(Item, get_sync_db)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -136,7 +160,11 @@ async def test_op_ctx_internal_orm_models(sync_db_session):
     assert res.status_code == 201
     item_id = UUID(res.json()["id"])
 
+<<<<<<< HEAD
     assert app.models["Item"] is Item
+=======
+    assert router.models["Item"] is Item
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     gen = get_sync_db()
     session = next(gen)
     assert isinstance(session.get(Item, item_id), Item)
@@ -280,8 +308,14 @@ async def test_op_ctx_rpc_method(sync_db_session):
         def ping(cls, ctx):
             return {"ok": True}
 
+<<<<<<< HEAD
     app, router = setup_router(Widget, get_sync_db)
     app.mount_jsonrpc(prefix="/rpc")
+=======
+    app, router = setup_api(Widget, get_sync_db)
+    router.mount_jsonrpc(prefix="/rpc")
+    app.include_router(router.router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -368,7 +402,11 @@ def test_op_ctx_atom_plan(sync_db_session):
         def make(cls, ctx):
             pass
 
+<<<<<<< HEAD
     _, router = setup_router(Widget, get_sync_db)
+=======
+    _, router = setup_api(Widget, get_sync_db)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     chains = build_phase_chains(Widget, "make")
     names = [fn.__name__ for funcs in chains.values() for fn in funcs]
     assert "create" in names
@@ -387,7 +425,11 @@ def test_op_ctx_system_steps(sync_db_session):
         def ping(cls, ctx):
             return {}
 
+<<<<<<< HEAD
     _, router = setup_router(Widget, get_sync_db)
+=======
+    _, router = setup_api(Widget, get_sync_db)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     chains = build_phase_chains(Widget, "ping")
 
     assert chains["START_TX"]

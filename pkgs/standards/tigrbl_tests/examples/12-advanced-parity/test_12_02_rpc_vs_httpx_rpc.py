@@ -22,16 +22,26 @@ async def test_rpc_parity_with_httpx() -> None:
 
         name = Column(String, nullable=False)
 
+<<<<<<< HEAD
     router = TigrblRouter(engine=mem(async_=False))
     router.include_table(Widget)
+=======
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(Widget)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
     router.mount_jsonrpc(prefix="/rpc")
 
     app = TigrblApp()
+<<<<<<< HEAD
     app.include_router(router)
     app.attach_diagnostics(prefix="")
+=======
+    app.include_router(router.router)
+    router.attach_diagnostics(prefix="", app=app)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

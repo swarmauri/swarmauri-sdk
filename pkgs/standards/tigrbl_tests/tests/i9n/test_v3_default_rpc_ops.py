@@ -40,12 +40,21 @@ async def client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
+<<<<<<< HEAD
     app = TigrblApp()
     router = TigrblRouter(engine=mem(async_=False))
     router.include_table(Gadget, prefix="")
     router.mount_jsonrpc(prefix="/rpc")
     await router.initialize()
     app.include_router(router)
+=======
+    app = Tigrblv3()
+    router = Tigrblv3(engine=mem())
+    router.include_model(Gadget, prefix="")
+    router.mount_jsonrpc(prefix="/rpc")
+    await router.initialize()
+    app.include_router(router.router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
@@ -160,12 +169,21 @@ async def wrapper_field_client_and_model():
 
         __tigrbl_cols__ = {"id": id, "data": data}
 
+<<<<<<< HEAD
     app = TigrblApp()
     router = TigrblRouter(engine=mem(async_=False))
     router.include_table(WrapperNamed, prefix="")
     router.mount_jsonrpc(prefix="/rpc")
     await router.initialize()
     app.include_router(router)
+=======
+    app = Tigrblv3()
+    router = Tigrblv3(engine=mem())
+    router.include_model(WrapperNamed, prefix="")
+    router.mount_jsonrpc(prefix="/rpc")
+    await router.initialize()
+    app.include_router(router.router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
@@ -260,12 +278,21 @@ async def bulk_client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
+<<<<<<< HEAD
     app = TigrblApp()
     router = TigrblRouter(engine=mem(async_=False))
     router.include_table(Gadget, prefix="")
     router.mount_jsonrpc(prefix="/rpc")
     await router.initialize()
     app.include_router(router)
+=======
+    app = Tigrblv3()
+    router = Tigrblv3(engine=mem())
+    router.include_model(Gadget, prefix="")
+    router.mount_jsonrpc(prefix="/rpc")
+    await router.initialize()
+    app.include_router(router.router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:

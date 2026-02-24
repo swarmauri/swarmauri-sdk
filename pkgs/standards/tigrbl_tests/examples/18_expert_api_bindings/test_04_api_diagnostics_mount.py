@@ -11,42 +11,40 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
 
-def test_router_binding_mounts_diagnostics_router():
+def test_api_binding_mounts_diagnostics_router():
     """attach_diagnostics returns a router that can be mounted on an app."""
 
     class Widget(Base, GUIDPk):
-        __tablename__ = "lesson_router_diagnostics"
+        __tablename__ = "lesson_api_diagnostics"
         __allow_unmapped__ = True
 
         name = Column(String, nullable=False)
 
     router = TigrblRouter(engine=mem(async_=False))
-    router.include_table(Widget)
+    router.include_model(Widget)
 
     app = TigrblApp()
-    app.include_router(router)
-    app.attach_diagnostics()
+    router = router.attach_diagnostics(app=app)
 
     assert router is not None
 
 
-def test_router_diagnostics_mounts_on_app_namespace():
+def test_api_diagnostics_mounts_on_app_namespace():
     """Diagnostics mounting should attach routes to the host app."""
 
     class Widget(Base, GUIDPk):
-        __tablename__ = "lesson_router_diagnostics_host"
+        __tablename__ = "lesson_api_diagnostics_host"
         __allow_unmapped__ = True
 
         name = Column(String, nullable=False)
 
     router = TigrblRouter(engine=mem(async_=False))
-    router.include_table(Widget)
+    router.include_model(Widget)
 
     app = TigrblApp()
-    app.include_router(router)
-    app.attach_diagnostics()
+    router = router.attach_diagnostics(app=app)
 
     assert router is not None
     assert any(
-        route.path == f"{app.system_prefix}/healthz" for route in app.router.routes
+        route.path == f"{router.system_prefix}/healthz" for route in app.router.routes
     )

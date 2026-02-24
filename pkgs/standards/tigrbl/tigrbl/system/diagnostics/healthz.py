@@ -3,7 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable, Optional
 
-from .compat import Depends, JSONResponse, Request
+from ...responses import JSONResponse
+from ...types import Depends, Request
 from .utils import maybe_execute
 
 logger = logging.getLogger(__name__)

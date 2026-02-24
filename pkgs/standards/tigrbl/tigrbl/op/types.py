@@ -50,6 +50,68 @@ VerbAliasPolicy = Literal["both", "alias_only", "canonical_only"]  # legacy expo
 # ───────────────────────────────────────────────────────────────────────────────
 
 
+<<<<<<< HEAD
+=======
+@dataclass(frozen=True, slots=True)
+class OpSpec:
+    """
+    Single source of truth for an operation.
+
+    • `target` = canonical verb ("create"…,"custom")
+    • `arity`  = REST shape ("member"|"collection")
+
+    Serialization mode is inferred **only** from schema presence:
+      - if model.schemas.<alias>.out exists → serialize
+      - otherwise → raw pass-through
+
+    Optional engine binding:
+      - `engine` allows per-op routing (DSN string or structured mapping).
+        When present, it participates in resolver precedence (op > table > router > app).
+    """
+
+    # Identity & exposure
+    alias: str
+    target: TargetOp
+    table: Optional[type] = None
+    expose_routes: bool = True
+    expose_rpc: bool = True
+    expose_method: bool = True
+
+    # Optional per-op engine binding (DSN string or mapping spec)
+    engine: Optional[EngineCfg] = None
+
+    # HTTP behavior
+    arity: Arity = "collection"
+    http_methods: Optional[Tuple[str, ...]] = None
+    path_suffix: Optional[str] = None
+    tags: Tuple[str, ...] = field(default_factory=tuple)
+    status_code: Optional[int] = None
+    response: Optional[ResponseSpec] = None
+
+    # Persistence
+    persist: PersistPolicy = "default"
+
+    # Schema overrides (resolved later by binder)
+    request_model: Optional[SchemaArg] = None
+    response_model: Optional[SchemaArg] = None
+
+    # Return shaping: "raw" passthrough vs "model" serialization
+    returns: Literal["raw", "model"] = "raw"
+
+    # Handler & hooks
+    handler: Optional[StepFn] = None
+    hooks: Tuple[OpHook, ...] = field(default_factory=tuple)
+
+    # RBAC / diagnostics
+    rbac_guard_op: Optional[str] = None
+    core: Optional[StepFn] = None
+    core_raw: Optional[StepFn] = None
+    extra: Mapping[str, Any] = field(default_factory=dict)
+    deps: Tuple[StepFn | str, ...] = field(default_factory=tuple)
+    secdeps: Tuple[StepFn | str, ...] = field(default_factory=tuple)
+
+
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 # Canonical verb set
 CANON: Tuple[TargetOp, ...] = cast(Tuple[TargetOp, ...], CANONICAL_VERB_TUPLE)
 

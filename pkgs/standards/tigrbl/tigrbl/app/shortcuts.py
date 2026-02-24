@@ -1,6 +1,6 @@
-# tigrbl/tigrbl/v3/app/shortcuts.py
 from __future__ import annotations
 
+<<<<<<< HEAD
 from typing import Any, Sequence, Type
 
 from .app_spec import AppSpec
@@ -63,3 +63,6 @@ def deriveApp(**kw: Any) -> Type[App]:
 
 
 __all__ = ["defineAppSpec", "deriveApp"]
+=======
+from ..shortcuts.app import *  # noqa: F401,F403
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

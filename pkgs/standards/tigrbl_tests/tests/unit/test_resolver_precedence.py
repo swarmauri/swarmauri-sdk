@@ -19,8 +19,13 @@ def test_precedence_op_over_model_over_router_over_app(tmp_path):
 
     # Register in resolver
     resolver.set_default(sqlitef(str(tmp_path / "app.sqlite")))
+<<<<<<< HEAD
     resolver.register_router(
         router, {"kind": "postgres", "async": False, "host": "db", "db": "router_db"}
+=======
+    resolver.register_api(
+        router, {"kind": "postgres", "async": False, "host": "db", "db": "api_db"}
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     )
     resolver.register_table(Model, {"kind": "sqlite", "async": False, "mode": "memory"})
     resolver.register_op(
@@ -31,7 +36,11 @@ def test_precedence_op_over_model_over_router_over_app(tmp_path):
 
     # Resolve each level
     p_app = resolver.resolve_provider()
+<<<<<<< HEAD
     p_router = resolver.resolve_provider(router=router)
+=======
+    p_api = resolver.resolve_provider(router=router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     p_model = resolver.resolve_provider(model=Model)
     p_op = resolver.resolve_provider(model=Model, op_alias="create")
 

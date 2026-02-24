@@ -1,32 +1,9 @@
+<<<<<<< HEAD
 """Decorators for attaching middleware specs to apps/routers."""
+=======
+"""Compatibility wrapper for middleware decorators."""
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any
-
-
-@dataclass(frozen=True)
-class MiddlewareConfig:
-    cls: Any
-    kwargs: dict[str, Any]
-
-
-def middleware(middleware_class: Any, /, **kwargs: Any) -> MiddlewareConfig:
-    """Build declarative middleware config objects for ``MIDDLEWARES``."""
-
-    return MiddlewareConfig(cls=middleware_class, kwargs=kwargs)
-
-
-def middlewares(*configs: MiddlewareConfig):
-    """Attach middleware configs to class-level ``MIDDLEWARES``."""
-
-    def _decorator(target: Any) -> Any:
-        current = tuple(getattr(target, "MIDDLEWARES", ()))
-        setattr(target, "MIDDLEWARES", current + tuple(configs))
-        return target
-
-    return _decorator
-
-
-__all__ = ["MiddlewareConfig", "middleware", "middlewares"]
+from ..decorators.middlewares import *  # noqa: F401,F403

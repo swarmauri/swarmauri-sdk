@@ -59,19 +59,25 @@ async def _run_chain(
 ) -> None:
     if not chain:
         return
-    if _trace is not None:
-        with _trace.span(ctx, f"phase:{phase}"):
-            for step in chain:
-                rv = step(ctx)
-                rv = await _maybe_await(rv)
-                if rv is not None:
-                    ctx.result = rv
-        return
-    for step in chain:
-        rv = step(ctx)
-        rv = await _maybe_await(rv)
-        if rv is not None:
-            ctx.result = rv
+
+    for idx, step in enumerate(chain):
+        label = getattr(step, "__tigrbl_label", None)
+        if not isinstance(label, str) or not label:
+            label = f"phase:{phase}:step:{idx}"
+
+        seq = _trace.start(ctx, label) if _trace is not None else None
+        try:
+            rv = step(ctx)
+            rv = await _maybe_await(rv)
+            if rv is not None:
+                ctx.result = rv
+            if _trace is not None:
+                _trace.end(ctx, seq, status=_trace.OK)
+        except Exception as exc:
+            if _trace is not None:
+                _trace.attach_error(ctx, seq, exc)
+                _trace.end(ctx, seq, status=_trace.ERROR)
+            raise
 
 
 def _g(phases: Optional[PhaseChains], key: str) -> Sequence[HandlerStep]:

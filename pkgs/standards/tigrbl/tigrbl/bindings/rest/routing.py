@@ -1,25 +1,17 @@
 from __future__ import annotations
-import inspect
 import logging
 
 from types import SimpleNamespace
 from typing import Any, Dict, Optional, Sequence, Tuple
 
 
-from ...runtime.status.exceptions import HTTPException
 from ...runtime.status.mappings import status as _status
-from ...security.dependencies import Depends, Security
-from ...requests import Request
+from ...security.dependencies import Depends
 from ...op import OpSpec
-from ...security import HTTPBearer
 from ...op.types import CANON
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/routing")
-
-
-def _is_http_bearer_dependency(dep: Any) -> bool:
-    return isinstance(dep, HTTPBearer)
 
 
 def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:
@@ -31,35 +23,6 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:
         is_dep_obj = getattr(d, "dependency", None) is not None
         out.append(d if is_dep_obj else Depends(d))
     return out
-
-
-def _normalize_secdeps(secdeps: Optional[Sequence[Any]]) -> list[Any]:
-    """Turn callables into Security(...) unless already a dependency object."""
-    if not secdeps:
-        return []
-    out: list[Any] = []
-    for d in secdeps:
-        is_dep_obj = getattr(d, "dependency", None) is not None
-        out.append(d if is_dep_obj else Security(d))
-    return out
-
-
-def _requires_auth_header(auth_dep: Any) -> bool:
-    try:
-        sig = inspect.signature(auth_dep)
-    except (TypeError, ValueError):
-        return False
-    for param in sig.parameters.values():
-        default = param.default
-        dep = getattr(default, "dependency", None)
-        if _is_http_bearer_dependency(dep) and getattr(dep, "auto_error", True):
-            return True
-    return False
-
-
-def _require_auth_header(request: Request) -> None:
-    if not request.headers.get("authorization"):
-        raise HTTPException(status_code=_status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
 
 def _status_for(sp: OpSpec) -> int:

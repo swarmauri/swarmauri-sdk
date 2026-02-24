@@ -11,7 +11,7 @@ def _build_app():
         name = Column(String, nullable=False)
 
     app = TigrblApp(engine=mem(async_=False))
-    app.include_table(Widget)
+    app.include_model(Widget)
     app.initialize()
     app.mount_jsonrpc()
     return app, Widget
@@ -48,11 +48,7 @@ def test_openrpc_includes_method_schema():
         payload = client.get("/openrpc.json").json()
         methods = {method["name"]: method for method in payload["methods"]}
 
-        create_method = methods.get(f"{model.__name__}.create")
-        if create_method is None:
-            assert payload["methods"] == []
-            return
-
+        create_method = methods[f"{model.__name__}.create"]
         assert create_method["paramStructure"] == "by-name"
 
         params = create_method["params"][0]["schema"]
@@ -125,21 +121,18 @@ def test_mount_lens_uses_latest_openrpc_path_by_default() -> None:
     assert "/schema/openrpc.json" in html
 
 
-def test_openrpc_server_url_respects_router_mount_jsonrpc_prefix_argument():
+def test_openrpc_server_url_respects_api_mount_jsonrpc_prefix_argument():
     class Widget(Base, GUIDPk):
-        __tablename__ = "widgets_openrpc_router_mount_prefix"
+        __tablename__ = "widgets_openrpc_api_mount_prefix"
         name = Column(String, nullable=False)
 
     router = TigrblRouter(engine=mem(async_=False))
-    router.include_table(Widget)
+    router.include_model(Widget)
     router.initialize()
     router.mount_jsonrpc(prefix="/jsonrpc")
     router.mount_openrpc()
 
-    app = TigrblApp()
-    app.include_router(router.router)
-
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=router)
     with Client(transport=transport, base_url="http://test") as client:
         payload = client.get("/openrpc.json").json()
 

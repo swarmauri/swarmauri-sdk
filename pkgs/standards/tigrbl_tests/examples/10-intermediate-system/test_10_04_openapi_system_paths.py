@@ -20,16 +20,26 @@ async def test_openapi_system_paths() -> None:
 
         name = Column(String, nullable=False)
 
+<<<<<<< HEAD
     router = TigrblRouter(engine=mem(async_=False), system_prefix="/systemz")
     router.include_table(Widget)
+=======
+    router = TigrblApp(engine=mem(async_=False), system_prefix="/systemz")
+    router.include_model(Widget)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
 
     app = TigrblApp()
     app.include_router(router)
+<<<<<<< HEAD
     app.attach_diagnostics(prefix="")
     app.attach_diagnostics(prefix="/systemz", app=app)
+=======
+    router.attach_diagnostics(prefix="", app=app)
+    router.attach_diagnostics(prefix="/systemz", app=app)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

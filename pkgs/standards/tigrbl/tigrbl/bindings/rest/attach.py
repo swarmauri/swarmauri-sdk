@@ -23,7 +23,11 @@ def build_router_and_attach(
     For simplicity and correctness with ASGI, we **rebuild the entire router**
     on each call (ASGI does not support removing individual routes cleanly).
     """
+<<<<<<< HEAD
     built_router = _build_router(model, specs, router=router)
+=======
+    router = _build_router(model, specs, router=router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     rest_ns = getattr(model, "rest", None) or SimpleNamespace()
     rest_ns.router = built_router
     setattr(model, "rest", rest_ns)
