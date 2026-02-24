@@ -1,4 +1,4 @@
-from tigrbl import Router, engine_ctx, TigrblApp
+from tigrbl import Router, TigrblApp, engine_ctx
 
 
 def test_engine_ctx_binding_on_function_sets_attributes():
