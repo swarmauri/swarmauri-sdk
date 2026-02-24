@@ -286,12 +286,18 @@ def initialize(
             existing = getattr(obj, "tables", None)
             if isinstance(existing, dict):
                 for k, v in tables_map.items():
-                    existing.setdefault(k, v)
+                    current = existing.get(k)
+                    if hasattr(current, "__table__"):
+                        existing[k] = getattr(current, "__table__", v)
+                    else:
+                        existing.setdefault(k, v)
             elif existing is not None:
                 for k, v in tables_map.items():
-                    if hasattr(existing, k):
-                        continue
-                    setattr(existing, k, v)
+                    current = getattr(existing, k, None)
+                    if hasattr(current, "__table__"):
+                        setattr(existing, k, getattr(current, "__table__", v))
+                    elif not hasattr(existing, k):
+                        setattr(existing, k, v)
             else:
                 setattr(obj, "tables", SimpleNamespace(**tables_map))
 
