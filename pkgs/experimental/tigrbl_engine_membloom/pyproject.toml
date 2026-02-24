@@ -1,0 +1,45 @@
+[project]
+name = "tigrbl_engine_membloom"
+version = "0.1.0"
+description = "Process-local Bloom filter engine plugin for Tigrbl with optional rotating-window TTL semantics."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+classifiers = [
+  "Development Status :: 1 - Planning",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Environment :: Plugins",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Libraries",
+]
+keywords = [
+  "tigrbl",
+  "engine",
+  "plugin",
+  "bloom",
+  "membership",
+  "idempotency",
+  "dedupe",
+]
+dependencies = ["tigrbl>=0.1.0"]
+
+[project.entry-points."tigrbl.engine"]
+membloom = "tigrbl_engine_membloom.plugin:register"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["tigrbl_engine_membloom*"]
