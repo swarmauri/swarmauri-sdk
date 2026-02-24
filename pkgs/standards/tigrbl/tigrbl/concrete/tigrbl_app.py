@@ -157,6 +157,19 @@ class TigrblApp(_App):
         if initial_routers:
             self.include_routers(initial_routers)
 
+        declared_table_models = []
+        seen_declared_table_ids: set[int] = set()
+        for model in self._table_registry.values():
+            if not isinstance(model, type):
+                continue
+            model_id = id(model)
+            if model_id in seen_declared_table_ids:
+                continue
+            seen_declared_table_ids.add(model_id)
+            declared_table_models.append(model)
+        if declared_table_models:
+            self.include_tables(declared_table_models)
+
         if (
             self._has_local_op_declarations()
             and self.__class__.__name__ not in self._table_registry
