@@ -10,7 +10,7 @@ from tigrbl.types import uuid4
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import IO, S, acol
-from tigrbl.mapping import (
+from tigrbl.bindings import (
     bind,
     include_table,
     include_tables,

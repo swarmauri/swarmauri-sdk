@@ -21,10 +21,11 @@ def test_router_binding_mounts_diagnostics_router():
         name = Column(String, nullable=False)
 
     router = TigrblRouter(engine=mem(async_=False))
-    router.include_model(Widget)
+    router.include_table(Widget)
 
     app = TigrblApp()
-    router = router.attach_diagnostics(app=app)
+    app.include_router(router)
+    app.attach_diagnostics()
 
     assert router is not None
 
@@ -39,12 +40,13 @@ def test_router_diagnostics_mounts_on_app_namespace():
         name = Column(String, nullable=False)
 
     router = TigrblRouter(engine=mem(async_=False))
-    router.include_model(Widget)
+    router.include_table(Widget)
 
     app = TigrblApp()
-    router = router.attach_diagnostics(app=app)
+    app.include_router(router)
+    app.attach_diagnostics()
 
     assert router is not None
     assert any(
-        route.path == f"{router.system_prefix}/healthz" for route in app.router.routes
+        route.path == f"{app.system_prefix}/healthz" for route in app.router.routes
     )

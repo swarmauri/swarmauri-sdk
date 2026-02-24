@@ -8,9 +8,9 @@ from sqlalchemy.orm import Mapped, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from tigrbl.engine.shortcuts import engine as engine_factory, mem
-from tigrbl.mapping.model import bind
-from tigrbl.mapping.rest.router import _build_router
-from tigrbl.mapping.rpc import register_and_attach
+from tigrbl.bindings.model import bind
+from tigrbl.bindings.rest.router import _build_router
+from tigrbl.bindings.rpc import register_and_attach
 from tigrbl.op import OpSpec
 from tigrbl.runtime.atoms.resolve import assemble
 from tigrbl.runtime.atoms.schema import collect_in, collect_out

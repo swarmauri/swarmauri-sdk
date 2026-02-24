@@ -5,6 +5,8 @@ This example demonstrates how to configure authn dependencies on both
 and confirm OpenAPI reflects security requirements on a per-route basis.
 """
 
+from tigrbl.security import Security
+
 import inspect
 
 import httpx
@@ -13,10 +15,10 @@ from tigrbl.responses import JSONResponse
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblRouter, TigrblApp
+from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Column, Security, String
+from tigrbl.types import Column, String
 
 
 @pytest.mark.asyncio
@@ -47,7 +49,7 @@ async def test_openapi_security_from_app_authn_dependency() -> None:
     # Instantiation: build the app, apply authn, and include the model.
     app = TigrblApp(engine=mem(async_=False))
     app.set_auth(authn=authn_dependency)
-    app.include_model(SecureWidget)
+    app.include_table(SecureWidget)
 
     # Deployment: initialize storage and run the app with Uvicorn.
     init_result = app.initialize()
@@ -100,21 +102,27 @@ async def test_openapi_security_from_router_authn_dependency() -> None:
     # Instantiation: build the API, apply authn, and include the model.
     router = TigrblRouter(engine=mem(async_=False))
     router.set_auth(authn=authn_dependency)
-    router.include_model(SecureApiWidget)
+    router.include_table(SecureApiWidget)
 
-    # Deployment: initialize storage, attach OpenAPI, and run with Uvicorn.
+    # Deployment: initialize storage, attach OpenAPI, mount router, and run with Uvicorn.
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
 
-    # Deployment: add an OpenAPI endpoint directly on the router-only API.
-    def openapi_endpoint(_request) -> JSONResponse:
-        return JSONResponse(router.openapi())
+    # Deployment: mount the router in an app and expose OpenAPI on the host app.
+    app = TigrblApp()
+    app.include_router(router)
 
-    router.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
+    def openapi_endpoint(_request) -> JSONResponse:
+        return JSONResponse(app.openapi())
+
+    app.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
+
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_router(router)
 
     port = pick_unique_port()
-    base_url, server, task = await start_uvicorn(router, port=port)
+    base_url, server, task = await start_uvicorn(app, port=port)
 
     # Usage: request the OpenAPI schema from the running API.
     async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:

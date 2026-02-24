@@ -8,7 +8,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
 
-from tigrbl.mapping.model import bind
+from tigrbl.bindings.model import bind
 from tigrbl.hook import hook_ctx
 from tigrbl.op.types import PHASES
 from tigrbl.runtime import system as runtime_system

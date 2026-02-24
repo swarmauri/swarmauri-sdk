@@ -13,7 +13,7 @@ from tigrbl.runtime.kernel import _default_kernel
 from tigrbl.runtime.kernel.payload import build_kernelz_payload
 from tigrbl.runtime.status import _RPC_TO_HTTP
 from tigrbl.runtime.status.exceptions import HTTPException
-from tigrbl.mapping.rpc import _serialize_output as _rpc_serialize_output
+from tigrbl.bindings.rpc import _serialize_output as _rpc_serialize_output
 from tigrbl.transport.dispatch import dispatch_operation
 from tigrbl.transport.jsonrpc.dispatcher import _dispatch_one
 

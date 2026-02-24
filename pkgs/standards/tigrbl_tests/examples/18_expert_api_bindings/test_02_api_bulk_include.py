@@ -28,7 +28,7 @@ def test_router_binding_includes_multiple_models():
 
     router = TigrblRouter(engine=mem(async_=False))
 
-    router.include_models([Widget, Gadget])
+    router.include_tables([Widget, Gadget])
 
     assert {Widget.__name__, Gadget.__name__}.issubset(router.models)
 
@@ -50,7 +50,7 @@ def test_bulk_include_populates_schema_namespaces():
 
     router = TigrblRouter(engine=mem(async_=False))
 
-    router.include_models([Widget, Gadget])
+    router.include_tables([Widget, Gadget])
 
     assert hasattr(router.schemas, Widget.__name__)
     assert hasattr(router.schemas, Gadget.__name__)

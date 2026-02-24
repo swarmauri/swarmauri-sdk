@@ -9,14 +9,14 @@ from tigrbl.types import (
     String,
 )
 
-import tigrbl.mapping.columns as columns_binding
-import tigrbl.mapping.handlers as handlers_binding
-import tigrbl.mapping.hooks as hooks_binding
-import tigrbl.mapping.model as model_binding
-import tigrbl.mapping.rest as rest_binding
-import tigrbl.mapping.router as router_binding
-import tigrbl.mapping.rpc as rpc_binding
-from tigrbl.mapping.schemas import build_and_attach as schemas_build_and_attach
+import tigrbl.bindings.columns as columns_binding
+import tigrbl.bindings.handlers as handlers_binding
+import tigrbl.bindings.hooks as hooks_binding
+import tigrbl.bindings.model as model_binding
+import tigrbl.bindings.rest as rest_binding
+import tigrbl.bindings.router as router_binding
+import tigrbl.bindings.rpc as rpc_binding
+from tigrbl.bindings.schemas import build_and_attach as schemas_build_and_attach
 from tigrbl.specs import ColumnSpec, F, IO, S
 from tigrbl.op import resolve
 from tigrbl.runtime import executor as _executor

@@ -36,15 +36,17 @@ class BetaWidget(Base, GUIDPk):
 @pytest_asyncio.fixture()
 async def running_multi_router_app():
     engine = mem(async_=False)
-    alpha_api = TigrblRouter(engine=engine)
-    alpha_api.include_model(AlphaWidget)
 
-    beta_api = TigrblRouter(engine=engine)
-    beta_api.include_model(BetaWidget)
+    app = TigrblApp(engine=engine)
 
-    app = TigrblApp(engine=engine, apis=[alpha_api])
-    app.include_router(beta_api, prefix="/beta")
-    app.include_router(alpha_api.router, prefix="/alpha")
+    router = TigrblRouter(engine=engine)
+    router.include_table(AlphaWidget)
+    app.include_router(router.router, prefix="/alpha")
+
+    router = TigrblRouter(engine=engine)
+    router.include_table(BetaWidget)
+    app.include_router(router, prefix="/beta")
+
     await app.initialize()
 
     base_url, server, task = await run_uvicorn_in_task(app)
@@ -56,7 +58,7 @@ async def running_multi_router_app():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_app_routes_alpha_api(running_multi_router_app):
+async def test_tigrbl_app_routes_alpha_router(running_multi_router_app):
     async with httpx.AsyncClient() as client:
         response = await client.post(
             f"{running_multi_router_app}/alpha/alpha-widget", json={"name": "ace"}
@@ -69,7 +71,7 @@ async def test_tigrbl_app_routes_alpha_api(running_multi_router_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_app_routes_beta_api(running_multi_router_app):
+async def test_tigrbl_app_routes_beta_router(running_multi_router_app):
     async with httpx.AsyncClient() as client:
         response = await client.post(
             f"{running_multi_router_app}/beta/beta-widget", json={"name": "bolt"}

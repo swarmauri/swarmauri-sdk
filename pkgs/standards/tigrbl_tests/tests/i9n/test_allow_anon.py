@@ -118,11 +118,13 @@ def test_allow_anon_list_and_read():
             db.add(item)
             db.commit()
             db.refresh(item)
+            tid = str(tenant.id)
             iid = str(item.id)
         assert client.get("/item").status_code == 200
         assert client.get(f"/item/{iid}").status_code == 200
         # Requests without credentials are rejected for non-whitelisted routes.
-        assert client.delete(f"/item/{iid}").status_code == 409
+        payload = {"id": str(uuid4()), "tenant_id": tid, "name": "new"}
+        assert client.post("/item", json=payload).status_code == 409
     finally:
         client.close()
 
@@ -246,9 +248,11 @@ def test_allow_anon_list_and_read_attr():
             db.add(item)
             db.commit()
             db.refresh(item)
+            tid = str(tenant.id)
             iid = str(item.id)
         assert client.get("/item").status_code == 200
         assert client.get(f"/item/{iid}").status_code == 200
-        assert client.delete(f"/item/{iid}").status_code == 409
+        payload = {"id": str(uuid4()), "tenant_id": tid, "name": "new"}
+        assert client.post("/item", json=payload).status_code == 409
     finally:
         client.close()

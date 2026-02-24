@@ -23,7 +23,7 @@ def test_router_binding_attaches_namespaces():
 
     router = TigrblRouter(engine=mem(async_=False))
 
-    router.include_model(Widget)
+    router.include_table(Widget)
 
     assert hasattr(router.schemas, Widget.__name__)
     assert hasattr(router.handlers, Widget.__name__)
@@ -40,7 +40,7 @@ def test_router_namespace_entries_are_model_scoped():
 
     router = TigrblRouter(engine=mem(async_=False))
 
-    router.include_model(Widget)
+    router.include_table(Widget)
 
     assert Widget.__name__ in router.schemas.__dict__
     assert Widget.__name__ in router.handlers.__dict__

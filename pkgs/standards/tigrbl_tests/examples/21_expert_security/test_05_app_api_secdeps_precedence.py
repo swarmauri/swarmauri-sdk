@@ -5,6 +5,8 @@ combine when the API is mounted on the app, including shared scheme names that
 show OpenAPI precedence behavior.
 """
 
+from tigrbl.security import Security
+
 import inspect
 
 import httpx
@@ -15,7 +17,7 @@ from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Column, Security, String
+from tigrbl.types import Column, String
 
 
 @pytest.mark.asyncio
@@ -30,7 +32,7 @@ async def test_openapi_security_from_app_and_router_deps() -> None:
     shared_app_scheme = HTTPBearer(scheme_name="SharedToken")
     shared_router_scheme = HTTPBearer(scheme_name="SharedToken")
     app_only_scheme = HTTPBearer(scheme_name="AppOnly")
-    api_only_scheme = HTTPBearer(scheme_name="ApiOnly")
+    router_only_scheme = HTTPBearer(scheme_name="ApiOnly")
 
     # Configuration: declare a model to mount on the API.
     class CombinedSecdepsWidget(Base, GUIDPk):
@@ -40,14 +42,14 @@ async def test_openapi_security_from_app_and_router_deps() -> None:
         name = Column(String, nullable=False)
 
     # Instantiation: define the API with two security deps (shared + router-only).
-    class SecuredRouter(TigrblRouter):
+    class SecuredApi(TigrblRouter):
         SECURITY_DEPS = (
             Security(shared_router_scheme),
-            Security(api_only_scheme),
+            Security(router_only_scheme),
         )
 
-    router = SecuredRouter(engine=mem(async_=False))
-    router.include_model(CombinedSecdepsWidget)
+    router = SecuredApi(engine=mem(async_=False))
+    router.include_table(CombinedSecdepsWidget)
 
     # Instantiation: build the app with two security deps (shared + app-only).
     app = TigrblApp(

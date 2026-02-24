@@ -4,7 +4,6 @@ import pytest_asyncio
 
 from tigrbl import Base, TigrblRouter
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
-from tigrbl.types import Security
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -13,6 +12,8 @@ from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
+
+from tigrbl.security import Security
 
 bearer = HTTPBearer()
 
@@ -50,11 +51,11 @@ class Beta(Base, GUIDPk):
 
 
 @pytest_asyncio.fixture()
-async def running_api():
+async def running_app():
     app = TigrblApp()
     router = TigrblRouter(engine=mem(async_=False))
     router.set_auth(authn=auth_dependency, allow_anon=False)
-    router.include_models([Alpha, Beta])
+    router.include_tables([Alpha, Beta])
     router.initialize()
     app.include_router(router)
 
@@ -67,8 +68,8 @@ async def running_api():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_router_deploys_and_serves_openapi(running_api) -> None:
-    base_url = running_api
+async def test_tigrbl_router_deploys_and_serves_openapi(running_app) -> None:
+    base_url = running_app
 
     async with httpx.AsyncClient() as client:
         openapi_resp = await client.get(f"{base_url}/openapi.json")
@@ -90,8 +91,8 @@ async def test_tigrbl_router_deploys_and_serves_openapi(running_api) -> None:
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_router_handles_authenticated_request(running_api) -> None:
-    base_url = running_api
+async def test_tigrbl_router_handles_authenticated_request(running_app) -> None:
+    base_url = running_app
     headers = {"Authorization": "Bearer demo"}
 
     async with httpx.AsyncClient() as client:

@@ -1,7 +1,6 @@
 from httpx import ASGITransport, Client
 import pytest
 
-
 from tigrbl import TigrblApp
 from tigrbl.responses import Response
 
