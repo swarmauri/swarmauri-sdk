@@ -254,7 +254,7 @@ async def test_cors_middleware_accepts_list_origins_and_regex() -> None:
             "method": "GET",
             "path": "/",
             "query_string": b"",
-            "headers": [(b"origin", b"https://api.trusted.example")],
+            "headers": [(b"origin", b"https://router.trusted.example")],
         },
     )
     regex_headers = {
@@ -263,4 +263,6 @@ async def test_cors_middleware_accepts_list_origins_and_regex() -> None:
             m for m in regex_allowed if m["type"] == "http.response.start"
         )["headers"]
     }
-    assert regex_headers["access-control-allow-origin"] == "https://api.trusted.example"
+    assert (
+        regex_headers["access-control-allow-origin"] == "https://router.trusted.example"
+    )

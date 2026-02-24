@@ -1,8 +1,10 @@
-from __future__ import annotations
+"""Backwards-compatible session spec import path."""
 
-from dataclasses import dataclass, fields
-from typing import Any, Mapping, MutableMapping, Optional, Union
+from ..specs.session_spec import SessionCfg, SessionSpec
 
+<<<<<<< HEAD
+__all__ = ["SessionCfg", "SessionSpec"]
+=======
 SessionCfg = Union["SessionSpec", Mapping[str, Any], None]
 
 
@@ -110,3 +112,4 @@ class SessionSpec:
             allowed = {f.name for f in fields(SessionSpec)}
             return SessionSpec(**{k: v for k, v in m.items() if k in allowed})
         raise TypeError(f"Unsupported SessionSpec input: {type(x)}")
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

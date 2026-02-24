@@ -149,6 +149,7 @@ async def test_document_versions_one_to_many() -> None:
         )
 
     # Deployment: build the API and include the version table for migrations.
+<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     app.include_tables([Document, DocumentVersion])
     init_result = app.initialize()
@@ -159,6 +160,18 @@ async def test_document_versions_one_to_many() -> None:
     router = TigrblRouter()
     app.include_router(router)
     app.attach_diagnostics(prefix="", app=app)
+=======
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_models([Document, DocumentVersion])
+    init_result = router.initialize()
+    if inspect.isawaitable(init_result):
+        await init_result
+    router.mount_jsonrpc(prefix="/rpc")
+
+    app = TigrblApp()
+    app.include_router(router.router)
+    router.attach_diagnostics(prefix="", app=app)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

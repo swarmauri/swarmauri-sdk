@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+<<<<<<< HEAD
 import base64
 import json
 import mimetypes
@@ -163,3 +164,6 @@ __all__ = [
     "as_stream",
     "as_file",
 ]
+=======
+from ..shortcuts.responses import *  # noqa: F401,F403
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

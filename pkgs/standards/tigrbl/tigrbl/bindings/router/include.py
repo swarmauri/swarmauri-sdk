@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any, Dict, Sequence, Tuple
 
@@ -16,7 +17,6 @@ from .resource_proxy import _ResourceProxy
 from .. import model as _binder
 from ...config.constants import (
     TIGRBL_AUTH_DEP_ATTR,
-    TIGRBL_AUTHORIZE_ATTR,
     TIGRBL_GET_DB_ATTR,
     TIGRBL_REST_DEPENDENCIES_ATTR,
     TIGRBL_RPC_DEPENDENCIES_ATTR,
@@ -44,10 +44,9 @@ def _coerce_model_columns(columns: Any) -> Tuple[str, ...]:
 # --- keep as helper, no behavior change to transports/kernel ---
 def _seed_security_and_deps(router: Any, model: type) -> None:
     """
-    Copy ROUTER-level dependency hooks onto the model so downstream binders can use them.
+    Copy API-level dependency hooks onto the model so downstream binders can use them.
     - __tigrbl_get_db__             : DB dep (ASGI Depends-compatible)
     - __tigrbl_auth_dep__           : auth dependency (returns user or raises 401)
-    - __tigrbl_authorize__          : callable(request, model, alias, payload, user)→None/raise 403
     - __tigrbl_rest_dependencies__  : list of extra dependencies for REST (e.g., rate-limits)
     - __tigrbl_rpc_dependencies__   : list of extra dependencies for JSON-RPC router
     """
@@ -79,25 +78,53 @@ def _seed_security_and_deps(router: Any, model: type) -> None:
 
     # Allow anonymous verbs
     allow_attr = getattr(model, TIGRBL_ALLOW_ANON_ATTR, None)
+    allow_anon: set[Any] = set()
     if allow_attr:
         verbs = allow_attr() if callable(allow_attr) else allow_attr
+        allow_anon = set(verbs or ())
         logger.debug("Allowing anonymous verbs %s for %s", verbs, model.__name__)
         for v in verbs:
             router._allow_anon_ops.add(f"{model.__name__}.{v}")
     else:
         logger.debug("No anonymous verbs for %s", model.__name__)
 
-    # Authz
-    if getattr(router, "_authorize", None):
-        setattr(model, TIGRBL_AUTHORIZE_ATTR, router._authorize)
-        logger.debug("Authorization hook attached for %s", model.__name__)
+    runtime_secdeps: tuple[Any, ...] = ()
+    if auth_dep is not None:
+        runtime_secdeps = runtime_secdeps + (auth_dep,)
+
+    authorize_dep = _make_authorize_secdep(router)
+    if authorize_dep is not None:
+        runtime_secdeps = runtime_secdeps + (authorize_dep,)
+
+    # Runtime-only security: push API/model authz deps into OpSpec.secdeps so
+    # enforcement happens in PRE_TX_BEGIN atoms instead of transport deps.
+    if runtime_secdeps:
+        declared_ops = tuple(getattr(model, "__tigrbl_ops__", ()) or ())
+        if declared_ops:
+            patched = []
+            changed = False
+            for sp in declared_ops:
+                exempt = sp.alias in allow_anon or sp.target in allow_anon
+                if exempt:
+                    patched.append(sp)
+                    continue
+                secdeps = tuple(getattr(sp, "secdeps", ()) or ())
+                missing = tuple(dep for dep in runtime_secdeps if dep not in secdeps)
+                if not missing:
+                    patched.append(sp)
+                    continue
+                patched.append(replace(sp, secdeps=((*missing, *secdeps))))
+                changed = True
+            if changed:
+                setattr(model, "__tigrbl_ops__", tuple(patched))
+
+    if authorize_dep is not None:
+        logger.debug("Authorization secdep attached for %s", model.__name__)
     else:
-        logger.debug("No authorization hook for %s", model.__name__)
+        logger.debug("No authorization secdep for %s", model.__name__)
 
     # Extra deps (router-level only; never part of kernel plan)
     rest_deps: list[Any] = []
-    if getattr(router, "security_deps", None):
-        rest_deps.extend(list(getattr(router, "security_deps", ()) or ()))
     if getattr(router, "rest_dependencies", None):
         rest_deps.extend(list(router.rest_dependencies))
     if rest_deps:
@@ -110,6 +137,65 @@ def _seed_security_and_deps(router: Any, model: type) -> None:
         logger.debug("RPC dependencies seeded for %s", model.__name__)
     else:
         logger.debug("No RPC dependencies for %s", model.__name__)
+
+
+def _inject_runtime_secdeps(
+    model: type, runtime_secdeps: tuple[Any, ...], allow_anon: set[Any]
+) -> None:
+    if not runtime_secdeps:
+        return
+    ops_ns = getattr(model, "ops", None)
+    by_alias = getattr(ops_ns, "by_alias", None)
+    if not isinstance(by_alias, dict):
+        return
+
+    for alias, specs in list(by_alias.items()):
+        patched_specs = []
+        changed = False
+        for sp in tuple(specs or ()):  # type: ignore[arg-type]
+            exempt = sp.alias in allow_anon or sp.target in allow_anon
+            if exempt:
+                patched_specs.append(sp)
+                continue
+            secdeps = tuple(getattr(sp, "secdeps", ()) or ())
+            missing = tuple(dep for dep in runtime_secdeps if dep not in secdeps)
+            if not missing:
+                patched_specs.append(sp)
+                continue
+            patched_specs.append(replace(sp, secdeps=((*missing, *secdeps))))
+            changed = True
+        if changed:
+            by_alias[alias] = tuple(patched_specs)
+
+
+def _make_authorize_secdep(router: Any) -> Any | None:
+    authorize = getattr(router, "_authorize", None)
+    if not callable(authorize):
+        return None
+
+    async def _authorize_secdep(ctx: Any) -> None:
+        request = getattr(ctx, "request", None) or ctx.get("request")
+        model = getattr(ctx, "model", None) or ctx.get("model")
+        alias = getattr(ctx, "op", None) or ctx.get("op") or ctx.get("method")
+        payload = getattr(ctx, "payload", None) or ctx.get("payload")
+        user = (
+            getattr(ctx, "auth_context", None)
+            or ctx.get("auth_context")
+            or getattr(getattr(request, "state", None), "user", None)
+            if request is not None
+            else None
+        )
+
+        rv = authorize(request, model, alias, payload, user)
+        if hasattr(rv, "__await__"):
+            rv = await rv
+        if rv is False:
+            from ...errors import ForbiddenError
+
+            raise ForbiddenError("Forbidden")
+
+    setattr(_authorize_secdep, "__tigrbl_dep_name__", "security.authorize")
+    return _authorize_secdep
 
 
 def _attach_to_router(router: RouterLike, model: type) -> None:
@@ -154,7 +240,7 @@ def _attach_to_router(router: RouterLike, model: type) -> None:
     router.columns[mname] = _coerce_model_columns(getattr(model, "columns", ()))
     router.table_config[mname] = dict(getattr(model, "table_config", {}) or {})
 
-    # Core helper proxies (now aware of ROUTER for DB resolution precedence)
+    # Core helper proxies (now aware of API for DB resolution precedence)
     core_proxy = _ResourceProxy(model, router=router)
     setattr(router.core, mname, core_proxy)
     if rtitle != mname:
@@ -165,7 +251,7 @@ def _attach_to_router(router: RouterLike, model: type) -> None:
         setattr(router.core_raw, rtitle, core_raw_proxy)
 
 
-def include_table(
+def include_model(
     router: RouterLike,
     model: type,
     *,
@@ -190,7 +276,7 @@ def include_table(
     Returns:
         (model, router) – the model class and its Router (or None if not present).
     """
-    logger.debug("Including table %s", model.__name__)
+    logger.debug("Including model %s", model.__name__)
 
     # If another test or call disposed the SQLAlchemy registry, previously
     # imported models lose their table mapping.  Re-map on demand so tests that
@@ -212,6 +298,13 @@ def include_table(
     # 1) Build/bind model namespaces (idempotent)
     _binder.bind(model, router=router)
 
+    auth_dep = getattr(model, TIGRBL_AUTH_DEP_ATTR, None)
+    authorize_dep = _make_authorize_secdep(router)
+    runtime_secdeps = tuple(d for d in (auth_dep, authorize_dep) if d is not None)
+    allow_attr = getattr(model, TIGRBL_ALLOW_ANON_ATTR, None)
+    allow_anon = set((allow_attr() if callable(allow_attr) else allow_attr) or ())
+    _inject_runtime_secdeps(model, runtime_secdeps, allow_anon)
+
     # 2) Pick a router & mount prefix
     model_router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
     if prefix is None:
@@ -220,7 +313,7 @@ def include_table(
     else:
         logger.debug("Using provided prefix '%s' for %s", prefix, model.__name__)
 
-    # 3) Always bind model router to the ROUTER object when possible
+    # 3) Always bind model router to the Router object when possible
     root_router = (
         router if _has_include_router(router) else getattr(router, "router", None)
     )
@@ -250,7 +343,7 @@ def include_table(
     return model, model_router
 
 
-def include_tables(
+def include_models(
     router: RouterLike,
     models: Sequence[type],
     *,
@@ -264,14 +357,14 @@ def include_tables(
     If ``base_prefix`` is provided, each model's router is mounted under that
     prefix. The model router itself already has its own `/{resource}` prefix.
     """
-    logger.debug("Including %d tables", len(models))
+    logger.debug("Including %d models", len(models))
     results: Dict[str, Any] = {}
     for mdl in models:
         px = base_prefix.rstrip("/") if base_prefix else None
         logger.debug("Including model %s with base prefix %s", mdl.__name__, px)
-        _, model_router = include_table(
+        _, model_router = include_model(
             router, mdl, app=app, prefix=px, mount_router=mount_router
         )
         results[mdl.__name__] = model_router
-    logger.debug("Finished including tables")
+    logger.debug("Finished including models")
     return results

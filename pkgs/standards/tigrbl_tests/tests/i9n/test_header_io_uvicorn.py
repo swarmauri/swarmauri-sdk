@@ -42,10 +42,17 @@ async def running_app(sync_db_session):
     engine, get_sync_db = sync_db_session
 
     app = TigrblApp()
+<<<<<<< HEAD
     router = TigrblRouter(get_db=get_sync_db)
     app.include_tables([Item])
     await app.initialize()
     app.include_router(router)
+=======
+    router = TigrblApp(get_db=get_sync_db)
+    router.include_models([Item])
+    await router.initialize()
+    app.include_router(router.router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     base_url, server, task = await run_uvicorn_in_task(app)
     try:

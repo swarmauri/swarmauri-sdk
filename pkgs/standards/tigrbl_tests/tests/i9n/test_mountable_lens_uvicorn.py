@@ -1,7 +1,7 @@
 import httpx
 import pytest
 
-from tigrbl import TigrblApp
+from tigrbl import TigrblRouter, TigrblApp
 from tigrbl.system import mount_lens
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
@@ -36,11 +36,11 @@ async def test_lens_mountable_on_tigrbl_app_uvicorn():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_lens_mountable_on_tigrbl_router_uvicorn():
-    app = TigrblApp()
-    mount_lens(app, path="/custom/lens", name="lens_custom")
+async def test_lens_mountable_on_tigrbl_api_uvicorn():
+    router = TigrblRouter()
+    mount_lens(router, path="/custom/lens", name="lens_custom")
 
-    base_url, server, task = await run_uvicorn_in_task(app)
+    base_url, server, task = await run_uvicorn_in_task(router)
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(f"{base_url}/custom/lens")
@@ -93,11 +93,11 @@ async def test_lens_mountable_with_tigrbl_app_method_uvicorn():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_lens_mountable_with_tigrbl_router_method_uvicorn():
-    app = TigrblApp()
-    app.mount_lens(path="/custom/lens", name="lens_custom")
+async def test_lens_mountable_with_tigrbl_api_method_uvicorn():
+    router = TigrblRouter()
+    router.mount_lens(path="/custom/lens", name="lens_custom")
 
-    base_url, server, task = await run_uvicorn_in_task(app)
+    base_url, server, task = await run_uvicorn_in_task(router)
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(f"{base_url}/custom/lens")

@@ -1,11 +1,9 @@
-"""Lesson 21.4: Router-level security deps via construction params.
+"""Lesson 21.4: API-level security deps via construction params.
 
 This example shows how to supply security dependencies for a ``TigrblRouter``
 through its class configuration and verify that the OpenAPI schema marks
 routes as secured when the API runs under Uvicorn.
 """
-
-from tigrbl.security import Security
 
 import inspect
 
@@ -15,38 +13,38 @@ from tigrbl.security import HTTPBearer
 from tigrbl.responses import JSONResponse
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import Base, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Column, String
+from tigrbl.types import Column, Security, String
 
 
 @pytest.mark.asyncio
-async def test_openapi_security_from_router_constructor_deps() -> None:
-    """Confirm Router-level constructor deps appear in OpenAPI security metadata.
+async def test_openapi_security_from_api_constructor_deps() -> None:
+    """Confirm API-level constructor deps appear in OpenAPI security metadata.
 
     This test defines a ``TigrblRouter`` subclass with security deps and verifies
     that the OpenAPI schema marks both list and create routes as secured.
     """
 
-    # Configuration: define a bearer-token scheme for Router-wide security.
+    # Configuration: define a bearer-token scheme for API-wide security.
     bearer_scheme = HTTPBearer(scheme_name="ApiToken")
 
     # Configuration: declare a model for API routing.
-    class RouterSecdepsWidget(Base, GUIDPk):
-        __tablename__ = "lesson_security_router_secdeps_widget"
+    class ApiSecdepsWidget(Base, GUIDPk):
+        __tablename__ = "lesson_security_api_secdeps_widget"
         __allow_unmapped__ = True
 
         name = Column(String, nullable=False)
 
     # Instantiation: define the API class with constructor-level security deps.
-    class SecuredRouter(TigrblRouter):
+    class SecuredApi(TigrblRouter):
         SECURITY_DEPS = (Security(bearer_scheme),)
 
-    router = SecuredRouter(engine=mem(async_=False))
-    router.include_table(RouterSecdepsWidget)
+    router = SecuredApi(engine=mem(async_=False))
+    router.include_model(ApiSecdepsWidget)
 
-    # Deployment: initialize storage, attach OpenAPI, mount router, and run with Uvicorn.
+    # Deployment: initialize storage and attach OpenAPI to the API router.
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
@@ -56,17 +54,14 @@ async def test_openapi_security_from_router_constructor_deps() -> None:
 
     router.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
 
-    app = TigrblApp(engine=mem(async_=False))
-    app.include_router(router)
-
     port = pick_unique_port()
-    base_url, server, task = await start_uvicorn(app, port=port)
+    base_url, server, task = await start_uvicorn(router, port=port)
 
     # Usage: request the OpenAPI schema from the running API.
     async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
         response = await client.get("/openapi.json")
         schema = response.json()
-        resource_path = f"/{RouterSecdepsWidget.__name__.lower()}"
+        resource_path = f"/{ApiSecdepsWidget.__name__.lower()}"
 
         # Assertion: API routes are secured and scheme is registered.
         assert response.status_code == 200

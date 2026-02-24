@@ -23,12 +23,21 @@ class Router:
 
 def test_op_table_router_app_engines(tmp_path):
     app = App(sqlitef(str(tmp_path / "app.sqlite"), async_=False))
+<<<<<<< HEAD
     router = Router(pgs(host="db", name="api_db"))
 
     install_from_objects(app=app, router=router, tables=[Model])
 
     p_app = resolver.resolve_provider()
     p_router = resolver.resolve_provider(router=router)
+=======
+    router = API(pgs(host="db", name="api_db"))
+
+    install_from_objects(app=app, router=router, models=[Model])
+
+    p_app = resolver.resolve_provider()
+    p_api = resolver.resolve_provider(router=router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     p_table = resolver.resolve_provider(model=Model)
     p_op = resolver.resolve_provider(model=Model, op_alias="create")
 

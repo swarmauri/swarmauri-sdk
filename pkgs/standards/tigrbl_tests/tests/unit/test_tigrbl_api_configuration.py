@@ -2,10 +2,8 @@ import pytest
 
 from tigrbl import TigrblRouter
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
+from tigrbl.types import Security
 from tigrbl.engine.shortcuts import mem
-
-
-from tigrbl.security import Security
 
 
 def _auth_dependency(
@@ -15,7 +13,7 @@ def _auth_dependency(
 
 
 @pytest.mark.unit
-def test_tigrbl_router_constructor_configuration_sets_prefixes() -> None:
+def test_tigrbl_api_constructor_configuration_sets_prefixes() -> None:
     def sample_hook() -> None:
         return None
 
@@ -37,7 +35,7 @@ def test_tigrbl_router_constructor_configuration_sets_prefixes() -> None:
 
 
 @pytest.mark.unit
-def test_tigrbl_router_post_instantiation_set_auth_updates_state() -> None:
+def test_tigrbl_api_post_instantiation_set_auth_updates_state() -> None:
     router = TigrblRouter(engine=mem(async_=False))
     router.set_auth(authn=_auth_dependency, allow_anon=False)
 
@@ -50,12 +48,12 @@ def test_tigrbl_router_post_instantiation_set_auth_updates_state() -> None:
 
 
 @pytest.mark.unit
-def test_tigrbl_router_class_prefix_defaults() -> None:
-    assert TigrblRouter.REST_PREFIX == "/api"
+def test_tigrbl_api_class_prefix_defaults() -> None:
+    assert TigrblRouter.REST_PREFIX == "/router"
     assert TigrblRouter.RPC_PREFIX == "/rpc"
     assert TigrblRouter.SYSTEM_PREFIX == "/system"
 
     router = TigrblRouter(engine=mem(async_=False))
-    assert router.rest_prefix == "/api"
+    assert router.rest_prefix == "/router"
     assert router.rpc_prefix == "/rpc"
     assert router.system_prefix == "/system"

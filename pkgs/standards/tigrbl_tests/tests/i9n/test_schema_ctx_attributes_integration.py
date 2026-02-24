@@ -32,6 +32,7 @@ async def schema_ctx_client():
             age: int
 
     cfg = mem()
+<<<<<<< HEAD
     app = TigrblApp(engine=cfg)
     router = TigrblRouter(engine=cfg)
     app.include_table(Widget, prefix="")
@@ -44,6 +45,20 @@ async def schema_ctx_client():
 
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
     return client, app, Widget, sessionmaker
+=======
+    app = TigrblApp()
+    router = TigrblApp(engine=cfg)
+    router.include_model(Widget, prefix="")
+    router.mount_jsonrpc()
+    router.attach_diagnostics()
+    await router.initialize()
+    prov = _resolver.resolve_provider()
+    _, sessionmaker = prov.ensure()
+    app.include_router(router.router)
+
+    client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
+    return client, router, Widget, sessionmaker
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 
 @pytest.mark.i9n

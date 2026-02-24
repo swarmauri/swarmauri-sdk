@@ -6,6 +6,7 @@ import warnings
 from typing import Any, Iterable
 
 
+<<<<<<< HEAD
 class RegistryDict(dict[str, Any]):
     """Dict with attribute-style access used by registry containers."""
 
@@ -21,6 +22,10 @@ class RegistryDict(dict[str, Any]):
 
 def initialize_table_registry(tables: Iterable[Any]) -> dict[str, Any]:
     """Build the default ``tables`` mapping for an App or Router instance.
+=======
+def initialize_model_registry(models: Iterable[Any]) -> dict[str, Any]:
+    """Build the default ``models`` mapping for an App or Router instance.
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     ``defineAppSpec``/``defineRouterSpec`` allow authors to declare default models
     using bare model classes or ``("alias", Model)`` tuples.  Runtime facades,

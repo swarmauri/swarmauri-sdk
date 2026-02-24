@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Any
 import re
 
-from tigrbl.headers import Headers
-from tigrbl.requests import Request
-from tigrbl.responses import Response
+from tigrbl.transport.headers import Headers
+from tigrbl.transport.request import Request
+from tigrbl.transport.response import Response
 
 from .base import BaseHTTPMiddleware
 from .spec import WSGIStartResponse

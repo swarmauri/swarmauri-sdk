@@ -1,11 +1,10 @@
-# tigrbl/tigrbl/v3/app/app_spec.py
-from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Any, Callable, Optional, Sequence
+"""Backwards-compatible app spec import path."""
 
-from ..engine.engine_spec import EngineCfg
-from ..responses.types import ResponseSpec
+from ..specs.app_spec import AppSpec
 
+<<<<<<< HEAD
+__all__ = ["AppSpec"]
+=======
 
 @dataclass(eq=False)
 class AppSpec:
@@ -14,17 +13,20 @@ class AppSpec:
     """
 
     title: str = "Tigrbl"
-    description: str | None = None
     version: str = "0.1.0"
+    description: Optional[str] = None
+    openapi_url: str = "/openapi.json"
+    docs_url: str = "/docs"
+    debug: bool = False
+    swagger_ui_version: str = "5.31.0"
     engine: Optional[EngineCfg] = None
 
-    # NEW: multi-Router composition (store Router classes or instances)
+    # NEW: multi-router composition (store router classes or instances)
     routers: Sequence[Any] = field(default_factory=tuple)
 
     # NEW: orchestration/topology knobs
     ops: Sequence[Any] = field(default_factory=tuple)  # op descriptors or specs
     models: Sequence[Any] = field(default_factory=tuple)  # ORM classes
-    tables: Sequence[Any] = field(default_factory=tuple)  # table refs owned by app
     schemas: Sequence[Any] = field(default_factory=tuple)  # schema classes/defs
     hooks: Sequence[Callable[..., Any]] = field(default_factory=tuple)
 
@@ -42,3 +44,4 @@ class AppSpec:
     # optional framework bits
     middlewares: Sequence[Any] = field(default_factory=tuple)
     lifespan: Optional[Callable[..., Any]] = None
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

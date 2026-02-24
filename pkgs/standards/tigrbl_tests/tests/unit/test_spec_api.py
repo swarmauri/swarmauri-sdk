@@ -11,11 +11,11 @@ def _override_hook(ctx):
     return ctx
 
 
-class BaseApiSpec(defineRouterSpec(name="tenant", prefix="/t", tags=("base",))):
+class BaseRouterSpec(defineRouterSpec(name="tenant", prefix="/t", tags=("base",))):
     pass
 
 
-class ChildApi(BaseApiSpec):
+class ChildRouter(BaseRouterSpec):
     TAGS = ("child",)
 
 

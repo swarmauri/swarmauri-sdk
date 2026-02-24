@@ -4,6 +4,7 @@ import pytest_asyncio
 
 from tigrbl import Base, TigrblRouter
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
+from tigrbl.types import Security
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -12,8 +13,6 @@ from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
-
-from tigrbl.security import Security
 
 bearer = HTTPBearer()
 
@@ -25,7 +24,7 @@ def auth_dependency(
 
 
 class Alpha(Base, GUIDPk):
-    __tablename__ = "alpha_router_usage"
+    __tablename__ = "alpha_api_usage"
     __allow_unmapped__ = True
 
     name: Mapped[str] = acol(
@@ -38,7 +37,7 @@ class Alpha(Base, GUIDPk):
 
 
 class Beta(Base, GUIDPk):
-    __tablename__ = "beta_router_usage"
+    __tablename__ = "beta_api_usage"
     __allow_unmapped__ = True
 
     name: Mapped[str] = acol(
@@ -51,11 +50,11 @@ class Beta(Base, GUIDPk):
 
 
 @pytest_asyncio.fixture()
-async def running_app():
+async def running_api():
     app = TigrblApp()
     router = TigrblRouter(engine=mem(async_=False))
     router.set_auth(authn=auth_dependency, allow_anon=False)
-    router.include_tables([Alpha, Beta])
+    router.include_models([Alpha, Beta])
     router.initialize()
     app.include_router(router)
 
@@ -68,8 +67,8 @@ async def running_app():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_router_deploys_and_serves_openapi(running_app) -> None:
-    base_url = running_app
+async def test_tigrbl_api_deploys_and_serves_openapi(running_api) -> None:
+    base_url = running_api
 
     async with httpx.AsyncClient() as client:
         openapi_resp = await client.get(f"{base_url}/openapi.json")
@@ -91,8 +90,8 @@ async def test_tigrbl_router_deploys_and_serves_openapi(running_app) -> None:
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_router_handles_authenticated_request(running_app) -> None:
-    base_url = running_app
+async def test_tigrbl_api_handles_authenticated_request(running_api) -> None:
+    base_url = running_api
     headers = {"Authorization": "Bearer demo"}
 
     async with httpx.AsyncClient() as client:

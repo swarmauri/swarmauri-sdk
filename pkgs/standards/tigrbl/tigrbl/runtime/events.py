@@ -6,7 +6,7 @@ from typing import Dict, Iterable, List, Literal, Tuple
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Phases
-#   - PRE_TX is a synthetic phase for security/dependency checks.
+#   - PRE_TX_BEGIN is the pre-transaction phase for security/dependency checks.
 #   - START_TX / END_TX are reserved for system steps (no atom anchors there).
 #   - Atoms bind only to the event anchors below.
 # ──────────────────────────────────────────────────────────────────────────────
@@ -17,21 +17,8 @@ Phase = Literal[
     "PRE_HANDLER",
     "HANDLER",
     "POST_HANDLER",
-    "PRE_COMMIT",
     "END_TX",
-    "POST_COMMIT",
     "POST_RESPONSE",
-    "ON_ERROR",
-    "ON_PRE_TX_BEGIN_ERROR",
-    "ON_START_TX_ERROR",
-    "ON_PRE_HANDLER_ERROR",
-    "ON_HANDLER_ERROR",
-    "ON_POST_HANDLER_ERROR",
-    "ON_PRE_COMMIT_ERROR",
-    "ON_END_TX_ERROR",
-    "ON_POST_COMMIT_ERROR",
-    "ON_POST_RESPONSE_ERROR",
-    "ON_ROLLBACK",
 ]
 
 PHASES: Tuple[Phase, ...] = (
@@ -40,21 +27,8 @@ PHASES: Tuple[Phase, ...] = (
     "PRE_HANDLER",
     "HANDLER",
     "POST_HANDLER",
-    "PRE_COMMIT",  # system-only
     "END_TX",  # system-only
-    "POST_COMMIT",  # system-only
     "POST_RESPONSE",
-    "ON_ERROR",
-    "ON_PRE_TX_BEGIN_ERROR",
-    "ON_START_TX_ERROR",
-    "ON_PRE_HANDLER_ERROR",
-    "ON_HANDLER_ERROR",
-    "ON_POST_HANDLER_ERROR",
-    "ON_PRE_COMMIT_ERROR",
-    "ON_END_TX_ERROR",
-    "ON_POST_COMMIT_ERROR",
-    "ON_POST_RESPONSE_ERROR",
-    "ON_ROLLBACK",
 )
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -62,13 +36,13 @@ PHASES: Tuple[Phase, ...] = (
 # Keep these names stable; labels use them directly: step_kind:domain:subject@ANCHOR
 # ──────────────────────────────────────────────────────────────────────────────
 
-# PRE_TX
-DEP_SECURITY = "dep:security"
-DEP_EXTRA = "dep:extra"
+# PRE_TX_BEGIN
+PREX_TX_BEGIN_SECDEP = "prex_tx_begin:secdep"
+PREX_TX_BEGIN_DEP = "prex_tx_begin:dep"
 
-# Back-compat aliases used by atom modules
-PRE_TX_SECDEP = DEP_SECURITY
-PRE_TX_DEP = DEP_EXTRA
+# Backward-compatible aliases
+PRE_TX_SECDEP = PREX_TX_BEGIN_SECDEP
+PRE_TX_DEP = PREX_TX_BEGIN_DEP
 
 # PRE_HANDLER
 SCHEMA_COLLECT_IN = "schema:collect_in"
@@ -92,9 +66,9 @@ OUT_DUMP = "out:dump"
 # Canonical order of event anchors within the request lifecycle.
 # This ordering is global and stable; use it to produce deterministic plans/traces.
 _EVENT_ORDER: Tuple[str, ...] = (
-    # PRE_TX
-    DEP_SECURITY,
-    DEP_EXTRA,
+    # PRE_TX_BEGIN
+    PREX_TX_BEGIN_SECDEP,
+    PREX_TX_BEGIN_DEP,
     # PRE_HANDLER
     SCHEMA_COLLECT_IN,
     IN_VALIDATE,
@@ -125,9 +99,9 @@ class AnchorInfo:
 
 
 _ANCHORS: Dict[str, AnchorInfo] = {
-    # PRE_TX (not persist-tied)
-    DEP_SECURITY: AnchorInfo(DEP_SECURITY, "PRE_TX_BEGIN", 0, False),
-    DEP_EXTRA: AnchorInfo(DEP_EXTRA, "PRE_TX_BEGIN", 1, False),
+    # PRE_TX_BEGIN (not persist-tied)
+    PRE_TX_SECDEP: AnchorInfo(PREX_TX_BEGIN_SECDEP, "PRE_TX_BEGIN", 0, False),
+    PRE_TX_DEP: AnchorInfo(PREX_TX_BEGIN_DEP, "PRE_TX_BEGIN", 1, False),
     # PRE_HANDLER (not persist-tied)
     SCHEMA_COLLECT_IN: AnchorInfo(SCHEMA_COLLECT_IN, "PRE_HANDLER", 2, False),
     IN_VALIDATE: AnchorInfo(IN_VALIDATE, "PRE_HANDLER", 3, False),
@@ -225,8 +199,6 @@ __all__ = [
     "Phase",
     "PHASES",
     # Anchors (constants)
-    "DEP_SECURITY",
-    "DEP_EXTRA",
     "SCHEMA_COLLECT_IN",
     "IN_VALIDATE",
     "RESOLVE_VALUES",
@@ -240,6 +212,8 @@ __all__ = [
     "OUT_DUMP",
     # Types / helpers
     "AnchorInfo",
+    "PREX_TX_BEGIN_SECDEP",
+    "PREX_TX_BEGIN_DEP",
     "is_valid_event",
     "phase_for_event",
     "is_persist_tied",

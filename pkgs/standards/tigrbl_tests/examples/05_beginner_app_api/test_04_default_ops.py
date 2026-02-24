@@ -20,12 +20,21 @@ def test_default_ops_register_core_verbs():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
+<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize default operations.
     app.include_table(Widget)
     app.initialize()
     # Exercise: gather the operation aliases bound to the model.
     verbs = {spec.alias for spec in app.bind(Widget)}
+=======
+    router = TigrblApp(engine=mem(async_=False))
+    # Deployment: include the model and initialize default operations.
+    router.include_model(Widget)
+    router.initialize()
+    # Exercise: gather the operation aliases bound to the model.
+    verbs = {spec.alias for spec in router.bind(Widget)}
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     # Assertion: core CRUD verbs are present by default.
     assert {"create", "read", "update", "delete", "list"}.issubset(verbs)
 
@@ -45,12 +54,21 @@ def test_default_ops_are_exposed_as_aliases():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
+<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize operations.
     app.include_table(Widget)
     app.initialize()
     # Exercise: list bound operation aliases.
     aliases = {spec.alias for spec in app.bind(Widget)}
+=======
+    router = TigrblApp(engine=mem(async_=False))
+    # Deployment: include the model and initialize operations.
+    router.include_model(Widget)
+    router.initialize()
+    # Exercise: list bound operation aliases.
+    aliases = {spec.alias for spec in router.bind(Widget)}
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     # Assertion: common aliases like create/list are always available.
     assert "create" in aliases
     assert "list" in aliases

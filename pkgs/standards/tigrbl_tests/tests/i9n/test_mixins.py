@@ -273,10 +273,17 @@ async def test_versioned_mixin(create_test_app):
 @pytest.mark.asyncio
 async def test_bulk_capable_mixin(create_test_app):
     """Test that BulkCapable mixin enables bulk operations."""
+<<<<<<< HEAD
     app = create_test_app(DummyModelBulkCapable)
 
     # Check that bulk routes are available
     routes = [route.path for route in app.router.routes]
+=======
+    router = create_test_api(DummyModelBulkCapable)
+
+    # Check that bulk routes are available
+    routes = [route.path for route in router.router.routes]
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Bulk operations now share the base collection path
     expected_path = f"/{DummyModelBulkCapable.__name__.lower()}"
@@ -372,9 +379,15 @@ async def test_validity_window_mixin(create_test_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
+<<<<<<< HEAD
 async def test_validity_window_default(create_test_app):
     app = create_test_app(DummyModelValidityWindow)
     session, release = _resolver.acquire(router=app)
+=======
+async def test_validity_window_default(create_test_api):
+    router = create_test_api(DummyModelValidityWindow)
+    session, release = _resolver.acquire(router=router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     try:
         vf_default = tzutcnow()
         vt_default = tzutcnow_plus_day()

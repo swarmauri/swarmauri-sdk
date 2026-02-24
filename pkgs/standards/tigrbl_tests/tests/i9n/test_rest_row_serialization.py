@@ -31,15 +31,26 @@ async def client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name}
 
+<<<<<<< HEAD
     app = TigrblApp(engine=mem())
     router = TigrblRouter(engine=mem())
     app.include_table(Widget, prefix="")
     await app.initialize()
+=======
+    app = Tigrblv3()
+    router = Tigrblv3(engine=mem())
+    router.include_model(Widget, prefix="")
+    await router.initialize()
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     # Remove output schemas to trigger fallback serialization
     Widget.schemas.read.out = None
     Widget.schemas.list.out = None
 
+<<<<<<< HEAD
     app.include_router(router)
+=======
+    app.include_router(router.router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:

@@ -29,10 +29,17 @@ def sync_app():
     """Create a sync Tigrbl instance with CoreTestUser."""
     Base.metadata.clear()
     eng = build_engine(mem(async_=False))
+<<<<<<< HEAD
     app = TigrblApp(engine=eng)
     app.include_table(CoreTestUser)
     app.initialize()
     return app, eng
+=======
+    router = TigrblApp(engine=eng)
+    router.include_model(CoreTestUser)
+    router.initialize()
+    return router, eng
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 
 @pytest_asyncio.fixture
@@ -40,6 +47,7 @@ async def async_app():
     """Create an async Tigrbl instance with CoreTestUser."""
     Base.metadata.clear()
     eng = build_engine(mem(async_=True))
+<<<<<<< HEAD
     app = TigrblApp(engine=eng)
     app.include_table(CoreTestUser)
     await app.initialize()
@@ -51,6 +59,19 @@ def test_app_exposes_core_proxies(sync_app):
     assert hasattr(app.core, "CoreTestUser")
     assert hasattr(app.core_raw, "CoreTestUser")
     schema_ns = app.schemas.CoreTestUser
+=======
+    router = TigrblApp(engine=eng)
+    router.include_model(CoreTestUser)
+    await router.initialize()
+    return router, eng
+
+
+def test_api_exposes_core_proxies(sync_api):
+    router, _ = sync_api
+    assert hasattr(router.core, "CoreTestUser")
+    assert hasattr(router.core_raw, "CoreTestUser")
+    schema_ns = router.schemas.CoreTestUser
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     for name in [
         "create",
         "read",
@@ -67,10 +88,17 @@ def test_app_exposes_core_proxies(sync_app):
 
 
 @pytest.mark.asyncio
+<<<<<<< HEAD
 async def test_core_and_core_raw_sync_operations(sync_app):
     app, eng = sync_app
     with eng.session() as db:
         for proxy in (app.core, app.core_raw):
+=======
+async def test_core_and_core_raw_sync_operations(sync_api):
+    router, eng = sync_api
+    with eng.session() as db:
+        for proxy in (router.core, router.core_raw):
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
             model = proxy.CoreTestUser
             await model.clear({}, db=db)
 
@@ -151,6 +179,7 @@ async def test_core_and_core_raw_sync_operations(sync_app):
 
 
 @pytest.mark.asyncio
+<<<<<<< HEAD
 async def test_core_read_not_found(sync_app):
     app, eng = sync_app
     fake_id = "00000000-0000-0000-0000-000000000000"
@@ -163,5 +192,19 @@ async def test_core_read_not_found(sync_app):
 async def test_async_app_initializes(async_app):
     app, eng = async_app
     assert hasattr(app.core, "CoreTestUser")
+=======
+async def test_core_read_not_found(sync_api):
+    router, eng = sync_api
+    fake_id = "00000000-0000-0000-0000-000000000000"
+    with eng.session() as db:
+        with pytest.raises(HTTPException):
+            await router.core.CoreTestUser.read({"id": fake_id}, db=db)
+
+
+@pytest.mark.asyncio
+async def test_async_api_initializes(async_api):
+    router, eng = async_api
+    assert hasattr(router.core, "CoreTestUser")
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     async with eng.asession():
         pass

@@ -7,7 +7,7 @@ from tigrbl.types import Mapped, String
 
 
 class Zeta(Base, GUIDPk):
-    __tablename__ = "zeta_router_app_decl"
+    __tablename__ = "zeta_api_app_decl"
     __allow_unmapped__ = True
 
     name: Mapped[str] = acol(
@@ -19,20 +19,20 @@ class Zeta(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class ZetaRouter(TigrblRouter):
-    TABLES = (Zeta,)
+class ZetaApi(TigrblRouter):
+    MODELS = (Zeta,)
 
 
 class ZetaApp(TigrblApp):
-    ROUTERS = (ZetaRouter,)
+    APIS = (ZetaApi,)
 
 
 @pytest.mark.unit
-def test_tigrbl_router_app_subclass_declares_composition() -> None:
-    router_dir = dir(ZetaRouter)
+def test_tigrbl_api_app_subclass_declares_composition() -> None:
+    api_dir = dir(ZetaApi)
     app_dir = dir(ZetaApp)
 
-    assert "MODELS" in router_dir
-    assert "ROUTERS" in app_dir
-    assert ZetaRouter.TABLES == (Zeta,)
-    assert ZetaApp.ROUTERS == (ZetaRouter,)
+    assert "MODELS" in api_dir
+    assert "APIS" in app_dir
+    assert ZetaApi.MODELS == (Zeta,)
+    assert ZetaApp.APIS == (ZetaApi,)

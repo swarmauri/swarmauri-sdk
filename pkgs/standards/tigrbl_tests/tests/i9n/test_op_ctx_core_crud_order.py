@@ -17,10 +17,17 @@ def setup_app(model_cls):
     spec = EngineSpec.from_any(mem(async_=False))
     engine = Engine(spec)
     app = TigrblApp(engine=engine)
+<<<<<<< HEAD
     router = TigrblRouter(engine=engine)
     app.include_table(model_cls, prefix="")
     app.initialize()
     app.include_router(router)
+=======
+    router = TigrblApp(engine=engine)
+    router.include_model(model_cls, prefix="")
+    router.initialize()
+    app.include_router(router.router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     return app, engine
 
 

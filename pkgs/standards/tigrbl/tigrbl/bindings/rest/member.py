@@ -2,6 +2,7 @@ from __future__ import annotations
 import logging
 
 import inspect
+from types import SimpleNamespace
 from typing import (
     Annotated,
     Any,
@@ -14,6 +15,7 @@ from typing import (
 )
 
 from .common import (
+    TIGRBL_AUTH_CONTEXT_ATTR,
     Body,
     Depends,
     HTTPException,
@@ -33,7 +35,8 @@ from .common import (
 
 from .io_headers import _make_header_dep
 
-from ...transport.dispatch import dispatch_operation
+from ...runtime.executor.types import _Ctx
+from ...transport.dispatcher import dispatch_operation
 
 
 logger = logging.getLogger("uvicorn")
@@ -74,11 +77,32 @@ def _make_member_endpoint(
             if isinstance(h, Mapping):
                 payload = {**payload, **dict(h)}
             path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
-            seed_ctx: Dict[str, Any] = {}
+            ctx: Dict[str, Any] = {
+                "request": request,
+                "db": db,
+                "payload": payload,
+                "path_params": path_params,
+                # expose contextual metadata for downstream atoms
+                "router": router
+                if router is not None
+                else getattr(request, "app", None),
+                "app": getattr(request, "app", None),
+                "model": model,
+                "op": alias,
+                "method": alias,
+                "target": target,
+                "env": SimpleNamespace(
+                    method=alias, params=payload, target=target, model=model
+                ),
+            }
+            ac = getattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, None)
+            if ac is not None:
+                ctx["auth_context"] = ac
+            ctx = _Ctx(ctx)
 
-            def _serializer(r, _ctx=seed_ctx):
+            def _serializer(r, _ctx=ctx):
                 out = _serialize_output(model, alias, target, sp, r)
-                temp = _ctx.get("temp", {}) if isinstance(_ctx, Mapping) else {}
+                temp = getattr(_ctx, "temp", {}) if isinstance(_ctx, Mapping) else {}
                 extras = (
                     temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
                 )
@@ -86,17 +110,16 @@ def _make_member_endpoint(
                     out.update(extras)
                 return out
 
+            ctx["response_serializer"] = _serializer
             result = await dispatch_operation(
                 router=router,
-                request=request,
-                db=db,
                 model_or_name=model,
                 alias=alias,
-                target=target,
-                payload=payload,
-                path_params=path_params,
-                seed_ctx=seed_ctx,
-                response_serializer=_serializer,
+                payload=ctx.get("payload"),
+                db=db,
+                request=request,
+                ctx=ctx,
+                response_serializer=ctx.get("response_serializer"),
             )
             if _is_http_response(result):
                 if sp.status_code is not None or result.status_code == 200:
@@ -159,11 +182,32 @@ def _make_member_endpoint(
             _coerce_parent_kw(model, parent_kw)
             payload: Mapping[str, Any] = dict(parent_kw)
             path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
-            seed_ctx: Dict[str, Any] = {}
+            ctx: Dict[str, Any] = {
+                "request": request,
+                "db": db,
+                "payload": payload,
+                "path_params": path_params,
+                # expose contextual metadata for downstream atoms
+                "router": router
+                if router is not None
+                else getattr(request, "app", None),
+                "app": getattr(request, "app", None),
+                "model": model,
+                "op": alias,
+                "method": alias,
+                "target": target,
+                "env": SimpleNamespace(
+                    method=alias, params=payload, target=target, model=model
+                ),
+            }
+            ac = getattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, None)
+            if ac is not None:
+                ctx["auth_context"] = ac
+            ctx = _Ctx(ctx)
 
-            def _serializer(r, _ctx=seed_ctx):
+            def _serializer(r, _ctx=ctx):
                 out = _serialize_output(model, alias, target, sp, r)
-                temp = _ctx.get("temp", {}) if isinstance(_ctx, Mapping) else {}
+                temp = getattr(_ctx, "temp", {}) if isinstance(_ctx, Mapping) else {}
                 extras = (
                     temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
                 )
@@ -171,17 +215,16 @@ def _make_member_endpoint(
                     out.update(extras)
                 return out
 
+            ctx["response_serializer"] = _serializer
             result = await dispatch_operation(
                 router=router,
-                request=request,
-                db=db,
                 model_or_name=model,
                 alias=alias,
-                target=target,
-                payload=payload,
-                path_params=path_params,
-                seed_ctx=seed_ctx,
-                response_serializer=_serializer,
+                payload=ctx.get("payload"),
+                db=db,
+                request=request,
+                ctx=ctx,
+                response_serializer=ctx.get("response_serializer"),
             )
             return result
 
@@ -259,11 +302,30 @@ def _make_member_endpoint(
 
         path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
 
-        seed_ctx: Dict[str, Any] = {}
+        ctx: Dict[str, Any] = {
+            "request": request,
+            "db": db,
+            "payload": payload,
+            "path_params": path_params,
+            # expose contextual metadata for downstream atoms
+            "app": getattr(request, "app", None),
+            "router": getattr(request, "app", None),
+            "model": model,
+            "op": alias,
+            "method": alias,
+            "target": target,
+            "env": SimpleNamespace(
+                method=alias, params=payload, target=target, model=model
+            ),
+        }
+        ac = getattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, None)
+        if ac is not None:
+            ctx["auth_context"] = ac
+        ctx = _Ctx(ctx)
 
-        def _serializer(r, _ctx=seed_ctx):
+        def _serializer(r, _ctx=ctx):
             out = _serialize_output(model, alias, target, sp, r)
-            temp = _ctx.get("temp", {}) if isinstance(_ctx, Mapping) else {}
+            temp = getattr(_ctx, "temp", {}) if isinstance(_ctx, Mapping) else {}
             extras = (
                 temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
             )
@@ -271,17 +333,16 @@ def _make_member_endpoint(
                 out.update(extras)
             return out
 
+        ctx["response_serializer"] = _serializer
         result = await dispatch_operation(
             router=router,
-            request=request,
-            db=db,
             model_or_name=model,
             alias=alias,
-            target=target,
-            payload=payload,
-            path_params=path_params,
-            seed_ctx=seed_ctx,
-            response_serializer=_serializer,
+            payload=ctx.get("payload"),
+            db=db,
+            request=request,
+            ctx=ctx,
+            response_serializer=ctx.get("response_serializer"),
         )
 
         if _is_http_response(result):

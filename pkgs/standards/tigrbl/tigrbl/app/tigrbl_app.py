@@ -1,6 +1,6 @@
-# tigrbl/v3/app/tigrbl_app.py
 from __future__ import annotations
 
+<<<<<<< HEAD
 import asyncio
 import copy
 import inspect
@@ -692,3 +692,8 @@ class TigrblApp(_App):
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<TigrblApp models={list(self.models)} rpc={list(getattr(self.rpc, '__dict__', {}).keys())}>"
+=======
+from ..concrete.tigrbl_app import TigrblApp
+
+__all__ = ["TigrblApp"]
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

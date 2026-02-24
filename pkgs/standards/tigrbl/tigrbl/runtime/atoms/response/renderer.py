@@ -5,7 +5,7 @@ from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union, cast
 import logging
 
 from ....responses import Response
-from ....transport.background import BackgroundTask
+from typing import Callable
 
 from ....responses.shortcuts import (
     as_file,
@@ -29,7 +29,7 @@ class ResponseHints:
     download: bool = False
     etag: Optional[str] = None
     last_modified: Optional[Any] = None
-    background: Optional[BackgroundTask] = None
+    background: Optional[Callable[..., Any]] = None
 
 
 class ResponseKind:

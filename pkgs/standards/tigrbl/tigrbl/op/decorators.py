@@ -1,7 +1,8 @@
-"""Operation-related decorators for Tigrbl v3."""
+"""Compatibility wrapper for op decorators."""
 
 from __future__ import annotations
 
+<<<<<<< HEAD
 import inspect
 from typing import Any, Callable, Iterable, Optional, Sequence, Union
 
@@ -221,3 +222,14 @@ def _normalize_persist(p) -> str:
 
 
 __all__ = ["alias", "alias_ctx", "op_alias", "op_ctx"]
+=======
+from ..decorators.op import *  # noqa: F401,F403
+from ..decorators.op import (  # noqa: F401
+    _ensure_cm as _ensure_cm,
+    _infer_arity as _infer_arity,
+    _maybe_await as _maybe_await,
+    _normalize_persist as _normalize_persist,
+    _OpDecl as _OpDecl,
+    _unwrap as _unwrap,
+)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

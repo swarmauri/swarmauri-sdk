@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # tigrbl/tigrbl/app/_app.py
 from __future__ import annotations
 from typing import Any
@@ -131,3 +132,8 @@ class App(AppSpec):
         return await self.router._call_handler(route, req)
 
     initialize = _ddl_initialize
+=======
+from .._concrete._app import App
+
+__all__ = ["App"]
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

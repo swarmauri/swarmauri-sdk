@@ -5,7 +5,7 @@ import threading
 from types import SimpleNamespace
 from typing import Any, ClassVar, Dict, List, Mapping, Optional, Sequence, Tuple
 
-from ...op.types import PHASES, StepFn
+from ...op.types import StepFn
 from ..executor import _Ctx, _invoke
 from .. import events as _ev
 from .atoms import (
@@ -103,7 +103,7 @@ class Kernel:
                     getattr(model, "__name__", model),
                     alias,
                 )
-        for phase in PHASES:
+        for phase in _ev.PHASES:
             chains.setdefault(phase, [])
         return chains
 

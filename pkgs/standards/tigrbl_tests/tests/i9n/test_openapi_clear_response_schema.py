@@ -16,9 +16,15 @@ async def test_openapi_clear_response_schema() -> None:
         name = Column(String, nullable=False)
 
     app = TigrblApp()
+<<<<<<< HEAD
     router = TigrblRouter()
     app.include_table(Widget)
     app.include_router(router)
+=======
+    router = TigrblApp()
+    router.include_model(Widget)
+    app.include_router(router.router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"

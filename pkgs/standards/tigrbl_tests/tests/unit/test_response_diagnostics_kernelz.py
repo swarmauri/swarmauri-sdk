@@ -35,7 +35,11 @@ async def test_response_atom_in_diagnostics_kernelz(kind) -> None:
     class Router:  # pragma: no cover - simple container
         pass
 
+<<<<<<< HEAD
     router = Router()
+=======
+    router = API()
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     router.models = {"Model": Model}
 
     kernelz = _build_kernelz_endpoint(router)
@@ -71,7 +75,11 @@ async def test_response_atom_in_diagnostics_kernelz_template(tmp_path) -> None:
     class Router:  # pragma: no cover - simple container
         pass
 
+<<<<<<< HEAD
     router = Router()
+=======
+    router = API()
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     router.models = {"Model": Model}
 
     kernelz = _build_kernelz_endpoint(router)

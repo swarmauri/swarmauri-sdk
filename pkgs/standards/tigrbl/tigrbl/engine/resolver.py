@@ -136,10 +136,21 @@ def register_router(router: Any, ctx: EngineCfg | None) -> None:
         logger.debug("register_router: no provider; skipping registration")
         return
     with _LOCK:
+<<<<<<< HEAD
         _ROUTER[id(router)] = prov
         logger.debug(
             "register_router: registered provider for router id %s", id(router)
         )
+=======
+        _API[id(router)] = prov
+        logger.debug(
+            "register_router: registered provider for router id %s", id(router)
+        )
+
+
+# Backwards-compatible alias
+register_api = register_router
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 
 def register_table(model: Any, ctx: EngineCfg | None) -> None:

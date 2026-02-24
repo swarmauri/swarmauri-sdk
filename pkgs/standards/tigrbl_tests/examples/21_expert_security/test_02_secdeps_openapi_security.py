@@ -44,9 +44,9 @@ async def test_openapi_security_from_op_secdeps_on_mounted_api() -> None:
 
         name = Column(String, nullable=False)
 
-    # Instantiation: build the Router, include the model, and mount on the app.
+    # Instantiation: build the API, include the model, and mount on the app.
     router = TigrblRouter(engine=mem(async_=False))
-    router.include_table(SecDepsWidget)
+    router.include_model(SecDepsWidget)
 
     app = TigrblApp(engine=mem(async_=False))
     app.include_router(router)

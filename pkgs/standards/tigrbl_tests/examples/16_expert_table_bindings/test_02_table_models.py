@@ -22,7 +22,7 @@ def test_table_binding_registers_model():
 
     router = TigrblRouter(engine=mem(async_=False))
 
-    router.include_table(Widget)
+    router.include_model(Widget)
 
     assert router.models[Widget.__name__] is Widget
 
@@ -44,8 +44,8 @@ def test_model_registry_supports_multiple_models():
 
     router = TigrblRouter(engine=mem(async_=False))
 
-    router.include_table(Widget)
-    router.include_table(Gadget)
+    router.include_model(Widget)
+    router.include_model(Gadget)
 
     assert router.models[Widget.__name__] is Widget
     assert router.models[Gadget.__name__] is Gadget

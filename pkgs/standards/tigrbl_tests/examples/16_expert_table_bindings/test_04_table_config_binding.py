@@ -24,7 +24,7 @@ def test_table_binding_reads_table_config():
     engine_ctx(kind="sqlite", mode="memory", async_=False)(Widget)
 
     router = TigrblRouter(engine=mem(async_=False))
-    router.include_table(Widget)
+    router.include_model(Widget)
 
     config = router.table_config[Widget.__name__]
     assert config["engine"]["kind"] == "sqlite"
@@ -50,8 +50,8 @@ def test_table_config_registry_is_model_specific():
     engine_ctx(kind="sqlite", mode="memory", async_=False)(Gadget)
 
     router = TigrblRouter(engine=mem(async_=False))
-    router.include_table(Widget)
-    router.include_table(Gadget)
+    router.include_model(Widget)
+    router.include_model(Gadget)
 
     assert router.table_config[Widget.__name__]["engine"]["kind"] == "sqlite"
     assert router.table_config[Gadget.__name__]["engine"]["kind"] == "sqlite"

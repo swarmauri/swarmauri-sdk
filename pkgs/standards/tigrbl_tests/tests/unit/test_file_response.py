@@ -12,12 +12,12 @@ from tigrbl.bindings import (
     build_rest,
     build_schemas,
     register_rpc,
-    include_table,
+    include_model,
 )
 from tigrbl import TigrblApp as FastApp
 from tigrbl.types import Integer, Mapped, mapped_column
 from tigrbl.table import Table
-from tigrbl.router import TigrblRouter
+from tigrbl.router._api import Api
 from tigrbl.app._app import App as BaseApp
 
 
@@ -89,17 +89,20 @@ def test_file_response_table(tmp_path):
 
 def test_file_response_api(tmp_path):
     file_path = tmp_path / "router.txt"
-    file_path.write_text("api")
+    file_path.write_text("router")
     Widget = _build_model(Table, file_path, bind=False)
     Widget.columns = ()
 
-    router = TigrblRouter(prefix="")
+    class FilesApi(Api):
+        PREFIX = ""
+
+    router = FilesApi()
 
     async def fake_db():
         yield None
 
     router.get_db = fake_db  # type: ignore[assignment]
-    include_table(router, Widget)
+    include_model(router, Widget)
 
     resp = asyncio.run(Widget.handlers.download.handler({}))
     assert resp.path == str(file_path)
@@ -119,13 +122,16 @@ def test_file_response_app(tmp_path):
     Widget = _build_model(Table, file_path, bind=False)
     Widget.columns = ()
 
-    router = TigrblRouter(prefix="")
+    class FilesApi(Api):
+        PREFIX = ""
+
+    router = FilesApi()
 
     async def fake_db():
         yield None
 
     router.get_db = fake_db  # type: ignore[assignment]
-    include_table(router, Widget)
+    include_model(router, Widget)
 
     class FilesApp(BaseApp):
         TITLE = "FilesApp"
@@ -140,9 +146,6 @@ def test_file_response_app(tmp_path):
 
     transport = ASGITransport(app=app)
     with Client(transport=transport, base_url="http://test") as client:
-        try:
-            client.post("/widget/download", json={})
-        except TypeError as exc:
-            assert "object is not callable" in str(exc)
-        else:  # pragma: no cover - defensive
-            raise AssertionError("App should not be ASGI-callable")
+        response = client.post("/widget/download", json={})
+        assert response.status_code == 200
+        assert response.content == file_path.read_bytes()
