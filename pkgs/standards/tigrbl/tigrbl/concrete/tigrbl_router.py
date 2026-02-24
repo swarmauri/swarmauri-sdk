@@ -18,18 +18,17 @@ from ..router._router import Router as _Router
 from ..engine.engine_spec import EngineCfg
 from ..ddl import initialize as _ddl_initialize
 from ..mapping.router import (
-    include_model as _include_model,
-    include_models as _include_models,
+    include_table as _include_table,
+    include_tables as _include_tables,
     rpc_call as _rpc_call,
     _seed_security_and_deps,
     _mount_router,
     _default_prefix,
-    AttrDict,
 )
 from ..mapping.model import rebind as _rebind, bind as _bind
 from ..mapping.rest import build_router_and_attach as _build_router_and_attach
 from ..op import get_registry, OpSpec
-from ..app._model_registry import initialize_model_registry
+from ..app._model_registry import initialize_table_registry
 from ..system.favicon import mount_favicon
 from ..router._routing import include_router as _include_router_impl
 
@@ -50,7 +49,7 @@ class TigrblRouter(_Router):
     SYSTEM_PREFIX = "/system"
     TAGS: Sequence[Any] = ()
     ROUTERS: Sequence[Any] = ()
-    MODELS: Sequence[Any] = ()
+    TABLES: Sequence[Any] = ()
 
     # --- optional auth knobs recognized by some middlewares/dispatchers (kept for back-compat) ---
     _authn: Any = None
@@ -90,14 +89,14 @@ class TigrblRouter(_Router):
         self.rest_prefix = getattr(self, "REST_PREFIX", "/router")
 
         # public containers (mirrors used by bindings.router)
-        self.models = initialize_model_registry(getattr(self, "MODELS", ()))
+        self.models = initialize_table_registry(getattr(self, "TABLES", ()))
+        self.tables = initialize_table_registry(getattr(self, "TABLES", ()))
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
         self.hooks = SimpleNamespace()
         self.rpc = SimpleNamespace()
         self.rest = SimpleNamespace()
         self.routers: Dict[str, Any] = {}
-        self.tables = AttrDict()
         self.columns: Dict[str, Tuple[str, ...]] = {}
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
@@ -106,7 +105,7 @@ class TigrblRouter(_Router):
         # Router-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
         if models:
-            self.include_models(list(models))
+            self.include_tables(list(models))
 
     # ------------------------- internal helpers -------------------------
 
@@ -147,7 +146,7 @@ class TigrblRouter(_Router):
 
     # ------------------------- primary operations -------------------------
 
-    def include_model(
+    def include_table(
         self, model: type, *, prefix: str | None = None, mount_router: bool = True
     ) -> Tuple[type, Any]:
         """
@@ -155,25 +154,25 @@ class TigrblRouter(_Router):
         """
         # inject Router-level hooks so the binder merges them
         self._merge_router_hooks_into_model(model, self._router_hooks_map)
-        included_model, router = _include_model(
+        included_table, router = _include_table(
             self, model, app=None, prefix=prefix, mount_router=mount_router
         )
         if mount_router and prefix is None and router is not None:
             _include_router_impl(self, router, prefix=self.rest_prefix)
-        return included_model, router
+        return included_table, router
 
-    def include_models(
+    def include_tables(
         self,
-        models: Sequence[type],
+        tables: Sequence[type],
         *,
         base_prefix: str | None = None,
         mount_router: bool = True,
     ) -> Dict[str, Any]:
-        for m in models:
+        for m in tables:
             self._merge_router_hooks_into_model(m, self._router_hooks_map)
-        included = _include_models(
+        included = _include_tables(
             self,
-            models,
+            tables,
             app=None,
             base_prefix=base_prefix,
             mount_router=mount_router,

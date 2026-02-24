@@ -32,7 +32,7 @@ def test_tigrbl_router_app_subclass_declares_composition() -> None:
     router_dir = dir(ZetaRouter)
     app_dir = dir(ZetaApp)
 
-    assert "MODELS" in router_dir
+    assert "TABLES" in router_dir
     assert "ROUTERS" in app_dir
     assert ZetaRouter.TABLES == (Zeta,)
     assert ZetaApp.ROUTERS == (ZetaRouter,)

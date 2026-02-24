@@ -7,7 +7,7 @@ from typing import Any, Callable
 from types import SimpleNamespace
 
 from ..router.router_spec import RouterSpec
-from ..app._model_registry import initialize_model_registry
+from ..app._model_registry import initialize_table_registry
 from ..engine import resolver as _resolver
 from ..engine.engine_spec import EngineCfg
 
