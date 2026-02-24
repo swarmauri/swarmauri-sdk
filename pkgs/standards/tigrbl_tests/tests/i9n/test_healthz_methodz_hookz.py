@@ -13,19 +13,11 @@ from tigrbl.types import SimpleNamespace
 @pytest.mark.asyncio
 async def test_healthz_endpoint_comprehensive(app_client):
     """Test healthz endpoint attachment, behavior, and response format."""
-<<<<<<< HEAD
     client, app, _ = app_client
     app.attach_diagnostics(prefix="", app=client._transport.app)
 
     # Check that healthz endpoint exists in routes
     routes = [route.path for route in app.router.routes]
-=======
-    client, router, _ = api_client
-    router.attach_diagnostics(prefix="", app=client._transport.app)
-
-    # Check that healthz endpoint exists in routes
-    routes = [route.path for route in router.router.routes]
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     assert "/healthz" in routes
 
     # Test healthz response
@@ -47,19 +39,11 @@ async def test_healthz_endpoint_comprehensive(app_client):
 @pytest.mark.asyncio
 async def test_methodz_endpoint_comprehensive(app_client):
     """Test methodz endpoint attachment, behavior, and response format."""
-<<<<<<< HEAD
     client, app, _ = app_client
     app.attach_diagnostics(prefix="", app=client._transport.app)
 
     # Check that methodz endpoint exists in routes
     routes = [route.path for route in app.router.routes]
-=======
-    client, router, _ = api_client
-    router.attach_diagnostics(prefix="", app=client._transport.app)
-
-    # Check that methodz endpoint exists in routes
-    routes = [route.path for route in router.router.routes]
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     assert "/methodz" in routes
 
     # Test methodz response
@@ -95,11 +79,7 @@ async def test_methodz_endpoint_comprehensive(app_client):
 @pytest.mark.asyncio
 async def test_hookz_endpoint_comprehensive(app_client):
     """Test hookz endpoint attachment, behavior, and response format."""
-<<<<<<< HEAD
     client, app, Item = app_client
-=======
-    client, router, Item = api_client
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     @hook_ctx(ops="*", phase="POST_RESPONSE")
     def first_hook(cls, ctx):
@@ -116,13 +96,8 @@ async def test_hookz_endpoint_comprehensive(app_client):
     Item.first_hook = first_hook
     Item.second_hook = second_hook
     Item.item_hook = item_hook
-<<<<<<< HEAD
     app.rebind(Item)
     app.attach_diagnostics(prefix="", app=client._transport.app)
-=======
-    router.rebind(Item)
-    router.attach_diagnostics(prefix="", app=client._transport.app)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     response = await client.get("/hookz")
     assert response.status_code == 200
@@ -136,13 +111,8 @@ async def test_hookz_endpoint_comprehensive(app_client):
 @pytest.mark.asyncio
 async def test_methodz_basic_functionality(app_client):
     """Test that methodz endpoint provides basic method information."""
-<<<<<<< HEAD
     client, app, _ = app_client
     app.attach_diagnostics(prefix="", app=client._transport.app)
-=======
-    client, router, _ = api_client
-    router.attach_diagnostics(prefix="", app=client._transport.app)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     response = await client.get("/methodz")
     methods = {m["method"] for m in response.json()["methods"]}
@@ -161,13 +131,8 @@ async def test_methodz_basic_functionality(app_client):
 @pytest.mark.asyncio
 async def test_healthz_methodz_hookz_in_openapi_schema(app_client):
     """Test that healthz, methodz and hookz endpoints are included in OpenAPI schema."""
-<<<<<<< HEAD
     client, app, _ = app_client
     app.attach_diagnostics(prefix="", app=client._transport.app)
-=======
-    client, router, _ = api_client
-    router.attach_diagnostics(prefix="", app=client._transport.app)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Get OpenAPI schema
     spec_response = await client.get("/openapi.json")
@@ -184,13 +149,8 @@ async def test_healthz_methodz_hookz_in_openapi_schema(app_client):
 @pytest.mark.asyncio
 async def test_healthz_database_error_handling(app_client):
     """Test healthz endpoint behavior when database has issues."""
-<<<<<<< HEAD
     client, app, _ = app_client
     app.attach_diagnostics(prefix="", app=client._transport.app)
-=======
-    client, router, _ = api_client
-    router.attach_diagnostics(prefix="", app=client._transport.app)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Note: In a real test, we'd mock database connectivity issues
     # For now, we just verify the endpoint responds and has the right structure
@@ -208,13 +168,8 @@ async def test_healthz_database_error_handling(app_client):
 @pytest.mark.asyncio
 async def test_methodz_reflects_dynamic_models(app_client):
     """Test that methodz reflects dynamically registered models."""
-<<<<<<< HEAD
     client, app, _ = app_client
     app.attach_diagnostics(prefix="", app=client._transport.app)
-=======
-    client, router, _ = api_client
-    router.attach_diagnostics(prefix="", app=client._transport.app)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Get initial methods
     response = await client.get("/methodz")
@@ -229,13 +184,8 @@ async def test_methodz_reflects_dynamic_models(app_client):
 @pytest.mark.asyncio
 async def test_endpoints_are_synchronous(app_client):
     """Test that healthz, methodz and hookz endpoints work in sync mode."""
-<<<<<<< HEAD
     client, app, _ = app_client
     app.attach_diagnostics(prefix="", app=client._transport.app)
-=======
-    client, router, _ = api_client
-    router.attach_diagnostics(prefix="", app=client._transport.app)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # These endpoints should work regardless of async/sync context
     healthz_response = await client.get("/healthz")
