@@ -46,6 +46,7 @@ from ..router._routing import (
     include_router as _include_router_impl,
 )
 from ..app.transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
+from ..router._routing import include_router as _include_router_impl
 
 
 # optional compat: legacy transactional decorator
@@ -410,22 +411,12 @@ class TigrblApp(_App):
         return routed
 
     def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Compatibility alias for ``add_route`` on ``TigrblApp``."""
-        self.add_route(path, endpoint, **kwargs)
+        """Register a route using the app-managed default ``TigrblRouter``."""
+        self._ensure_default_router().add_route(path, endpoint, **kwargs)
 
     def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Register a direct app route.
-
-        ``TigrblApp`` prefers model/router-driven registration, but application-level
-        system endpoints (OpenAPI/OpenRPC/docs/favicon/diagnostics) and legacy code
-        still rely on direct route mounting.
-        """
-        methods = kwargs.pop("methods", None)
-        if methods is None:
-            raise TypeError(
-                "add_route() missing required keyword-only argument: 'methods'"
-            )
-        _add_route_impl(self, path, endpoint, methods=methods, **kwargs)
+        """Register a route using the app-managed default ``TigrblRouter``."""
+        self._ensure_default_router().add_route(path, endpoint, **kwargs)
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""

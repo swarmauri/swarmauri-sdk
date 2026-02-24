@@ -6,6 +6,5 @@ from ..decorators.op import (  # noqa: F401
     _infer_arity as _infer_arity,
     _maybe_await as _maybe_await,
     _normalize_persist as _normalize_persist,
-    _OpDecl as _OpDecl,
     _unwrap as _unwrap,
 )
