@@ -43,7 +43,7 @@ def test_router_instantiation_is_transport_agnostic_and_kernel_plan_builds():
     DemoModel.hooks = SimpleNamespace(read=SimpleNamespace())
 
     router = TigrblRouter()
-    router.models = {"DemoModel": DemoModel}
+    router.tables = {"DemoModel": DemoModel}
 
     kernel = Kernel()
     payload = kernel.kernelz_payload(router)

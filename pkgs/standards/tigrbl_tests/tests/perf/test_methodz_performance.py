@@ -33,7 +33,7 @@ async def test_methodz_performance(count):
     )
 
     class API:
-        models = {"Model": Model}
+        tables = {"Model": Model}
 
     methodz = _build_methodz_endpoint(API)
 
@@ -71,7 +71,7 @@ async def test_methodz_cached_call_faster(monkeypatch) -> None:
     )
 
     class API:
-        models = {"Model": Model}
+        tables = {"Model": Model}
 
     calls = {"ops": 0}
 
