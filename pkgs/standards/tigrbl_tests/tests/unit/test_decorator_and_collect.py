@@ -35,7 +35,7 @@ setattr(Model.handlers, "create", SimpleNamespace(core=core_create))
 def test_install_and_resolve_op_vs_table():
     # App/API omitted: we only test table + op registration
     install_from_objects(
-        models=[Model]
+        tables=[Model]
     )  # registers table-level + op-level  :contentReference[oaicite:19]{index=19}
 
     # Table-level
