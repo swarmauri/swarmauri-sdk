@@ -3,14 +3,13 @@ from __future__ import annotations
 import pytest
 from sqlalchemy import Column, Integer
 
-from tigrbl.app._app import App as _App
-from tigrbl.router._router import Router as _Api
+from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.engine import resolver as _resolver
 from tigrbl.engine.shortcuts import mem
 from tigrbl.table import Base
 
 
-class SimpleApp(_App):
+class SimpleApp(TigrblApp):
     TITLE = "TestApp"
     VERSION = "0.0"
     LIFESPAN = None
@@ -19,7 +18,7 @@ class SimpleApp(_App):
     MIDDLEWARES: tuple = ()
 
 
-class SimpleApi(_Api):
+class SimpleRouter(TigrblRouter):
     PREFIX = ""
     TAGS: list[str] = []
 
@@ -50,8 +49,8 @@ def test_base_router_supports_initialize_sync():
 
         id = Column(Integer, primary_key=True)
 
-    router = SimpleApi(engine=mem(async_=False))
-    router.models["Widget"] = Widget
+    router = SimpleRouter(engine=mem(async_=False))
+    router.tables["Widget"] = Widget
 
     router.initialize()
 
@@ -66,8 +65,8 @@ async def test_base_router_supports_initialize_async():
 
         id = Column(Integer, primary_key=True)
 
-    router = SimpleApi(engine=mem())
-    router.models["Gadget"] = Gadget
+    router = SimpleRouter(engine=mem())
+    router.tables["Gadget"] = Gadget
 
     await router.initialize()
 
