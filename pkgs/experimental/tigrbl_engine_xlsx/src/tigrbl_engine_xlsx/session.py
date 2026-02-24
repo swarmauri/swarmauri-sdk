@@ -344,14 +344,20 @@ class XlsxSession(TigrblSessionBase):
         return obj
 
     def _scan_model(self, model: type) -> List[Any]:
-        out = [self._inflate(model, row) for row in self._rows_for(model)]
         pk = _single_pk_name(model)
-        by_id = {getattr(obj, pk): obj for obj in out}
+        by_id: Dict[Any, Any] = {}
+        for row in self._rows_for(model):
+            ident = row.get(pk)
+            if ident is None:
+                continue
+            tracked = self._tracked.get((model, ident))
+            if tracked is not None:
+                by_id[ident] = tracked
+            else:
+                by_id[ident] = self._inflate_tracked(model, ident, row)
         for (known_model, ident), row in self._puts.items():
             if known_model is model:
                 by_id[ident] = self._inflate_tracked(model, ident, row)
-        for ident, obj in list(by_id.items()):
-            self._tracked[(model, ident)] = obj
         for known_model, ident in self._dels:
             if known_model is model:
                 by_id.pop(ident, None)

@@ -27,17 +27,10 @@ def test_model_hooks_bind_on_rebind():
             return None
 
     # Deployment: include the model in an app so binding occurs.
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(LessonHook)
     app.initialize()
     app.bind(LessonHook)
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_model(LessonHook)
-    router.initialize()
-    router.bind(LessonHook)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Test: read the bound hook registry for the create op and phase.
     hooks = LessonHook.__tigrbl_hooks__["create"]["POST_COMMIT"]
@@ -66,17 +59,10 @@ def test_model_hook_scopes_do_not_leak_to_other_ops():
             return None
 
     # Deployment: include the model and bind hooks through the app.
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(LessonHookScopeIsolation)
     app.initialize()
     app.bind(LessonHookScopeIsolation)
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_model(LessonHookScopeIsolation)
-    router.initialize()
-    router.bind(LessonHookScopeIsolation)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Test: check hook registries for create vs update ops.
     create_hooks = LessonHookScopeIsolation.__tigrbl_hooks__["create"]["PRE_HANDLER"]
