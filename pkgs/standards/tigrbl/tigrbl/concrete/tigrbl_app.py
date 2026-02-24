@@ -32,7 +32,6 @@ from ..mapping.router import (
 )
 from ..mapping.table import rebind as _rebind, bind as _bind
 from ..mapping.rest import build_router_and_attach as _build_router_and_attach
-from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..system import mount_lens as _mount_lens
 from ..system import mount_openapi as _mount_openapi
@@ -42,7 +41,6 @@ from ..system.docs import build_openapi as _build_openapi
 from ..op import get_registry, OpSpec
 from ..app._table_registry import initialize_table_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
-from ..app.transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
 
 
 # optional compat: legacy transactional decorator
@@ -148,7 +146,6 @@ class TigrblApp(_App):
         # Router-level hooks map (merged into each table at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
         self.mount_openapi(path="/openapi.json")
-        self.mount_jsonrpc(prefix=self.jsonrpc_prefix)
         self.attach_diagnostics(prefix=self.system_prefix)
         self.mount_openrpc(path="/openrpc.json")
         self.mount_lens(path="/rdocs", spec_path="/openrpc.json")
@@ -240,18 +237,6 @@ class TigrblApp(_App):
             result = handler()
             if inspect.isawaitable(result):
                 await result
-
-    async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
-        """Expose ``TigrblApp`` as a native ASGI callable for uvicorn/gunicorn."""
-        await self.asgi_app(scope, receive, send)
-
-    async def asgi_app(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
-        """Serve ASGI requests using the shared transport adapter."""
-        await _asgi_transport(self, scope, receive, send)
-
-    def wsgi_app(self, environ: dict[str, Any], start_response: Any) -> list[bytes]:
-        """Serve WSGI requests using the shared transport adapter."""
-        return _wsgi_transport(self, environ, start_response)
 
     def add_middleware(self, middleware_class: Any, **options: Any) -> None:
         self._middlewares.append((middleware_class, options))
@@ -546,19 +531,8 @@ class TigrblApp(_App):
     # ------------------------- extras / mounting -------------------------
 
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
-        """Mount JSON-RPC router onto this app."""
-        px = prefix if prefix is not None else self.jsonrpc_prefix
-        self.jsonrpc_prefix = px
-        prov = _resolver.resolve_provider(router=self)
-        get_db = prov.get_db if prov else None
-        router = _mount_jsonrpc(
-            self,
-            self,
-            prefix=px,
-            get_db=get_db,
-        )
-        self._base_routes = list(self._routes)
-        return router
+        del prefix
+        raise RuntimeError("JSON-RPC transport mounting has been removed from ingress.")
 
     def mount_openapi(
         self,
