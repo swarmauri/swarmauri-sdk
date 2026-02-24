@@ -87,7 +87,7 @@ def alias_ctx(**verb_to_alias_or_decl: Union[str, AliasDecl]):
         setattr(cls, "__tigrbl_aliases__", amap)
         setattr(cls, "__tigrbl_alias_overrides__", overrides)
         try:  # clear cached alias maps so late-applied decorators take effect
-            from .mro_collect import mro_alias_map_for
+            from ..op.mro_collect import mro_alias_map_for
 
             mro_alias_map_for.cache_clear()
         except Exception:  # pragma: no cover - best effort
@@ -152,6 +152,24 @@ class _OpDecl:
     response_schema: Optional[SchemaArg]
     persist: Optional[PersistPolicy]
     status_code: Optional[int]
+    http_methods: Optional[tuple[str, ...]] = None
+    path_suffix: Optional[str] = None
+    tags: tuple[str, ...] = ()
+    request_model: Optional[SchemaArg] = None
+    response_model: Optional[SchemaArg] = None
+    hooks: tuple[Any, ...] = ()
+    expose_routes: bool = True
+    expose_rpc: bool = True
+    expose_method: bool = True
+    engine: Any = None
+    response: Any = None
+    returns: str = "raw"
+    rbac_guard_op: TargetOp | None = None
+    core: Any = None
+    core_raw: Any = None
+    extra: dict[str, Any] | None = None
+    deps: tuple[Any, ...] = ()
+    secdeps: tuple[Any, ...] = ()
 
 
 def op_ctx(
@@ -172,7 +190,7 @@ def op_ctx(
         cm = _ensure_cm(fn)
         f = _unwrap(cm)
         f.__tigrbl_ctx_only__ = True
-        f.__tigrbl_op_decl__ = _OpDecl(
+        decl = _OpDecl(
             alias=alias,
             target=target,
             arity=arity,
@@ -182,6 +200,8 @@ def op_ctx(
             persist=persist,
             status_code=status_code,
         )
+        f.__tigrbl_op_decl__ = decl
+        f.__tigrbl_op_spec__ = decl
 
         if bind is not None:
             targets = (

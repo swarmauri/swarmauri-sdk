@@ -32,6 +32,7 @@ from ..mapping.router import (
 )
 from ..mapping.model import rebind as _rebind, bind as _bind
 from ..mapping.rest import build_router_and_attach as _build_router_and_attach
+from ..router._routing import add_route as _add_route, include_router as _include_router
 from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..system import mount_lens as _mount_lens
@@ -79,6 +80,11 @@ class TigrblApp(_App):
 
     mount_favicon = mount_favicon
 
+    @property
+    def router(self) -> "TigrblApp":
+        """Compatibility shim exposing app routes via ``app.router``."""
+        return self
+
     def __init__(
         self,
         *,
@@ -110,7 +116,7 @@ class TigrblApp(_App):
             self.add_middleware(mw_cls, **getattr(mw, "kwargs", {}))
         self._install_favicon()
         # capture initial routes so refreshes retain ASGI defaults
-        self._base_routes = list(self.router.routes)
+        self._base_routes = list(self.routes)
         self.jsonrpc_prefix = (
             jsonrpc_prefix
             if jsonrpc_prefix is not None
@@ -146,6 +152,7 @@ class TigrblApp(_App):
         # Router-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
         self._default_router: TigrblRouter | None = None
+        self.mount_openapi(path=self.openapi_url)
         self.mount_openrpc(path="/openrpc.json")
         self.mount_lens(path="/rdocs", spec_path="/openrpc.json")
         if routers:
@@ -402,7 +409,46 @@ class TigrblApp(_App):
         if not mount_router:
             return router
         routed = getattr(router, "router", router)
-        super().include_router(routed, prefix=prefix or "")
+        _include_router(self, routed, prefix=prefix or "")
+        metadata_route_names = {"__openapi__", "__docs__"}
+        routed_routes = getattr(routed, "_routes", None) or getattr(
+            routed, "routes", ()
+        )
+        normalized_prefix = (prefix or "").rstrip("/")
+        if normalized_prefix and not normalized_prefix.startswith("/"):
+            normalized_prefix = f"/{normalized_prefix}"
+        for route in routed_routes:
+            if getattr(route, "name", "") not in metadata_route_names:
+                continue
+            route_path = getattr(route, "path_template", None) or getattr(
+                route, "path", ""
+            )
+            path = f"{normalized_prefix}{route_path}"
+            _add_route(
+                self,
+                path,
+                getattr(route, "handler", None) or getattr(route, "endpoint"),
+                methods=tuple(getattr(route, "methods", ("GET",))),
+                name=getattr(route, "name", None),
+                summary=getattr(route, "summary", None),
+                description=getattr(route, "description", None),
+                tags=getattr(route, "tags", None),
+                deprecated=getattr(route, "deprecated", False),
+                request_schema=getattr(route, "request_schema", None),
+                response_schema=getattr(route, "response_schema", None),
+                path_param_schemas=getattr(route, "path_param_schemas", None),
+                query_param_schemas=getattr(route, "query_param_schemas", None),
+                include_in_schema=getattr(route, "include_in_schema", True),
+                operation_id=getattr(route, "operation_id", None),
+                response_model=getattr(route, "response_model", None),
+                request_model=getattr(route, "request_model", None),
+                responses=getattr(route, "responses", None),
+                status_code=getattr(route, "status_code", None),
+                dependencies=getattr(route, "dependencies", None),
+                security_dependencies=getattr(route, "security_dependencies", None),
+                tigrbl_model=getattr(route, "tigrbl_model", None),
+                tigrbl_alias=getattr(route, "tigrbl_alias", None),
+            )
         return routed
 
     def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
@@ -413,7 +459,8 @@ class TigrblApp(_App):
             DeprecationWarning,
             stacklevel=2,
         )
-        super().add_route(path, endpoint, **kwargs)
+        methods = kwargs.pop("methods", ["GET"])
+        _add_route(self, path, endpoint, methods=methods, **kwargs)
 
     def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
         """Deprecated compatibility hook for adding routes directly on the app."""
@@ -423,7 +470,8 @@ class TigrblApp(_App):
             DeprecationWarning,
             stacklevel=2,
         )
-        super().add_route(path, endpoint, **kwargs)
+        methods = kwargs.pop("methods", ["GET"])
+        _add_route(self, path, endpoint, methods=methods, **kwargs)
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""
@@ -533,7 +581,7 @@ class TigrblApp(_App):
             prefix=px,
             get_db=get_db,
         )
-        self._base_routes = list(self.router.routes)
+        self._base_routes = list(self.routes)
         return router
 
     def mount_openapi(
@@ -561,7 +609,9 @@ class TigrblApp(_App):
 
     def openapi(self) -> Dict[str, Any]:
         """Build and return the OpenAPI document for this app."""
-        return self.router.openapi()
+        from ..system.docs.openapi import build_openapi as _build_openapi
+
+        return _build_openapi(self)
 
     def mount_lens(
         self,
@@ -589,7 +639,7 @@ class TigrblApp(_App):
             if callable(include_other):
                 include_other(router, prefix=px)
         if app is None:
-            self._base_routes = list(self.router.routes)
+            self._base_routes = list(self.routes)
         return router
 
     # ------------------------- registry passthroughs -------------------------
@@ -656,7 +706,8 @@ class TigrblApp(_App):
     def _refresh_security(self) -> None:
         """Re-seed auth deps on models and rebuild routers."""
         # Reset router to baseline and allow_anon ops cache
-        self.router.routes = list(self._base_routes)
+        self.routes = list(self._base_routes)
+        self._routes = self.routes
         self._allow_anon_ops = set()
         for model in self.models.values():
             _seed_security_and_deps(self, model)
