@@ -69,15 +69,21 @@ class NumpySession(TigrblSessionBase):
         self._puts: dict[tuple[type, Any], dict[str, Any]] = {}
         self._dels: set[tuple[type, Any]] = set()
         self._tracked: dict[tuple[type, Any], Any] = {}
+        self._tracked: dict[tuple[type, Any], Any] = {}
 
     def to_records(self) -> list[dict[str, Any]]:
         pk = self._engine.catalog.pk
-        rows = [dict(row) for row in self._engine.catalog.rows]
-        deleted = {ident for (_model, ident) in self._dels}
-        by_pk = {row.get(pk): row for row in rows if row.get(pk) not in deleted}
-        for (_model, ident), row in self._puts.items():
-            by_pk[ident] = dict(row)
-        return list(by_pk.values())
+        by_id: dict[Any, dict[str, Any]] = {}
+        for row in self._engine.catalog.rows:
+            ident = row.get(pk)
+            if ident is None:
+                continue
+            by_id[ident] = dict(row)
+        for (_, ident), row in self._puts.items():
+            by_id[ident] = dict(row)
+        for _, ident in self._dels:
+            by_id.pop(ident, None)
+        return list(by_id.values())
 
     def array(self) -> np.ndarray:
         rows = self.to_records()
@@ -163,6 +169,7 @@ class NumpySession(TigrblSessionBase):
         self._puts.clear()
         self._dels.clear()
         self._tracked.clear()
+        self._tracked.clear()
 
     async def _tx_commit_impl(self) -> None:
         iso = (self._spec.isolation if self._spec else None) or "read_committed"
@@ -193,44 +200,33 @@ class NumpySession(TigrblSessionBase):
         self._puts.clear()
         self._dels.clear()
         self._tracked.clear()
+        self._tracked.clear()
 
     async def _tx_rollback_impl(self) -> None:
         self._puts.clear()
         self._dels.clear()
         self._tracked.clear()
 
-    @staticmethod
-    def _pk_default(model: type, pk: str) -> Any:
-        table = getattr(model, "__table__", None)
-        if table is None:
-            return None
-        try:
-            column = table.columns.get(pk)
-        except Exception:
-            return None
-        if column is None:
-            return None
-        default = getattr(column, "default", None)
-        if default is None:
-            return None
-        arg = getattr(default, "arg", None)
-        if callable(arg):
-            try:
-                return arg()
-            except TypeError:
-                return arg(None)
-        return arg
-
     def _add_impl(self, obj: Any) -> Any:
         model = obj.__class__
         pk = _single_pk_name(model)
         ident = getattr(obj, pk)
         if ident is None:
-            ident = self._pk_default(model, pk)
-            if ident is not None:
+            default = getattr(getattr(model, "__table__", None), "columns", {}).get(pk)
+            default = getattr(default, "default", None)
+            if default is not None:
+                arg = getattr(default, "arg", default)
+                if callable(arg):
+                    try:
+                        ident = arg()
+                    except TypeError:
+                        ident = arg(None)
+                else:
+                    ident = arg
                 setattr(obj, pk, ident)
         if ident is None:
             raise ValueError(f"primary key {pk!r} must be set")
+        self._tracked[(model, ident)] = obj
         row = {c: getattr(obj, c, None) for c in _model_columns(model)}
         self._puts[(model, ident)] = row
         self._dels.discard((model, ident))
@@ -243,40 +239,42 @@ class NumpySession(TigrblSessionBase):
         self._puts.pop((model, ident), None)
         self._dels.add((model, ident))
         self._tracked.pop((model, ident), None)
+        self._tracked.pop((model, ident), None)
 
     async def _flush_impl(self) -> None:
-        for (model, ident), obj in self._tracked.items():
+        for (model, ident), obj in list(self._tracked.items()):
             if (model, ident) in self._dels:
                 continue
-            self._puts[(model, ident)] = {
-                column: getattr(obj, column, None) for column in _model_columns(model)
-            }
-        return
+            row = {c: getattr(obj, c, None) for c in _model_columns(model)}
+            baseline = self._resolve_row(model, ident)
+            if baseline is None:
+                continue
+            if row == dict(baseline):
+                continue
+            if self._spec and self._spec.read_only:
+                raise RuntimeError("read-only session: writes detected during flush")
+            self._puts[(model, ident)] = row
 
     async def _refresh_impl(self, obj: Any) -> None:
         pk = _single_pk_name(obj.__class__)
         ident = getattr(obj, pk)
-        fresh = await self._get_impl(obj.__class__, ident)
-        if fresh is None:
+        row = self._resolve_row(obj.__class__, ident)
+        if row is None:
             return
         for c in _model_columns(obj.__class__):
-            setattr(obj, c, getattr(fresh, c, None))
+            if c in row:
+                setattr(obj, c, row[c])
 
     async def _get_impl(self, model: type, ident: Any) -> Any | None:
-        row = self._puts.get((model, ident))
-        if row is not None:
-            obj = self._inflate(model, row)
-            self._tracked[(model, ident)] = obj
-            return obj
         if (model, ident) in self._dels:
             return None
-        pk = _single_pk_name(model)
-        for record in self._engine.catalog.rows:
-            if record.get(pk) == ident:
-                obj = self._inflate(model, record)
-                self._tracked[(model, ident)] = obj
-                return obj
-        return None
+        tracked = self._tracked.get((model, ident))
+        if tracked is not None:
+            return tracked
+        row = self._resolve_row(model, ident)
+        if row is None:
+            return None
+        return self._hydrate_tracked(model, ident, row)
 
     async def _execute_impl(self, stmt: Any) -> Any:
         kind = type(stmt).__name__.lower()
@@ -299,6 +297,7 @@ class NumpySession(TigrblSessionBase):
         raise NotImplementedError(f"Unsupported statement: {type(stmt)}")
 
     async def _close_impl(self) -> None:
+        self._tracked.clear()
         return
 
     def _inflate(self, model: type, data: Mapping[str, Any]) -> Any:
@@ -309,16 +308,42 @@ class NumpySession(TigrblSessionBase):
         return obj
 
     def _scan_model(self, model: type) -> List[Any]:
-        out = [self._inflate(model, row) for row in self._engine.catalog.rows]
         pk = _single_pk_name(model)
-        by_id = {getattr(obj, pk): obj for obj in out}
+        by_id: dict[Any, Any] = {}
+        for row in self._engine.catalog.rows:
+            ident = row.get(pk)
+            if ident is None:
+                continue
+            by_id[ident] = self._hydrate_tracked(model, ident, row)
         for (m, ident), row in self._puts.items():
             if m is model:
-                by_id[ident] = self._inflate(model, row)
+                by_id[ident] = self._hydrate_tracked(model, ident, row)
         for m, ident in self._dels:
             if m is model:
                 by_id.pop(ident, None)
+                self._tracked.pop((model, ident), None)
         return list(by_id.values())
+
+    def _resolve_row(self, model: type, ident: Any) -> Mapping[str, Any] | None:
+        row = self._puts.get((model, ident))
+        if row is not None:
+            return row
+        pk = _single_pk_name(model)
+        for record in self._engine.catalog.rows:
+            if record.get(pk) == ident:
+                return record
+        return None
+
+    def _hydrate_tracked(self, model: type, ident: Any, data: Mapping[str, Any]) -> Any:
+        obj = self._tracked.get((model, ident))
+        if obj is None:
+            obj = self._inflate(model, data)
+            self._tracked[(model, ident)] = obj
+            return obj
+        for c in _model_columns(model):
+            if c in data:
+                setattr(obj, c, data[c])
+        return obj
 
     def _decompose_select(
         self, stmt: Any
@@ -349,14 +374,20 @@ class NumpySession(TigrblSessionBase):
 
         def _all_subclasses(base: type) -> list[type]:
             out: list[type] = []
-            stack = list(base.__subclasses__())
+            stack = [base]
+            seen: set[type] = set()
             while stack:
                 cls = stack.pop()
-                out.append(cls)
                 try:
-                    stack.extend(cls.__subclasses__())
+                    children = cls.__subclasses__()
                 except TypeError:
-                    stack.extend(type.__subclasses__(cls))
+                    continue
+                for child in children:
+                    if child in seen:
+                        continue
+                    seen.add(child)
+                    out.append(child)
+                    stack.append(child)
             return out
 
         def _find_by_table(name: str) -> type | None:
@@ -364,6 +395,13 @@ class NumpySession(TigrblSessionBase):
                 if getattr(cls, "__tablename__", None) == name:
                     return cls
             return None
+
+        table = getattr(stmt, "table", None)
+        name = getattr(table, "name", None)
+        if isinstance(name, str):
+            found = _find_by_table(name)
+            if found is not None:
+                return found
 
         for attr_name in ("_from_objects", "_froms", "froms"):
             value = getattr(stmt, attr_name, None)
