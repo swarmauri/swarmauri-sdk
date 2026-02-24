@@ -111,7 +111,7 @@ class TigrblRouter(_Router):
     # ------------------------- internal helpers -------------------------
 
     @staticmethod
-    def _merge_api_hooks_into_model(model: type, hooks_map: Any) -> None:
+    def _merge_router_hooks_into_model(model: type, hooks_map: Any) -> None:
         """
         Install Router-level hooks on the model so the binder can see them.
         Accepted shapes:
@@ -154,7 +154,7 @@ class TigrblRouter(_Router):
         Bind a model, mount its REST router, and attach all namespaces to this facade.
         """
         # inject Router-level hooks so the binder merges them
-        self._merge_api_hooks_into_model(model, self._router_hooks_map)
+        self._merge_router_hooks_into_model(model, self._router_hooks_map)
         included_model, router = _include_model(
             self, model, app=None, prefix=prefix, mount_router=mount_router
         )
@@ -170,7 +170,7 @@ class TigrblRouter(_Router):
         mount_router: bool = True,
     ) -> Dict[str, Any]:
         for m in models:
-            self._merge_api_hooks_into_model(m, self._router_hooks_map)
+            self._merge_router_hooks_into_model(m, self._router_hooks_map)
         included = _include_models(
             self,
             models,
@@ -206,7 +206,7 @@ class TigrblRouter(_Router):
 
     def bind(self, model: type) -> Tuple[OpSpec, ...]:
         """Bind/rebuild a model in place (without mounting)."""
-        self._merge_api_hooks_into_model(model, self._router_hooks_map)
+        self._merge_router_hooks_into_model(model, self._router_hooks_map)
         return _bind(model)
 
     def rebind(
