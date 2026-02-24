@@ -62,6 +62,7 @@ class Router(RouterSpec):
         self,
         *,
         engine: EngineCfg | None = None,
+        get_db: Callable[..., Any] | None = None,
         title: str = "API",
         version: str = "0.1.0",
         description: str | None = None,
@@ -90,6 +91,8 @@ class Router(RouterSpec):
         self.dependency_overrides: dict[Callable[..., Any], Callable[..., Any]] = {}
         self.dependency_overrides_provider = self
         self.lifespan_context = _default_lifespan_context
+        if get_db is not None:
+            self.get_db = get_db
 
         self._routes: list[Route] = []
         self.routes = self._routes
