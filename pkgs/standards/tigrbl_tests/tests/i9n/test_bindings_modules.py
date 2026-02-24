@@ -119,7 +119,7 @@ async def test_router_include_and_rpc_call(monkeypatch, model_cls):
     model_binding.bind(model_cls)
     router = SimpleNamespace()
     router_binding.include_table(router, model_cls, mount_router=False)
-    assert model_cls.__name__ in router.models
+    assert model_cls.__name__ in router.tables
     routers = router_binding.include_tables(
         SimpleNamespace(), [model_cls], mount_router=False
     )

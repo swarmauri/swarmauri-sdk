@@ -75,7 +75,7 @@ async def test_trace_labels_match_kernel_plan_for_rest_and_rpc(alias: str):
     from tigrbl.transport.dispatcher import dispatch_operation
 
     model = _build_model()
-    router = SimpleNamespace(models={"DemoModel": model})
+    router = SimpleNamespace(tables={"DemoModel": model})
 
     kernel = Kernel()
     kernel.ensure_primed(router)
@@ -158,7 +158,7 @@ async def test_kernelz_plan_and_trace_include_named_secdeps_and_deps():
         )
     )
 
-    router = SimpleNamespace(models={"DemoModel": DemoModel})
+    router = SimpleNamespace(tables={"DemoModel": DemoModel})
 
     kernel = Kernel()
     payload = kernel.kernelz_payload(router)
