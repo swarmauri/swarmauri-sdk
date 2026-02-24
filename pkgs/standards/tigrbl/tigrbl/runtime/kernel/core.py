@@ -18,9 +18,8 @@ from .atoms import (
     _is_persistent,
 )
 from .cache import _SpecsOnceCache, _WeakMaybeDict
-from .models import OpView
+from .models import KernelPlan, OpKey, OpMeta, OpView
 from .opview_compiler import compile_opview_from_specs
-from .payload import build_kernelz_payload
 
 logger = logging.getLogger(__name__)
 
@@ -169,7 +168,7 @@ class Kernel:
                     ov_map[(model, sp.alias)] = compile_opview_from_specs(specs, sp)
             self._opviews[app] = ov_map
 
-            self._kernelz_payload[app] = build_kernelz_payload(self, app)
+            self._kernelz_payload[app] = self.compile_plan(app)
             self._primed[app] = True
 
     def get_opview(self, app: Any, model: type, alias: str) -> OpView:
@@ -209,10 +208,83 @@ class Kernel:
                 f"opview_missing: app={app!r} model={getattr(model, '__name__', model)!r} alias={alias!r}"
             ) from exc
 
-    def kernelz_payload(self, app: Any) -> Dict[str, Dict[str, List[str]]]:
-        """Thin accessor for endpoint: guarantees primed, returns cached payload."""
+    def compile_plan(self, app: Any) -> KernelPlan:
+        from ...specs.binding_spec import (
+            HttpJsonRpcBindingSpec,
+            HttpRestBindingSpec,
+            WsBindingSpec,
+        )
+        from ...system.diagnostics.utils import (
+            opspecs as _opspecs,
+            table_iter as _table_iter,
+        )
+
+        proto_indices: dict[str, Any] = {}
+        opmeta: list[OpMeta] = []
+        opkey_to_meta: dict[OpKey, int] = {}
+        phase_chains: dict[int, Mapping[str, list[StepFn]]] = {}
+
+        for model in _table_iter(app):
+            for sp in _opspecs(model):
+                meta_index = len(opmeta)
+                target = (getattr(sp, "target", sp.alias) or sp.alias).lower()
+                opmeta.append(OpMeta(model=model, alias=sp.alias, target=target))
+                phase_chains[meta_index] = self.build(model, sp.alias)
+
+                for binding in getattr(sp, "bindings", ()) or ():
+                    if isinstance(binding, HttpRestBindingSpec):
+                        for method in binding.methods:
+                            selector = f"{method.upper()} {binding.path}"
+                            opkey = OpKey(proto=binding.proto, selector=selector)
+                            opkey_to_meta[opkey] = meta_index
+                            proto_indices.setdefault(binding.proto, {})[selector] = (
+                                meta_index
+                            )
+                    elif isinstance(binding, HttpJsonRpcBindingSpec):
+                        opkey = OpKey(proto=binding.proto, selector=binding.rpc_method)
+                        opkey_to_meta[opkey] = meta_index
+                        proto_indices.setdefault(binding.proto, {})[
+                            binding.rpc_method
+                        ] = meta_index
+                    elif isinstance(binding, WsBindingSpec):
+                        selector = binding.path
+                        if binding.subprotocols:
+                            for subprotocol in binding.subprotocols:
+                                full_selector = f"{selector}|{subprotocol}"
+                                opkey = OpKey(
+                                    proto=binding.proto, selector=full_selector
+                                )
+                                opkey_to_meta[opkey] = meta_index
+                                proto_indices.setdefault(binding.proto, {})[
+                                    full_selector
+                                ] = meta_index
+                        else:
+                            opkey = OpKey(proto=binding.proto, selector=selector)
+                            opkey_to_meta[opkey] = meta_index
+                            proto_indices.setdefault(binding.proto, {})[selector] = (
+                                meta_index
+                            )
+
+        return KernelPlan(
+            proto_indices=proto_indices,
+            opmeta=tuple(opmeta),
+            opkey_to_meta=opkey_to_meta,
+            phase_chains=phase_chains,
+        )
+
+    def kernel_plan(self, app: Any) -> KernelPlan:
         self.ensure_primed(app)
-        return self._kernelz_payload[app]
+        plan = self._kernelz_payload.get(app)
+        if isinstance(plan, KernelPlan):
+            return plan
+        compiled = self.compile_plan(app)
+        self._kernelz_payload[app] = compiled
+        return compiled
+
+    def kernelz_payload(self, app: Any) -> KernelPlan:
+        """Thin accessor for endpoint: guarantees primed, returns compiled kernel plan."""
+        self.ensure_primed(app)
+        return self.kernel_plan(app)
 
     def invalidate_kernelz_payload(self, app: Optional[Any] = None) -> None:
         with self._lock:

@@ -8,23 +8,36 @@ ANCHOR = _ev.ROUTE_PROTOCOL_DETECT
 
 
 def run(obj: object | None, ctx: Any) -> None:
+    del obj
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
         temp = {}
         setattr(ctx, "temp", temp)
-    request = getattr(ctx, "request", None)
-    scope = getattr(request, "scope", None) if request is not None else None
-    protocol = scope.get("type") if isinstance(scope, dict) else None
-    if protocol is None and request is not None:
-        protocol = getattr(request, "protocol", None)
-    if protocol is None:
-        raw = getattr(ctx, "raw", None)
-        raw_scope = getattr(raw, "scope", None) if raw is not None else None
-        if isinstance(raw_scope, dict):
-            protocol = raw_scope.get("type")
-    if protocol is not None:
-        temp.setdefault("route", {})["protocol"] = protocol
-        setattr(ctx, "proto", protocol)
+    route = temp.setdefault("route", {})
 
+    env = getattr(ctx, "gw_raw", None)
+    proto = None
+    if env is not None:
+        transport = getattr(env, "transport", None)
+        kind = getattr(env, "kind", None)
+        scheme = getattr(env, "scheme", None)
+        if (
+            transport == "http"
+            and kind in {"rest", "jsonrpc"}
+            and scheme in {"http", "https"}
+        ):
+            proto = f"{scheme}.{kind}"
+        elif transport == "ws" and scheme in {"ws", "wss"}:
+            proto = scheme
 
-__all__ = ["ANCHOR", "run"]
+    if proto is None:
+        request = getattr(ctx, "request", None)
+        scope = getattr(request, "scope", None) if request is not None else None
+        protocol = scope.get("type") if isinstance(scope, dict) else None
+        if protocol is None and request is not None:
+            protocol = getattr(request, "protocol", None)
+        proto = protocol
+
+    if proto is not None:
+        route["protocol"] = proto
+        setattr(ctx, "proto", proto)
