@@ -1,54 +1,54 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Iterable, List
+from dataclasses import dataclass
+from enum import Enum, auto
+from typing import Callable, Tuple
 
-from ..op.types import PHASES
-from .collect import collect_hooks
-from .context import MappingContext, MappingPlan
-from .resolver import filter_visible, resolve
-
-
-def _dedupe_by_name(funcs: Iterable[Callable[..., Any]]) -> List[Callable[..., Any]]:
-    return list({getattr(fn, "__qualname__", str(fn)): fn for fn in funcs}.values())
+from .context import MappingContext
+from .passes import bind_deps, bind_hooks, bind_models, bind_ops, collect, merge, seal
 
 
-def _merge_hooks(context: MappingContext, aliases: set[str]):
-    base_hooks = getattr(context.model, "__tigrbl_hooks__", {}) or {}
-    for phases in base_hooks.values():
-        for phase, fns in list(phases.items()):
-            phases[phase] = _dedupe_by_name(fns if isinstance(fns, list) else list(fns))
-
-    ctx_hooks = collect_hooks(context)
-    for alias, phases in ctx_hooks.items():
-        if alias not in aliases:
-            continue
-        per = base_hooks.setdefault(alias, {})
-        for phase, fns in phases.items():
-            if phase in PHASES:
-                existing = per.setdefault(phase, [])
-                per[phase] = _dedupe_by_name([*existing, *fns])
-    return base_hooks
+class Step(Enum):
+    COLLECT = auto()
+    MERGE = auto()
+    BIND_MODELS = auto()
+    BIND_OPS = auto()
+    BIND_HOOKS = auto()
+    BIND_DEPS = auto()
+    SEAL = auto()
 
 
-def plan(context: MappingContext) -> MappingPlan:
-    all_specs = resolve(context)
-    visible_specs = filter_visible(context, all_specs)
-    visible_aliases = (
-        {sp.alias for sp in visible_specs}
-        if visible_specs
-        else {sp.alias for sp in all_specs}
-    )
-    merged_hooks = _merge_hooks(context, visible_aliases)
+PlanFn = Callable[[MappingContext], MappingContext]
 
+
+@dataclass(frozen=True)
+class MappingPlan:
+    steps: Tuple[tuple[Step, PlanFn], ...]
+
+    def execute(self, ctx: MappingContext) -> MappingContext:
+        for _, fn in self.steps:
+            ctx = fn(ctx)
+        return ctx
+
+
+def compile_plan(*, deterministic: bool = True) -> MappingPlan:
+    del deterministic
     return MappingPlan(
-        model=context.model,
-        router=context.router,
-        only_keys=context.only_keys,
-        alias_map=context.alias_map,
-        all_specs=tuple(all_specs),
-        visible_specs=tuple(visible_specs),
-        merged_hooks=merged_hooks,
+        steps=(
+            (Step.COLLECT, collect),
+            (Step.MERGE, merge),
+            (Step.BIND_MODELS, bind_models),
+            (Step.BIND_OPS, bind_ops),
+            (Step.BIND_HOOKS, bind_hooks),
+            (Step.BIND_DEPS, bind_deps),
+            (Step.SEAL, seal),
+        )
     )
 
 
-__all__ = ["plan"]
+def plan(context: MappingContext) -> MappingContext:
+    """Compatibility wrapper around the compiled deterministic mapping plan."""
+    return compile_plan().execute(context)
+
+
+__all__ = ["Step", "MappingPlan", "compile_plan", "plan"]
