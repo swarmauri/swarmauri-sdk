@@ -35,6 +35,7 @@ from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_openrpc as _mount_openrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..engine import resolver as _resolver
+from ..engine import install_from_objects
 
 
 class TigrblRouter(_Router):
@@ -186,6 +187,14 @@ class TigrblRouter(_Router):
                     _include_router_impl(self, router, prefix=self.rest_prefix)
         return included
 
+    def install_engines(
+        self, *, router: Any | None = None, tables: tuple[Any, ...] | None = None
+    ) -> None:
+        """Install engine providers for this router and optional table set."""
+        selected_router = self if router is None else router
+        selected_tables = tables if tables is not None else tuple(self.tables.values())
+        install_from_objects(router=selected_router, tables=selected_tables)
+
     async def rpc_call(
         self,
         model_or_name: type | str,
@@ -217,7 +226,7 @@ class TigrblRouter(_Router):
     ) -> Any:
         """Mount an OpenRPC JSON endpoint onto this router instance."""
         return _mount_openrpc(self, path=path, name=name, tags=tags)
-      
+
     def attach_diagnostics(
         self, *, prefix: str | None = None, app: Any | None = None
     ) -> Any:
