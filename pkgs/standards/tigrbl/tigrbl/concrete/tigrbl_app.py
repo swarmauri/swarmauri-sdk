@@ -37,6 +37,7 @@ from ..system import mount_lens as _mount_lens
 from ..system import mount_openapi as _mount_openapi
 from ..system import mount_openrpc as _mount_openrpc
 from ..system import build_openrpc_spec as _build_openrpc_spec
+from ..system.docs import build_openapi as _build_openapi
 from ..op import get_registry, OpSpec
 from ..app._model_registry import initialize_table_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
@@ -103,13 +104,15 @@ class TigrblApp(_App):
         super().__init__(engine=engine, **asgi_kwargs)
         self._middlewares: list[tuple[Any, dict[str, Any]]] = []
         self.middlewares = tuple(getattr(self, "MIDDLEWARES", ()))
+        declared_tables = getattr(self, "TABLES", ())
+        self._table_registry = initialize_table_registry(declared_tables)
         self._favicon_path = favicon_path
         for mw in self.middlewares:
             mw_cls = getattr(mw, "cls", mw.__class__)
             self.add_middleware(mw_cls, **getattr(mw, "kwargs", {}))
         self._install_favicon()
         # capture initial routes so refreshes retain ASGI defaults
-        self._base_routes = list(self.router.routes)
+        self._base_routes = list(self._routes)
         self.jsonrpc_prefix = (
             jsonrpc_prefix
             if jsonrpc_prefix is not None
@@ -122,8 +125,6 @@ class TigrblApp(_App):
         )
 
         # public containers (mirrors used by bindings.router)
-        declared_models = getattr(self, "TABLES", ()) or getattr(self, "MODELS", ())
-        self.models = initialize_table_registry(declared_models)
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
         self.hooks = tuple(getattr(self, "HOOKS", ()))
@@ -154,7 +155,7 @@ class TigrblApp(_App):
 
         if (
             self._has_local_op_declarations()
-            and self.__class__.__name__ not in self.models
+            and self.__class__.__name__ not in self._table_registry
         ):
             self.include_table(self.__class__)
 
@@ -322,7 +323,7 @@ class TigrblApp(_App):
 
     def include_tables(
         self,
-        models: Sequence[type],
+        tables: Sequence[type],
         *,
         base_prefix: str | None = None,
         mount_router: bool = True,
@@ -330,12 +331,12 @@ class TigrblApp(_App):
         default_router = self._ensure_default_router()
 
         result = default_router.include_tables(
-            models,
+            tables,
             base_prefix=base_prefix,
             mount_router=False,
         )
         if mount_router:
-            for model in models:
+            for model in tables:
                 router = getattr(
                     getattr(model, "rest", SimpleNamespace()),
                     "router",
@@ -356,13 +357,13 @@ class TigrblApp(_App):
         """Mirror the auto-created Router registries onto the app facade."""
         if self._default_router is None:
             return
-        self.models = self._default_router.models
         self.schemas = self._default_router.schemas
         self.handlers = self._default_router.handlers
         self.hooks = self._default_router.hooks
         self.rpc = self._default_router.rpc
         self.rest = self._default_router.rest
         self.routers = self._default_router.routers
+        self._table_registry = self._default_router.models
         self.tables = self._default_router.tables
         self.columns = self._default_router.columns
         self.table_config = self._default_router.table_config
@@ -401,7 +402,7 @@ class TigrblApp(_App):
         if not mount_router:
             return router
         routed = getattr(router, "router", router)
-        super().include_router(routed, prefix=prefix or "")
+        _include_router_impl(self, routed, prefix=prefix or "")
         return routed
 
     def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
@@ -528,7 +529,7 @@ class TigrblApp(_App):
             prefix=px,
             get_db=get_db,
         )
-        self._base_routes = list(self.router.routes)
+        self._base_routes = list(self._routes)
         return router
 
     def mount_openapi(
@@ -556,7 +557,7 @@ class TigrblApp(_App):
 
     def openapi(self) -> Dict[str, Any]:
         """Build and return the OpenAPI document for this app."""
-        return self.router.openapi()
+        return _build_openapi(self)
 
     def mount_lens(
         self,
@@ -584,7 +585,7 @@ class TigrblApp(_App):
             if callable(include_other):
                 include_other(router, prefix=px)
         if app is None:
-            self._base_routes = list(self.router.routes)
+            self._base_routes = list(self._routes)
         return router
 
     # ------------------------- registry passthroughs -------------------------
@@ -644,16 +645,16 @@ class TigrblApp(_App):
             )
             self._sync_default_router_namespaces()
 
-        # Refresh already-included models so routers pick up new auth settings
-        if self.models:
+        # Refresh already-included tables so routers pick up new auth settings
+        if self._table_registry:
             self._refresh_security()
 
     def _refresh_security(self) -> None:
         """Re-seed auth deps on models and rebuild routers."""
         # Reset router to baseline and allow_anon ops cache
-        self.router.routes = list(self._base_routes)
+        self._routes = list(self._base_routes)
         self._allow_anon_ops = set()
-        for model in self.models.values():
+        for model in self._table_registry.values():
             _seed_security_and_deps(self, model)
             specs = getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ())
             if specs:
@@ -674,7 +675,7 @@ class TigrblApp(_App):
         # dedupe; handle multiple DeclarativeBases (multiple metadatas)
         seen = set()
         tables = []
-        for m in self.models.values():
+        for m in self._table_registry.values():
             t = getattr(m, "__table__", None)
             if t is not None and not t.columns:
                 continue
@@ -686,4 +687,4 @@ class TigrblApp(_App):
     # ------------------------- repr -------------------------
 
     def __repr__(self) -> str:  # pragma: no cover
-        return f"<TigrblApp models={list(self.models)} rpc={list(getattr(self.rpc, '__dict__', {}).keys())}>"
+        return f"<TigrblApp tables={list(self._table_registry)} rpc={list(getattr(self.rpc, '__dict__', {}).keys())}>"
