@@ -276,10 +276,11 @@ def initialize(
             tables=ts,
         )
 
-        if hasattr(obj, "models"):
+        registry = getattr(obj, "tables", None) or getattr(obj, "models", None)
+        if isinstance(registry, dict):
             tables_map = {
                 name: getattr(m, "__table__", None)
-                for name, m in getattr(obj, "models").items()
+                for name, m in registry.items()
                 if hasattr(m, "__table__")
             }
             existing = getattr(obj, "tables", None)

@@ -25,7 +25,9 @@ except Exception:  # pragma: no cover
 def resolve_model(router: Any, model_or_name: type | str) -> type | None:
     if isinstance(model_or_name, type):
         return model_or_name
-    models: Dict[str, type] = getattr(router, "models", {}) or {}
+    models: Dict[str, type] = (
+        getattr(router, "tables", None) or getattr(router, "models", {}) or {}
+    )
     mdl = models.get(model_or_name)
     if mdl is not None:
         return mdl

@@ -55,7 +55,9 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list:
 def _iter_models(router: Any, only: Optional[Sequence[type]] = None) -> Sequence[type]:
     if only:
         return list(only)
-    models: Mapping[str, type] = getattr(router, "models", {}) or {}
+    models: Mapping[str, type] = (
+        getattr(router, "tables", None) or getattr(router, "models", {}) or {}
+    )
     # deterministic iteration
     return [models[k] for k in sorted(models.keys())]
 
@@ -71,7 +73,7 @@ def build_rest_router(
     Build a top-level Router that includes each model's router under `base_prefix`.
 
     Args:
-        router: your Tigrbl facade (or any object with `.models` dict).
+        router: your Tigrbl facade (or any object with `.tables` mapping).
         models: optional subset of models to include; defaults to all bound models.
         base_prefix: prefix applied once for all included routers (e.g., "/router").
         dependencies: additional router-level dependencies (Depends(...) or callables).

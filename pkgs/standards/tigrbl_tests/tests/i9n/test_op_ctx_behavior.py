@@ -136,7 +136,7 @@ async def test_op_ctx_internal_orm_models(sync_db_session):
     assert res.status_code == 201
     item_id = UUID(res.json()["id"])
 
-    assert app.models["Item"] is Item
+    assert app.tables["Item"] is Item
     gen = get_sync_db()
     session = next(gen)
     assert isinstance(session.get(Item, item_id), Item)

@@ -29,9 +29,9 @@ def test_tigrbl_app_instantiation_sets_containers() -> None:
     app = WidgetApp(engine=mem(async_=False))
     app_dir = dir(app)
 
-    assert "models" in app_dir
+    assert "tables" in app_dir
     assert "routers" in app_dir
     assert "schemas" in app_dir
     assert "jsonrpc_prefix" in app_dir
     assert "system_prefix" in app_dir
-    assert app.models["Widget"] is Widget
+    assert app.tables["Widget"] is Widget

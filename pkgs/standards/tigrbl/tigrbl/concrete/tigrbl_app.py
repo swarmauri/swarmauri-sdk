@@ -46,7 +46,6 @@ from ..router._routing import (
     include_router as _include_router_impl,
 )
 from ..app.transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
-from ..router._routing import include_router as _include_router_impl
 
 
 # optional compat: legacy transactional decorator
@@ -115,6 +114,7 @@ class TigrblApp(_App):
         for mw in self.middlewares:
             mw_cls = getattr(mw, "cls", mw.__class__)
             self.add_middleware(mw_cls, **getattr(mw, "kwargs", {}))
+        self._default_router: TigrblRouter | None = None
         self._install_favicon()
         # capture initial routes so refreshes retain ASGI defaults
         self._base_routes = list(self._routes)
@@ -150,7 +150,9 @@ class TigrblApp(_App):
 
         # Router-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
-        self._default_router: TigrblRouter | None = None
+        self.mount_openapi(path="/openapi.json")
+        self.mount_jsonrpc(prefix=self.jsonrpc_prefix)
+        self.attach_diagnostics(prefix=self.system_prefix)
         self.mount_openrpc(path="/openrpc.json")
         self.mount_lens(path="/rdocs", spec_path="/openrpc.json")
         if routers:
@@ -411,12 +413,12 @@ class TigrblApp(_App):
         return routed
 
     def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Register a route using the app-managed default ``TigrblRouter``."""
-        self._ensure_default_router().add_route(path, endpoint, **kwargs)
+        """Register a route directly on this app instance."""
+        _add_route_impl(self, path, endpoint, **kwargs)
 
     def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Register a route using the app-managed default ``TigrblRouter``."""
-        self._ensure_default_router().add_route(path, endpoint, **kwargs)
+        """Register a route directly on this app instance."""
+        _add_route_impl(self, path, endpoint, **kwargs)
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""

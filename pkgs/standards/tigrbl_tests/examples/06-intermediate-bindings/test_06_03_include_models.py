@@ -17,5 +17,5 @@ async def test_include_models_registers_resources() -> None:
     app.include_tables([widget, gadget], base_prefix="")
     await app.initialize()
 
-    assert "WidgetA" in app.models
-    assert "WidgetB" in app.models
+    assert "WidgetA" in app.tables
+    assert "WidgetB" in app.tables
