@@ -9,8 +9,8 @@ def test_transport_modules_do_not_execute_security_dependencies() -> None:
     root = Path(tigrbl.__file__).resolve().parent
     targets = [
         root / "transport" / "dispatcher.py",
-        root / "bindings" / "rest" / "router.py",
-        root / "bindings" / "rest" / "routing.py",
+        root / "mapping" / "rest" / "router.py",
+        root / "mapping" / "rest" / "routing.py",
     ]
     forbidden = (
         "_require_auth_header",

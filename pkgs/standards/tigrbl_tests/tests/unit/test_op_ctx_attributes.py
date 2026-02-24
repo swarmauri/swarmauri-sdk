@@ -7,7 +7,7 @@ from tigrbl import op_ctx
 from tigrbl.op.mro_collect import mro_collect_decorated_ops
 from tigrbl.schema.decorators import schema_ctx
 from tigrbl.op import resolve
-from tigrbl.bindings import build_schemas, build_hooks, build_handlers, build_rest
+from tigrbl.mapping import build_schemas, build_hooks, build_handlers, build_rest
 
 
 def _build_all(model):

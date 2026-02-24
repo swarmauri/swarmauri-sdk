@@ -13,8 +13,8 @@ def test_dependency_invoke_is_runtime_event_anchor():
 
 
 def test_rest_and_rpc_flow_through_dispatcher():
-    rest_member = (PKG / "bindings" / "rest" / "member.py").read_text()
-    rest_collection = (PKG / "bindings" / "rest" / "collection.py").read_text()
+    rest_member = (PKG / "mapping" / "rest" / "member.py").read_text()
+    rest_collection = (PKG / "mapping" / "rest" / "collection.py").read_text()
     rpc_dispatcher = (PKG / "transport" / "jsonrpc" / "dispatcher.py").read_text()
     assert "dispatch_operation" in rest_member
     assert "dispatch_operation" in rest_collection

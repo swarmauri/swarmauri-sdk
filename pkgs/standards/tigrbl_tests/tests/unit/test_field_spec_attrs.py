@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
 
-from tigrbl.bindings.model import bind
+from tigrbl.mapping.model import bind
 from tigrbl.runtime.atoms.schema import collect_in, collect_out
 from tigrbl.specs import F, IO, S, acol, vcol
 from tigrbl.orm.tables import Base
