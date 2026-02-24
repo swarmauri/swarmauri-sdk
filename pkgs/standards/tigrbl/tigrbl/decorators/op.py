@@ -174,7 +174,7 @@ def op_ctx(
         cm = _ensure_cm(fn)
         f = _unwrap(cm)
         f.__tigrbl_ctx_only__ = True
-        f.__tigrbl_op_decl__ = _OpDecl(
+        op_decl = _OpDecl(
             alias=alias,
             target=target,
             arity=arity,
@@ -185,6 +185,8 @@ def op_ctx(
             persist=persist,
             status_code=status_code,
         )
+        f.__tigrbl_op_decl__ = op_decl
+        f.__tigrbl_op_spec__ = op_decl
 
         if bind is not None:
             targets = (
