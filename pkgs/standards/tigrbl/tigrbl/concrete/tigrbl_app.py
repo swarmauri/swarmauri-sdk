@@ -306,6 +306,7 @@ class TigrblApp(_App):
                 jsonrpc_prefix=self.jsonrpc_prefix,
                 system_prefix=self.system_prefix,
                 router_hooks=self._router_hooks_map,
+                dependencies=list(getattr(self, "dependencies", ()) or ()),
             )
             # Mirror current app auth knobs onto the default Router.
             self._default_router.set_auth(

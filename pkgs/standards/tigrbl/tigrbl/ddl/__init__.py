@@ -4,7 +4,6 @@ import asyncio
 import inspect
 from pathlib import Path
 from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
-from types import SimpleNamespace
 
 from ..engine import resolver as _resolver
 
@@ -276,26 +275,9 @@ def initialize(
             tables=ts,
         )
 
-        registry = getattr(obj, "tables", None)
-        if isinstance(registry, dict):
-            tables_map = {
-                name: getattr(m, "__table__", None)
-                for name, m in registry.items()
-                if hasattr(m, "__table__")
-            }
-            existing = getattr(obj, "tables", None)
-            if isinstance(existing, dict):
-                for k, v in tables_map.items():
-                    current = existing.get(k)
-                    if current is None or hasattr(current, "__table__"):
-                        existing[k] = v
-            elif existing is not None:
-                for k, v in tables_map.items():
-                    current = getattr(existing, k, None)
-                    if current is None or hasattr(current, "__table__"):
-                        setattr(existing, k, v)
-            else:
-                setattr(obj, "tables", SimpleNamespace(**tables_map))
+        # Keep ``obj.tables`` as a model registry. Runtime routing, docs generation,
+        # and diagnostics all read that mapping expecting model classes, not
+        # SQLAlchemy ``Table`` objects.
 
     def _close_without_loop(db):
         close = getattr(db, "close", None)
