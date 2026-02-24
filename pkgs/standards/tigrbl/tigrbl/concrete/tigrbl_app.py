@@ -41,10 +41,6 @@ from ..system.docs import build_openapi as _build_openapi
 from ..op import get_registry, OpSpec
 from ..app._table_registry import initialize_table_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
-from ..router._routing import (
-    add_route as _add_route_impl,
-    include_router as _include_router_impl,
-)
 from ..app.transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
 
 
@@ -408,9 +404,8 @@ class TigrblApp(_App):
 
         if not mount_router:
             return router
-        routed = getattr(router, "router", router)
-        _include_router_impl(self, routed, prefix=prefix or "")
-        return routed
+        super().include_router(router, prefix=prefix)
+        return router
 
     def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
         """Register a route directly on this app instance."""
