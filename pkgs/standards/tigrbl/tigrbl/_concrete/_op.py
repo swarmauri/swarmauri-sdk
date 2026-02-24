@@ -28,4 +28,4 @@ class Op(OpSpec):
 
         m = model if model is not None else self.table
         if m is not None:
-            install_from_objects(router=router, models=[m])
+            install_from_objects(router=router, tables=[m])

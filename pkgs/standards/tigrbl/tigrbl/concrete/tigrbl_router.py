@@ -40,8 +40,8 @@ from ..engine import resolver as _resolver
 class TigrblRouter(_Router):
     """
     Canonical router-focused facade that owns:
-      • containers (models, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
-      • model inclusion (REST + RPC wiring)
+      • containers (tables, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
+      • table inclusion (REST + RPC wiring)
       • (optional) auth knobs recognized by some middlewares/dispatchers
 
     It composes v3 primitives; you can still use the functions directly if you prefer.
@@ -68,7 +68,7 @@ class TigrblRouter(_Router):
         self,
         *,
         engine: EngineCfg | None = None,
-        models: Sequence[type] | None = None,
+        tables: Sequence[type] | None = None,
         prefix: str | None = None,
         jsonrpc_prefix: str | None = None,
         system_prefix: str | None = None,
@@ -107,8 +107,14 @@ class TigrblRouter(_Router):
 
         # Router-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
-        if models:
-            self.include_tables(list(models))
+        if tables:
+            self.include_tables(list(tables))
+
+    def install_engines(self, *, tables: Sequence[type] | None = None) -> None:
+        from ..engine import install_from_objects
+
+        selected = tables if tables is not None else tuple(self.tables.values())
+        install_from_objects(router=self, tables=selected)
 
     # ------------------------- internal helpers -------------------------
 
@@ -339,7 +345,7 @@ class TigrblRouter(_Router):
     # ------------------------- repr -------------------------
 
     def __repr__(self) -> str:  # pragma: no cover
-        models = list(getattr(self, "tables", {}))
+        tables = list(getattr(self, "tables", {}))
         rpc_ns = getattr(self, "rpc", None)
         rpc_keys = list(getattr(rpc_ns, "__dict__", {}).keys()) if rpc_ns else []
-        return f"<TigrblRouter models={models} rpc={rpc_keys}>"
+        return f"<TigrblRouter tables={tables} rpc={rpc_keys}>"
