@@ -27,7 +27,7 @@ class Gadget(Base, GUIDPk):
 async def running_router_app():
     router = TigrblRouter(
         engine=mem(async_=False),
-        models=[Gadget],
+        tables=[Gadget],
         prefix="/gadgets",
         system_prefix="/diagnostics",
     )
