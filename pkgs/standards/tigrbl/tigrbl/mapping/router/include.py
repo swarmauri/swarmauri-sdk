@@ -368,3 +368,29 @@ def include_models(
         results[mdl.__name__] = model_router
     logger.debug("Finished including models")
     return results
+
+
+def include_table(
+    router: RouterLike,
+    model: type,
+    *,
+    app: Any | None = None,
+    prefix: str | None = None,
+    mount_router: bool = True,
+) -> Tuple[type, Any]:
+    return include_model(
+        router, model, app=app, prefix=prefix, mount_router=mount_router
+    )
+
+
+def include_tables(
+    router: RouterLike,
+    models: Sequence[type],
+    *,
+    app: Any | None = None,
+    base_prefix: str | None = None,
+    mount_router: bool = True,
+) -> Dict[str, Any]:
+    return include_models(
+        router, models, app=app, base_prefix=base_prefix, mount_router=mount_router
+    )

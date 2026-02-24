@@ -1,6 +1,6 @@
 from tigrbl import TigrblApp
 from tigrbl.security import HTTPBearer
-from tigrbl.types import APIRouter, Security
+from tigrbl.types import Router, Security
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 
@@ -10,8 +10,8 @@ class Widget(Base, GUIDPk):
     __tigrbl_allow_anon__ = ["list"]
 
 
-def test_router_level_auth_dep_applied_as_openapi_metadata_only():
-    app = APIRouter()
+def test_api_level_auth_dep_applied_as_openapi_metadata_only():
+    app = Router()
     router = TigrblApp()
 
     def authn(cred=Security(HTTPBearer())):

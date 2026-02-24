@@ -5,7 +5,7 @@ from typing import Any
 
 from ... import events as _ev
 
-ANCHOR = _ev.PRE_TX_DEP
+ANCHOR = _ev.DEP_EXTRA
 
 
 async def run(dep: object | None, ctx: Any) -> Any:

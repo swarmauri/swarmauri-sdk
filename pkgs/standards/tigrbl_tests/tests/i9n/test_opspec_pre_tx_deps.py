@@ -9,12 +9,12 @@ from tigrbl.engine.shortcuts import mem
 from tigrbl.hook import hook_ctx
 from tigrbl.op import OpSpec
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import APIRouter, HTTPException
+from tigrbl.types import Router, HTTPException
 from tigrbl.runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP
 
 
 async def _build_client(model: type, db_mode: str) -> tuple[AsyncClient, TigrblApp]:
-    app = APIRouter()
+    app = Router()
     router = TigrblApp(engine=mem(async_=(db_mode == "async")))
     router.include_model(model)
     if db_mode == "async":
