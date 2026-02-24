@@ -35,13 +35,14 @@ from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_openrpc as _mount_openrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..engine import resolver as _resolver
+from ..engine import install_from_objects
 
 
 class TigrblRouter(_Router):
     """
     Canonical router-focused facade that owns:
-      • containers (models, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
-      • model inclusion (REST + RPC wiring)
+      • containers (tables, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
+      • table inclusion (REST + RPC wiring)
       • (optional) auth knobs recognized by some middlewares/dispatchers
 
     It composes v3 primitives; you can still use the functions directly if you prefer.
@@ -68,7 +69,7 @@ class TigrblRouter(_Router):
         self,
         *,
         engine: EngineCfg | None = None,
-        models: Sequence[type] | None = None,
+        tables: Sequence[type] | None = None,
         prefix: str | None = None,
         jsonrpc_prefix: str | None = None,
         system_prefix: str | None = None,
@@ -107,8 +108,14 @@ class TigrblRouter(_Router):
 
         # Router-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
-        if models:
-            self.include_tables(list(models))
+        if tables:
+            self.include_tables(list(tables))
+
+    def install_engines(self, *, tables: Sequence[type] | None = None) -> None:
+        from ..engine import install_from_objects
+
+        selected = tables if tables is not None else tuple(self.tables.values())
+        install_from_objects(router=self, tables=selected)
 
     # ------------------------- internal helpers -------------------------
 
@@ -160,8 +167,9 @@ class TigrblRouter(_Router):
         included_table, router = _include_table(
             self, model, app=None, prefix=prefix, mount_router=mount_router
         )
-        if mount_router and prefix is None and router is not None:
-            _include_router_impl(self, router, prefix=self.rest_prefix)
+        if mount_router and router is not None:
+            mount_prefix = self.rest_prefix if prefix is None else prefix
+            _include_router_impl(self, router, prefix=mount_prefix)
         return included_table, router
 
     def include_tables(
@@ -180,11 +188,20 @@ class TigrblRouter(_Router):
             base_prefix=base_prefix,
             mount_router=mount_router,
         )
-        if mount_router and base_prefix is None:
+        if mount_router:
+            mount_prefix = self.rest_prefix if base_prefix is None else base_prefix
             for router in included.values():
                 if router is not None:
-                    _include_router_impl(self, router, prefix=self.rest_prefix)
+                    _include_router_impl(self, router, prefix=mount_prefix)
         return included
+
+    def install_engines(
+        self, *, router: Any | None = None, tables: tuple[Any, ...] | None = None
+    ) -> None:
+        """Install engine providers for this router and optional table set."""
+        selected_router = self if router is None else router
+        selected_tables = tables if tables is not None else tuple(self.tables.values())
+        install_from_objects(router=selected_router, tables=selected_tables)
 
     async def rpc_call(
         self,
@@ -217,7 +234,7 @@ class TigrblRouter(_Router):
     ) -> Any:
         """Mount an OpenRPC JSON endpoint onto this router instance."""
         return _mount_openrpc(self, path=path, name=name, tags=tags)
-      
+
     def attach_diagnostics(
         self, *, prefix: str | None = None, app: Any | None = None
     ) -> Any:
@@ -274,12 +291,22 @@ class TigrblRouter(_Router):
         if self.tables:
             self._refresh_security()
 
+    def _resolve_registered_model(self, name: str, value: Any) -> Any:
+        if isinstance(value, type):
+            return value
+        core_proxy = getattr(self.core, name, None)
+        model = getattr(core_proxy, "_model", None)
+        return model if isinstance(model, type) else None
+
     def _refresh_security(self) -> None:
         """Re-seed auth deps on models and rebuild routers."""
         # Reset routes and allow_anon ops cache
         self.routes = []
         self._allow_anon_ops = set()
-        for model in self.tables.values():
+        for name, registered in self.tables.items():
+            model = self._resolve_registered_model(name, registered)
+            if not isinstance(model, type):
+                continue
             _seed_security_and_deps(self, model)
             specs = getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ())
             if specs:
@@ -300,13 +327,26 @@ class TigrblRouter(_Router):
         # dedupe; handle multiple DeclarativeBases (multiple metadatas)
         seen = set()
         tables = []
-        for m in self.tables.values():
-            t = getattr(m, "__table__", None)
-            if t is not None and not t.columns:
+        for name, registered in self.tables.items():
+            table = (
+                registered
+                if not isinstance(registered, type)
+                and hasattr(registered, "metadata")
+                and hasattr(registered, "columns")
+                else None
+            )
+            if table is None:
+                model = self._resolve_registered_model(name, registered)
+                table = (
+                    getattr(model, "__table__", None)
+                    if isinstance(model, type)
+                    else None
+                )
+            if table is not None and not table.columns:
                 continue
-            if t is not None and t not in seen:
-                seen.add(t)
-                tables.append(t)
+            if table is not None and table not in seen:
+                seen.add(table)
+                tables.append(table)
         return tables
 
     initialize = _ddl_initialize
@@ -314,7 +354,7 @@ class TigrblRouter(_Router):
     # ------------------------- repr -------------------------
 
     def __repr__(self) -> str:  # pragma: no cover
-        models = list(getattr(self, "tables", {}))
+        tables = list(getattr(self, "tables", {}))
         rpc_ns = getattr(self, "rpc", None)
         rpc_keys = list(getattr(rpc_ns, "__dict__", {}).keys()) if rpc_ns else []
-        return f"<TigrblRouter models={models} rpc={rpc_keys}>"
+        return f"<TigrblRouter tables={tables} rpc={rpc_keys}>"

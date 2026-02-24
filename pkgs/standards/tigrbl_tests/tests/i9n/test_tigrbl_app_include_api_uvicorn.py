@@ -47,7 +47,7 @@ class ZetaWidget(Base, GUIDPk):
 @pytest_asyncio.fixture()
 async def running_app_with_routers():
     engine = mem(async_=False)
-    router = TigrblRouter(engine=engine, models=[AlphaWidget], prefix="/alpha")
+    router = TigrblRouter(engine=engine, tables=[AlphaWidget], prefix="/alpha")
 
     app = TigrblApp(engine=engine, routers=[router])
 

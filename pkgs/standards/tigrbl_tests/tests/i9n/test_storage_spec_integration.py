@@ -36,7 +36,7 @@ async def test_storage_spec_default_resolution(router_client_v3):
 @pytest.mark.asyncio
 async def test_storage_spec_internal_orm(router_client_v3):
     _, router, Widget, _ = router_client_v3
-    assert router.models["Widget"] is Widget
+    assert router.tables["Widget"] is Widget
     assert "age" in router.columns["Widget"]
 
 

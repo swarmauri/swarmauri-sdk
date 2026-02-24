@@ -111,7 +111,7 @@ async def test_tigrblrouter_multi_table_engine_binding_uvicorn() -> None:
 
     router = TigrblRouter(engine=router_engine)
     router.include_tables([ApiWidget, ApiGadget])
-    router.install_engines(tables=tuple(router.models.values()))
+    router.install_engines(tables=tuple(router.tables.values()))
     router.mount_jsonrpc()
     router.initialize()
 
@@ -199,7 +199,7 @@ async def test_multi_router_precedence_dedupe_and_op_engine_uvicorn() -> None:
     router = TigrblRouter(engine=router_one_engine)
     router.include_tables([AlphaWidget, AlphaGadget])
     router.initialize()
-    router.install_engines(tables=tuple(router.models.values()))
+    router.install_engines(tables=tuple(router.tables.values()))
     router.mount_jsonrpc()
 
     routers = [router]
@@ -207,7 +207,7 @@ async def test_multi_router_precedence_dedupe_and_op_engine_uvicorn() -> None:
     router = TigrblRouter(engine=router_two_engine)
     router.include_tables([BetaWidget, BetaGadget])
     router.initialize()
-    router.install_engines(tables=tuple(router.models.values()))
+    router.install_engines(tables=tuple(router.tables.values()))
     router.mount_jsonrpc()
     routers.append(router)
     # Step 1a: Explicitly register the op override to mirror resolver precedence.

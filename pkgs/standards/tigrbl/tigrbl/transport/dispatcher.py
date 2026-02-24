@@ -12,9 +12,12 @@ from ..op.types import PHASES
 
 try:
     from ..runtime.kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore
-    from ..runtime.kernel import plan_labels as _kernel_plan_labels  # type: ignore
 except Exception:  # pragma: no cover
     _kernel_build_phase_chains = None  # type: ignore
+
+try:
+    from ..runtime.kernel import plan_labels as _kernel_plan_labels  # type: ignore
+except Exception:  # pragma: no cover
     _kernel_plan_labels = None  # type: ignore
 
 
@@ -48,6 +51,12 @@ def _resolve_model(router: Any, model_or_name: type | str) -> type:
         raise LookupError(f"Unknown model '{model_or_name}'")
     registry = getattr(router, "tables", None) or {}
     mdl = registry.get(model_or_name)
+    if mdl is None:
+        lower = str(model_or_name).lower()
+        for key, value in registry.items():
+            if str(key).lower() == lower:
+                mdl = value
+                break
     if mdl is None:
         raise LookupError(f"Unknown model '{model_or_name}'")
     return mdl

@@ -119,6 +119,11 @@ class App(AppSpec):
             _resolver.set_default(_engine_ctx)
             _resolver.resolve_provider()
 
+    @property
+    def router(self) -> "App":
+        """Compatibility alias that exposes the app itself as ``.router``."""
+        return self
+
     def install_engines(
         self, *, router: Any = None, tables: tuple[Any, ...] | None = None
     ) -> None:
@@ -127,9 +132,9 @@ class App(AppSpec):
         tables = tables if tables is not None else self.TABLES
         if routers:
             for a in routers:
-                install_from_objects(app=self, router=a, models=tables)
+                install_from_objects(app=self, router=a, tables=tables)
         else:
-            install_from_objects(app=self, router=None, models=tables)
+            install_from_objects(app=self, router=None, tables=tables)
 
     def _collect_tables(self) -> list[Any]:
         seen = set()

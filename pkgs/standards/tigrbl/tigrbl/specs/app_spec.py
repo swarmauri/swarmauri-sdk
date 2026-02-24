@@ -23,7 +23,6 @@ class AppSpec:
 
     # NEW: orchestration/topology knobs
     ops: Sequence[Any] = field(default_factory=tuple)  # op descriptors or specs
-    models: Sequence[Any] = field(default_factory=tuple)  # ORM classes
     tables: Sequence[Any] = field(default_factory=tuple)  # table refs owned by app
     schemas: Sequence[Any] = field(default_factory=tuple)  # schema classes/defs
     hooks: Sequence[Callable[..., Any]] = field(default_factory=tuple)
