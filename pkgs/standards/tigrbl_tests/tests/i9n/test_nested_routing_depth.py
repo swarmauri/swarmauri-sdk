@@ -45,21 +45,12 @@ async def three_level_app_client(db_mode):
     if db_mode == "async":
         pytest.skip("async database mode is currently unsupported")
     else:
-<<<<<<< HEAD
         app = TigrblApp(engine=mem(async_=False))
         app.include_tables([Company, Department, Employee])
         app.initialize()
 
     router = TigrblRouter()
     app.include_router(router)
-=======
-        router = TigrblApp(engine=mem(async_=False))
-        router.include_models([Company, Department, Employee])
-        router.initialize()
-
-    app = TigrblApp()
-    app.include_router(router.router)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     return client

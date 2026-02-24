@@ -17,13 +17,8 @@ from .response_utils import (
 @pytest.mark.asyncio
 async def test_response_rpc_call():
     Widget = build_ping_model()
-<<<<<<< HEAD
     app = SimpleNamespace(models={"Widget": Widget})
     result = await rpc_call(app, Widget, "ping", {}, db=SimpleNamespace())
-=======
-    router = SimpleNamespace(models={"Widget": Widget})
-    result = await rpc_call(router, Widget, "ping", {}, db=SimpleNamespace())
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     assert result == {"pong": True}
 
 
@@ -31,13 +26,8 @@ async def test_response_rpc_call():
 @pytest.mark.parametrize("kind", RESPONSE_KINDS)
 async def test_response_rpc_alias_table(kind, tmp_path):
     Widget, file_path = build_model_for_response(kind, tmp_path)
-<<<<<<< HEAD
     app = SimpleNamespace(models={"Widget": Widget})
     result = await rpc_call(app, Widget, "download", {}, db=SimpleNamespace())
-=======
-    router = SimpleNamespace(models={"Widget": Widget})
-    result = await rpc_call(router, Widget, "download", {}, db=SimpleNamespace())
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     if kind == "auto":
         assert json.loads(result["body"]) == {"data": {"pong": True}, "ok": True}
     elif kind == "json":
@@ -64,13 +54,8 @@ async def test_response_rpc_alias_table(kind, tmp_path):
 @pytest.mark.parametrize("kind", RESPONSE_KINDS)
 async def test_response_rpc_non_alias_table(kind, tmp_path):
     Widget, file_path = build_model_for_response_non_alias(kind, tmp_path)
-<<<<<<< HEAD
     app = SimpleNamespace(models={"Widget": Widget})
     result = await rpc_call(app, Widget, "download", {}, db=SimpleNamespace())
-=======
-    router = SimpleNamespace(models={"Widget": Widget})
-    result = await rpc_call(router, Widget, "download", {}, db=SimpleNamespace())
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     if kind == "auto":
         assert json.loads(result["body"]) == {"data": {"pong": True}, "ok": True}
     elif kind == "json":
@@ -97,12 +82,7 @@ async def test_response_rpc_non_alias_table(kind, tmp_path):
 async def test_response_rpc_alias_table_jinja(tmp_path):
     pytest.importorskip("jinja2")
     Widget = build_model_for_jinja_response(tmp_path)
-<<<<<<< HEAD
     app = SimpleNamespace(models={"Widget": Widget})
     result = await rpc_call(app, Widget, "download", {}, db=SimpleNamespace())
-=======
-    router = SimpleNamespace(models={"Widget": Widget})
-    result = await rpc_call(router, Widget, "download", {}, db=SimpleNamespace())
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     assert result["status_code"] == 200
     assert result["body"] == b"<h1>World</h1>"

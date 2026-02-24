@@ -64,7 +64,6 @@ async def schema_ctx_client():
             "secret": secret,
         }
 
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(Widget, prefix="")
     app.mount_jsonrpc()
@@ -74,19 +73,6 @@ async def schema_ctx_client():
     _, SessionLocal = prov.ensure()
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
     return client, app, Widget, SessionLocal
-=======
-    app = Tigrblv3()
-    router = Tigrblv3(engine=mem(async_=False))
-    router.include_model(Widget, prefix="")
-    router.mount_jsonrpc()
-    router.attach_diagnostics()
-    router.initialize()
-    prov = _resolver.resolve_provider()
-    _, SessionLocal = prov.ensure()
-    app.include_router(router.router)
-    client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
-    return client, router, Widget, SessionLocal
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 
 @pytest.mark.i9n

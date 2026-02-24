@@ -2,20 +2,12 @@
 """
 Tigrbl v3 – Bindings package.
 
-<<<<<<< HEAD
 This package wires OpSpec-derived artifacts onto models and an Router facade.
-=======
-This package wires OpSpec-derived artifacts onto models and a router facade.
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 Concerns are kept strictly separated:
   • Security deps & extra deps → transport/router only (REST/RPC)
   • System steps → injected by runtime lifecycle (Kernel), not by bindings
   • Atoms → discovered/injected by runtime, not by bindings
-<<<<<<< HEAD
   • Hooks → bindable at Router / model / op levels (no imperative hooks)
-=======
-  • Hooks → bindable at ROUTER / MODEL / OP levels (no imperative hooks)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 Public surface (re-exports)
 
@@ -28,11 +20,7 @@ Per-concern builders:
       • Seeds schemas declared via @schema_ctx before computing defaults.
       • Supports overrides via SchemaRef("alias","in|out"), "alias.in"/"alias.out", or "raw".
   - build_hooks(model, specs, *, only_keys=None)
-<<<<<<< HEAD
       • Merges Router → MODEL → OP for pre-like phases; OP → MODEL → Router for post/error.
-=======
-      • Merges ROUTER → MODEL → OP for pre-like phases; OP → MODEL → ROUTER for post/error.
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
       • No imperative hook source.
   - build_handlers(model, specs, *, only_keys=None)
       • Inserts the core/raw step into the HANDLER phase (other phases handled by runtime).
@@ -40,15 +28,9 @@ Per-concern builders:
   - build_rest(model, specs, *, only_keys=None)
       • Router-level only; serializes responses iff a response schema exists.
 
-<<<<<<< HEAD
 Router integration:
   - include_table(router, model, *, app=None, prefix=None, mount_router=True)
   - include_tables(router, models, *, app=None, base_prefix=None, mount_router=True)
-=======
-ROUTER integration:
-  - include_model(router, model, *, app=None, prefix=None, mount_router=True)
-  - include_models(router, models, *, app=None, base_prefix=None, mount_router=True)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
   - rpc_call(router, model_or_name, method, payload=None, *, db, request=None, ctx=None)
 """
 
@@ -67,11 +49,7 @@ from .rest import build_router_and_attach as build_rest
 from ..responses.bind import bind as bind_response
 
 # Router facade integration
-<<<<<<< HEAD
 from .router import include_table, include_tables, rpc_call
-=======
-from .router import include_model, include_models, rpc_call
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/__init__")
@@ -89,12 +67,7 @@ __all__ = [
     "build_rest",
     "bind_response",
     # router integration
-<<<<<<< HEAD
     "include_table",
     "include_tables",
-=======
-    "include_model",
-    "include_models",
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     "rpc_call",
 ]

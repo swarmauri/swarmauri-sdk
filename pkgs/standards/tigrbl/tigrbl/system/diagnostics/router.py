@@ -37,11 +37,7 @@ def mount_diagnostics(
     )
     router.add_route(
         "/methodz",
-<<<<<<< HEAD
         build_methodz_endpoint(source_router),
-=======
-        build_methodz_endpoint(router),
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
         methods=["GET"],
         name="methodz",
         tags=["system"],
@@ -50,11 +46,7 @@ def mount_diagnostics(
     )
     router.add_route(
         "/hookz",
-<<<<<<< HEAD
         build_hookz_endpoint(source_router),
-=======
-        build_hookz_endpoint(router),
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
         methods=["GET"],
         name="hookz",
         tags=["system"],
@@ -68,11 +60,7 @@ def mount_diagnostics(
     )
     router.add_route(
         "/kernelz",
-<<<<<<< HEAD
         build_kernelz_endpoint(source_router),
-=======
-        build_kernelz_endpoint(router),
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
         methods=["GET"],
         name="kernelz",
         tags=["system"],

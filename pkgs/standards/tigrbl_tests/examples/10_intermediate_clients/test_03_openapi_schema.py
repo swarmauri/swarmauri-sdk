@@ -27,27 +27,16 @@ async def test_openapi_schema_contains_widget_paths():
         name = Column(String, nullable=False)
 
     # Deployment: build an API, include the model, and mount diagnostics.
-<<<<<<< HEAD
     router = TigrblRouter(engine=mem(async_=False))
     router.include_table(LessonOpenAPI)
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_model(LessonOpenAPI)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
     router.mount_jsonrpc(prefix="/rpc")
 
-<<<<<<< HEAD
     app = TigrblApp()
     app.include_router(router)
     app.attach_diagnostics(prefix="")
-=======
-    app = FastAPI()
-    app.include_router(router.router)
-    router.attach_diagnostics(prefix="", app=app)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
@@ -79,27 +68,16 @@ async def test_openapi_schema_includes_get_and_post():
         name = Column(String, nullable=False)
 
     # Deployment: initialize the app and attach diagnostics.
-<<<<<<< HEAD
     router = TigrblRouter(engine=mem(async_=False))
     router.include_table(LessonOpenAPIPaths)
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_model(LessonOpenAPIPaths)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
     router.mount_jsonrpc(prefix="/rpc")
 
-<<<<<<< HEAD
     app = TigrblApp()
     app.include_router(router)
     app.attach_diagnostics(prefix="")
-=======
-    app = FastAPI()
-    app.include_router(router.router)
-    router.attach_diagnostics(prefix="", app=app)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

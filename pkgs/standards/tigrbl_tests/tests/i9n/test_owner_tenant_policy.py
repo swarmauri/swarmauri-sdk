@@ -72,21 +72,12 @@ def _client_for_owner(
         session.commit()
 
     authn = DummyAuth(user_id, tenant_id)
-<<<<<<< HEAD
     app = TigrblApp(engine=engine)
     app.set_auth(authn=authn.get_principal)
     app.include_tables([User, Item])
     router = TigrblRouter()
     app.include_router(router)
     app.initialize()
-=======
-    router = TigrblApp(engine=engine)
-    router.set_auth(authn=authn.get_principal)
-    router.include_models([User, Item])
-    app = TigrblApp()
-    app.include_router(router.router)
-    router.initialize()
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     transport = ASGITransport(app=app)
     return Client(transport=transport, base_url="http://test")
 
@@ -159,7 +150,6 @@ def _client_for_tenant(
         session.commit()
 
     authn = DummyAuth(user_id, tenant_id)
-<<<<<<< HEAD
     app = TigrblApp(engine=engine)
     app.set_auth(authn=authn.get_principal)
 
@@ -167,14 +157,6 @@ def _client_for_tenant(
     router.include_tables([Tenant, Item])
     app.include_router(router)
     app.initialize()
-=======
-    router = TigrblApp(engine=engine)
-    router.set_auth(authn=authn.get_principal)
-    router.include_models([Tenant, Item])
-    app = TigrblApp()
-    app.include_router(router.router)
-    router.initialize()
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     transport = ASGITransport(app=app)
     return Client(transport=transport, base_url="http://test")
 

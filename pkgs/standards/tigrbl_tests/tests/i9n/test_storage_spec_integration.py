@@ -5,13 +5,8 @@ from tigrbl.types import String
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-<<<<<<< HEAD
 async def test_storage_spec_request_response_schema(router_client_v3):
     client, router, Widget, _ = router_client_v3
-=======
-async def test_storage_spec_request_response_schema(api_client_v3):
-    client, router, Widget, _ = api_client_v3
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     create_schema = router.schemas.Widget.create.in_
     read_schema = router.schemas.Widget.read.out
     assert create_schema.model_fields["name"].is_required()
@@ -39,13 +34,8 @@ async def test_storage_spec_default_resolution(router_client_v3):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-<<<<<<< HEAD
 async def test_storage_spec_internal_orm(router_client_v3):
     _, router, Widget, _ = router_client_v3
-=======
-async def test_storage_spec_internal_orm(api_client_v3):
-    _, router, Widget, _ = api_client_v3
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     assert router.models["Widget"] is Widget
     assert "age" in router.columns["Widget"]
 
@@ -101,13 +91,8 @@ async def test_storage_spec_rpc_methods(router_client_v3):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-<<<<<<< HEAD
 async def test_storage_spec_core_crud(router_client_v3):
     _, router, Widget, session_maker = router_client_v3
-=======
-async def test_storage_spec_core_crud(api_client_v3):
-    _, router, Widget, session_maker = api_client_v3
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     async with session_maker() as session:
         obj = await crud.create(Widget, {"name": "core", "secret": "def"}, db=session)
         await session.commit()

@@ -20,21 +20,12 @@ def test_app_includes_model_and_registry():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize the API.
     app.include_table(Widget)
     app.initialize()
     # Exercise: retrieve the model registry entry.
     registry = app.registry(Widget)
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    # Deployment: include the model and initialize the API.
-    router.include_model(Widget)
-    router.initialize()
-    # Exercise: retrieve the model registry entry.
-    registry = router.registry(Widget)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     # Assertion: the registry entry exists after initialization.
     assert registry is not None
 
@@ -55,18 +46,9 @@ def test_app_model_map_tracks_the_model_class():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     # Deployment: include and initialize so the model map is populated.
     app.include_table(Widget)
     app.initialize()
     # Assertion: the model registry maps the class name to the model class.
     assert app.models[Widget.__name__] is Widget
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    # Deployment: include and initialize so the model map is populated.
-    router.include_model(Widget)
-    router.initialize()
-    # Assertion: the model registry maps the class name to the model class.
-    assert router.models[Widget.__name__] is Widget
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

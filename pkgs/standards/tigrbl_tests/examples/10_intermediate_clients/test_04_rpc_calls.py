@@ -28,27 +28,16 @@ async def test_rpc_call_works_over_jsonrpc():
         name = Column(String, nullable=False)
 
     # Deployment: build the API, mount JSON-RPC, and attach diagnostics.
-<<<<<<< HEAD
     router = TigrblRouter(engine=mem(async_=False))
     router.include_table(LessonRPCClient)
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_model(LessonRPCClient)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
     router.mount_jsonrpc(prefix="/rpc")
 
-<<<<<<< HEAD
     app = TigrblApp()
     app.include_router(router)
     app.attach_diagnostics(prefix="")
-=======
-    app = FastAPI()
-    app.include_router(router.router)
-    router.attach_diagnostics(prefix="", app=app)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
@@ -79,27 +68,16 @@ async def test_rpc_list_reflects_rest_creates():
         name = Column(String, nullable=False)
 
     # Deployment: initialize app, mount JSON-RPC, and attach diagnostics.
-<<<<<<< HEAD
     router = TigrblRouter(engine=mem(async_=False))
     router.include_table(LessonRPCClientList)
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_model(LessonRPCClientList)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
     router.mount_jsonrpc(prefix="/rpc")
 
-<<<<<<< HEAD
     app = TigrblApp()
     app.include_router(router)
     app.attach_diagnostics(prefix="")
-=======
-    app = FastAPI()
-    app.include_router(router.router)
-    router.attach_diagnostics(prefix="", app=app)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

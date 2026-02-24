@@ -27,18 +27,10 @@ def test_custom_op_declares_schema_refs():
     Widget.summarize = summarize
 
     # Deployment: include the model on a Tigrbl API and initialize.
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(Widget)
     app.initialize()
     # Exercise: locate the summarized operation in the bound ops.
     op = next(spec for spec in app.bind(Widget) if spec.alias == "summarize")
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_model(Widget)
-    router.initialize()
-    # Exercise: locate the summarized operation in the bound ops.
-    op = next(spec for spec in router.bind(Widget) if spec.alias == "summarize")
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     # Assertion: request schemas are resolved for the op.
     assert op.request_model is not None

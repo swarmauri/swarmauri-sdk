@@ -21,21 +21,12 @@ def test_default_ops_include_list():
         name = Column(String, nullable=False)
 
     # Deployment: include the model in a Tigrbl app so ops are bound.
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(LessonDefaultOps)
     app.initialize()
 
     # Test: collect the aliases that the app binds for the model.
     aliases = {spec.alias for spec in app.bind(LessonDefaultOps)}
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_model(LessonDefaultOps)
-    router.initialize()
-
-    # Test: collect the aliases that the app binds for the model.
-    aliases = {spec.alias for spec in router.bind(LessonDefaultOps)}
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Assertion: the list operation is present by default.
     assert "list" in aliases
@@ -57,21 +48,12 @@ def test_default_ops_include_read_and_create():
         name = Column(String, nullable=False)
 
     # Deployment: bind the model within an app context.
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(LessonDefaultOpsCore)
     app.initialize()
 
     # Test: read all bound aliases for the model.
     aliases = {spec.alias for spec in app.bind(LessonDefaultOpsCore)}
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_model(LessonDefaultOpsCore)
-    router.initialize()
-
-    # Test: read all bound aliases for the model.
-    aliases = {spec.alias for spec in router.bind(LessonDefaultOpsCore)}
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Assertion: core CRUD verbs are part of the default set.
     assert {"create", "read"}.issubset(aliases)

@@ -32,26 +32,16 @@ async def test_self_referential_relationship_via_rest() -> None:
         )
 
     # Step 2: Build the API with a memory engine for speed.
-<<<<<<< HEAD
     router = TigrblRouter(engine=mem(async_=False))
     router.include_table(Category)
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_model(Category)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
 
     # Step 3: Mount the API routes on an application instance.
     app = TigrblApp()
-<<<<<<< HEAD
     app.include_router(router)
     app.attach_diagnostics(prefix="")
-=======
-    app.include_router(router.router)
-    router.attach_diagnostics(prefix="", app=app)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Step 4: Start uvicorn and exercise the endpoints.
     port = pick_unique_port()

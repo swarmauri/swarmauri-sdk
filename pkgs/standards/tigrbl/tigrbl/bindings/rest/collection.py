@@ -40,33 +40,6 @@ from ...transport.dispatch import dispatch_operation
 logging.getLogger("uvicorn").debug("Loaded module v3/bindings/rest/collection")
 
 
-<<<<<<< HEAD
-=======
-def _ctx(model, alias, target, request, db, payload, parent_kw, router):
-    ctx: Dict[str, Any] = {
-        "request": request,
-        "db": db,
-        "payload": payload,
-        "path_params": parent_kw,
-        # expose both API router and ASGI app; runtime opview resolution
-        # relies on the app object, which must be hashable.
-        "router": router if router is not None else getattr(request, "app", None),
-        "app": getattr(request, "app", None),
-        "model": model,
-        "op": alias,
-        "method": alias,
-        "target": target,
-        "env": SimpleNamespace(
-            method=alias, params=payload, target=target, model=model
-        ),
-    }
-    ac = getattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, None)
-    if ac is not None:
-        ctx["auth_context"] = ac
-    return _Ctx(ctx)
-
-
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 def _sig(nested_vars, extra):
     params = [
         inspect.Parameter(
@@ -126,19 +99,10 @@ def _make_collection_endpoint(
                 payload = dict(parent_kw)
             if isinstance(h, Mapping):
                 payload = {**payload, **dict(h)}
-<<<<<<< HEAD
             result = await dispatch_operation(
                 router=router,
                 request=request,
                 db=db,
-=======
-            ctx = _ctx(model, alias, target, request, db, payload, parent_kw, router)
-            ctx["response_serializer"] = lambda r: _serialize_output(
-                model, alias, target, sp, r
-            )
-            result = await dispatch_operation(
-                router=router,
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
                 model_or_name=model,
                 alias=alias,
                 target=target,
@@ -205,13 +169,7 @@ def _make_collection_endpoint(
                 payload: Mapping[str, Any] = dict(parent_kw)
                 if isinstance(h, Mapping):
                     payload = {**payload, **dict(h)}
-<<<<<<< HEAD
                 seed_ctx: Dict[str, Any] = {}
-=======
-                ctx = _ctx(
-                    model, alias, target, request, db, payload, parent_kw, router
-                )
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
                 def _serializer(r, _ctx=seed_ctx):
                     out = _serialize_output(model, alias, target, sp, r)
@@ -227,11 +185,8 @@ def _make_collection_endpoint(
 
                 result = await dispatch_operation(
                     router=router,
-<<<<<<< HEAD
                     request=request,
                     db=db,
-=======
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
                     model_or_name=model,
                     alias=alias,
                     target=target,
@@ -323,13 +278,7 @@ def _make_collection_endpoint(
                     payload = {**payload, **parent_kw}
                 else:
                     payload = [{**dict(item), **parent_kw} for item in payload]
-<<<<<<< HEAD
             seed_ctx: Dict[str, Any] = {}
-=======
-            ctx = _ctx(
-                model, exec_alias, exec_target, request, db, payload, parent_kw, router
-            )
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
             def _serializer(r, _ctx=seed_ctx):
                 out = _serialize_output(model, exec_alias, exec_target, sp, r)
@@ -343,11 +292,8 @@ def _make_collection_endpoint(
 
             result = await dispatch_operation(
                 router=router,
-<<<<<<< HEAD
                 request=request,
                 db=db,
-=======
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
                 model_or_name=model,
                 alias=exec_alias,
                 target=exec_target,

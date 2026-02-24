@@ -172,7 +172,6 @@ async def test_document_versions_self_referential_lineage() -> None:
         )
 
     # Deployment: include models so DDL includes the self-referential table.
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     app.include_tables([Document, DocumentVersion])
     init_result = app.initialize()
@@ -182,17 +181,6 @@ async def test_document_versions_self_referential_lineage() -> None:
 
     router = TigrblRouter()
     app.include_router(router)
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_models([Document, DocumentVersion])
-    init_result = router.initialize()
-    if inspect.isawaitable(init_result):
-        await init_result
-    router.mount_jsonrpc(prefix="/rpc")
-
-    app = TigrblApp()
-    app.include_router(router.router)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     router.attach_diagnostics(prefix="", app=app)
 
     port = pick_unique_port()

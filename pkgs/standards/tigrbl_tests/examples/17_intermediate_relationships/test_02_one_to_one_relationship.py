@@ -41,30 +41,17 @@ async def test_one_to_one_relationship_via_rest() -> None:
         user = relationship("User", back_populates="profile")
 
     # Step 3: Initialize the API with an in-memory engine.
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     # Register the related models so both REST resources are available.
     app.include_tables([User, Profile])
     init_result = app.initialize()
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    # Register the related models so both REST resources are available.
-    router.include_models([User, Profile])
-    init_result = router.initialize()
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     if inspect.isawaitable(init_result):
         await init_result
 
     # Step 4: Mount Tigrbl routes on the application.
-<<<<<<< HEAD
     router = TigrblRouter()
     app.include_router(router)
     app.attach_diagnostics(prefix="")
-=======
-    app = TigrblApp()
-    app.include_router(router.router)
-    router.attach_diagnostics(prefix="", app=app)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Step 5: Deploy uvicorn and exercise the REST endpoints.
     port = pick_unique_port()

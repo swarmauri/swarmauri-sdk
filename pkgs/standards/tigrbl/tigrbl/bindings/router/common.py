@@ -21,21 +21,13 @@ class AttrDict(dict):
         self[key] = value
 
 
-<<<<<<< HEAD
 # Public type for the Router facade object users pass to include_table(...)
-=======
-# Public type for the router facade object users pass to include_model(...)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 RouterLike = Any
 
 
 def _resource_name(model: type) -> str:
     """
-<<<<<<< HEAD
     Compute the Router resource segment.
-=======
-    Compute the router resource segment.
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     Policy:
       - Prefer explicit `__resource__` when present (caller-controlled).

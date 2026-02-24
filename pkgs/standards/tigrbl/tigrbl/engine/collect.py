@@ -69,20 +69,12 @@ def _iter_declared_ops(model: Any) -> Dict[Tuple[Any, str], Mapping[str, Any]]:
 
 
 def collect_engine_config(
-<<<<<<< HEAD
     *, app: Any | None = None, router: Any | None = None, tables: Iterable[Any] = ()
-=======
-    *, app: Any | None = None, router: Any | None = None, models: Iterable[Any] = ()
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 ) -> Dict[str, Any]:
     """Collect engine configuration from objects without binding them."""
     logger.info("Collecting engine configuration")
     app_engine = _read_engine_attr(app) if app is not None else None
-<<<<<<< HEAD
     router_engine = _read_engine_attr(router) if router is not None else None
-=======
-    api_engine = _read_engine_attr(router) if router is not None else None
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     table_bindings: Dict[Any, Any] = {}
     ops: Dict[Tuple[Any, str], Any] = {}
@@ -106,27 +98,17 @@ def collect_engine_config(
         for (model, alias), ocfg in _iter_declared_ops(m).items():
             ops[(model, alias)] = ocfg.get("engine")
 
-<<<<<<< HEAD
     router_map = (
         {router: router_engine}
         if router_engine is not None and router is not None
         else {}
-=======
-    api_map = (
-        {router: api_engine} if api_engine is not None and router is not None else {}
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     )
 
     logger.debug("Collected engine config for %d tables", len(tables))
     return {
         "default": app_engine,
-<<<<<<< HEAD
         "router": router_map,
         "tables": table_bindings,
-=======
-        "router": api_map,
-        "tables": tables,
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
         "ops": ops,
     }
 
