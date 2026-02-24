@@ -126,18 +126,24 @@ def set_default(ctx: EngineCfg | None) -> None:
         _DEFAULT = prov
 
 
-def register_api(router: Any, ctx: EngineCfg | None) -> None:
+def register_router(router: Any, ctx: EngineCfg | None) -> None:
     """
     Register an API-level Provider.
     """
     prov = _coerce(ctx)
-    logger.debug("register_api: router=%r coerced provider=%r", router, prov)
+    logger.debug("register_router: router=%r coerced provider=%r", router, prov)
     if prov is None:
-        logger.debug("register_api: no provider; skipping registration")
+        logger.debug("register_router: no provider; skipping registration")
         return
     with _LOCK:
         _API[id(router)] = prov
-        logger.debug("register_api: registered provider for router id %s", id(router))
+        logger.debug(
+            "register_router: registered provider for router id %s", id(router)
+        )
+
+
+# Backwards-compatible alias
+register_api = register_router
 
 
 def register_table(model: Any, ctx: EngineCfg | None) -> None:
