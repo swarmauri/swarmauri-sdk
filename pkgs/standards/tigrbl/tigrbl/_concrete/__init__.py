@@ -9,12 +9,21 @@ _EXPORTS = {
     "App": "_app",
     "Column": "_column",
     "Engine": "_engine",
+    "FileResponse": "_response",
+    "HTMLResponse": "_response",
     "Hook": "_hook",
+    "JSONResponse": "_response",
+    "NO_BODY_STATUS": "_transport",
     "Op": "_op",
+    "PlainTextResponse": "_response",
+    "RedirectResponse": "_response",
+    "Response": "_response",
     "Route": "_route",
     "Router": "_router",
     "Schema": "_schema",
+    "StreamingResponse": "_response",
     "Table": "_table",
+    "finalize_transport_response": "_transport",
 }
 
 __all__ = list(_EXPORTS)

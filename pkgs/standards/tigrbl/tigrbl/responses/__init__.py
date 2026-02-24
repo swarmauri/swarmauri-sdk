@@ -16,8 +16,9 @@ from .decorators import (
 )
 from .resolver import infer_hints, resolve_response_spec
 from .shortcuts import as_file, as_html, as_json, as_redirect, as_stream, as_text
-from .types import Response as ResponseConfig
-from .types import ResponseKind, ResponseSpec, Template, TemplateSpec
+from ..concrete.response import Response as ResponseConfig
+from ..concrete.response import Template
+from ..specs.response_spec import ResponseKind, ResponseSpec, TemplateSpec
 from ..runtime.atoms.response.renderer import ResponseHints, render
 from ..runtime.atoms.response.templates import render_template
 

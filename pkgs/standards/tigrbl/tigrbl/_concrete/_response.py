@@ -1,8 +1,11 @@
-"""Backward-compatible response primitive exports."""
+"""Backward-compatible response primitive exports.
+
+Transport response primitives now live under :mod:`tigrbl.transport`.
+"""
 
 from __future__ import annotations
 
-from .._concrete._response import (
+from ..transport._response import (
     FileResponse,
     HTMLResponse,
     JSONResponse,

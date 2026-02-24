@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any, Callable, Optional, TypeVar, overload
 
-from ..responses.types import ResponseSpec
+from ..specs.response_spec import ResponseSpec
 
 T = TypeVar("T")
 _ATTR = "__tigrbl_response_spec__"

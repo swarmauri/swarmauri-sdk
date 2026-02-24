@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Dict, Optional
 
 from dataclasses import fields
-from .types import ResponseSpec, TemplateSpec
+from ..specs.response_spec import ResponseSpec, TemplateSpec
 from ..runtime.atoms.response.renderer import ResponseHints
 
 

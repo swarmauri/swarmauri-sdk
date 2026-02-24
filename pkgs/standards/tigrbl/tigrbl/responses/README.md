@@ -1,6 +1,6 @@
 # Response and Template Specs
 
-Tigrbl exposes flexible response configuration through the `ResponseSpec` and `TemplateSpec` dataclasses in `tigrbl.response.types`.
+Tigrbl exposes flexible response configuration through the `ResponseSpec` and `TemplateSpec` dataclasses in `tigrbl.specs.response_spec`.
 
 ## `ResponseSpec`
 

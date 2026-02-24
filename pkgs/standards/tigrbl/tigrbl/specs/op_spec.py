@@ -27,7 +27,7 @@ TargetOp = Literal[
 ]
 
 if TYPE_CHECKING:  # pragma: no cover
-    from ..responses.types import ResponseSpec
+    from ..specs.response_spec import ResponseSpec
     from ..schema.types import SchemaArg
 
 
