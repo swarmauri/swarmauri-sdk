@@ -1,7 +1,17 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Mapping, Optional, Set, Tuple
+from dataclasses import dataclass, field, replace
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    FrozenSet,
+    Mapping,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+)
 
 from ..op import OpSpec
 
@@ -10,25 +20,29 @@ MappingKey = Tuple[str, str]
 
 @dataclass(frozen=True)
 class MappingContext:
-    """Immutable-ish snapshot collected once per binding pass."""
+    """Read-only snapshot of one deterministic mapping pass."""
 
     model: type
     router: Any | None
     only_keys: Optional[Set[MappingKey]]
-    alias_map: Mapping[str, str]
-    base_specs: Tuple[OpSpec, ...]
-    ctx_specs: Tuple[OpSpec, ...]
-    changed_keys: Set[MappingKey] = field(default_factory=set)
+    app_spec: Any | None = None
+    router_specs: Mapping[str, Any] = field(default_factory=dict)
+    op_specs: Mapping[str, Any] = field(default_factory=dict)
+    model_specs: Mapping[str, Any] = field(default_factory=dict)
+    alias_map: Mapping[str, str] = field(default_factory=dict)
+    aliases: Mapping[str, FrozenSet[str]] = field(default_factory=dict)
+    changed_keys: FrozenSet[MappingKey] = field(default_factory=frozenset)
+    base_specs: Tuple[OpSpec, ...] = field(default_factory=tuple)
+    ctx_specs: Tuple[OpSpec, ...] = field(default_factory=tuple)
+    all_specs: Tuple[OpSpec, ...] = field(default_factory=tuple)
+    visible_specs: Tuple[OpSpec, ...] = field(default_factory=tuple)
+    merged_hooks: Dict[str, Dict[str, Sequence[Callable[..., Any]]]] = field(
+        default_factory=dict
+    )
+    deps: Mapping[MappingKey, Tuple[Any, ...]] = field(default_factory=dict)
+    secdeps: Mapping[MappingKey, Tuple[Any, ...]] = field(default_factory=dict)
+    errors: Tuple[Exception, ...] = field(default_factory=tuple)
+    bound_graph: Any | None = None
 
-
-@dataclass(frozen=True)
-class MappingPlan:
-    """Compilation-ready mapping plan produced from MappingContext."""
-
-    model: type
-    router: Any | None
-    only_keys: Optional[Set[MappingKey]]
-    alias_map: Mapping[str, str]
-    all_specs: Tuple[OpSpec, ...]
-    visible_specs: Tuple[OpSpec, ...]
-    merged_hooks: Dict[str, Dict[str, List[Callable[..., Any]]]]
+    def evolve(self, **changes: Any) -> "MappingContext":
+        return replace(self, **changes)

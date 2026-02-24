@@ -17,39 +17,39 @@ from .model_registry import (
     _ensure_op_ctx_attach_hook,
     _ensure_registry_listener,
 )
-from .context import MappingPlan
+from .context import MappingContext
 
 
-def apply(plan: MappingPlan):
-    model = plan.model
+def apply(context: MappingContext):
+    model = context.model
     _ensure_model_namespaces(model)
     _columns_binding.build_and_attach(model)
-    _drop_old_entries(model, keys=plan.only_keys)
-    setattr(model, "__tigrbl_hooks__", plan.merged_hooks)
+    _drop_old_entries(model, keys=context.only_keys)
+    setattr(model, "__tigrbl_hooks__", context.merged_hooks)
 
     _schemas_binding.build_and_attach(
-        model, list(plan.visible_specs), only_keys=plan.only_keys
+        model, list(context.visible_specs), only_keys=context.only_keys
     )
     _hooks_binding.normalize_and_attach(
-        model, list(plan.visible_specs), only_keys=plan.only_keys
+        model, list(context.visible_specs), only_keys=context.only_keys
     )
     _handlers_binding.build_and_attach(
-        model, list(plan.visible_specs), only_keys=plan.only_keys
+        model, list(context.visible_specs), only_keys=context.only_keys
     )
     _rpc_binding.register_and_attach(
-        model, list(plan.visible_specs), only_keys=plan.only_keys
+        model, list(context.visible_specs), only_keys=context.only_keys
     )
     _rest_binding.build_router_and_attach(
         model,
-        list(plan.visible_specs),
-        router=plan.router,
-        only_keys=plan.only_keys,
+        list(context.visible_specs),
+        router=context.router,
+        only_keys=context.only_keys,
     )
 
-    all_specs, by_key, by_alias = _index_specs(list(plan.all_specs))
+    all_specs, by_key, by_alias = _index_specs(list(context.all_specs))
     model.ops = SimpleNamespace(all=all_specs, by_key=by_key, by_alias=by_alias)
     model.opspecs = model.ops
-    model.alias_map = dict(plan.alias_map)
+    model.alias_map = dict(context.alias_map)
 
     _ensure_registry_listener(model)
     _ensure_op_ctx_attach_hook(model)
