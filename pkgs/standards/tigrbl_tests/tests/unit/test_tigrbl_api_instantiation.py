@@ -29,9 +29,9 @@ def test_tigrbl_router_instantiation_sets_containers() -> None:
     router = WidgerRouter(engine=mem(async_=False))
     router_dir = dir(router)
 
-    assert "models" in router_dir
+    assert "tables" in router_dir
     assert "routers" in router_dir
     assert "schemas" in router_dir
     assert "jsonrpc_prefix" in router_dir
     assert "system_prefix" in router_dir
-    assert router.models["Widget"] is Widget
+    assert router.tables["Widget"] is Widget
