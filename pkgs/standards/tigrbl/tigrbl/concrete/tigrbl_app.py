@@ -134,7 +134,7 @@ class TigrblApp(_App):
         self.rpc = SimpleNamespace()
         self.rest = SimpleNamespace()
         self.routers: Dict[str, Any] = {}
-        self.tables = AttrDict()
+        self.tables = AttrDict(self._table_registry)
         self.columns: Dict[str, Tuple[str, ...]] = {}
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
