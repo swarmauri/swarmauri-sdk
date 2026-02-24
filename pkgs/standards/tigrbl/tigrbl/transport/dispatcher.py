@@ -12,9 +12,12 @@ from ..op.types import PHASES
 
 try:
     from ..runtime.kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore
-    from ..runtime.kernel import plan_labels as _kernel_plan_labels  # type: ignore
 except Exception:  # pragma: no cover
     _kernel_build_phase_chains = None  # type: ignore
+
+try:
+    from ..runtime.kernel import plan_labels as _kernel_plan_labels  # type: ignore
+except Exception:  # pragma: no cover
     _kernel_plan_labels = None  # type: ignore
 
 
