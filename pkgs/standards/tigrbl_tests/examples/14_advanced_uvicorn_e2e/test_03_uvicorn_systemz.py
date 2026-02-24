@@ -26,8 +26,8 @@ async def test_uvicorn_systemz_route():
     if inspect.isawaitable(init_result):
         await init_result
     router = TigrblRouter()
+    router.add_route("/systemz", lambda: {"system": True}, methods=["GET"])
     app.include_router(router)
-    app.add_route("/systemz", lambda: {"system": True}, methods=["GET"])
     app.attach_diagnostics(prefix="")
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

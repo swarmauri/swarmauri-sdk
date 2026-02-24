@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 import copy
 import inspect
-import warnings
 from pathlib import Path
 from types import SimpleNamespace
 from typing import (
@@ -406,24 +405,20 @@ class TigrblApp(_App):
         return routed
 
     def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Back-compat alias for adding a route directly on the app router."""
-        warnings.warn(
-            "TigrblApp.add_router_route() is deprecated and will not be supported "
-            "in a future release. Use include_router() with a TigrblRouter instead.",
-            DeprecationWarning,
-            stacklevel=2,
+        """Unsupported: register routes on ``TigrblRouter`` instances instead."""
+        del path, endpoint, kwargs
+        raise AttributeError(
+            "TigrblApp does not support add_router_route(...). "
+            "Use TigrblRouter.add_route(...) and include_router(...)."
         )
-        super().add_route(path, endpoint, **kwargs)
 
     def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Deprecated compatibility hook for adding routes directly on the app."""
-        warnings.warn(
-            "TigrblApp.add_route() is deprecated and will not be supported in a "
-            "future release. Use include_router() with a TigrblRouter instead.",
-            DeprecationWarning,
-            stacklevel=2,
+        """Unsupported: register routes on ``TigrblRouter`` instances instead."""
+        del path, endpoint, kwargs
+        raise AttributeError(
+            "TigrblApp does not support add_route(...). "
+            "Use TigrblRouter.add_route(...) and include_router(...)."
         )
-        super().add_route(path, endpoint, **kwargs)
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""
