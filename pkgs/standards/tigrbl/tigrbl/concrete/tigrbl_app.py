@@ -41,6 +41,10 @@ from ..system.docs import build_openapi as _build_openapi
 from ..op import get_registry, OpSpec
 from ..app._model_registry import initialize_table_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
+from ..router._routing import (
+    add_route as _add_route_impl,
+    include_router as _include_router_impl,
+)
 from ..app.transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
 from ..router._routing import include_router as _include_router_impl
 
