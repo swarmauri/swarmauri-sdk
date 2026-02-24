@@ -32,6 +32,7 @@ from ..app._model_registry import initialize_table_registry
 from ..system.favicon import mount_favicon
 from ..router._routing import include_router as _include_router_impl
 from ..transport import mount_jsonrpc as _mount_jsonrpc
+from ..system import mount_openrpc as _mount_openrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..engine import resolver as _resolver
 
@@ -207,6 +208,16 @@ class TigrblRouter(_Router):
         self.jsonrpc_prefix = px
         return _mount_jsonrpc(self, self, prefix=px, tags=tags)
 
+    def mount_openrpc(
+        self,
+        *,
+        path: str = "/openrpc.json",
+        name: str = "openrpc_json",
+        tags: Sequence[str] | None = None,
+    ) -> Any:
+        """Mount an OpenRPC JSON endpoint onto this router instance."""
+        return _mount_openrpc(self, path=path, name=name, tags=tags)
+      
     def attach_diagnostics(
         self, *, prefix: str | None = None, app: Any | None = None
     ) -> Any:
