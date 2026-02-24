@@ -19,6 +19,17 @@ def test_phases_constant_lists_all_phases_in_order() -> None:
         "EGRESS_SHAPE",
         "EGRESS_FINALIZE",
         "POST_RESPONSE",
+        "ON_ERROR",
+        "ON_PRE_TX_BEGIN_ERROR",
+        "ON_START_TX_ERROR",
+        "ON_PRE_HANDLER_ERROR",
+        "ON_HANDLER_ERROR",
+        "ON_POST_HANDLER_ERROR",
+        "ON_PRE_COMMIT_ERROR",
+        "ON_END_TX_ERROR",
+        "ON_POST_COMMIT_ERROR",
+        "ON_POST_RESPONSE_ERROR",
+        "ON_ROLLBACK",
     )
 
 
