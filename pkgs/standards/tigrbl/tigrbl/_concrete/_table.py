@@ -36,13 +36,13 @@ class Table(Base, TableSpec):
 
         # auto-register table-level bindings if declared
         try:
-            install_from_objects(models=[cls])
+            install_from_objects(tables=[cls])
         except Exception:  # pragma: no cover - best effort
             pass
 
     @classmethod
     def install_engines(cls, *, router: Any | None = None) -> None:
-        install_from_objects(router=router, models=[cls])
+        install_from_objects(router=router, tables=[cls])
 
     @classmethod
     def acquire(

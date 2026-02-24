@@ -52,14 +52,12 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list:
     return out
 
 
-def _iter_models(router: Any, only: Optional[Sequence[type]] = None) -> Sequence[type]:
+def _iter_tables(router: Any, only: Optional[Sequence[type]] = None) -> Sequence[type]:
     if only:
         return list(only)
-    models: Mapping[str, type] = (
-        getattr(router, "tables", None) or getattr(router, "models", {}) or {}
-    )
+    tables: Mapping[str, type] = getattr(router, "tables", None) or {}
     # deterministic iteration
-    return [models[k] for k in sorted(models.keys())]
+    return [tables[k] for k in sorted(tables.keys())]
 
 
 def build_rest_router(
@@ -84,7 +82,7 @@ def build_rest_router(
     root = Router(dependencies=_normalize_deps(dependencies))
     prefix = _norm_prefix(base_prefix)
 
-    for model in _iter_models(router, models):
+    for model in _iter_tables(router, models):
         rest_ns = getattr(model, "rest", None)
         router = getattr(rest_ns, "router", None) if rest_ns is not None else None
         if router is None:
