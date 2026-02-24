@@ -40,13 +40,13 @@ async def test_openapi_security_from_app_and_api_deps() -> None:
         name = Column(String, nullable=False)
 
     # Instantiation: define the API with two security deps (shared + router-only).
-    class SecuredApi(TigrblRouter):
+    class SecuredRouter(TigrblRouter):
         SECURITY_DEPS = (
             Security(shared_api_scheme),
             Security(api_only_scheme),
         )
 
-    router = SecuredApi(engine=mem(async_=False))
+    router = SecuredRouter(engine=mem(async_=False))
     router.include_model(CombinedSecdepsWidget)
 
     # Instantiation: build the app with two security deps (shared + app-only).

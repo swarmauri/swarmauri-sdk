@@ -31,7 +31,7 @@ async def test_openapi_security_from_api_constructor_deps() -> None:
     bearer_scheme = HTTPBearer(scheme_name="ApiToken")
 
     # Configuration: declare a model for API routing.
-    class ApiSecdepsWidget(Base, GUIDPk):
+    class RouterSecdepsWidget(Base, GUIDPk):
         __tablename__ = "lesson_security_api_secdeps_widget"
         __allow_unmapped__ = True
 
@@ -42,7 +42,7 @@ async def test_openapi_security_from_api_constructor_deps() -> None:
         SECURITY_DEPS = (Security(bearer_scheme),)
 
     router = SecuredRouter(engine=mem(async_=False))
-    router.include_model(ApiSecdepsWidget)
+    router.include_model(RouterSecdepsWidget)
 
     # Deployment: initialize storage and attach OpenAPI to the API router.
     init_result = router.initialize()
@@ -61,7 +61,7 @@ async def test_openapi_security_from_api_constructor_deps() -> None:
     async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
         response = await client.get("/openapi.json")
         schema = response.json()
-        resource_path = f"/{ApiSecdepsWidget.__name__.lower()}"
+        resource_path = f"/{RouterSecdepsWidget.__name__.lower()}"
 
         # Assertion: API routes are secured and scheme is registered.
         assert response.status_code == 200
