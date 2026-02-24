@@ -19,6 +19,10 @@ def build_phase_chains(model: type, alias: str) -> Dict[str, List[StepFn]]:
     return _default_kernel.build(model, alias)
 
 
+def plan_labels(model: type, alias: str) -> list[str]:
+    return _default_kernel.plan_labels(model, alias)
+
+
 async def run(
     model: type,
     alias: str,
@@ -40,5 +44,6 @@ __all__ = [
     "get_cached_specs",
     "_default_kernel",
     "build_phase_chains",
+    "plan_labels",
     "run",
 ]
