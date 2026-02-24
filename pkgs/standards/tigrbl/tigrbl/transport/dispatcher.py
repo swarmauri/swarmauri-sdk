@@ -45,7 +45,7 @@ def _resolve_model(router: Any, model_or_name: type | str) -> type:
         return model_or_name
     if router is None:
         raise LookupError(f"Unknown model '{model_or_name}'")
-    registry = getattr(router, "tables", None) or getattr(router, "models", {})
+    registry = getattr(router, "tables", None) or {}
     mdl = registry.get(model_or_name)
     if mdl is None:
         raise LookupError(f"Unknown model '{model_or_name}'")

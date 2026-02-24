@@ -198,56 +198,54 @@ def _make_authorize_secdep(router: Any) -> Any | None:
     return _authorize_secdep
 
 
-def _attach_to_router(router: RouterLike, model: type) -> None:
+def _attach_to_router(router: RouterLike, table: type) -> None:
     """
     Attach the model’s bound namespaces to the router facade.
     """
     _ensure_router_ns(router)
 
-    mname = model.__name__
-    rname = _resource_name(model)
+    tname = table.__name__
+    rname = _resource_name(table)
     rtitle = rname[:1].upper() + rname[1:]
-    logger.debug("Attaching model %s as resource '%s'", mname, rname)
+    logger.debug("Attaching table %s as resource '%s'", tname, rname)
 
-    # Index model object
-    router.models[mname] = model
-    router.tables[mname] = getattr(model, "__table__", None)
+    router.tables[tname] = table
 
     # Direct references to model namespaces
-    setattr(router.schemas, mname, getattr(model, "schemas", SimpleNamespace()))
-    setattr(router.handlers, mname, getattr(model, "handlers", SimpleNamespace()))
-    setattr(router.hooks, mname, getattr(model, "hooks", SimpleNamespace()))
-    rpc_ns = getattr(model, "rpc", SimpleNamespace())
-    setattr(router.rpc, mname, rpc_ns)
-    if rtitle != mname:
+    setattr(router.schemas, tname, getattr(table, "schemas", SimpleNamespace()))
+    setattr(router.handlers, tname, getattr(table, "handlers", SimpleNamespace()))
+    setattr(router.hooks, tname, getattr(table, "hooks", SimpleNamespace()))
+    rpc_ns = getattr(table, "rpc", SimpleNamespace())
+    setattr(router.rpc, tname, rpc_ns)
+    if rtitle != tname:
         setattr(router.rpc, rtitle, rpc_ns)
         logger.debug("Registered RPC namespace alias '%s'", rtitle)
-    # rest (router lives on model.rest.router)
+    # rest (router lives on table.rest.router)
     rest_ns = getattr(router, "rest")
     setattr(
         rest_ns,
-        mname,
+        tname,
         SimpleNamespace(
-            router=getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
+            router=getattr(getattr(table, "rest", SimpleNamespace()), "router", None)
         ),
     )
     # also keep a flat routers dict for quick access
-    router.routers[mname] = getattr(
-        getattr(model, "rest", SimpleNamespace()), "router", None
+    router.routers[tname] = getattr(
+        getattr(table, "rest", SimpleNamespace()), "router", None
     )
 
     # Table metadata (introspection only)
-    router.columns[mname] = _coerce_model_columns(getattr(model, "columns", ()))
-    router.table_config[mname] = dict(getattr(model, "table_config", {}) or {})
+    router.columns[tname] = _coerce_model_columns(getattr(table, "columns", ()))
+    router.table_config[tname] = dict(getattr(table, "table_config", {}) or {})
 
     # Core helper proxies (now aware of API for DB resolution precedence)
-    core_proxy = _ResourceProxy(model, router=router)
-    setattr(router.core, mname, core_proxy)
-    if rtitle != mname:
+    core_proxy = _ResourceProxy(table, router=router)
+    setattr(router.core, tname, core_proxy)
+    if rtitle != tname:
         setattr(router.core, rtitle, core_proxy)
-    core_raw_proxy = _ResourceProxy(model, serialize=False, router=router)
-    setattr(router.core_raw, mname, core_raw_proxy)
-    if rtitle != mname:
+    core_raw_proxy = _ResourceProxy(table, serialize=False, router=router)
+    setattr(router.core_raw, tname, core_raw_proxy)
+    if rtitle != tname:
         setattr(router.core_raw, rtitle, core_raw_proxy)
 
 
