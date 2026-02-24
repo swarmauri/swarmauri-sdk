@@ -105,8 +105,25 @@ def _is_persistent(chains: Mapping[str, Sequence[StepFn]]) -> bool:
     return False
 
 
-def _label_dep_atom(*, subject: str, anchor: str, index: int) -> str:
-    return f"hook:dep:{subject}:{index}@{anchor}"
+def _dep_name(dep: Any) -> str:
+    explicit_name = getattr(dep, "__tigrbl_dep_name__", None)
+    if isinstance(explicit_name, str) and explicit_name:
+        return explicit_name
+
+    target = getattr(dep, "dependency", dep)
+    name = getattr(target, "__name__", None)
+    if isinstance(name, str) and name:
+        return name
+
+    qualname = getattr(target, "__qualname__", None)
+    if isinstance(qualname, str) and qualname:
+        return qualname
+
+    return str(target)
+
+
+def _label_dep_atom(*, kind: str, dep: Any) -> str:
+    return f"{kind}:{_dep_name(dep)}"
 
 
 def _make_dep_atom_step(run_fn: _AtomRun, dep: Any, *, label: str) -> StepFn:
@@ -124,26 +141,26 @@ def _inject_pre_tx_dep_atoms(chains: Dict[str, List[StepFn]], sp: Any | None) ->
     if sp is None:
         return
     try:
-        from ..atoms.dep.security import ANCHOR as sec_anchor, run as sec_run
-        from ..atoms.dep.extra import ANCHOR as dep_anchor, run as dep_run
+        from ..atoms.dep.security import run as sec_run
+        from ..atoms.dep.extra import run as dep_run
     except Exception:
         return
 
     pre_tx = chains.setdefault("PRE_TX_BEGIN", [])
-    for i, dep in enumerate(getattr(sp, "secdeps", ()) or ()):
+    for dep in getattr(sp, "secdeps", ()) or ():
         pre_tx.append(
             _make_dep_atom_step(
                 sec_run,
                 dep,
-                label=_label_dep_atom(subject="security", anchor=sec_anchor, index=i),
+                label=_label_dep_atom(kind="secdep", dep=dep),
             )
         )
-    for i, dep in enumerate(getattr(sp, "deps", ()) or ()):
+    for dep in getattr(sp, "deps", ()) or ():
         pre_tx.append(
             _make_dep_atom_step(
                 dep_run,
                 dep,
-                label=_label_dep_atom(subject="extra", anchor=dep_anchor, index=i),
+                label=_label_dep_atom(kind="dep", dep=dep),
             )
         )
 

@@ -11,7 +11,11 @@ from ...transport import JSONResponse, Request, Response
 from ...transport.dispatcher import dispatch_operation, resolve_operation
 from ...core.crud.params import Body
 from ...router._router import Router
-from ...mapping.rpc import _serialize_output
+from ...mapping.rpc import (
+    _allowed_wrapper_keys,
+    _reject_wrapper_keys,
+    _serialize_output,
+)
 from .helpers import _err, _normalize_deps, _normalize_params, _ok
 from .models import RPCRequest, RPCResponse
 
@@ -67,6 +71,12 @@ async def _dispatch_one(
             return _rpc_error(-32601, f"Unknown model '{model_name}'")
 
         params = _normalize_params(obj.get("params"))
+        _reject_wrapper_keys(
+            params,
+            allowed_keys=_allowed_wrapper_keys(
+                resolution.model, alias, resolution.target
+            ),
+        )
         base_ctx: Dict[str, Any] = {}
         extra_ctx = getattr(request.state, "ctx", None)
         if isinstance(extra_ctx, Mapping):
