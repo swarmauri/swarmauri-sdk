@@ -47,7 +47,7 @@ class TigrblRouter(_Router):
     """
 
     PREFIX = ""
-    REST_PREFIX = "/router"
+    REST_PREFIX = "/api"
     RPC_PREFIX = "/rpc"
     SYSTEM_PREFIX = "/system"
     TAGS: Sequence[Any] = ()
@@ -89,7 +89,7 @@ class TigrblRouter(_Router):
             if system_prefix is not None
             else getattr(self, "SYSTEM_PREFIX", "/system")
         )
-        self.rest_prefix = getattr(self, "REST_PREFIX", "/router")
+        self.rest_prefix = getattr(self, "REST_PREFIX", "/api")
 
         # public containers (mirrors used by bindings.router)
         self.tables = initialize_table_registry(getattr(self, "TABLES", ()))
