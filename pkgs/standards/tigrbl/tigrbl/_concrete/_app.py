@@ -221,7 +221,8 @@ class App(AppSpec):
 
     async def dispatch(self, req: Request) -> Response:
         path_matches = [r for r in self._routes if r.pattern.match(req.path)]
-        if req.method.upper() == "OPTIONS" and path_matches:
+        candidates = [r for r in path_matches if req.method in r.methods]
+        if req.method.upper() == "OPTIONS" and path_matches and not candidates:
             allowed_methods = {
                 method.upper()
                 for route in path_matches
@@ -234,7 +235,6 @@ class App(AppSpec):
                 body=b"",
             )
 
-        candidates = [r for r in path_matches if req.method in r.methods]
         candidates.sort(key=self._route_match_priority)
         for candidate in candidates:
             match = candidate.pattern.match(req.path)
