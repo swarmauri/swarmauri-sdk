@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import inspect
-from contextlib import asynccontextmanager
+import warnings
 from pathlib import Path
 from types import SimpleNamespace
 from typing import (
@@ -18,33 +18,30 @@ from typing import (
     Tuple,
 )
 
-from ..app._app import App as _App
-from .tigrbl_router import TigrblRouter
-from ..router._routing import include_router as _include_router_impl
+from ._app import App as _App
+from ..router.tigrbl_router import TigrblRouter
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
-from ..mapping.router import (
+from ..mappings.router import (
     rpc_call as _rpc_call,
     _seed_security_and_deps,
     _mount_router,
     _default_prefix,
     AttrDict,
 )
-from ..mapping.model import rebind as _rebind, bind as _bind
-from ..mapping.router.include import _inject_runtime_secdeps, _make_authorize_secdep
-from ..mapping.rest import build_router_and_attach as _build_router_and_attach
+from ..mappings.model import rebind as _rebind, bind as _bind
+from ..mappings.rest import build_router_and_attach as _build_router_and_attach
 from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..system import mount_lens as _mount_lens
 from ..system import mount_openapi as _mount_openapi
 from ..system import mount_openrpc as _mount_openrpc
-from ..system.docs.openapi import build_openapi
-from ..system.docs.swagger import mount_swagger
 from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..op import get_registry, OpSpec
-from ..app._model_registry import initialize_model_registry
+from ._model_registry import initialize_table_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
+from .transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
 
 
 # optional compat: legacy transactional decorator
@@ -70,7 +67,7 @@ class TigrblApp(_App):
     LIFESPAN = None
     MIDDLEWARES: Sequence[Any] = ()
     ROUTERS: Sequence[Any] = ()
-    MODELS: Sequence[Any] = ()
+    TABLES: Sequence[Any] = ()
 
     # --- optional auth knobs recognized by some middlewares/dispatchers (kept for back-compat) ---
     _authn: Any = None
@@ -105,7 +102,6 @@ class TigrblApp(_App):
         if lifespan is not None:
             self.LIFESPAN = lifespan
         super().__init__(engine=engine, **asgi_kwargs)
-        self.router = self
         self._middlewares: list[tuple[Any, dict[str, Any]]] = []
         self.middlewares = tuple(getattr(self, "MIDDLEWARES", ()))
         self._favicon_path = favicon_path
@@ -113,7 +109,6 @@ class TigrblApp(_App):
             mw_cls = getattr(mw, "cls", mw.__class__)
             self.add_middleware(mw_cls, **getattr(mw, "kwargs", {}))
         self._install_favicon()
-        self._install_builtin_routes()
         # capture initial routes so refreshes retain ASGI defaults
         self._base_routes = list(self.router.routes)
         self.jsonrpc_prefix = (
@@ -128,7 +123,8 @@ class TigrblApp(_App):
         )
 
         # public containers (mirrors used by bindings.router)
-        self.models = initialize_model_registry(getattr(self, "MODELS", ()))
+        declared_models = getattr(self, "TABLES", ()) or getattr(self, "MODELS", ())
+        self.models = initialize_table_registry(declared_models)
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
         self.hooks = tuple(getattr(self, "HOOKS", ()))
@@ -141,12 +137,11 @@ class TigrblApp(_App):
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
         self.core_raw = SimpleNamespace()
-        self.included_routers = list(getattr(self, "ROUTERS", ()))
+        initial_routers = list(getattr(self, "ROUTERS", ()))
         self._event_handlers = {
             "startup": [],
             "shutdown": [],
         }
-        self.lifespan_context = self._lifespan_context
 
         # Router-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
@@ -154,14 +149,29 @@ class TigrblApp(_App):
         self.mount_openrpc(path="/openrpc.json")
         self.mount_lens(path="/rdocs", spec_path="/openrpc.json")
         if routers:
-            self.included_routers.extend(list(routers))
-            self.include_apis(self.included_routers)
+            initial_routers.extend(list(routers))
+        if initial_routers:
+            self.include_routers(initial_routers)
 
-    def _wsgi_app(self, environ: dict[str, Any], start_response: Any) -> list[bytes]:
-        return super()._wsgi_app(environ, start_response)
+        if (
+            self._has_local_op_declarations()
+            and self.__class__.__name__ not in self.models
+        ):
+            self.include_table(self.__class__)
 
-    async def _asgi_app(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
-        await super()._asgi_app(scope, receive, send)
+    def _has_local_op_declarations(self) -> bool:
+        """Return True when the app subclass declares op_alias/op_ctx operations."""
+        app_cls = self.__class__
+        if getattr(app_cls, "__tigrbl_ops__", ()):
+            return True
+
+        for attr in app_cls.__dict__.values():
+            fn = getattr(attr, "__func__", attr)
+            if getattr(fn, "__tigrbl_op_spec__", None) is not None:
+                return True
+            if getattr(fn, "__tigrbl_op_decl__", None) is not None:
+                return True
+        return False
 
     @property
     def event_handlers(self) -> Dict[str, list[Callable[..., Any]]]:
@@ -170,19 +180,13 @@ class TigrblApp(_App):
 
     @property
     def on_startup(self) -> list[Callable[..., Any]]:
+        """Compatibility alias for startup handlers list."""
         return self._event_handlers["startup"]
 
     @property
     def on_shutdown(self) -> list[Callable[..., Any]]:
+        """Compatibility alias for shutdown handlers list."""
         return self._event_handlers["shutdown"]
-
-    @asynccontextmanager
-    async def _lifespan_context(self, _: Any):
-        await self.run_event_handlers("startup")
-        try:
-            yield
-        finally:
-            await self.run_event_handlers("shutdown")
 
     def add_event_handler(
         self,
@@ -219,6 +223,18 @@ class TigrblApp(_App):
             result = handler()
             if inspect.isawaitable(result):
                 await result
+
+    async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        """Expose ``TigrblApp`` as a native ASGI callable for uvicorn/gunicorn."""
+        await self.asgi_app(scope, receive, send)
+
+    async def asgi_app(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        """Serve ASGI requests using the shared transport adapter."""
+        await _asgi_transport(self, scope, receive, send)
+
+    def wsgi_app(self, environ: dict[str, Any], start_response: Any) -> list[bytes]:
+        """Serve WSGI requests using the shared transport adapter."""
+        return _wsgi_transport(self, environ, start_response)
 
     def add_middleware(self, middleware_class: Any, **options: Any) -> None:
         self._middlewares.append((middleware_class, options))
@@ -266,13 +282,15 @@ class TigrblApp(_App):
     # ------------------------- primary operations -------------------------
 
     def _ensure_default_router(self) -> TigrblRouter:
-        """Create and register the app-scoped default router when needed."""
+        """Create and register the app-scoped default Router when needed."""
         if self._default_router is None:
             self._default_router = TigrblRouter(
                 engine=self.engine,
+                jsonrpc_prefix=self.jsonrpc_prefix,
+                system_prefix=self.system_prefix,
                 router_hooks=self._router_hooks_map,
             )
-            # Mirror current app auth knobs onto the default router.
+            # Mirror current app auth knobs onto the default Router.
             self._default_router.set_auth(
                 authn=self._authn,
                 allow_anon=self._allow_anon,
@@ -282,7 +300,7 @@ class TigrblApp(_App):
             self.include_router(self._default_router)
         return self._default_router
 
-    def include_model(
+    def include_table(
         self, model: type, *, prefix: str | None = None, mount_router: bool = True
     ) -> Tuple[type, Any]:
         """
@@ -290,7 +308,7 @@ class TigrblApp(_App):
         """
         default_router = self._ensure_default_router()
 
-        result = default_router.include_model(
+        result = default_router.include_table(
             model,
             prefix=prefix,
             mount_router=False,
@@ -303,7 +321,7 @@ class TigrblApp(_App):
         self._sync_default_router_namespaces()
         return result
 
-    def include_models(
+    def include_tables(
         self,
         models: Sequence[type],
         *,
@@ -312,7 +330,7 @@ class TigrblApp(_App):
     ) -> Dict[str, Any]:
         default_router = self._ensure_default_router()
 
-        result = default_router.include_models(
+        result = default_router.include_tables(
             models,
             base_prefix=base_prefix,
             mount_router=False,
@@ -336,7 +354,7 @@ class TigrblApp(_App):
         return result
 
     def _sync_default_router_namespaces(self) -> None:
-        """Mirror the auto-created router registries onto the app facade."""
+        """Mirror the auto-created Router registries onto the app facade."""
         if self._default_router is None:
             return
         self.models = self._default_router.models
@@ -352,49 +370,75 @@ class TigrblApp(_App):
         self.core = self._default_router.core
         self.core_raw = self._default_router.core_raw
 
-    def include_api(
+    def include_router(
         self,
-        router_obj: Any,
+        router: Any,
         *,
         prefix: str | None = None,
         mount_router: bool = True,
     ) -> Any:
-        """Mount a Tigrbl router onto this app and track it."""
-        if router_obj not in self.included_routers:
-            self.included_routers.append(router_obj)
-        if not mount_router:
-            return router_obj
-        router = getattr(router_obj, "router", router_obj)
-        if hasattr(self, "include_router"):
-            self.include_router(router, prefix=prefix or "")
-        return router_obj
-
-    def include_router(self, router: Any, *args: Any, **kwargs: Any) -> None:
-        """Mount a router and track Tigrbl routers on this app."""
-        if hasattr(router, "models") and hasattr(router, "initialize"):
-            self.include_api(
-                router,
-                prefix=kwargs.get("prefix"),
-                mount_router=False,
+        """Mount a Tigrbl Router router onto this app and track it."""
+        if isinstance(self.routers, dict):
+            key = (
+                getattr(router, "name", None)
+                or getattr(router, "__name__", None)
+                or str(id(router))
             )
-        prefix = kwargs.get("prefix", "")
-        tags = kwargs.get("tags")
-        _include_router_impl(self, router, prefix=prefix, tags=tags)
+            existing = self.routers.get(key)
+            if existing is not router:
+                if existing is None:
+                    self.routers[key] = router
+                else:
+                    self.routers[f"{key}:{id(router)}"] = router
+        else:
+            if router not in self.routers:
+                self.routers.append(router)
+        router_engine = getattr(router, "engine", None)
+        if router_engine is not None and getattr(self, "engine", None) is None:
+            self.engine = router_engine
+            if _resolver.resolve_provider() is None:
+                _resolver.set_default(router_engine)
 
-    def include_apis(self, routers: Sequence[Any]) -> None:
-        """Mount multiple routers, supporting optional per-item prefixes."""
+        if not mount_router:
+            return router
+        routed = getattr(router, "router", router)
+        super().include_router(routed, prefix=prefix or "")
+        return routed
+
+    def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
+        """Back-compat alias for adding a route directly on the app router."""
+        warnings.warn(
+            "TigrblApp.add_router_route() is deprecated and will not be supported "
+            "in a future release. Use include_router() with a TigrblRouter instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().add_route(path, endpoint, **kwargs)
+
+    def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
+        """Deprecated compatibility hook for adding routes directly on the app."""
+        warnings.warn(
+            "TigrblApp.add_route() is deprecated and will not be supported in a "
+            "future release. Use include_router() with a TigrblRouter instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().add_route(path, endpoint, **kwargs)
+
+    def include_routers(self, routers: Sequence[Any]) -> None:
+        """Mount multiple Routers, supporting optional per-item prefixes."""
         for entry in routers:
             prefix = None
-            router_obj = entry
+            router = entry
             if isinstance(entry, tuple) and entry:
-                router_obj = entry[0]
+                router = entry[0]
                 if len(entry) > 1:
                     value = entry[1]
                     if isinstance(value, dict):
                         prefix = value.get("prefix")
                     elif isinstance(value, str):
                         prefix = value
-            self.include_api(router_obj, prefix=prefix)
+            self.include_router(router, prefix=prefix)
 
     def initialize(
         self,
@@ -403,25 +447,46 @@ class TigrblApp(_App):
         sqlite_attachments: Mapping[str, str] | None = None,
         tables: Iterable[Any] | None = None,
     ):
-        """Initialize DDL for the app and any attached routers."""
-        result = _ddl_initialize(
-            self,
-            schemas=schemas,
-            sqlite_attachments=sqlite_attachments,
-            tables=tables,
-        )
+        """Initialize DDL for the app and any attached Routers."""
+        try:
+            result = _ddl_initialize(
+                self,
+                schemas=schemas,
+                sqlite_attachments=sqlite_attachments,
+                tables=tables,
+            )
+        except ValueError as exc:
+            if str(exc) != "Engine provider is not configured":
+                raise
+            try:
+                asyncio.get_running_loop()
+            except RuntimeError:
+                result = None
+            else:
+
+                async def _noop() -> None:
+                    return None
+
+                result = _noop()
 
         router_results = []
-        for router_obj in self.included_routers:
-            init = getattr(router_obj, "initialize", None)
+        attached_routers = list(
+            self.routers.values() if isinstance(self.routers, dict) else self.routers
+        )
+        for router in attached_routers:
+            init = getattr(router, "initialize", None)
             if callable(init):
-                router_results.append(
-                    init(
-                        schemas=schemas,
-                        sqlite_attachments=sqlite_attachments,
-                        tables=tables,
+                try:
+                    router_results.append(
+                        init(
+                            schemas=schemas,
+                            sqlite_attachments=sqlite_attachments,
+                            tables=tables,
+                        )
                     )
-                )
+                except ValueError as exc:
+                    if str(exc) != "Engine provider is not configured":
+                        raise
 
         awaitables = [r for r in [result, *router_results] if inspect.isawaitable(r)]
         if not awaitables:
@@ -471,31 +536,6 @@ class TigrblApp(_App):
         self._base_routes = list(self.router.routes)
         return router
 
-    def openapi(self) -> Dict[str, Any]:
-        return build_openapi(self)
-
-    def _install_builtin_routes(self) -> None:
-        self.mount_openapi(path=self.openapi_url)
-        mount_swagger(self, path=self.docs_url)
-
-    def _swagger_ui_html(self, request: Any) -> str:
-        docs_route = next(
-            (route for route in self.routes if route.name == "__docs__"), None
-        )
-        if docs_route is None:
-            mount_swagger(self, path=self.docs_url)
-            docs_route = next(
-                (route for route in self.routes if route.name == "__docs__"), None
-            )
-        if docs_route is None:
-            raise RuntimeError("Unable to resolve mounted swagger docs route.")
-
-        response = docs_route.handler(request)
-        body = getattr(response, "body", b"")
-        if isinstance(body, bytes):
-            return body.decode("utf-8")
-        return str(body)
-
     def mount_openapi(
         self,
         *,
@@ -518,6 +558,10 @@ class TigrblApp(_App):
     def openrpc(self) -> Dict[str, Any]:
         """Build and return the OpenRPC document for this app."""
         return _build_openrpc_spec(self)
+
+    def openapi(self) -> Dict[str, Any]:
+        """Build and return the OpenAPI document for this app."""
+        return self.router.openapi()
 
     def mount_lens(
         self,
@@ -557,13 +601,13 @@ class TigrblApp(_App):
     def bind(self, model: type) -> Tuple[OpSpec, ...]:
         """Bind/rebuild a model in place (without mounting)."""
         self._merge_router_hooks_into_model(model, self._router_hooks_map)
-        return _bind(model, router=self)
+        return _bind(model)
 
     def rebind(
         self, model: type, *, changed_keys: Optional[set[tuple[str, str]]] = None
     ) -> Tuple[OpSpec, ...]:
         """Targeted rebuild of a bound model."""
-        return _rebind(model, router=self, changed_keys=changed_keys)
+        return _rebind(model, changed_keys=changed_keys)
 
     # ------------------------- legacy helpers -------------------------
 
@@ -616,21 +660,9 @@ class TigrblApp(_App):
         self._allow_anon_ops = set()
         for model in self.models.values():
             _seed_security_and_deps(self, model)
-            specs = self.bind(model)
-            auth_dep = getattr(model, "__tigrbl_auth_dep__", None)
-            authorize_dep = _make_authorize_secdep(self)
-            runtime_secdeps = tuple(
-                dep for dep in (auth_dep, authorize_dep) if dep is not None
-            )
-            allow_attr = getattr(model, "__tigrbl_allow_anon__", None)
-            allow_anon = set(
-                (allow_attr() if callable(allow_attr) else allow_attr) or ()
-            )
-            _inject_runtime_secdeps(model, runtime_secdeps, allow_anon)
+            specs = getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ())
             if specs:
-                _build_router_and_attach(
-                    model, list(getattr(model.ops, "all", specs)), router=self
-                )
+                _build_router_and_attach(model, list(specs))
             router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
             if router is None:
                 continue
