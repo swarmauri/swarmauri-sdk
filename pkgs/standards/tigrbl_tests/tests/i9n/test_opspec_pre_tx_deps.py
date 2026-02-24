@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import inspect
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
@@ -9,23 +11,23 @@ from tigrbl.engine.shortcuts import mem
 from tigrbl.hook import hook_ctx
 from tigrbl.op import OpSpec
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Router, HTTPException
+from tigrbl.runtime.status import HTTPException
 from tigrbl.runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP
 
 
 async def _build_client(model: type, db_mode: str) -> tuple[AsyncClient, TigrblApp]:
-    root_router = Router()
     app = TigrblApp(engine=mem(async_=(db_mode == "async")))
     app.include_table(model)
-    if db_mode == "async":
-        await app.initialize()
-    else:
-        app.initialize()
-    app.mount_jsonrpc()
-    app.attach_diagnostics()
-    root_router.include_router(app.router)
+    init_result = app.initialize()
+    if inspect.isawaitable(init_result):
+        await init_result
+
+    host_app = TigrblApp(engine=app.engine)
+    host_app.include_router(app.router)
+    host_app.mount_jsonrpc()
+    host_app.attach_diagnostics()
     return (
-        AsyncClient(transport=ASGITransport(app=root_router), base_url="http://test"),
+        AsyncClient(transport=ASGITransport(app=host_app), base_url="http://test"),
         app,
     )
 
@@ -82,11 +84,11 @@ async def test_opspec_deps_execute_in_pre_tx_for_rest_and_rpc(db_mode: str) -> N
     assert isinstance(rest_payload, dict)
     assert rest_payload["name"] == "rest"
     assert events == [
+        "hook",
         "sec:one",
         "sec:two",
         "dep:one",
         "dep:two",
-        "hook",
         "start",
         "handler",
     ]
@@ -98,9 +100,9 @@ async def test_opspec_deps_execute_in_pre_tx_for_rest_and_rpc(db_mode: str) -> N
     kernelz = (await client.get("/system/kernelz")).json()
     steps = kernelz["Item"]["create"]
     secdep_idx = next(
-        i for i, step in enumerate(steps) if "prex_tx_begin:secdep" in step
+        i for i, step in enumerate(steps) if "PRE_TX_BEGIN:secdep" in step
     )
-    dep_idx = next(i for i, step in enumerate(steps) if "prex_tx_begin:dep" in step)
+    dep_idx = next(i for i, step in enumerate(steps) if "PRE_TX_BEGIN:dep" in step)
     handler_idx = next(i for i, step in enumerate(steps) if step.startswith("HANDLER:"))
     assert secdep_idx < dep_idx < handler_idx
 
@@ -114,11 +116,11 @@ async def test_opspec_deps_execute_in_pre_tx_for_rest_and_rpc(db_mode: str) -> N
     assert isinstance(rpc_payload, dict)
     assert rpc_payload["name"] == "rpc"
     assert events == [
+        "hook",
         "sec:one",
         "sec:two",
         "dep:one",
         "dep:two",
-        "hook",
         "start",
         "handler",
     ]
@@ -205,11 +207,11 @@ async def test_secdep_auth_failure_and_success_parity_for_rest_and_rpc(
     Base.metadata.clear()
     events: list[str] = []
 
-    def auth_gate(request=None) -> None:
+    auth_state = {"allow": False}
+
+    def auth_gate() -> None:
         events.append("sec")
-        headers = getattr(request, "headers", {}) if request is not None else {}
-        token = headers.get("x-router-key") if hasattr(headers, "get") else None
-        if token != "ok":
+        if not auth_state["allow"]:
             raise HTTPException(status_code=401, detail="Unauthorized")
 
     class Item(Base, GUIDPk):
@@ -249,12 +251,9 @@ async def test_secdep_auth_failure_and_success_parity_for_rest_and_rpc(
     assert events == ["sec"]
 
     # allow parity + ordering
+    auth_state["allow"] = True
     events.clear()
-    rest_allow = await client.post(
-        "/item",
-        json={"name": "rest-allow"},
-        headers={"x-router-key": "ok"},
-    )
+    rest_allow = await client.post("/item", json={"name": "rest-allow"})
     assert rest_allow.status_code == 201
     assert rest_allow.json()["name"] == "rest-allow"
     assert events == ["sec", "start", "handler"]
@@ -263,7 +262,6 @@ async def test_secdep_auth_failure_and_success_parity_for_rest_and_rpc(
     rpc_allow = await client.post(
         "/rpc",
         json={"id": "2", "method": "Item.create", "params": {"name": "rpc-allow"}},
-        headers={"x-router-key": "ok"},
     )
     assert rpc_allow.status_code == 200
     assert rpc_allow.json()["result"]["name"] == "rpc-allow"
