@@ -18,20 +18,20 @@ from typing import (
     Tuple,
 )
 
-from ._app import App as _App
+from .._concrete._app import App as _App
 from ..router.tigrbl_router import TigrblRouter
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
-from ..mappings.router import (
+from ..mapping.router import (
     rpc_call as _rpc_call,
     _seed_security_and_deps,
     _mount_router,
     _default_prefix,
     AttrDict,
 )
-from ..mappings.model import rebind as _rebind, bind as _bind
-from ..mappings.rest import build_router_and_attach as _build_router_and_attach
+from ..mapping.model import rebind as _rebind, bind as _bind
+from ..mapping.rest import build_router_and_attach as _build_router_and_attach
 from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..system import mount_lens as _mount_lens
@@ -39,9 +39,9 @@ from ..system import mount_openapi as _mount_openapi
 from ..system import mount_openrpc as _mount_openrpc
 from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..op import get_registry, OpSpec
-from ._model_registry import initialize_table_registry
+from ..app._model_registry import initialize_table_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
-from .transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
+from ..app.transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
 
 
 # optional compat: legacy transactional decorator
