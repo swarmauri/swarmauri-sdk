@@ -38,6 +38,7 @@ from ..system import mount_openapi as _mount_openapi
 from ..system import mount_openrpc as _mount_openrpc
 from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..system.docs import build_openapi as _build_openapi
+from ..router._routing import add_route as _add_route_impl
 from ..op import get_registry, OpSpec
 from ..app._table_registry import initialize_table_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
