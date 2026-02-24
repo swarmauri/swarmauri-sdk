@@ -36,8 +36,8 @@ def test_tigrbl_router_app_instantiation_sets_composed_state() -> None:
     router_dir = dir(router)
     app_dir = dir(app)
 
-    assert "models" in router_dir
-    assert router.models["Theta"] is Theta
+    assert "tables" in router_dir
+    assert router.tables["Theta"] is Theta
     assert "routers" in app_dir
     assert isinstance(app.routers, dict)
     assert router in app.routers.values()
