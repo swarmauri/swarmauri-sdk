@@ -30,7 +30,7 @@ def test_base_app_supports_initialize():
         id = Column(Integer, primary_key=True)
 
     app = SimpleApp(engine=mem(async_=False))
-    app.tables["Widget"] = Widget
+    app.tables["Widget"] = Widget.__table__
 
     try:
         app.initialize()
@@ -40,7 +40,7 @@ def test_base_app_supports_initialize():
     assert getattr(app, "_ddl_executed", False) is True
     tables = getattr(app, "tables", None)
     assert tables is not None
-    assert getattr(tables, "Widget", None) is Widget.__table__
+    assert tables["Widget"] is Widget.__table__
 
 
 def test_base_router_supports_initialize_sync():
@@ -50,7 +50,7 @@ def test_base_router_supports_initialize_sync():
         id = Column(Integer, primary_key=True)
 
     router = SimpleRouter(engine=mem(async_=False))
-    router.tables["Widget"] = Widget
+    router.tables["Widget"] = Widget.__table__
 
     router.initialize()
 
@@ -66,7 +66,7 @@ async def test_base_router_supports_initialize_async():
         id = Column(Integer, primary_key=True)
 
     router = SimpleRouter(engine=mem())
-    router.tables["Gadget"] = Gadget
+    router.tables["Gadget"] = Gadget.__table__
 
     await router.initialize()
 
