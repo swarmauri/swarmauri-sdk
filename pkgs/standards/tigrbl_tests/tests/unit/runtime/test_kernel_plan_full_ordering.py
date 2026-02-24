@@ -157,11 +157,11 @@ async def test_kernelz_payload_full_plan_ordering_for_app_router_and_table(monke
     payload = build_kernelz_payload(kernel, app)
 
     assert payload["Widget"]["create"] == [
-        "PRE_TX_BEGIN:secdep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
-        "PRE_TX_BEGIN:secdep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
-        "PRE_TX_BEGIN:secdep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
-        "PRE_TX_BEGIN:dep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
-        "PRE_TX_BEGIN:dep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
+        "PRE_TX_BEGIN:hook:dep:security:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
+        "PRE_TX_BEGIN:hook:dep:security:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
+        "PRE_TX_BEGIN:hook:dep:security:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
+        "PRE_TX_BEGIN:hook:dep:extra:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
+        "PRE_TX_BEGIN:hook:dep:extra:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
         "START_TX:hook:sys:txn:begin@START_TX",
         "PRE_HANDLER:hook:app:pre@schema:collect_in",
         "PRE_HANDLER:hook:router:pre@schema:collect_in",
@@ -175,8 +175,8 @@ async def test_kernelz_payload_full_plan_ordering_for_app_router_and_table(monke
         "POST_RESPONSE:atom:out:dump@out:dump",
     ]
     assert payload["Widget"]["read"] == [
-        "PRE_TX_BEGIN:secdep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
-        "PRE_TX_BEGIN:dep:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
+        "PRE_TX_BEGIN:hook:dep:security:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
+        "PRE_TX_BEGIN:hook:dep:extra:test_kernel_plan_full_ordering._dep.<locals>.dep_fn",
         "PRE_HANDLER:hook:router:pre@schema:collect_in",
         "POST_HANDLER:atom:wire:build_out@out:build",
     ]
