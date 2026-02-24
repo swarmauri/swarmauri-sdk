@@ -63,7 +63,7 @@ def test_include_table_and_rpc_call():
     include_table(router, Widget, mount_router=False)
 
     # router facade populated
-    assert router.models["Widget"] is Widget
+    assert router.tables["Widget"] is Widget
     assert hasattr(router.schemas, "Widget")
     assert hasattr(router.handlers, "Widget")
     assert hasattr(router.hooks, "Widget")
@@ -94,7 +94,7 @@ def test_include_tables():
 
     include_tables(router, [Widget, Gizmo], mount_router=False)
 
-    assert set(router.models) == {"Widget", "Gizmo"}
+    assert set(router.tables) == {"Widget", "Gizmo"}
     assert hasattr(router.schemas, "Widget")
     assert hasattr(router.schemas, "Gizmo")
 
