@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import inspect
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Optional, Sequence, Union
+from typing import Any, Callable, Iterable, Optional, Sequence, Tuple, Union
 
 from ..op.types import OpSpec, Arity, TargetOp, PersistPolicy
 from ..schema.types import SchemaArg
@@ -147,6 +147,7 @@ class _OpDecl:
     alias: Optional[str]
     target: Optional[TargetOp]
     arity: Optional[Arity]
+    http_methods: Optional[Tuple[str, ...]]
     rest: Optional[bool]
     request_schema: Optional[SchemaArg]
     response_schema: Optional[SchemaArg]
@@ -160,6 +161,7 @@ def op_ctx(
     alias: Optional[str] = None,
     target: Optional[TargetOp] = None,
     arity: Optional[Arity] = None,
+    http_methods: Sequence[str] | None = None,
     rest: Optional[bool] = None,
     request_schema: Optional[SchemaArg] = None,
     response_schema: Optional[SchemaArg] = None,
@@ -176,6 +178,7 @@ def op_ctx(
             alias=alias,
             target=target,
             arity=arity,
+            http_methods=tuple(http_methods) if http_methods else None,
             rest=rest,
             request_schema=request_schema,
             response_schema=response_schema,

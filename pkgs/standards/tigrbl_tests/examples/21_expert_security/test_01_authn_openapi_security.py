@@ -110,16 +110,15 @@ async def test_openapi_security_from_router_authn_dependency() -> None:
         await init_result
 
     # Deployment: mount the router in an app and expose OpenAPI on the host app.
-    app = TigrblApp()
+    app = TigrblApp(engine=mem(async_=False))
     app.include_router(router)
 
     def openapi_endpoint(_request) -> JSONResponse:
         return JSONResponse(app.openapi())
 
-    app.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
-
-    app = TigrblApp(engine=mem(async_=False))
-    app.include_router(router)
+    openapi_router = TigrblRouter()
+    openapi_router.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
+    app.include_router(openapi_router)
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)

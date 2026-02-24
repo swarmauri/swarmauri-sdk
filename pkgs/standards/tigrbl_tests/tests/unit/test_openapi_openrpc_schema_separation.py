@@ -1,6 +1,6 @@
 from httpx import ASGITransport, Client
 
-from tigrbl import Base, TigrblApp
+from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -56,13 +56,15 @@ def test_openapi_schema_excludes_openrpc_even_if_route_is_schema_visible() -> No
     def openrpc_override(_request):
         return {"openrpc": "1.2.6"}
 
-    app.add_router_route(
+    router = TigrblRouter()
+    router.add_route(
         "/openrpc.json",
         openrpc_override,
         methods=["GET"],
         name="openrpc_json",
         include_in_schema=True,
     )
+    app.include_router(router)
 
     transport = ASGITransport(app=app)
     with Client(transport=transport, base_url="http://test") as client:
