@@ -7,11 +7,21 @@ from typing import Any, Iterable
 from sqlalchemy import text
 
 
-def model_iter(router: Any) -> Iterable[type]:
+def table_iter(router: Any) -> Iterable[type]:
     tables = getattr(router, "tables", None)
     if isinstance(tables, dict) and tables:
         return tables.values()
+
+    models = getattr(router, "models", None)
+    if isinstance(models, dict) and models:
+        return models.values()
+
     return ()
+
+
+def model_iter(router: Any) -> Iterable[type]:
+    """Deprecated alias for ``table_iter``; kept for compatibility."""
+    return table_iter(router)
 
 
 def opspecs(model: type):
