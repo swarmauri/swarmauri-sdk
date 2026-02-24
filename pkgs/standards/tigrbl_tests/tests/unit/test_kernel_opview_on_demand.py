@@ -1,5 +1,5 @@
 from tigrbl import TigrblApp
-from tigrbl.bindings.model import bind
+from tigrbl.mapping.model import bind
 from tigrbl.runtime.kernel import _default_kernel as K
 from tigrbl.specs import S, IO, acol
 from tigrbl.orm.tables import Base
