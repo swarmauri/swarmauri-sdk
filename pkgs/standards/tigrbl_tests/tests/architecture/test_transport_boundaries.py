@@ -32,7 +32,7 @@ def test_non_transport_modules_do_not_import_legacy_gateway_or_response_primitiv
 
 
 def test_router_module_init_is_transport_agnostic():
-    api_file = ROOT / "router" / "_api.py"
+    api_file = ROOT / "router" / "__init__.py"
     tree = ast.parse(api_file.read_text(), filename=str(api_file))
     modules = {
         node.module

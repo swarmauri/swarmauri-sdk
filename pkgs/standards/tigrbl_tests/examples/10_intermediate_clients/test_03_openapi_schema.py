@@ -32,10 +32,9 @@ async def test_openapi_schema_contains_widget_paths():
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    router.mount_jsonrpc(prefix="/rpc")
-
     app = TigrblApp()
     app.include_router(router)
+    app.mount_jsonrpc(prefix="/rpc")
     app.attach_diagnostics(prefix="")
 
     port = pick_unique_port()
@@ -73,10 +72,9 @@ async def test_openapi_schema_includes_get_and_post():
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    router.mount_jsonrpc(prefix="/rpc")
-
     app = TigrblApp()
     app.include_router(router)
+    app.mount_jsonrpc(prefix="/rpc")
     app.attach_diagnostics(prefix="")
 
     port = pick_unique_port()
