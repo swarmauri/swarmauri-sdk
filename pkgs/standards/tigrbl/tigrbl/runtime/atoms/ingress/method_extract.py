@@ -14,8 +14,15 @@ def run(obj: object | None, ctx: Any) -> None:
         setattr(ctx, "temp", temp)
     request = getattr(ctx, "request", None)
     method = getattr(request, "method", None) if request is not None else None
+    if method is None:
+        raw = getattr(ctx, "raw", None)
+        scope = getattr(raw, "scope", None) if raw is not None else None
+        if isinstance(scope, dict):
+            method = scope.get("method")
     if method is not None:
-        temp.setdefault("ingress", {})["method"] = str(method).upper()
+        value = str(method).upper()
+        temp.setdefault("ingress", {})["method"] = value
+        setattr(ctx, "method", value)
 
 
 __all__ = ["ANCHOR", "run"]
