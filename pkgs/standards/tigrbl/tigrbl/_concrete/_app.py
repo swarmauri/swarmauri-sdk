@@ -8,7 +8,7 @@ from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
 from ..ddl import initialize as _ddl_initialize
-from ..app._model_registry import initialize_table_registry
+from ..app._table_registry import initialize_table_registry
 from ..app.app_spec import AppSpec
 from ..router._route import Route
 from ..router._routing import (

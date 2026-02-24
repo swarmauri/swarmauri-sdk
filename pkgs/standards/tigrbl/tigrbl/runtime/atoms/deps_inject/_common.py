@@ -7,12 +7,32 @@ from typing import Any, Callable, Dict, Optional, cast
 from ... import trace as _trace
 
 
+def _ctx_value(ctx: Any, key: str) -> Any:
+    aliases = ("req",) if key == "request" else (("model",) if key == "table" else ())
+    attr = getattr(ctx, key, None)
+    if attr is not None:
+        return attr
+    for alias in aliases:
+        alias_attr = getattr(ctx, alias, None)
+        if alias_attr is not None:
+            return alias_attr
+    if isinstance(ctx, dict):
+        value = ctx.get(key)
+        if value is not None:
+            return value
+        for alias in aliases:
+            alias_value = ctx.get(alias)
+            if alias_value is not None:
+                return alias_value
+    return None
+
+
 def _op_spec_from_ctx(ctx: Any) -> Any | None:
-    model = getattr(ctx, "model", None) or ctx.get("model")
-    alias = getattr(ctx, "op", None) or ctx.get("op") or ctx.get("method")
-    if model is None or not alias:
+    table = _ctx_value(ctx, "table")
+    alias = _ctx_value(ctx, "op") or _ctx_value(ctx, "method")
+    if table is None or not alias:
         return None
-    by_alias = getattr(getattr(model, "ops", SimpleNamespace()), "by_alias", {})
+    by_alias = getattr(getattr(table, "ops", SimpleNamespace()), "by_alias", {})
     specs = by_alias.get(alias) or ()
     return specs[0] if specs else None
 
@@ -31,7 +51,7 @@ async def _resolve_dependency_default(default: Any, ctx: Any) -> Any:
     if not callable(dep):
         return default
 
-    request = getattr(ctx, "request", None) or ctx.get("request")
+    request = _ctx_value(ctx, "request")
     if request is None:
         return default
 
@@ -48,6 +68,7 @@ async def _resolve_dependency_default(default: Any, ctx: Any) -> Any:
 async def _invoke_kwargs(
     fn: Callable[..., Any], ctx: Any
 ) -> tuple[Dict[str, Any], bool]:
+    ctx_contains = ctx.__contains__ if isinstance(ctx, dict) else lambda _key: False
     kwargs: Dict[str, Any] = {}
     has_required = False
     for p in inspect.signature(fn).parameters.values():
@@ -59,9 +80,11 @@ async def _invoke_kwargs(
             continue
         if p.name == "ctx":
             kwargs[p.name] = ctx
-        elif p.name in ("request", "db", "model", "op", "payload"):
-            kwargs[p.name] = getattr(ctx, p.name, None) or ctx.get(p.name)
-        elif p.name in ctx:
+        elif p.name in ("request", "db", "table", "op", "payload"):
+            kwargs[p.name] = _ctx_value(ctx, p.name)
+        elif p.name == "model":
+            kwargs[p.name] = _ctx_value(ctx, "table")
+        elif ctx_contains(p.name):
             kwargs[p.name] = ctx[p.name]
         elif p.default is not inspect._empty and getattr(p.default, "dependency", None):
             kwargs[p.name] = await _resolve_dependency_default(p.default, ctx)
@@ -122,7 +145,10 @@ async def run_deps(ctx: Any, *, kind: str) -> None:
             if hasattr(rv, "__await__"):
                 rv = await cast(Any, rv)
             if kind == "secdep" and rv is not None:
-                ctx["auth_context"] = rv
+                if isinstance(ctx, dict):
+                    ctx["auth_context"] = rv
+                else:
+                    setattr(ctx, "auth_context", rv)
             _trace.end(ctx, seq)
         except Exception as exc:
             _trace.attach_error(ctx, seq, exc)

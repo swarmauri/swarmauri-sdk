@@ -9,7 +9,7 @@ from types import SimpleNamespace
 from ..router.router_spec import RouterSpec
 from ..engine import resolver as _resolver
 from ..engine.engine_spec import EngineCfg
-from ..app._model_registry import initialize_table_registry
+from ..app._table_registry import initialize_table_registry
 
 from tigrbl.router._routing import (
     add_route as _add_route_impl,

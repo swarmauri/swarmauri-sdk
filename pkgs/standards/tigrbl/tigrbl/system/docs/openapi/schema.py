@@ -130,11 +130,16 @@ def openapi(router: Any) -> dict[str, Any]:
                 sp_list = specs.get(alias) or ()
                 if sp_list:
                     security_deps = list(getattr(sp_list[0], "secdeps", ()) or ())
-            sec = _security_from_dependencies(security_deps)
+            route_security_deps = list(
+                getattr(route, "security_dependencies", None) or ()
+            ) + list(getattr(route, "dependencies", None) or ())
+            sec = _security_from_dependencies([*security_deps, *route_security_deps])
             if sec:
                 op["security"] = sec
                 components.setdefault("securitySchemes", {}).update(
-                    _security_schemes_from_dependencies(security_deps)
+                    _security_schemes_from_dependencies(
+                        [*security_deps, *route_security_deps]
+                    )
                 )
 
             path_item[method.lower()] = op

@@ -174,13 +174,15 @@ def _make_authorize_secdep(router: Any) -> Any | None:
         return None
 
     async def _authorize_secdep(ctx: Any) -> None:
-        request = getattr(ctx, "request", None) or ctx.get("request")
-        model = getattr(ctx, "model", None) or ctx.get("model")
-        alias = getattr(ctx, "op", None) or ctx.get("op") or ctx.get("method")
-        payload = getattr(ctx, "payload", None) or ctx.get("payload")
+        ctx_get = ctx.get if isinstance(ctx, dict) else lambda _key: None
+
+        request = getattr(ctx, "request", None) or ctx_get("request")
+        model = getattr(ctx, "model", None) or ctx_get("model")
+        alias = getattr(ctx, "op", None) or ctx_get("op") or ctx_get("method")
+        payload = getattr(ctx, "payload", None) or ctx_get("payload")
         user = (
             getattr(ctx, "auth_context", None)
-            or ctx.get("auth_context")
+            or ctx_get("auth_context")
             or getattr(getattr(request, "state", None), "user", None)
             if request is not None
             else None
