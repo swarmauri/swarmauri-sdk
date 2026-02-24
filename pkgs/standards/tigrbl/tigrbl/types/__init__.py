@@ -1,5 +1,6 @@
 # ── Standard Library ─────────────────────────────────────────────────────
 from types import MethodType, SimpleNamespace
+import warnings
 from uuid import uuid4, UUID
 
 # ── Third-party Dependencies (via deps module) ───────────────────────────
@@ -155,20 +156,27 @@ __all__: list[str] = [
 ]
 
 
-_DEPRECATED_EXPORTS: dict[str, str] = {
-    "Router": "tigrbl.router",
-    "Request": "tigrbl.requests",
-    "Body": "tigrbl.core.crud",
-    "Depends": "tigrbl.security",
-    "HTTPException": "tigrbl.runtime.status",
-    "Response": "tigrbl.responses",
+_DEPRECATED_EXPORTS: dict[str, tuple[str, str]] = {
+    "Router": ("tigrbl.router", "Router"),
+    "Request": ("tigrbl.requests", "Request"),
+    "Body": ("tigrbl.core.crud", "Body"),
+    "Depends": ("tigrbl.security", "Depends"),
+    "HTTPException": ("tigrbl.runtime.status", "HTTPException"),
+    "Response": ("tigrbl.responses", "Response"),
 }
 
 
 def __getattr__(name: str):
     if name in _DEPRECATED_EXPORTS:
-        module = _DEPRECATED_EXPORTS[name]
-        raise AttributeError(
-            f"tigrbl.types no longer exports '{name}'. Import it from '{module}' instead."
+        module, attr = _DEPRECATED_EXPORTS[name]
+        warnings.warn(
+            (
+                f"tigrbl.types.{name} is deprecated and will be removed in a future "
+                f"release; import '{attr}' from '{module}' instead."
+            ),
+            DeprecationWarning,
+            stacklevel=2,
         )
+        imported_module = __import__(module, fromlist=[attr])
+        return getattr(imported_module, attr)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
