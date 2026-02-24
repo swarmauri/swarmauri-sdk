@@ -13,7 +13,7 @@ def _auth_dependency(
 
 
 @pytest.mark.unit
-def test_tigrbl_api_constructor_configuration_sets_prefixes() -> None:
+def test_tigrbl_router_constructor_configuration_sets_prefixes() -> None:
     def sample_hook() -> None:
         return None
 
@@ -35,7 +35,7 @@ def test_tigrbl_api_constructor_configuration_sets_prefixes() -> None:
 
 
 @pytest.mark.unit
-def test_tigrbl_api_post_instantiation_set_auth_updates_state() -> None:
+def test_tigrbl_router_post_instantiation_set_auth_updates_state() -> None:
     router = TigrblRouter(engine=mem(async_=False))
     router.set_auth(authn=_auth_dependency, allow_anon=False)
 
@@ -48,7 +48,7 @@ def test_tigrbl_api_post_instantiation_set_auth_updates_state() -> None:
 
 
 @pytest.mark.unit
-def test_tigrbl_api_class_prefix_defaults() -> None:
+def test_tigrbl_router_class_prefix_defaults() -> None:
     assert TigrblRouter.REST_PREFIX == "/router"
     assert TigrblRouter.RPC_PREFIX == "/rpc"
     assert TigrblRouter.SYSTEM_PREFIX == "/system"

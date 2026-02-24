@@ -36,7 +36,7 @@ async def test_lens_mountable_on_tigrbl_app_uvicorn():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_lens_mountable_on_tigrbl_api_uvicorn():
+async def test_lens_mountable_on_tigrbl_router_uvicorn():
     router = TigrblRouter()
     mount_lens(router, path="/custom/lens", name="lens_custom")
 
@@ -93,7 +93,7 @@ async def test_lens_mountable_with_tigrbl_app_method_uvicorn():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_lens_mountable_with_tigrbl_api_method_uvicorn():
+async def test_lens_mountable_with_tigrbl_router_method_uvicorn():
     router = TigrblRouter()
     router.mount_lens(path="/custom/lens", name="lens_custom")
 

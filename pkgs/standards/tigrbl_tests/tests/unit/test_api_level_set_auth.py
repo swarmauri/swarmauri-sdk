@@ -6,11 +6,11 @@ from tigrbl.orm.tables import Base
 
 
 class Widget(Base, GUIDPk):
-    __tablename__ = "widgets_api_level_set_auth"
+    __tablename__ = "widgets_router_level_set_auth"
     __tigrbl_allow_anon__ = ["list"]
 
 
-def test_api_level_auth_dep_applied_as_openapi_metadata_only():
+def test_router_level_auth_dep_applied_as_openapi_metadata_only():
     app = APIRouter()
     router = TigrblApp()
 

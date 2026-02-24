@@ -74,14 +74,14 @@ class TestMountFaviconOnTigrblApp:
 class TestMountFaviconOnTigrblRouter:
     """Validate favicon mounting behavior for ``TigrblRouter`` instances."""
 
-    def test_tigrbl_api_binds_mount_favicon_method(self) -> None:
+    def test_tigrbl_router_binds_mount_favicon_method(self) -> None:
         """``TigrblRouter`` should expose ``mount_favicon`` as an instance API."""
         router = TigrblRouter()
 
         assert hasattr(router, "mount_favicon")
 
     @pytest.mark.asyncio
-    async def test_bound_mount_favicon_supports_api_instances(self) -> None:
+    async def test_bound_mount_favicon_supports_router_instances(self) -> None:
         """The bound method should mount favicon routes on APIs."""
         router = TigrblRouter()
         router.mount_favicon(path="/branding/favicon.svg", name="api_branding_favicon")

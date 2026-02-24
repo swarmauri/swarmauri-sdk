@@ -12,11 +12,11 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
 
-def test_api_binding_mounts_jsonrpc_router():
+def test_router_binding_mounts_jsonrpc_router():
     """mount_jsonrpc returns a router ready to be attached to an app."""
 
     class Widget(Base, GUIDPk):
-        __tablename__ = "lesson_api_jsonrpc"
+        __tablename__ = "lesson_router_jsonrpc"
         __allow_unmapped__ = True
 
         name = Column(String, nullable=False)
@@ -33,7 +33,7 @@ def test_jsonrpc_mount_uses_configured_prefix():
     """The JSON-RPC prefix on the API should be configurable."""
 
     class Widget(Base, GUIDPk):
-        __tablename__ = "lesson_api_jsonrpc_prefix"
+        __tablename__ = "lesson_router_jsonrpc_prefix"
         __allow_unmapped__ = True
 
         name = Column(String, nullable=False)

@@ -157,7 +157,7 @@ async def test_tigrblapi_multi_table_engine_binding_uvicorn() -> None:
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_multi_api_precedence_dedupe_and_op_engine_uvicorn() -> None:
+async def test_multi_router_precedence_dedupe_and_op_engine_uvicorn() -> None:
     """Cover multi-API precedence, dedupe, and op-level engine overrides.
 
     Steps:

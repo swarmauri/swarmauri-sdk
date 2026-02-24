@@ -34,7 +34,7 @@ class BetaWidget(Base, GUIDPk):
 
 
 @pytest_asyncio.fixture()
-async def running_multi_api_app():
+async def running_multi_router_app():
     engine = mem(async_=False)
     alpha_api = TigrblRouter(engine=engine)
     alpha_api.include_model(AlphaWidget)
@@ -56,10 +56,10 @@ async def running_multi_api_app():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_app_routes_alpha_api(running_multi_api_app):
+async def test_tigrbl_app_routes_alpha_api(running_multi_router_app):
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{running_multi_api_app}/alpha/alpha-widget", json={"name": "ace"}
+            f"{running_multi_router_app}/alpha/alpha-widget", json={"name": "ace"}
         )
 
     assert response.status_code == 201
@@ -69,10 +69,10 @@ async def test_tigrbl_app_routes_alpha_api(running_multi_api_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_tigrbl_app_routes_beta_api(running_multi_api_app):
+async def test_tigrbl_app_routes_beta_api(running_multi_router_app):
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{running_multi_api_app}/beta/beta-widget", json={"name": "bolt"}
+            f"{running_multi_router_app}/beta/beta-widget", json={"name": "bolt"}
         )
 
     assert response.status_code == 201

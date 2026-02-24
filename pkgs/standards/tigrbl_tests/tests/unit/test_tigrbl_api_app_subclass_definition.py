@@ -7,7 +7,7 @@ from tigrbl.types import Mapped, String
 
 
 class Zeta(Base, GUIDPk):
-    __tablename__ = "zeta_api_app_decl"
+    __tablename__ = "zeta_router_app_decl"
     __allow_unmapped__ = True
 
     name: Mapped[str] = acol(
@@ -28,7 +28,7 @@ class ZetaApp(TigrblApp):
 
 
 @pytest.mark.unit
-def test_tigrbl_api_app_subclass_declares_composition() -> None:
+def test_tigrbl_router_app_subclass_declares_composition() -> None:
     api_dir = dir(ZetaApi)
     app_dir = dir(ZetaApp)
 

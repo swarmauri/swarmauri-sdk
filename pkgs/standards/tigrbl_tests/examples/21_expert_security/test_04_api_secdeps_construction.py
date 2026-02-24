@@ -20,7 +20,7 @@ from tigrbl.types import Column, Security, String
 
 
 @pytest.mark.asyncio
-async def test_openapi_security_from_api_constructor_deps() -> None:
+async def test_openapi_security_from_router_constructor_deps() -> None:
     """Confirm API-level constructor deps appear in OpenAPI security metadata.
 
     This test defines a ``TigrblRouter`` subclass with security deps and verifies
@@ -32,7 +32,7 @@ async def test_openapi_security_from_api_constructor_deps() -> None:
 
     # Configuration: declare a model for API routing.
     class RouterSecdepsWidget(Base, GUIDPk):
-        __tablename__ = "lesson_security_api_secdeps_widget"
+        __tablename__ = "lesson_security_router_secdeps_widget"
         __allow_unmapped__ = True
 
         name = Column(String, nullable=False)
