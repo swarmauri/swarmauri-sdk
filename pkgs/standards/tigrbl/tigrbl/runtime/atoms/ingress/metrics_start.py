@@ -13,9 +13,7 @@ def run(obj: object | None, ctx: Any) -> None:
     if not isinstance(temp, dict):
         temp = {}
         setattr(ctx, "temp", temp)
-
-    ingress = temp.setdefault("ingress", {})
-    ingress.setdefault("metrics", {})["started_at"] = perf_counter()
+    temp.setdefault("metrics", {}).setdefault("ingress_started_at", perf_counter())
 
 
 __all__ = ["ANCHOR", "run"]
