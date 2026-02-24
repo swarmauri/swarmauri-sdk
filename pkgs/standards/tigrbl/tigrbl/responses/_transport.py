@@ -1,10 +1,10 @@
 """Backward-compatible response transport exports.
 
-Transport finalization helpers now live under :mod:`tigrbl.transport`.
+Transport finalization helpers now live under :mod:`tigrbl._concrete._transport_response`.
 """
 
 from __future__ import annotations
 
-from ..transport._response_transport import NO_BODY_STATUS, finalize_transport_response
+from .._concrete._transport_response import NO_BODY_STATUS, finalize_transport_response
 
 __all__ = ["NO_BODY_STATUS", "finalize_transport_response"]
