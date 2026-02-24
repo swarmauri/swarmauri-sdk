@@ -403,6 +403,25 @@ class TigrblApp(_App):
             if _resolver.resolve_provider() is None:
                 _resolver.set_default(router_engine)
 
+        router_tables = getattr(router, "tables", None)
+        if isinstance(router_tables, dict) and router_tables:
+            resolved_tables: Dict[str, type] = {}
+            core_ns = getattr(router, "core", None)
+            for name, table in router_tables.items():
+                model = table if isinstance(table, type) else None
+                if model is None and core_ns is not None:
+                    core_proxy = getattr(core_ns, name, None)
+                    model = getattr(core_proxy, "_model", None)
+                if isinstance(model, type):
+                    resolved_tables[name] = model
+                    resolved_tables.setdefault(getattr(model, "__name__", name), model)
+
+            for name, table in resolved_tables.items():
+                self.tables.setdefault(name, table)
+            if self._default_router is not None and self._default_router is not router:
+                for name, table in resolved_tables.items():
+                    self._default_router.tables.setdefault(name, table)
+
         if not mount_router:
             return router
         super().include_router(router, prefix=prefix)
