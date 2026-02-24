@@ -1,21 +1,21 @@
-# tigrbl/tigrbl/v3/app/_app.py
 from __future__ import annotations
+
 from typing import Any
 
-from ..router import Router
-from ..engine.engine_spec import EngineCfg
-from ..engine import resolver as _resolver
-from ..engine import install_from_objects
-from ..ddl import initialize as _ddl_initialize
 from ..app._model_registry import initialize_table_registry
 from ..app.app_spec import AppSpec
-from ..router._route import Route
+from ..ddl import initialize as _ddl_initialize
+from ..engine import install_from_objects
+from ..engine import resolver as _resolver
+from ..engine.engine_spec import EngineCfg
+from ..router import Router
 from ..router._routing import (
     include_router as _include_router_impl,
     merge_tags as _merge_tags_impl,
     normalize_prefix as _normalize_prefix_impl,
 )
-from ..system.docs.openapi.metadata import is_metadata_route as _is_metadata_route_impl
+from ..runtime.gw.executor import RawEnvelopeExecutor
+from ..runtime.gw.raw import GwRawEnvelope
 
 
 class App(AppSpec):
@@ -39,9 +39,6 @@ class App(AppSpec):
     SYSTEM_PREFIX = "/system"
 
     def __init__(self, *, engine: EngineCfg | None = None, **asgi_kwargs: Any) -> None:
-        # Manually mirror ``AppSpec`` fields so the dataclass-generated ``repr``
-        # and friends have expected attributes while runtime structures remain
-        # mutable dictionaries or lists as needed.
         title = asgi_kwargs.pop("title", None)
         if title is not None:
             self.TITLE = title
@@ -82,8 +79,6 @@ class App(AppSpec):
         self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
         self.routers = tuple(getattr(self, "ROUTERS", ()))
         self.ops = tuple(getattr(self, "OPS", ()))
-        # Runtime registries use mutable containers (dict/namespace), but the
-        # dataclass fields expect sequences. Storing a dict here satisfies both.
         self.tables = initialize_table_registry(getattr(self, "TABLES", ()))
         self.schemas = tuple(getattr(self, "SCHEMAS", ()))
         self.hooks = tuple(getattr(self, "HOOKS", ()))
@@ -107,6 +102,7 @@ class App(AppSpec):
             include_docs=include_docs,
             **asgi_kwargs,
         )
+        self.executor = RawEnvelopeExecutor(app=self)
         _engine_ctx = self.engine
         if _engine_ctx is not None:
             _resolver.set_default(_engine_ctx)
@@ -114,13 +110,11 @@ class App(AppSpec):
 
     @property
     def router(self) -> "App":
-        """Compatibility alias that exposes the app itself as ``.router``."""
         return self
 
     def install_engines(
         self, *, router: Any = None, tables: tuple[Any, ...] | None = None
     ) -> None:
-        # If class declared ROUTERS/TABLES, use them unless explicit args are passed.
         routers = (router,) if router is not None else self.ROUTERS
         tables = tables if tables is not None else self.TABLES
         if routers:
@@ -129,32 +123,9 @@ class App(AppSpec):
         else:
             install_from_objects(app=self, router=None, tables=tables)
 
-    def _collect_tables(self) -> list[Any]:
-        seen = set()
-        tables = []
-        for model in self.tables.values():
-            if not hasattr(model, "__table__"):
-                try:  # pragma: no cover - defensive remap
-                    from ..table import Base
-                    from ..table._base import _materialize_colspecs_to_sqla
-
-                    _materialize_colspecs_to_sqla(model)
-                    Base.registry.map_declaratively(model)
-                except Exception:
-                    pass
-            table = getattr(model, "__table__", None)
-            if table is not None and not table.columns:
-                continue
-            if table is not None and table not in seen:
-                seen.add(table)
-                tables.append(table)
-        return tables
-
-    def __call__(self, *args: Any, **kwargs: Any):
-        del args, kwargs
-        raise TypeError(
-            "App is no longer a transport entrypoint; use TigrblApp.asgi_app/wsgi_app."
-        )
+    async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        env = GwRawEnvelope(kind="asgi3", scope=scope, receive=receive, send=send)
+        await self.executor.invoke(env)
 
     def _normalize_prefix(self, prefix: str) -> str:
         return _normalize_prefix_impl(prefix)
@@ -166,8 +137,5 @@ class App(AppSpec):
         routed = getattr(router, "router", router)
         _include_router_impl(self, routed, prefix=prefix or "")
         return router
-
-    def _is_metadata_route(self, route: Route) -> bool:
-        return _is_metadata_route_impl(self, route)
 
     initialize = _ddl_initialize

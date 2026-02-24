@@ -53,7 +53,6 @@ from .runtime.executor import _invoke
 from .schema import _build_schema, _build_list_params, get_schema
 
 # ── Transport & Diagnostics (optional) ─────────────────────────────────────────
-from .transport.jsonrpc import build_jsonrpc_router
 from .transport import Request, Response
 from .system import mount_diagnostics
 
@@ -125,7 +124,6 @@ __all__ += [
     "_build_list_params",
     "get_schema",
     # Transport / Diagnostics
-    "build_jsonrpc_router",
     "mount_diagnostics",
     # DB/infra
     "ensure_schemas",
