@@ -29,6 +29,17 @@ class OperationResolution:
     spec: Any | None
 
 
+def _coerce_model(router: Any, key: Any, value: Any) -> type | None:
+    if isinstance(value, type):
+        return value
+    core_ns = getattr(router, "core", None) if router is not None else None
+    core_proxy = getattr(core_ns, str(key), None) if core_ns is not None else None
+    model = getattr(core_proxy, "_model", None)
+    if isinstance(model, type):
+        return model
+    return None
+
+
 def _get_phase_chains(model: type, alias: str) -> Dict[str, Any]:
     if _kernel_build_phase_chains is not None:
         try:
@@ -50,12 +61,22 @@ def _resolve_model(router: Any, model_or_name: type | str) -> type:
     if router is None:
         raise LookupError(f"Unknown model '{model_or_name}'")
     registry = getattr(router, "tables", None) or {}
-    mdl = registry.get(model_or_name)
+    mdl = _coerce_model(router, model_or_name, registry.get(model_or_name))
+    lower = str(model_or_name).lower()
     if mdl is None:
-        lower = str(model_or_name).lower()
         for key, value in registry.items():
             if str(key).lower() == lower:
-                mdl = value
+                mdl = _coerce_model(router, key, value)
+                if mdl is not None:
+                    break
+    if mdl is None:
+        for key, value in registry.items():
+            model = _coerce_model(router, key, value)
+            table_name = (
+                getattr(model, "__tablename__", None) if model is not None else None
+            )
+            if isinstance(table_name, str) and table_name.lower() == lower:
+                mdl = model
                 break
     if mdl is None:
         raise LookupError(f"Unknown model '{model_or_name}'")
