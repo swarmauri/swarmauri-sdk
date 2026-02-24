@@ -31,7 +31,7 @@ class Widget(Base, GUIDPk):
 
 def test_openapi_and_openrpc_security_are_derived_from_opspec_secdeps() -> None:
     app = TigrblApp(engine=mem(async_=False))
-    app.include_model(Widget)
+    app.include_table(Widget)
     app.initialize()
     app.mount_jsonrpc()
     app.mount_openrpc()
@@ -62,7 +62,7 @@ def test_openapi_and_openrpc_security_are_derived_from_opspec_secdeps() -> None:
 
 def test_docs_ignore_router_security_dependency_metadata() -> None:
     app = TigrblApp(engine=mem(async_=False))
-    app.include_model(Widget)
+    app.include_table(Widget)
     app.initialize()
     app.mount_jsonrpc()
     app.mount_openrpc()
