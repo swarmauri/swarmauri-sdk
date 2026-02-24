@@ -5,25 +5,24 @@ from httpx import ASGITransport, AsyncClient
 import pytest
 
 
-from tigrbl.router import Router
+from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.requests import Request
 
 
 @pytest.mark.asyncio()
-@pytest.mark.xfail(
-    raises=AttributeError,
-    reason="Router no longer exposes REST verb decorator helpers such as .get.",
-)
 async def test_handler_with_req_name_and_forward_ref_request_annotation() -> None:
-    router = Router(include_docs=True)
+    app = TigrblApp(include_docs=True)
+    router = TigrblRouter()
 
     @router.get("/ping")
     def ping(req: "Request") -> dict[str, str]:
         assert isinstance(req, Request)
         return {"path": req.path}
 
+    app.include_router(router)
+
     async with AsyncClient(
-        transport=ASGITransport(app=router), base_url="http://test"
+        transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         ping_response = await client.get("/ping")
         openapi_response = await client.get("/openapi.json")
