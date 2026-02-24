@@ -17,7 +17,7 @@ def test_app_spec_defaults_and_merge():
     assert spec.version == "1.0"
     assert spec.routers == ("child", "base")
     assert spec.ops == ("read",)
-    assert spec.models == ()
+    assert spec.tables == ()
     assert spec.schemas == ()
     assert spec.hooks == ()
 

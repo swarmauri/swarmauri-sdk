@@ -9,13 +9,13 @@ from tigrbl import TigrblApp
 from tigrbl.types import Integer, Mapped, String
 
 
-# Helper to bootstrap API and test client for a model
+# Helper to bootstrap API and test client for a table
 
 
-def _setup_router(model):
+def _setup_router(table):
     eng = build_engine(mem(async_=False))
     router = TigrblRouter(engine=eng)
-    router.include_table(model)
+    router.include_table(table)
     router.initialize()
 
     app = TigrblApp()
@@ -53,7 +53,7 @@ async def test_make_column_only_rest_rpc(use_mapped):
             rpc_read = await router.rpc_call(
                 Thing, "read", {"id": created["id"]}, db=db
             )
-        resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
+        resp = client.get(f"/api/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
         assert db_read == rpc_read == rest_data == {"id": created["id"], "name": "x"}
@@ -101,7 +101,7 @@ async def test_make_virtual_column_only_rest_rpc(use_mapped):
             rpc_read = await router.rpc_call(
                 Thing, "read", {"id": created["id"]}, db=db
             )
-        resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
+        resp = client.get(f"/api/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
         assert db_read == rpc_read == rest_data == {"id": created["id"], "code": None}
@@ -140,7 +140,7 @@ async def test_make_column_with_alias_rest_rpc(use_mapped):
             rpc_read = await router.rpc_call(
                 Thing, "fetch", {"id": created["id"]}, db=db
             )
-        resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
+        resp = client.get(f"/api/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
         assert db_read == rpc_read == rest_data == {"id": created["id"], "name": "y"}
@@ -189,7 +189,7 @@ async def test_make_virtual_column_with_aliases_rest_rpc(use_mapped):
             rpc_read = await router.rpc_call(
                 Thing, "fetch", {"id": created["id"]}, db=db
             )
-        resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
+        resp = client.get(f"/api/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
         assert db_read == rpc_read == rest_data == {"id": created["id"], "code": None}
@@ -239,7 +239,7 @@ async def test_make_column_and_virtual_rest_rpc(use_mapped):
             rpc_read = await router.rpc_call(
                 Thing, "read", {"id": created["id"]}, db=db
             )
-        resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
+        resp = client.get(f"/api/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
         assert (
@@ -299,7 +299,7 @@ async def test_make_column_and_virtual_with_alias_rest_rpc(use_mapped):
             rpc_read = await router.rpc_call(
                 Thing, "fetch", {"id": created["id"]}, db=db
             )
-        resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
+        resp = client.get(f"/api/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
         assert (

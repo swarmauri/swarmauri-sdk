@@ -4,7 +4,7 @@ from tigrbl.orm.mixins import BulkCapable, Replaceable, Mergeable
 from tigrbl.types import Integer, Mapped, String, uuid4
 from httpx import AsyncClient, ASGITransport
 
-from tigrbl import TigrblApp, TigrblRouter
+from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.tables import Base
 from tigrbl.specs import F, IO, S, acol
@@ -40,12 +40,9 @@ async def client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
-    app = TigrblApp()
-    router = TigrblRouter(engine=mem(async_=False))
-    router.include_table(Gadget, prefix="")
-    router.mount_jsonrpc(prefix="/rpc")
-    await router.initialize()
-    app.include_router(router)
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(Gadget, prefix="")
+    await app.initialize()
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
@@ -160,12 +157,9 @@ async def wrapper_field_client_and_model():
 
         __tigrbl_cols__ = {"id": id, "data": data}
 
-    app = TigrblApp()
-    router = TigrblRouter(engine=mem(async_=False))
-    router.include_table(WrapperNamed, prefix="")
-    router.mount_jsonrpc(prefix="/rpc")
-    await router.initialize()
-    app.include_router(router)
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(WrapperNamed, prefix="")
+    await app.initialize()
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
@@ -260,12 +254,9 @@ async def bulk_client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
-    app = TigrblApp()
-    router = TigrblRouter(engine=mem(async_=False))
-    router.include_table(Gadget, prefix="")
-    router.mount_jsonrpc(prefix="/rpc")
-    await router.initialize()
-    app.include_router(router)
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(Gadget, prefix="")
+    await app.initialize()
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
