@@ -1,17 +1,30 @@
 from __future__ import annotations
 
 import inspect
+import warnings
 from types import SimpleNamespace
 from typing import Any, Iterable
 
 from sqlalchemy import text
 
 
-def model_iter(router: Any) -> Iterable[type]:
+def table_iter(router: Any) -> Iterable[type]:
+    models = getattr(router, "models", None)
+    if isinstance(models, dict) and models:
+        return models.values()
     tables = getattr(router, "tables", None)
     if isinstance(tables, dict) and tables:
         return tables.values()
     return ()
+
+
+def model_iter(router: Any) -> Iterable[type]:
+    warnings.warn(
+        "model_iter is deprecated; use table_iter instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return table_iter(router)
 
 
 def opspecs(model: type):
