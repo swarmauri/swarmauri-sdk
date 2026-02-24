@@ -9,7 +9,7 @@ class Model:
 def test_derive_app_prefills_model_registry() -> None:
     AppCls = deriveApp(models=[Model])
     app = AppCls()
-    assert app.models["Model"] is Model
+    assert app.tables["Model"] is Model
 
 
 def test_derive_router_prefills_model_registry() -> None:

@@ -64,4 +64,4 @@ def test_app_spec_mro_merges_sequence_attributes():
     app = ChildApp()
 
     # Assertion: the child model list takes precedence at the app boundary.
-    assert list(app.models.values()) == [Gadget]
+    assert list(app.tables.values()) == [Gadget]

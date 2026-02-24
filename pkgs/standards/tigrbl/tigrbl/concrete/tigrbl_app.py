@@ -29,7 +29,7 @@ from ..mapping.router import (
     _default_prefix,
     AttrDict,
 )
-from ..mapping.model import rebind as _rebind, bind as _bind
+from ..mapping.table import rebind as _rebind, bind as _bind
 from ..mapping.rest import build_router_and_attach as _build_router_and_attach
 from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_diagnostics as _mount_diagnostics
@@ -39,14 +39,13 @@ from ..system import mount_openrpc as _mount_openrpc
 from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..system.docs import build_openapi as _build_openapi
 from ..op import get_registry, OpSpec
-from ..app._model_registry import initialize_table_registry
+from ..app._table_registry import initialize_table_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
 from ..router._routing import (
     add_route as _add_route_impl,
     include_router as _include_router_impl,
 )
 from ..app.transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
-from ..router._routing import include_router as _include_router_impl
 
 
 # optional compat: legacy transactional decorator
@@ -59,8 +58,8 @@ except Exception:  # pragma: no cover
 class TigrblApp(_App):
     """
     Monolithic facade that owns:
-      • containers (models, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
-      • model inclusion (REST + RPC wiring)
+      • containers (tables, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
+      • table inclusion (REST + RPC wiring)
       • JSON-RPC / diagnostics mounting
       • (optional) legacy-friendly helpers (transactional decorator, auth flags)
 
@@ -115,6 +114,7 @@ class TigrblApp(_App):
         for mw in self.middlewares:
             mw_cls = getattr(mw, "cls", mw.__class__)
             self.add_middleware(mw_cls, **getattr(mw, "kwargs", {}))
+        self._default_router: TigrblRouter | None = None
         self._install_favicon()
         # capture initial routes so refreshes retain ASGI defaults
         self._base_routes = list(self._routes)
@@ -148,9 +148,11 @@ class TigrblApp(_App):
             "shutdown": [],
         }
 
-        # Router-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
+        # Router-level hooks map (merged into each table at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
-        self._default_router: TigrblRouter | None = None
+        self.mount_openapi(path="/openapi.json")
+        self.mount_jsonrpc(prefix=self.jsonrpc_prefix)
+        self.attach_diagnostics(prefix=self.system_prefix)
         self.mount_openrpc(path="/openrpc.json")
         self.mount_lens(path="/rdocs", spec_path="/openrpc.json")
         if routers:
@@ -250,19 +252,19 @@ class TigrblApp(_App):
     # ------------------------- internal helpers -------------------------
 
     @staticmethod
-    def _merge_router_hooks_into_model(model: type, hooks_map: Any) -> None:
+    def _merge_router_hooks_into_table(table: type, hooks_map: Any) -> None:
         """
-        Install Router-level hooks on the model so the binder can see them.
+        Install Router-level hooks on the table so the binder can see them.
         Accepted shapes:
             {phase: [fn, ...]}                           # global, all aliases
             {alias: {phase: [fn, ...]}, "*": {...}}      # per-alias + wildcard
-        If the model already has __tigrbl_router_hooks__, we shallow-merge keys.
+        If the table already has __tigrbl_router_hooks__, we shallow-merge keys.
         """
         if not hooks_map:
             return
-        existing = getattr(model, "__tigrbl_router_hooks__", None)
+        existing = getattr(table, "__tigrbl_router_hooks__", None)
         if existing is None:
-            setattr(model, "__tigrbl_router_hooks__", copy.deepcopy(hooks_map))
+            setattr(table, "__tigrbl_router_hooks__", copy.deepcopy(hooks_map))
             return
 
         # shallow merge (alias or phase keys); values are lists we extend
@@ -277,12 +279,12 @@ class TigrblApp(_App):
                         merged[k].setdefault(ph, [])
                         merged[k][ph] = list(merged[k][ph]) + list(fns or [])
                 else:
-                    # fallback: prefer model-local value, then append router-level
+                    # fallback: prefer table-local value, then append router-level
                     if isinstance(merged[k], list):
                         merged[k] = list(merged[k]) + list(v or [])
                     else:
                         merged[k] = v
-        setattr(model, "__tigrbl_router_hooks__", merged)
+        setattr(table, "__tigrbl_router_hooks__", merged)
 
     # ------------------------- primary operations -------------------------
 
@@ -306,22 +308,22 @@ class TigrblApp(_App):
         return self._default_router
 
     def include_table(
-        self, model: type, *, prefix: str | None = None, mount_router: bool = True
+        self, table: type, *, prefix: str | None = None, mount_router: bool = True
     ) -> Tuple[type, Any]:
         """
-        Include a model through an internal ``TigrblRouter`` mounted on this app.
+        Include a table through an internal ``TigrblRouter`` mounted on this app.
         """
         default_router = self._ensure_default_router()
 
         result = default_router.include_table(
-            model,
+            table,
             prefix=prefix,
             mount_router=False,
         )
         if mount_router:
             _, router = result
             if router is not None:
-                mount_prefix = prefix if prefix is not None else _default_prefix(model)
+                mount_prefix = prefix if prefix is not None else _default_prefix(table)
                 self.include_router(router, prefix=mount_prefix)
         self._sync_default_router_namespaces()
         return result
@@ -341,18 +343,18 @@ class TigrblApp(_App):
             mount_router=False,
         )
         if mount_router:
-            for model in tables:
+            for table in tables:
                 router = getattr(
-                    getattr(model, "rest", SimpleNamespace()),
+                    getattr(table, "rest", SimpleNamespace()),
                     "router",
                     None,
                 )
                 if router is None:
                     continue
                 mount_prefix = (
-                    f"{base_prefix}{_default_prefix(model)}"
+                    f"{base_prefix}{_default_prefix(table)}"
                     if base_prefix is not None
-                    else _default_prefix(model)
+                    else _default_prefix(table)
                 )
                 self.include_router(router, prefix=mount_prefix)
         self._sync_default_router_namespaces()
@@ -368,7 +370,7 @@ class TigrblApp(_App):
         self.rpc = self._default_router.rpc
         self.rest = self._default_router.rest
         self.routers = self._default_router.routers
-        self._table_registry = self._default_router.models
+        self._table_registry = self._default_router.tables
         self.tables = self._default_router.tables
         self.columns = self._default_router.columns
         self.table_config = self._default_router.table_config
@@ -411,12 +413,12 @@ class TigrblApp(_App):
         return routed
 
     def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Register a route using the app-managed default ``TigrblRouter``."""
-        self._ensure_default_router().add_route(path, endpoint, **kwargs)
+        """Register a route directly on this app instance."""
+        _add_route_impl(self, path, endpoint, **kwargs)
 
     def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Register a route using the app-managed default ``TigrblRouter``."""
-        self._ensure_default_router().add_route(path, endpoint, **kwargs)
+        """Register a route directly on this app instance."""
+        _add_route_impl(self, path, endpoint, **kwargs)
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""
@@ -500,7 +502,7 @@ class TigrblApp(_App):
 
     async def rpc_call(
         self,
-        model_or_name: type | str,
+        table_or_name: type | str,
         method: str,
         payload: Any = None,
         *,
@@ -509,7 +511,7 @@ class TigrblApp(_App):
         ctx: Optional[Dict[str, Any]] = None,
     ) -> Any:
         return await _rpc_call(
-            self, model_or_name, method, payload, db=db, request=request, ctx=ctx
+            self, table_or_name, method, payload, db=db, request=request, ctx=ctx
         )
 
     # ------------------------- extras / mounting -------------------------
@@ -587,20 +589,20 @@ class TigrblApp(_App):
 
     # ------------------------- registry passthroughs -------------------------
 
-    def registry(self, model: type):
-        """Return the per-model OpspecRegistry."""
-        return get_registry(model)
+    def registry(self, table: type):
+        """Return the per-table OpspecRegistry."""
+        return get_registry(table)
 
-    def bind(self, model: type) -> Tuple[OpSpec, ...]:
-        """Bind/rebuild a model in place (without mounting)."""
-        self._merge_router_hooks_into_model(model, self._router_hooks_map)
-        return _bind(model)
+    def bind(self, table: type) -> Tuple[OpSpec, ...]:
+        """Bind/rebuild a table in place (without mounting)."""
+        self._merge_router_hooks_into_table(table, self._router_hooks_map)
+        return _bind(table)
 
     def rebind(
-        self, model: type, *, changed_keys: Optional[set[tuple[str, str]]] = None
+        self, table: type, *, changed_keys: Optional[set[tuple[str, str]]] = None
     ) -> Tuple[OpSpec, ...]:
-        """Targeted rebuild of a bound model."""
-        return _rebind(model, changed_keys=changed_keys)
+        """Targeted rebuild of a bound table."""
+        return _rebind(table, changed_keys=changed_keys)
 
     # ------------------------- legacy helpers -------------------------
 
@@ -647,25 +649,25 @@ class TigrblApp(_App):
             self._refresh_security()
 
     def _refresh_security(self) -> None:
-        """Re-seed auth deps on models and rebuild routers."""
+        """Re-seed auth deps on tables and rebuild routers."""
         # Reset router to baseline and allow_anon ops cache
         self._routes = list(self._base_routes)
         self._allow_anon_ops = set()
-        for model in self._table_registry.values():
-            _seed_security_and_deps(self, model)
-            specs = getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ())
+        for table in self._table_registry.values():
+            _seed_security_and_deps(self, table)
+            specs = getattr(getattr(table, "opspecs", SimpleNamespace()), "all", ())
             if specs:
-                _build_router_and_attach(model, list(specs))
-            router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
+                _build_router_and_attach(table, list(specs))
+            router = getattr(getattr(table, "rest", SimpleNamespace()), "router", None)
             if router is None:
                 continue
             # update router-level references
-            mname = model.__name__
+            mname = table.__name__
             rest_ns = getattr(self.rest, mname, SimpleNamespace())
             rest_ns.router = router
             setattr(self.rest, mname, rest_ns)
             self.routers[mname] = router
-            prefix = _default_prefix(model)
+            prefix = _default_prefix(table)
             _mount_router(self, router, prefix=prefix)
 
     def _collect_tables(self):

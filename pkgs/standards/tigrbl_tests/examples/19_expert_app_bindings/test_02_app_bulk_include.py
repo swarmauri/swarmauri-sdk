@@ -30,7 +30,7 @@ def test_app_binding_includes_multiple_models():
 
     app.include_tables([Widget, Gadget])
 
-    assert {Widget.__name__, Gadget.__name__}.issubset(app.models)
+    assert {Widget.__name__, Gadget.__name__}.issubset(app.tables)
 
 
 def test_app_model_registry_exposes_named_entries():
@@ -52,5 +52,5 @@ def test_app_model_registry_exposes_named_entries():
 
     app.include_tables([Widget, Gadget])
 
-    assert app.models[Widget.__name__] is Widget
-    assert app.models[Gadget.__name__] is Gadget
+    assert app.tables[Widget.__name__] is Widget
+    assert app.tables[Gadget.__name__] is Gadget

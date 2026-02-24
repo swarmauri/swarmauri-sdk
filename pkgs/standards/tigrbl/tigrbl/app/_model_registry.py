@@ -24,8 +24,8 @@ def initialize_table_registry(tables: Iterable[Any]) -> dict[str, Any]:
 
     ``defineAppSpec``/``defineRouterSpec`` allow authors to declare default models
     using bare model classes or ``("alias", Model)`` tuples. Runtime facades,
-    however, expect ``self.models`` to be a dictionary keyed by model name so
-    that lookups like ``app.models["Widget"]`` just work.
+    however, expect ``self.tables`` to be a dictionary keyed by model name so
+    that lookups like ``app.tables["Widget"]`` just work.
 
     This helper normalizes the declared sequence into that dictionary shape and
     preserves declaration order. When an alias is provided we register both the

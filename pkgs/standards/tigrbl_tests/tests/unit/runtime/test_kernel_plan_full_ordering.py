@@ -109,7 +109,7 @@ async def test_kernelz_payload_full_plan_ordering_for_app_router_and_table(monke
     class Widget:
         __name__ = "Widget"
 
-    app.models = {"Widget": Widget}
+    app.tables = {"Widget": Widget}
 
     create_spec = SimpleNamespace(
         alias="create",
