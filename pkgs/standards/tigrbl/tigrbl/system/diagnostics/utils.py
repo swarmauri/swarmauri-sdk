@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+import warnings
 from types import SimpleNamespace
 from typing import Any, Iterable
 
@@ -12,15 +13,15 @@ def table_iter(router: Any) -> Iterable[type]:
     if isinstance(tables, dict) and tables:
         return tables.values()
 
-    models = getattr(router, "models", None)
-    if isinstance(models, dict) and models:
-        return models.values()
-
     return ()
 
 
 def model_iter(router: Any) -> Iterable[type]:
-    """Deprecated alias for ``table_iter``; kept for compatibility."""
+    warnings.warn(
+        "model_iter is deprecated; use table_iter instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return table_iter(router)
 
 
