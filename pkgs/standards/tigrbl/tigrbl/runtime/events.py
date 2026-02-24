@@ -26,6 +26,17 @@ Phase = Literal[
     "EGRESS_SHAPE",
     "EGRESS_FINALIZE",
     "POST_RESPONSE",
+    "ON_ERROR",
+    "ON_PRE_TX_BEGIN_ERROR",
+    "ON_START_TX_ERROR",
+    "ON_PRE_HANDLER_ERROR",
+    "ON_HANDLER_ERROR",
+    "ON_POST_HANDLER_ERROR",
+    "ON_PRE_COMMIT_ERROR",
+    "ON_END_TX_ERROR",
+    "ON_POST_COMMIT_ERROR",
+    "ON_POST_RESPONSE_ERROR",
+    "ON_ROLLBACK",
 ]
 
 PHASES: Tuple[Phase, ...] = (
@@ -43,6 +54,17 @@ PHASES: Tuple[Phase, ...] = (
     "EGRESS_SHAPE",
     "EGRESS_FINALIZE",
     "POST_RESPONSE",
+    "ON_ERROR",
+    "ON_PRE_TX_BEGIN_ERROR",
+    "ON_START_TX_ERROR",
+    "ON_PRE_HANDLER_ERROR",
+    "ON_HANDLER_ERROR",
+    "ON_POST_HANDLER_ERROR",
+    "ON_PRE_COMMIT_ERROR",
+    "ON_END_TX_ERROR",
+    "ON_POST_COMMIT_ERROR",
+    "ON_POST_RESPONSE_ERROR",
+    "ON_ROLLBACK",
 )
 
 # ──────────────────────────────────────────────────────────────────────────────

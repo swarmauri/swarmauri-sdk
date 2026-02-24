@@ -181,7 +181,7 @@ def _inject_atoms(
         if not persistent and persist_tied:
             continue
         domain, _subject = _infer_domain_subject(run)
-        if domain == "dep":
+        if domain in {"dep", "deps_inject"}:
             continue
 
         chains.setdefault(phase, []).append(_wrap_atom(run, anchor=anchor))
