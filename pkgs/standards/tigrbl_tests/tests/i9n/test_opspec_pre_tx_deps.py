@@ -16,7 +16,7 @@ from tigrbl.runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP
 async def _build_client(model: type, db_mode: str) -> tuple[AsyncClient, TigrblApp]:
     app = Router()
     router = TigrblApp(engine=mem(async_=(db_mode == "async")))
-    router.include_model(model)
+    router.include_table(model)
     if db_mode == "async":
         await router.initialize()
     else:

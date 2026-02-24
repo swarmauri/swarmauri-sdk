@@ -121,7 +121,7 @@ def test_rest_and_jsonrpc_resolution_map_to_same_model_alias_pairs():
         name = Column(String, nullable=False)
 
     app = TigrblApp(engine=mem(async_=False))
-    app.include_model(DemoItem)
+    app.include_table(DemoItem)
     app.initialize()
     app.mount_jsonrpc()
 

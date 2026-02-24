@@ -106,7 +106,7 @@ class TigrblRouter(_Router):
         # Router-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
         if models:
-            self.include_models(list(models))
+            self.include_tables(list(models))
 
     # ------------------------- internal helpers -------------------------
 
@@ -147,7 +147,7 @@ class TigrblRouter(_Router):
 
     # ------------------------- primary operations -------------------------
 
-    def include_model(
+    def include_table(
         self, model: type, *, prefix: str | None = None, mount_router: bool = True
     ) -> Tuple[type, Any]:
         """
@@ -162,7 +162,7 @@ class TigrblRouter(_Router):
             _include_router_impl(self, router, prefix=self.rest_prefix)
         return included_model, router
 
-    def include_models(
+    def include_tables(
         self,
         models: Sequence[type],
         *,
