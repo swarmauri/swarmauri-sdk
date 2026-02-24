@@ -15,6 +15,8 @@ _EXPORTS = {
     "Router": "_router",
     "Schema": "_schema",
     "Table": "_table",
+    "Template": "_response",
+    "Response": "_response",
 }
 
 __all__ = list(_EXPORTS)
