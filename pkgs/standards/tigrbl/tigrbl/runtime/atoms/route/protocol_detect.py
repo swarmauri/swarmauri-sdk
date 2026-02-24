@@ -17,8 +17,14 @@ def run(obj: object | None, ctx: Any) -> None:
     protocol = scope.get("type") if isinstance(scope, dict) else None
     if protocol is None and request is not None:
         protocol = getattr(request, "protocol", None)
+    if protocol is None:
+        raw = getattr(ctx, "raw", None)
+        raw_scope = getattr(raw, "scope", None) if raw is not None else None
+        if isinstance(raw_scope, dict):
+            protocol = raw_scope.get("type")
     if protocol is not None:
         temp.setdefault("route", {})["protocol"] = protocol
+        setattr(ctx, "proto", protocol)
 
 
 __all__ = ["ANCHOR", "run"]
