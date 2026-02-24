@@ -4,6 +4,7 @@ from .methodz import build_methodz_endpoint as _build_methodz_endpoint
 from .hookz import build_hookz_endpoint as _build_hookz_endpoint
 from .kernelz import build_kernelz_endpoint as _build_kernelz_endpoint
 from .utils import (
+    table_iter as _table_iter,
     model_iter as _model_iter,
     opspecs as _opspecs,
     label_callable as _label_callable,
@@ -15,6 +16,7 @@ __all__ = [
     "_build_methodz_endpoint",
     "_build_hookz_endpoint",
     "_build_kernelz_endpoint",
+    "_table_iter",
     "_model_iter",
     "_opspecs",
     "_label_callable",

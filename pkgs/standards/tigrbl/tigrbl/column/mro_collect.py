@@ -25,9 +25,17 @@ _DEFAULT_IO = IO(
 )
 
 
+def _model_label(model: object) -> str:
+    return str(
+        getattr(model, "__name__", None)
+        or getattr(model, "name", None)
+        or type(model).__name__
+    )
+
+
 @lru_cache(maxsize=None)
 def mro_collect_columns(
-    model: type, *, _cache_bust: int | None = None
+    model: object, *, _cache_bust: int | None = None
 ) -> Dict[str, ColumnSpec]:
     """Collect ColumnSpecs declared on *model* and all mixins.
 
@@ -36,9 +44,10 @@ def mro_collect_columns(
     ones in the MRO.  Any table-backed columns lacking a spec are populated with
     a default ColumnSpec so they participate in opviews and schema generation.
     """
-    logger.info("Collecting columns for %s", model.__name__)
+    logger.info("Collecting columns for %s", _model_label(model))
     out: Dict[str, ColumnSpec] = {}
-    for base in reversed(model.__mro__):
+    mro = getattr(model, "__mro__", ()) or ()
+    for base in reversed(mro):
         mapping = getattr(base, "__tigrbl_colspecs__", None)
         if isinstance(mapping, dict):
             out.update(mapping)
@@ -46,13 +55,21 @@ def mro_collect_columns(
         if isinstance(mapping, dict):
             out.update(mapping)
 
+    cols = None
     table = getattr(model, "__table__", None)
     if table is not None:
-        for col in table.columns:
-            name = getattr(col, "key", None) or col.name
+        cols = getattr(table, "columns", None)
+    elif hasattr(model, "columns"):
+        cols = getattr(model, "columns", None)
+
+    if cols is not None:
+        for col in cols:
+            name = getattr(col, "key", None) or getattr(col, "name", None)
+            if not isinstance(name, str):
+                continue
             out.setdefault(name, ColumnSpec(storage=S(), io=_DEFAULT_IO))
 
-    logger.info("Collected %d columns for %s", len(out), model.__name__)
+    logger.info("Collected %d columns for %s", len(out), _model_label(model))
     return out
 
 
