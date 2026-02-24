@@ -19,9 +19,14 @@ def _merge_mro_dict(cls: type, attr: str) -> Dict[str, Any]:
 
 
 @lru_cache(maxsize=None)
-def mro_alias_map_for(table: type) -> Dict[str, str]:
+def _collect_alias_map_unbound(table: type) -> Dict[str, str]:
     """Collect alias overrides across the table's MRO."""
     return _merge_mro_dict(table, "__tigrbl_aliases__")
+
+
+def mro_alias_map_for(table: type) -> Dict[str, str]:
+    """Backwards-compatible alias map collector (unbound source of truth)."""
+    return _collect_alias_map_unbound(table)
 
 
 def _wrap_ctx_core(table: type, func: Callable[..., Any]) -> Callable[..., Any]:
@@ -94,4 +99,8 @@ def mro_collect_decorated_ops(table: type) -> list[OpSpec]:
     return out
 
 
-__all__ = ["mro_alias_map_for", "mro_collect_decorated_ops"]
+__all__ = [
+    "mro_alias_map_for",
+    "mro_collect_decorated_ops",
+    "_collect_alias_map_unbound",
+]

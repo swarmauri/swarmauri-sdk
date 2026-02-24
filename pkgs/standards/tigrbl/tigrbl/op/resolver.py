@@ -194,7 +194,7 @@ def _apply_alias_ctx_to_canon(specs: List[OpSpec], model: type) -> List[OpSpec]:
     return out
 
 
-def resolve(model: type) -> List[OpSpec]:
+def _resolve_unbound(model: type) -> List[OpSpec]:
     canon = _generate_canonical(model)
     canon = _apply_alias_ctx_to_canon(canon, model)
 
@@ -211,6 +211,22 @@ def resolve(model: type) -> List[OpSpec]:
 
     logger.debug("ops.resolver.resolve(%s): %d specs", model.__name__, len(specs))
     return specs
+
+
+def resolve(model: type, *, auto_bind: bool = True) -> List[OpSpec]:
+    """Resolve effective op specs.
+
+    By default this uses auto-binding so callers see the same resolved specs that
+    power bound namespaces. Internal bind planning can disable auto-binding to
+    avoid recursion.
+    """
+    if auto_bind:
+        # Lazy import to avoid import cycle with bindings.model -> op.resolve.
+        from ..op.collect import collect_specs
+
+        return list(collect_specs(model, auto_bind=True))
+
+    return _resolve_unbound(model)
 
 
 __all__ = ["resolve"]

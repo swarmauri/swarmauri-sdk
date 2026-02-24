@@ -2,17 +2,10 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import replace
 from types import SimpleNamespace
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
+from typing import Any, Optional, Set, Tuple
 
 from ..op import OpSpec
-from ..op.mro_collect import mro_alias_map_for, mro_collect_decorated_ops
-from ..op import resolve as resolve_ops
-from ..op.types import PHASES  # phase allowlist for hook merges
-
-# Ctx-only decorators integration
-from ..hook.mro_collect import mro_collect_decorated_hooks
 
 # Sub-binders (implemented elsewhere)
 from . import (
@@ -35,19 +28,12 @@ from .model_helpers import (
     _Key,
     _drop_old_entries,
     _ensure_model_namespaces,
-    _filter_specs,
-    _index_specs,
-    _key,
+    build_binding_plan,
 )
 from .model_registry import _ensure_op_ctx_attach_hook, _ensure_registry_listener
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/model")
-
-
-def _dedupe_by_name(funcs: Iterable[Callable[..., Any]]) -> List[Callable[..., Any]]:
-    """Return callables deduplicated by qualified name preserving last occurrence."""
-    return list({getattr(fn, "__qualname__", str(fn)): fn for fn in funcs}.values())
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -85,76 +71,15 @@ def bind(
     # 0) Columns first
     _columns_binding.build_and_attach(model)
 
-    # 1) Resolve canonical specs (source of truth)
-    base_specs: List[OpSpec] = list(resolve_ops(model))
+    # 1) Build one universal binding plan/context for this pass
+    plan = build_binding_plan(model, router=router, changed_keys=only_keys)
 
-    # 2) Add ctx-only ops discovered via decorators (tables + mixins)
-    ctx_specs: List[OpSpec] = list(mro_collect_decorated_ops(model))
-
-    # 2a) Inherit canonical schemas for aliased ops lacking explicit schemas
-    base_by_target: Dict[str, OpSpec] = {sp.target: sp for sp in base_specs}
-    fixed_ctx_specs: List[OpSpec] = []
-    for sp in ctx_specs:
-        if (
-            sp.alias != sp.target
-            and sp.target != "custom"
-            and sp.request_model is None
-            and sp.response_model is None
-        ):
-            base = base_by_target.get(sp.target)
-            if base:
-                sp = replace(
-                    sp,
-                    request_model=base.request_model,
-                    response_model=base.response_model,
-                )
-        fixed_ctx_specs.append(sp)
-    ctx_specs = fixed_ctx_specs
-
-    # 2b) De-dupe by (alias,target) with ctx-only overriding canonical/defaults
-    merged_by_key: Dict[_Key, OpSpec] = {}
-    for sp in base_specs:
-        merged_by_key[_key(sp)] = sp
-    for sp in ctx_specs:
-        key = _key(sp)
-        base = merged_by_key.get(key)
-        if base is not None:
-            sp = replace(
-                sp,
-                http_methods=sp.http_methods or base.http_methods,
-                path_suffix=sp.path_suffix or base.path_suffix,
-                tags=sp.tags or base.tags,
-            )
-        merged_by_key[key] = sp
-
-    all_merged_specs: List[OpSpec] = list(merged_by_key.values())
-
-    # 3) Targeted rebuild support: drop old entries and restrict working set if requested
+    # 2) Targeted rebuild support: drop old entries and restrict working set if requested
     _drop_old_entries(model, keys=only_keys)
-    specs: List[OpSpec] = _filter_specs(all_merged_specs, only_keys)
+    setattr(model, "__tigrbl_hooks__", plan.context.merged_hooks)
 
-    # 4) Merge ctx-only hooks (alias-aware) BEFORE normalization/attachment
-    visible_aliases = (
-        {sp.alias for sp in specs} if specs else {sp.alias for sp in all_merged_specs}
-    )
-    ctx_hooks = mro_collect_decorated_hooks(model, visible_aliases=visible_aliases)
-    base_hooks = getattr(model, "__tigrbl_hooks__", {}) or {}
-
-    # Coerce any pre-existing phase sequences to mutable lists and deduplicate
-    for phases in base_hooks.values():
-        for phase, fns in list(phases.items()):
-            phases[phase] = _dedupe_by_name(fns if isinstance(fns, list) else list(fns))
-
-    for alias, phases in ctx_hooks.items():
-        per = base_hooks.setdefault(alias, {})
-        for phase, fns in phases.items():
-            if phase in PHASES:
-                existing = per.setdefault(phase, [])
-                per[phase] = _dedupe_by_name([*existing, *fns])
-
-    setattr(model, "__tigrbl_hooks__", base_hooks)
-
-    # 5) Attach schemas, hooks, handlers, rpc, router (sub-binders honor only_keys)
+    # 3) Attach schemas, hooks, handlers, rpc, router (sub-binders honor only_keys)
+    specs = list(plan.visible_specs)
     _schemas_binding.build_and_attach(model, specs, only_keys=only_keys)
     _hooks_binding.normalize_and_attach(model, specs, only_keys=only_keys)
     _handlers_binding.build_and_attach(model, specs, only_keys=only_keys)
@@ -163,19 +88,18 @@ def bind(
         model, specs, router=router, only_keys=only_keys
     )
 
-    # 6) Index on the model (always overwrite with fresh views)
-    all_specs, by_key, by_alias = _index_specs(all_merged_specs)
-    model.ops = SimpleNamespace(all=all_specs, by_key=by_key, by_alias=by_alias)
+    # 4) Index on the model (always overwrite with fresh views)
+    model.ops = SimpleNamespace(
+        all=plan.all_specs,
+        by_key=plan.by_key,
+        by_alias=plan.by_alias,
+    )
     # Maintain `.opspecs` alias for backward compatibility
     model.opspecs = model.ops
 
-    # (Optional) expose resolved alias map for diagnostics
-    try:
-        model.alias_map = mro_alias_map_for(model)
-    except Exception:  # defensive
-        pass
+    model.alias_map = plan.context.alias_map
 
-    # 7) Ensure we have a registry listener to refresh on changes
+    # 5) Ensure we have a registry listener to refresh on changes
     _ensure_registry_listener(model)
     _ensure_op_ctx_attach_hook(model)
     setattr(model, "__tigrbl_op_ctx_watch__", True)
@@ -183,10 +107,10 @@ def bind(
     logger.debug(
         "tigrbl.bindings.model.bind(%s): %d ops bound (visible=%d)",
         model.__name__,
-        len(all_specs),
+        len(plan.all_specs),
         len(specs),
     )
-    return all_specs
+    return plan.all_specs
 
 
 def rebind(

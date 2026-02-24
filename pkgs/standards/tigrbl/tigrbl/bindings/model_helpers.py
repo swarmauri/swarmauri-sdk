@@ -2,12 +2,18 @@
 """Internal helpers for the model bindings."""
 
 from __future__ import annotations
+from copy import deepcopy
+from dataclasses import dataclass, replace
 import logging
 
 from types import SimpleNamespace
-from typing import Dict, List, Optional, Sequence, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 
+from ..hook.mro_collect import mro_collect_decorated_hooks
 from ..op import OpSpec
+from ..op import resolve as resolve_ops
+from ..op.mro_collect import mro_alias_map_for, mro_collect_decorated_ops
+from ..op.types import PHASES
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/model_helpers")
@@ -16,8 +22,34 @@ logger.debug("Loaded module v3/bindings/model_helpers")
 _Key = Tuple[str, str]  # (alias, target)
 
 
+@dataclass(frozen=True)
+class BindingContext:
+    """Single-pass context reused across all sub-bindings."""
+
+    model: type
+    router: Any | None
+    changed_keys: Set[_Key] | None
+    alias_map: Dict[str, str]
+    merged_hooks: Dict[str, Dict[str, List[Callable[..., Any]]]]
+
+
+@dataclass(frozen=True)
+class BindingPlan:
+    """Resolved specs and indexes consumed by model binding."""
+
+    context: BindingContext
+    all_specs: Tuple[OpSpec, ...]
+    visible_specs: Tuple[OpSpec, ...]
+    by_key: Dict[_Key, OpSpec]
+    by_alias: Dict[str, List[OpSpec]]
+
+
 def _key(sp: OpSpec) -> _Key:
     return (sp.alias, sp.target)
+
+
+def _dedupe_by_name(funcs: Sequence[Callable[..., Any]]) -> List[Callable[..., Any]]:
+    return list({getattr(fn, "__qualname__", str(fn)): fn for fn in funcs}.values())
 
 
 def _ensure_model_namespaces(model: type) -> None:
@@ -129,6 +161,98 @@ def _filter_specs(
     return [sp for sp in specs if _key(sp) in ok]
 
 
+def _plan_hooks(
+    model: type, *, visible_aliases: Set[str]
+) -> Dict[str, Dict[str, List[Callable[..., Any]]]]:
+    base_hooks = deepcopy(getattr(model, "__tigrbl_hooks__", {}) or {})
+
+    for phases in base_hooks.values():
+        for phase, fns in list(phases.items()):
+            seq = fns if isinstance(fns, list) else list(fns)
+            phases[phase] = _dedupe_by_name(seq)
+
+    ctx_hooks = mro_collect_decorated_hooks(model, visible_aliases=visible_aliases)
+    for alias, phases in ctx_hooks.items():
+        per = base_hooks.setdefault(alias, {})
+        for phase, fns in phases.items():
+            if phase not in PHASES:
+                continue
+            existing = per.setdefault(phase, [])
+            per[phase] = _dedupe_by_name([*existing, *fns])
+    return base_hooks
+
+
+def build_binding_plan(
+    model: type,
+    *,
+    router: Any | None = None,
+    changed_keys: Set[_Key] | None = None,
+) -> BindingPlan:
+    """Build one universal spec plan consumed by all bind/rebind flows."""
+    base_specs = list(resolve_ops(model, auto_bind=False))
+    ctx_specs = list(mro_collect_decorated_ops(model))
+
+    base_by_target: Dict[str, OpSpec] = {sp.target: sp for sp in base_specs}
+    merged_by_key: Dict[_Key, OpSpec] = {_key(sp): sp for sp in base_specs}
+
+    for sp in ctx_specs:
+        if (
+            sp.alias != sp.target
+            and sp.target != "custom"
+            and sp.request_model is None
+            and sp.response_model is None
+        ):
+            base = base_by_target.get(sp.target)
+            if base is not None:
+                sp = replace(
+                    sp,
+                    request_model=base.request_model,
+                    response_model=base.response_model,
+                )
+
+        key = _key(sp)
+        base = merged_by_key.get(key)
+        if base is not None:
+            sp = replace(
+                sp,
+                http_methods=sp.http_methods or base.http_methods,
+                path_suffix=sp.path_suffix or base.path_suffix,
+                tags=sp.tags or base.tags,
+            )
+        merged_by_key[key] = sp
+
+    all_specs = tuple(merged_by_key.values())
+    visible_specs = tuple(_filter_specs(all_specs, changed_keys))
+    visible_aliases = (
+        {sp.alias for sp in visible_specs}
+        if visible_specs
+        else {sp.alias for sp in all_specs}
+    )
+    merged_hooks = _plan_hooks(model, visible_aliases=visible_aliases)
+
+    alias_map: Dict[str, str] = {}
+    try:
+        alias_map = mro_alias_map_for(model)
+    except Exception:
+        pass
+
+    all_specs_ix, by_key, by_alias = _index_specs(all_specs)
+    context = BindingContext(
+        model=model,
+        router=router,
+        changed_keys=changed_keys,
+        alias_map=alias_map,
+        merged_hooks=merged_hooks,
+    )
+    return BindingPlan(
+        context=context,
+        all_specs=all_specs_ix,
+        visible_specs=visible_specs,
+        by_key=by_key,
+        by_alias=by_alias,
+    )
+
+
 __all__ = [
     "_Key",
     "_key",
@@ -136,4 +260,7 @@ __all__ = [
     "_index_specs",
     "_drop_old_entries",
     "_filter_specs",
+    "BindingContext",
+    "BindingPlan",
+    "build_binding_plan",
 ]
