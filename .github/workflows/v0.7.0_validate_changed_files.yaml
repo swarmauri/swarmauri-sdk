@@ -13,6 +13,7 @@ jobs:
   detect-changed-files:
     if: ${{ !cancelled() }}
     runs-on: [testing]
+    timeout-minutes: 10
     outputs:
       matrix: ${{ steps.detect.outputs.matrix }}
 
@@ -94,6 +95,7 @@ jobs:
     needs: detect-changed-files
     if: ${{ !cancelled() && needs.detect-changed-files.outputs.matrix != '[]' }}
     runs-on: [testing]
+    timeout-minutes: 5
     strategy:
       fail-fast: false
       matrix:
@@ -144,7 +146,7 @@ jobs:
           echo "Running ruff format on pkgs/$PKG_PATH"
           cd pkgs
           PACKAGE_NAME=$(python -c "import toml, pathlib, sys; print(toml.load(pathlib.Path('$PKG_PATH')/'pyproject.toml')['project']['name'])")
-          uv run --directory "$PKG_PATH" --package "$PACKAGE_NAME" --isolated --active ruff format .
+          uv run --directory "$PKG_PATH" --package "$PACKAGE_NAME" --isolated --active --with ruff ruff format .
 
       # ────────────────────────────────────────────────────────────────────────
       # Step: Ruff Check  (package_path only)
@@ -156,7 +158,7 @@ jobs:
           echo "Running ruff check on pkgs/$PKG_PATH"
           cd pkgs
           PACKAGE_NAME=$(python -c "import toml, pathlib, sys; print(toml.load(pathlib.Path('$PKG_PATH')/'pyproject.toml')['project']['name'])")
-          uv run --directory "$PKG_PATH" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
+          uv run --directory "$PKG_PATH" --package "$PACKAGE_NAME" --isolated --active --with ruff ruff check . --fix
 
       # ────────────────────────────────────────────────────────────────────────
       # Step: Run Pytests  (run all tests in package)

@@ -85,7 +85,8 @@ def _attach_sqlite_dbapi(dbapi_conn: Any, attachments: Mapping[str, str]) -> Non
 
 def sqlite_default_attach_map(engine: Engine, schemas: Iterable[str]) -> Dict[str, str]:
     """Return a deterministic SQLite ATTACH map for ``schemas``."""
-    db = getattr(getattr(engine, "url", None), "database", None) or ":memory:"
+    sync_engine = getattr(engine, "sync_engine", engine)
+    db = getattr(getattr(sync_engine, "url", None), "database", None) or ":memory:"
     if db == ":memory:" or str(db).startswith("file::memory:"):
         return {s: ":memory:" for s in schemas}
     p = Path(db)
@@ -94,9 +95,10 @@ def sqlite_default_attach_map(engine: Engine, schemas: Iterable[str]) -> Dict[st
 
 
 def register_sqlite_attach(engine: Engine, attachments: Mapping[str, str]) -> Any:
+    sync_engine = getattr(engine, "sync_engine", engine)
     if (
-        not hasattr(engine, "dialect")
-        or getattr(engine.dialect, "name", "") != "sqlite"
+        not hasattr(sync_engine, "dialect")
+        or getattr(sync_engine.dialect, "name", "") != "sqlite"
     ):
         return None
 
@@ -106,7 +108,7 @@ def register_sqlite_attach(engine: Engine, attachments: Mapping[str, str]) -> An
         except Exception:
             pass
 
-    event.listen(engine, "connect", _connect_listener)
+    event.listen(sync_engine, "connect", _connect_listener)
     return _connect_listener
 
 
@@ -171,9 +173,10 @@ def bootstrap_dbschema(
     listener = None
     if sqlite_attachments:
         listener = register_sqlite_attach(engine, sqlite_attachments)
-        if immediate and getattr(engine.dialect, "name", "") == "sqlite":
+        sync_engine = getattr(engine, "sync_engine", engine)
+        if immediate and getattr(sync_engine.dialect, "name", "") == "sqlite":
             try:
-                with engine.connect() as conn:
+                with sync_engine.connect() as conn:
                     dbapi = getattr(conn, "connection", None)
                     if dbapi is not None:
                         _attach_sqlite_dbapi(dbapi, sqlite_attachments)
@@ -201,6 +204,9 @@ def _create_all_on_bind(
 ) -> None:
     engine = getattr(bind, "engine", bind)
     tables = list(tables or [])
+
+    if not hasattr(engine, "dialect"):
+        return
 
     schema_names = set(schemas or [])
     for t in tables:
@@ -253,7 +259,7 @@ def initialize(
 
     kwargs: Dict[str, Any] = {}
     if hasattr(obj, "_collect_tables"):
-        kwargs["api"] = obj
+        kwargs["router"] = obj
     elif hasattr(obj, "__table__"):
         kwargs["model"] = obj
 
@@ -285,12 +291,33 @@ def initialize(
             else:
                 setattr(obj, "tables", SimpleNamespace(**tables_map))
 
+    def _close_without_loop(db):
+        close = getattr(db, "close", None)
+        if not callable(close):
+            return
+        out = close()
+        if inspect.isawaitable(out):
+            asyncio.run(out)
+
+    def _close_with_loop(db):
+        close = getattr(db, "close", None)
+        if not callable(close):
+            return None
+        out = close()
+        if inspect.isawaitable(out):
+            loop = asyncio.get_running_loop()
+            return loop.create_task(out)
+        return None
+
     try:
         asyncio.get_running_loop()
     except RuntimeError:
         # No running event loop; fall back to fully synchronous bootstrap
-        with next(prov.get_db()) as db:
+        db = next(prov.get_db())
+        try:
             _bootstrap(db)
+        finally:
+            _close_without_loop(db)
         setattr(obj, "_ddl_executed", True)
         return
     else:
@@ -302,17 +329,31 @@ def initialize(
         if not inspect.iscoroutinefunction(
             prov.get_db
         ) and not inspect.isasyncgenfunction(prov.get_db):
-            with next(prov.get_db()) as db:
+            db = next(prov.get_db())
+            pending_close = None
+            try:
                 _bootstrap(db)
+            finally:
+                pending_close = _close_with_loop(db)
             setattr(obj, "_ddl_executed", True)
 
             class _Completed:
-                def __await__(self):  # pragma: no cover - trivial
-                    if False:
-                        yield None
-                    return None
+                def __init__(self, pending):
+                    self._pending = pending
 
-            return _Completed()
+                def __await__(self):  # pragma: no cover - trivial
+                    if self._pending is None:
+                        if False:
+                            yield None
+                        return None
+
+                    async def _wait_pending():
+                        await self._pending
+                        return None
+
+                    return _wait_pending().__await__()
+
+            return _Completed(pending_close)
 
         async def _inner():
             if inspect.isasyncgenfunction(prov.get_db):

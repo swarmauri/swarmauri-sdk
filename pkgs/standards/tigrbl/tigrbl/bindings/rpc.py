@@ -19,18 +19,73 @@ from pydantic import BaseModel
 
 from ..op import OpSpec
 from ..op.types import PHASES
-from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
+from ..runtime.status import HTTPException
+from ..transport.dispatcher import dispatch_operation
 
-# Prefer Kernel phase-chains if available (atoms + system steps + hooks)
-try:
-    from ..runtime.kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore
-except Exception:  # pragma: no cover
-    _kernel_build_phase_chains = None  # type: ignore
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rpc")
 
 _Key = Tuple[str, str]  # (alias, target)
+
+
+_WRAPPER_KEYS = frozenset({"data", "payload", "body", "item"})
+
+
+def _schema_field_names(schema: Any) -> set[str]:
+    """Return top-level field names declared by a Pydantic schema class."""
+    if not schema or not inspect.isclass(schema) or not issubclass(schema, BaseModel):
+        return set()
+
+    fields = getattr(schema, "model_fields", None)
+    if not isinstance(fields, Mapping):
+        return set()
+
+    names: set[str] = set(fields.keys())
+    for field_name, field_info in fields.items():
+        alias = getattr(field_info, "alias", None)
+        if isinstance(alias, str) and alias:
+            names.add(alias)
+        validation_alias = getattr(field_info, "validation_alias", None)
+        if isinstance(validation_alias, str) and validation_alias:
+            names.add(validation_alias)
+    return names
+
+
+def _allowed_wrapper_keys(model: type, alias: str, target: str) -> set[str]:
+    """Wrapper-like names that are valid operation fields for this RPC method."""
+    schemas_root = getattr(model, "schemas", None)
+    alias_ns = getattr(schemas_root, alias, None) if schemas_root else None
+    if not alias_ns:
+        return set()
+
+    allowed = _schema_field_names(getattr(alias_ns, "in_", None))
+    if target.startswith("bulk_") and target != "bulk_delete":
+        allowed |= _schema_field_names(getattr(alias_ns, "in_item", None))
+    return allowed & set(_WRAPPER_KEYS)
+
+
+def _reject_wrapper_keys(payload: Any, *, allowed_keys: set[str] | None = None) -> None:
+    allowed = allowed_keys or set()
+
+    if isinstance(payload, Mapping):
+        disallowed = sorted(
+            k for k in payload if k in _WRAPPER_KEYS and k not in allowed
+        )
+        if disallowed:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "reason": "Wrapper keys are not allowed; params must match the operation schema.",
+                    "disallowed_keys": disallowed,
+                },
+            )
+        return
+
+    if isinstance(payload, Sequence) and not isinstance(payload, (str, bytes)):
+        for item in payload:
+            if isinstance(item, Mapping):
+                _reject_wrapper_keys(item, allowed_keys=allowed)
 
 
 # Mapping with attribute-style access
@@ -58,25 +113,20 @@ def _ns(obj: Any, name: str) -> Any:
 def _get_phase_chains(
     model: type, alias: str
 ) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
-    """
-    Prefer building via runtime Kernel (atoms + system steps + hooks in one lifecycle).
-    Fallback: read the pre-built model.hooks.<alias> chains directly.
-    """
-    if _kernel_build_phase_chains is not None:
-        try:
-            return _kernel_build_phase_chains(model, alias)
-        except Exception:
-            logger.exception(
-                "Kernel build_phase_chains failed for %s.%s; falling back to hooks",
-                getattr(model, "__name__", model),
-                alias,
-            )
-    hooks_root = _ns(model, "hooks")
-    alias_ns = getattr(hooks_root, alias, None)
-    out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
-    for ph in PHASES:
-        out[ph] = list(getattr(alias_ns, ph, []) or [])
-    return out
+    """Backward-compatible phase chain accessor used by other bindings modules."""
+    try:
+        from ..transport.dispatcher import (
+            _get_phase_chains as _transport_get_phase_chains,
+        )
+
+        return _transport_get_phase_chains(model, alias)
+    except Exception:
+        hooks_root = _ns(model, "hooks")
+        alias_ns = getattr(hooks_root, alias, None)
+        out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
+        for ph in PHASES:
+            out[ph] = list(getattr(alias_ns, ph, []) or [])
+        return out
 
 
 def _coerce_payload(payload: Any) -> Any:
@@ -99,7 +149,12 @@ def _coerce_payload(payload: Any) -> Any:
     if isinstance(payload, Sequence) and not isinstance(payload, (str, bytes)):
         out: list[Any] = []
         for item in payload:
-            if isinstance(item, Mapping):
+            if isinstance(item, BaseModel):
+                try:
+                    out.append(item.model_dump(exclude_none=False))
+                except Exception:
+                    out.append(dict(item.__dict__))
+            elif isinstance(item, Mapping):
                 out.append(dict(item))
             else:
                 out.append(item)
@@ -109,6 +164,26 @@ def _coerce_payload(payload: Any) -> Any:
 
 def _ensure_jsonable(obj: Any) -> Any:
     """Best-effort conversion of DB rows or ORM objects to primitives."""
+    if hasattr(obj, "status_code") and hasattr(obj, "headers") and hasattr(obj, "body"):
+        response_like = AttrDict(
+            {
+                "status_code": getattr(obj, "status_code"),
+                "headers": getattr(obj, "headers"),
+                "body": getattr(obj, "body"),
+            }
+        )
+        if hasattr(obj, "media_type"):
+            response_like["media_type"] = getattr(obj, "media_type")
+        if hasattr(obj, "raw_headers"):
+            response_like["raw_headers"] = getattr(obj, "raw_headers")
+        if hasattr(obj, "body_iterator"):
+            response_like["body_iterator"] = getattr(obj, "body_iterator")
+        if hasattr(obj, "path"):
+            response_like["path"] = getattr(obj, "path")
+        if hasattr(obj, "url"):
+            response_like["url"] = getattr(obj, "url")
+        return response_like
+
     if isinstance(obj, (list, tuple)):
         return [_ensure_jsonable(x) for x in obj]
     if isinstance(obj, Mapping):
@@ -243,8 +318,10 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         schemas_root = getattr(model, "schemas", None)
         alias_ns = getattr(schemas_root, alias, None)
         item_in_model = getattr(alias_ns, "in_item", None)
+        allowed_wrapper_keys = _allowed_wrapper_keys(model, alias, target)
 
         raw_payload = _coerce_payload(payload)
+        _reject_wrapper_keys(raw_payload, allowed_keys=allowed_wrapper_keys)
         if target == "bulk_delete" and not isinstance(raw_payload, Mapping):
             raw_payload = {"ids": raw_payload}
         if (
@@ -282,11 +359,11 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         app_ref = (
             getattr(request, "app", None)
             or base_ctx.get("app")
-            or getattr(model, "api", None)
+            or getattr(model, "router", None)
             or model
         )
         base_ctx.setdefault("app", app_ref)
-        base_ctx.setdefault("api", base_ctx.get("api") or app_ref)
+        base_ctx.setdefault("router", base_ctx.get("router") or app_ref)
         base_ctx.setdefault("model", model)
         base_ctx.setdefault("op", alias)
         base_ctx.setdefault("method", alias)
@@ -299,29 +376,16 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
             ),
         )
 
-        phases = _get_phase_chains(model, alias)
-        # RPC methods should return raw data for JSON-RPC envelopes;
-        # remove response rendering atoms (which produce Starlette responses)
-        # JSON-RPC endpoints handle rendering at the transport layer. Filter
-        # out response rendering atoms but preserve any POST_RESPONSE hooks.
-        phases["POST_RESPONSE"] = [
-            fn
-            for fn in phases.get("POST_RESPONSE", [])
-            if not (
-                isinstance(getattr(fn, "__tigrbl_label", None), str)
-                and getattr(fn, "__tigrbl_label").endswith("@out:dump")
-            )
-        ]
-
-        base_ctx["response_serializer"] = lambda r: _serialize_output(
-            model, alias, target, r
-        )
-        # 3) run executor
-        result = await _executor._invoke(
-            request=request,
+        result = await dispatch_operation(
+            router=getattr(model, "router", None),
+            model_or_name=model,
+            alias=alias,
+            payload=base_ctx.get("payload"),
             db=db,
-            phases=phases,
+            request=request,
             ctx=base_ctx,
+            response_serializer=lambda r: _serialize_output(model, alias, target, r),
+            rpc_mode=True,
         )
 
         return result

@@ -2,20 +2,19 @@
 API for a specific billing strategy, built with tigrbl + tigrbl_billing.
 - Only tigrbl objects & patterns are used.
 - CRUD & upsert use tigrbl default verbs (create/update/replace/merge/delete/list).
-- Non-CRUD lifecycle ops are bound via @op_ctx(bind=...).
+- Non-CRUD lifecycle ops load decorated helpers from ``tigrbl_billing.ops`` on demand.
 """
 
-from tigrbl import TigrblApp, op_ctx
+from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import engine as build_engine, mem
 
 from tigrbl_billing.tables.usage_event import UsageEvent
 from tigrbl_billing.tables.usage_rollup import UsageRollup
-from tigrbl_billing.ops import rollup_usage_periodic
 
+from tigrbl_billing import ops
 
-@op_ctx(alias="rollup_periodic", target="custom", arity="collection", bind=UsageRollup)
-def usage__rollup_periodic(cls, ctx):
-    return rollup_usage_periodic(ctx, None, None, **(ctx.get("payload") or {}))
+# Register the usage rollup helper for this API.
+ops.rollup_usage_periodic
 
 
 def build_app(async_mode: bool = True) -> TigrblApp:

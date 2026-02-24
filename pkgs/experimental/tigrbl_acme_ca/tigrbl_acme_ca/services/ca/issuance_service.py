@@ -6,6 +6,7 @@ from fastapi import HTTPException
 
 from tigrbl.op import op_ctx
 from tigrbl.hook import hook_ctx
+
 try:
     from tigrbl.config.constants import CTX_SKIP_PERSIST_FLAG
 except Exception:
@@ -15,10 +16,12 @@ from tigrbl_acme_ca.tables.orders import Order
 from tigrbl_acme_ca.tables.authorizations import Authorization
 from tigrbl_acme_ca.tables.certificates import Certificate
 from tigrbl_acme_ca.services.ca.csr_service import b64url_to_bytes
-from tigrbl_acme_ca.services.ca.policy import check_identifiers_allowed, check_csr_matches_identifiers
+from tigrbl_acme_ca.services.ca.policy import (
+    check_identifiers_allowed,
+    check_csr_matches_identifiers,
+)
 from tigrbl_acme_ca.services.ca.chain_builder import build_chain
 
-from fastapi import HTTPException
 
 def _h(ctx, name: str):
     handlers = ctx.get("handlers") or {}
@@ -27,11 +30,14 @@ def _h(ctx, name: str):
         raise HTTPException(status_code=500, detail=f"handler_unavailable:{name}")
     return fn
 
+
 def _id(obj):
     return obj.get("id") if isinstance(obj, dict) else getattr(obj, "id", None)
 
+
 def _field(obj, name: str):
     return obj.get(name) if isinstance(obj, dict) else getattr(obj, name, None)
+
 
 @op_ctx(
     alias="finalize",
@@ -45,10 +51,12 @@ async def finalize_order(cls, ctx):
     if not csr_b64:
         raise HTTPException(status_code=400, detail="missing_csr")
     ctx.setdefault("payload", {})
-    ctx["payload"].update({
-        "csr_der_b64": csr_b64,
-        "status": "processing",
-    })
+    ctx["payload"].update(
+        {
+            "csr_der_b64": csr_b64,
+            "status": "processing",
+        }
+    )
 
 
 @hook_ctx(ops=("finalize",), phase="PRE_HANDLER")
@@ -108,14 +116,21 @@ async def _issue_certificate_and_close_order(cls, ctx):
         serial_hex = secrets.token_hex(16)
         nb, na = not_before, not_after
 
-    cert = await create(table=Certificate, values={
-        "account_id": _field(order_obj, "account_id"),
-        "order_id": order_id,
-        "serial_hex": serial_hex,
-        "not_before": nb,
-        "not_after": na,
-        "pem": pem,
-    })
+    cert = await create(
+        table=Certificate,
+        values={
+            "account_id": _field(order_obj, "account_id"),
+            "order_id": order_id,
+            "serial_hex": serial_hex,
+            "not_before": nb,
+            "not_after": na,
+            "pem": pem,
+        },
+    )
 
     _ = build_chain(leaf_pem=pem)
-    await update(table=Order, id=order_id, values={"certificate_id": _id(cert), "status": "valid"})
+    await update(
+        table=Order,
+        id=order_id,
+        values={"certificate_id": _id(cert), "status": "valid"},
+    )

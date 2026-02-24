@@ -1,10 +1,10 @@
 """Tests for OAuth 2.0 Authorization Server Metadata compliance with RFC 8414."""
 
 import pytest
-from fastapi import FastAPI, status
+from fastapi import status
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl_auth.rfc.rfc8414 import router
+from tigrbl_auth.app import app
 from tigrbl_auth.runtime_cfg import settings
 
 # RFC 8414 specification excerpt for reference within tests
@@ -21,8 +21,6 @@ RFC 8414 - OAuth 2.0 Authorization Server Metadata
 @pytest.mark.asyncio
 async def test_metadata_endpoint_returns_expected_fields(enable_rfc8414):
     """RFC 8414 §3: Metadata endpoint returns required fields."""
-    app = FastAPI()
-    app.include_router(router)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/.well-known/oauth-authorization-server")
@@ -36,8 +34,6 @@ async def test_metadata_endpoint_returns_expected_fields(enable_rfc8414):
 @pytest.mark.asyncio
 async def test_metadata_scopes_include_standard_scopes(enable_rfc8414):
     """Discovery metadata includes OIDC standard scopes."""
-    app = FastAPI()
-    app.include_router(router)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/.well-known/oauth-authorization-server")
@@ -50,8 +46,6 @@ async def test_metadata_scopes_include_standard_scopes(enable_rfc8414):
 @pytest.mark.asyncio
 async def test_metadata_endpoint_returns_404_when_disabled():
     """RFC 8414 §3: Endpoint may be disabled and should return 404."""
-    app = FastAPI()
-    app.include_router(router)
     original = settings.enable_rfc8414
     settings.enable_rfc8414 = False
     try:

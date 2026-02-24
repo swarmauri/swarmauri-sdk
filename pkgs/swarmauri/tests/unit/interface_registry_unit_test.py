@@ -2,7 +2,7 @@ import pytest
 
 from swarmauri.interface_registry import InterfaceRegistry
 from swarmauri_base.agents.AgentBase import AgentBase
-from swarmauri_base.keys.KeyProviderBase import KeyProviderBase
+from swarmauri_base.key_providers.KeyProviderBase import KeyProviderBase
 
 
 @pytest.fixture(autouse=True)

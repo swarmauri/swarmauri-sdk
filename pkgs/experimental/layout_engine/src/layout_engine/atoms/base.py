@@ -1,0 +1,52 @@
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from typing import Any, Iterable, Mapping, Optional
+
+from .spec import AtomSpec
+
+
+class IAtomRegistry(ABC):
+    """ABC for storing and resolving AtomSpec entries by role."""
+
+    @abstractmethod
+    def register(self, spec: AtomSpec) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def register_many(self, specs: Iterable[AtomSpec]) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def override(self, role: str, **fields: Any) -> AtomSpec:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get(self, role: str) -> AtomSpec:
+        raise NotImplementedError
+
+    @abstractmethod
+    def try_get(self, role: str) -> Optional[AtomSpec]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def has(self, role: str) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
+    def list(self) -> Iterable[AtomSpec]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def resolve_props(
+        self, role: str, overrides: Mapping[str, Any] | None = None
+    ) -> dict:
+        raise NotImplementedError
+
+    @abstractmethod
+    def to_dict(self) -> dict[str, dict]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def update_from_dict(self, data: Mapping[str, Mapping[str, Any]]) -> None:
+        raise NotImplementedError

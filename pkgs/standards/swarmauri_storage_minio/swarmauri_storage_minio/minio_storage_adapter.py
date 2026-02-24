@@ -18,8 +18,6 @@ from minio import Minio
 from minio.error import S3Error
 from pydantic import SecretStr
 
-from peagen._utils.config_loader import load_peagen_toml
-
 
 @ComponentBase.register_type(StorageAdapterBase, "MinioStorageAdapter")
 class MinioStorageAdapter(StorageAdapterBase):
@@ -116,24 +114,56 @@ class MinioStorageAdapter(StorageAdapterBase):
     # ------------------------------------------------------------------
     def iter_prefix(self, prefix: str):
         """Yield keys under ``prefix`` relative to the run root."""
+        normalized_prefix = prefix.strip("/")
+        full_prefix = self._full_key(normalized_prefix)
+        prefix_root = normalized_prefix.rstrip("/")
         for obj in self._client.list_objects(
-            self._bucket, prefix=prefix, recursive=True
+            self._bucket, prefix=full_prefix, recursive=True
         ):
             key = obj.object_name
             if self._prefix and key.startswith(self._prefix.rstrip("/") + "/"):
                 key = key[len(self._prefix.rstrip("/")) + 1 :]
+            if prefix_root:
+                if key == prefix_root:
+                    key = ""
+                elif key.startswith(prefix_root + "/"):
+                    key = key[len(prefix_root) + 1 :]
             yield key
 
     # ------------------------------------------------------------------
     def download_dir(self, prefix: str, dest_dir: str | os.PathLike) -> None:
         """Download everything under ``prefix`` into ``dest_dir``."""
         dest = Path(dest_dir)
+        normalized_prefix = prefix.strip("/")
         for rel_key in self.iter_prefix(prefix):
+            if not rel_key:
+                continue
+            source_key = (
+                f"{normalized_prefix}/{rel_key}" if normalized_prefix else rel_key
+            )
             target = dest / rel_key
             target.parent.mkdir(parents=True, exist_ok=True)
-            data = self.download(rel_key)
+            data = self.download(source_key)
             with target.open("wb") as fh:
                 shutil.copyfileobj(data, fh)
+
+    async def ensure_bucket(self) -> None:
+        """Create the configured bucket when it does not exist."""
+        if not self._client.bucket_exists(self._bucket):
+            self._client.make_bucket(self._bucket)
+
+    async def remove_object(self, object_key: str) -> None:
+        """Delete ``object_key`` when it exists."""
+        try:
+            self._client.remove_object(self._bucket, self._full_key(object_key))
+        except S3Error as exc:
+            if getattr(exc, "code", "") in {
+                "NoSuchKey",
+                "NoSuchObject",
+                "NoSuchBucket",
+            }:
+                return
+            raise
 
     # ------------------------------------------------------------------
     @classmethod
@@ -147,11 +177,8 @@ class MinioStorageAdapter(StorageAdapterBase):
         bucket, *rest = p.path.lstrip("/").split("/", 1)
         prefix = rest[0] if rest else ""
 
-        cfg = load_peagen_toml()
-        minio_cfg = cfg.get("storage", {}).get("adapters", {}).get("minio", {})
-
-        access_key = minio_cfg.get("access_key") or os.getenv("MINIO_ACCESS_KEY", "")
-        secret_key = minio_cfg.get("secret_key") or os.getenv("MINIO_SECRET_KEY", "")
+        access_key = os.getenv("MINIO_ACCESS_KEY", "")
+        secret_key = os.getenv("MINIO_SECRET_KEY", "")
 
         return cls(
             endpoint=endpoint,

@@ -7,7 +7,7 @@ from types import ModuleType
 from typing import Any, Dict, Optional
 
 from peagen.errors import InvalidPluginSpecError
-from swarmauri_base.keys import KeyProviderBase
+from swarmauri_base.key_providers import KeyProviderBase
 from swarmauri_base.git_filters import GitFilterBase
 from swarmauri_base.crypto.CryptoBase import CryptoBase
 

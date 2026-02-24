@@ -1,0 +1,166 @@
+name: v0.9.0 - Mono (Prepare, Validate, Publish) [Dispatcher]
+run-name: v0.9.0 prepare/validate/publish dispatcher
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: "Bump type {major,minor,patch,finalize}"
+        required: false
+        default: "patch"
+      set_version:
+        description: "Version (e.g. 0.2.0 or 0.2.0.dev1)"
+        required: false
+
+concurrency:
+  group: v0.9.0-mono-prepare-validate-publish-dispatch
+  cancel-in-progress: false
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  generate-chunks:
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      chunk_matrix: ${{ steps.chunk-members.outputs.chunk_matrix }}
+      has_batches: ${{ steps.chunk-members.outputs.has_batches }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies for chunking
+        run: pip install toml
+
+      - name: Chunk workspace members
+        id: chunk-members
+        run: |
+          cd pkgs
+          python - <<'PY'
+          import json
+          import os
+          import toml
+
+          with open("pyproject.toml", "r") as f:
+              config = toml.load(f)
+
+          members = config.get("tool", {}).get("uv", {}).get("workspace", {}).get("members", [])
+          if not isinstance(members, list):
+              raise RuntimeError("The 'members' entry is not a list.")
+
+          members = list(dict.fromkeys(members))
+          first_batch = [
+              member
+              for member in members
+              if member in {"core", "base", "swarmauri_standard", "swarmauri", "typing"}
+          ]
+          remaining = [member for member in members if member not in first_batch]
+          second_batch = [
+              member
+              for member in remaining
+              if member.startswith("standards/")
+              and os.path.basename(member).startswith("swarmauri_")
+          ]
+          remaining = [member for member in remaining if member not in second_batch]
+          third_batch = [
+              member
+              for member in remaining
+              if member.startswith("community/")
+              and os.path.basename(member).startswith("swarmauri_")
+          ]
+          remaining = [member for member in remaining if member not in third_batch]
+          fourth_batch = [
+              member
+              for member in remaining
+              if os.path.basename(member).startswith("tigrbl")
+          ]
+          remaining = [member for member in remaining if member not in fourth_batch]
+          fifth_batch = [
+              member
+              for member in remaining
+              if os.path.basename(member).startswith("peagen")
+          ]
+          remaining = [member for member in remaining if member not in fifth_batch]
+          sixth_batch = [member for member in remaining if not member.startswith("experimental/")]
+          remaining = [member for member in remaining if member not in sixth_batch]
+          seventh_batch = remaining
+          named_batches = [
+              ("Foundational packages", first_batch),
+              ("Swarmauri standards", second_batch),
+              ("Swarmauri community", third_batch),
+              ("Tigrbl packages", fourth_batch),
+              ("Peagen packages", fifth_batch),
+              ("General packages", sixth_batch),
+              ("Experimental packages", seventh_batch),
+          ]
+          chunks = []
+          batch_size = 50
+          for primary_label, group_members in named_batches:
+              if not group_members:
+                  continue
+
+              for start in range(0, len(group_members), batch_size):
+                  end = min(start + batch_size, len(group_members))
+                  chunk_members = group_members[start:end]
+                  label = f"{primary_label} group {start}-{end - 1}"
+                  chunks.append((label, chunk_members))
+
+          has_batches = "true" if chunks else "false"
+          matrix = {
+              "include": [
+                  {
+                      "index": index + 1,
+                      "label": label,
+                      "members": chunk,
+                  }
+                  for index, (label, chunk) in enumerate(chunks)
+              ]
+          }
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              print(f"chunk_matrix={json.dumps(matrix)}", file=fh)
+              print(f"has_batches={has_batches}", file=fh)
+
+          print(f"Chunked {len(members)} members into {len(chunks)} batches.")
+          PY
+
+  dispatch-batches:
+    needs: generate-chunks
+    if: ${{ !cancelled() && needs.generate-chunks.outputs.has_batches == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix: ${{ fromJson(needs.generate-chunks.outputs.chunk_matrix) }}
+      fail-fast: false
+    steps:
+      - name: Dispatch batch workflow
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const members = ${{ toJson(matrix.members) }};
+            const batchIndex = '${{ matrix.index }}';
+            const batchLabel = '${{ matrix.label }}';
+
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'v0.9.0_mono_prepare_validate_publish_batch.yaml',
+              ref: context.ref,
+              inputs: {
+                members_json: JSON.stringify(members),
+                batch_index: batchIndex,
+                batch_label: batchLabel,
+                bump_type: '${{ github.event.inputs.bump_type }}',
+                set_version: '${{ github.event.inputs.set_version }}',
+              },
+            });
+
+            core.info(`Dispatched batch ${batchIndex} (${batchLabel}) with ${members.length} members.`);

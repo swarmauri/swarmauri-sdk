@@ -13,6 +13,7 @@ from tigrbl.core.crud.helpers import NoResultFound
 
 class _ScalarResult:
     """Minimal result facade for Tigrbl core CRUD."""
+
     def __init__(self, items: Sequence[Any]) -> None:
         self._items = list(items)
 
@@ -31,7 +32,9 @@ class _ScalarResult:
 class DuckDBSession(TigrblSessionBase):
     """Transactional session over a synchronous duckdb.Connection."""
 
-    def __init__(self, conn: duckdb.DuckDBPyConnection, spec: Optional[SessionSpec] = None) -> None:
+    def __init__(
+        self, conn: duckdb.DuckDBPyConnection, spec: Optional[SessionSpec] = None
+    ) -> None:
         super().__init__(spec)
         self._c = conn
 
@@ -60,13 +63,16 @@ class DuckDBSession(TigrblSessionBase):
 
         def _exec():
             self._c.execute(sql, values)
+
         return _exec()
 
     async def _delete_impl(self, obj: Any) -> None:
         table = getattr(obj.__class__, "__tablename__", obj.__class__.__name__)
         pk = _single_pk_name(obj.__class__)
         ident = getattr(obj, pk)
-        await asyncio.to_thread(self._c.execute, f'DELETE FROM "{table}" WHERE "{pk}" = ?', [ident])
+        await asyncio.to_thread(
+            self._c.execute, f'DELETE FROM "{table}" WHERE "{pk}" = ?', [ident]
+        )
 
     async def _flush_impl(self) -> None:
         return

@@ -1,7 +1,7 @@
 """JWT token service implementation.
 
 Provides the :class:`JWTTokenService` for minting and verifying JSON Web
-Tokens (JWT) using keys supplied by an :class:`~swarmauri_core.keys.IKeyProvider`.
+Tokens (JWT) using keys supplied by an :class:`~swarmauri_core.key_providers.IKeyProvider`.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from typing import Any, Dict, Iterable, Literal, Mapping, Optional
 
 from swarmauri_base.tokens import TokenServiceBase
 from swarmauri_core.crypto.types import JWAAlg, KeyRef
-from swarmauri_core.keys import IKeyProvider, KeyAlg
+from swarmauri_core.key_providers import IKeyProvider, KeyAlg
 from swarmauri_signing_jws import JwsSignerVerifier
 
 ALG_MAP_SIGN = {

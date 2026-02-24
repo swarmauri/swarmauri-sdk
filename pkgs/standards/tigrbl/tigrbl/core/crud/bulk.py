@@ -21,7 +21,6 @@ from .helpers import (
 )
 from .ops import merge, read
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 
 

@@ -1,7 +1,7 @@
 import pytest
 
 from swarmauri_keyprovider_aws_kms import AwsKmsKeyProvider
-from swarmauri_core.keys.types import KeyAlg
+from swarmauri_core.key_providers.types import KeyAlg
 
 
 @pytest.mark.unit

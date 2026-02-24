@@ -4,7 +4,6 @@ import logging
 
 from .builder import build_and_attach
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/schemas/__init__")
 

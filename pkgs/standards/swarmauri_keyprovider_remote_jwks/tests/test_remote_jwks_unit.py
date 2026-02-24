@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from swarmauri_core.keys.types import KeySpec, KeyClass, KeyAlg
+from swarmauri_core.key_providers.types import KeySpec, KeyClass, KeyAlg
 from swarmauri_core.crypto.types import KeyUse, ExportPolicy
 from swarmauri_keyprovider_remote_jwks import RemoteJwksKeyProvider
 

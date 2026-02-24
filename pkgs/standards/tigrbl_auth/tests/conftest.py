@@ -39,10 +39,6 @@ def disable_tls_requirement():
         settings.require_tls = original
 
 
-# Test database configuration
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:?cache=shared"
-
-
 @pytest.fixture(scope="session")
 def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     """Create an event loop for the test session."""
@@ -54,13 +50,15 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
 @pytest_asyncio.fixture
 async def test_db_engine() -> AsyncGenerator[Engine, None]:
     """Create and initialize a test database engine."""
-    spec = EngineSpec.from_any(TEST_DATABASE_URL)
+    db_path = Path(tempfile.mkdtemp()) / "tigrbl_auth_test.db"
+    test_database_url = f"sqlite+aiosqlite:///{db_path}"
+    spec = EngineSpec.from_any(test_database_url)
     engine = Engine(spec)
     provider = engine.provider
-    original_surface = engine_resolver.resolve_provider(api=surface_api)
-    original_app = engine_resolver.resolve_provider(api=app)
-    engine_resolver.register_api(surface_api, provider)
-    engine_resolver.register_api(app, provider)
+    original_surface = engine_resolver.resolve_provider(router=surface_api)
+    original_app = engine_resolver.resolve_provider(router=app)
+    engine_resolver.register_router(surface_api, provider)
+    engine_resolver.register_router(app, provider)
     setattr(surface_api, "_ddl_executed", False)
     await surface_api.initialize()
     try:
@@ -68,9 +66,13 @@ async def test_db_engine() -> AsyncGenerator[Engine, None]:
     finally:
         raw_engine, _ = provider.ensure()
         await raw_engine.dispose()
-        engine_resolver.register_api(surface_api, original_surface)
-        engine_resolver.register_api(app, original_app)
+        engine_resolver.register_router(surface_api, original_surface)
+        engine_resolver.register_router(app, original_app)
         setattr(surface_api, "_ddl_executed", False)
+        db_path.unlink(missing_ok=True)
+        db_path.with_suffix(".db-shm").unlink(missing_ok=True)
+        db_path.with_suffix(".db-wal").unlink(missing_ok=True)
+        shutil.rmtree(db_path.parent, ignore_errors=True)
 
 
 @pytest_asyncio.fixture
@@ -86,11 +88,11 @@ async def db_session(test_db_engine: Engine) -> AsyncGenerator[HybridSession, No
 def override_get_db(test_db_engine: Engine):
     """Override database dependencies and tigrbl engine for tests."""
 
-    app.dependency_overrides[get_db] = test_db_engine.provider.get_db
+    app.router.dependency_overrides[get_db] = test_db_engine.provider.get_db
     try:
         yield
     finally:
-        app.dependency_overrides.clear()
+        app.router.dependency_overrides.clear()
 
 
 @pytest.fixture

@@ -19,7 +19,7 @@ def test_ingest_webhook_event_persists_payload():
 
     assert result["status"] == EventProcessStatus.RECEIVED.value
     stored = StripeEventLog._storage[0]
-    assert stored.stripe_event_id == "evt_1"
+    assert stored.external_id == "evt_1"
     assert stored.payload == payload
     assert stored.event_type == "invoice.created"
     assert stored.stripe_request_id == "req_1"

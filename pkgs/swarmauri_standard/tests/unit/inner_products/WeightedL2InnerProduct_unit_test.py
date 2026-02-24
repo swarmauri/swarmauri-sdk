@@ -36,10 +36,8 @@ def position_dependent_weight_function() -> Callable[[Any], np.ndarray]:
     Callable[[Any], np.ndarray]
         A function that returns position-dependent weights
     """
-    return (
-        lambda x: np.exp(-0.1 * x)
-        if isinstance(x, np.ndarray)
-        else np.exp(-0.1 * np.array(x))
+    return lambda x: (
+        np.exp(-0.1 * x) if isinstance(x, np.ndarray) else np.exp(-0.1 * np.array(x))
     )
 
 
@@ -67,9 +65,11 @@ def weighted_l2_variable() -> WeightedL2InnerProduct:
         An instance with variable weight function
     """
     return WeightedL2InnerProduct(
-        weight_function=lambda x: np.exp(-0.1 * x)
-        if isinstance(x, np.ndarray)
-        else np.exp(-0.1 * np.array(x))
+        weight_function=lambda x: (
+            np.exp(-0.1 * x)
+            if isinstance(x, np.ndarray)
+            else np.exp(-0.1 * np.array(x))
+        )
     )
 
 

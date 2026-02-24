@@ -14,7 +14,6 @@ from tigrbl_acme_ca.tables.accounts import Account
 from tigrbl_acme_ca.services.va.dns01_validator import validate_dns01
 from tigrbl_acme_ca.services.va.http01_validator import validate_http01
 
-from fastapi import HTTPException
 
 def _h(ctx, name: str):
     handlers = ctx.get("handlers") or {}
@@ -23,11 +22,14 @@ def _h(ctx, name: str):
         raise HTTPException(status_code=500, detail=f"handler_unavailable:{name}")
     return fn
 
+
 def _id(obj):
     return obj.get("id") if isinstance(obj, dict) else getattr(obj, "id", None)
 
+
 def _field(obj, name: str):
     return obj.get(name) if isinstance(obj, dict) else getattr(obj, name, None)
+
 
 @op_ctx(
     alias="submit_challenge",
@@ -71,7 +73,11 @@ async def _validate_and_mark(cls, ctx):
         raise HTTPException(status_code=400, detail="unsupported_challenge_type")
 
     if ok:
-        await update(table=Challenge, id=ch_id, values={"status": "valid", "validated_at": datetime.now(timezone.utc)})
+        await update(
+            table=Challenge,
+            id=ch_id,
+            values={"status": "valid", "validated_at": datetime.now(timezone.utc)},
+        )
         await update(table=Authorization, id=_id(authz), values={"status": "valid"})
         authzs = await read_list(table=Authorization, where={"order_id": _id(order)})
         if authzs and all((_field(a, "status") == "valid") for a in authzs):
@@ -79,6 +85,7 @@ async def _validate_and_mark(cls, ctx):
     else:
         await update(table=Challenge, id=ch_id, values={"status": "invalid"})
         await update(table=Authorization, id=_id(authz), values={"status": "invalid"})
+
 
 setattr(Challenge, "submit_challenge", submit_challenge)
 setattr(Challenge, "_validate_and_mark", _validate_and_mark)

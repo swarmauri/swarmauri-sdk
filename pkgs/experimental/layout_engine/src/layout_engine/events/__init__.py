@@ -1,7 +1,7 @@
 """Events subsystem: envelope, validation, topic routing, and in-proc bus.
 
 Scopes:
-  - site | slot | page | grid | tile | component
+  - site | slot | page | grid | tile | atom
 
 Use:
   from layout_engine.events import (
@@ -23,7 +23,10 @@ from .validators import (
     PAGE,
     GRID,
     TILE,
-    COMPONENT,
+    ATOM,
+    register_channels,
+    clear_channels,
+    get_channel,
 )
 from .ws import InProcEventBus, EventRouter
 
@@ -40,7 +43,10 @@ __all__ = [
     "PAGE",
     "GRID",
     "TILE",
-    "COMPONENT",
+    "ATOM",
+    "register_channels",
+    "clear_channels",
+    "get_channel",
     "InProcEventBus",
     "EventRouter",
     "utc_now_iso",

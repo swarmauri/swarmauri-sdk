@@ -15,7 +15,7 @@ from ...config.constants import (
     CTX_AUTH_KEY,
     CTX_USER_ID_KEY,
 )
-from ...runtime.errors import create_standardized_error
+from ...runtime.status import create_standardized_error
 from ...specs import ColumnSpec, F, IO, S
 from ...specs.storage_spec import ForeignKeySpec
 

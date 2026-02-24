@@ -8,7 +8,7 @@ async def test_create_price_and_tier_relationship(uvicorn_client):
     async with uvicorn_client(api_tiered.app) as client:
         price = await client.post(
             "/price",
-            json={"stripe_price_id": "price-tiered", "unit_amount": 1999},
+            json={"external_id": "price-tiered", "unit_amount": 1999},
         )
         price_id = price.json()["data"]["id"]
 

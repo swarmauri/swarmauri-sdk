@@ -10,6 +10,8 @@ from tigrbl.specs.storage_spec import ForeignKeySpec
 from tigrbl.types import Integer, String, JSONB, SAEnum, Mapped
 from tigrbl.orm.mixins.utils import _infer_schema
 
+from ._mixins.extref import StripeExtRef
+
 
 class BillingScheme(str, Enum):
     FLAT = "flat"
@@ -43,18 +45,18 @@ class TaxBehavior(str, Enum):
     UNSPECIFIED = "unspecified"
 
 
-class Price(Base, GUIDPk, Timestamped, ActiveToggle):
+class Price(Base, GUIDPk, Timestamped, ActiveToggle, StripeExtRef):
     __tablename__ = "billing_prices"
 
-    # Stripe price id (e.g., "price_...")
-    stripe_price_id: Mapped[str] = acol(
+    external_id: Mapped[str] = acol(
         storage=S(type_=String(64), unique=True, index=True, nullable=False),
         field=F(py_type=str, constraints={"max_length": 64}),
         io=IO(
-            in_verbs=("create"),
+            in_verbs=("create",),
             out_verbs=("read", "list"),
-            mutable_verbs=("update"),
+            mutable_verbs=("update", "replace"),
         ),
+        name="stripe_price_id",
     )
 
     # FK -> Product

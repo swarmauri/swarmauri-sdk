@@ -7,7 +7,7 @@ import peagen.plugins as plugins
 from peagen.plugins import PluginManager
 from swarmauri_base.crypto.CryptoBase import CryptoBase
 from swarmauri_base.git_filters import GitFilterBase
-from swarmauri_base.keys import KeyProviderBase
+from swarmauri_base.key_providers import KeyProviderBase
 
 
 def _reset_plugins(monkeypatch):

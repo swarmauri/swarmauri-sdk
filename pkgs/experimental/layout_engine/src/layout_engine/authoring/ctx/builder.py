@@ -14,8 +14,8 @@ class ColCtx:
     def __exit__(self, *exc):
         return False
 
-    def add(self, *components: Any) -> "ColCtx":
-        self.items.extend(components)
+    def add(self, *atoms: Any) -> "ColCtx":
+        self.items.extend(atoms)
         return self
 
 

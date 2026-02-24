@@ -98,6 +98,9 @@ def _build_schema(
         # Field construction (collect kwargs then create Field once)
         fs = getattr(spec, "field", None)
         field_kwargs: Dict[str, Any] = dict(getattr(fs, "constraints", {}) or {})
+        description = getattr(fs, "description", None)
+        if description and "description" not in field_kwargs:
+            field_kwargs["description"] = description
 
         default_factory = getattr(spec, "default_factory", None)
         if default_factory and verb in set(getattr(io, "in_verbs", []) or []):
@@ -163,6 +166,9 @@ def _build_schema(
         allow_null = bool(fs and verb in getattr(fs, "allow_null_in", ()))
         nullable = bool(getattr(spec, "nullable", True))
         field_kwargs: Dict[str, Any] = dict(getattr(fs, "constraints", {}) or {})
+        description = getattr(fs, "description", None)
+        if description and "description" not in field_kwargs:
+            field_kwargs["description"] = description
 
         default_factory = getattr(spec, "default_factory", None)
         if default_factory and verb in set(getattr(spec.io, "in_verbs", []) or []):

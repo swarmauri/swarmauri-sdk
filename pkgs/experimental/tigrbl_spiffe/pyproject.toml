@@ -3,25 +3,25 @@ requires = ["poetry-core>=1.8.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project]
-name = "tigrbl-spiffe"
-version = "0.1.0"
-description = "SPIFFE/SPIRE plugin for Tigrbl — table/op-centric with UDS + HTTP(S) transports"
+name = "tigrbl_spiffe"
+version = "0.1.1.dev4"
+description = "SPIFFE/SPIRE implementation for Tigrbl with table/op-centric UDS + HTTP(S) transports"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.11"
-authors = [{ name = "Tigrbl Contributors" }]
-keywords = ["tigrbl", "spiffe", "spire", "mtls", "identity", "jwt", "cwt"]
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["tigrbl_spiffe", "tigrbl", "experimental"]
 classifiers = [
-  "License :: OSI Approved :: Apache Software License",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.11",
-  "Topic :: Security",
-  "Topic :: Internet",
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 
 dependencies = [
   "httpx>=0.27",
+  "tigrbl>=0.3.4",
 ]
 
 [project.optional-dependencies]
@@ -30,10 +30,19 @@ grpc = ["grpcio>=1.64"]
 [project.entry-points."tigrbl.plugins"]
 spiffe = "tigrbl_spiffe.plugin:TigrblSpiffePlugin"
 
-[tool.uv]
-index-url = "https://pypi.org/simple"
-dev-dependencies = [
-  "pytest>=8.2",
-  "pytest-asyncio>=0.23",
-  "ruff>=0.5",
+[tool.uv.sources]
+tigrbl = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "requests>=2.32.3",
+    "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
 ]

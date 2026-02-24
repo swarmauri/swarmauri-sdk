@@ -43,7 +43,8 @@ def ingest_webhook_event(
     event_created_ts: Optional[object] = None,
 ) -> dict:
     """
-    Persist an event in `stripe_event_logs` (idempotent by stripe_event_id). Signature verification is assumed to be performed upstream.
+    Persist an event in `stripe_event_logs` (idempotent by external id).
+    Signature verification is assumed to be performed upstream.
     `payload` may be a dict or a JSON string. If `event_type` or `api_version` are not provided, they are extracted from the payload.
     """
     if isinstance(payload, str):
@@ -60,12 +61,12 @@ def ingest_webhook_event(
         if hasattr(db, "query"):
             obj = (
                 db.query(StripeEventLog)
-                .filter(StripeEventLog.stripe_event_id == stripe_event_id)
+                .filter(StripeEventLog.external_id == stripe_event_id)
                 .one_or_none()
             )
         if obj is None:
             obj = StripeEventLog(
-                stripe_event_id=stripe_event_id,
+                external_id=stripe_event_id,
                 event_type=et,
                 api_version=av,
                 event_created_ts=event_created_ts,

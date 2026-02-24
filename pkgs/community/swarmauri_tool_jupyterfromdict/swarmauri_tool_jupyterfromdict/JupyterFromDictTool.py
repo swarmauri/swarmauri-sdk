@@ -9,7 +9,8 @@ throughout the conversion process and gracefully handles errors.
 import logging
 from typing import List, Dict, Union, Literal
 from pydantic import Field
-from nbformat import from_dict, validate, NotebookNode, ValidationError
+import nbformat
+from nbformat import NotebookNode
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
@@ -75,12 +76,12 @@ class JupyterFromDictTool(ToolBase):
         """
         try:
             logger.info("Starting conversion from dictionary to NotebookNode.")
-            notebook_node: NotebookNode = from_dict(notebook_dict)
+            notebook_node: NotebookNode = nbformat.from_dict(notebook_dict)
             logger.info("NotebookNode created. Validating NotebookNode.")
-            validate(notebook_node)
+            nbformat.validate(notebook_node)
             logger.info("NotebookNode validation successful.")
             return {"notebook_node": notebook_node}
-        except ValidationError as ve:
+        except nbformat.ValidationError as ve:
             logger.error(f"NotebookNode validation error: {ve}")
             return {"error": f"NotebookNode validation error: {str(ve)}"}
         except Exception as e:

@@ -7,7 +7,9 @@ import pytest
 
 
 def _should_load_griffe_plugin() -> bool:
-    plugin_root = (Path(__file__).resolve().parent / "community" / "swarmauri_tests_griffe").resolve()
+    plugin_root = (
+        Path(__file__).resolve().parent / "community" / "swarmauri_tests_griffe"
+    ).resolve()
     try:
         cwd = Path.cwd().resolve()
     except FileNotFoundError:

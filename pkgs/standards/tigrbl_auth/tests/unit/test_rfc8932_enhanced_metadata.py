@@ -6,15 +6,16 @@ See related RFC 8414: OAuth 2.0 Authorization Server Metadata
 from unittest.mock import patch
 
 import pytest
-from fastapi import FastAPI, status
+from fastapi import status
 from httpx import ASGITransport, AsyncClient
 
+from tigrbl_auth.app import app
 from tigrbl_auth.rfc.rfc8932 import (
     RFC8932_SPEC_URL,
+    include_rfc8932,
     get_enhanced_authorization_server_metadata,
     validate_metadata_consistency,
     get_capability_matrix,
-    router,
 )
 from tigrbl_auth.runtime_cfg import settings
 
@@ -182,10 +183,9 @@ def test_get_enhanced_authorization_server_metadata_deduplication():
 @pytest.mark.asyncio
 async def test_enhanced_authorization_server_metadata_endpoint():
     """RFC 8932: Enhanced metadata endpoint returns correct data."""
-    app = FastAPI()
-    app.include_router(router)
 
     with patch.object(settings, "enable_rfc8932", True):
+        include_rfc8932(app)
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             resp = await client.get("/.well-known/oauth-authorization-server-enhanced")
@@ -202,10 +202,9 @@ async def test_enhanced_authorization_server_metadata_endpoint():
 @pytest.mark.asyncio
 async def test_enhanced_authorization_server_metadata_endpoint_disabled():
     """RFC 8932: Enhanced metadata endpoint returns 404 when disabled."""
-    app = FastAPI()
-    app.include_router(router)
 
     with patch.object(settings, "enable_rfc8932", False):
+        include_rfc8932(app)
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             resp = await client.get("/.well-known/oauth-authorization-server-enhanced")

@@ -4,7 +4,7 @@ from tigrbl_billing.tables.application_fee import ApplicationFee
 
 
 @op_ctx(
-    alias="refund_application_fee",
+    alias="refund_app_fee",
     target="custom",
     arity="member",
     bind=ApplicationFee,

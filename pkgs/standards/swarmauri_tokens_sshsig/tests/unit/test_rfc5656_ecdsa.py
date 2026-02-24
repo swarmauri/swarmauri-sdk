@@ -3,7 +3,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 
 from swarmauri_tokens_sshsig import SshSigTokenService
-from swarmauri_core.keys import IKeyProvider
+from swarmauri_core.key_providers import IKeyProvider
 from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
 
 

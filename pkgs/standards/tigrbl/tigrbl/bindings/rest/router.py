@@ -3,14 +3,14 @@ import logging
 
 import inspect
 import re
+from types import UnionType
 from uuid import uuid4
 from typing import Any, Sequence
+from typing import get_args as _get_args, get_origin as _get_origin
 
 from .collection import _make_collection_endpoint
 from .member import _make_member_endpoint
 from .common import (
-    TIGRBL_ALLOW_ANON_ATTR,
-    TIGRBL_AUTH_DEP_ATTR,
     TIGRBL_GET_DB_ATTR,
     TIGRBL_REST_DEPENDENCIES_ATTR,
     BaseModel,
@@ -22,7 +22,6 @@ from .common import (
     _default_path_suffix,
     _nested_prefix,
     _normalize_deps,
-    _normalize_secdeps,
     _optionalize_list_in_model,
     _path_for_spec,
     _req_state_db,
@@ -34,27 +33,59 @@ from .common import (
 )
 from ...schema import _make_bulk_rows_model
 import typing as _typing
-from typing import get_args as _get_args, get_origin as _get_origin
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/router")
 
 
+def _query_schema_from_annotation(annotation: Any) -> dict[str, Any]:
+    """Build a basic OpenAPI query schema for scalar/list query parameters."""
+    origin = _get_origin(annotation)
+    if origin in {_typing.Union, UnionType}:
+        args = [a for a in _get_args(annotation) if a is not type(None)]
+        if len(args) == 1:
+            return _query_schema_from_annotation(args[0])
+        return {"type": "string"}
+
+    if origin in {list, _typing.List, tuple, set}:
+        inner = (_get_args(annotation) or (str,))[0]
+        return {"type": "array", "items": _query_schema_from_annotation(inner)}
+
+    if annotation is bool:
+        return {"type": "boolean"}
+    if annotation is int:
+        return {"type": "integer"}
+    if annotation is float:
+        return {"type": "number"}
+    if annotation in {bytes, bytearray}:
+        return {"type": "string", "format": "byte"}
+    return {"type": "string"}
+
+
+def _query_param_schemas_from_model(
+    in_model: type[BaseModel] | None,
+) -> dict[str, dict[str, Any]]:
+    """Extract OpenAPI query parameter schemas from a Pydantic input model."""
+    if not (in_model and inspect.isclass(in_model) and issubclass(in_model, BaseModel)):
+        return {}
+
+    out: dict[str, dict[str, Any]] = {}
+    for field_name, field in getattr(in_model, "model_fields", {}).items():
+        query_name = getattr(field, "alias", None) or field_name
+        schema = _query_schema_from_annotation(getattr(field, "annotation", Any))
+        schema["required"] = bool(getattr(field, "is_required", lambda: False)())
+        out[query_name] = schema
+    return out
+
+
 def _build_router(
-    model: type, specs: Sequence[OpSpec], *, api: Any | None = None
+    model: type, specs: Sequence[OpSpec], *, router: Any | None = None
 ) -> Router:
     resource = _resource_name(model)
 
     # Router-level deps: extra deps only (transport-level; never part of kernel plan)
     extra_router_deps = _normalize_deps(
         getattr(model, TIGRBL_REST_DEPENDENCIES_ATTR, None)
-    )
-    auth_dep = getattr(model, TIGRBL_AUTH_DEP_ATTR, None)
-
-    # Verbs explicitly allowed without auth
-    allow_anon_attr = getattr(model, TIGRBL_ALLOW_ANON_ATTR, None)
-    allow_anon = set(
-        allow_anon_attr() if callable(allow_anon_attr) else allow_anon_attr or []
     )
 
     router = Router(dependencies=extra_router_deps or None)
@@ -127,7 +158,7 @@ def _build_router(
 
     # Register collection-level bulk routes before member routes so static paths
     # like "/resource/bulk" aren't captured by dynamic member routes such as
-    # "/resource/{item_id}". FastAPI matches routes in the order they are
+    # "/resource/{item_id}". ASGI matches routes in the order they are
     # added, so sorting here prevents "bulk" from being treated as an
     # identifier.
     specs = sorted(
@@ -206,7 +237,7 @@ def _build_router(
                 db_dep=db_dep,
                 pk_param=pk_param,
                 nested_vars=nested_vars,
-                api=api,
+                router=router,
             )
         else:
             endpoint = _make_collection_endpoint(
@@ -215,7 +246,7 @@ def _build_router(
                 resource=resource,
                 db_dep=db_dep,
                 nested_vars=nested_vars,
-                api=api,
+                router=router,
             )
 
         # Status codes
@@ -224,6 +255,7 @@ def _build_router(
         # Capture OUT schema for OpenAPI without enforcing runtime validation
         alias_ns = getattr(getattr(model, "schemas", None), sp.alias, None)
         out_model = getattr(alias_ns, "out", None) if alias_ns else None
+        in_model = getattr(alias_ns, "in_", None) if alias_ns else None
 
         responses_meta = dict(_RESPONSES_META)
         if out_model is not None and status_code != _status.HTTP_204_NO_CONTENT:
@@ -235,10 +267,6 @@ def _build_router(
 
         # Attach route
         label = f"{model.__name__} - {sp.alias}"
-        route_deps = None
-        if auth_dep and sp.alias not in allow_anon and sp.target not in allow_anon:
-            route_deps = _normalize_deps([auth_dep])
-
         unique_id = f"{endpoint.__name__}_{uuid4().hex}"
         include_in_schema = bool(
             getattr(sp, "extra", {}).get("include_in_schema", True)
@@ -257,19 +285,17 @@ def _build_router(
             tags=list(sp.tags or (model.__name__,)),
             responses=responses_meta,
             include_in_schema=include_in_schema,
+            request_model=in_model,
+            query_param_schemas=(
+                _query_param_schemas_from_model(in_model)
+                if sp.target in {"list", "clear"}
+                else None
+            ),
+            tigrbl_model=model,
+            tigrbl_alias=sp.alias,
         )
-        if route_deps:
-            route_kwargs["dependencies"] = route_deps
         if response_class is not None:
             route_kwargs["response_class"] = response_class
-
-        secdeps: list[Any] = []
-        if auth_dep and sp.alias not in allow_anon and sp.target not in allow_anon:
-            secdeps.append(auth_dep)
-        secdeps.extend(getattr(sp, "secdeps", ()))
-        route_secdeps = _normalize_secdeps(secdeps)
-        if route_secdeps:
-            route_kwargs["dependencies"] = route_secdeps
 
         if (
             sp.alias != sp.target
@@ -278,7 +304,7 @@ def _build_router(
         ):
             route_kwargs["include_in_schema"] = False
 
-        router.add_api_route(**route_kwargs)
+        router.add_route(**route_kwargs)
 
         logger.debug(
             "rest: registered %s %s -> %s.%s (response_model=%s)",

@@ -1,0 +1,124 @@
+"""Lesson 10.4: Calling JSON-RPC operations from a client."""
+
+import httpx
+import inspect
+import pytest
+from tigrbl_client import TigrblClient
+
+from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
+from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl.engine.shortcuts import mem
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
+
+
+@pytest.mark.asyncio
+async def test_rpc_call_works_over_jsonrpc():
+    """Confirm RPC calls succeed against the JSON-RPC mount.
+
+    Purpose: show that TigrblClient can invoke registered operations remotely.
+    Design practice: use the explicit model-prefixed method name.
+    """
+
+    # Setup: define a model to expose over JSON-RPC.
+    class LessonRPCClient(Base, GUIDPk):
+        __tablename__ = "lesson_rpc_client"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    # Deployment: build the API, mount JSON-RPC, and attach diagnostics.
+<<<<<<< HEAD
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_table(LessonRPCClient)
+=======
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(LessonRPCClient)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+    init_result = router.initialize()
+    if inspect.isawaitable(init_result):
+        await init_result
+    router.mount_jsonrpc(prefix="/rpc")
+
+<<<<<<< HEAD
+    app = TigrblApp()
+    app.include_router(router)
+    app.attach_diagnostics(prefix="")
+=======
+    app = FastAPI()
+    app.include_router(router.router)
+    router.attach_diagnostics(prefix="", app=app)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+
+    port = pick_unique_port()
+    base_url, server, task = await start_uvicorn(app, port=port)
+
+    # Test: invoke the list method over JSON-RPC.
+    client = TigrblClient(base_url + "/rpc")
+    result = await client.acall(f"{LessonRPCClient.__name__}.list", params={})
+
+    # Assertion: the call returns a list payload.
+    assert isinstance(result, list)
+    await client.aclose()
+    await stop_uvicorn(server, task)
+
+
+@pytest.mark.asyncio
+async def test_rpc_list_reflects_rest_creates():
+    """Show RPC reads reflect REST writes for parity.
+
+    Purpose: verify that creating via REST is visible through JSON-RPC list.
+    Design practice: keep RPC/REST parity to reduce client confusion.
+    """
+
+    # Setup: define a model for REST/RPC parity checks.
+    class LessonRPCClientList(Base, GUIDPk):
+        __tablename__ = "lesson_rpc_client_list"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    # Deployment: initialize app, mount JSON-RPC, and attach diagnostics.
+<<<<<<< HEAD
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_table(LessonRPCClientList)
+=======
+    router = TigrblApp(engine=mem(async_=False))
+    router.include_model(LessonRPCClientList)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+    init_result = router.initialize()
+    if inspect.isawaitable(init_result):
+        await init_result
+    router.mount_jsonrpc(prefix="/rpc")
+
+<<<<<<< HEAD
+    app = TigrblApp()
+    app.include_router(router)
+    app.attach_diagnostics(prefix="")
+=======
+    app = FastAPI()
+    app.include_router(router.router)
+    router.attach_diagnostics(prefix="", app=app)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+
+    port = pick_unique_port()
+    base_url, server, task = await start_uvicorn(app, port=port)
+
+    # Test: create a record via REST so RPC can read it back.
+    async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
+        response = await client.post(
+            f"/{LessonRPCClientList.__name__.lower()}",
+            json={"name": "delta"},
+        )
+
+        # Assertion: REST create succeeds.
+        assert response.status_code in {200, 201}
+
+    # Test: list via JSON-RPC.
+    client = TigrblClient(base_url + "/rpc")
+    result = await client.acall(f"{LessonRPCClientList.__name__}.list", params={})
+
+    # Assertion: the RPC list contains the REST-created record.
+    assert any(item["name"] == "delta" for item in result)
+    await client.aclose()
+    await stop_uvicorn(server, task)

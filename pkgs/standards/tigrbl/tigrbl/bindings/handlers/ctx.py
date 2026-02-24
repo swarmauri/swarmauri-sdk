@@ -4,7 +4,6 @@ import logging
 
 from typing import Any, Mapping, Sequence
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/handlers/ctx")
 

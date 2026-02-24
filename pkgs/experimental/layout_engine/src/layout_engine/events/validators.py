@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Set
+from typing import Any, Mapping, Set
 from .spec import EventEnvelope
 
 # ----- Allow lists (expanded) -----
@@ -56,7 +56,7 @@ TILE: Set[str] = {
     "tile:drop",
     "tile:dragend",
 }
-COMPONENT: Set[str] = {
+ATOM: Set[str] = {
     # pointer*
     "pointerdown",
     "pointerup",
@@ -132,8 +132,32 @@ ALLOW = {
     "page": PAGE,
     "grid": GRID,
     "tile": TILE,
-    "component": COMPONENT,
+    "atom": ATOM,
 }
+
+_CHANNEL_REGISTRY: dict[str, dict[str, Any]] = {}
+
+
+def register_channels(
+    channels: Mapping[str, Mapping[str, Any]] | list[Mapping[str, Any]],
+) -> None:
+    if isinstance(channels, Mapping):
+        iterator = channels.values()
+    else:
+        iterator = channels
+    for entry in iterator:
+        channel_id = entry.get("id")
+        if not channel_id:
+            continue
+        _CHANNEL_REGISTRY[str(channel_id)] = dict(entry)
+
+
+def clear_channels() -> None:
+    _CHANNEL_REGISTRY.clear()
+
+
+def get_channel(channel_id: str) -> dict[str, Any] | None:
+    return _CHANNEL_REGISTRY.get(channel_id)
 
 
 # Wildcard families per scope
@@ -146,7 +170,7 @@ def _wildcards(scope: str) -> list[str]:
         return ["grid:tile:rearrange:"]
     if scope == "tile":
         return ["tile:drag"]
-    if scope == "component":
+    if scope == "atom":
         return [
             "pointer",  # pointer*
             "composition",  # composition*
@@ -195,6 +219,17 @@ def validate_envelope(e: dict[str, Any]) -> EventEnvelope:
         raise ValidationError(f"unknown scope: {scope}")
     if not is_allowed(scope, etype):
         raise ValidationError(f"event '{etype}' not allowed for scope '{scope}'")
+    channel_id = e.get("channel")
+    if channel_id is not None:
+        channel_def = _CHANNEL_REGISTRY.get(str(channel_id))
+        if channel_def is None:
+            raise ValidationError(f"unknown channel: {channel_id}")
+        expected_scope = channel_def.get("scope")
+        if expected_scope and expected_scope != scope:
+            raise ValidationError(
+                f"channel '{channel_id}' expects scope '{expected_scope}' but received '{scope}'"
+            )
+
     return EventEnvelope(
         scope=scope,
         type=etype,
@@ -205,10 +240,30 @@ def validate_envelope(e: dict[str, Any]) -> EventEnvelope:
         request_id=e["request_id"],
         target=e.get("target") or {},
         payload=e.get("payload") or {},
+        channel=str(channel_id) if channel_id is not None else None,
     )
 
 
 def route_topic(ev: EventEnvelope) -> str:
+    if ev.channel:
+        channel_def = _CHANNEL_REGISTRY.get(ev.channel)
+        if channel_def:
+            template = channel_def.get("topic")
+            if template:
+                context = {
+                    "scope": ev.scope,
+                    "type": ev.type,
+                    "page_id": ev.page_id or "",
+                    "slot": ev.slot or "",
+                    "tile_id": ev.tile_id or "",
+                    "channel": ev.channel,
+                }
+                context.update(ev.target or {})
+                try:
+                    return template.format(**context)
+                except Exception:
+                    return template
+
     if ev.scope == "site":
         return "site"
     if ev.scope == "page":
@@ -219,7 +274,7 @@ def route_topic(ev: EventEnvelope) -> str:
         return f"grid:{ev.page_id}"
     if ev.scope == "tile":
         return f"tile:{ev.page_id}:{ev.tile_id}"
-    if ev.scope == "component":
+    if ev.scope == "atom":
         key = (ev.target or {}).get("key", "_")
-        return f"component:{ev.page_id}:{ev.tile_id}:{key}"
+        return f"atom:{ev.page_id}:{ev.tile_id}:{key}"
     raise ValidationError("unroutable")

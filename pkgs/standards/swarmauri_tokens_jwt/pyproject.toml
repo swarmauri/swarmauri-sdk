@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tokens_jwt"
-version = "0.3.0.dev7"
+version = "0.3.0.dev35"
 description = "JWT token service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -56,6 +56,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+addopts = ""
 
 [dependency-groups]
 dev = [

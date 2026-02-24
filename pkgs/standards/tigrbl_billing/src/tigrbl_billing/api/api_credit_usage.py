@@ -1,14 +1,13 @@
-from tigrbl import TigrblApp, op_ctx
+from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import engine as build_engine, mem
 from tigrbl_billing.tables.credit_usage_policy import CreditUsagePolicy
 from tigrbl_billing.tables.usage_event import UsageEvent
 from tigrbl_billing.tables.credit_ledger import CreditLedger
-from tigrbl_billing.ops import charge_credits
 
+from tigrbl_billing import ops
 
-@op_ctx(alias="charge_credits", target="custom", arity="collection", bind=UsageEvent)
-def usage__charge_credits(cls, ctx):
-    return charge_credits(ctx, None, None, **(ctx.get("payload") or {}))
+# Register the credit usage operation for this API.
+ops.charge_credits
 
 
 def build_app(async_mode: bool = True) -> TigrblApp:

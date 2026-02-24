@@ -25,7 +25,7 @@ def gridtrack_from_dict(d: Mapping[str, Any]) -> GridTrack:
         min_px=int(s.get("min_px", 0)),
         max_px=s.get("max_px"),
     )
-    return GridTrack(size)
+    return GridTrack(size=size)
 
 
 # ----------- GridTile -----------
@@ -51,7 +51,7 @@ def gridtile_from_dict(d: Mapping[str, Any]) -> GridTile:
 
 # ----------- GridSpec -----------
 def gridspec_to_dict(gs: GridSpec) -> dict:
-    return {
+    payload = {
         "row_height": gs.row_height,
         "gap_x": gs.gap_x,
         "gap_y": gs.gap_y,
@@ -61,15 +61,41 @@ def gridspec_to_dict(gs: GridSpec) -> dict:
             for (max_w, tracks) in gs.breakpoints or []
         ],
     }
+    if gs.baseline_unit is not None:
+        payload["baseline_unit"] = int(gs.baseline_unit)
+    if getattr(gs, "tokens", None):
+        payload["tokens"] = dict(gs.tokens)
+    return payload
 
 
 def gridspec_from_dict(d: Mapping[str, Any]) -> GridSpec:
     cols = [gridtrack_from_dict(x) for x in d.get("columns", [])]
+    tokens = dict(d.get("tokens") or {})
+    if not cols and tokens:
+        overrides = {
+            "row_height": d.get("row_height"),
+            "gap_x": d.get("gap_x"),
+            "gap_y": d.get("gap_y"),
+            "baseline_unit": d.get("baseline_unit"),
+        }
+        overrides = {k: v for k, v in overrides.items() if v is not None}
+        breakpoints_payload = d.get("breakpoints")
+        if breakpoints_payload:
+            overrides["breakpoints"] = [
+                (int(max_w), [gridtrack_from_dict(t) for t in tracks])
+                for (max_w, tracks) in breakpoints_payload
+            ]
+        return GridSpec.from_tokens(tokens, overrides=overrides)
+
     gs = GridSpec(
         columns=cols,
         row_height=int(d.get("row_height", 180)),
         gap_x=int(d.get("gap_x", 12)),
         gap_y=int(d.get("gap_y", 12)),
+        baseline_unit=(
+            int(d["baseline_unit"]) if d.get("baseline_unit") is not None else None
+        ),
+        tokens=tokens,
     )
     bps: List[Tuple[int, list[GridTrack]]] = []
     for entry in d.get("breakpoints", []):

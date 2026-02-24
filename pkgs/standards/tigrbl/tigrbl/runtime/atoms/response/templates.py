@@ -3,7 +3,7 @@ from functools import lru_cache
 import logging
 from typing import Any, Dict, Iterable, Optional, Tuple
 
-from ....deps.starlette import Request
+from ....requests import Request
 from ....deps.jinja import (
     Environment,
     FileSystemLoader,

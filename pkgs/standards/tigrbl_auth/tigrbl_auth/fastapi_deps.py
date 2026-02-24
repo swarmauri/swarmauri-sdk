@@ -31,6 +31,7 @@ from .backends import (
     AuthError,
     PasswordBackend,
 )  # PasswordBackend not used here, but re-exported for completeness
+
 from .db import get_db
 from .jwtoken import JWTCoder, InvalidTokenError
 from .orm import User
@@ -87,7 +88,7 @@ async def get_principal(  # <-- Tigrbl calls this
     """
     Return a lightweight principal dict that Tigrbl understands:
         { "sub": "<user_id>", "tid": "<tenant_id>" }
-    Raises HTTP 401 on failure.
+    Raises HTTP 401 on failure.
     """
     user = await get_current_principal(  # reuse the existing logic
         request,

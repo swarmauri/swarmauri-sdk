@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Iterable
+from typing import Any
 
 from .tables.svid import Svid
 from .tables.registrar import Registrar
@@ -17,8 +17,11 @@ from .adapters import Endpoint, TigrblClientAdapter
 
 from tigrbl import include_model
 
+
 class TigrblSpiffePlugin:
-    def __init__(self, *, workload_endpoint: Endpoint, server_endpoint: Endpoint|None=None):
+    def __init__(
+        self, *, workload_endpoint: Endpoint, server_endpoint: Endpoint | None = None
+    ):
         self._cfg = {
             "workload_endpoint": workload_endpoint,
             "server_endpoint": server_endpoint or workload_endpoint,
@@ -30,6 +33,7 @@ class TigrblSpiffePlugin:
 
     def supports(self) -> set[str]:
         from .supports import CAPABILITIES
+
         return CAPABILITIES
 
     def install(self, app: Any) -> None:
@@ -38,7 +42,7 @@ class TigrblSpiffePlugin:
         include_model(Bundle)
         include_model(Workload)
         # Wire middleware (order: identity extras -> authn -> tls)
-        app.use(InjectSpiffeExtras(self._adapter, type("Cfg",(object,),self._cfg)))
+        app.use(InjectSpiffeExtras(self._adapter, type("Cfg", (object,), self._cfg)))
         app.use(SpiffeAuthn(self._validator))
         app.use(AttachTlsContexts(self._tls_helper))
 
@@ -46,7 +50,7 @@ class TigrblSpiffePlugin:
     def ctx_extras(self) -> dict[str, Any]:
         return {
             "spiffe_adapter": self._adapter,
-            "spiffe_config": type("Cfg",(object,),self._cfg),
+            "spiffe_config": type("Cfg", (object,), self._cfg),
             "rotation_policy": self._rotation,
             "svid_validator": self._validator,
             "tls_helper": self._tls_helper,

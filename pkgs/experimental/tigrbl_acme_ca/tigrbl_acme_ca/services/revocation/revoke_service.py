@@ -5,6 +5,7 @@ from fastapi import HTTPException
 
 from tigrbl.op import op_ctx
 from tigrbl.hook import hook_ctx
+
 try:
     from tigrbl.config.constants import CTX_SKIP_PERSIST_FLAG
 except Exception:
@@ -12,7 +13,6 @@ except Exception:
 
 from tigrbl_acme_ca.tables.revocations import Revocation
 
-from fastapi import HTTPException
 
 def _h(ctx, name: str):
     handlers = ctx.get("handlers") or {}
@@ -21,11 +21,14 @@ def _h(ctx, name: str):
         raise HTTPException(status_code=500, detail=f"handler_unavailable:{name}")
     return fn
 
+
 def _id(obj):
     return obj.get("id") if isinstance(obj, dict) else getattr(obj, "id", None)
 
+
 def _field(obj, name: str):
     return obj.get(name) if isinstance(obj, dict) else getattr(obj, name, None)
+
 
 @op_ctx(
     alias="revoke_cert",
@@ -56,6 +59,7 @@ async def _idempotent_revocation(cls, ctx):
     if existing:
         ctx[CTX_SKIP_PERSIST_FLAG] = True
         ctx["result"] = existing
+
 
 setattr(Revocation, "revoke_cert", revoke_cert)
 setattr(Revocation, "_idempotent_revocation", _idempotent_revocation)

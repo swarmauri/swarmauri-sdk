@@ -3,7 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable, Optional
 
-from .compat import Depends, JSONResponse, Request
+from ...responses import JSONResponse
+from ...types import Depends, Request
 from .utils import maybe_execute
 
 logger = logging.getLogger(__name__)
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 def build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
     """
-    Returns a FastAPI endpoint function for /healthz.
+    Returns a ASGI endpoint function for /healthz.
     If `dep` is provided, it's used as a dependency to supply `db`.
     Otherwise, we try request.state.db.
     """

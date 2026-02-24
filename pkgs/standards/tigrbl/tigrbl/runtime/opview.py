@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, Mapping, Dict
 from types import SimpleNamespace
 
-from .kernel import _default_kernel as K  # single, app-scoped kernel
+from . import kernel as _kernel  # single, app-scoped kernel
 
 
 def _ensure_temp(ctx: Any) -> Dict[str, Any]:
@@ -19,14 +19,14 @@ def opview_from_ctx(ctx: Any):
 
     Preferred resolution path is via ``ctx.opview`` which should be attached by
     the caller.  Falling back to kernel lookups requires ``ctx.app`` (or
-    ``ctx.api``), ``ctx.model`` (or derivable from ``ctx.obj``), and ``ctx.op``
+    ``ctx.router``), ``ctx.model`` (or derivable from ``ctx.obj``), and ``ctx.op``
     (or ``ctx.method``).
     """
     ov = getattr(ctx, "opview", None)
     if ov is not None:
         return ov
 
-    app = getattr(ctx, "app", None) or getattr(ctx, "api", None)
+    app = getattr(ctx, "app", None) or getattr(ctx, "router", None)
     model = getattr(ctx, "model", None)
     if model is None:
         obj = getattr(ctx, "obj", None)
@@ -36,12 +36,14 @@ def opview_from_ctx(ctx: Any):
 
     if app and model and alias:
         # One-kernel-per-app, prime once; raises if not compiled
-        return K.get_opview(app, model, alias)
+        return _kernel._default_kernel.get_opview(app, model, alias)
 
     if alias:
         specs = getattr(ctx, "specs", None)
         if specs is not None:
-            return K._compile_opview_from_specs(specs, SimpleNamespace(alias=alias))
+            return _kernel._default_kernel._compile_opview_from_specs(
+                specs, SimpleNamespace(alias=alias)
+            )
 
     missing = []
     if not alias:

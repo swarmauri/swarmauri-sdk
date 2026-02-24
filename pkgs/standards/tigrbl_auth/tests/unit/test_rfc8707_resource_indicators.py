@@ -8,11 +8,11 @@ validate the stated requirements.
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from fastapi import FastAPI, status
+from fastapi import status
 from httpx import ASGITransport, AsyncClient
 
 from tigrbl_auth.runtime_cfg import settings
-from tigrbl_auth.routers.auth_flows import router
+from tigrbl_auth.app import app
 from tigrbl_auth.routers.shared import _jwt
 from tigrbl_auth.fastapi_deps import get_db
 from tigrbl_auth.orm import Client
@@ -33,8 +33,6 @@ class DummyClient:
 @pytest.mark.asyncio
 async def test_token_includes_aud_when_resource_provided(monkeypatch):
     """RFC 8707 §2: resource parameter indicates the target resource."""
-    app = FastAPI()
-    app.include_router(router)
     mock_user = MagicMock(id="user", tenant_id="tenant")
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
     monkeypatch.setattr(
@@ -46,7 +44,7 @@ async def test_token_includes_aud_when_resource_provided(monkeypatch):
         "core",
         AsyncMock(return_value=DummyClient()),
     )
-    app.dependency_overrides[get_db] = lambda: AsyncMock()
+    app.router.dependency_overrides[get_db] = lambda: AsyncMock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
@@ -69,15 +67,13 @@ async def test_token_includes_aud_when_resource_provided(monkeypatch):
 @pytest.mark.asyncio
 async def test_invalid_resource_returns_error(monkeypatch):
     """RFC 8707 §2: invalid resource value results in 'invalid_target'."""
-    app = FastAPI()
-    app.include_router(router)
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
     monkeypatch.setattr(
         Client.handlers.read,
         "core",
         AsyncMock(return_value=DummyClient()),
     )
-    app.dependency_overrides[get_db] = lambda: AsyncMock()
+    app.router.dependency_overrides[get_db] = lambda: AsyncMock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
@@ -99,8 +95,6 @@ async def test_invalid_resource_returns_error(monkeypatch):
 @pytest.mark.asyncio
 async def test_multiple_resources_uses_first(monkeypatch):
     """RFC 8707 §2: first valid resource is used as audience."""
-    app = FastAPI()
-    app.include_router(router)
     mock_user = MagicMock(id="user", tenant_id="tenant")
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
     monkeypatch.setattr(
@@ -112,7 +106,7 @@ async def test_multiple_resources_uses_first(monkeypatch):
         "core",
         AsyncMock(return_value=DummyClient()),
     )
-    app.dependency_overrides[get_db] = lambda: AsyncMock()
+    app.router.dependency_overrides[get_db] = lambda: AsyncMock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
@@ -135,15 +129,13 @@ async def test_multiple_resources_uses_first(monkeypatch):
 @pytest.mark.asyncio
 async def test_multiple_resources_with_invalid_returns_error(monkeypatch):
     """RFC 8707 §2: any invalid resource causes 'invalid_target'."""
-    app = FastAPI()
-    app.include_router(router)
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
     monkeypatch.setattr(
         Client.handlers.read,
         "core",
         AsyncMock(return_value=DummyClient()),
     )
-    app.dependency_overrides[get_db] = lambda: AsyncMock()
+    app.router.dependency_overrides[get_db] = lambda: AsyncMock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
@@ -165,8 +157,6 @@ async def test_multiple_resources_with_invalid_returns_error(monkeypatch):
 @pytest.mark.asyncio
 async def test_feature_flag_disables_resource(monkeypatch):
     """When disabled, resource parameter is ignored."""
-    app = FastAPI()
-    app.include_router(router)
     mock_user = MagicMock(id="user", tenant_id="tenant")
     monkeypatch.setattr(settings, "rfc8707_enabled", False)
     monkeypatch.setattr(
@@ -178,7 +168,7 @@ async def test_feature_flag_disables_resource(monkeypatch):
         "core",
         AsyncMock(return_value=DummyClient()),
     )
-    app.dependency_overrides[get_db] = lambda: AsyncMock()
+    app.router.dependency_overrides[get_db] = lambda: AsyncMock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(

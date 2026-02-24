@@ -1,0 +1,288 @@
+from httpx import ASGITransport, Client
+from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
+from tigrbl.requests import Request
+from tigrbl.runtime.status import HTTPException
+from tigrbl.engine import resolver as _resolver
+from tigrbl.engine.shortcuts import mem
+from sqlalchemy.orm import sessionmaker
+
+from tigrbl import TigrblApp, TigrblRouter
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.tables import Base
+from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from tigrbl.types import (
+    AllowAnonProvider,
+    AuthNProvider,
+    Column,
+    ForeignKey,
+    PgUUID,
+    String,
+    uuid4,
+)
+
+
+class DummyAuth(AuthNProvider):
+    async def get_principal(
+        self,
+        request: Request,
+        creds: HTTPAuthorizationCredentials | None = Security(
+            HTTPBearer(auto_error=False)
+        ),
+    ):
+        if creds is None:
+            if request.method == "GET":
+                return None
+            raise HTTPException(status_code=409)
+        if creds.credentials != "secret":
+            raise HTTPException(status_code=401)
+        principal = {"sub": "user"}
+        setattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, principal)
+        return principal
+
+
+def _build_client():
+    Base.metadata.clear()
+
+    class Tenant(Base, GUIDPk):
+        __tablename__ = "tenants"
+        name = Column(String, nullable=False)
+
+    class Item(Base, GUIDPk):
+        __tablename__ = "items"
+        tenant_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
+        )
+        name = Column(String, nullable=False)
+
+        @classmethod
+        def __tigrbl_allow_anon__(cls):
+            return {"list", "read"}
+
+    cfg = mem(async_=False)
+    auth = DummyAuth()
+<<<<<<< HEAD
+    router = TigrblRouter(engine=cfg)
+    router.set_auth(authn=auth.get_principal)
+    router.include_tables([Tenant, Item])
+    router.initialize()
+    app = TigrblApp()
+    app.include_router(router)
+=======
+    router = TigrblApp(engine=cfg)
+    router.set_auth(authn=auth.get_principal)
+    router.include_models([Tenant, Item])
+    router.initialize()
+    app = TigrblApp()
+    app.include_router(router.router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
+    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+    transport = ASGITransport(app=app)
+    client = Client(transport=transport, base_url="http://test")
+    return client, SessionLocal, Tenant, Item
+
+
+def _build_client_attr():
+    Base.metadata.clear()
+
+    class Tenant(Base, GUIDPk):
+        __tablename__ = "tenants"
+        name = Column(String, nullable=False)
+
+    class Item(Base, GUIDPk):
+        __tablename__ = "items"
+        tenant_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
+        )
+        name = Column(String, nullable=False)
+
+        __tigrbl_allow_anon__ = {"list", "read"}
+
+    cfg = mem(async_=False)
+    auth = DummyAuth()
+<<<<<<< HEAD
+    router = TigrblRouter(engine=cfg)
+    router.set_auth(authn=auth.get_principal)
+    router.include_tables([Tenant, Item])
+    router.initialize()
+    app = TigrblApp()
+    app.include_router(router)
+=======
+    router = TigrblApp(engine=cfg)
+    router.set_auth(authn=auth.get_principal)
+    router.include_models([Tenant, Item])
+    router.initialize()
+    app = TigrblApp()
+    app.include_router(router.router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
+    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+    transport = ASGITransport(app=app)
+    client = Client(transport=transport, base_url="http://test")
+    return client, SessionLocal, Tenant, Item
+
+
+def test_allow_anon_list_and_read():
+    client, SessionLocal, Tenant, Item = _build_client()
+    try:
+        with SessionLocal() as db:
+            tenant = Tenant(id=uuid4(), name="acme")
+            db.add(tenant)
+            db.commit()
+            db.refresh(tenant)
+            item = Item(id=uuid4(), tenant_id=tenant.id, name="thing")
+            db.add(item)
+            db.commit()
+            db.refresh(item)
+            iid = str(item.id)
+        assert client.get("/item").status_code == 200
+        assert client.get(f"/item/{iid}").status_code == 200
+        # Requests without credentials are rejected for non-whitelisted routes.
+        assert client.delete(f"/item/{iid}").status_code == 409
+    finally:
+        client.close()
+
+
+def test_openapi_marks_anon_and_protected_routes():
+    client, SessionLocal, Tenant, Item = _build_client()
+    try:
+        spec = client.get("/openapi.json").json()
+        anon_op = spec["paths"]["/item"]["get"].get("security")
+        protected_op = spec["paths"]["/item"]["post"].get("security")
+        assert anon_op in (None, [])
+        assert protected_op == [{"HTTPBearer": []}]
+        assert "HTTPBearer" in spec["components"]["securitySchemes"]
+    finally:
+        client.close()
+
+
+def _build_client_create_noauth():
+    Base.metadata.clear()
+
+    class Tenant(Base, GUIDPk):
+        __tablename__ = "tenants"
+        name = Column(String, nullable=False)
+
+    class Item(Base, GUIDPk, AllowAnonProvider):
+        __tablename__ = "items"
+        tenant_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
+        )
+        name = Column(String, nullable=False)
+
+        @classmethod
+        def __tigrbl_allow_anon__(cls):
+            return {"create", "bulk_create"}
+
+    cfg = mem(async_=False)
+<<<<<<< HEAD
+    router = TigrblRouter(engine=cfg)
+    router.include_tables([Tenant, Item])
+    router.initialize()
+
+    app = TigrblApp()
+    app.include_router(router)
+=======
+    router = TigrblApp(engine=cfg)
+    router.include_models([Tenant, Item])
+    router.initialize()
+    app = TigrblApp()
+    app.include_router(router.router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
+    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+    transport = ASGITransport(app=app)
+    client = Client(transport=transport, base_url="http://test")
+    return client, SessionLocal, Tenant, Item
+
+
+def _build_client_create_attr_noauth():
+    Base.metadata.clear()
+
+    class Tenant(Base, GUIDPk):
+        __tablename__ = "tenants"
+        name = Column(String, nullable=False)
+
+    class Item(Base, GUIDPk, AllowAnonProvider):
+        __tablename__ = "items"
+        tenant_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
+        )
+        name = Column(String, nullable=False)
+
+        __tigrbl_allow_anon__ = {"create", "bulk_create"}
+
+    cfg = mem(async_=False)
+<<<<<<< HEAD
+    router = TigrblRouter(engine=cfg)
+    router.include_tables([Tenant, Item])
+    router.initialize()
+
+    app = TigrblApp()
+    app.include_router(router)
+=======
+    router = TigrblApp(engine=cfg)
+    router.include_models([Tenant, Item])
+    router.initialize()
+    app = TigrblApp()
+    app.include_router(router.router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
+    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+    transport = ASGITransport(app=app)
+    client = Client(transport=transport, base_url="http://test")
+    return client, SessionLocal, Tenant, Item
+
+
+def test_allow_anon_create_method():
+    client, SessionLocal, Tenant, Item = _build_client_create_noauth()
+    try:
+        with SessionLocal() as db:
+            tenant = Tenant(id=uuid4(), name="acme")
+            db.add(tenant)
+            db.commit()
+            db.refresh(tenant)
+            tid = str(tenant.id)
+        payload = {"id": str(uuid4()), "tenant_id": tid, "name": "one"}
+        assert client.post("/item", json=[payload]).status_code == 201
+    finally:
+        client.close()
+
+
+def test_allow_anon_create_attr_noauth():
+    client, SessionLocal, Tenant, Item = _build_client_create_attr_noauth()
+    try:
+        with SessionLocal() as db:
+            tenant = Tenant(id=uuid4(), name="acme")
+            db.add(tenant)
+            db.commit()
+            db.refresh(tenant)
+            tid = str(tenant.id)
+        payload = {"id": str(uuid4()), "tenant_id": tid, "name": "one"}
+        assert client.post("/item", json=[payload]).status_code == 201
+    finally:
+        client.close()
+
+
+def test_allow_anon_list_and_read_attr():
+    client, SessionLocal, Tenant, Item = _build_client_attr()
+    try:
+        with SessionLocal() as db:
+            tenant = Tenant(id=uuid4(), name="acme")
+            db.add(tenant)
+            db.commit()
+            db.refresh(tenant)
+            item = Item(id=uuid4(), tenant_id=tenant.id, name="thing")
+            db.add(item)
+            db.commit()
+            db.refresh(item)
+            iid = str(item.id)
+        assert client.get("/item").status_code == 200
+        assert client.get(f"/item/{iid}").status_code == 200
+        assert client.delete(f"/item/{iid}").status_code == 409
+    finally:
+        client.close()

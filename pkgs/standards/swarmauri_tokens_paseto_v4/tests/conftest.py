@@ -17,8 +17,8 @@ from cryptography.hazmat.primitives.serialization import (
 
 from swarmauri_tokens_paseto_v4 import PasetoV4TokenService
 from swarmauri_core.crypto.types import KeyRef, KeyType, KeyUse, ExportPolicy
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
-from swarmauri_core.keys.types import KeyAlg
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.types import KeyAlg
 
 
 class DummyKeyProvider(IKeyProvider):

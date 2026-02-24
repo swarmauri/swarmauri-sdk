@@ -7,7 +7,7 @@ import pytest
 from typing import Iterable, Mapping
 
 from swarmauri_tokens_sshcert import SshCertTokenService
-from swarmauri_core.keys import IKeyProvider
+from swarmauri_core.key_providers import IKeyProvider
 from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
 
 

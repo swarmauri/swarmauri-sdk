@@ -10,7 +10,7 @@ from typing import Any
 import pytest
 
 from EmbeddedSigner import EmbedSigner
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 from swarmauri_core.signing.types import Signature
 
 

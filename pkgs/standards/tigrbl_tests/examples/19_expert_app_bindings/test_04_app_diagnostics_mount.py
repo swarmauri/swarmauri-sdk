@@ -1,0 +1,48 @@
+"""Lesson 19: diagnostics router mounting for apps.
+
+Diagnostics endpoints are mounted on a host app while the TigrblApp manages
+their construction. The design keeps diagnostic routes colocated with app
+configuration and avoids manual router wiring.
+"""
+
+from tigrbl import Base, TigrblApp
+from tigrbl.engine.shortcuts import mem
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
+
+
+def test_app_binding_mounts_diagnostics_router():
+    """attach_diagnostics returns the diagnostics router for mounting."""
+
+    class Widget(Base, GUIDPk):
+        __tablename__ = "lesson_app_diagnostics"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(Widget)
+
+    router = app.attach_diagnostics(app=app)
+
+    assert router is not None
+
+
+def test_app_diagnostics_attach_to_host_routes():
+    """Diagnostics routing should be attached to the host app."""
+
+    class Widget(Base, GUIDPk):
+        __tablename__ = "lesson_app_diagnostics_host"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(Widget)
+
+    router = app.attach_diagnostics(app=app)
+
+    assert router is not None
+    assert any(
+        route.path == f"{app.system_prefix}/healthz" for route in app.router.routes
+    )

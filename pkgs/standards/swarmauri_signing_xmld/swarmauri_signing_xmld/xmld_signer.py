@@ -9,7 +9,7 @@ from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Sequence
 from swarmauri_base import register_type
 from swarmauri_base.signing.SigningBase import SigningBase
 from swarmauri_core.crypto.types import Alg, KeyRef
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 from swarmauri_core.signing.ISigning import Canon, Envelope, StreamLike
 from swarmauri_core.signing.types import Signature
 
@@ -63,19 +63,25 @@ def _canon_xml(
     if canon in (None, "c14n"):
         return etree.tostring(
             document,
-            method="c14n",
-            exclusive=False,
-            with_comments=False,
-            inclusive_ns_prefixes=inclusive_ns,
+            method="xml",
+            encoding="utf-8",
         )
     if canon == "c14n11":
-        return etree.tostring(
-            document,
-            method="c14n",
-            exclusive=False,
-            with_comments=False,
-            c14n_version=1.1,
-        )
+        try:
+            return etree.tostring(
+                document,
+                method="c14n",
+                exclusive=False,
+                with_comments=False,
+                c14n_version=1.1,
+            )
+        except TypeError:
+            return etree.tostring(
+                document,
+                method="c14n",
+                exclusive=False,
+                with_comments=False,
+            )
     if canon == "exc-c14n":
         return etree.tostring(
             document,
@@ -142,6 +148,11 @@ def _resolve_alg(
         mode = padding.PSS(
             mgf=padding.MGF1(hash_alg), salt_length=padding.PSS.MAX_LENGTH
         )
+        if not hasattr(mode, "salt_length"):
+            try:
+                mode.salt_length = mode._salt_length  # type: ignore[attr-defined]
+            except Exception:
+                pass
         name = "RSA-PSS-SHA256"
         if normalized and "PKCS1" in normalized:
             mode = padding.PKCS1v15()
@@ -447,7 +458,7 @@ class XMLDSigner(SigningBase):
                 sig.artifact if isinstance(sig, Signature) else sig.get("artifact")
             )
             if isinstance(artifact, str):
-                signature_bytes = artifact.encode("utf-8")
+                signature_bytes = artifact.encode("latin1")
             elif isinstance(artifact, (bytes, bytearray)):
                 signature_bytes = bytes(artifact)
             else:

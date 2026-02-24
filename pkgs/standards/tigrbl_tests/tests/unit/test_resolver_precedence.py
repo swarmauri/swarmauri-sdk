@@ -1,0 +1,58 @@
+from types import SimpleNamespace
+
+from tigrbl.engine.shortcuts import mem, pga, pgs, prov, sqlitef
+from tigrbl.engine import resolver
+
+
+def test_precedence_op_over_model_over_router_over_app(tmp_path):
+    # Build four distinct Providers to track identity
+    _app_prov = prov(sqlitef(str(tmp_path / "app.sqlite")))
+    _router_prov = prov(pgs(host="db", name="router_db"))
+    _model_prov = prov(mem(async_=False))
+    _op_prov = prov(pga(host="db", name="op_db"))
+
+    # Fake “router” and “model” identities
+    router = SimpleNamespace()
+
+    class Model:
+        __name__ = "Model"
+
+    # Register in resolver
+    resolver.set_default(sqlitef(str(tmp_path / "app.sqlite")))
+<<<<<<< HEAD
+    resolver.register_router(
+        router, {"kind": "postgres", "async": False, "host": "db", "db": "router_db"}
+=======
+    resolver.register_api(
+        router, {"kind": "postgres", "async": False, "host": "db", "db": "api_db"}
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+    )
+    resolver.register_table(Model, {"kind": "sqlite", "async": False, "mode": "memory"})
+    resolver.register_op(
+        Model,
+        "create",
+        {"kind": "postgres", "async": True, "host": "db", "db": "op_db"},
+    )
+
+    # Resolve each level
+    p_app = resolver.resolve_provider()
+<<<<<<< HEAD
+    p_router = resolver.resolve_provider(router=router)
+=======
+    p_api = resolver.resolve_provider(router=router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+    p_model = resolver.resolve_provider(model=Model)
+    p_op = resolver.resolve_provider(model=Model, op_alias="create")
+
+    # Each level should resolve to a different provider with expected sync/async kind
+    assert p_app is not None and p_app.kind == "sync"
+    assert p_router is not None and p_router is not p_app and p_router.kind == "sync"
+    assert p_model is not None and p_model is not p_router and p_model.kind == "sync"
+    assert p_op is not None and p_op is not p_model and p_op.kind == "async"
+
+    # Also test acquire() end-to-end
+    db, release = resolver.acquire(model=Model, op_alias="create")
+    try:
+        assert db is not None
+    finally:
+        release()

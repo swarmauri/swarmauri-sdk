@@ -5,22 +5,19 @@ import surface stable while easing maintenance.
 """
 
 from __future__ import annotations
+
 import logging
+from typing import Any
 
 from pydantic import BaseModel
 
-from .fastapi import (
-    Body,
-    Depends,
-    HTTPException,
-    Path,
-    Query,
-    Request,
-    Response,
-    Router,
-    Security,
-    _status,
-)
+from ...router._router import Router
+from ...core.crud.params import Body, Path, Query
+from ...responses import Response
+from ...runtime.status.exceptions import HTTPException
+from ...runtime.status.mappings import status as _status
+from ...security.dependencies import Depends, Security
+from ...requests import Request
 from .helpers import (
     _Key,
     _coerce_parent_kw,
@@ -44,7 +41,6 @@ from .routing import (
     _RESPONSES_META,
     _default_path_suffix,
     _normalize_deps,
-    _normalize_secdeps,
     _path_for_spec,
     _request_model_for,
     _response_model_for,
@@ -65,6 +61,22 @@ from ...schema.builder import _strip_parent_fields
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/common")
+
+
+def _is_http_response(obj: Any) -> bool:
+    """Best-effort response detection across Tigrbl and Starlette response types."""
+    if isinstance(obj, Response):
+        return True
+    return (
+        hasattr(obj, "status_code")
+        and hasattr(obj, "headers")
+        and (
+            hasattr(obj, "body")
+            or hasattr(obj, "body_iterator")
+            or hasattr(obj, "render")
+        )
+    )
+
 
 __all__ = [
     "Body",
@@ -98,6 +110,7 @@ __all__ = [
     "_pk_names",
     "_get_phase_chains",
     "_coerce_parent_kw",
+    "_is_http_response",
     "_serialize_output",
     "_validate_body",
     "_validate_query",
@@ -105,7 +118,6 @@ __all__ = [
     "_make_list_query_dep",
     "_optionalize_list_in_model",
     "_normalize_deps",
-    "_normalize_secdeps",
     "_status_for",
     "_RESPONSES_META",
     "_DEFAULT_METHODS",

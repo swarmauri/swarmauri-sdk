@@ -17,11 +17,11 @@ pip install tigrbl-spiffe
 ## Quickstart
 
 ```python
-from tigrbl import App
+from tigrbl import TigrblApp
 from tigrbl_spiffe.plugin import TigrblSpiffePlugin
 from tigrbl_spiffe.adapters import Endpoint
 
-app = App()
+app = TigrblApp()
 
 plugin = TigrblSpiffePlugin(
     workload_endpoint=Endpoint(scheme="uds", address="unix:///tmp/spire-agent/public/api.sock"),

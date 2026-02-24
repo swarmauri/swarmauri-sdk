@@ -1,24 +1,5 @@
-"""Hook specification for Tigrbl v3."""
+"""Backwards-compatible hook spec import path."""
 
-from __future__ import annotations
-
-from dataclasses import dataclass
-from typing import Optional
-
-from .types import HookPhase, StepFn, HookPredicate
-
-
-@dataclass(frozen=True, slots=True)
-class HookSpec:
-    phase: HookPhase
-    fn: StepFn
-    order: int = 0
-    when: Optional[HookPredicate] = None
-    name: Optional[str] = None
-    description: Optional[str] = None
-
-
-# Backwards compatibility alias
-OpHook = HookSpec
+from ..specs.hook_spec import HookSpec, OpHook
 
 __all__ = ["HookSpec", "OpHook"]

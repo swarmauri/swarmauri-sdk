@@ -6,7 +6,7 @@ from typing import Iterable, Mapping, Optional
 import jwt
 
 from swarmauri_core.crypto.types import JWAAlg
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 
 
 class JWTTokenService:

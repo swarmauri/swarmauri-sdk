@@ -16,42 +16,41 @@ from typing import (
 )
 
 from .common import (
-    TIGRBL_AUTH_CONTEXT_ATTR,
     BaseModel,
     Body,
     Depends,
-    Response,
     OpSpec,
     Path,
     Request,
     _coerce_parent_kw,
-    _get_phase_chains,
+    _is_http_response,
     _make_list_query_dep,
     _request_model_for,
     _serialize_output,
     _validate_body,
     _validate_query,
-    _executor,
     _status_for,
 )
 
 from .io_headers import _make_header_dep
 
-from ...runtime.executor.types import _Ctx
+from ...transport.dispatch import dispatch_operation
 
 
 logging.getLogger("uvicorn").debug("Loaded module v3/bindings/rest/collection")
 
 
-def _ctx(model, alias, target, request, db, payload, parent_kw, api):
+<<<<<<< HEAD
+=======
+def _ctx(model, alias, target, request, db, payload, parent_kw, router):
     ctx: Dict[str, Any] = {
         "request": request,
         "db": db,
         "payload": payload,
         "path_params": parent_kw,
-        # expose both API router and FastAPI app; runtime opview resolution
+        # expose both API router and ASGI app; runtime opview resolution
         # relies on the app object, which must be hashable.
-        "api": api if api is not None else getattr(request, "app", None),
+        "router": router if router is not None else getattr(request, "app", None),
         "app": getattr(request, "app", None),
         "model": model,
         "op": alias,
@@ -67,6 +66,7 @@ def _ctx(model, alias, target, request, db, payload, parent_kw, api):
     return _Ctx(ctx)
 
 
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 def _sig(nested_vars, extra):
     params = [
         inspect.Parameter(
@@ -101,7 +101,7 @@ def _make_collection_endpoint(
     resource: str,
     db_dep: Callable[..., Any],
     nested_vars: Sequence[str] | None = None,
-    api: Any | None = None,
+    router: Any | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias, target, nested_vars = sp.alias, sp.target, list(nested_vars or [])
     status_code = _status_for(sp)
@@ -126,15 +126,29 @@ def _make_collection_endpoint(
                 payload = dict(parent_kw)
             if isinstance(h, Mapping):
                 payload = {**payload, **dict(h)}
-            ctx = _ctx(model, alias, target, request, db, payload, parent_kw, api)
+<<<<<<< HEAD
+            result = await dispatch_operation(
+                router=router,
+                request=request,
+                db=db,
+=======
+            ctx = _ctx(model, alias, target, request, db, payload, parent_kw, router)
             ctx["response_serializer"] = lambda r: _serialize_output(
                 model, alias, target, sp, r
             )
-            phases = _get_phase_chains(model, alias)
-            result = await _executor._invoke(
-                request=request, db=db, phases=phases, ctx=ctx
+            result = await dispatch_operation(
+                router=router,
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+                model_or_name=model,
+                alias=alias,
+                target=target,
+                payload=payload,
+                path_params=parent_kw,
+                response_serializer=lambda r: _serialize_output(
+                    model, alias, target, sp, r
+                ),
             )
-            if isinstance(result, Response):
+            if _is_http_response(result):
                 if sp.status_code is not None or result.status_code == 200:
                     result.status_code = status_code
                 return result
@@ -178,7 +192,90 @@ def _make_collection_endpoint(
         _endpoint.__signature__ = inspect.Signature(params)
     else:
         body_model = _request_model_for(sp, model)
+        if body_model is None and sp.request_model is None and target == "custom":
+
+            async def _endpoint(
+                request: Request,
+                db: Any = Depends(db_dep),
+                h: Mapping[str, Any] = Depends(hdr_dep),
+                **kw: Any,
+            ):
+                parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+                _coerce_parent_kw(model, parent_kw)
+                payload: Mapping[str, Any] = dict(parent_kw)
+                if isinstance(h, Mapping):
+                    payload = {**payload, **dict(h)}
+<<<<<<< HEAD
+                seed_ctx: Dict[str, Any] = {}
+=======
+                ctx = _ctx(
+                    model, alias, target, request, db, payload, parent_kw, router
+                )
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+
+                def _serializer(r, _ctx=seed_ctx):
+                    out = _serialize_output(model, alias, target, sp, r)
+                    temp = _ctx.get("temp", {}) if isinstance(_ctx, Mapping) else {}
+                    extras = (
+                        temp.get("response_extras", {})
+                        if isinstance(temp, Mapping)
+                        else {}
+                    )
+                    if isinstance(out, dict) and isinstance(extras, dict):
+                        out.update(extras)
+                    return out
+
+                result = await dispatch_operation(
+                    router=router,
+<<<<<<< HEAD
+                    request=request,
+                    db=db,
+=======
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+                    model_or_name=model,
+                    alias=alias,
+                    target=target,
+                    payload=payload,
+                    path_params=parent_kw,
+                    seed_ctx=seed_ctx,
+                    response_serializer=_serializer,
+                )
+                return result
+
+            _endpoint.__signature__ = _sig(
+                nested_vars,
+                [
+                    inspect.Parameter(
+                        "request",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Request,
+                    ),
+                    inspect.Parameter(
+                        "db",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[Any, Depends(db_dep)],
+                    ),
+                    inspect.Parameter(
+                        "h",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
+                    ),
+                ],
+            )
+            _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
+            _endpoint.__qualname__ = _endpoint.__name__
+            _endpoint.__doc__ = (
+                f"REST collection endpoint for {model.__name__}.{alias} ({target})"
+            )
+            return _endpoint
+
         base = body_model or Mapping[str, Any]
+        body_required = target in {
+            "create",
+            "update",
+            "replace",
+            "merge",
+        } or target.startswith("bulk_")
         if target.startswith("bulk_"):
             alias_ns = getattr(
                 getattr(model, "schemas", None) or SimpleNamespace(), alias, None
@@ -197,13 +294,13 @@ def _make_collection_endpoint(
                 _list_ann(Mapping[str, Any]),
             )
         else:
-            body_annotation = base
+            body_annotation = _union(base, type(None)) if not body_required else base
 
         async def _endpoint(
             request: Request,
             db: Any = Depends(db_dep),
             h: Mapping[str, Any] = Depends(hdr_dep),
-            body=Body(...),
+            body=None,
             **kw: Any,
         ):
             parent_kw = {k: kw[k] for k in nested_vars if k in kw}
@@ -226,13 +323,17 @@ def _make_collection_endpoint(
                     payload = {**payload, **parent_kw}
                 else:
                     payload = [{**dict(item), **parent_kw} for item in payload]
+<<<<<<< HEAD
+            seed_ctx: Dict[str, Any] = {}
+=======
             ctx = _ctx(
-                model, exec_alias, exec_target, request, db, payload, parent_kw, api
+                model, exec_alias, exec_target, request, db, payload, parent_kw, router
             )
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
-            def _serializer(r, _ctx=ctx):
+            def _serializer(r, _ctx=seed_ctx):
                 out = _serialize_output(model, exec_alias, exec_target, sp, r)
-                temp = getattr(_ctx, "temp", {}) if isinstance(_ctx, Mapping) else {}
+                temp = _ctx.get("temp", {}) if isinstance(_ctx, Mapping) else {}
                 extras = (
                     temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
                 )
@@ -240,17 +341,28 @@ def _make_collection_endpoint(
                     out.update(extras)
                 return out
 
-            ctx["response_serializer"] = _serializer
-            phases = _get_phase_chains(model, exec_alias)
-            result = await _executor._invoke(
-                request=request, db=db, phases=phases, ctx=ctx
+            result = await dispatch_operation(
+                router=router,
+<<<<<<< HEAD
+                request=request,
+                db=db,
+=======
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+                model_or_name=model,
+                alias=exec_alias,
+                target=exec_target,
+                payload=payload,
+                path_params=parent_kw,
+                seed_ctx=seed_ctx,
+                response_serializer=_serializer,
             )
-            if isinstance(result, Response):
+            if _is_http_response(result):
                 if sp.status_code is not None or result.status_code == 200:
                     result.status_code = status_code
                 return result
             return result
 
+        body_default = ... if body_required else None
         _endpoint.__signature__ = _sig(
             nested_vars,
             [
@@ -272,7 +384,8 @@ def _make_collection_endpoint(
                 inspect.Parameter(
                     "body",
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    annotation=Annotated[body_annotation, Body(...)],
+                    annotation=Annotated[body_annotation, Body()],
+                    default=body_default,
                 ),
             ],
         )

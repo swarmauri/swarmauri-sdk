@@ -14,7 +14,6 @@ from typing import BinaryIO, Optional
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.storage import StorageAdapterBase
 
-from peagen._utils.config_loader import load_peagen_toml
 from github import Github, UnknownObjectException
 
 
@@ -144,27 +143,40 @@ class GithubReleaseStorageAdapter(StorageAdapterBase):
     def download_dir(self, prefix: str, dest_dir: str | os.PathLike) -> None:
         """Download all assets under *prefix* into *dest_dir*."""
         dest = Path(dest_dir)
+        base = prefix.strip("/")
         for rel_key in self.iter_prefix(prefix):
-            target = dest / rel_key
+            rel = rel_key
+            if base:
+                rel = (
+                    rel_key[len(base) :].lstrip("/")
+                    if rel_key.startswith(base)
+                    else rel
+                )
+            if not rel:
+                continue
+            target = dest / rel
             target.parent.mkdir(parents=True, exist_ok=True)
             data = self.download(rel_key)
             with target.open("wb") as fh:
                 shutil.copyfileobj(data, fh)
 
+    async def remove_object(self, object_key: str) -> None:
+        """Delete an asset when present in the release."""
+        key = self._full_key(object_key)
+        for asset in self._release.get_assets():
+            if asset.name == key:
+                asset.delete_asset()
+                return
+
     # --------------------------------------------------------------------- class
     @classmethod
-    def from_uri(cls, uri: str) -> "GithubReleaseStorageAdapter":
+    def from_uri(cls, uri: str, token) -> "GithubReleaseStorageAdapter":
         from urllib.parse import urlparse
 
         p = urlparse(uri)
         org = p.netloc
         repo, tag, *rest = p.path.lstrip("/").split("/", 2)
         prefix = rest[0] if rest else ""
-
-        cfg = load_peagen_toml()
-        gh_cfg = cfg.get("storage", {}).get("adapters", {}).get("gh_release", {})
-
-        token = gh_cfg.get("token") or os.getenv("GITHUB_TOKEN", "")
 
         return cls(
             token=token,

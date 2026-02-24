@@ -31,7 +31,7 @@ from .fastapi import (
 from .sqlalchemy import IntegrityError, Select, select, or_, delete
 from .tigrbl import (
     TigrblApp,
-    TigrblApi,
+    TigrblRouter,
     op_ctx,
     hook_ctx,
     engine_ctx,
@@ -79,7 +79,7 @@ from swarmauri_signing_ed25519 import Ed25519EnvelopeSigner
 from swarmauri_signing_jws import JwsSignerVerifier
 from swarmauri_crypto_jwe import JweCrypto
 from swarmauri_core.crypto.types import JWAAlg, KeyUse, ExportPolicy
-from swarmauri_core.keys.types import KeyAlg, KeyClass, KeySpec
+from swarmauri_core.key_providers.types import KeyAlg, KeyClass, KeySpec
 
 __all__ = [
     # pydantic
@@ -114,7 +114,7 @@ __all__ = [
     "IntegrityError",
     # tigrbl
     "TigrblApp",
-    "TigrblApi",
+    "TigrblRouter",
     "op_ctx",
     "hook_ctx",
     "engine_ctx",

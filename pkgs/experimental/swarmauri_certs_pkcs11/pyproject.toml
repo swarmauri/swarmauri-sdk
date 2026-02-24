@@ -1,20 +1,18 @@
 [project]
 name = "swarmauri_certs_pkcs11"
-version = "0.3.0.dev8"
+version = "0.3.3.dev7"
 description = "PKCS#11-backed certificate service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["swarmauri_certs_pkcs11", "swarmauri", "experimental"]
 classifiers = [
+    "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Development Status :: 3 - Alpha",
-    "Topic :: Security :: Cryptography",
-    "Intended Audience :: Developers",
 ]
 dependencies = [
     "swarmauri_core",

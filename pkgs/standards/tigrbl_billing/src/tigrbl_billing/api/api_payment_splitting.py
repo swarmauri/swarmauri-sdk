@@ -2,22 +2,19 @@
 API for a specific billing strategy, built with tigrbl + tigrbl_billing.
 - Only tigrbl objects & patterns are used.
 - CRUD & upsert use tigrbl default verbs (create/update/replace/merge/delete/list).
-- Non-CRUD lifecycle ops are bound via @op_ctx(bind=...).
+- Non-CRUD lifecycle ops load decorated helpers from ``tigrbl_billing.ops`` on demand.
 """
 
-from tigrbl import TigrblApp, op_ctx
+from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import engine as build_engine, mem
 
 from tigrbl_billing.tables.split_rule import SplitRule
 from tigrbl_billing.tables.application_fee import ApplicationFee
-from tigrbl_billing.ops import refund_application_fee
 
+from tigrbl_billing import ops
 
-@op_ctx(
-    alias="refund_app_fee", target="custom", arity="collection", bind=ApplicationFee
-)
-def application_fee__refund(cls, ctx):
-    return refund_application_fee(ctx, None, None, **(ctx.get("payload") or {}))
+# Register the payment splitting helper required by this API.
+ops.refund_application_fee
 
 
 def build_app(async_mode: bool = True) -> TigrblApp:

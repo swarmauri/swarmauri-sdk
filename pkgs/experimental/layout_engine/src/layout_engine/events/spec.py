@@ -5,7 +5,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel
 
-Scope = Literal["site", "slot", "page", "grid", "tile", "component"]
+Scope = Literal["site", "slot", "page", "grid", "tile", "atom"]
 
 
 def utc_now_iso() -> str:
@@ -23,6 +23,7 @@ class EventEnvelope(BaseModel):
     request_id: str
     target: dict[str, Any] | None
     payload: dict[str, Any] | None
+    channel: str | None = None
 
 
 # Optional server responses

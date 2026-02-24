@@ -5,6 +5,7 @@ from tigrbl_acme_ca.tables.certificates import Certificate
 
 from fastapi import HTTPException
 
+
 def _h(ctx, name: str):
     handlers = ctx.get("handlers") or {}
     fn = handlers.get(name)
@@ -12,11 +13,14 @@ def _h(ctx, name: str):
         raise HTTPException(status_code=500, detail=f"handler_unavailable:{name}")
     return fn
 
+
 def _id(obj):
     return obj.get("id") if isinstance(obj, dict) else getattr(obj, "id", None)
 
+
 def _field(obj, name: str):
     return obj.get(name) if isinstance(obj, dict) else getattr(obj, name, None)
+
 
 @hook_ctx(ops=("finalize",), phase="POST_COMMIT")
 async def _publish_to_ct(cls, ctx):

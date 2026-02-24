@@ -2,11 +2,12 @@
 
 import pytest
 import pytest_asyncio
-from fastapi import FastAPI, status
+from fastapi import status
 from httpx import ASGITransport, AsyncClient, BasicAuth
 from unittest.mock import AsyncMock
 
 from tigrbl_auth.fastapi_deps import get_db
+from tigrbl_auth.deps import TigrblApp
 from tigrbl_auth.routers.auth_flows import router
 from tigrbl_auth.runtime_cfg import settings
 from tigrbl_auth.orm import Client
@@ -35,9 +36,9 @@ async def _override_db():
 
 @pytest_asyncio.fixture()
 async def client(monkeypatch):
-    app = FastAPI()
+    app = TigrblApp()
     app.include_router(router)
-    app.dependency_overrides[get_db] = _override_db
+    app.router.dependency_overrides[get_db] = _override_db
     monkeypatch.setattr(
         Client.handlers.read,
         "core",

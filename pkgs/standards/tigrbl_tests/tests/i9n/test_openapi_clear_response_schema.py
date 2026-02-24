@@ -1,0 +1,41 @@
+import pytest
+from httpx import ASGITransport, AsyncClient
+
+from tigrbl import TigrblApp, TigrblRouter
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.tables import Base
+from tigrbl.types import Column, String
+
+
+@pytest.mark.asyncio()
+async def test_openapi_clear_response_schema() -> None:
+    Base.metadata.clear()
+
+    class Widget(Base, GUIDPk):
+        __tablename__ = "widgets_openapi_clear"
+        name = Column(String, nullable=False)
+
+    app = TigrblApp()
+<<<<<<< HEAD
+    router = TigrblRouter()
+    app.include_table(Widget)
+    app.include_router(router)
+=======
+    router = TigrblApp()
+    router.include_model(Widget)
+    app.include_router(router.router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        spec = (await client.get("/openapi.json")).json()
+
+    path = f"/{Widget.__name__.lower()}"
+    schema_ref = spec["paths"][path]["delete"]["responses"]["200"]["content"][
+        "application/json"
+    ]["schema"]["$ref"]
+    assert schema_ref.endswith("WidgetClearResponse")
+    comp = spec["components"]["schemas"]["WidgetClearResponse"]
+    assert "deleted" in comp.get("properties", {})
+    assert comp.get("examples") == [{"deleted": 0}]

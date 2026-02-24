@@ -11,11 +11,14 @@ except Exception:  # pragma: no cover
     rsa = None
     ec = None
 
+
 @dataclass
 class KeyProvider:
     """Abstract provider for an issuer private key."""
+
     def private_key(self) -> Any:  # should return a cryptography key object
         raise NotImplementedError
+
 
 class FileKeyProvider(KeyProvider):
     def __init__(self, path: str, password: Optional[str] = None):
@@ -28,12 +31,14 @@ class FileKeyProvider(KeyProvider):
         data = open(self.path, "rb").read()
         return serialization.load_pem_private_key(data, password=self.password)
 
+
 class KmsKeyProvider(KeyProvider):
     """Stub KMS provider: expose as a cryptography-like adapter if available.
 
     NOTE: Real KMS integration would implement a sign() adapter to match the
     AsymmetricPrivateKey interface so x509 builder can call .sign().
     """
+
     def __init__(self, key_id: str, region: Optional[str] = None):
         self.key_id = key_id
         self.region = region

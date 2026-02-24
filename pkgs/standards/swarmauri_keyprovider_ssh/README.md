@@ -49,7 +49,7 @@ exports its public component as a JSON Web Key (JWK):
 ```python
 import asyncio
 from swarmauri_keyprovider_ssh import SshKeyProvider
-from swarmauri_core.keys.types import (
+from swarmauri_core.key_providers.types import (
     KeySpec,
     KeyAlg,
     KeyClass,

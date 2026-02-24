@@ -14,7 +14,7 @@ DB = engine("sqlite+aiosqlite:///./app.db")
 app = TigrblApp(engine=DB)
 ```
 
-Use `DB.get_db` as the FastAPI dependency for acquiring sessions and avoid
+Use `DB.get_db` as the framework dependency for acquiring sessions and avoid
 exporting custom `get_async_db` helpers.
 
 These rules apply to all first-party applications, including
@@ -86,7 +86,7 @@ Some objects also expose optional helpers:
 | Column | `column_spec.py` | `_column.py` | — | `shortcuts.py` | `collect.py` | — | — |
 | Engine | `engine_spec.py` | `_engine.py` | `decorators.py` | `shortcuts.py` | `collect.py` | `resolver.py` | `builders.py` |
 | Op | `types.py` | `_op.py` | `decorators.py` | — | `collect.py` | — | — |
-| API | `api_spec.py` | `_api.py` | — | `shortcuts.py` | — | — | — |
+| API | `router_spec.py` | `_api.py` | — | `shortcuts.py` | — | — | — |
 | App | `app_spec.py` | `_app.py` | — | `shortcuts.py` | — | — | — |
 | Table | `table_spec.py` | `_table.py` | — | `shortcuts.py` | — | — | — |
 

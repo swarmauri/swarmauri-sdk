@@ -20,6 +20,8 @@ from tigrbl.types import (
     UUID,
 )
 
+from ._mixins.extref import StripeExtRef
+
 
 class PaymentIntentStatus(Enum):
     REQUIRES_PAYMENT_METHOD = "requires_payment_method"
@@ -36,16 +38,17 @@ class CaptureMethod(Enum):
     MANUAL = "manual"
 
 
-class PaymentIntent(Base, GUIDPk, Timestamped):
+class PaymentIntent(Base, GUIDPk, Timestamped, StripeExtRef):
     __tablename__ = "payment_intents"
 
-    stripe_payment_intent_id: Mapped[str | None] = acol(
+    external_id: Mapped[str | None] = acol(
         storage=S(type_=String, nullable=True),
         field=F(py_type=str | None, constraints={"examples": ["pi_123"]}),
         io=IO(
             in_verbs=("create", "update", "replace", "merge"),
             out_verbs=("read", "list"),
         ),
+        name="stripe_payment_intent_id",
     )
 
     customer_id: Mapped[UUID | None] = acol(

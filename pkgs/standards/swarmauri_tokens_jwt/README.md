@@ -40,7 +40,7 @@ uv pip install swarmauri_tokens_jwt
 
 ## Features
 
-- Mint and verify JWS/JWT tokens backed by any :class:`~swarmauri_core.keys.IKeyProvider`
+- Mint and verify JWS/JWT tokens backed by any :class:`~swarmauri_core.key_providers.IKeyProvider`
 - Supports algorithms like **HS256**, **RS256**, **ES256**, **PS256** and **EdDSA**
 - Adds standard temporal claims (`iat`, `nbf`, and optional `exp`) plus issuer,
   subject, audience and scope defaults when minting tokens
@@ -60,7 +60,7 @@ token using a minimal in-memory key provider.
 import asyncio
 import base64
 from swarmauri_tokens_jwt import JWTTokenService
-from swarmauri_core.keys import (
+from swarmauri_core.key_providers import (
     ExportPolicy,
     IKeyProvider,
     KeyRef,

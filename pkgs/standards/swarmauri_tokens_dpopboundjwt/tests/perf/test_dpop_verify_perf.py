@@ -15,7 +15,7 @@ from swarmauri_core.crypto.types import (
     KeyType,
     KeyUse,
 )
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 
 from swarmauri_tokens_dpopboundjwt import DPoPBoundJWTTokenService
 

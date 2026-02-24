@@ -11,9 +11,10 @@ omitted from the response.
 
 from __future__ import annotations
 
+import inspect
+
 from tigrbl_auth.deps import (
-    Depends,
-    TigrblApi,
+    TigrblRouter,
     TigrblApp,
     HTTPException,
     Request,
@@ -27,14 +28,27 @@ from .orm import User
 from .rfc.rfc6750 import extract_bearer_token
 from .deps import JWAAlg
 
-api = TigrblApi()
+api = TigrblRouter()
 router = api
 
 
-@api.get("/userinfo", response_model=None)
-async def userinfo(
-    request: Request, user: User = Depends(get_current_principal)
-) -> Response | dict[str, str]:
+async def _resolve_current_user(request: Request) -> User:
+    """Resolve the current principal, honoring app dependency overrides."""
+
+    overrides = getattr(getattr(request, "app", None), "dependency_overrides", {})
+    override = overrides.get(get_current_principal)
+    if override is not None:
+        try:
+            resolved = override(request)
+        except TypeError:
+            resolved = override()
+        return await resolved if inspect.isawaitable(resolved) else resolved
+
+    return await get_current_principal(request)
+
+
+@api.route("/userinfo", methods=["GET"], response_model=None)
+async def userinfo(request: Request) -> Response | dict[str, str]:
     """Return claims about the authenticated user.
 
     The caller must present a valid access token in the ``Authorization``
@@ -44,7 +58,9 @@ async def userinfo(
     """
 
     token = await extract_bearer_token(
-        request, request.headers.get("Authorization", "")
+        request,
+        request.headers.get("Authorization")
+        or request.headers.get("authorization", ""),
     )
     if not token:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "missing access token")
@@ -55,6 +71,7 @@ async def userinfo(
             status.HTTP_401_UNAUTHORIZED, "invalid access token"
         ) from exc
     scopes: set[str] = set(payload.get("scope", "").split())
+    user = await _resolve_current_user(request)
 
     claims: dict[str, str] = {"sub": str(user.id)}
     if "profile" in scopes:
@@ -66,7 +83,9 @@ async def userinfo(
     if "phone" in scopes and getattr(user, "phone", None):
         claims["phone_number"] = getattr(user, "phone")
 
-    if "application/jwt" in request.headers.get("accept", ""):
+    if "application/jwt" in (
+        request.headers.get("Accept") or request.headers.get("accept", "")
+    ):
         svc, kid = _svc()
         token = await svc.mint(claims, alg=JWAAlg.EDDSA, kid=kid)
         return Response(content=token, media_type="application/jwt")
@@ -82,7 +101,11 @@ async def userinfo(
 def include_oidc_userinfo(app: TigrblApp) -> None:
     """Attach the UserInfo endpoint to *app* if not already present."""
 
-    if not any(route.path == "/userinfo" for route in app.routes):
+    if not any(
+        (getattr(route, "path", None) or getattr(route, "path_template", None))
+        == "/userinfo"
+        for route in app.router.routes
+    ):
         app.include_router(api)
 
 

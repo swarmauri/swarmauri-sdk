@@ -6,7 +6,6 @@ from fastapi import HTTPException
 from tigrbl_acme_ca.tables.revocations import Revocation
 from tigrbl_acme_ca.tables.certificates import Certificate
 
-from fastapi import HTTPException
 
 def _h(ctx, name: str):
     handlers = ctx.get("handlers") or {}
@@ -15,11 +14,14 @@ def _h(ctx, name: str):
         raise HTTPException(status_code=500, detail=f"handler_unavailable:{name}")
     return fn
 
+
 def _id(obj):
     return obj.get("id") if isinstance(obj, dict) else getattr(obj, "id", None)
 
+
 def _field(obj, name: str):
     return obj.get(name) if isinstance(obj, dict) else getattr(obj, name, None)
+
 
 async def revoke(ctx) -> Dict[str, Any]:
     p = ctx.get("payload") or {}
@@ -32,15 +34,29 @@ async def revoke(ctx) -> Dict[str, Any]:
     if not certificate_id:
         serial_hex = p.get("serial_hex")
         if not serial_hex:
-            raise HTTPException(status_code=400, detail="missing_certificate_id_or_serial")
+            raise HTTPException(
+                status_code=400, detail="missing_certificate_id_or_serial"
+            )
         cert = await read_one(table=Certificate, where={"serial_hex": serial_hex})
         if not cert:
             raise HTTPException(status_code=404, detail="certificate_not_found")
         certificate_id = _id(cert)
 
-    existing = await read_one(table=Revocation, where={"certificate_id": certificate_id})
+    existing = await read_one(
+        table=Revocation, where={"certificate_id": certificate_id}
+    )
     if existing:
-        return {"revocation_id": str(_id(existing)), "certificate_id": str(certificate_id)}
+        return {
+            "revocation_id": str(_id(existing)),
+            "certificate_id": str(certificate_id),
+        }
 
-    rec = await create(table=Revocation, values={"certificate_id": certificate_id, "reason": reason, "revoked_at": datetime.now(timezone.utc)})
+    rec = await create(
+        table=Revocation,
+        values={
+            "certificate_id": certificate_id,
+            "reason": reason,
+            "revoked_at": datetime.now(timezone.utc),
+        },
+    )
     return {"certificate_id": str(certificate_id), "revocation_id": str(_id(rec))}

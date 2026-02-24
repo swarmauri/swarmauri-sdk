@@ -51,7 +51,7 @@ uv add swarmauri_keyprovider_vaulttransit
 
 ```python
 import asyncio
-from swarmauri_core.keys.types import KeyAlg, KeySpec, ExportPolicy
+from swarmauri_core.key_providers.types import KeyAlg, KeySpec, ExportPolicy
 from swarmauri_keyprovider_vaulttransit import VaultTransitKeyProvider
 
 

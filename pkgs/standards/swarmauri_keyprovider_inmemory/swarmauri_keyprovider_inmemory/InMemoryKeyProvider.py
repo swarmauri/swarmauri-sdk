@@ -7,9 +7,9 @@ import secrets
 import hashlib
 import hmac
 
-from swarmauri_base.keys.KeyProviderBase import KeyProviderBase
+from swarmauri_base.key_providers.KeyProviderBase import KeyProviderBase
 from swarmauri_core.crypto.types import KeyRef, KeyType, ExportPolicy
-from swarmauri_core.keys.types import KeySpec, KeyClass
+from swarmauri_core.key_providers.types import KeySpec, KeyClass
 
 
 class InMemoryKeyProvider(KeyProviderBase):

@@ -1,5 +1,6 @@
 from fastapi import (
     APIRouter,
+    Body,
     FastAPI,
     HTTPException,
     Request,
@@ -15,6 +16,7 @@ from fastapi.security import APIKeyHeader
 
 __all__ = [
     "APIRouter",
+    "Body",
     "FastAPI",
     "HTTPException",
     "Request",

@@ -199,11 +199,11 @@ def test_rpc_call_success_combinations(status_code, error_code):
 
     expected = {"ok": True}
     if status_code and error_code:
-        assert result == (expected, 200, None)
+        assert result == (expected, 200, 0)
     elif status_code:
         assert result == (expected, 200)
     elif error_code:
-        assert result == (expected, None)
+        assert result == (expected, 0)
     else:
         assert result == expected
 

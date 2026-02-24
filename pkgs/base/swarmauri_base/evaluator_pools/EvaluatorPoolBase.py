@@ -42,8 +42,8 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
         self.evaluators = {}
         self.lock = threading.RLock()
         self.executor = None
-        self.aggregation_func = (
-            lambda scores: sum(scores) / len(scores) if scores else 0.0
+        self.aggregation_func = lambda scores: (
+            sum(scores) / len(scores) if scores else 0.0
         )
 
     def initialize(self) -> None:

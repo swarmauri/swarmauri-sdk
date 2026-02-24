@@ -1,13 +1,21 @@
 from __future__ import annotations
 
-from typing import Optional, Tuple, Any
+from typing import Optional, Any
+
 
 class SvidValidator:
     """Pluggable SVID validator.
     Keep it independent from kernel atoms; use only ctx extras and provided trust bundles.
     """
 
-    async def validate(self, *, kind: str, material: bytes, bundle_id: Optional[str], ctx: dict[str, Any]) -> None:
+    async def validate(
+        self,
+        *,
+        kind: str,
+        material: bytes,
+        bundle_id: Optional[str],
+        ctx: dict[str, Any],
+    ) -> None:
         # NOTE: This is a lightweight placeholder that enforces type/shape and defers strict cryptographic checks
         # to downstream deployments (e.g., via specialized middleware/hook).
         if kind not in {"x509", "jwt", "cwt"}:

@@ -1,18 +1,26 @@
 from __future__ import annotations
 
-import base64, json, hashlib
-from typing import Any, Dict, Optional
+import base64
+import json
+import hashlib
+from typing import Any, Dict
+
 
 def _b64url_to_bytes(data: str) -> bytes:
-    pad = '=' * (-len(data) % 4)
+    pad = "=" * (-len(data) % 4)
     return base64.urlsafe_b64decode(data + pad)
+
 
 def _b64url(data: bytes) -> str:
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
 
+
 def _canonical_json(obj: Dict[str, Any]) -> bytes:
     # RFC 7638: lexicographic, separators without spaces, ensure_ascii True
-    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("ascii")
+    return json.dumps(
+        obj, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+    ).encode("ascii")
+
 
 def jwk_thumbprint(jwk: Dict[str, Any]) -> str:
     """Compute RFC 7638 JWK thumbprint (SHA-256 of canonical JSON).
@@ -28,6 +36,7 @@ def jwk_thumbprint(jwk: Dict[str, Any]) -> str:
     digest = hashlib.sha256(_canonical_json(material)).digest()
     return _b64url(digest)
 
+
 def parse_acme_jws_from_body(body: bytes) -> Dict[str, Any]:
     """Parse an ACME JWS object (JSON with base64url fields) from HTTP body.
     Returns a dict with keys: protected (str), payload (str), signature (str), header (dict).
@@ -35,8 +44,14 @@ def parse_acme_jws_from_body(body: bytes) -> Dict[str, Any]:
     """
     try:
         obj = json.loads(body.decode("utf-8"))
-        protected = obj.get("protected"); payload = obj.get("payload"); signature = obj.get("signature")
-        if not (isinstance(protected, str) and isinstance(payload, str) and isinstance(signature, str)):
+        protected = obj.get("protected")
+        payload = obj.get("payload")
+        signature = obj.get("signature")
+        if not (
+            isinstance(protected, str)
+            and isinstance(payload, str)
+            and isinstance(signature, str)
+        ):
             raise ValueError("malformed_jws")
         header_raw = _b64url_to_bytes(protected)
         header = json.loads(header_raw.decode("utf-8"))
@@ -44,6 +59,7 @@ def parse_acme_jws_from_body(body: bytes) -> Dict[str, Any]:
         return obj
     except Exception as e:
         raise ValueError(f"malformed_jws:{e}")
+
 
 def populate_ctx_from_jws(ctx: Dict[str, Any], jws: Dict[str, Any]) -> None:
     """Populate the Tigrbl request ctx with ACME JWS fields.

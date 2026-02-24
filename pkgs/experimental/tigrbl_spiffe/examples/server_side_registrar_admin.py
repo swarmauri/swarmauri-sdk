@@ -3,6 +3,7 @@ from tigrbl_spiffe.plugin import TigrblSpiffePlugin
 from tigrbl_spiffe.adapters import Endpoint
 from tigrbl_spiffe.tables.registrar import Registrar
 
+
 async def main():
     plugin = TigrblSpiffePlugin(
         workload_endpoint=Endpoint(scheme="http", address="http://localhost:8080"),
@@ -22,18 +23,21 @@ async def main():
     ctx_merge = {
         **ctx,
         "path_params": {"id": "example-entry"},
-        "payload": {"data": {
-            "spiffe_id": "spiffe://example.org/ns/default/sa/demo",
-            "parent_id": "spiffe://example.org/spire/server",
-            "selectors": [["k8s", "ns:default"], ["k8s", "sa:demo"]],
-            "ttl_s": 600,
-        }},
+        "payload": {
+            "data": {
+                "spiffe_id": "spiffe://example.org/ns/default/sa/demo",
+                "parent_id": "spiffe://example.org/spire/server",
+                "selectors": [["k8s", "ns:default"], ["k8s", "sa:demo"]],
+                "ttl_s": 600,
+            }
+        },
     }
     try:
         merged = await Registrar.handlers.merge.raw(ctx_merge)
         print("server:merge entry ->", merged)
     except Exception as e:
         print("warn: merge requires server-side gateway or stubs:", e)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

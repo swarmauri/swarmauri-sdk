@@ -16,7 +16,15 @@ if settings.enable_rfc8628:
 
 
 def _require_tls(request: Request) -> None:
-    if settings.require_tls and request.url.scheme != "https":
+    scope = getattr(request, "scope", {})
+    scheme = scope.get("scheme") if isinstance(scope, dict) else None
+    if not scheme:
+        try:
+            url = request.url
+            scheme = url.scheme if hasattr(url, "scheme") else str(url).split(":", 1)[0]
+        except Exception:
+            scheme = "http"
+    if settings.require_tls and scheme != "https":
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "tls_required"})
 
 

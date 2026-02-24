@@ -26,12 +26,12 @@ def simple_functions() -> Dict[str, Callable]:
     """
     return {
         "f1": lambda x: x**2 if isinstance(x, (int, float)) else sum(x.values()),
-        "f2": lambda x: 2 * x**2
-        if isinstance(x, (int, float))
-        else 2 * sum(x.values()),
-        "f3": lambda x: x**3
-        if isinstance(x, (int, float))
-        else sum(v**2 for v in x.values()),
+        "f2": lambda x: (
+            2 * x**2 if isinstance(x, (int, float)) else 2 * sum(x.values())
+        ),
+        "f3": lambda x: (
+            x**3 if isinstance(x, (int, float)) else sum(v**2 for v in x.values())
+        ),
         "f4": lambda x: 0 if isinstance(x, (int, float)) else 0,
         "f5": lambda x: 1 if isinstance(x, (int, float)) else 1,
     }

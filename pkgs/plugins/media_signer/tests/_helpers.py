@@ -8,7 +8,7 @@ from typing import AsyncIterator, Callable
 
 from MediaSigner import MediaSigner
 from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyUse
-from swarmauri_core.keys.types import KeyAlg, KeyClass, KeySpec
+from swarmauri_core.key_providers.types import KeyAlg, KeyClass, KeySpec
 from swarmauri_keyprovider_inmemory import InMemoryKeyProvider
 
 CMS_FORMAT = "CMSSigner"

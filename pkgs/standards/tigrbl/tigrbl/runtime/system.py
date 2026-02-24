@@ -5,7 +5,7 @@ import logging
 import inspect
 from typing import Any, Callable, Dict, Mapping, MutableMapping, Optional, Tuple
 
-from . import errors as _err
+from . import status as _err
 from .executor.helpers import _in_tx, _is_async_db
 
 log = logging.getLogger(__name__)

@@ -4,9 +4,9 @@ import logging
 from dataclasses import dataclass
 from typing import Dict, Iterable, Literal, Mapping, Optional, Tuple
 
-from swarmauri_base.keys.KeyProviderBase import KeyProviderBase
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
-from swarmauri_core.keys.types import ExportPolicy, KeyAlg, KeyClass, KeySpec
+from swarmauri_base.key_providers.KeyProviderBase import KeyProviderBase
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.types import ExportPolicy, KeyAlg, KeyClass, KeySpec
 from swarmauri_core.crypto.types import KeyRef
 
 log = logging.getLogger(__name__)

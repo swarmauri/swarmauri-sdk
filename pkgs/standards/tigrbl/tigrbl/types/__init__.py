@@ -25,7 +25,6 @@ from ..deps.sqlalchemy import (
     ARRAY,
     PgEnum,
     JSONB,
-    _PgUUID,
     TSVECTOR,
     # ORM
     Mapped,
@@ -46,27 +45,23 @@ from ..deps.sqlalchemy import (
     StaticPool,
 )
 
+
 from ..deps.pydantic import (
     BaseModel,
     Field,
     ValidationError,
 )
 
-from ..deps.fastapi import (
-    APIRouter,
-    Router,
-    Security,
-    Depends,
-    Request,
-    Response,
-    Path,
-    Body,
-    HTTPException,
-    App,
-)
+from ..router._router import Router
+from ..core.crud.params import Body, Path
+from ..transport import Response
+from ..runtime.status.exceptions import HTTPException, StatusDetailError
+from ..security.dependencies import Depends, Security
+from ..transport import Request
 
 # ── Local Package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
+from .uuid import PgUUID, SqliteUUID
 from .authn_abc import AuthNProvider
 from .table_config_provider import TableConfigProvider
 from .nested_path_provider import NestedPathProvider
@@ -88,12 +83,6 @@ DateTime = _DateTime(timezone=False)
 TZDateTime = _DateTime(timezone=True)
 
 
-class PgUUID(_PgUUID):
-    @property
-    def hex(self):
-        return self.as_uuid.hex
-
-
 # ── Public Re-exports (Backwards Compatibility) ──────────────────────────
 __all__: list[str] = [
     # local
@@ -110,6 +99,8 @@ __all__: list[str] = [
     "list_request_extras_providers",
     "list_response_extras_providers",
     "OpConfigProvider",
+    # add ons
+    "SqliteUUID",
     # builtin types
     "MethodType",
     "SimpleNamespace",
@@ -160,15 +151,14 @@ __all__: list[str] = [
     "BaseModel",
     "Field",
     "ValidationError",
-    # fastapi support (from deps.fastapi)
+    # routing/dependency support (from deps)
     "Request",
     "Response",
-    "APIRouter",
     "Router",
-    "App",
     "Security",
     "Depends",
     "Path",
     "Body",
     "HTTPException",
+    "StatusDetailError",
 ]

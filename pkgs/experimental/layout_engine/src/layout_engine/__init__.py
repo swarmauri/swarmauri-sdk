@@ -12,27 +12,36 @@ This package provides:
   • Targets: WebGUI SSR shell helpers and Media exporters (HTML/SVG/PDF/Code)
 
 Ergonomics:
-  • quick_view_model_from_table(...) — authoring DSL → view-model (with optional components registry)
+  • quick_view_model_from_table(...) — authoring DSL → view-model (with optional atoms registry)
   • quick_manifest_from_table(...)  — authoring DSL → manifest
 """
 
 __version__ = "0.1.0"
 
 # ---- Core ----
-from .core.size import Size, SizeToken, DEFAULT_TOKEN_WEIGHTS
-from .core.viewport import Viewport
-from .core.frame import Frame
+from .core import (
+    Size,
+    SizeToken,
+    DEFAULT_TOKEN_WEIGHTS,
+    Viewport,
+    Frame,
+    SWISS_GRID_COLUMNS,
+    SWISS_GRID_GUTTERS,
+    SWISS_BASELINE_UNITS,
+    DEFAULT_BASELINE_MULTIPLIER,
+    resolve_grid_tokens,
+)
 
 # ---- Tiles ----
 from .tiles import TileSpec, Tile, tile_spec, make_tile
 
-# ---- Components ----
-from .components import (
-    ComponentSpec,
-    ComponentRegistry,
-    define_component,
-    use_component,
-    apply_defaults,
+# ---- Atoms ----
+from .atoms import (
+    AtomSpec,
+    AtomRegistry,
+    define_atom,
+    use_atom,
+    apply_atom_defaults,
 )
 
 # ---- Grid ----
@@ -64,6 +73,13 @@ from .structure import (
     gridify,
 )
 
+# ---- Authoring helpers ----
+from .authoring import (
+    register_swarma_atoms,
+    grid_token_snapshot,
+    build_site_manifest,
+)
+
 # ---- Compile ----
 from .compile import (
     LayoutCompiler,
@@ -76,6 +92,9 @@ from .compile import (
 
 # ---- Manifest ----
 from .manifest import (
+    ChannelManifest,
+    WsRouteManifest,
+    SiteManifest,
     Manifest,
     ManifestBuilder,
     build_manifest,
@@ -149,7 +168,7 @@ from .targets import (
 
 
 def quick_view_model_from_table(
-    tbl, vp: Viewport, tiles, *, row_height: int = 180, components_registry=None
+    tbl, vp: Viewport, tiles, *, row_height: int = 180, atoms_registry=None
 ) -> dict:
     """Authoring DSL → (Frames →) view-model suitable for manifest building.
 
@@ -158,14 +177,14 @@ def quick_view_model_from_table(
       vp:  core.Viewport
       tiles: Iterable[tiles.TileSpec]
       row_height: baseline grid row height (px)
-      components_registry: optional components registry for role→module mapping
+      atoms_registry: optional atoms registry for role→module mapping
 
     Returns:
       dict view-model with keys: { viewport, grid, tiles }
     """
     compiler = LayoutCompiler()
     return compiler.view_model_from_structure(
-        tbl, vp, tiles, row_height=row_height, components_registry=components_registry
+        tbl, vp, tiles, row_height=row_height, atoms_registry=atoms_registry
     )
 
 
@@ -175,12 +194,12 @@ def quick_manifest_from_table(
     tiles,
     *,
     row_height: int = 180,
-    components_registry=None,
+    atoms_registry=None,
     version: str = "2025.10",
 ) -> Manifest:
     """Authoring DSL → manifest (one call convenience)."""
     vm = quick_view_model_from_table(
-        tbl, vp, tiles, row_height=row_height, components_registry=components_registry
+        tbl, vp, tiles, row_height=row_height, atoms_registry=atoms_registry
     )
     return build_manifest(vm, version=version)
 
@@ -193,17 +212,22 @@ __all__ = [
     "DEFAULT_TOKEN_WEIGHTS",
     "Viewport",
     "Frame",
+    "SWISS_GRID_COLUMNS",
+    "SWISS_GRID_GUTTERS",
+    "SWISS_BASELINE_UNITS",
+    "DEFAULT_BASELINE_MULTIPLIER",
+    "resolve_grid_tokens",
     # tiles
     "TileSpec",
     "Tile",
     "tile_spec",
     "make_tile",
-    # components
-    "ComponentSpec",
-    "ComponentRegistry",
-    "define_component",
-    "use_component",
-    "apply_defaults",
+    # atoms
+    "AtomSpec",
+    "AtomRegistry",
+    "define_atom",
+    "use_atom",
+    "apply_atom_defaults",
     # grid
     "GridTrack",
     "GridSpec",
@@ -227,6 +251,9 @@ __all__ = [
     "table",
     "build_grid",
     "gridify",
+    "register_swarma_atoms",
+    "grid_token_snapshot",
+    "build_site_manifest",
     # compile
     "LayoutCompiler",
     "frame_map_from_placements",
@@ -235,6 +262,9 @@ __all__ = [
     "ordering_by_topleft",
     "ordering_diff",
     # manifest
+    "SiteManifest",
+    "ChannelManifest",
+    "WsRouteManifest",
     "Manifest",
     "ManifestBuilder",
     "build_manifest",

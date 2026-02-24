@@ -1,11 +1,14 @@
 from __future__ import annotations
 from fastapi import HTTPException
-import json, base64
+import json
+import base64
+
 
 def _b64url_to_json(data: str) -> dict:
-    pad = '=' * (-len(data) % 4)
+    pad = "=" * (-len(data) % 4)
     raw = base64.urlsafe_b64decode(data + pad)
-    return json.loads(raw.decode('utf-8'))
+    return json.loads(raw.decode("utf-8"))
+
 
 async def require_jws(ctx) -> None:
     jws = ctx.get("jws")

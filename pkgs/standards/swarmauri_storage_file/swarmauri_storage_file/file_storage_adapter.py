@@ -99,6 +99,12 @@ class FileStorageAdapter(StorageAdapterBase):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(path, target)
 
+    async def remove_object(self, object_key: str) -> None:
+        """Delete ``object_key`` when it exists."""
+        path = self._full_key(object_key)
+        if path.exists():
+            path.unlink()
+
     @classmethod
     def from_uri(cls, uri: str) -> "FileStorageAdapter":
         """Instantiate the adapter from a ``file://`` URI."""

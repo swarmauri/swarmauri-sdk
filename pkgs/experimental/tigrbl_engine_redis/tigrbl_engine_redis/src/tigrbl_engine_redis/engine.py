@@ -4,6 +4,7 @@ from typing import Any, Callable, Tuple, Mapping, Optional
 from tigrbl.engine._engine import Engine  # first-class engine façade
 from .session import RedisSession
 
+
 class RedisEngine(Engine):
     """Thin, inspectable handle for Redis connectivity parameters.
 
@@ -11,8 +12,16 @@ class RedisEngine(Engine):
     responsible for connection pooling — the session constructs and owns the
     actual Redis client.
     """
-    def __init__(self, *, url: Optional[str] = None, host: Optional[str] = None,
-                 port: Optional[int] = None, db: Optional[int] = None, **kwargs: Any) -> None:
+
+    def __init__(
+        self,
+        *,
+        url: Optional[str] = None,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        db: Optional[int] = None,
+        **kwargs: Any,
+    ) -> None:
         # We intentionally do not call super().__init__ because the base Engine
         # is a dataclass façade around EngineSpec. For plugin handles we only
         # need a lightweight, inspectable object.
@@ -22,8 +31,14 @@ class RedisEngine(Engine):
         self.db = int(db or 0)
         self.kwargs = dict(kwargs)
 
-def redis_engine(*, mapping: Optional[Mapping[str, object]] = None, spec: Any = None,
-                 dsn: Optional[str] = None, **kwargs: Any) -> Tuple[RedisEngine, Callable[[], Any]]:
+
+def redis_engine(
+    *,
+    mapping: Optional[Mapping[str, object]] = None,
+    spec: Any = None,
+    dsn: Optional[str] = None,
+    **kwargs: Any,
+) -> Tuple[RedisEngine, Callable[[], Any]]:
     """Builder function used by tigrbl to construct (engine, session_factory)."""
     m = dict(mapping or {})
     url = dsn or m.get("url") or m.get("dsn") or kwargs.get("url")

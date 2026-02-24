@@ -7,14 +7,14 @@ readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.13"
 classifiers = [
+    "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Development Status :: 1 - Planning"
 ]
-authors = [{name = "Jacob Stewart", email = "jacob@swarmauri.com"}]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["6w", "swarmauri", "experimental"]
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]

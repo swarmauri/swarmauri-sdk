@@ -117,7 +117,7 @@ class RPCMixin:
             r.raise_for_status()
         res = r.json()
         err = res.get("error")
-        err_code: int | None = None
+        err_code = 0
         if err:
             err_code = err.get("code", -32000)
             msg = err.get("message", "Unknown error")
@@ -216,7 +216,7 @@ class RPCMixin:
             r.raise_for_status()
         res = r.json()
         err = res.get("error")
-        err_code: int | None = None
+        err_code = 0
         if err:
             err_code = err.get("code", -32000)
             msg = err.get("message", "Unknown error")

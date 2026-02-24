@@ -8,8 +8,10 @@ except Exception:  # pragma: no cover
     x509 = None
     ExtensionOID = None
 
+
 class PolicyError(ValueError):
     pass
+
 
 def check_identifiers_allowed(identifiers: Sequence[str]) -> None:
     if not identifiers:
@@ -21,18 +23,22 @@ def check_identifiers_allowed(identifiers: Sequence[str]) -> None:
         if "*" in name and not name.startswith("*."):
             raise PolicyError("invalid_wildcard_position")
 
+
 def _csr_sans(csr_der: bytes) -> list[str]:
     if x509 is None:
         return []
     try:
         csr = x509.load_der_x509_csr(csr_der)
         try:
-            ext = csr.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+            ext = csr.extensions.get_extension_for_oid(
+                ExtensionOID.SUBJECT_ALTERNATIVE_NAME
+            )
         except Exception:
             return []
         return [gen.value for gen in ext.value.get_values_for_type(x509.DNSName)]
     except Exception:
         return []
+
 
 def check_csr_matches_identifiers(csr_der: bytes, identifiers: Sequence[str]) -> None:
     # If we cannot parse CSR, allow (runtime policy may enforce differently)

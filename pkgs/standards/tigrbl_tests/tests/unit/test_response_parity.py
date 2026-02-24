@@ -1,0 +1,28 @@
+from __future__ import annotations
+from types import SimpleNamespace
+
+import pytest
+from httpx import ASGITransport, AsyncClient
+
+from tigrbl.bindings import rpc_call
+from tigrbl import TigrblApp
+from .response_utils import build_ping_model
+
+
+@pytest.mark.asyncio
+async def test_response_rest_rpc_parity():
+    Widget = build_ping_model()
+    app = TigrblApp()
+    app.include_router(Widget.rest.router)
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        rest_result = (await client.post("/widget/ping", json={})).json()
+<<<<<<< HEAD
+    app = SimpleNamespace(models={"Widget": Widget})
+    rpc_result = await rpc_call(app, Widget, "ping", {}, db=SimpleNamespace())
+=======
+    router = SimpleNamespace(models={"Widget": Widget})
+    rpc_result = await rpc_call(router, Widget, "ping", {}, db=SimpleNamespace())
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+    assert rest_result == rpc_result == {"pong": True}

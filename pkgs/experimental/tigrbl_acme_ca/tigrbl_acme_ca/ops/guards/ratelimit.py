@@ -1,6 +1,7 @@
 from __future__ import annotations
 from fastapi import HTTPException
 
+
 async def enforce_rate_limit(ctx, scope: str, key: str, cost: int = 1) -> None:
     limiter = ctx.get("rate_limiter")
     if not limiter:

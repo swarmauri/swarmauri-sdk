@@ -1,0 +1,141 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+from ...responses import FileResponse, RedirectResponse
+
+FAVICON_PATH = Path(__file__).with_name("assets") / "favicon.svg"
+
+
+def favicon_endpoint(*, favicon_path: str | Path | None = FAVICON_PATH):
+    """Build an endpoint function that serves the configured favicon."""
+
+    resolved = Path(FAVICON_PATH if favicon_path is None else favicon_path)
+
+    def _favicon() -> FileResponse:
+        if resolved.suffix.lower() == ".ico":
+            return FileResponse(str(resolved), media_type="image/x-icon")
+        return FileResponse(str(resolved), media_type="image/svg+xml")
+
+    return _favicon
+
+
+def favicon_ico_redirect_endpoint(path: str = "/favicon.svg"):
+    """Build an endpoint function that redirects ``/favicon.ico`` to SVG."""
+
+    def _favicon_redirect() -> RedirectResponse:
+        return RedirectResponse(url=path, status_code=307)
+
+    return _favicon_redirect
+
+
+def _remove_existing_favicon_routes(router: Any, *paths: str) -> None:
+    """Remove existing routes matching favicon paths so remounts take precedence."""
+
+    path_set = set(paths)
+
+    def _prune_routes(target: Any) -> bool:
+        routes = getattr(target, "_routes", None)
+        if routes is None:
+            routes = getattr(target, "routes", None)
+        if routes is None:
+            return False
+
+        filtered = [
+            route
+            for route in routes
+            if (getattr(route, "path_template", None) or getattr(route, "path", None))
+            not in path_set
+        ]
+
+        if hasattr(target, "_routes"):
+            target._routes = filtered
+        if hasattr(target, "routes"):
+            target.routes = filtered
+        return True
+
+    _prune_routes(router)
+
+    nested_router = getattr(router, "router", None)
+    if nested_router is not None:
+        _prune_routes(nested_router)
+
+
+def mount_favicon(
+    router: Any,
+    *,
+    file_path: str | Path | None = FAVICON_PATH,
+    svg_path: str = "/favicon.svg",
+    ico_path: str = "/favicon.ico",
+    prefix: str = "",
+    name: str = "__favicon__",
+) -> Any:
+    """Mount a favicon endpoint onto ``router``."""
+
+    resolved = Path(FAVICON_PATH if file_path is None else file_path)
+
+    base_prefix = f"/{prefix.strip('/')}" if prefix else ""
+    mounted_svg_path = f"{base_prefix}{svg_path}"
+    mounted_ico_path = f"{base_prefix}{ico_path}"
+
+    # ``TigrblApp`` installs a default root-level favicon during initialization.
+    # When callers remount under a custom prefix, remove those defaults so only
+    # the explicit mount location remains active.
+    default_svg_path = f"{svg_path}" if svg_path.startswith("/") else f"/{svg_path}"
+    default_ico_path = f"{ico_path}" if ico_path.startswith("/") else f"/{ico_path}"
+
+    _remove_existing_favicon_routes(
+        router,
+        mounted_svg_path,
+        mounted_ico_path,
+        default_svg_path,
+        default_ico_path,
+    )
+
+    if resolved.suffix.lower() == ".svg":
+        router.add_route(
+<<<<<<< HEAD
+            mounted_svg_path,
+=======
+            path,
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+            favicon_endpoint(favicon_path=resolved),
+            methods=["GET"],
+            name=name,
+            include_in_schema=False,
+        )
+        router.add_route(
+<<<<<<< HEAD
+            mounted_ico_path,
+            favicon_ico_redirect_endpoint(path=f"{base_prefix}{svg_path}"),
+=======
+            ico_path,
+            favicon_ico_redirect_endpoint(path=path),
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+            methods=["GET"],
+            name=f"{name}_ico_redirect",
+            include_in_schema=False,
+        )
+        return router
+
+    router.add_route(
+<<<<<<< HEAD
+        mounted_ico_path,
+=======
+        ico_path,
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+        favicon_endpoint(favicon_path=resolved),
+        methods=["GET"],
+        name=name,
+        include_in_schema=False,
+    )
+    return router
+
+
+__all__ = [
+    "FAVICON_PATH",
+    "favicon_endpoint",
+    "favicon_ico_redirect_endpoint",
+    "mount_favicon",
+]

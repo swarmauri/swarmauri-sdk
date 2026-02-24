@@ -137,7 +137,7 @@ memory:
 import asyncio
 import jwt
 from swarmauri_keyprovider_remote_jwks import RemoteJwksKeyProvider
-from swarmauri_core.keys.types import KeySpec, KeyClass, KeyAlg, ExportPolicy
+from swarmauri_core.key_providers.types import KeySpec, KeyClass, KeyAlg, ExportPolicy
 from swarmauri_core.crypto.types import KeyUse
 
 

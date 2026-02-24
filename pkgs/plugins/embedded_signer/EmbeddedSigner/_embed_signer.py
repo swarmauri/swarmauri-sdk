@@ -13,7 +13,7 @@ from urllib.parse import parse_qs, urlparse
 from EmbedXMP import EmbedXMP
 from MediaSigner import MediaSigner
 from swarmauri_core.crypto.types import KeyRef
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 from swarmauri_core.signing.types import Signature
 
 

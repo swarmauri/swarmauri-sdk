@@ -3,13 +3,14 @@ from __future__ import annotations
 import inspect
 import secrets
 from datetime import datetime, timezone
+from urllib.parse import parse_qs
 from typing import Any
 from uuid import UUID
 
+from tigrbl.security.dependencies import Depends as TigrblDepends
 from tigrbl_auth.deps import (
-    TigrblApi,
+    TigrblRouter,
     AsyncSession,
-    Depends,
     HTTPException,
     JSONResponse,
     Request,
@@ -46,18 +47,37 @@ from ..routers.shared import (
 )
 from ..runtime_cfg import settings
 
-api = TigrblApi()
+api = TigrblRouter()
 router = api
 
 
-@api.post("/token", response_model=TokenPair)
-async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPair:
+def _header(request: Request, name: str) -> str | None:
+    return request.headers.get(name) or request.headers.get(name.lower())
+
+
+async def _parse_request_form(request: Request) -> tuple[dict[str, str], list[str]]:
+    form_reader = getattr(request, "form", None)
+    if callable(form_reader):
+        form = await form_reader()
+        resources = list(form.getlist("resource")) if hasattr(form, "getlist") else []
+        data = dict(form)
+        data.pop("resource", None)
+        return data, resources
+
+    body_text = request.body.decode("utf-8") if request.body else ""
+    parsed = parse_qs(body_text, keep_blank_values=True)
+    data = {k: v[-1] for k, v in parsed.items() if k != "resource" and v}
+    resources = parsed.get("resource", [])
+    return data, resources
+
+
+@api.route("/token", methods=["POST"], response_model=TokenPair)
+async def token(
+    request: Request, db: AsyncSession = TigrblDepends(get_db)
+) -> TokenPair:
     _require_tls(request)
-    form = await request.form()
-    resources = form.getlist("resource")
-    data = dict(form)
-    data.pop("resource", None)
-    auth = request.headers.get("Authorization")
+    data, resources = await _parse_request_form(request)
+    auth = _header(request, "Authorization")
     client_id = None
     client_secret = None
     if auth and auth.startswith("Basic "):
@@ -132,7 +152,9 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
         access, refresh = await _jwt.async_sign_pair(
             sub=client_id, tid=str(client.tenant_id), **jwt_kwargs
         )
-        return TokenPair(access_token=access, refresh_token=refresh)
+        return TokenPair(access_token=access, refresh_token=refresh).model_dump(
+            exclude_none=True
+        )
     if grant_type == "password":
         try:
             enforce_password_grant(data)
@@ -153,7 +175,9 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
         access, refresh = await _jwt.async_sign_pair(
             sub=str(user.id), tid=str(user.tenant_id), **jwt_kwargs
         )
-        return TokenPair(access_token=access, refresh_token=refresh)
+        return TokenPair(access_token=access, refresh_token=refresh).model_dump(
+            exclude_none=True
+        )
     if grant_type == "authorization_code":
         try:
             enforce_authorization_code_grant(data)
@@ -216,7 +240,9 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             **extra_claims,
         )
         await AuthCode.handlers.delete.core({"db": db, "payload": {"id": auth_code.id}})
-        return TokenPair(access_token=access, refresh_token=refresh, id_token=id_token)
+        return TokenPair(
+            access_token=access, refresh_token=refresh, id_token=id_token
+        ).model_dump(exclude_none=True)
     if grant_type == "urn:ietf:params:oauth:grant-type:device_code":
         try:
             parsed = DeviceGrantForm(**data)
@@ -249,7 +275,9 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
         await DeviceCode.handlers.delete.core(
             {"db": db, "payload": {"id": device_obj.id}}
         )
-        return TokenPair(access_token=access, refresh_token=refresh)
+        return TokenPair(access_token=access, refresh_token=refresh).model_dump(
+            exclude_none=True
+        )
     if rfc6749_enabled():
         return JSONResponse(
             {"error": "unsupported_grant_type"},
@@ -267,7 +295,7 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
     )
 
 
-@api.post("/token/refresh", response_model=TokenPair)
+@api.route("/token/refresh", methods=["POST"], response_model=TokenPair)
 async def refresh(body: RefreshIn, request: Request):
     _require_tls(request)
     try:

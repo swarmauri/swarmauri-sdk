@@ -1,4 +1,4 @@
-![Tigrbl Logo](https://github.com/swarmauri/swarmauri-sdk/blob/a170683ecda8ca1c4f912c966d4499649ffb8224/assets/tigrbl.brand.theme.svg)
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl_full_logo.png)
 
 <p align="center">
     <a href="https://pypi.org/project/tigrbl/">
@@ -16,7 +16,7 @@
 ---
 
 # Tigrbl 🐅🐂
-A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-featured REST+RPC surface with near-zero boilerplate. 🚀
+A high-leverage ASGI meta-framework that turns plain SQLAlchemy models into a fully-featured REST+RPC surface with near-zero boilerplate. 🚀
 
 ## Features ✨
 
@@ -24,13 +24,13 @@ A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-f
 - 🔌 Unified REST and RPC endpoints from a single definition
 - 🪝 Hookable phase system for deep customization
 - 🧩 Pluggable engine and provider abstractions
-- 🚀 Built on FastAPI and Pydantic for modern Python web apps
+- 🚀 Built as an ASGI-native framework with Pydantic-powered schema generation
 
 ## Terminology 📚
 
 - **Tenant** 🏢 – a namespace used to group related resources.
 - **Principal** 👤 – an owner of resources, such as an individual user or an organization.
-- **Resource** 📦 – a logical collection of data or functionality exposed by the API.
+- **Resource** 📦 – a logical collection of data or functionality exposed by the router.
 - **Engine** ⚙️ – the database connection and transaction manager backing a resource.
 - **Model / Table** 🧱 – the ORM or database representation of a resource's records.
 - **Column** 📏 – a field on a model that maps to a table column.
@@ -156,7 +156,7 @@ v
 HTTP Request
 |
 v
-FastAPI Router
+ASGI Router
 |
 v
 Tigrbl Runtime
@@ -277,15 +277,15 @@ increasing order of precedence:
 
 1. defaults
 2. app config
-3. API config
+3. router config
 4. table config
-5. column `.cfg` entries
+5. column config
 6. operation spec
 7. per-request overrides
 
 Later entries override earlier ones, so request overrides win over all other
 sources. This can be summarized as
-`overrides > opspec > colspecs > tabspec > apispec > appspec > defaults`.
+`overrides > opspec > colspecs > tabspec > routerspec > appspec > defaults`.
 
 ### Schema Config Precedence 🧬
 
@@ -294,7 +294,7 @@ Later layers override earlier ones, with the precedence order:
 
 1. defaults (lowest)
 2. app configuration
-3. API configuration
+3. router configuration
 4. table configuration
 5. column-level `cfg` values
 6. op-specific `cfg`
@@ -334,7 +334,7 @@ This hierarchy ensures that the most specific settings always win. 🥇
 When assembling values for persistence, defaults are resolved in this order:
 
 1. Client-supplied value
-2. API `default_factory`
+2. router `default_factory`
 3. ORM default
 4. Database `server_default`
 5. HTTP 422 if the field is required and still missing
@@ -365,7 +365,232 @@ control headers, status codes, and optional template rendering. See
 
 * SQLAlchemy for ORM integration.
 * Pydantic for schema generation.
-* FastAPI for routing and dependency injection.
+* ASGI-native routing and dependency injection.
+
+## Best Design Practices ✅
+
+The following practices are the canonical, production-ready patterns for
+building on Tigrbl. Each rule is explained and demonstrated with
+approved usage. These are not optional—adhering to them keeps the runtime
+predictable, preserves hook lifecycle guarantees, and ensures schema
+consistency across REST and RPC surfaces.
+
+### 1) Never import SQLAlchemy directly or bypass Tigrbl routers
+
+**Why:** Direct imports bypass Tigrbl's compatibility layer and make it
+harder to evolve internal dependencies. Use the Tigrbl exports so your
+code stays aligned with the framework’s versioned ASGI router.
+
+✅ **Preferred:**
+```python
+from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl.types import Integer, String, Mapped
+from tigrbl.types import Depends, HTTPException, Request
+```
+
+🚫 **Avoid:**
+```python
+from sqlalchemy import Integer, String
+from some_framework import Depends
+```
+
+### 2) Do not coerce UUIDs manually
+
+**Why:** Tigrbl schemas and types already normalize UUIDs. Manual coercion
+creates inconsistent behavior across engines and breaks schema-level
+validation.
+
+✅ **Preferred:**
+```python
+from tigrbl.types import PgUUID, uuid4, Mapped
+
+class Item(Table):
+    __tablename__ = "items"
+    id: Mapped[PgUUID] = acol(primary_key=True, default=uuid4)
+```
+
+🚫 **Avoid:**
+```python
+from uuid import UUID
+
+item_id = UUID(str(payload["id"]))
+```
+
+### 3) Use engine specs for persistence, not ad-hoc engines
+
+**Why:** Engine specs make persistence declarative, testable, and
+compatible with engine resolution across app, router, table, and op scopes.
+
+✅ **Preferred:**
+```python
+from tigrbl.engine.shortcuts import engine_spec
+from tigrbl.engine.decorators import engine_ctx
+
+spec = engine_spec(kind="postgres", async_=True, host="db", name="app_db")
+
+@engine_ctx(spec)
+class App:
+    ...
+```
+
+🚫 **Avoid:**
+```python
+from sqlalchemy.ext.asyncio import create_async_engine
+
+engine = create_async_engine("postgresql+asyncpg://...")
+```
+
+### 4) Never call DB session methods directly
+
+**Why:** Direct calls bypass the hook lifecycle and the database guards.
+Use model handlers or `app.<Model>.handlers.<op>` so hooks, policies, and
+schema enforcement run consistently.
+
+✅ **Preferred:**
+```python
+result = await Item.handlers.create(payload, ctx=request_ctx)
+# or from a Tigrbl app instance:
+result = await app.Item.handlers.create(payload, ctx=request_ctx)
+```
+
+🚫 **Avoid:**
+```python
+db.add(item)
+await db.execute(statement)
+```
+
+### 5) Always use encapsulated payloads as inputs and outputs
+
+**Why:** Tigrbl expects request/response envelopes to preserve metadata,
+support policy enforcement, and keep REST/RPC in lockstep.
+
+✅ **Preferred:**
+```python
+from tigrbl import get_schema
+
+CreateIn = get_schema(Item, "create", "in")
+CreateOut = get_schema(Item, "create", "out")
+
+payload = CreateIn(name="Widget")
+result = await Item.handlers.create(payload, ctx=request_ctx)
+response = CreateOut(result=result)
+```
+
+🚫 **Avoid:**
+```python
+payload = {"name": "Widget"}
+result = await Item.handlers.create(payload)
+```
+
+### 6) Encapsulation must use `get_schema(...)`
+
+**Why:** `get_schema` guarantees the envelope is aligned to the configured
+schema and respects schema overrides, request extras, and response extras.
+
+✅ **Preferred:**
+```python
+ListIn = get_schema(Item, "list", "in")
+ListOut = get_schema(Item, "list", "out")
+```
+
+🚫 **Avoid:**
+```python
+from pydantic import BaseModel
+
+class ListIn(BaseModel):
+    payload: dict
+```
+
+### 7) `Table` must be the first inherited class for all models
+
+**Why:** Tigrbl inspects base classes for lifecycle and configuration.
+Putting `Table` first preserves deterministic MRO behavior.
+
+✅ **Preferred:**
+```python
+from tigrbl.orm.tables import Table
+from tigrbl.orm.mixins import Timestamped
+
+class Item(Table, Timestamped):
+    __tablename__ = "items"
+```
+
+🚫 **Avoid:**
+```python
+class Item(Timestamped, Table):
+    __tablename__ = "items"
+```
+
+### 8) Never call `db.flush()` or `db.commit()`
+
+**Why:** The hook lifecycle owns transactional boundaries. Manual flush or
+commit short-circuits phase guards and can corrupt the request lifecycle.
+
+✅ **Preferred:**
+```python
+@hook_ctx(ops="create", phase="HANDLER")
+async def handler(ctx):
+    await Item.handlers.create(ctx["request"].payload, ctx=ctx)
+```
+
+🚫 **Avoid:**
+```python
+db.flush()
+db.commit()
+```
+
+### 9) Use ops for new REST/RPC methods—never add ad-hoc framework routes
+
+**Why:** Ops keep routing, schemas, hooks, and policies unified. Custom
+custom framework routes bypass these guarantees.
+
+✅ **Preferred:**
+```python
+from tigrbl import op_ctx
+
+@op_ctx(name="rotate_keys", method="POST", path="/keys/rotate")
+async def rotate_keys(payload, *, ctx):
+    return await Key.handlers.rotate(payload, ctx=ctx)
+```
+
+🚫 **Avoid:**
+```python
+from some_framework import routerRouter
+
+router = routerRouter()
+
+@router.post("/keys/rotate")
+async def rotate_keys(payload):
+    ...
+```
+
+### 10) Use context decorators where appropriate
+
+**Why:** Context decorators (`engine_ctx`, `schema_ctx`, `op_ctx`,
+`hook_ctx`) provide explicit, declarative binding of behavior and are
+resolved deterministically by the runtime.
+
+✅ **Preferred:**
+```python
+from tigrbl import hook_ctx, op_ctx, schema_ctx
+from tigrbl.engine.decorators import engine_ctx
+
+@engine_ctx(kind="sqlite", mode="memory")
+class Item(Table):
+    __tablename__ = "items"
+
+@schema_ctx(ops="create", cfg={"exclude": {"id"}})
+class ItemCreateSchema:
+    model = Item
+
+@op_ctx(name="export", method="GET", path="/items/export")
+async def export_items(payload, *, ctx):
+    return await Item.handlers.list(payload, ctx=ctx)
+
+@hook_ctx(ops="create", phase="PRE_HANDLER")
+async def validate(ctx):
+    ...
+```
 
 ### Engine & Provider examples 🛠️
 
@@ -398,7 +623,7 @@ provider_pg = Provider(spec_pg)
 `engine_ctx` binds database configuration to different layers. It accepts a
 DSN string, a mapping, an `EngineSpec`, a `Provider`, or an `Engine`. The
 resolver chooses the most specific binding in the order
-`op > table > api > app`.
+`op > table > router > app`.
 
 #### Engine precedence 🥇
 
@@ -406,8 +631,8 @@ When engine contexts are declared at multiple scopes, Tigrbl resolves them
 with strict precedence:
 
 1. **Op level** – bindings attached directly to an operation take highest priority.
-2. **Table/Model level** – definitions on a model or table override API and app defaults.
-3. **API level** – bindings on the API class apply when no model-specific context exists.
+2. **Table/Model level** – definitions on a model or table override router and app defaults.
+3. **router level** – bindings on the router class apply when no model-specific context exists.
 4. **App level** – the default engine supplied to the application is used last.
 
 This ordering ensures that the most specific engine context always wins.
@@ -421,7 +646,7 @@ from tigrbl.engine.shortcuts import prov, engine
 app = SimpleNamespace(db=prov(kind="sqlite", mode="memory"))
 alt = SimpleNamespace(db=engine(kind="sqlite", mode="memory"))
 
-class API:
+class router:
     db = {"kind": "sqlite", "memory": True}
 
 class Item:
@@ -450,7 +675,7 @@ class App:
     pass
 
 @engine_ctx(engine(kind="sqlite", mode="memory"))
-class DecoratedAPI:
+class Decoratedrouter:
     pass
 
 @engine_ctx(kind="sqlite", mode="memory")
@@ -461,6 +686,30 @@ class DecoratedItem:
 async def decorated_create(payload, *, db=None):
     ...
 ```
+
+### Swarmauri class + Tigrbl lifecycle integration 🧬
+
+If you need to run concrete Swarmauri classes inside Tigrbl's runtime, see:
+
+* [`examples/swarmauri_tigrbl_bridge.py`](./examples/swarmauri_tigrbl_bridge.py)
+* [`examples/swarmauri_tigrbl_bridge_smooth.py`](./examples/swarmauri_tigrbl_bridge_smooth.py)
+
+The bridge examples cover two integration styles:
+
+* **Factory + schema-rich envelope** (`swarmauri_tigrbl_bridge.py`)
+  * Swarmauri Pydantic JSON workflows (`model_validate_json`, `model_dump_json`,
+    `model_json_schema`) with `HumanMessage`.
+  * A Swarmauri `Factory` invocation during `PRE_HANDLER` via `hook_ctx`.
+  * Tigrbl default verbs (`create`, `get`, `list`, `update`, `delete`) plus a custom op.
+  * `engine_ctx` at model and operation scope.
+  * Generated Openrouter and OpenRPC documents mounted from the same model bindings.
+
+* **Smoother direct-model flow** (`swarmauri_tigrbl_bridge_smooth.py`)
+  * Uses hooks + default `create` persistence to normalize Swarmauri payloads.
+  * Adds a `Conversation` table with a persisted one-to-many relationship to messages.
+  * Avoids extra `json_schema` fields in request/response payload contracts.
+  * Returns `HumanMessage.model_validate_json(...)` directly from a custom op.
+  * Uses the concrete model classes themselves to derive input/output schema docs.
 
 ## Glossary 📖
 
@@ -474,5 +723,3 @@ async def decorated_create(payload, *, db=None):
 8. Default Flush
 9. Core
 10. Core\_Raw
-
-

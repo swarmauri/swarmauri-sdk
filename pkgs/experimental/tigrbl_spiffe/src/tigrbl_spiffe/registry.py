@@ -6,6 +6,7 @@ from .tables.registrar import Registrar
 from .tables.bundle import Bundle
 from .tables.workload import Workload
 
+
 def register(app: Any) -> None:
     include_model(Svid)
     include_model(Registrar)

@@ -18,17 +18,20 @@ from tigrbl.types import (
     UUID,
 )
 
+from ._mixins.extref import StripeExtRef
 
-class ApplicationFee(Base, GUIDPk, Timestamped):
+
+class ApplicationFee(Base, GUIDPk, Timestamped, StripeExtRef):
     __tablename__ = "application_fees"
 
-    stripe_application_fee_id: Mapped[str | None] = acol(
+    external_id: Mapped[str | None] = acol(
         storage=S(type_=String, nullable=True),
         field=F(py_type=str | None, constraints={"examples": ["fee_123"]}),
         io=IO(
             in_verbs=("create", "update", "replace", "merge"),
             out_verbs=("read", "list"),
         ),
+        name="stripe_application_fee_id",
     )
 
     amount: Mapped[int] = acol(

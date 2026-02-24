@@ -3,7 +3,13 @@ import asyncio
 import pytest
 
 from swarmauri_keyprovider_ssh import SshKeyProvider
-from swarmauri_core.keys.types import KeySpec, KeyAlg, KeyClass, ExportPolicy, KeyUse
+from swarmauri_core.key_providers.types import (
+    KeySpec,
+    KeyAlg,
+    KeyClass,
+    ExportPolicy,
+    KeyUse,
+)
 
 
 @pytest.mark.perf

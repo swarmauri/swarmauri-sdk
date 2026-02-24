@@ -1,8 +1,9 @@
 from __future__ import annotations
 from typing import Dict
 
+
 def build_directory(base_url: str) -> Dict[str, str]:
-    if base_url.endswith('/'):
+    if base_url.endswith("/"):
         base_url = base_url[:-1]
     return {
         "newNonce": f"{base_url}/acme/new-nonce",

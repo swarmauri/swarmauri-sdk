@@ -19,6 +19,8 @@ from tigrbl.types import (
     TZDateTime,
 )
 
+from ._mixins.extref import StripeExtRef
+
 
 class CheckoutMode(Enum):
     PAYMENT = "payment"
@@ -32,16 +34,17 @@ class CheckoutStatus(Enum):
     EXPIRED = "expired"
 
 
-class CheckoutSession(Base, GUIDPk, Timestamped):
+class CheckoutSession(Base, GUIDPk, Timestamped, StripeExtRef):
     __tablename__ = "checkout_sessions"
 
-    stripe_checkout_session_id: Mapped[str | None] = acol(
+    external_id: Mapped[str | None] = acol(
         storage=S(type_=String, nullable=True),
         field=F(py_type=str | None, constraints={"examples": ["cs_test_123"]}),
         io=IO(
             in_verbs=("create", "update", "replace", "merge"),
             out_verbs=("read", "list"),
         ),
+        name="stripe_checkout_session_id",
     )
 
     mode: Mapped[CheckoutMode] = acol(

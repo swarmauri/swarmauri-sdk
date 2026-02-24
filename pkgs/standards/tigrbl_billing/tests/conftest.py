@@ -16,7 +16,10 @@ from typing import Any, Callable, Dict, Iterable, List, Mapping, Sequence
 import httpx
 import pytest
 import uvicorn
-from fastapi import APIRouter, Body, FastAPI, HTTPException
+
+import tigrbl as tigrbl_module
+from tigrbl.engine import shortcuts as tigrbl_engine_shortcuts
+from tigrbl.types import APIRouter, Body, HTTPException
 
 PACKAGE_DIR = Path(__file__).resolve().parents[1]
 SRC_DIR = PACKAGE_DIR / "src"
@@ -36,8 +39,7 @@ def _op_ctx_decorator(**metadata):
         setattr(func, "_tigrbl_ctx", meta)
         bind = meta.get("bind")
         module_name = func.__module__ or ""
-        is_api_wrapper = ".api." in module_name
-        if bind is not None and isinstance(bind, type) and is_api_wrapper:
+        if bind is not None and isinstance(bind, type):
             ops = _REGISTERED_API_OPS.setdefault(bind, [])
             alias = meta.get("alias")
             if alias and not any(
@@ -51,7 +53,12 @@ def _op_ctx_decorator(**metadata):
                         "module": func.__module__,
                     }
                 )
+        is_api_wrapper = ".api." in module_name
         if is_api_wrapper:
+            return func
+
+        signature = inspect.signature(func)
+        if "op_ctx" in signature.parameters:
             return func
 
         # Adapter for ops-layer functions so they behave like their decorated counterparts.
@@ -87,15 +94,7 @@ def _op_ctx_decorator(**metadata):
     return decorator
 
 
-tigrbl_module = types.ModuleType("tigrbl")
 tigrbl_module.op_ctx = _op_ctx_decorator
-sys.modules.setdefault("tigrbl", tigrbl_module)
-
-tigrbl_engine_module = types.ModuleType("tigrbl.engine")
-tigrbl_engine_shortcuts = types.ModuleType("tigrbl.engine.shortcuts")
-sys.modules.setdefault("tigrbl.engine", tigrbl_engine_module)
-sys.modules.setdefault("tigrbl.engine.shortcuts", tigrbl_engine_shortcuts)
-tigrbl_engine_module.shortcuts = tigrbl_engine_shortcuts  # type: ignore[attr-defined]
 
 
 def _stub_build_engine(cfg: Mapping[str, Any] | None = None, **_) -> Mapping[str, Any]:
@@ -108,11 +107,6 @@ def _stub_mem(async_: bool = True) -> Mapping[str, Any]:
 
 tigrbl_engine_shortcuts.engine = _stub_build_engine  # type: ignore[attr-defined]
 tigrbl_engine_shortcuts.mem = _stub_mem  # type: ignore[attr-defined]
-
-tigrbl_types_module = types.ModuleType("tigrbl.types")
-tigrbl_types_module.Session = object
-tigrbl_types_module.UUID = str
-sys.modules.setdefault("tigrbl.types", tigrbl_types_module)
 
 
 # ----------------------------------------------------------------------------
@@ -288,7 +282,7 @@ def _ensure_model_handlers(model: type) -> None:
         candidates.update(
             {k for k, v in payload.items() if k.endswith("_id") and v is not None}
         )
-        candidates.update({k for k in ("stripe_customer_id", "email") if k in payload})
+        candidates.update({k for k in ("external_id", "email") if k in payload})
         return candidates
 
     def _find_by_identifier(
@@ -309,7 +303,7 @@ def _ensure_model_handlers(model: type) -> None:
         priority_keys = [
             key
             for key in payload
-            if key.endswith("_id") or key in {"stripe_customer_id", "email"}
+            if key.endswith("_id") or key in {"external_id", "email"}
         ]
         for obj in storage:
             if any(
@@ -397,7 +391,7 @@ def _ensure_model_handlers(model: type) -> None:
     )
 
 
-class TigrblApp(FastAPI):
+class TigrblApp(tigrbl_module.TigrblApp):
     def __init__(self, *, engine: Mapping[str, Any] | None = None, **kwargs: Any):
         super().__init__(**kwargs)
         self.engine = engine
@@ -436,6 +430,7 @@ class TigrblApp(FastAPI):
         router = APIRouter(prefix=prefix)
 
         @router.post("")
+        @router.post("/", include_in_schema=False)
         async def create_item(
             payload: Mapping[str, Any] = Body(default={}),
         ):  # pragma: no cover - dynamic
@@ -443,8 +438,23 @@ class TigrblApp(FastAPI):
             return await model.handlers.create.handler(ctx)
 
         @router.get("")
+        @router.get("/", include_in_schema=False)
         async def list_items():  # pragma: no cover - dynamic
             return await model.handlers.list.handler({})
+
+        if callable(getattr(self, "add_api_route", None)):
+            self.add_api_route(
+                prefix,
+                create_item,
+                methods=["POST"],
+                include_in_schema=False,
+            )
+            self.add_api_route(
+                prefix,
+                list_items,
+                methods=["GET"],
+                include_in_schema=False,
+            )
 
         @router.get("/{item_id}")
         async def read_item(item_id: str):  # pragma: no cover - dynamic
@@ -474,8 +484,15 @@ class TigrblApp(FastAPI):
                 payload: Mapping[str, Any] = Body(default={}),
                 _func: Callable[..., Any] = func,
             ):  # pragma: no cover - dynamic
-                ctx = {"payload": dict(payload or {})}
-                result = _func(model, ctx)
+                payload_dict = dict(payload or {})
+                ctx = {"payload": payload_dict}
+                signature = inspect.signature(_func)
+                if "op_ctx" in signature.parameters:
+                    meta = getattr(_func, "_tigrbl_ctx", {})
+                    op_ctx = SimpleNamespace(**meta)
+                    result = _func(op_ctx, None, None, **payload_dict)
+                else:
+                    result = _func(model=model, ctx=ctx, **payload_dict)
                 if inspect.isawaitable(result):
                     result = await result
                 return result
@@ -560,7 +577,7 @@ BalanceTopOff = make_model(
     "BalanceTopOff", ["status", "metadata", "processed_at", "failure_reason"]
 )
 CustomerBalance = make_model("CustomerBalance", ["balance_id"])
-ApplicationFee = make_model("ApplicationFee", ["stripe_application_fee_id", "refunded"])
+ApplicationFee = make_model("ApplicationFee", ["external_id", "refunded"])
 UsageEvent = make_model(
     "UsageEvent",
     [
@@ -591,7 +608,7 @@ Subscription = make_model(
         "trial_end",
         "collection_method",
         "days_until_due",
-        "stripe_subscription_id",
+        "external_id",
         "metadata",
         "items",
     ],
@@ -609,7 +626,7 @@ UsageRollup = make_model(
 StripeEventLog = make_model(
     "StripeEventLog",
     [
-        "stripe_event_id",
+        "external_id",
         "event_type",
         "api_version",
         "event_created_ts",
@@ -621,17 +638,15 @@ StripeEventLog = make_model(
         "stripe_request_id",
     ],
 )
-Product = make_model(
-    "Product", ["stripe_product_id", "name", "description", "metadata"]
-)
-Price = make_model("Price", ["stripe_price_id", "unit_amount"])
+Product = make_model("Product", ["external_id", "name", "description", "metadata"])
+Price = make_model("Price", ["external_id", "unit_amount"])
 PriceTier = make_model("PriceTier", ["price_id", "up_to", "unit_amount"])
 Customer = make_model(
     "Customer",
     [
         "email",
         "name",
-        "stripe_customer_id",
+        "external_id",
         "default_payment_method_ref",
         "tax_exempt",
         "metadata",
@@ -640,24 +655,20 @@ Customer = make_model(
 )
 SubscriptionItem = make_model(
     "SubscriptionItem",
-    ["subscription_id", "stripe_subscription_item_id", "quantity", "price_id"],
+    ["subscription_id", "external_id", "quantity", "price_id"],
 )
 InvoiceLineItem = make_model(
     "InvoiceLineItem",
     ["invoice_id", "stripe_invoice_line_item_id", "amount", "description"],
 )
-Refund = make_model("Refund", ["stripe_refund_id", "amount"])
-ConnectedAccount = make_model(
-    "ConnectedAccount", ["stripe_account_id", "details_submitted"]
-)
-Transfer = make_model("Transfer", ["stripe_transfer_id", "amount", "currency"])
+Refund = make_model("Refund", ["external_id", "amount"])
+ConnectedAccount = make_model("ConnectedAccount", ["external_id", "details_submitted"])
+Transfer = make_model("Transfer", ["external_id", "amount", "currency"])
 Feature = make_model("Feature", ["feature_key", "name", "description"])
 PriceFeatureEntitlement = make_model(
     "PriceFeatureEntitlement", ["price_id", "feature_id", "entitlement"]
 )
-CheckoutSession = make_model(
-    "CheckoutSession", ["stripe_checkout_session_id", "status"]
-)
+CheckoutSession = make_model("CheckoutSession", ["external_id", "status"])
 CustomerAccountLink = make_model(
     "CustomerAccountLink", ["customer_id", "connected_account_id"]
 )
@@ -766,7 +777,7 @@ def _get_free_port() -> int:
 
 
 @contextlib.asynccontextmanager
-async def run_uvicorn_app(app: FastAPI):
+async def run_uvicorn_app(app: tigrbl_module.TigrblApp):
     port = _get_free_port()
     config = uvicorn.Config(
         app,

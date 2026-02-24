@@ -3,7 +3,7 @@
 Run with:
     uv run --directory experimental/layout_engine --package layout-engine python examples/dashboard.py
 
-The script builds a component registry, declares a table-based layout, compiles it
+The script builds an atom registry, declares a table-based layout, compiles it
 into a manifest, and exports an HTML preview.
 """
 
@@ -12,8 +12,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from layout_engine import (
-    ComponentRegistry,
-    ComponentSpec,
+    AtomRegistry,
+    AtomSpec,
     SizeToken,
     TileSpec,
     Viewport,
@@ -28,12 +28,12 @@ from layout_engine.targets.media import HtmlExporter
 OUTPUT_HTML = Path(__file__).with_suffix(".html")
 
 
-def build_components() -> ComponentRegistry:
+def build_atoms() -> AtomRegistry:
     """Register semantic roles with front-end modules and defaults."""
-    registry = ComponentRegistry()
+    registry = AtomRegistry()
     registry.register_many(
         [
-            ComponentSpec(
+            AtomSpec(
                 role="hero",
                 module="@demo/hero-card",
                 defaults={
@@ -41,7 +41,7 @@ def build_components() -> ComponentRegistry:
                     "cta": "Open dashboard",
                 },
             ),
-            ComponentSpec(
+            AtomSpec(
                 role="stat",
                 module="@demo/metric-tile",
                 defaults={
@@ -49,7 +49,7 @@ def build_components() -> ComponentRegistry:
                     "trend": "stable",
                 },
             ),
-            ComponentSpec(
+            AtomSpec(
                 role="activity",
                 module="@demo/activity-feed",
                 defaults={
@@ -126,7 +126,7 @@ def build_structure():
 
 def main() -> int:
     viewport = Viewport(width=1280, height=720)
-    components = build_components()
+    atoms_registry = build_atoms()
     tiles = build_tiles()
     layout = build_structure()
 
@@ -135,7 +135,7 @@ def main() -> int:
         viewport,
         tiles,
         row_height=200,
-        components_registry=components,
+        atoms_registry=atoms_registry,
     )
 
     print("Manifest version:", manifest.version)

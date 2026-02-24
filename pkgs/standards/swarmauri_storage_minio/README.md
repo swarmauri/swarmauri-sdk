@@ -26,7 +26,7 @@ Peagen storage adapter that saves artifacts to a MinIO or any S3-compatible buck
 - Optional `prefix` argument to scope uploads without changing your keys.
 - Implements `upload`, `download`, `upload_dir`, `download_dir`, and `iter_prefix` helpers for working with single files or directories.
 - Exposes a `root_uri` describing the bucket and prefix (`minio[s]://endpoint/bucket/prefix/`).
-- `MinioStorageAdapter.from_uri()` reads credentials from `peagen.toml` or the `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` environment variables for zero-copy configuration.
+- `MinioStorageAdapter.from_uri()` reads credentials from `MINIO_ACCESS_KEY` and `MINIO_SECRET_KEY` environment variables for zero-copy configuration.
 
 ## Installation
 
@@ -77,14 +77,7 @@ print(downloaded.decode("utf-8"))
 
 ### Config-driven instantiation
 
-The adapter can also be created from a URI. Credentials are loaded from `peagen.toml` or environment variables.
-
-```toml
-# peagen.toml
-[storage.adapters.minio]
-access_key = "minio"
-secret_key = "minio123"
-```
+The adapter can also be created from a URI. Credentials are loaded from environment variables.
 
 ```python
 from swarmauri_storage_minio import MinioStorageAdapter

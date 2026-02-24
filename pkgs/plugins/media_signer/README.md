@@ -60,7 +60,7 @@ pip install "MediaSigner[plugins]"
 import asyncio
 
 from MediaSigner import MediaSigner
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 
 # Optionally pass a key provider so plugins receive a shared source for
 # retrieving signing material.

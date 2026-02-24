@@ -8,23 +8,15 @@ from typing import (
     Mapping,
     MutableMapping,
     Optional,
+    Protocol,
     Sequence,
     Union,
-    Protocol,
     runtime_checkable,
 )
 
-try:
-    from fastapi import Request  # type: ignore
-except Exception:  # pragma: no cover
-    Request = Any  # type: ignore
-
-try:
-    from sqlalchemy.orm import Session  # type: ignore
-    from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
-except Exception:  # pragma: no cover
-    Session = Any  # type: ignore
-    AsyncSession = Any  # type: ignore
+from ...requests import Request
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 
 @runtime_checkable
@@ -44,9 +36,9 @@ class _Ctx(dict):
     """Dict-like context with attribute access.
 
     Common keys:
-      • request: FastAPI Request (optional)
+      • request: ASGI Request (optional)
       • db: Session | AsyncSession
-      • api/model/op: optional metadata
+      • router/model/op: optional metadata
       • result: last non-None step result
       • error: last exception caught (on failure paths)
       • response: SimpleNamespace(result=...) for POST_RESPONSE shaping

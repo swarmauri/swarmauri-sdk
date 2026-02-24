@@ -4,7 +4,7 @@ import pytest
 
 from swarmauri_tokens_jwt import JWTTokenService
 from swarmauri_core.crypto.types import JWAAlg, KeyType
-from swarmauri_core.keys import (
+from swarmauri_core.key_providers import (
     ExportPolicy,
     IKeyProvider,
     KeyRef,

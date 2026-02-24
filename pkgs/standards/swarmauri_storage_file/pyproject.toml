@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_file"
-version = "0.3.0.dev8"
+version = "0.3.0.dev37"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]
@@ -20,7 +20,6 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
-    "peagen",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
@@ -34,7 +33,6 @@ keywords = [
 ]
 
 [tool.uv.sources]
-peagen = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }

@@ -1,7 +1,7 @@
 [project]
 name = "tigrbl"
-version = "0.3.0.dev4"
-description = "Automatic API generation tools by Swarmauri."
+version = "0.3.16"
+description = "A modern pure ASGI/WSGI Python framework for building schema-first REST and JSON-RPC APIs with SQLAlchemy models, typed validation, lifecycle hooks, and engine extension support."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -16,12 +16,8 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
 ]
-authors = [{ name = "Swarmauri Team", email = "team@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_standard",
-    "fastapi>=0.100.0",
     "pydantic>=2.0.0",
     "sqlalchemy>=2.0",
     "aiosqlite>=0.19.0",
@@ -33,6 +29,9 @@ keywords = [
     'tigrbl',
     'sdk',
     'standards',
+    'asgi',
+    'rest',
+    'rpc',
 ]
 
 [project.optional-dependencies]
@@ -43,14 +42,16 @@ postgres = [
 templates = [
     "jinja2>=3.1.4",
 ]
+tests = [
+    "tigrbl-tests",
+]
 
 [tool.uv.sources]
-swarmauri_core = { workspace = true }
-swarmauri_base = { workspace = true }
-swarmauri_standard = { workspace = true }
+tigrbl-tests = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
+testpaths = ["../tigrbl_tests/tests"]
 markers = [
     "test: standard test",
     "unit: Unit tests",
@@ -72,6 +73,11 @@ asyncio_default_fixture_loop_scope = "function"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [
+    { include = "tigrbl" },
+]
 
 [dependency-groups]
 dev = [

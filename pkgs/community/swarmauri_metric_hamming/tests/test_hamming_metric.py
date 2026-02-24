@@ -13,7 +13,7 @@ def test_distance_with_strings_and_numpy_arrays():
     metric = HammingMetric()
     left = "1011001"
     right = np.array([1, 0, 1, 0, 0, 0, 1])
-    assert metric.distance(left, right) == pytest.approx(2.0)
+    assert metric.distance(left, right) == pytest.approx(1.0)
 
 
 def test_distances_supports_collections():

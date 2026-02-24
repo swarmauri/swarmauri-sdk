@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import ssl
-from typing import Any, Optional
+from typing import Any
+
 
 class TlsHelper:
     """Builds SSL contexts from SPIFFE materials.

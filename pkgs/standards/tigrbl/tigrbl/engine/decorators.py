@@ -1,6 +1,8 @@
-# tigrbl/tigrbl/v3/engine/decorators.py
+"""Compatibility wrapper for engine decorators."""
+
 from __future__ import annotations
 
+<<<<<<< HEAD
 import inspect
 from typing import Any, Optional
 
@@ -67,18 +69,18 @@ def engine_ctx(ctx: Optional[EngineCfg] = None, **kw: Any):
     """
     Object-agnostic decorator to attach engine configuration to:
       - App classes/instances     (app-level default)
-      - API classes/instances     (api-level default)
+      - Router classes/instances     (router-level default)
       - ORM model classes         (table-level)
       - Op callables              (op-level)
 
     What it stores:
       • For ops (functions/methods): sets __tigrbl_engine_ctx__ (and legacy __tigrbl_db__).
       • For ORM table classes: injects mapping under model.table_config["engine"] (and legacy "db").
-      • For App/API classes or instances: sets attribute .engine = EngineCfg (and legacy .db).
+      • For App/Router classes or instances: sets attribute .engine = EngineCfg (and legacy .db).
 
     Downstream:
       • engine.install_from_objects(...) discovers these and registers
-        Providers with resolver precedence: op > table(model) > api > app.
+        Providers with resolver precedence: op > table(model) > router > app.
     """
     spec = _normalize(ctx, **kw)
 
@@ -99,7 +101,7 @@ def engine_ctx(ctx: Optional[EngineCfg] = None, **kw: Any):
             setattr(obj, "table_config", cfg)
             return obj
 
-        # API/App classes or instances: keep a simple attribute
+        # Router/App classes or instances: keep a simple attribute
         setattr(obj, "engine", spec)
         setattr(obj, "db", spec)  # legacy attribute
         return obj
@@ -108,3 +110,6 @@ def engine_ctx(ctx: Optional[EngineCfg] = None, **kw: Any):
 
 
 __all__ = ["engine_ctx"]
+=======
+from ..decorators.engine import *  # noqa: F401,F403
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

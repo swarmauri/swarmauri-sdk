@@ -24,7 +24,7 @@ try:
 except Exception:  # pragma: no cover
     _PASETO_OK = False
 
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 
 
 class ITokenService:  # pragma: no cover - minimal placeholder

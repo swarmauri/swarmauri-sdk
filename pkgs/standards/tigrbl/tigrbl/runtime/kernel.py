@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from typing import (
     Any,
     Callable,
+    ClassVar,
     Dict,
     Iterable,
     List,
@@ -241,6 +242,8 @@ def _inject_atoms(
         token_idx = pref.index(token) if token in pref else 10_000
         return anchor_idx, token_idx
 
+    phase_atoms: Dict[str, List[StepFn]] = {}
+
     for anchor, run in sorted(atoms, key=_sort_key):
         try:
             info = _ev.get_anchor_info(anchor)
@@ -250,7 +253,14 @@ def _inject_atoms(
             continue
         if not persistent and info.persist_tied:
             continue
-        chains.setdefault(info.phase, []).append(_wrap_atom(run, anchor=anchor))
+        phase_atoms.setdefault(info.phase, []).append(_wrap_atom(run, anchor=anchor))
+
+    for phase, atom_steps in phase_atoms.items():
+        existing = list(chains.get(phase, []) or [])
+        if phase == "PRE_TX_BEGIN":
+            chains[phase] = [*atom_steps, *existing]
+        else:
+            chains[phase] = [*existing, *atom_steps]
 
 
 # ───────────────────────────── Kernel ──────────────────────────────
@@ -262,18 +272,27 @@ class Kernel:
     Auto-primed under the hood. Downstream users never touch this.
     """
 
+    _instance: ClassVar["Kernel | None"] = None
+
+    def __new__(cls, *args: Any, **kwargs: Any) -> "Kernel":
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self, atoms: Optional[Sequence[_DiscoveredAtom]] = None):
-        self._atoms_cache: Optional[list[_DiscoveredAtom]] = (
-            list(atoms) if atoms else None
-        )
+        if atoms is None and getattr(self, "_singleton_initialized", False):
+            self._reset(atoms)
+            return
+        self._reset(atoms)
+        if atoms is None:
+            self._singleton_initialized = True
+
+    def _reset(self, atoms: Optional[Sequence[_DiscoveredAtom]] = None) -> None:
+        self._atoms_cache = list(atoms) if atoms else None
         self._specs_cache = _SpecsOnceCache()
-        self._opviews: _WeakMaybeDict[Any, Dict[Tuple[type, str], OpView]] = (
-            _WeakMaybeDict()
-        )
-        self._kernelz_payload: _WeakMaybeDict[Any, Dict[str, Dict[str, List[str]]]] = (
-            _WeakMaybeDict()
-        )
-        self._primed: _WeakMaybeDict[Any, bool] = _WeakMaybeDict()
+        self._opviews = _WeakMaybeDict()
+        self._kernelz_payload = _WeakMaybeDict()
+        self._primed = _WeakMaybeDict()
         self._lock = threading.Lock()
 
     # ——— atoms ———
@@ -340,7 +359,13 @@ class Kernel:
             phase = phase_for[anchor]
             for step in chains.get(phase, []) or []:
                 lbl = getattr(step, "__tigrbl_label", None)
-                if isinstance(lbl, str) and lbl.endswith(f"@{anchor}"):
+                if not isinstance(lbl, str):
+                    continue
+                if phase == "PRE_TX_BEGIN" and (
+                    lbl.startswith("secdep:") or lbl.startswith("dep:")
+                ):
+                    labels.append(lbl)
+                elif lbl.endswith(f"@{anchor}"):
                     labels.append(lbl)
         return labels
 
@@ -396,9 +421,15 @@ class Kernel:
 
     def get_opview(self, app: Any, model: type, alias: str) -> OpView:
         """Return OpView for (model, alias); compile on-demand if missing."""
+        ov_map = self._opviews.get(app)
+        if isinstance(ov_map, dict):
+            ov = ov_map.get((model, alias))
+            if ov is not None:
+                return ov
+
         self.ensure_primed(app)
 
-        ov_map: Dict[Tuple[type, str], OpView] = self._opviews.setdefault(app, {})
+        ov_map = self._opviews.setdefault(app, {})
         ov = ov_map.get((model, alias))
         if ov is not None:
             return ov
@@ -536,7 +567,6 @@ class Kernel:
         from ..system.diagnostics.utils import (
             model_iter as _model_iter,
             opspecs as _opspecs,
-            label_callable as _label_callable,
             label_hook as _label_hook,
         )
 
@@ -549,32 +579,20 @@ class Kernel:
             for sp in _opspecs(model):
                 seq: List[str] = []
 
-                # PRE_TX: secdeps / deps
-                secdeps = [
-                    _label_callable(d) if callable(d) else str(d)
-                    for d in (getattr(sp, "secdeps", []) or [])
-                ]
-                deps = [
-                    _label_callable(d) if callable(d) else str(d)
-                    for d in (getattr(sp, "deps", []) or [])
-                ]
-                seq.extend(f"PRE_TX:secdep:{s}" for s in secdeps)
-                seq.extend(f"PRE_TX:dep:{d}" for d in deps)
-
                 # Chains and system hooks in canonical phase order
                 chains = self.build(model, sp.alias)
                 persist = getattr(sp, "persist", "default") != "skip"
-
                 for ph in PHASES:
                     if ph == "START_TX" and persist:
                         seq.append("START_TX:hook:sys:txn:begin@START_TX")
 
                     for step in chains.get(ph, []) or []:
                         lbl = getattr(step, "__tigrbl_label", None)
+                        out_phase = ph
                         seq.append(
-                            f"{ph}:{lbl}"
+                            f"{out_phase}:{lbl}"
                             if isinstance(lbl, str)
-                            else f"{ph}:{_label_hook(step, ph)}"
+                            else f"{out_phase}:{_label_hook(step, ph)}"
                         )
 
                     if ph == "END_TX" and persist:
@@ -612,6 +630,10 @@ def build_phase_chains(model: type, alias: str) -> Dict[str, List[StepFn]]:
     return _default_kernel.build(model, alias)
 
 
+def plan_labels(model: type, alias: str) -> list[str]:
+    return _default_kernel.plan_labels(model, alias)
+
+
 async def run(
     model: type,
     alias: str,
@@ -625,4 +647,11 @@ async def run(
     return await _invoke(request=request, db=db, phases=phases, ctx=base_ctx)
 
 
-__all__ = ["Kernel", "get_cached_specs", "_default_kernel", "build_phase_chains", "run"]
+__all__ = [
+    "Kernel",
+    "get_cached_specs",
+    "_default_kernel",
+    "build_phase_chains",
+    "plan_labels",
+    "run",
+]

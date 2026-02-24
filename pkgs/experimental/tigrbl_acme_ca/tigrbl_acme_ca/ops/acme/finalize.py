@@ -1,5 +1,6 @@
 from __future__ import annotations
-import base64, secrets
+import base64
+import secrets
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 
@@ -7,7 +8,6 @@ from tigrbl_acme_ca.tables.orders import Order
 from tigrbl_acme_ca.tables.authorizations import Authorization
 from tigrbl_acme_ca.tables.certificates import Certificate
 
-from fastapi import HTTPException
 
 def _h(ctx, name: str):
     handlers = ctx.get("handlers") or {}
@@ -16,15 +16,19 @@ def _h(ctx, name: str):
         raise HTTPException(status_code=500, detail=f"handler_unavailable:{name}")
     return fn
 
+
 def _id(obj):
     return obj.get("id") if isinstance(obj, dict) else getattr(obj, "id", None)
+
 
 def _field(obj, name: str):
     return obj.get(name) if isinstance(obj, dict) else getattr(obj, name, None)
 
+
 def _b64url_to_bytes(data: str) -> bytes:
-    pad = '=' * (-len(data) % 4)
+    pad = "=" * (-len(data) % 4)
     return base64.urlsafe_b64decode(data + pad)
+
 
 async def finalize(ctx, order_id: str | None = None):
     read_by_id = _h(ctx, "table.read.by_id")
@@ -47,7 +51,11 @@ async def finalize(ctx, order_id: str | None = None):
     csr_b64 = p.get("csr") or p.get("csr_der_b64")
     if not csr_b64:
         raise HTTPException(status_code=400, detail="missing_csr")
-    await update(table=Order, id=order_id, values={"csr_der_b64": csr_b64, "status": "processing"})
+    await update(
+        table=Order,
+        id=order_id,
+        values={"csr_der_b64": csr_b64, "status": "processing"},
+    )
 
     authzs = await read_list(table=Authorization, where={"order_id": order_id})
     if not authzs or any(_field(a, "status") != "valid" for a in authzs):
@@ -71,7 +79,21 @@ async def finalize(ctx, order_id: str | None = None):
         serial_hex = secrets.token_hex(16)
         nb, na = not_before, not_after
 
-    cert = await create(table=Certificate, values={"account_id": _field(order, "account_id"), "order_id": order_id, "serial_hex": serial_hex, "not_before": nb, "not_after": na, "pem": pem})
-    await update(table=Order, id=order_id, values={"certificate_id": _id(cert), "status": "valid"})
+    cert = await create(
+        table=Certificate,
+        values={
+            "account_id": _field(order, "account_id"),
+            "order_id": order_id,
+            "serial_hex": serial_hex,
+            "not_before": nb,
+            "not_after": na,
+            "pem": pem,
+        },
+    )
+    await update(
+        table=Order,
+        id=order_id,
+        values={"certificate_id": _id(cert), "status": "valid"},
+    )
 
     return {"order_id": str(order_id), "certificate_id": str(_id(cert))}

@@ -27,7 +27,6 @@ from .helpers import (
     _validate_enum_values,
 )
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 
 

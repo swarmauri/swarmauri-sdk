@@ -44,7 +44,7 @@ Create and manage symmetric (or opaque/asymmetric placeholder) keys entirely in 
 ```python
 import asyncio
 from swarmauri_keyprovider_inmemory import InMemoryKeyProvider
-from swarmauri_core.keys.types import (
+from swarmauri_core.key_providers.types import (
     KeySpec,
     KeyClass,
     KeyAlg,      # optional, not enforced by the provider

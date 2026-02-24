@@ -10,7 +10,7 @@ from swarmauri_core.crypto.types import (
     KeyType,
     KeyUse,
 )
-from swarmauri_core.keys import IKeyProvider
+from swarmauri_core.key_providers import IKeyProvider
 
 
 class DummyKeyProvider(IKeyProvider):

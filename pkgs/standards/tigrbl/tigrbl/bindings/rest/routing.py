@@ -5,7 +5,8 @@ from types import SimpleNamespace
 from typing import Any, Dict, Optional, Sequence, Tuple
 
 
-from .fastapi import Depends, Security, _status
+from ...runtime.status.mappings import status as _status
+from ...security.dependencies import Depends
 from ...op import OpSpec
 from ...op.types import CANON
 
@@ -21,17 +22,6 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:
     for d in deps:
         is_dep_obj = getattr(d, "dependency", None) is not None
         out.append(d if is_dep_obj else Depends(d))
-    return out
-
-
-def _normalize_secdeps(secdeps: Optional[Sequence[Any]]) -> list[Any]:
-    """Turn callables into Security(...) unless already a dependency object."""
-    if not secdeps:
-        return []
-    out: list[Any] = []
-    for d in secdeps:
-        is_dep_obj = getattr(d, "dependency", None) is not None
-        out.append(d if is_dep_obj else Security(d))
     return out
 
 

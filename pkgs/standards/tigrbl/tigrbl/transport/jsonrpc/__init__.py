@@ -4,12 +4,22 @@ Tigrbl v3 – JSON-RPC transport.
 
 Public helper:
   - build_jsonrpc_router(
-        api, *, get_db=None, tags=("rpc",)
+        router, *, get_db=None, tags=("rpc",)
     ) -> Router
+<<<<<<< HEAD
+=======
+  - build_openrpc_spec(router) -> dict
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 Usage:
     from tigrbl.transport.jsonrpc import build_jsonrpc_router
-    app.include_router(build_jsonrpc_router(api), prefix="/rpc")
+    app.include_router(build_jsonrpc_router(router), prefix="/rpc")
+<<<<<<< HEAD
+
+=======
+    # OpenRPC schema (JSON-RPC equivalent of OpenAPI)
+    build_openrpc_spec(router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 """
 
 from __future__ import annotations

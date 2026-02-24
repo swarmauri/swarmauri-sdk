@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Type
 
 from pydantic import BaseModel, ConfigDict, Field, RootModel, create_model
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 
 

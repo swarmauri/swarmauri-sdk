@@ -1,10 +1,10 @@
 [project]
 name = "swarmauri_storage_minio"
-version = "0.2.0.dev8"
+version = "0.2.1.dev5"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]
-description = "MinIO storage adapter for Peagen"
+description = "MinIO storage adapter for SwarmauriSDK"
 readme = "README.md"
 license = "Apache-2.0"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -20,7 +20,6 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
-    "peagen",
     "minio",
     "swarmauri_core",
     "swarmauri_base",
@@ -35,7 +34,6 @@ keywords = [
 ]
 
 [tool.uv.sources]
-peagen = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }

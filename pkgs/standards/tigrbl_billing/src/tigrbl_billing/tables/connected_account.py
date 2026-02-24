@@ -9,6 +9,8 @@ from tigrbl.orm.mixins import GUIDPk, Timestamped
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.types import Mapped, String, JSONB, Boolean, SAEnum, UniqueConstraint
 
+from ._mixins.extref import StripeExtRef
+
 
 class ConnectedType(Enum):
     STANDARD = "standard"
@@ -16,16 +18,17 @@ class ConnectedType(Enum):
     CUSTOM = "custom"
 
 
-class ConnectedAccount(Base, GUIDPk, Timestamped):
+class ConnectedAccount(Base, GUIDPk, Timestamped, StripeExtRef):
     __tablename__ = "connected_accounts"
 
-    stripe_account_id: Mapped[str | None] = acol(
+    external_id: Mapped[str | None] = acol(
         storage=S(type_=String, nullable=True, unique=True, index=True),
         field=F(py_type=str | None),
         io=IO(
             in_verbs=("create", "update", "replace", "merge"),
             out_verbs=("read", "list"),
         ),
+        name="stripe_account_id",
     )
 
     type: Mapped[ConnectedType] = acol(

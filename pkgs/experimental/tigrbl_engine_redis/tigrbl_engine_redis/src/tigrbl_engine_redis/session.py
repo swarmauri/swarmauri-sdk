@@ -5,6 +5,7 @@ from typing import Any, Callable, Optional
 
 from tigrbl.session.base import TigrblSessionBase  # first-class session base
 
+
 class RedisSession(TigrblSessionBase):
     """A Tigrbl session backed by a Redis client (async).
 
@@ -13,6 +14,7 @@ class RedisSession(TigrblSessionBase):
     satisfy the Session ABC. It treats Redis commands as statements for
     `_execute_impl` and offers simple key/value helpers for `_get_impl`.
     """
+
     def __init__(self, engine: Any, *, url: Optional[str] = None) -> None:
         super().__init__()
         self._engine = engine
@@ -31,7 +33,9 @@ class RedisSession(TigrblSessionBase):
             if self._url_override or self._engine.url:
                 self._client = Redis.from_url(self._url_override or self._engine.url)  # type: ignore[arg-type]
             else:
-                self._client = Redis(host=self._engine.host, port=self._engine.port, db=self._engine.db)
+                self._client = Redis(
+                    host=self._engine.host, port=self._engine.port, db=self._engine.db
+                )
         return self._client
 
     def _target(self):
@@ -64,7 +68,9 @@ class RedisSession(TigrblSessionBase):
         if isinstance(obj, (list, tuple)) and len(obj) == 2:
             k, v = obj
             return self._target().set(k, v)
-        raise NotImplementedError("RedisSession.add expects {'key','value'} or (key, value)")
+        raise NotImplementedError(
+            "RedisSession.add expects {'key','value'} or (key, value)"
+        )
 
     async def _delete_impl(self, obj: Any) -> None:
         key = obj if isinstance(obj, str) else getattr(obj, "key", None)

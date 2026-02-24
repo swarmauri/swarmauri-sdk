@@ -6,7 +6,7 @@ from typing import Callable, Dict, Iterable, Mapping, Optional, Literal
 
 from swarmauri_providers.tokens import JWTTokenService
 from swarmauri_core.crypto.types import JWAAlg
-from swarmauri_core.keys import IKeyProvider
+from swarmauri_core.key_providers import IKeyProvider
 
 
 def _b64u(b: bytes) -> str:

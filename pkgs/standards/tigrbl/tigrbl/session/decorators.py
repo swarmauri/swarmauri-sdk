@@ -1,5 +1,8 @@
+"""Compatibility wrapper for session decorators."""
+
 from __future__ import annotations
 
+<<<<<<< HEAD
 from typing import Any, Optional
 from .spec import SessionSpec, SessionCfg
 
@@ -15,7 +18,7 @@ def session_ctx(cfg: Optional[SessionCfg] = None, /, **kw: Any):
     Attach a SessionSpec to an App, API, Model/Table, or op handler.
 
     Precedence is evaluated by the resolver using:
-        op > model > api > app
+        op > model > router > app
     (Resolver is part of the runtime/engine layer and is independent of this decorator.)
     """
     spec = _normalize(cfg, **kw)
@@ -41,3 +44,6 @@ def read_only_session(obj: Any = None, /, *, isolation: Optional[str] = None):
         return o
 
     return _wrap(obj) if obj is not None else _wrap
+=======
+from ..decorators.session import *  # noqa: F401,F403
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

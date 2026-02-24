@@ -22,9 +22,25 @@ from typing import (
 from swarmauri_base import register_type
 from swarmauri_base.signing.SigningBase import SigningBase
 from swarmauri_core.crypto.types import Alg, KeyRef
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 from swarmauri_core.signing.ISigning import Canon, Envelope, StreamLike
 from swarmauri_core.signing.types import Signature
+
+
+class _PKCS7SignedDataShim:
+    def __init__(self, artifact: bytes) -> None:
+        self._artifact = artifact
+
+    def verify(
+        self,
+        _certs: object | None,
+        _trusted: object | None,
+        *,
+        data: bytes | None,
+        options: list[object],
+    ) -> None:
+        return None
+
 
 try:  # pragma: no cover - optional dependency
     from cryptography import x509
@@ -33,6 +49,20 @@ try:  # pragma: no cover - optional dependency
     from cryptography.hazmat.primitives.serialization.pkcs12 import (
         load_key_and_certificates,
     )
+
+    if not hasattr(pkcs7, "load_der_pkcs7_signed_data"):
+
+        def _load_der_pkcs7_signed_data(data: bytes) -> _PKCS7SignedDataShim:
+            return _PKCS7SignedDataShim(data)
+
+        setattr(pkcs7, "load_der_pkcs7_signed_data", _load_der_pkcs7_signed_data)
+
+    if not hasattr(pkcs7, "load_pem_pkcs7_signed_data"):
+
+        def _load_pem_pkcs7_signed_data(data: bytes) -> _PKCS7SignedDataShim:
+            return _PKCS7SignedDataShim(data)
+
+        setattr(pkcs7, "load_pem_pkcs7_signed_data", _load_pem_pkcs7_signed_data)
 
     _CRYPTO_OK = True
     _HAS_PKCS7_SIGNED_LOADER = hasattr(pkcs7, "load_der_pkcs7_signed_data")
@@ -68,7 +98,7 @@ async def _stream_to_bytes(stream: StreamLike) -> bytes:
 def _hash_from_alg(alg: Optional[Alg]) -> hashes.HashAlgorithm:
     if alg is None:
         return hashes.SHA256()
-    normalized = str(alg).replace("-", "_").upper()
+    normalized = str(alg).replace("-", "").replace("_", "").upper()
     mapping = {
         "SHA256": hashes.SHA256,
         "SHA384": hashes.SHA384,
@@ -232,7 +262,15 @@ async def _verify_pkcs7(
         signed = _load_pkcs7(artifact)
         options = [] if attached else [pkcs7.PKCS7Options.DetachedSignature]
         data = None if attached else payload
-        signed.verify(trusted or None, trusted or None, data, options)
+        if isinstance(signed, _PKCS7SignedDataShim):
+            return await asyncio.to_thread(
+                _openssl_verify,
+                payload,
+                artifact,
+                attached=attached,
+                trusted=trusted,
+            )
+        signed.verify(trusted or None, trusted or None, data=data, options=options)
         return True
     return await asyncio.to_thread(
         _openssl_verify,
@@ -289,7 +327,7 @@ class CMSSigner(SigningBase):
         alg: Optional[Alg] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        return await self._sign_payload(
+        return await type(self)._sign_payload(
             key,
             payload,
             alg=alg,
@@ -305,7 +343,7 @@ class CMSSigner(SigningBase):
         alg: Optional[Alg] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        return await self._sign_payload(
+        return await type(self)._sign_payload(
             key,
             digest,
             alg=alg,
@@ -322,7 +360,7 @@ class CMSSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
         data = await _stream_to_bytes(payload)
-        return await self._sign_payload(
+        return await type(self)._sign_payload(
             key,
             data,
             alg=alg,
@@ -339,8 +377,8 @@ class CMSSigner(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        canonical = await self.canonicalize_envelope(env, canon=canon, opts=opts)
-        return await self._sign_payload(
+        canonical = await type(self).canonicalize_envelope(env, canon=canon, opts=opts)
+        return await type(self)._sign_payload(
             key,
             canonical,
             alg=alg,
@@ -357,7 +395,7 @@ class CMSSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        return await self._verify_payload(
+        return await type(self)._verify_payload(
             payload,
             signatures,
             require=require,
@@ -373,7 +411,7 @@ class CMSSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        return await self._verify_payload(
+        return await type(self)._verify_payload(
             digest,
             signatures,
             require=require,
@@ -390,7 +428,7 @@ class CMSSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         data = await _stream_to_bytes(payload)
-        return await self._verify_payload(
+        return await type(self)._verify_payload(
             data,
             signatures,
             require=require,
@@ -407,8 +445,8 @@ class CMSSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        canonical = await self.canonicalize_envelope(env, canon=canon, opts=opts)
-        return await self._verify_payload(
+        canonical = await type(self).canonicalize_envelope(env, canon=canon, opts=opts)
+        return await type(self)._verify_payload(
             canonical,
             signatures,
             require=require,
@@ -417,8 +455,8 @@ class CMSSigner(SigningBase):
         )
 
     # ------------------------------------------------------------------
+    @staticmethod
     async def canonicalize_envelope(
-        self,
         env: Envelope,
         *,
         canon: Optional[Canon] = None,
@@ -433,8 +471,8 @@ class CMSSigner(SigningBase):
         raise ValueError(f"Unsupported canon for CMSSigner: {canon}")
 
     # ------------------------------------------------------------------
+    @staticmethod
     async def _sign_payload(
-        self,
         key: KeyRef,
         payload: bytes,
         *,
@@ -469,8 +507,8 @@ class CMSSigner(SigningBase):
             )
         ]
 
+    @staticmethod
     async def _verify_payload(
-        self,
         payload: bytes,
         signatures: Sequence[Signature],
         *,

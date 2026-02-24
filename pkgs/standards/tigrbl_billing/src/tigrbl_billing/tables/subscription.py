@@ -23,6 +23,8 @@ from tigrbl.types import (
     UUID,
 )
 
+from ._mixins.extref import StripeExtRef
+
 
 class SubscriptionStatus(Enum):
     INCOMPLETE = "incomplete"
@@ -38,16 +40,17 @@ class CollectionMethod(Enum):
     SEND_INVOICE = "send_invoice"
 
 
-class Subscription(Base, GUIDPk, Timestamped):
+class Subscription(Base, GUIDPk, Timestamped, StripeExtRef):
     __tablename__ = "subscriptions"
 
-    stripe_subscription_id: Mapped[str | None] = acol(
+    external_id: Mapped[str | None] = acol(
         storage=S(type_=String, nullable=True, unique=True, index=True),
         field=F(py_type=str | None),
         io=IO(
             in_verbs=("create", "update", "replace", "merge"),
             out_verbs=("read", "list"),
         ),
+        name="stripe_subscription_id",
     )
 
     customer_id: Mapped[UUID] = acol(

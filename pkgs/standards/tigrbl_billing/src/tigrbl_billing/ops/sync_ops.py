@@ -75,11 +75,11 @@ def sync_objects(
         with _session_for(Product, op_ctx) as db:
             for r in products:
                 obj = None
-                sid = r.get("stripe_product_id")
+                sid = r.get("external_id")
                 if sid and hasattr(db, "query"):
                     obj = (
                         db.query(Product)
-                        .filter(Product.stripe_product_id == sid)
+                        .filter(Product.external_id == sid)
                         .one_or_none()
                     )
                 if obj is None:
@@ -93,14 +93,10 @@ def sync_objects(
     if prices:
         with _session_for(Price, op_ctx) as db:
             for r in prices:
-                sid = r.get("stripe_price_id")
+                sid = r.get("external_id")
                 obj = None
                 if sid and hasattr(db, "query"):
-                    obj = (
-                        db.query(Price)
-                        .filter(Price.stripe_price_id == sid)
-                        .one_or_none()
-                    )
+                    obj = db.query(Price).filter(Price.external_id == sid).one_or_none()
                 if obj is None:
                     obj = Price(**r)
                 else:
@@ -118,12 +114,12 @@ def sync_objects(
     if customers:
         with _session_for(Customer, op_ctx) as db:
             for r in customers:
-                sid = r.get("stripe_customer_id")
+                sid = r.get("external_id")
                 obj = None
                 if sid and hasattr(db, "query"):
                     obj = (
                         db.query(Customer)
-                        .filter(Customer.stripe_customer_id == sid)
+                        .filter(Customer.external_id == sid)
                         .one_or_none()
                     )
                 if obj is None:
@@ -137,12 +133,12 @@ def sync_objects(
     if subscriptions:
         with _session_for(Subscription, op_ctx) as db:
             for r in subscriptions:
-                sid = r.get("stripe_subscription_id")
+                sid = r.get("external_id")
                 obj = None
                 if sid and hasattr(db, "query"):
                     obj = (
                         db.query(Subscription)
-                        .filter(Subscription.stripe_subscription_id == sid)
+                        .filter(Subscription.external_id == sid)
                         .one_or_none()
                     )
                 if obj is None:
@@ -156,12 +152,12 @@ def sync_objects(
     if subscription_items:
         with _session_for(SubscriptionItem, op_ctx) as db:
             for r in subscription_items:
-                sid = r.get("stripe_subscription_item_id")
+                sid = r.get("external_id")
                 obj = None
                 if sid and hasattr(db, "query"):
                     obj = (
                         db.query(SubscriptionItem)
-                        .filter(SubscriptionItem.stripe_subscription_item_id == sid)
+                        .filter(SubscriptionItem.external_id == sid)
                         .one_or_none()
                     )
                 if obj is None:
@@ -175,12 +171,12 @@ def sync_objects(
     if invoices:
         with _session_for(Invoice, op_ctx) as db:
             for r in invoices:
-                sid = r.get("stripe_invoice_id")
+                sid = r.get("external_id")
                 obj = None
                 if sid and hasattr(db, "query"):
                     obj = (
                         db.query(Invoice)
-                        .filter(Invoice.stripe_invoice_id == sid)
+                        .filter(Invoice.external_id == sid)
                         .one_or_none()
                     )
                 if obj is None:
@@ -200,12 +196,12 @@ def sync_objects(
     if payment_intents:
         with _session_for(PaymentIntent, op_ctx) as db:
             for r in payment_intents:
-                sid = r.get("stripe_payment_intent_id")
+                sid = r.get("external_id")
                 obj = None
                 if sid and hasattr(db, "query"):
                     obj = (
                         db.query(PaymentIntent)
-                        .filter(PaymentIntent.stripe_payment_intent_id == sid)
+                        .filter(PaymentIntent.external_id == sid)
                         .one_or_none()
                     )
                 if obj is None:
@@ -219,13 +215,11 @@ def sync_objects(
     if refunds:
         with _session_for(Refund, op_ctx) as db:
             for r in refunds:
-                sid = r.get("stripe_refund_id")
+                sid = r.get("external_id")
                 obj = None
                 if sid and hasattr(db, "query"):
                     obj = (
-                        db.query(Refund)
-                        .filter(Refund.stripe_refund_id == sid)
-                        .one_or_none()
+                        db.query(Refund).filter(Refund.external_id == sid).one_or_none()
                     )
                 if obj is None:
                     obj = Refund(**r)
@@ -238,12 +232,12 @@ def sync_objects(
     if connected_accounts:
         with _session_for(ConnectedAccount, op_ctx) as db:
             for r in connected_accounts:
-                sid = r.get("stripe_account_id")
+                sid = r.get("external_id")
                 obj = None
                 if sid and hasattr(db, "query"):
                     obj = (
                         db.query(ConnectedAccount)
-                        .filter(ConnectedAccount.stripe_account_id == sid)
+                        .filter(ConnectedAccount.external_id == sid)
                         .one_or_none()
                     )
                 if obj is None:
@@ -257,12 +251,12 @@ def sync_objects(
     if transfers:
         with _session_for(Transfer, op_ctx) as db:
             for r in transfers:
-                sid = r.get("stripe_transfer_id")
+                sid = r.get("external_id")
                 obj = None
                 if sid and hasattr(db, "query"):
                     obj = (
                         db.query(Transfer)
-                        .filter(Transfer.stripe_transfer_id == sid)
+                        .filter(Transfer.external_id == sid)
                         .one_or_none()
                     )
                 if obj is None:
@@ -276,12 +270,12 @@ def sync_objects(
     if application_fees:
         with _session_for(ApplicationFee, op_ctx) as db:
             for r in application_fees:
-                sid = r.get("stripe_application_fee_id")
+                sid = r.get("external_id")
                 obj = None
                 if sid and hasattr(db, "query"):
                     obj = (
                         db.query(ApplicationFee)
-                        .filter(ApplicationFee.stripe_application_fee_id == sid)
+                        .filter(ApplicationFee.external_id == sid)
                         .one_or_none()
                     )
                 if obj is None:
