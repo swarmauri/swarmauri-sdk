@@ -3,7 +3,7 @@
 Prefer importing directly from:
 - ``tigrbl.responses`` for response classes
 - ``tigrbl.runtime.status`` for ``status`` and ``HTTPException``
-- ``tigrbl.router._api`` / ``tigrbl.requests`` / ``tigrbl.security.dependencies``
+- ``tigrbl.router`` / ``tigrbl.requests`` / ``tigrbl.security.dependencies``
 """
 
 from __future__ import annotations
