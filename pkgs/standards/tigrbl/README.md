@@ -26,6 +26,11 @@ A high-leverage ASGI meta-framework that turns plain SQLAlchemy models into a fu
 - 🧩 Pluggable engine and provider abstractions
 - 🚀 Built as an ASGI-native framework with Pydantic-powered schema generation
 
+## Runtime-owned Routing Contract
+
+For the kernel-first flow that avoids pre-runtime REST/RPC dispatching, see
+[`RUNTIME_OWNED_ROUTING.md`](./RUNTIME_OWNED_ROUTING.md).
+
 ## Terminology 📚
 
 - **Tenant** 🏢 – a namespace used to group related resources.
