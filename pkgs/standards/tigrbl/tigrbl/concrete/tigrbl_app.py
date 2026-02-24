@@ -24,16 +24,16 @@ from ..router._routing import include_router as _include_router_impl
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
-from ..bindings.router import (
+from ..mapping.router import (
     rpc_call as _rpc_call,
     _seed_security_and_deps,
     _mount_router,
     _default_prefix,
     AttrDict,
 )
-from ..bindings.model import rebind as _rebind, bind as _bind
-from ..bindings.router.include import _inject_runtime_secdeps, _make_authorize_secdep
-from ..bindings.rest import build_router_and_attach as _build_router_and_attach
+from ..mapping.model import rebind as _rebind, bind as _bind
+from ..mapping.router.include import _inject_runtime_secdeps, _make_authorize_secdep
+from ..mapping.rest import build_router_and_attach as _build_router_and_attach
 from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..system import mount_lens as _mount_lens

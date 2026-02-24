@@ -10,7 +10,7 @@ from ...transport import JSONResponse, Request, Response
 from ...transport.dispatcher import dispatch_operation, resolve_operation
 from ...core.crud.params import Body
 from ...router._router import Router
-from ...bindings.rpc import _serialize_output
+from ...mapping.rpc import _serialize_output
 from .helpers import _err, _normalize_deps, _normalize_params, _ok
 from .models import RPCRequest, RPCResponse
 

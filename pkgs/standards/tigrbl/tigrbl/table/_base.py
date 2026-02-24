@@ -399,7 +399,7 @@ class Base(DeclarativeBase):
 
         # 3) Seed model namespaces / index specs (ops/hooks/etc.) – idempotent
         try:
-            from tigrbl.bindings import model as _model_bind
+            from tigrbl.mapping import model as _model_bind
 
             _model_bind.bind(cls)
         except Exception:
