@@ -105,25 +105,8 @@ def _is_persistent(chains: Mapping[str, Sequence[StepFn]]) -> bool:
     return False
 
 
-def _dep_name(dep: Any) -> str:
-    explicit_name = getattr(dep, "__tigrbl_dep_name__", None)
-    if isinstance(explicit_name, str) and explicit_name:
-        return explicit_name
-
-    target = getattr(dep, "dependency", dep)
-    name = getattr(target, "__name__", None)
-    if isinstance(name, str) and name:
-        return name
-
-    qualname = getattr(target, "__qualname__", None)
-    if isinstance(qualname, str) and qualname:
-        return qualname
-
-    return str(target)
-
-
-def _label_dep_atom(*, kind: str, dep: Any) -> str:
-    return f"{kind}:{_dep_name(dep)}"
+def _label_dep_atom(*, kind: str, index: int, anchor: str) -> str:
+    return f"hook:dep:{kind}:{index}@{anchor}"
 
 
 def _make_dep_atom_step(run_fn: _AtomRun, dep: Any, *, label: str) -> StepFn:
@@ -147,20 +130,28 @@ def _inject_pre_tx_dep_atoms(chains: Dict[str, List[StepFn]], sp: Any | None) ->
         return
 
     pre_tx = chains.setdefault("PRE_TX_BEGIN", [])
-    for dep in getattr(sp, "secdeps", ()) or ():
+    for idx, dep in enumerate(getattr(sp, "secdeps", ()) or ()):
         pre_tx.append(
             _make_dep_atom_step(
                 sec_run,
                 dep,
-                label=_label_dep_atom(kind="secdep", dep=dep),
+                label=_label_dep_atom(
+                    kind="security",
+                    index=idx,
+                    anchor=_ev.DEP_SECURITY,
+                ),
             )
         )
-    for dep in getattr(sp, "deps", ()) or ():
+    for idx, dep in enumerate(getattr(sp, "deps", ()) or ()):
         pre_tx.append(
             _make_dep_atom_step(
                 dep_run,
                 dep,
-                label=_label_dep_atom(kind="dep", dep=dep),
+                label=_label_dep_atom(
+                    kind="extra",
+                    index=idx,
+                    anchor=_ev.DEP_EXTRA,
+                ),
             )
         )
 
