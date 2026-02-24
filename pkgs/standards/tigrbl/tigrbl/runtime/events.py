@@ -77,12 +77,8 @@ ROUTE_PLAN_SELECT = "route.plan.select"
 ROUTE_CTX_FINALIZE = "route.ctx.finalize"
 
 # PRE_TX_BEGIN
-PREX_TX_BEGIN_SECDEP = "prex_tx_begin:secdep"
-PREX_TX_BEGIN_DEP = "prex_tx_begin:dep"
-
-# Backward-compatible aliases
-PRE_TX_SECDEP = PREX_TX_BEGIN_SECDEP
-PRE_TX_DEP = PREX_TX_BEGIN_DEP
+DEP_SECURITY = "prex_tx_begin:secdep"
+DEP_EXTRA = "prex_tx_begin:dep"
 
 # PRE_HANDLER
 SCHEMA_COLLECT_IN = "schema:collect_in"
@@ -140,8 +136,8 @@ _EVENT_ORDER: Tuple[str, ...] = (
     ROUTE_PLAN_SELECT,
     ROUTE_CTX_FINALIZE,
     # PRE_TX_BEGIN
-    PREX_TX_BEGIN_SECDEP,
-    PREX_TX_BEGIN_DEP,
+    DEP_SECURITY,
+    DEP_EXTRA,
     # PRE_HANDLER
     SCHEMA_COLLECT_IN,
     IN_VALIDATE,
@@ -218,8 +214,8 @@ _ANCHORS: Dict[str, AnchorInfo] = {
     ROUTE_PLAN_SELECT: AnchorInfo(ROUTE_PLAN_SELECT, "INGRESS_ROUTE", 18, False),
     ROUTE_CTX_FINALIZE: AnchorInfo(ROUTE_CTX_FINALIZE, "INGRESS_ROUTE", 19, False),
     # PRE_TX_BEGIN (not persist-tied)
-    PRE_TX_SECDEP: AnchorInfo(PREX_TX_BEGIN_SECDEP, "PRE_TX_BEGIN", 20, False),
-    PRE_TX_DEP: AnchorInfo(PREX_TX_BEGIN_DEP, "PRE_TX_BEGIN", 21, False),
+    DEP_SECURITY: AnchorInfo(DEP_SECURITY, "PRE_TX_BEGIN", 20, False),
+    DEP_EXTRA: AnchorInfo(DEP_EXTRA, "PRE_TX_BEGIN", 21, False),
     # PRE_HANDLER (not persist-tied)
     SCHEMA_COLLECT_IN: AnchorInfo(SCHEMA_COLLECT_IN, "PRE_HANDLER", 22, False),
     IN_VALIDATE: AnchorInfo(IN_VALIDATE, "PRE_HANDLER", 23, False),
@@ -370,8 +366,8 @@ __all__ = [
     "EGRESS_TO_TRANSPORT_RESPONSE",
     # Types / helpers
     "AnchorInfo",
-    "PREX_TX_BEGIN_SECDEP",
-    "PREX_TX_BEGIN_DEP",
+    "DEP_SECURITY",
+    "DEP_EXTRA",
     "is_valid_event",
     "phase_for_event",
     "is_persist_tied",
