@@ -115,7 +115,7 @@ async def test_schema_ctx_default_resolution(schema_ctx_client):
 @pytest.mark.asyncio
 async def test_schema_ctx_internal_orm(schema_ctx_client):
     _, router, Widget, _ = schema_ctx_client
-    assert router.models["Widget"] is Widget
+    assert router.tables["Widget"] is Widget
     assert "age" in router.columns["Widget"]
 
 

@@ -13,6 +13,7 @@ from ..app._model_registry import initialize_table_registry
 
 from tigrbl.router._routing import (
     add_route as _add_route_impl,
+    include_router as _include_router_impl,
     merge_tags,
     normalize_prefix,
     route,
@@ -145,6 +146,11 @@ class Router(RouterSpec):
 
     def _merge_tags(self, tags: list[str] | None) -> list[str] | None:
         return merge_tags(self.tags, tags)
+
+    def include_router(self, router: Any, *, prefix: str | None = None) -> Any:
+        routed = getattr(router, "router", router)
+        _include_router_impl(self, routed, prefix=prefix or "")
+        return router
 
     def route(
         self, path: str, *, methods: Any, **kwargs: Any
