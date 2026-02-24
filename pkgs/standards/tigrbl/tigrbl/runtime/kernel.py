@@ -396,11 +396,11 @@ class Kernel:
             if self._primed.get(app):
                 return
             from ..system.diagnostics.utils import (
-                model_iter as _model_iter,
+                table_iter as _table_iter,
                 opspecs as _opspecs,
             )
 
-            models = list(_model_iter(app))
+            models = list(_table_iter(app))
 
             # 1) per-model specs once
             for m in models:
@@ -565,14 +565,14 @@ class Kernel:
         self, app: Any
     ) -> Dict[str, Dict[str, List[str]]]:
         from ..system.diagnostics.utils import (
-            model_iter as _model_iter,
+            table_iter as _table_iter,
             opspecs as _opspecs,
             label_hook as _label_hook,
         )
 
         start = time.monotonic()
         out: Dict[str, Dict[str, List[str]]] = {}
-        for model in _model_iter(app):
+        for model in _table_iter(app):
             self.get_specs(model)  # ensure cached
             mname = getattr(model, "__name__", "Model")
             model_map: Dict[str, List[str]] = {}

@@ -154,11 +154,11 @@ class Kernel:
             if self._primed.get(app):
                 return
             from ...system.diagnostics.utils import (
-                model_iter as _model_iter,
+                table_iter as _table_iter,
                 opspecs as _opspecs,
             )
 
-            models = list(_model_iter(app))
+            models = list(_table_iter(app))
             for model in models:
                 self._specs_cache.get(model)
 
