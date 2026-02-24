@@ -99,11 +99,9 @@ async def test_opspec_deps_execute_in_pre_tx_for_rest_and_rpc(db_mode: str) -> N
 
     kernelz = (await client.get("/system/kernelz")).json()
     steps = kernelz["Item"]["create"]
-    secdep_idx = next(
-        i for i, step in enumerate(steps) if "PRE_TX_BEGIN:secdep" in step
-    )
-    dep_idx = next(i for i, step in enumerate(steps) if "PRE_TX_BEGIN:dep" in step)
-    handler_idx = next(i for i, step in enumerate(steps) if step.startswith("HANDLER:"))
+    secdep_idx = next(i for i, step in enumerate(steps) if ":secdep" in step)
+    dep_idx = next(i for i, step in enumerate(steps) if step.endswith(":dep"))
+    handler_idx = next(i for i, step in enumerate(steps) if "HANDLER:" in step)
     assert secdep_idx < dep_idx < handler_idx
 
     events.clear()
