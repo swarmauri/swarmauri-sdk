@@ -16,7 +16,6 @@ from typing import (
 )
 
 from .common import (
-    TIGRBL_AUTH_CONTEXT_ATTR,
     BaseModel,
     Body,
     Depends,
@@ -35,35 +34,10 @@ from .common import (
 
 from .io_headers import _make_header_dep
 
-from ...runtime.executor.types import _Ctx
-from ...transport.dispatcher import dispatch_operation
+from ...transport.dispatch import dispatch_operation
 
 
 logging.getLogger("uvicorn").debug("Loaded module v3/bindings/rest/collection")
-
-
-def _ctx(model, alias, target, request, db, payload, parent_kw, api):
-    ctx: Dict[str, Any] = {
-        "request": request,
-        "db": db,
-        "payload": payload,
-        "path_params": parent_kw,
-        # expose both API router and ASGI app; runtime opview resolution
-        # relies on the app object, which must be hashable.
-        "api": api if api is not None else getattr(request, "app", None),
-        "app": getattr(request, "app", None),
-        "model": model,
-        "op": alias,
-        "method": alias,
-        "target": target,
-        "env": SimpleNamespace(
-            method=alias, params=payload, target=target, model=model
-        ),
-    }
-    ac = getattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, None)
-    if ac is not None:
-        ctx["auth_context"] = ac
-    return _Ctx(ctx)
 
 
 def _sig(nested_vars, extra):
@@ -100,7 +74,7 @@ def _make_collection_endpoint(
     resource: str,
     db_dep: Callable[..., Any],
     nested_vars: Sequence[str] | None = None,
-    api: Any | None = None,
+    router: Any | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias, target, nested_vars = sp.alias, sp.target, list(nested_vars or [])
     status_code = _status_for(sp)
@@ -125,19 +99,18 @@ def _make_collection_endpoint(
                 payload = dict(parent_kw)
             if isinstance(h, Mapping):
                 payload = {**payload, **dict(h)}
-            ctx = _ctx(model, alias, target, request, db, payload, parent_kw, api)
-            ctx["response_serializer"] = lambda r: _serialize_output(
-                model, alias, target, sp, r
-            )
             result = await dispatch_operation(
-                api=api,
+                router=router,
+                request=request,
+                db=db,
                 model_or_name=model,
                 alias=alias,
-                payload=ctx.get("payload"),
-                db=db,
-                request=request,
-                ctx=ctx,
-                response_serializer=ctx.get("response_serializer"),
+                target=target,
+                payload=payload,
+                path_params=parent_kw,
+                response_serializer=lambda r: _serialize_output(
+                    model, alias, target, sp, r
+                ),
             )
             if _is_http_response(result):
                 if sp.status_code is not None or result.status_code == 200:
@@ -196,13 +169,11 @@ def _make_collection_endpoint(
                 payload: Mapping[str, Any] = dict(parent_kw)
                 if isinstance(h, Mapping):
                     payload = {**payload, **dict(h)}
-                ctx = _ctx(model, alias, target, request, db, payload, parent_kw, api)
+                seed_ctx: Dict[str, Any] = {}
 
-                def _serializer(r, _ctx=ctx):
+                def _serializer(r, _ctx=seed_ctx):
                     out = _serialize_output(model, alias, target, sp, r)
-                    temp = (
-                        getattr(_ctx, "temp", {}) if isinstance(_ctx, Mapping) else {}
-                    )
+                    temp = _ctx.get("temp", {}) if isinstance(_ctx, Mapping) else {}
                     extras = (
                         temp.get("response_extras", {})
                         if isinstance(temp, Mapping)
@@ -212,16 +183,17 @@ def _make_collection_endpoint(
                         out.update(extras)
                     return out
 
-                ctx["response_serializer"] = _serializer
                 result = await dispatch_operation(
-                    api=api,
+                    router=router,
+                    request=request,
+                    db=db,
                     model_or_name=model,
                     alias=alias,
-                    payload=ctx.get("payload"),
-                    db=db,
-                    request=request,
-                    ctx=ctx,
-                    response_serializer=ctx.get("response_serializer"),
+                    target=target,
+                    payload=payload,
+                    path_params=parent_kw,
+                    seed_ctx=seed_ctx,
+                    response_serializer=_serializer,
                 )
                 return result
 
@@ -306,13 +278,11 @@ def _make_collection_endpoint(
                     payload = {**payload, **parent_kw}
                 else:
                     payload = [{**dict(item), **parent_kw} for item in payload]
-            ctx = _ctx(
-                model, exec_alias, exec_target, request, db, payload, parent_kw, api
-            )
+            seed_ctx: Dict[str, Any] = {}
 
-            def _serializer(r, _ctx=ctx):
+            def _serializer(r, _ctx=seed_ctx):
                 out = _serialize_output(model, exec_alias, exec_target, sp, r)
-                temp = getattr(_ctx, "temp", {}) if isinstance(_ctx, Mapping) else {}
+                temp = _ctx.get("temp", {}) if isinstance(_ctx, Mapping) else {}
                 extras = (
                     temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
                 )
@@ -320,16 +290,17 @@ def _make_collection_endpoint(
                     out.update(extras)
                 return out
 
-            ctx["response_serializer"] = _serializer
             result = await dispatch_operation(
-                api=api,
+                router=router,
+                request=request,
+                db=db,
                 model_or_name=model,
                 alias=exec_alias,
-                payload=ctx.get("payload"),
-                db=db,
-                request=request,
-                ctx=ctx,
-                response_serializer=ctx.get("response_serializer"),
+                target=exec_target,
+                payload=payload,
+                path_params=parent_kw,
+                seed_ctx=seed_ctx,
+                response_serializer=_serializer,
             )
             if _is_http_response(result):
                 if sp.status_code is not None or result.status_code == 200:

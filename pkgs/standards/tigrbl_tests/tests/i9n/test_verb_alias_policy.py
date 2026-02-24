@@ -7,7 +7,7 @@ from tigrbl.orm.mixins import GUIDPk
 
 
 @pytest.mark.i9n
-def test_verb_alias_policy_both_routes_same_handler(create_test_api) -> None:
+def test_verb_alias_policy_both_routes_same_handler(create_test_app) -> None:
     """Verb aliases are ignored; only canonical verbs are exposed."""
 
     class AliasModelBoth(Base, GUIDPk):
@@ -15,17 +15,17 @@ def test_verb_alias_policy_both_routes_same_handler(create_test_api) -> None:
         __tigrbl_verb_aliases__ = {"create": "register"}
         __tigrbl_verb_alias_policy__ = "both"
 
-    api = create_test_api(AliasModelBoth)
+    app = create_test_app(AliasModelBoth)
 
     # Only the canonical verb is available.
-    assert hasattr(api.core.AliasModelBoth, "create")
-    assert not hasattr(api.core.AliasModelBoth, "register")
-    assert hasattr(api.rpc.AliasModelBoth, "create")
-    assert not hasattr(api.rpc.AliasModelBoth, "register")
+    assert hasattr(app.core.AliasModelBoth, "create")
+    assert not hasattr(app.core.AliasModelBoth, "register")
+    assert hasattr(app.rpc.AliasModelBoth, "create")
+    assert not hasattr(app.rpc.AliasModelBoth, "register")
 
 
 @pytest.mark.i9n
-def test_verb_alias_policy_canonical_only_blocks_alias(create_test_api) -> None:
+def test_verb_alias_policy_canonical_only_blocks_alias(create_test_app) -> None:
     """Alias policy has no effect; aliases remain hidden."""
 
     class AliasModelBlocked(Base, GUIDPk):
@@ -33,25 +33,25 @@ def test_verb_alias_policy_canonical_only_blocks_alias(create_test_api) -> None:
         __tigrbl_verb_aliases__ = {"create": "register"}
         __tigrbl_verb_alias_policy__ = "canonical_only"
 
-    api = create_test_api(AliasModelBlocked)
+    app = create_test_app(AliasModelBlocked)
 
-    assert hasattr(api.core.AliasModelBlocked, "create")
-    assert not hasattr(api.core.AliasModelBlocked, "register")
-    assert hasattr(api.rpc.AliasModelBlocked, "create")
-    assert not hasattr(api.rpc.AliasModelBlocked, "register")
+    assert hasattr(app.core.AliasModelBlocked, "create")
+    assert not hasattr(app.core.AliasModelBlocked, "register")
+    assert hasattr(app.rpc.AliasModelBlocked, "create")
+    assert not hasattr(app.rpc.AliasModelBlocked, "register")
 
 
 @pytest.mark.i9n
-def test_invalid_alias_is_ignored(create_test_api) -> None:
+def test_invalid_alias_is_ignored(create_test_app) -> None:
     """Invalid alias names are ignored without raising errors."""
 
     class BadAliasModel(Base, GUIDPk):
         __tablename__ = "bad_alias_model"
         __tigrbl_verb_aliases__ = {"create": "Bad-Name"}
 
-    api = create_test_api(BadAliasModel)
+    app = create_test_app(BadAliasModel)
 
-    assert hasattr(api.core.BadAliasModel, "create")
-    assert not hasattr(api.core.BadAliasModel, "Bad-Name")
-    assert hasattr(api.rpc.BadAliasModel, "create")
-    assert not hasattr(api.rpc.BadAliasModel, "Bad-Name")
+    assert hasattr(app.core.BadAliasModel, "create")
+    assert not hasattr(app.core.BadAliasModel, "Bad-Name")
+    assert hasattr(app.rpc.BadAliasModel, "create")
+    assert not hasattr(app.rpc.BadAliasModel, "Bad-Name")

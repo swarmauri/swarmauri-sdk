@@ -21,12 +21,12 @@ def test_default_ops_include_list():
         name = Column(String, nullable=False)
 
     # Deployment: include the model in a Tigrbl app so ops are bound.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonDefaultOps)
-    api.initialize()
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(LessonDefaultOps)
+    app.initialize()
 
     # Test: collect the aliases that the app binds for the model.
-    aliases = {spec.alias for spec in api.bind(LessonDefaultOps)}
+    aliases = {spec.alias for spec in app.bind(LessonDefaultOps)}
 
     # Assertion: the list operation is present by default.
     assert "list" in aliases
@@ -48,12 +48,12 @@ def test_default_ops_include_read_and_create():
         name = Column(String, nullable=False)
 
     # Deployment: bind the model within an app context.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonDefaultOpsCore)
-    api.initialize()
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(LessonDefaultOpsCore)
+    app.initialize()
 
     # Test: read all bound aliases for the model.
-    aliases = {spec.alias for spec in api.bind(LessonDefaultOpsCore)}
+    aliases = {spec.alias for spec in app.bind(LessonDefaultOpsCore)}
 
     # Assertion: core CRUD verbs are part of the default set.
     assert {"create", "read"}.issubset(aliases)

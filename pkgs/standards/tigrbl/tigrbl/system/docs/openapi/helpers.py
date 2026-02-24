@@ -1,4 +1,4 @@
-"""Helper utilities for stdapi OpenAPI schema generation."""
+"""Helper utilities for std OpenAPI schema generation."""
 
 from __future__ import annotations
 

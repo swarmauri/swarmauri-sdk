@@ -30,12 +30,12 @@ def test_custom_op_ctx_registers_alias():
     LessonOp.search = search
 
     # Deployment: include the model in a TigrblApp and initialize bindings.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonOp)
-    api.initialize()
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(LessonOp)
+    app.initialize()
 
     # Test: collect aliases from the app-bound OpSpecs.
-    aliases = {spec.alias for spec in api.bind(LessonOp)}
+    aliases = {spec.alias for spec in app.bind(LessonOp)}
 
     # Assertion: the custom alias appears in the bound operation set.
     assert "search" in aliases
@@ -64,7 +64,7 @@ def test_op_ctx_metadata_records_target_and_arity():
     LessonOpMeta.summary = summary
 
     # Test: inspect the op declaration metadata on the underlying function.
-    decl = LessonOpMeta.summary.__func__.__tigrbl_op_decl__
+    decl = LessonOpMeta.summary.__func__.__tigrbl_op_spec__
 
     # Assertion: the declaration retains alias, target, and arity intent.
     assert decl.alias == "summary"

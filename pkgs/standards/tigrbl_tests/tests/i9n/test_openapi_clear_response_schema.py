@@ -1,7 +1,7 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl import TigrblApp
+from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 from tigrbl.types import Column, String
@@ -16,9 +16,9 @@ async def test_openapi_clear_response_schema() -> None:
         name = Column(String, nullable=False)
 
     app = TigrblApp()
-    api = TigrblApp()
-    api.include_model(Widget)
-    app.include_router(api.router)
+    router = TigrblRouter()
+    app.include_table(Widget)
+    app.include_router(router)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"

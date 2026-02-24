@@ -69,17 +69,18 @@ def _iter_declared_ops(model: Any) -> Dict[Tuple[Any, str], Mapping[str, Any]]:
 
 
 def collect_engine_config(
-    *, app: Any | None = None, api: Any | None = None, models: Iterable[Any] = ()
+    *, app: Any | None = None, router: Any | None = None, tables: Iterable[Any] = ()
 ) -> Dict[str, Any]:
     """Collect engine configuration from objects without binding them."""
     logger.info("Collecting engine configuration")
     app_engine = _read_engine_attr(app) if app is not None else None
-    api_engine = _read_engine_attr(api) if api is not None else None
+    router_engine = _read_engine_attr(router) if router is not None else None
 
-    tables: Dict[Any, Any] = {}
+    table_bindings: Dict[Any, Any] = {}
     ops: Dict[Tuple[Any, str], Any] = {}
+    tables = tuple(tables)
 
-    for m in models:
+    for m in tables:
         cfg = getattr(m, "table_config", None)
         t_engine = None
         if isinstance(cfg, Mapping):
@@ -90,20 +91,24 @@ def collect_engine_config(
         if t_engine is None:
             t_engine = _read_engine_attr(m)
         if t_engine is not None:
-            tables[m] = t_engine
+            table_bindings[m] = t_engine
 
         for (model, alias), ocfg in _iter_op_decorators(m).items():
             ops[(model, alias)] = ocfg.get("engine")
         for (model, alias), ocfg in _iter_declared_ops(m).items():
             ops[(model, alias)] = ocfg.get("engine")
 
-    api_map = {api: api_engine} if api_engine is not None and api is not None else {}
+    router_map = (
+        {router: router_engine}
+        if router_engine is not None and router is not None
+        else {}
+    )
 
-    logger.debug("Collected engine config for %d models", len(models))
+    logger.debug("Collected engine config for %d tables", len(tables))
     return {
         "default": app_engine,
-        "api": api_map,
-        "tables": tables,
+        "router": router_map,
+        "tables": table_bindings,
         "ops": ops,
     }
 

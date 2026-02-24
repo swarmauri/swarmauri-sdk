@@ -16,7 +16,7 @@ from .authz import router as router
 api = router
 
 
-@router.post("/login", request_model=CredsIn, response_model=TokenPair)
+@router.route("/login", methods=["POST"], response_model=TokenPair)
 async def login(
     request: Request,
     creds: CredsIn | None = None,

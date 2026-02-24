@@ -21,7 +21,7 @@ class Widget(Base, GUIDPk):
 
 
 class WidgetApp(TigrblApp):
-    MODELS = (Widget,)
+    TABLES = (Widget,)
 
 
 @pytest.mark.unit

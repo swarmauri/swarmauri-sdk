@@ -18,9 +18,30 @@ def _with_leading_slash(path: str) -> str:
     return path if path.startswith("/") else f"/{path}"
 
 
-def _jsonrpc_path(api: Any) -> str:
-    configured = getattr(api, "jsonrpc_prefix", None) or "/rpc"
+def _jsonrpc_path(router: Any) -> str:
+    configured = getattr(router, "jsonrpc_prefix", None) or "/rpc"
     return _with_leading_slash(str(configured)).rstrip("/") or "/"
+
+
+def _iter_attached_routers(router: Any) -> list[Any]:
+    attached = getattr(router, "routers", ()) or ()
+    if isinstance(attached, Mapping):
+        return list(attached.values())
+    if isinstance(attached, Sequence):
+        return list(attached)
+    return []
+
+
+def _metadata_router(router: Any) -> Any:
+    tables = getattr(router, "tables", None) or {}
+    if isinstance(tables, Mapping) and tables:
+        return router
+
+    for child in _iter_attached_routers(router):
+        if getattr(child, "jsonrpc_prefix", None):
+            return child
+
+    return router
 
 
 def _request_origin(request: Any) -> str | None:
@@ -64,7 +85,16 @@ def _request_origin(request: Any) -> str | None:
     return f"{scheme}://{host}"
 
 
-def _iter_models(api: Any) -> List[type]:
+def _table_model(entry: Any) -> type | None:
+    if isinstance(entry, type):
+        return entry
+    model = getattr(entry, "model", None)
+    if isinstance(model, type):
+        return model
+    return None
+
+
+def _iter_models(router: Any) -> List[type]:
     seen: set[type] = set()
     models: List[type] = []
 
@@ -75,14 +105,15 @@ def _iter_models(api: Any) -> List[type]:
             items = container
         else:
             return
-        for model in items:
+        for entry in items:
+            model = _table_model(entry)
             if isinstance(model, type) and model not in seen:
                 seen.add(model)
                 models.append(model)
 
-    _add_from(getattr(api, "models", None) or {})
-    for child in getattr(api, "apis", ()) or ():
-        _add_from(getattr(child, "models", None) or {})
+    _add_from(getattr(router, "tables", None) or {})
+    for child in _iter_attached_routers(router):
+        _add_from(getattr(child, "tables", None) or {})
 
     return models
 
@@ -118,10 +149,15 @@ def _describe_method(model: type, spec: OpSpec) -> str | None:
     return None
 
 
-def build_openrpc_spec(api: Any, request: Any | None = None) -> JsonObject:
-    info_title = getattr(api, "title", None) or getattr(api, "name", None) or "API"
-    info_version = getattr(api, "version", None) or "0.1.0"
-    jsonrpc_url = _jsonrpc_path(api)
+def build_openrpc_spec(router: Any, request: Any | None = None) -> JsonObject:
+    metadata_router = _metadata_router(router)
+    info_title = (
+        getattr(metadata_router, "title", None)
+        or getattr(metadata_router, "name", None)
+        or "API"
+    )
+    info_version = getattr(metadata_router, "version", None) or "0.1.0"
+    jsonrpc_url = _jsonrpc_path(metadata_router)
     origin = _request_origin(request)
     server_url = f"{origin}{jsonrpc_url}" if origin else jsonrpc_url
     spec: JsonObject = {
@@ -136,7 +172,7 @@ def build_openrpc_spec(api: Any, request: Any | None = None) -> JsonObject:
     security_schemes = spec["components"]["securitySchemes"]
     methods: List[JsonObject] = []
 
-    for model in _iter_models(api):
+    for model in _iter_models(router):
         for op in _iter_ops(model):
             if not getattr(op, "expose_rpc", True):
                 continue
@@ -180,23 +216,21 @@ def build_openrpc_spec(api: Any, request: Any | None = None) -> JsonObject:
 
 
 def mount_openrpc(
-    api: Any,
-    router: Any | None = None,
+    router: Any,
     *,
     path: str = "/openrpc.json",
     name: str = "openrpc_json",
     tags: list[str] | None = None,
 ) -> Any:
-    """Mount an OpenRPC JSON endpoint onto ``router`` or ``api``."""
+    """Mount an OpenRPC JSON endpoint onto ``router``."""
 
-    target_router = router if router is not None else api
     normalized_path = _with_leading_slash(path)
-    setattr(api, "openrpc_path", normalized_path)
+    setattr(router, "openrpc_path", normalized_path)
 
     def _openrpc_endpoint(request: Any) -> Response:
-        return Response.json(build_openrpc_spec(api, request=request))
+        return Response.json(build_openrpc_spec(router, request=request))
 
-    target_router.add_api_route(
+    router.add_route(
         normalized_path,
         _openrpc_endpoint,
         methods=["GET"],
@@ -206,7 +240,7 @@ def mount_openrpc(
         summary="OpenRPC",
         description="OpenRPC 1.2.6 schema for JSON-RPC methods.",
     )
-    return target_router
+    return router
 
 
 __all__ = ["build_openrpc_spec", "mount_openrpc"]

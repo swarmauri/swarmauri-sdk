@@ -2,8 +2,10 @@ import pytest
 
 from tigrbl import TigrblApp
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
-from tigrbl.types import Security
 from tigrbl.engine.shortcuts import mem
+
+
+from tigrbl.security import Security
 
 
 def _auth_dependency(
@@ -17,6 +19,7 @@ def test_tigrbl_app_constructor_configuration_sets_metadata() -> None:
     app = TigrblApp(
         engine=mem(async_=False),
         title="Configured App",
+        description="Configured app description",
         version="2.3.4",
         jsonrpc_prefix="/rpcx",
         system_prefix="/systemx",
@@ -25,10 +28,13 @@ def test_tigrbl_app_constructor_configuration_sets_metadata() -> None:
     app_dir = dir(app)
 
     assert "TITLE" in app_dir
+    assert "DESCRIPTION" in app_dir
     assert "VERSION" in app_dir
     assert "jsonrpc_prefix" in app_dir
     assert "system_prefix" in app_dir
     assert app.TITLE == "Configured App"
+    assert app.DESCRIPTION == "Configured app description"
+    assert app.description == "Configured app description"
     assert app.VERSION == "2.3.4"
     assert app.jsonrpc_prefix == "/rpcx"
     assert app.system_prefix == "/systemx"

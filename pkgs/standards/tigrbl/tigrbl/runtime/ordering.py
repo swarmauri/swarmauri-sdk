@@ -16,6 +16,27 @@ from .labels import Label
 
 # tokens: "domain:subject"
 _PREF: Dict[str, Tuple[str, ...]] = {
+    _ev.INGRESS_CTX_INIT: ("ingress:ctx_init",),
+    _ev.INGRESS_CTX_ATTACH_COMPILED: ("ingress:attach_compiled",),
+    _ev.INGRESS_METHOD_EXTRACT: ("ingress:method_extract",),
+    _ev.INGRESS_PATH_EXTRACT: ("ingress:path_extract",),
+    _ev.INGRESS_HEADERS_PARSE: ("ingress:headers_parse",),
+    _ev.INGRESS_QUERY_PARSE: ("ingress:query_parse",),
+    _ev.INGRESS_BODY_READ: ("ingress:body_read",),
+    _ev.INGRESS_BODY_PEEK: ("ingress:body_peek",),
+    _ev.ROUTE_PROTOCOL_DETECT: ("route:protocol_detect",),
+    _ev.ROUTE_BINDING_MATCH: ("route:binding_match",),
+    _ev.ROUTE_RPC_ENVELOPE_PARSE: ("route:rpc_envelope_parse",),
+    _ev.ROUTE_RPC_METHOD_MATCH: ("route:rpc_method_match",),
+    _ev.ROUTE_OP_RESOLVE: ("route:op_resolve",),
+    _ev.ROUTE_PATH_PARAMS_EXTRACT: ("route:path_params_extract",),
+    _ev.ROUTE_PARAMS_NORMALIZE: ("route:params_normalize",),
+    _ev.ROUTE_PAYLOAD_SELECT: ("route:payload_select",),
+    _ev.ROUTE_BINDING_POLICY_APPLY: ("route:binding_policy_apply",),
+    _ev.ROUTE_PLAN_SELECT: ("route:plan_select",),
+    _ev.ROUTE_CTX_FINALIZE: ("route:ctx_finalize",),
+    _ev.DEP_SECURITY: (_ev.DEP_SECURITY,),
+    _ev.DEP_EXTRA: (_ev.DEP_EXTRA,),
     _ev.SCHEMA_COLLECT_IN: ("schema:collect_in",),
     _ev.IN_VALIDATE: ("wire:build_in", "wire:validate_in"),
     _ev.RESOLVE_VALUES: ("resolve:assemble", "resolve:paired_gen"),
@@ -25,6 +46,12 @@ _PREF: Dict[str, Tuple[str, ...]] = {
     _ev.EMIT_ALIASES_POST: ("emit:paired_post",),
     _ev.SCHEMA_COLLECT_OUT: ("schema:collect_out",),
     _ev.OUT_BUILD: ("wire:build_out",),
+    _ev.EGRESS_RESULT_NORMALIZE: ("egress:result_normalize",),
+    _ev.EGRESS_OUT_DUMP: ("egress:out_dump",),
+    _ev.EGRESS_ENVELOPE_APPLY: ("egress:envelope_apply",),
+    _ev.EGRESS_HEADERS_APPLY: ("egress:headers_apply",),
+    _ev.EGRESS_HTTP_FINALIZE: ("egress:http_finalize",),
+    _ev.EGRESS_TO_TRANSPORT_RESPONSE: ("egress:to_transport_response",),
     _ev.EMIT_ALIASES_READ: ("emit:readtime_alias",),
     _ev.OUT_DUMP: (
         "wire:dump",
@@ -112,6 +139,30 @@ def flatten(
         out,
         by_anchor,
         anchors,
+        target_phase="INGRESS_BEGIN",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
+        target_phase="INGRESS_PARSE",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
+        target_phase="INGRESS_ROUTE",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
         target_phase="PRE_HANDLER",
         anchor_policies=anchor_policies,
         persist=persist,
@@ -121,6 +172,22 @@ def flatten(
         by_anchor,
         anchors,
         target_phase="POST_HANDLER",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
+        target_phase="EGRESS_SHAPE",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
+        target_phase="EGRESS_FINALIZE",
         anchor_policies=anchor_policies,
         persist=persist,
     )

@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import inspect
-from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Optional, Sequence, Union
 
-from .types import OpSpec, Arity, TargetOp, PersistPolicy
+from .op_spec import OpSpec
+from .types import Arity, TargetOp, PersistPolicy
+from .alias_spec import AliasSpec
+from .alias import Alias
 from ..schema.types import SchemaArg
 
 
@@ -44,23 +46,12 @@ def _maybe_await(v):
 # ---------------------------------------------------------------------------
 
 
-@dataclass(frozen=True)
-class AliasDecl:
-    alias: str
-    # Optional overrides (lazy-capable schema args are fine; resolved later)
-    request_schema: Optional[SchemaArg] = None
-    response_schema: Optional[SchemaArg] = None
-    persist: Optional[PersistPolicy] = None
-    arity: Optional[Arity] = None
-    rest: Optional[bool] = None
-
-
-def alias(name: str, **kw) -> AliasDecl:
+def alias(name: str, **kw) -> AliasSpec:
     """Convenience helper: alias('get', response_schema=..., rest=False)."""
-    return AliasDecl(alias=name, **kw)
+    return Alias(_alias=name, **{f"_{k}": v for k, v in kw.items()})
 
 
-def alias_ctx(**verb_to_alias_or_decl: Union[str, AliasDecl]):
+def alias_ctx(**verb_to_alias_or_decl: Union[str, AliasSpec]):
     """Class decorator mapping canonical verbs → aliases with optional overrides."""
 
     def deco(cls: type):
@@ -68,7 +59,7 @@ def alias_ctx(**verb_to_alias_or_decl: Union[str, AliasDecl]):
         overrides = dict(getattr(cls, "__tigrbl_alias_overrides__", {}) or {})
 
         for canon, value in verb_to_alias_or_decl.items():
-            if isinstance(value, AliasDecl):
+            if isinstance(value, AliasSpec):
                 amap[canon] = value.alias
                 overrides[canon] = {
                     "request_schema": value.request_schema,
@@ -81,7 +72,7 @@ def alias_ctx(**verb_to_alias_or_decl: Union[str, AliasDecl]):
                 amap[canon] = value
             else:
                 raise TypeError(
-                    f"alias_ctx[{canon}] must be str or AliasDecl, got {type(value)}"
+                    f"alias_ctx[{canon}] must be str or AliasSpec, got {type(value)}"
                 )
 
         setattr(cls, "__tigrbl_aliases__", amap)
@@ -142,18 +133,6 @@ def op_alias(
 # ---------------------------------------------------------------------------
 
 
-@dataclass
-class _OpDecl:
-    alias: Optional[str]
-    target: Optional[TargetOp]
-    arity: Optional[Arity]
-    rest: Optional[bool]
-    request_schema: Optional[SchemaArg]
-    response_schema: Optional[SchemaArg]
-    persist: Optional[PersistPolicy]
-    status_code: Optional[int]
-
-
 def op_ctx(
     *,
     bind: Any | Iterable[Any] | None = None,
@@ -172,16 +151,22 @@ def op_ctx(
         cm = _ensure_cm(fn)
         f = _unwrap(cm)
         f.__tigrbl_ctx_only__ = True
-        f.__tigrbl_op_decl__ = _OpDecl(
-            alias=alias,
-            target=target,
-            arity=arity,
-            rest=rest,
-            request_schema=request_schema,
-            response_schema=response_schema,
-            persist=persist,
+        resolved_target = target or "custom"
+        resolved_alias = alias or f.__name__
+        op_spec = OpSpec(
+            alias=resolved_alias,
+            target=resolved_target,
+            arity=arity or _infer_arity(resolved_target),
+            expose_routes=bool(rest) if rest is not None else True,
+            request_model=request_schema,
+            response_model=response_schema,
+            persist=_normalize_persist(persist),
             status_code=status_code,
         )
+        # New canonical attribute name (OpSpec-first terminology).
+        f.__tigrbl_op_spec__ = op_spec
+        # Backwards-compatible alias for older call sites.
+        f.__tigrbl_op_decl__ = op_spec
 
         if bind is not None:
             targets = (

@@ -373,7 +373,7 @@ class Base(DeclarativeBase):
         if not hasattr(cls, "__tigrbl_ops__"):
             for attr in cls.__dict__.values():
                 target = getattr(attr, "__func__", attr)
-                if getattr(target, "__tigrbl_op_decl__", None) is not None:
+                if getattr(target, "__tigrbl_op_spec__", None) is not None:
                     cls.__tigrbl_ops__ = tuple()
                     break
 

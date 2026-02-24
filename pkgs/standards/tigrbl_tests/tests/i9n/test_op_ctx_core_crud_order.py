@@ -2,7 +2,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
 
-from tigrbl import TigrblApp, op_ctx
+from tigrbl import TigrblApp, TigrblRouter, op_ctx
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.core import crud
@@ -12,15 +12,15 @@ from tigrbl.engine.engine_spec import EngineSpec
 from tigrbl.engine._engine import Engine
 
 
-def setup_api(model_cls):
+def setup_app(model_cls):
     Base.metadata.clear()
     spec = EngineSpec.from_any(mem(async_=False))
     engine = Engine(spec)
     app = TigrblApp(engine=engine)
-    api = TigrblApp(engine=engine)
-    api.include_model(model_cls, prefix="")
-    api.initialize()
-    app.include_router(api.router)
+    router = TigrblRouter(engine=engine)
+    app.include_table(model_cls, prefix="")
+    app.initialize()
+    app.include_router(router)
     return app, engine
 
 
@@ -78,7 +78,7 @@ async def test_op_ctx_alias(
                 ctx["result"] = {"cleared": True}
             return ctx.get("obj") or ctx.get("result")
 
-    app, engine = setup_api(Widget)
+    app, engine = setup_app(Widget)
     get_sync_db = engine.get_db
 
     async with AsyncClient(
@@ -161,7 +161,7 @@ async def test_op_ctx_override(verb, http_method, arity, needs_id):
             ctx["result"] = {"custom": True}
             return ctx["result"]
 
-    app, engine = setup_api(Widget)
+    app, engine = setup_app(Widget)
     get_sync_db = engine.get_db
 
     async with AsyncClient(

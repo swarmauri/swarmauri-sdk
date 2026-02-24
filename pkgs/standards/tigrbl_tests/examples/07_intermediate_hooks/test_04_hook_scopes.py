@@ -27,10 +27,10 @@ def test_hook_scopes_apply_to_specific_ops():
             return None
 
     # Deployment: include the model in an app and bind to build hook registries.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonHookScope)
-    api.initialize()
-    api.bind(LessonHookScope)
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(LessonHookScope)
+    app.initialize()
+    app.bind(LessonHookScope)
 
     # Test: inspect the hook registries for read/update.
     read_hooks = LessonHookScope.__tigrbl_hooks__["read"]["POST_RESPONSE"]
@@ -62,10 +62,10 @@ def test_hook_scopes_exclude_unlisted_ops():
             return None
 
     # Deployment: bind the model in an app to populate hook registries.
-    api = TigrblApp(engine=mem(async_=False))
-    api.include_model(LessonHookScopeIsolation)
-    api.initialize()
-    api.bind(LessonHookScopeIsolation)
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(LessonHookScopeIsolation)
+    app.initialize()
+    app.bind(LessonHookScopeIsolation)
 
     # Test: check whether create has any PRE_HANDLER hooks.
     create_hooks = LessonHookScopeIsolation.__tigrbl_hooks__.get("create", {}).get(

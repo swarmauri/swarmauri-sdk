@@ -1,10 +1,12 @@
 from httpx import ASGITransport, Client
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
+from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
+from tigrbl.requests import Request
+from tigrbl.runtime.status import HTTPException
 from tigrbl.engine import resolver as _resolver
 from tigrbl.engine.shortcuts import mem
 from sqlalchemy.orm import sessionmaker
 
-from tigrbl import TigrblApp
+from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
@@ -13,10 +15,7 @@ from tigrbl.types import (
     AuthNProvider,
     Column,
     ForeignKey,
-    HTTPException,
     PgUUID,
-    Request,
-    Security,
     String,
     uuid4,
 )
@@ -61,12 +60,12 @@ def _build_client():
 
     cfg = mem(async_=False)
     auth = DummyAuth()
-    api = TigrblApp(engine=cfg)
-    api.set_auth(authn=auth.get_principal)
-    api.include_models([Tenant, Item])
-    api.initialize()
+    router = TigrblRouter(engine=cfg)
+    router.set_auth(authn=auth.get_principal)
+    router.include_tables([Tenant, Item])
+    router.initialize()
     app = TigrblApp()
-    app.include_router(api.router)
+    app.include_router(router)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -93,12 +92,12 @@ def _build_client_attr():
 
     cfg = mem(async_=False)
     auth = DummyAuth()
-    api = TigrblApp(engine=cfg)
-    api.set_auth(authn=auth.get_principal)
-    api.include_models([Tenant, Item])
-    api.initialize()
+    router = TigrblRouter(engine=cfg)
+    router.set_auth(authn=auth.get_principal)
+    router.include_tables([Tenant, Item])
+    router.initialize()
     app = TigrblApp()
-    app.include_router(api.router)
+    app.include_router(router)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -160,11 +159,12 @@ def _build_client_create_noauth():
             return {"create", "bulk_create"}
 
     cfg = mem(async_=False)
-    api = TigrblApp(engine=cfg)
-    api.include_models([Tenant, Item])
-    api.initialize()
+    router = TigrblRouter(engine=cfg)
+    router.include_tables([Tenant, Item])
+    router.initialize()
+
     app = TigrblApp()
-    app.include_router(api.router)
+    app.include_router(router)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -190,11 +190,12 @@ def _build_client_create_attr_noauth():
         __tigrbl_allow_anon__ = {"create", "bulk_create"}
 
     cfg = mem(async_=False)
-    api = TigrblApp(engine=cfg)
-    api.include_models([Tenant, Item])
-    api.initialize()
+    router = TigrblRouter(engine=cfg)
+    router.include_tables([Tenant, Item])
+    router.initialize()
+
     app = TigrblApp()
-    app.include_router(api.router)
+    app.include_router(router)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)

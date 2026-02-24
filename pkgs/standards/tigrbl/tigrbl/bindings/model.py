@@ -29,7 +29,7 @@ from . import (
 )  # register_and_attach(model, specs, only_keys=None) -> None
 from . import (
     rest as _rest_binding,
-)  # build_router_and_attach(model, specs, api=None, only_keys=None) -> None
+)  # build_router_and_attach(model, specs, router=None, only_keys=None) -> None
 from . import columns as _columns_binding
 from .model_helpers import (
     _Key,
@@ -56,7 +56,7 @@ def _dedupe_by_name(funcs: Iterable[Callable[..., Any]]) -> List[Callable[..., A
 
 
 def bind(
-    model: type, *, api: Any | None = None, only_keys: Optional[Set[_Key]] = None
+    model: type, *, router: Any | None = None, only_keys: Optional[Set[_Key]] = None
 ) -> Tuple[OpSpec, ...]:
     """
     Build (or refresh) all Tigrbl namespaces on the model class.
@@ -116,7 +116,16 @@ def bind(
     for sp in base_specs:
         merged_by_key[_key(sp)] = sp
     for sp in ctx_specs:
-        merged_by_key[_key(sp)] = sp
+        key = _key(sp)
+        base = merged_by_key.get(key)
+        if base is not None:
+            sp = replace(
+                sp,
+                http_methods=sp.http_methods or base.http_methods,
+                path_suffix=sp.path_suffix or base.path_suffix,
+                tags=sp.tags or base.tags,
+            )
+        merged_by_key[key] = sp
 
     all_merged_specs: List[OpSpec] = list(merged_by_key.values())
 
@@ -150,7 +159,9 @@ def bind(
     _hooks_binding.normalize_and_attach(model, specs, only_keys=only_keys)
     _handlers_binding.build_and_attach(model, specs, only_keys=only_keys)
     _rpc_binding.register_and_attach(model, specs, only_keys=only_keys)
-    _rest_binding.build_router_and_attach(model, specs, api=api, only_keys=only_keys)
+    _rest_binding.build_router_and_attach(
+        model, specs, router=router, only_keys=only_keys
+    )
 
     # 6) Index on the model (always overwrite with fresh views)
     all_specs, by_key, by_alias = _index_specs(all_merged_specs)
@@ -181,14 +192,14 @@ def bind(
 def rebind(
     model: type,
     *,
-    api: Any | None = None,
+    router: Any | None = None,
     changed_keys: Optional[Set[_Key]] = None,
 ) -> Tuple[OpSpec, ...]:
     """
     Public helper to trigger a rebind for the model. If `changed_keys` is provided,
     we attempt a targeted refresh; otherwise we rebuild everything.
     """
-    return bind(model, api=api, only_keys=changed_keys)
+    return bind(model, router=router, only_keys=changed_keys)
 
 
 __all__ = ["bind", "rebind"]

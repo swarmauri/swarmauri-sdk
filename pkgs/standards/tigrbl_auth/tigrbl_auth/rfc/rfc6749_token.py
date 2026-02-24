@@ -9,7 +9,7 @@ from uuid import UUID
 
 from tigrbl.security.dependencies import Depends as TigrblDepends
 from tigrbl_auth.deps import (
-    TigrblApi,
+    TigrblRouter,
     AsyncSession,
     HTTPException,
     JSONResponse,
@@ -47,7 +47,7 @@ from ..routers.shared import (
 )
 from ..runtime_cfg import settings
 
-api = TigrblApi()
+api = TigrblRouter()
 router = api
 
 
@@ -71,7 +71,7 @@ async def _parse_request_form(request: Request) -> tuple[dict[str, str], list[st
     return data, resources
 
 
-@api.post("/token", response_model=TokenPair)
+@api.route("/token", methods=["POST"], response_model=TokenPair)
 async def token(
     request: Request, db: AsyncSession = TigrblDepends(get_db)
 ) -> TokenPair:
@@ -295,7 +295,7 @@ async def token(
     )
 
 
-@api.post("/token/refresh", response_model=TokenPair)
+@api.route("/token/refresh", methods=["POST"], response_model=TokenPair)
 async def refresh(body: RefreshIn, request: Request):
     _require_tls(request)
     try:

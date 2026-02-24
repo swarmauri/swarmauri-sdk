@@ -23,8 +23,8 @@ async def _invoke(
     """Execute an operation through explicit phases with strict write policies."""
 
     ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
-    if getattr(ctx, "app", None) is None and getattr(ctx, "api", None) is not None:
-        ctx.app = ctx.api
+    if getattr(ctx, "app", None) is None and getattr(ctx, "router", None) is not None:
+        ctx.app = ctx.router
     if getattr(ctx, "op", None) is None and getattr(ctx, "method", None) is not None:
         ctx.op = ctx.method
     if getattr(ctx, "model", None) is None:
@@ -85,6 +85,15 @@ async def _invoke(
         finally:
             guard.restore()
 
+    await _run_phase(
+        "INGRESS_BEGIN", allow_flush=False, allow_commit=False, in_tx=False
+    )
+    await _run_phase(
+        "INGRESS_PARSE", allow_flush=False, allow_commit=False, in_tx=False
+    )
+    await _run_phase(
+        "INGRESS_ROUTE", allow_flush=False, allow_commit=False, in_tx=False
+    )
     await _run_phase("PRE_TX_BEGIN", allow_flush=False, allow_commit=False, in_tx=False)
 
     if not skip_persist:
@@ -134,6 +143,11 @@ async def _invoke(
     ctx.response = _NS(result=ctx.get("result"))
 
     await _run_phase("POST_COMMIT", allow_flush=True, allow_commit=False, in_tx=False)
+
+    await _run_phase("EGRESS_SHAPE", allow_flush=False, allow_commit=False, in_tx=False)
+    await _run_phase(
+        "EGRESS_FINALIZE", allow_flush=False, allow_commit=False, in_tx=False
+    )
 
     await _run_phase(
         "POST_RESPONSE",

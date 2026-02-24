@@ -23,7 +23,7 @@ def handler(ctx):
 
 @pytest.mark.asyncio
 async def test_kernelz_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
-    class API:
+    class Router:
         pass
 
     class Model:
@@ -41,8 +41,8 @@ async def test_kernelz_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
         )
     )
 
-    api = API()
-    api.models = {"Model": Model}
+    router = Router()
+    router.models = {"Model": Model}
 
     def fake_build(model, alias):
         assert model is Model and alias == "create"
@@ -50,7 +50,7 @@ async def test_kernelz_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr(_diag._default_kernel, "build", fake_build)
 
-    kernelz = _build_kernelz_endpoint(api)
+    kernelz = _build_kernelz_endpoint(router)
     data = await kernelz()
 
     assert "Model" in data
