@@ -4,8 +4,31 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from tigrbl.specs import F, IO, S, acol
+from tigrbl.table import Table
+from tigrbl.types import Mapped, String
 
 from tigrbl_engine_numpy import numpy_engine
+
+
+class _Widget(Table):
+    __tablename__ = "session_widgets"
+
+    id: Mapped[str] = acol(
+        storage=S(type_=String(64), primary_key=True, nullable=False),
+        field=F(py_type=str),
+        io=IO(out_verbs=("read", "list")),
+    )
+
+    name: Mapped[str] = acol(
+        storage=S(type_=String(50), nullable=False),
+        field=F(py_type=str),
+        io=IO(
+            in_verbs=("create", "update", "replace"),
+            out_verbs=("read", "list"),
+            mutable_verbs=("create", "update", "replace"),
+        ),
+    )
 
 
 def test_numpy_session_save_and_load_npy(tmp_path: Path) -> None:
@@ -134,3 +157,48 @@ def test_numpy_session_save_uses_atomic_replace(
     assert len(calls) == 1
     assert calls[0][1] == str(target)
     assert Path(calls[0][0]).name.startswith(".tmp_")
+
+
+@pytest.mark.asyncio
+async def test_numpy_session_get_reuses_tracked_instance() -> None:
+    ident = "fixed-id"
+    _, session_factory = numpy_engine(
+        mapping={
+            "array": np.array([[ident, "a"]], dtype=object),
+            "columns": ["id", "name"],
+            "pk": "id",
+        }
+    )
+    session = session_factory()
+
+    first = await session.get(_Widget, ident)
+    assert first is not None
+    first.name = "mutated"
+
+    second = await session.get(_Widget, ident)
+    assert second is first
+    assert second.name == "mutated"
+
+
+@pytest.mark.asyncio
+async def test_numpy_session_refresh_updates_tracked_instance() -> None:
+    ident = "fixed-id"
+    engine, session_factory = numpy_engine(
+        mapping={
+            "array": np.array([[ident, "a"]], dtype=object),
+            "columns": ["id", "name"],
+            "pk": "id",
+        }
+    )
+    session = session_factory()
+
+    item = await session.get(_Widget, ident)
+    assert item is not None
+    item.name = "mutated"
+
+    engine.catalog.rows[0]["name"] = "server"
+    await session.refresh(item)
+
+    again = await session.get(_Widget, ident)
+    assert again is item
+    assert again.name == "server"
