@@ -8,7 +8,7 @@ PKG = Path(__file__).resolve().parents[3] / "tigrbl" / "tigrbl"
 
 def test_dependency_invoke_is_runtime_event_anchor():
     events = (PKG / "runtime" / "events.py").read_text()
-    assert "PRE_TX_DEP" in events
+    assert "DEP_EXTRA" in events
     assert '"PRE_TX_BEGIN"' in events
 
 
