@@ -18,7 +18,7 @@ def build_kernelz_payload(
     from ...system.diagnostics.utils import (
         label_callable as _label_callable,
         label_hook as _label_hook,
-        model_iter as _model_iter,
+        table_iter as _table_iter,
         opspecs as _opspecs,
     )
 
@@ -28,7 +28,7 @@ def build_kernelz_payload(
 
     start = time.monotonic()
     out: Dict[str, Dict[str, List[str]]] = {}
-    for model in _model_iter(app):
+    for model in _table_iter(app):
         kernel.get_specs(model)
         model_name = getattr(model, "__name__", "Model")
         model_map: Dict[str, List[str]] = {}
