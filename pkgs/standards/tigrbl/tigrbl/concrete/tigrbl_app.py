@@ -42,6 +42,7 @@ from ..op import get_registry, OpSpec
 from ..app._model_registry import initialize_table_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
 from ..app.transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
+from ..router._routing import include_router as _include_router_impl
 
 
 # optional compat: legacy transactional decorator
@@ -406,20 +407,12 @@ class TigrblApp(_App):
         return routed
 
     def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Unsupported: register routes on ``TigrblRouter`` instances instead."""
-        del path, endpoint, kwargs
-        raise AttributeError(
-            "TigrblApp does not support add_router_route(...). "
-            "Use TigrblRouter.add_route(...) and include_router(...)."
-        )
+        """Register a route using the app-managed default ``TigrblRouter``."""
+        self._ensure_default_router().add_route(path, endpoint, **kwargs)
 
     def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Unsupported: register routes on ``TigrblRouter`` instances instead."""
-        del path, endpoint, kwargs
-        raise AttributeError(
-            "TigrblApp does not support add_route(...). "
-            "Use TigrblRouter.add_route(...) and include_router(...)."
-        )
+        """Register a route using the app-managed default ``TigrblRouter``."""
+        self._ensure_default_router().add_route(path, endpoint, **kwargs)
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""

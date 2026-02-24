@@ -34,10 +34,9 @@ async def test_tigrbl_client_matches_httpx_response():
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    router.mount_jsonrpc(prefix="/rpc")
-
     app = TigrblApp()
     app.include_router(router)
+    app.mount_jsonrpc(prefix="/rpc")
     app.attach_diagnostics(prefix="")
 
     port = pick_unique_port()
@@ -87,10 +86,9 @@ async def test_tigrbl_client_list_returns_created_items():
     init_result = router.initialize()
     if inspect.isawaitable(init_result):
         await init_result
-    router.mount_jsonrpc(prefix="/rpc")
-
     app = TigrblApp()
     app.include_router(router)
+    app.mount_jsonrpc(prefix="/rpc")
     app.attach_diagnostics(prefix="")
 
     port = pick_unique_port()
