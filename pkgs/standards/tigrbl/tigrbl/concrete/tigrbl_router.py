@@ -32,6 +32,8 @@ from ..app._model_registry import initialize_table_registry
 from ..system.favicon import mount_favicon
 from ..router._routing import include_router as _include_router_impl
 from ..transport import mount_jsonrpc as _mount_jsonrpc
+from ..system import mount_diagnostics as _mount_diagnostics
+from ..engine import resolver as _resolver
 
 
 class TigrblRouter(_Router):
@@ -204,6 +206,21 @@ class TigrblRouter(_Router):
         px = prefix if prefix is not None else self.jsonrpc_prefix
         self.jsonrpc_prefix = px
         return _mount_jsonrpc(self, self, prefix=px, tags=tags)
+
+    def attach_diagnostics(
+        self, *, prefix: str | None = None, app: Any | None = None
+    ) -> Any:
+        """Mount diagnostics router onto this router or the provided ``app``."""
+        px = prefix if prefix is not None else self.system_prefix
+        prov = _resolver.resolve_provider(router=self)
+        get_db = prov.get_db if prov else None
+        router = _mount_diagnostics(self, get_db=get_db)
+        _include_router_impl(self, router, prefix=px)
+        if app is not None and app is not self:
+            include_other = getattr(app, "include_router", None)
+            if callable(include_other):
+                include_other(router, prefix=px)
+        return router
 
     # ------------------------- registry passthroughs -------------------------
 
