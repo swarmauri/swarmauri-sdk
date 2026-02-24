@@ -29,7 +29,7 @@ class WidgerRouter(TigrblRouter):
 def test_tigrbl_router_subclass_declares_metadata() -> None:
     class_dir = dir(WidgerRouter)
 
-    assert "MODELS" in class_dir
+    assert "TABLES" in class_dir
     assert "TAGS" in class_dir
     assert "PREFIX" in class_dir
     assert WidgerRouter.TABLES == (Widget,)
