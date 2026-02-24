@@ -30,7 +30,7 @@ def test_router_binding_includes_multiple_models():
 
     router.include_tables([Widget, Gadget])
 
-    assert {Widget.__name__, Gadget.__name__}.issubset(router.models)
+    assert {Widget.__name__, Gadget.__name__}.issubset(router.tables)
 
 
 def test_bulk_include_populates_schema_namespaces():

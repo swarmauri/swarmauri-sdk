@@ -24,7 +24,7 @@ def test_table_binding_registers_model():
 
     router.include_table(Widget)
 
-    assert router.models[Widget.__name__] is Widget
+    assert router.tables[Widget.__name__] is Widget
 
 
 def test_model_registry_supports_multiple_models():
@@ -47,5 +47,5 @@ def test_model_registry_supports_multiple_models():
     router.include_table(Widget)
     router.include_table(Gadget)
 
-    assert router.models[Widget.__name__] is Widget
-    assert router.models[Gadget.__name__] is Gadget
+    assert router.tables[Widget.__name__] is Widget
+    assert router.tables[Gadget.__name__] is Gadget
