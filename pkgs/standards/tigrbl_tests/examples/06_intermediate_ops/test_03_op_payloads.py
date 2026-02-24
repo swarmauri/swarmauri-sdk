@@ -30,21 +30,12 @@ def test_custom_op_returns_payload():
     LessonPayload.summary = summary
 
     # Deployment: build an app and include the model so OpSpecs resolve.
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(LessonPayload)
     app.initialize()
 
     # Test: locate the OpSpec for the custom alias on the bound model.
     spec = next(sp for sp in app.bind(LessonPayload) if sp.alias == "summary")
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_model(LessonPayload)
-    router.initialize()
-
-    # Test: locate the OpSpec for the custom alias on the bound model.
-    spec = next(sp for sp in router.bind(LessonPayload) if sp.alias == "summary")
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Assertion: the custom op has a handler attached.
     assert spec.handler is not None
@@ -73,21 +64,12 @@ def test_custom_op_exposes_target_and_handler():
     LessonPayloadMeta.describe = describe
 
     # Deployment: create an app, include the model, and initialize bindings.
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(LessonPayloadMeta)
     app.initialize()
 
     # Test: pull the spec from the bound model set.
     spec = next(sp for sp in app.bind(LessonPayloadMeta) if sp.alias == "describe")
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_model(LessonPayloadMeta)
-    router.initialize()
-
-    # Test: pull the spec from the bound model set.
-    spec = next(sp for sp in router.bind(LessonPayloadMeta) if sp.alias == "describe")
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Assertion: the spec advertises the custom target and a handler.
     assert spec.target == "custom"

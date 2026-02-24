@@ -15,7 +15,6 @@ def test_verb_alias_policy_both_routes_same_handler(create_test_app) -> None:
         __tigrbl_verb_aliases__ = {"create": "register"}
         __tigrbl_verb_alias_policy__ = "both"
 
-<<<<<<< HEAD
     app = create_test_app(AliasModelBoth)
 
     # Only the canonical verb is available.
@@ -23,15 +22,6 @@ def test_verb_alias_policy_both_routes_same_handler(create_test_app) -> None:
     assert not hasattr(app.core.AliasModelBoth, "register")
     assert hasattr(app.rpc.AliasModelBoth, "create")
     assert not hasattr(app.rpc.AliasModelBoth, "register")
-=======
-    router = create_test_api(AliasModelBoth)
-
-    # Only the canonical verb is available.
-    assert hasattr(router.core.AliasModelBoth, "create")
-    assert not hasattr(router.core.AliasModelBoth, "register")
-    assert hasattr(router.rpc.AliasModelBoth, "create")
-    assert not hasattr(router.rpc.AliasModelBoth, "register")
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 
 @pytest.mark.i9n
@@ -43,21 +33,12 @@ def test_verb_alias_policy_canonical_only_blocks_alias(create_test_app) -> None:
         __tigrbl_verb_aliases__ = {"create": "register"}
         __tigrbl_verb_alias_policy__ = "canonical_only"
 
-<<<<<<< HEAD
     app = create_test_app(AliasModelBlocked)
 
     assert hasattr(app.core.AliasModelBlocked, "create")
     assert not hasattr(app.core.AliasModelBlocked, "register")
     assert hasattr(app.rpc.AliasModelBlocked, "create")
     assert not hasattr(app.rpc.AliasModelBlocked, "register")
-=======
-    router = create_test_api(AliasModelBlocked)
-
-    assert hasattr(router.core.AliasModelBlocked, "create")
-    assert not hasattr(router.core.AliasModelBlocked, "register")
-    assert hasattr(router.rpc.AliasModelBlocked, "create")
-    assert not hasattr(router.rpc.AliasModelBlocked, "register")
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 
 @pytest.mark.i9n
@@ -68,18 +49,9 @@ def test_invalid_alias_is_ignored(create_test_app) -> None:
         __tablename__ = "bad_alias_model"
         __tigrbl_verb_aliases__ = {"create": "Bad-Name"}
 
-<<<<<<< HEAD
     app = create_test_app(BadAliasModel)
 
     assert hasattr(app.core.BadAliasModel, "create")
     assert not hasattr(app.core.BadAliasModel, "Bad-Name")
     assert hasattr(app.rpc.BadAliasModel, "create")
     assert not hasattr(app.rpc.BadAliasModel, "Bad-Name")
-=======
-    router = create_test_api(BadAliasModel)
-
-    assert hasattr(router.core.BadAliasModel, "create")
-    assert not hasattr(router.core.BadAliasModel, "Bad-Name")
-    assert hasattr(router.rpc.BadAliasModel, "create")
-    assert not hasattr(router.rpc.BadAliasModel, "Bad-Name")
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

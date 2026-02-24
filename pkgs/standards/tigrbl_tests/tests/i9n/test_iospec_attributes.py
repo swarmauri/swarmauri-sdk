@@ -124,17 +124,10 @@ def test_binding_attaches_internal_model_namespaces():
             io=IO(in_verbs=("create",), out_verbs=("read",)),
         )
 
-<<<<<<< HEAD
     app = TigrblApp()
     app.include_table(Thing, mount_router=False)
     assert "Thing" in app.models
     assert hasattr(app.schemas, "Thing")
-=======
-    router = TigrblApp()
-    router.include_model(Thing, mount_router=False)
-    assert "Thing" in router.models
-    assert hasattr(router.schemas, "Thing")
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     assert "name" in Thing.__tigrbl_cols__
 
 
@@ -218,17 +211,10 @@ def test_rest_call_respects_aliases():
             io=IO(in_verbs=("create",), out_verbs=("read",)),
         )
 
-<<<<<<< HEAD
     app = TigrblApp(engine=eng)
     app.include_table(Thing)
     Base.metadata.create_all(eng.raw()[0])
     transport = ASGITransport(app=app)
-=======
-    router = TigrblApp(engine=eng)
-    router.include_model(Thing)
-    Base.metadata.create_all(eng.raw()[0])
-    transport = ASGITransport(app=router)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     with Client(transport=transport, base_url="http://test") as client:
         resp = client.post("/thing", json={"name": "Ada"})
         data = resp.json()
@@ -286,7 +272,6 @@ async def test_core_crud_helpers_operate():
             io=IO(in_verbs=("create",), out_verbs=("read",)),
         )
 
-<<<<<<< HEAD
     app = TigrblApp(engine=eng)
     app.include_table(Thing)
     Base.metadata.create_all(eng.raw()[0])
@@ -294,15 +279,6 @@ async def test_core_crud_helpers_operate():
     with eng.session() as session:
         created = await app.core.Thing.create({"name": "Zed"}, db=session)
         obj = await app.core.Thing.read({"id": created["id"]}, db=session)
-=======
-    router = TigrblApp(engine=eng)
-    router.include_model(Thing)
-    Base.metadata.create_all(eng.raw()[0])
-
-    with eng.session() as session:
-        created = await router.core.Thing.create({"name": "Zed"}, db=session)
-        obj = await router.core.Thing.read({"id": created["id"]}, db=session)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     assert obj["name"] == "Zed"
 
 

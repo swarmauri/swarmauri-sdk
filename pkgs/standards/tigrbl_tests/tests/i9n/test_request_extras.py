@@ -25,7 +25,6 @@ async def app_client_with_extras(db_mode):
         }
 
     if db_mode == "async":
-<<<<<<< HEAD
         app = TigrblApp(engine=mem())
         app.include_table(Widget)
         await app.initialize()
@@ -39,21 +38,6 @@ async def app_client_with_extras(db_mode):
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     return client, app, Widget
-=======
-        router = TigrblApp(engine=mem())
-        router.include_model(Widget)
-        await router.initialize()
-    else:
-        router = TigrblApp(engine=mem(async_=False))
-        router.include_model(Widget)
-        router.initialize()
-
-    app = TigrblApp()
-    app.include_router(router.router)
-    transport = ASGITransport(app=app)
-    client = AsyncClient(transport=transport, base_url="http://test")
-    return client, router, Widget
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 
 @pytest.mark.i9n

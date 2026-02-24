@@ -35,17 +35,9 @@ async def test_router_key_creation_requires_valid_payload(sync_db_session):
     """Posting without required fields yields an unprocessable entity response."""
     cfg, _ = sync_db_session
 
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     app.include_tables([ConcreteApiKey])
     app.initialize()
-=======
-    app = TigrblApp()
-    router = TigrblApp(get_db=get_sync_db)
-    router.include_models([ConcreteApiKey])
-    router.initialize()
-    app.include_router(router.router)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     transport = ASGITransport(app=app)
 
     async with AsyncClient(transport=transport, base_url="http://test") as client:

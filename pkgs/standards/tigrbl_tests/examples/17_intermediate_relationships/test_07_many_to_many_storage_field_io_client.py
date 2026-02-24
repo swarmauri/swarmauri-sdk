@@ -110,7 +110,6 @@ async def test_many_to_many_relationship_storage_field_io_client_experience() ->
             "Workshop", back_populates="learner_links", lazy="joined"
         )
 
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     app.include_tables([Learner, Workshop, LearnerWorkshop])
     init_result = app.initialize()
@@ -120,17 +119,6 @@ async def test_many_to_many_relationship_storage_field_io_client_experience() ->
 
     router = TigrblRouter()
     app.include_router(router)
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    router.include_models([Learner, Workshop, LearnerWorkshop])
-    init_result = router.initialize()
-    if inspect.isawaitable(init_result):
-        await init_result
-    router.mount_jsonrpc(prefix="/rpc")
-
-    app = TigrblApp()
-    app.include_router(router.router)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     router.attach_diagnostics(prefix="", app=app)
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:

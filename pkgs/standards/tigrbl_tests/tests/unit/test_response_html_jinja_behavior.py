@@ -49,13 +49,8 @@ def test_jinja_response_rest_alias_table(tmp_path):
 @pytest.mark.asyncio
 async def test_html_response_rpc_alias_table(tmp_path):
     Widget, _ = build_model_for_response("html", tmp_path)
-<<<<<<< HEAD
     app = SimpleNamespace(models={"Widget": Widget})
     result = await rpc_call(app, Widget, "download", {}, db=SimpleNamespace())
-=======
-    router = SimpleNamespace(models={"Widget": Widget})
-    result = await rpc_call(router, Widget, "download", {}, db=SimpleNamespace())
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     assert result["status_code"] == 200
     assert result["body"] == b"<h1>pong</h1>"
 
@@ -67,13 +62,8 @@ async def test_html_response_rpc_alias_table(tmp_path):
 async def test_jinja_response_rpc_alias_table(tmp_path):
     pytest.importorskip("jinja2")
     Widget = build_model_for_jinja_response(tmp_path)
-<<<<<<< HEAD
     app = SimpleNamespace(models={"Widget": Widget})
     result = await rpc_call(app, Widget, "download", {}, db=SimpleNamespace())
-=======
-    router = SimpleNamespace(models={"Widget": Widget})
-    result = await rpc_call(router, Widget, "download", {}, db=SimpleNamespace())
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     assert result["status_code"] == 200
     assert result["body"] == b"<h1>World</h1>"
 
@@ -85,13 +75,8 @@ async def test_jinja_response_rpc_alias_table(tmp_path):
 async def test_diagnostics_kernelz_active_for_jinja_response(tmp_path):
     pytest.importorskip("jinja2")
     Widget = build_model_for_jinja_response(tmp_path)
-<<<<<<< HEAD
     app = SimpleNamespace(models={"Widget": Widget})
     kernelz = _build_kernelz_endpoint(app)
-=======
-    router = SimpleNamespace(models={"Widget": Widget})
-    kernelz = _build_kernelz_endpoint(router)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     data = await kernelz()
     assert "atom:response:template@out:dump" in data["Widget"]["download"]
     assert "atom:response:negotiate@out:dump" in data["Widget"]["download"]
@@ -104,17 +89,10 @@ async def test_diagnostics_kernelz_active_for_jinja_response(tmp_path):
 def test_kernel_state_for_jinja_response(tmp_path):
     pytest.importorskip("jinja2")
     Widget = build_model_for_jinja_response(tmp_path)
-<<<<<<< HEAD
     app = SimpleNamespace(models={"Widget": Widget})
     K.ensure_primed(app)
     labels = [
         lbl.split(":", 1)[1] for lbl in K.kernelz_payload(app)["Widget"]["download"]
-=======
-    router = SimpleNamespace(models={"Widget": Widget})
-    K.ensure_primed(router)
-    labels = [
-        lbl.split(":", 1)[1] for lbl in K.kernelz_payload(router)["Widget"]["download"]
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     ]
     assert "atom:response:template@out:dump" in labels
     assert "atom:response:negotiate@out:dump" in labels

@@ -41,11 +41,7 @@ async def test_kernelz_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
         )
     )
 
-<<<<<<< HEAD
     router = Router()
-=======
-    router = API()
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     router.models = {"Model": Model}
 
     def fake_build(model, alias):

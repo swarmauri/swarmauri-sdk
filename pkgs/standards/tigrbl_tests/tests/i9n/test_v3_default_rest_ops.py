@@ -46,17 +46,10 @@ async def client_and_model():
     # ``MissingGreenlet`` error when SQLAlchemy performs I/O. Configure a
     # synchronous in-memory engine instead so the REST operations run without
     # requiring greenlet magic.
-<<<<<<< HEAD
     router = TigrblRouter(engine=mem(async_=False))
     router.include_table(Gadget, prefix="")
     await router.initialize()
     app.include_router(router)
-=======
-    router = Tigrblv3(engine=mem(async_=False))
-    router.include_model(Gadget, prefix="")
-    await router.initialize()
-    app.include_router(router.router)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:

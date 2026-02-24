@@ -1,49 +1,10 @@
-"""Compatibility wrapper for session decorators."""
+"""Compatibility wrapper for session decorators.
+
+Canonical decorators live under :mod:`tigrbl.decorators.session`.
+"""
 
 from __future__ import annotations
 
-<<<<<<< HEAD
-from typing import Any, Optional
-from .spec import SessionSpec, SessionCfg
+from ..decorators.session import read_only_session, session_ctx
 
-
-def _normalize(cfg: Optional[SessionCfg] = None, **kw: Any) -> SessionSpec:
-    if cfg is not None and kw:
-        raise ValueError("Pass either a mapping/spec or keyword args, not both")
-    return SessionSpec.from_any(cfg or kw) or SessionSpec()
-
-
-def session_ctx(cfg: Optional[SessionCfg] = None, /, **kw: Any):
-    """
-    Attach a SessionSpec to an App, API, Model/Table, or op handler.
-
-    Precedence is evaluated by the resolver using:
-        op > model > router > app
-    (Resolver is part of the runtime/engine layer and is independent of this decorator.)
-    """
-    spec = _normalize(cfg, **kw)
-
-    def _apply(obj: Any) -> Any:
-        setattr(obj, "__tigrbl_session_ctx__", spec)
-        return obj
-
-    return _apply
-
-
-def read_only_session(obj: Any = None, /, *, isolation: Optional[str] = None):
-    """
-    Convenience decorator for read-only sessions.
-    """
-
-    def _wrap(o: Any) -> Any:
-        setattr(
-            o,
-            "__tigrbl_session_ctx__",
-            SessionSpec(read_only=True, isolation=isolation),
-        )
-        return o
-
-    return _wrap(obj) if obj is not None else _wrap
-=======
-from ..decorators.session import *  # noqa: F401,F403
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
+__all__ = ["session_ctx", "read_only_session"]

@@ -33,7 +33,6 @@ def _resolve_schema(spec, schema):
 async def test_openapi_examples_and_schemas_present(db_mode):
     app = TigrblApp()
     engine = mem() if db_mode == "async" else mem(async_=False)
-<<<<<<< HEAD
     router = TigrblRouter(engine=engine)
     app.include_table(Widget)
     if db_mode == "async":
@@ -42,16 +41,6 @@ async def test_openapi_examples_and_schemas_present(db_mode):
         app.initialize()
     app.mount_jsonrpc()
     app.include_router(router)
-=======
-    router = TigrblApp(engine=engine)
-    router.include_model(Widget)
-    if db_mode == "async":
-        await router.initialize()
-    else:
-        router.initialize()
-    router.mount_jsonrpc()
-    fastapi_app.include_router(router.router)
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -83,13 +72,8 @@ async def test_openapi_examples_and_schemas_present(db_mode):
     }
     assert expected <= set(spec["components"]["schemas"])
 
-<<<<<<< HEAD
     assert hasattr(app.schemas, "Widget")
     widget_ns = getattr(app.schemas, "Widget")
-=======
-    assert hasattr(router.schemas, "Widget")
-    widget_ns = getattr(router.schemas, "Widget")
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     for alias in ["create", "read", "update", "replace", "delete", "list", "clear"]:
         assert hasattr(widget_ns, alias)
         op_ns = getattr(widget_ns, alias)

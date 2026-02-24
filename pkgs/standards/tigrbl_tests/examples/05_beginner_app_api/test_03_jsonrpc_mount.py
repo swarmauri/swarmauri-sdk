@@ -19,7 +19,6 @@ def test_jsonrpc_mount_adds_rpc_prefix():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize before mounting JSON-RPC.
     app.include_table(Widget)
@@ -27,15 +26,6 @@ def test_jsonrpc_mount_adds_rpc_prefix():
     app.mount_jsonrpc(prefix="/rpc")
     # Exercise: collect route paths after mounting RPC routes.
     route_paths = {route.path for route in app.router.routes}
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    # Deployment: include the model and initialize before mounting JSON-RPC.
-    router.include_model(Widget)
-    router.initialize()
-    router.mount_jsonrpc(prefix="/rpc")
-    # Exercise: collect route paths after mounting RPC routes.
-    route_paths = {route.path for route in router.router.routes}
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     # Assertion: the RPC prefix is registered.
     assert "/rpc" in route_paths
 
@@ -56,7 +46,6 @@ def test_jsonrpc_mount_preserves_existing_routes():
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
 
-<<<<<<< HEAD
     app = TigrblApp(engine=mem(async_=False))
     # Deployment: include the model and initialize routes.
     app.include_table(Widget)
@@ -66,17 +55,6 @@ def test_jsonrpc_mount_preserves_existing_routes():
     app.mount_jsonrpc(prefix="/rpc")
     # Exercise: capture the expanded route set after mounting.
     updated_routes = {route.path for route in app.router.routes}
-=======
-    router = TigrblApp(engine=mem(async_=False))
-    # Deployment: include the model and initialize routes.
-    router.include_model(Widget)
-    router.initialize()
-    # Exercise: capture routes before enabling JSON-RPC.
-    initial_routes = {route.path for route in router.router.routes}
-    router.mount_jsonrpc(prefix="/rpc")
-    # Exercise: capture the expanded route set after mounting.
-    updated_routes = {route.path for route in router.router.routes}
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Assertion: existing routes remain available after adding JSON-RPC.
     assert initial_routes.issubset(updated_routes)
