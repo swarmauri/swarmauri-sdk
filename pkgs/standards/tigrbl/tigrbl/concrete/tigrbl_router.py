@@ -160,8 +160,9 @@ class TigrblRouter(_Router):
         included_table, router = _include_table(
             self, model, app=None, prefix=prefix, mount_router=mount_router
         )
-        if mount_router and prefix is None and router is not None:
-            _include_router_impl(self, router, prefix=self.rest_prefix)
+        if mount_router and router is not None:
+            mount_prefix = self.rest_prefix if prefix is None else prefix
+            _include_router_impl(self, router, prefix=mount_prefix)
         return included_table, router
 
     def include_tables(
@@ -180,10 +181,11 @@ class TigrblRouter(_Router):
             base_prefix=base_prefix,
             mount_router=mount_router,
         )
-        if mount_router and base_prefix is None:
+        if mount_router:
+            mount_prefix = self.rest_prefix if base_prefix is None else base_prefix
             for router in included.values():
                 if router is not None:
-                    _include_router_impl(self, router, prefix=self.rest_prefix)
+                    _include_router_impl(self, router, prefix=mount_prefix)
         return included
 
     async def rpc_call(
@@ -217,7 +219,7 @@ class TigrblRouter(_Router):
     ) -> Any:
         """Mount an OpenRPC JSON endpoint onto this router instance."""
         return _mount_openrpc(self, path=path, name=name, tags=tags)
-      
+
     def attach_diagnostics(
         self, *, prefix: str | None = None, app: Any | None = None
     ) -> Any:
