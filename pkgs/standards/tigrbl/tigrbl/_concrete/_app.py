@@ -12,6 +12,7 @@ from ..app._model_registry import initialize_table_registry
 from ..app.app_spec import AppSpec
 from ..router._route import Route
 from ..router._routing import (
+    include_router as _include_router_impl,
     merge_tags as _merge_tags_impl,
     normalize_prefix as _normalize_prefix_impl,
 )
@@ -162,6 +163,11 @@ class App(AppSpec):
 
     def _merge_tags(self, tags: list[str] | None) -> list[str] | None:
         return _merge_tags_impl(getattr(self, "tags", None), tags)
+
+    def include_router(self, router: Any, *, prefix: str | None = None) -> Any:
+        routed = getattr(router, "router", router)
+        _include_router_impl(self, routed, prefix=prefix or "")
+        return router
 
     def _router_call(self, *args: Any, **kwargs: Any):
         del kwargs
