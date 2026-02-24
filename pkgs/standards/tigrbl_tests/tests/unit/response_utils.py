@@ -1,6 +1,6 @@
 from __future__ import annotations
 from tigrbl import alias_ctx, op_ctx, schema_ctx
-from tigrbl.mapping import (
+from tigrbl.bindings import (
     build_handlers,
     build_hooks,
     build_rest,

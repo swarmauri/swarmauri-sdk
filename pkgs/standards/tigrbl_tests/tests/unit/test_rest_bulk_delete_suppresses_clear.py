@@ -1,4 +1,4 @@
-from tigrbl.mapping.rest import build_router_and_attach
+from tigrbl.bindings.rest import build_router_and_attach
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.op import OpSpec
 from tigrbl.orm.tables import Base

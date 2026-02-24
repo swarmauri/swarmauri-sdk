@@ -19,20 +19,20 @@ class Zeta(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class ZetaApi(TigrblRouter):
-    MODELS = (Zeta,)
+class ZetaRouter(TigrblRouter):
+    TABLES = (Zeta,)
 
 
 class ZetaApp(TigrblApp):
-    ROUTERS = (ZetaApi,)
+    ROUTERS = (ZetaRouter,)
 
 
 @pytest.mark.unit
 def test_tigrbl_router_app_subclass_declares_composition() -> None:
-    api_dir = dir(ZetaApi)
+    router_dir = dir(ZetaRouter)
     app_dir = dir(ZetaApp)
 
-    assert "MODELS" in api_dir
-    assert "APIS" in app_dir
-    assert ZetaApi.MODELS == (Zeta,)
-    assert ZetaApp.ROUTERS == (ZetaApi,)
+    assert "MODELS" in router_dir
+    assert "ROUTERS" in app_dir
+    assert ZetaRouter.TABLES == (Zeta,)
+    assert ZetaApp.ROUTERS == (ZetaRouter,)

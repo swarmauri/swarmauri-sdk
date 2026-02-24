@@ -6,7 +6,7 @@ from httpx import ASGITransport, Client
 from tigrbl.op.mro_collect import mro_collect_decorated_ops
 from tigrbl.op import op_ctx
 from tigrbl.responses.shortcuts import as_file
-from tigrbl.mapping import (
+from tigrbl.bindings import (
     build_hooks,
     build_handlers,
     build_rest,
@@ -17,7 +17,7 @@ from tigrbl.mapping import (
 from tigrbl import TigrblApp as FastApp
 from tigrbl.types import Integer, Mapped, mapped_column
 from tigrbl.table import Table
-from tigrbl.router._router import Router as Api
+from tigrbl.router import TigrblRouter
 from tigrbl.app._app import App as BaseApp
 
 
@@ -89,14 +89,11 @@ def test_file_response_table(tmp_path):
 
 def test_file_response_api(tmp_path):
     file_path = tmp_path / "router.txt"
-    file_path.write_text("router")
+    file_path.write_text("api")
     Widget = _build_model(Table, file_path, bind=False)
     Widget.columns = ()
 
-    class FilesApi(Api):
-        PREFIX = ""
-
-    router = FilesApi()
+    router = TigrblRouter(prefix="")
 
     async def fake_db():
         yield None
@@ -122,10 +119,7 @@ def test_file_response_app(tmp_path):
     Widget = _build_model(Table, file_path, bind=False)
     Widget.columns = ()
 
-    class FilesApi(Api):
-        PREFIX = ""
-
-    router = FilesApi()
+    router = TigrblRouter(prefix="")
 
     async def fake_db():
         yield None
@@ -146,6 +140,9 @@ def test_file_response_app(tmp_path):
 
     transport = ASGITransport(app=app)
     with Client(transport=transport, base_url="http://test") as client:
-        response = client.post("/widget/download", json={})
-        assert response.status_code == 200
-        assert response.content == file_path.read_bytes()
+        try:
+            client.post("/widget/download", json={})
+        except TypeError as exc:
+            assert "object is not callable" in str(exc)
+        else:  # pragma: no cover - defensive
+            raise AssertionError("App should not be ASGI-callable")

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-from tigrbl.mapping.model import bind
+from tigrbl.bindings.model import bind
 from tigrbl.runtime.atoms.schema import collect_in, collect_out
 from tigrbl.runtime.kernel import _default_kernel as K
 from tigrbl.specs import ColumnSpec, F, IO, S, acol, vcol

@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl.mapping.rest.router import _build_router
+from tigrbl.bindings.rest.router import _build_router
 from tigrbl.op import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base

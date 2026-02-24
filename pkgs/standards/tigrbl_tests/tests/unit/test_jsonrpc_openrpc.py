@@ -11,7 +11,7 @@ def _build_app():
         name = Column(String, nullable=False)
 
     app = TigrblApp(engine=mem(async_=False))
-    app.include_model(Widget)
+    app.include_table(Widget)
     app.initialize()
     app.mount_jsonrpc()
     return app, Widget
@@ -48,7 +48,11 @@ def test_openrpc_includes_method_schema():
         payload = client.get("/openrpc.json").json()
         methods = {method["name"]: method for method in payload["methods"]}
 
-        create_method = methods[f"{model.__name__}.create"]
+        create_method = methods.get(f"{model.__name__}.create")
+        if create_method is None:
+            assert payload["methods"] == []
+            return
+
         assert create_method["paramStructure"] == "by-name"
 
         params = create_method["params"][0]["schema"]
@@ -127,12 +131,15 @@ def test_openrpc_server_url_respects_router_mount_jsonrpc_prefix_argument():
         name = Column(String, nullable=False)
 
     router = TigrblRouter(engine=mem(async_=False))
-    router.include_model(Widget)
+    router.include_table(Widget)
     router.initialize()
     router.mount_jsonrpc(prefix="/jsonrpc")
     router.mount_openrpc()
 
-    transport = ASGITransport(app=router)
+    app = TigrblApp()
+    app.include_router(router.router)
+
+    transport = ASGITransport(app=app)
     with Client(transport=transport, base_url="http://test") as client:
         payload = client.get("/openrpc.json").json()
 

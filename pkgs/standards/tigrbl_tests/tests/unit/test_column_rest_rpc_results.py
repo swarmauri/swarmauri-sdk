@@ -12,10 +12,10 @@ from tigrbl.types import Integer, Mapped, String
 # Helper to bootstrap API and test client for a model
 
 
-def _setup_api(model):
+def _setup_router(model):
     eng = build_engine(mem(async_=False))
     router = TigrblRouter(engine=eng)
-    router.include_model(model)
+    router.include_table(model)
     router.initialize()
 
     app = TigrblApp()
@@ -45,7 +45,7 @@ async def test_make_column_only_rest_rpc(use_mapped):
             )
             name = makeColumn(storage=S(type_=String, nullable=False))
 
-    router, client, eng = _setup_api(Thing)
+    router, client, eng = _setup_router(Thing)
     try:
         with eng.session() as db:
             created = await router.rpc_call(Thing, "create", {"name": "x"}, db=db)
@@ -93,7 +93,7 @@ async def test_make_virtual_column_only_rest_rpc(use_mapped):
                 nullable=True,
             )
 
-    router, client, eng = _setup_api(Thing)
+    router, client, eng = _setup_router(Thing)
     try:
         with eng.session() as db:
             created = await router.rpc_call(Thing, "create", {}, db=db)
@@ -132,7 +132,7 @@ async def test_make_column_with_alias_rest_rpc(use_mapped):
             )
             name = makeColumn(storage=S(type_=String, nullable=False))
 
-    router, client, eng = _setup_api(Thing)
+    router, client, eng = _setup_router(Thing)
     try:
         with eng.session() as db:
             created = await router.rpc_call(Thing, "create", {"name": "y"}, db=db)
@@ -181,7 +181,7 @@ async def test_make_virtual_column_with_aliases_rest_rpc(use_mapped):
                 nullable=True,
             )
 
-    router, client, eng = _setup_api(Thing)
+    router, client, eng = _setup_router(Thing)
     try:
         with eng.session() as db:
             created = await router.rpc_call(Thing, "register", {}, db=db)
@@ -231,7 +231,7 @@ async def test_make_column_and_virtual_rest_rpc(use_mapped):
                 nullable=True,
             )
 
-    router, client, eng = _setup_api(Thing)
+    router, client, eng = _setup_router(Thing)
     try:
         with eng.session() as db:
             created = await router.rpc_call(Thing, "create", {"name": "Ada"}, db=db)
@@ -291,7 +291,7 @@ async def test_make_column_and_virtual_with_alias_rest_rpc(use_mapped):
                 nullable=True,
             )
 
-    router, client, eng = _setup_api(Thing)
+    router, client, eng = _setup_router(Thing)
     try:
         with eng.session() as db:
             created = await router.rpc_call(Thing, "register", {"name": "Bob"}, db=db)

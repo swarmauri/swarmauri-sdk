@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from tigrbl.mapping.model import bind
-from tigrbl.mapping.schemas.defaults import _default_schemas_for_spec
+from tigrbl.bindings.model import bind
+from tigrbl.bindings.schemas.defaults import _default_schemas_for_spec
 from tigrbl.op import OpSpec
 from tigrbl.orm.mixins import GUIDPk, KeyDigest
 from tigrbl.orm.tables import Base

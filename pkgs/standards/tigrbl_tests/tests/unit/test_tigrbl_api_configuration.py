@@ -2,8 +2,10 @@ import pytest
 
 from tigrbl import TigrblRouter
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
-from tigrbl.types import Security
 from tigrbl.engine.shortcuts import mem
+
+
+from tigrbl.security import Security
 
 
 def _auth_dependency(
@@ -49,11 +51,11 @@ def test_tigrbl_router_post_instantiation_set_auth_updates_state() -> None:
 
 @pytest.mark.unit
 def test_tigrbl_router_class_prefix_defaults() -> None:
-    assert TigrblRouter.REST_PREFIX == "/router"
+    assert TigrblRouter.REST_PREFIX == "/api"
     assert TigrblRouter.RPC_PREFIX == "/rpc"
     assert TigrblRouter.SYSTEM_PREFIX == "/system"
 
     router = TigrblRouter(engine=mem(async_=False))
-    assert router.rest_prefix == "/router"
+    assert router.rest_prefix == "/api"
     assert router.rpc_prefix == "/rpc"
     assert router.system_prefix == "/system"

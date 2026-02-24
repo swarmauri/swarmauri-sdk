@@ -141,7 +141,7 @@ def test_sortable_allows_sorting():
             "unsortable": unsortable_spec,
         }
 
-    from tigrbl.mapping.model import bind
+    from tigrbl.bindings.model import bind
 
     bind(SortModel)
 

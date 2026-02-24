@@ -32,7 +32,7 @@ def test_response_ctx_precedence():
         pass
 
     app_spec = AppSpec(response=ResponseSpec(status_code=200))
-    api_spec = RouterSpec(response=ResponseSpec(status_code=201))
+    router_spec = RouterSpec(response=ResponseSpec(status_code=201))
     table_spec = TableSpec(
         model=SimpleNamespace(), response=ResponseSpec(status_code=202)
     )
@@ -40,7 +40,7 @@ def test_response_ctx_precedence():
 
     merged = resolve_response_spec(
         app_spec.response,
-        api_spec.response,
+        router_spec.response,
         table_spec.response,
         op_spec.response,
     )

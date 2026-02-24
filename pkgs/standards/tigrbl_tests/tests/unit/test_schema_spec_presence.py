@@ -13,7 +13,7 @@ class ExSchema(BaseModel):
 
 
 AppCls = deriveApp(schemas=[ExSchema])
-RouterCls = deriveRouter(schemas=[ExSchema])
+ApiCls = deriveRouter(schemas=[ExSchema])
 
 
 def test_app_houses_schemas():
@@ -21,7 +21,7 @@ def test_app_houses_schemas():
 
 
 def test_router_houses_schemas():
-    assert ExSchema in RouterCls.SCHEMAS
+    assert ExSchema in ApiCls.SCHEMAS
 
 
 def test_table_houses_schemas():

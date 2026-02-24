@@ -20,18 +20,18 @@ class Widget(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class WidgetApi(TigrblRouter):
-    MODELS = (Widget,)
+class WidgerRouter(TigrblRouter):
+    TABLES = (Widget,)
 
 
 @pytest.mark.unit
 def test_tigrbl_router_instantiation_sets_containers() -> None:
-    router = WidgetApi(engine=mem(async_=False))
-    api_dir = dir(router)
+    router = WidgerRouter(engine=mem(async_=False))
+    router_dir = dir(router)
 
-    assert "models" in api_dir
-    assert "routers" in api_dir
-    assert "schemas" in api_dir
-    assert "jsonrpc_prefix" in api_dir
-    assert "system_prefix" in api_dir
+    assert "models" in router_dir
+    assert "routers" in router_dir
+    assert "schemas" in router_dir
+    assert "jsonrpc_prefix" in router_dir
+    assert "system_prefix" in router_dir
     assert router.models["Widget"] is Widget
