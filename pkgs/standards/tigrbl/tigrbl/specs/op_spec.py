@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal, Mapping, Optional, Tuple
 
+from .binding_spec import BindingSpec
+
 from ..engine.engine_spec import EngineCfg
 from ..hook import HookSpec as OpHook
 from ..hook.types import StepFn
@@ -55,6 +57,7 @@ class OpSpec:
     expose_routes: bool = True
     expose_rpc: bool = True
     expose_method: bool = True
+    bindings: Tuple[BindingSpec, ...] = field(default_factory=tuple)
 
     # Optional per-op engine binding (DSN string or mapping spec)
     engine: Optional[EngineCfg] = None
