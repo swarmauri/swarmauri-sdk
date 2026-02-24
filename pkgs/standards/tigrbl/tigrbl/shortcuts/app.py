@@ -15,7 +15,7 @@ def defineAppSpec(
     # composition
     routers: Sequence[Any] = (),
     ops: Sequence[Any] = (),
-    models: Sequence[Any] = (),
+    tables: Sequence[Any] = (),
     schemas: Sequence[Any] = (),
     hooks: Sequence[Any] = (),
     # deps & security
@@ -43,7 +43,7 @@ def defineAppSpec(
         ENGINE=engine,
         ROUTERS=tuple(routers or ()),
         OPS=tuple(ops or ()),
-        MODELS=tuple(models or ()),
+        TABLES=tuple(tables or ()),
         SCHEMAS=tuple(schemas or ()),
         HOOKS=tuple(hooks or ()),
         SECURITY_DEPS=tuple(security_deps or ()),
