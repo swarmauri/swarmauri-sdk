@@ -19,7 +19,7 @@ def get_schema(
     Parameters
     ----------
     orm_cls:
-        ORM model that has been bound via :func:`tigrbl.bindings.build_schemas`.
+        ORM model that has been bound via :func:`tigrbl.mapping.build_schemas`.
     op:
         Operation alias whose schema should be returned.
     kind:

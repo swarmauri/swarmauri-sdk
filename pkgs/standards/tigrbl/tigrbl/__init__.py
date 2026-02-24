@@ -33,7 +33,7 @@ from .responses.decorators import response_ctx
 from .responses.types import ResponseSpec
 
 # ── Bindings (model + Router orchestration) ───────────────────────────────────────
-from .bindings import (
+from .mapping import (
     bind,
     rebind,
     build_schemas,

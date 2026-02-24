@@ -17,7 +17,7 @@ from typing import (
 from ..router._router import Router as _Router
 from ..engine.engine_spec import EngineCfg
 from ..ddl import initialize as _ddl_initialize
-from ..bindings.router import (
+from ..mapping.router import (
     include_model as _include_model,
     include_models as _include_models,
     rpc_call as _rpc_call,
@@ -26,8 +26,8 @@ from ..bindings.router import (
     _default_prefix,
     AttrDict,
 )
-from ..bindings.model import rebind as _rebind, bind as _bind
-from ..bindings.rest import build_router_and_attach as _build_router_and_attach
+from ..mapping.model import rebind as _rebind, bind as _bind
+from ..mapping.rest import build_router_and_attach as _build_router_and_attach
 from ..op import get_registry, OpSpec
 from ..app._model_registry import initialize_model_registry
 from ..system.favicon import mount_favicon

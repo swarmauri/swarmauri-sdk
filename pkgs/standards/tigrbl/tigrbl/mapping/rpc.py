@@ -1,0 +1,428 @@
+# tigrbl/v3/mapping/rpc.py
+from __future__ import annotations
+
+import inspect
+import logging
+from types import SimpleNamespace
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+)
+
+from pydantic import BaseModel
+
+from ..op import OpSpec
+from ..op.types import PHASES
+from ..runtime.status import HTTPException
+from ..transport.dispatcher import dispatch_operation
+
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/mapping/rpc")
+
+_Key = Tuple[str, str]  # (alias, target)
+
+
+_WRAPPER_KEYS = frozenset({"data", "payload", "body", "item"})
+
+
+def _schema_field_names(schema: Any) -> set[str]:
+    """Return top-level field names declared by a Pydantic schema class."""
+    if not schema or not inspect.isclass(schema) or not issubclass(schema, BaseModel):
+        return set()
+
+    fields = getattr(schema, "model_fields", None)
+    if not isinstance(fields, Mapping):
+        return set()
+
+    names: set[str] = set(fields.keys())
+    for field_name, field_info in fields.items():
+        alias = getattr(field_info, "alias", None)
+        if isinstance(alias, str) and alias:
+            names.add(alias)
+        validation_alias = getattr(field_info, "validation_alias", None)
+        if isinstance(validation_alias, str) and validation_alias:
+            names.add(validation_alias)
+    return names
+
+
+def _allowed_wrapper_keys(model: type, alias: str, target: str) -> set[str]:
+    """Wrapper-like names that are valid operation fields for this RPC method."""
+    schemas_root = getattr(model, "schemas", None)
+    alias_ns = getattr(schemas_root, alias, None) if schemas_root else None
+    if not alias_ns:
+        return set()
+
+    allowed = _schema_field_names(getattr(alias_ns, "in_", None))
+    if target.startswith("bulk_") and target != "bulk_delete":
+        allowed |= _schema_field_names(getattr(alias_ns, "in_item", None))
+    return allowed & set(_WRAPPER_KEYS)
+
+
+def _reject_wrapper_keys(payload: Any, *, allowed_keys: set[str] | None = None) -> None:
+    allowed = allowed_keys or set()
+
+    if isinstance(payload, Mapping):
+        disallowed = sorted(
+            k for k in payload if k in _WRAPPER_KEYS and k not in allowed
+        )
+        if disallowed:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "reason": "Wrapper keys are not allowed; params must match the operation schema.",
+                    "disallowed_keys": disallowed,
+                },
+            )
+        return
+
+    if isinstance(payload, Sequence) and not isinstance(payload, (str, bytes)):
+        for item in payload:
+            if isinstance(item, Mapping):
+                _reject_wrapper_keys(item, allowed_keys=allowed)
+
+
+# Mapping with attribute-style access
+class AttrDict(dict):
+    def __getattr__(self, item: str) -> Any:  # pragma: no cover - trivial
+        try:
+            return self[item]
+        except KeyError as e:  # pragma: no cover - debug helper
+            raise AttributeError(item) from e
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Helpers
+# ───────────────────────────────────────────────────────────────────────────────
+
+
+def _ns(obj: Any, name: str) -> Any:
+    ns = getattr(obj, name, None)
+    if ns is None:
+        ns = SimpleNamespace()
+        setattr(obj, name, ns)
+    return ns
+
+
+def _get_phase_chains(
+    model: type, alias: str
+) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
+    """Backward-compatible phase chain accessor used by other mapping modules."""
+    try:
+        from ..transport.dispatcher import (
+            _get_phase_chains as _transport_get_phase_chains,
+        )
+
+        return _transport_get_phase_chains(model, alias)
+    except Exception:
+        hooks_root = _ns(model, "hooks")
+        alias_ns = getattr(hooks_root, alias, None)
+        out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
+        for ph in PHASES:
+            out[ph] = list(getattr(alias_ns, ph, []) or [])
+        return out
+
+
+def _coerce_payload(payload: Any) -> Any:
+    """Normalize common payload shapes.
+
+    ``dict``-like and Pydantic models become plain ``dict``s. ``None`` becomes an
+    empty ``dict``. Sequence payloads (used by bulk operations) pass through as
+    lists of ``dict``s when possible; otherwise the original sequence is
+    returned. Any other type yields an empty ``dict``.
+    """
+    if payload is None:
+        return {}
+    if isinstance(payload, BaseModel):
+        try:
+            return payload.model_dump(exclude_none=False)
+        except Exception:
+            return dict(payload.__dict__)
+    if isinstance(payload, Mapping):
+        return dict(payload)
+    if isinstance(payload, Sequence) and not isinstance(payload, (str, bytes)):
+        out: list[Any] = []
+        for item in payload:
+            if isinstance(item, BaseModel):
+                try:
+                    out.append(item.model_dump(exclude_none=False))
+                except Exception:
+                    out.append(dict(item.__dict__))
+            elif isinstance(item, Mapping):
+                out.append(dict(item))
+            else:
+                out.append(item)
+        return out
+    return {}
+
+
+def _ensure_jsonable(obj: Any) -> Any:
+    """Best-effort conversion of DB rows or ORM objects to primitives."""
+    if hasattr(obj, "status_code") and hasattr(obj, "headers") and hasattr(obj, "body"):
+        response_like = AttrDict(
+            {
+                "status_code": getattr(obj, "status_code"),
+                "headers": getattr(obj, "headers"),
+                "body": getattr(obj, "body"),
+            }
+        )
+        if hasattr(obj, "media_type"):
+            response_like["media_type"] = getattr(obj, "media_type")
+        if hasattr(obj, "raw_headers"):
+            response_like["raw_headers"] = getattr(obj, "raw_headers")
+        if hasattr(obj, "body_iterator"):
+            response_like["body_iterator"] = getattr(obj, "body_iterator")
+        if hasattr(obj, "path"):
+            response_like["path"] = getattr(obj, "path")
+        if hasattr(obj, "url"):
+            response_like["url"] = getattr(obj, "url")
+        return response_like
+
+    if isinstance(obj, (list, tuple)):
+        return [_ensure_jsonable(x) for x in obj]
+    if isinstance(obj, Mapping):
+        try:
+            return AttrDict({k: _ensure_jsonable(v) for k, v in dict(obj).items()})
+        except Exception:
+            pass
+    try:
+        data = vars(obj)
+    except TypeError:
+        return obj
+    return AttrDict(
+        {k: _ensure_jsonable(v) for k, v in data.items() if not k.startswith("_")}
+    )
+
+
+def _validate_input(
+    model: type, alias: str, target: str, payload: Mapping[str, Any]
+) -> Mapping[str, Any]:
+    """Choose the appropriate request schema (if any) and validate/normalize payload."""
+    schemas_root = getattr(model, "schemas", None)
+    if not schemas_root:
+        return payload
+    alias_ns = getattr(schemas_root, alias, None)
+    if not alias_ns:
+        return payload
+
+    in_model = getattr(alias_ns, "in_", None)
+
+    if in_model and inspect.isclass(in_model) and issubclass(in_model, BaseModel):
+        try:
+            inst = in_model.model_validate(payload)  # type: ignore[arg-type]
+            return inst.model_dump(exclude_none=True)
+        except Exception as e:
+            # Let the executor/runtime error mappers standardize later; pass original payload
+            logger.debug(
+                "rpc input validation failed for %s.%s: %s",
+                model.__name__,
+                alias,
+                e,
+                exc_info=True,
+            )
+    return payload
+
+
+def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
+    """Serialize result(s) if an OUT schema is available for the op.
+
+    For 'list', the OUT schema represents the element shape.
+    """
+    schemas_root = getattr(model, "schemas", None)
+    if not schemas_root:
+        return _ensure_jsonable(result)
+    alias_ns = getattr(schemas_root, alias, None)
+    if not alias_ns:
+        return _ensure_jsonable(result)
+
+    if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_merge"}:
+        out_model = getattr(alias_ns, "out_item", None)
+    else:
+        out_model = getattr(alias_ns, "out", None)
+
+    if (
+        not out_model
+        or not inspect.isclass(out_model)
+        or not issubclass(out_model, BaseModel)
+    ):
+        return _ensure_jsonable(result)
+
+    try:
+        if target == "list" and isinstance(result, (list, tuple)):
+            return [
+                out_model.model_validate(x).model_dump(
+                    exclude_none=False, by_alias=True
+                )
+                for x in result
+            ]
+        if target in {
+            "bulk_create",
+            "bulk_update",
+            "bulk_replace",
+            "bulk_merge",
+        } and isinstance(result, (list, tuple)):
+            return [
+                out_model.model_validate(x).model_dump(
+                    exclude_none=False, by_alias=True
+                )
+                for x in result
+            ]
+        # Single object case
+        return out_model.model_validate(result).model_dump(
+            exclude_none=False, by_alias=True
+        )
+    except Exception as e:
+        # If serialization fails, let raw result through rather than failing the call
+        logger.debug(
+            "rpc output serialization failed for %s.%s: %s",
+            model.__name__,
+            alias,
+            e,
+            exc_info=True,
+        )
+        return _ensure_jsonable(result)
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# RPC wrapper builder
+# ───────────────────────────────────────────────────────────────────────────────
+
+
+def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]]:
+    """
+    Create an async callable that:
+      1) validates payload (if schema present),
+      2) runs the executor with the model's phase chains (Kernel-preferred),
+      3) serializes the result to the expected return form.
+
+    Signature:
+        async def rpc_method(payload: Mapping | BaseModel | None = None, *, db, request=None, ctx=None) -> Any
+    """
+    alias = sp.alias
+    target = sp.target
+
+    async def _rpc_method(
+        payload: Any = None,
+        *,
+        db: Any,
+        request: Any = None,
+        ctx: Optional[Dict[str, Any]] = None,
+    ) -> Any:
+        # 1) normalize + validate input
+        schemas_root = getattr(model, "schemas", None)
+        alias_ns = getattr(schemas_root, alias, None)
+        item_in_model = getattr(alias_ns, "in_item", None)
+        allowed_wrapper_keys = _allowed_wrapper_keys(model, alias, target)
+
+        raw_payload = _coerce_payload(payload)
+        _reject_wrapper_keys(raw_payload, allowed_keys=allowed_wrapper_keys)
+        if target == "bulk_delete" and not isinstance(raw_payload, Mapping):
+            raw_payload = {"ids": raw_payload}
+        if (
+            target.startswith("bulk_")
+            and target != "bulk_delete"
+            and isinstance(raw_payload, Sequence)
+        ):
+            merged_payload = []
+            for item in raw_payload:
+                if item_in_model and isinstance(item, Mapping):
+                    norm = item_in_model.model_validate(dict(item)).model_dump(
+                        exclude_none=True
+                    )
+                    merged_payload.append({**dict(item), **norm})
+                elif item_in_model:
+                    norm = item_in_model.model_validate(item).model_dump(
+                        exclude_none=True
+                    )
+                    merged_payload.append(norm)
+                else:
+                    merged_payload.append(item)
+        else:
+            norm_payload = _validate_input(model, alias, target, raw_payload)
+            merged_payload = dict(raw_payload)
+            for key, value in norm_payload.items():
+                merged_payload[key] = value
+
+        # 2) build executor context & phases
+        base_ctx: Dict[str, Any] = dict(ctx or {})
+        base_ctx.setdefault("payload", merged_payload)
+        base_ctx.setdefault("db", db)
+        if request is not None:
+            base_ctx.setdefault("request", request)
+        # surface contextual metadata for runtime atoms
+        app_ref = (
+            getattr(request, "app", None)
+            or base_ctx.get("app")
+            or getattr(model, "router", None)
+            or model
+        )
+        base_ctx.setdefault("app", app_ref)
+        base_ctx.setdefault("router", base_ctx.get("router") or app_ref)
+        base_ctx.setdefault("model", model)
+        base_ctx.setdefault("op", alias)
+        base_ctx.setdefault("method", alias)
+        base_ctx.setdefault("target", target)
+        # helpful env metadata
+        base_ctx.setdefault(
+            "env",
+            SimpleNamespace(
+                method=alias, params=merged_payload, target=target, model=model
+            ),
+        )
+
+        result = await dispatch_operation(
+            router=getattr(model, "router", None),
+            model_or_name=model,
+            alias=alias,
+            payload=base_ctx.get("payload"),
+            db=db,
+            request=request,
+            ctx=base_ctx,
+            response_serializer=lambda r: _serialize_output(model, alias, target, r),
+            rpc_mode=True,
+        )
+
+        return result
+
+    # Give the callable a nice name for introspection/logging
+    _rpc_method.__name__ = f"rpc_{model.__name__}_{alias}"
+    _rpc_method.__qualname__ = _rpc_method.__name__
+    _rpc_method.__doc__ = f"RPC method for {model.__name__}.{alias} ({target})"
+
+    return _rpc_method
+
+
+def _attach_one(model: type, sp: OpSpec) -> None:
+    rpc_root = _ns(model, "rpc")
+    fn = _build_rpc_callable(model, sp)
+    setattr(rpc_root, sp.alias, fn)
+    logger.debug("rpc: %s.%s registered", model.__name__, sp.alias)
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Public API
+# ───────────────────────────────────────────────────────────────────────────────
+
+
+def register_and_attach(
+    model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
+) -> None:
+    """
+    Register async callables under `model.rpc.<alias>` for each OpSpec.
+    If `only_keys` is provided, limit work to those (alias,target) pairs.
+    """
+    wanted = set(only_keys or ())
+    for sp in specs:
+        key = (sp.alias, sp.target)
+        if wanted and key not in wanted:
+            continue
+        _attach_one(model, sp)
+
+
+__all__ = ["register_and_attach"]
