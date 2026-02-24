@@ -9,12 +9,10 @@ from sqlalchemy import text
 
 
 def table_iter(router: Any) -> Iterable[type]:
-    models = getattr(router, "models", None)
-    if isinstance(models, dict) and models:
-        return models.values()
     tables = getattr(router, "tables", None)
     if isinstance(tables, dict) and tables:
         return tables.values()
+
     return ()
 
 

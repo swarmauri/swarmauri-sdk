@@ -25,7 +25,7 @@ async def test_healthz_endpoint_select_case_fallback():
     def get_db():
         return db
 
-    router = SimpleNamespace(models={})
+    router = SimpleNamespace(tables={})
     app = TigrblApp()
     app.include_router(mount_diagnostics(router, get_db=get_db), prefix="/system")
 

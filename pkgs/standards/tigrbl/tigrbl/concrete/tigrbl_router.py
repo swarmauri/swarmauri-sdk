@@ -111,12 +111,6 @@ class TigrblRouter(_Router):
         if tables:
             self.include_tables(list(tables))
 
-    def install_engines(self, *, tables: Sequence[type] | None = None) -> None:
-        from ..engine import install_from_objects
-
-        selected = tables if tables is not None else tuple(self.tables.values())
-        install_from_objects(router=self, tables=selected)
-
     # ------------------------- internal helpers -------------------------
 
     @staticmethod
