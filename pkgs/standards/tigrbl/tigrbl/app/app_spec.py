@@ -2,46 +2,4 @@
 
 from ..specs.app_spec import AppSpec
 
-<<<<<<< HEAD
 __all__ = ["AppSpec"]
-=======
-
-@dataclass(eq=False)
-class AppSpec:
-    """
-    Used to *produce an App subclass* via App.from_spec().
-    """
-
-    title: str = "Tigrbl"
-    version: str = "0.1.0"
-    description: Optional[str] = None
-    openapi_url: str = "/openapi.json"
-    docs_url: str = "/docs"
-    debug: bool = False
-    swagger_ui_version: str = "5.31.0"
-    engine: Optional[EngineCfg] = None
-
-    # NEW: multi-router composition (store router classes or instances)
-    routers: Sequence[Any] = field(default_factory=tuple)
-
-    # NEW: orchestration/topology knobs
-    ops: Sequence[Any] = field(default_factory=tuple)  # op descriptors or specs
-    models: Sequence[Any] = field(default_factory=tuple)  # ORM classes
-    schemas: Sequence[Any] = field(default_factory=tuple)  # schema classes/defs
-    hooks: Sequence[Callable[..., Any]] = field(default_factory=tuple)
-
-    # security/dep stacks (ASGI dependencies or callables)
-    security_deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
-    deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
-
-    # response defaults
-    response: Optional[ResponseSpec] = None
-
-    # system routing prefixes (REST/JSON-RPC namespaces)
-    jsonrpc_prefix: str = "/rpc"
-    system_prefix: str = "/system"
-
-    # optional framework bits
-    middlewares: Sequence[Any] = field(default_factory=tuple)
-    lifespan: Optional[Callable[..., Any]] = None
->>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
