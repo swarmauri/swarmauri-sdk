@@ -41,6 +41,10 @@ from ..system.docs import build_openapi as _build_openapi
 from ..op import get_registry, OpSpec
 from ..app._model_registry import initialize_table_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
+from ..router._routing import (
+    add_route as _add_route_impl,
+    include_router as _include_router_impl,
+)
 from ..app.transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
 
 
@@ -406,20 +410,22 @@ class TigrblApp(_App):
         return routed
 
     def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Unsupported: register routes on ``TigrblRouter`` instances instead."""
-        del path, endpoint, kwargs
-        raise AttributeError(
-            "TigrblApp does not support add_router_route(...). "
-            "Use TigrblRouter.add_route(...) and include_router(...)."
-        )
+        """Compatibility alias for ``add_route`` on ``TigrblApp``."""
+        self.add_route(path, endpoint, **kwargs)
 
     def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Unsupported: register routes on ``TigrblRouter`` instances instead."""
-        del path, endpoint, kwargs
-        raise AttributeError(
-            "TigrblApp does not support add_route(...). "
-            "Use TigrblRouter.add_route(...) and include_router(...)."
-        )
+        """Register a direct app route.
+
+        ``TigrblApp`` prefers model/router-driven registration, but application-level
+        system endpoints (OpenAPI/OpenRPC/docs/favicon/diagnostics) and legacy code
+        still rely on direct route mounting.
+        """
+        methods = kwargs.pop("methods", None)
+        if methods is None:
+            raise TypeError(
+                "add_route() missing required keyword-only argument: 'methods'"
+            )
+        _add_route_impl(self, path, endpoint, methods=methods, **kwargs)
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""
