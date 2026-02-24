@@ -8,7 +8,7 @@ from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
 from ..ddl import initialize as _ddl_initialize
-from ..app._model_registry import initialize_model_registry
+from ..app._model_registry import initialize_table_registry
 from ..app.app_spec import AppSpec
 from ..router._route import Route
 from ..router._routing import (
@@ -33,7 +33,7 @@ class App(AppSpec):
     LIFESPAN = None
     ROUTERS = ()
     OPS = ()
-    MODELS = ()
+    TABLES = ()
     SCHEMAS = ()
     HOOKS = ()
     DESCRIPTION = None
@@ -90,7 +90,7 @@ class App(AppSpec):
         self.ops = tuple(getattr(self, "OPS", ()))
         # Runtime registries use mutable containers (dict/namespace), but the
         # dataclass fields expect sequences. Storing a dict here satisfies both.
-        self.models = initialize_model_registry(getattr(self, "MODELS", ()))
+        self.tables = initialize_table_registry(getattr(self, "TABLES", ()))
         self.schemas = tuple(getattr(self, "SCHEMAS", ()))
         self.hooks = tuple(getattr(self, "HOOKS", ()))
         self.security_deps = tuple(getattr(self, "SECURITY_DEPS", ()))
@@ -119,21 +119,21 @@ class App(AppSpec):
             _resolver.resolve_provider()
 
     def install_engines(
-        self, *, router: Any = None, models: tuple[Any, ...] | None = None
+        self, *, router: Any = None, tables: tuple[Any, ...] | None = None
     ) -> None:
-        # If class declared ROUTERS/MODELS, use them unless explicit args are passed.
+        # If class declared ROUTERS/TABLES, use them unless explicit args are passed.
         routers = (router,) if router is not None else self.ROUTERS
-        models = models if models is not None else self.MODELS
+        tables = tables if tables is not None else self.TABLES
         if routers:
             for a in routers:
-                install_from_objects(app=self, router=a, models=models)
+                install_from_objects(app=self, router=a, models=tables)
         else:
-            install_from_objects(app=self, router=None, models=models)
+            install_from_objects(app=self, router=None, models=tables)
 
     def _collect_tables(self) -> list[Any]:
         seen = set()
         tables = []
-        for model in self.models.values():
+        for model in self.tables.values():
             if not hasattr(model, "__table__"):
                 try:  # pragma: no cover - defensive remap
                     from ..table import Base
