@@ -14,17 +14,20 @@ from tigrbl.runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP
 
 
 async def _build_client(model: type, db_mode: str) -> tuple[AsyncClient, TigrblApp]:
-    app = Router()
-    router = TigrblApp(engine=mem(async_=(db_mode == "async")))
-    router.include_table(model)
+    root_router = Router()
+    app = TigrblApp(engine=mem(async_=(db_mode == "async")))
+    app.include_table(model)
     if db_mode == "async":
-        await router.initialize()
+        await app.initialize()
     else:
-        router.initialize()
-    router.mount_jsonrpc()
-    router.attach_diagnostics()
-    app.include_router(router.router)
-    return AsyncClient(transport=ASGITransport(app=app), base_url="http://test"), router
+        app.initialize()
+    app.mount_jsonrpc()
+    app.attach_diagnostics()
+    root_router.include_router(app.router)
+    return (
+        AsyncClient(transport=ASGITransport(app=root_router), base_url="http://test"),
+        app,
+    )
 
 
 @pytest.mark.i9n
