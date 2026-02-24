@@ -3,13 +3,13 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 
 def test_op_ctx_dynamic_attach_auto_discovers_ops():
-    api = TigrblRouter()
+    router = TigrblRouter()
 
     class Book(Base):
         __tablename__ = "book"
         id: Mapped[int] = mapped_column(primary_key=True)
 
-    api.include_model(Book, mount_router=False)
+    router.include_model(Book, mount_router=False)
     assert "publish" not in [sp.alias for sp in Book.ops.all]
 
     @op_ctx(bind=Book)

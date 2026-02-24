@@ -15,16 +15,16 @@ from tigrbl.runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP
 
 async def _build_client(model: type, db_mode: str) -> tuple[AsyncClient, TigrblApp]:
     app = APIRouter()
-    api = TigrblApp(engine=mem(async_=(db_mode == "async")))
-    api.include_model(model)
+    router = TigrblApp(engine=mem(async_=(db_mode == "async")))
+    router.include_model(model)
     if db_mode == "async":
-        await api.initialize()
+        await router.initialize()
     else:
-        api.initialize()
-    api.mount_jsonrpc()
-    api.attach_diagnostics()
-    app.include_router(api.router)
-    return AsyncClient(transport=ASGITransport(app=app), base_url="http://test"), api
+        router.initialize()
+    router.mount_jsonrpc()
+    router.attach_diagnostics()
+    app.include_router(router.router)
+    return AsyncClient(transport=ASGITransport(app=app), base_url="http://test"), router
 
 
 @pytest.mark.i9n
@@ -205,7 +205,7 @@ async def test_secdep_auth_failure_and_success_parity_for_rest_and_rpc(
     def auth_gate(request=None) -> None:
         events.append("sec")
         headers = getattr(request, "headers", {}) if request is not None else {}
-        token = headers.get("x-api-key") if hasattr(headers, "get") else None
+        token = headers.get("x-router-key") if hasattr(headers, "get") else None
         if token != "ok":
             raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -250,7 +250,7 @@ async def test_secdep_auth_failure_and_success_parity_for_rest_and_rpc(
     rest_allow = await client.post(
         "/item",
         json={"name": "rest-allow"},
-        headers={"x-api-key": "ok"},
+        headers={"x-router-key": "ok"},
     )
     assert rest_allow.status_code == 201
     assert rest_allow.json()["name"] == "rest-allow"
@@ -260,7 +260,7 @@ async def test_secdep_auth_failure_and_success_parity_for_rest_and_rpc(
     rpc_allow = await client.post(
         "/rpc",
         json={"id": "2", "method": "Item.create", "params": {"name": "rpc-allow"}},
-        headers={"x-api-key": "ok"},
+        headers={"x-router-key": "ok"},
     )
     assert rpc_allow.status_code == 200
     assert rpc_allow.json()["result"]["name"] == "rpc-allow"

@@ -126,14 +126,14 @@ def test_openrpc_server_url_respects_api_mount_jsonrpc_prefix_argument():
         __tablename__ = "widgets_openrpc_api_mount_prefix"
         name = Column(String, nullable=False)
 
-    api = TigrblRouter(engine=mem(async_=False))
-    api.include_model(Widget)
-    api.initialize()
-    api.mount_jsonrpc(prefix="/jsonrpc")
-    api.mount_openrpc()
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_model(Widget)
+    router.initialize()
+    router.mount_jsonrpc(prefix="/jsonrpc")
+    router.mount_openrpc()
 
-    transport = ASGITransport(app=api)
+    transport = ASGITransport(app=router)
     with Client(transport=transport, base_url="http://test") as client:
         payload = client.get("/openrpc.json").json()
 
-    assert payload["servers"] == [{"name": api.title, "url": "/jsonrpc"}]
+    assert payload["servers"] == [{"name": router.title, "url": "/jsonrpc"}]

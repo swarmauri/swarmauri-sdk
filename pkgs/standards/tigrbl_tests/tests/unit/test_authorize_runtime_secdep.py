@@ -16,9 +16,9 @@ def test_authorize_is_injected_as_runtime_secdep() -> None:
         name = Column(String, nullable=False)
         __tigrbl_ops__ = (OpSpec(alias="create", target="create"),)
 
-    api = TigrblApp()
-    api.set_auth(authorize=authorize)
-    api.include_model(Item)
+    router = TigrblApp()
+    router.set_auth(authorize=authorize)
+    router.include_model(Item)
 
     spec = Item.ops.by_alias["create"][0]
     secdeps = tuple(spec.secdeps)

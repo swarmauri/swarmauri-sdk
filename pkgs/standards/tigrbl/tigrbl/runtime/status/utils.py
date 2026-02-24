@@ -14,7 +14,7 @@ except Exception:  # pragma: no cover
 try:
     import importlib
 
-    _http_exc = importlib.import_module("fast" + "api.exceptions")
+    _http_exc = importlib.import_module("fast" + "router.exceptions")
     RequestValidationError = _http_exc.RequestValidationError
 except Exception:  # pragma: no cover
     RequestValidationError = None  # type: ignore

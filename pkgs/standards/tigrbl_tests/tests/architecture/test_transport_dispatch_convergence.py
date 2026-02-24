@@ -13,11 +13,13 @@ def _source(rel: str) -> str:
 def _imports_module(path: Path, module: str, symbol: str | None = None) -> bool:
     tree = ast.parse(path.read_text(), filename=str(path))
     for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.module == module:
-            if symbol is None:
-                return True
-            if any(alias.name == symbol for alias in node.names):
-                return True
+        if isinstance(node, ast.ImportFrom):
+            module_name = f"{'.' * node.level}{node.module or ''}"
+            if module_name == module:
+                if symbol is None:
+                    return True
+                if any(alias.name == symbol for alias in node.names):
+                    return True
     return False
 
 

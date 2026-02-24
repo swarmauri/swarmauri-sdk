@@ -15,6 +15,7 @@ from tigrbl.hook import hook_ctx
 
 
 def create_client(model_cls):
+<<<<<<< HEAD
     """Build a TigrblApp app with Tigrbl and return an AsyncClient."""
     app = TigrblApp(engine={"kind": "sqlite", "memory": True})
     app.include_table(model_cls)
@@ -30,6 +31,25 @@ def create_client(model_cls):
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     return client, app, SessionLocal
+=======
+    """Build a FastAPI app with Tigrbl v3 and return an AsyncClient."""
+    app = TigrblApp()
+    router = TigrblApp(engine={"kind": "sqlite", "memory": True})
+    router.include_model(model_cls)
+    router.mount_jsonrpc()
+    router.attach_diagnostics()
+
+    from tigrbl.engine import resolver as _resolver
+
+    prov = _resolver.resolve_provider(router=router)
+    engine, SessionLocal = prov.ensure()
+    Base.metadata.create_all(engine)
+
+    app.include_router(router.router)
+    transport = ASGITransport(app=app)
+    client = AsyncClient(transport=transport, base_url="http://test")
+    return client, router, SessionLocal
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 
 # ---------------------------------------------------------------------------
@@ -51,8 +71,13 @@ async def test_hook_ctx_binding_i9n():
         async def flag(cls, ctx):
             ctx["flagged"] = True
 
+<<<<<<< HEAD
     client, app, _ = create_client(Item)
     assert any(callable(h) for h in app.hooks.Item.create.PRE_HANDLER)
+=======
+    client, router, _ = create_client(Item)
+    assert any(callable(h) for h in router.hooks.Item.create.PRE_HANDLER)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     await client.aclose()
 
 
@@ -299,9 +324,15 @@ async def test_hook_ctx_core_crud_i9n():
         async def mark(cls, ctx):
             ctx["result"]["via"] = "core"
 
+<<<<<<< HEAD
     client, app, SessionLocal = create_client(Item)
     with SessionLocal() as session:
         result = await app.core.Item.create({"name": "x"}, db=session)
+=======
+    client, router, SessionLocal = create_client(Item)
+    with SessionLocal() as session:
+        result = await router.core.Item.create({"name": "x"}, db=session)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     assert result["via"] == "core"
     await client.aclose()
 

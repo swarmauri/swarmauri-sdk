@@ -1,6 +1,6 @@
-# tigrbl/tigrbl/v3/table/_table.py
-from __future__ import annotations
+from .._concrete._table import Table
 
+<<<<<<< HEAD
 from types import SimpleNamespace
 from typing import Any, Callable
 
@@ -52,3 +52,6 @@ class Table(Base, TableSpec):
         return db, release
 
     initialize = classmethod(_ddl_initialize)
+=======
+__all__ = ["Table"]
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

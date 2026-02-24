@@ -29,9 +29,15 @@ async def client():
 
         __tigrbl_cols__ = {"id": id, "name": name}
 
+<<<<<<< HEAD
     app = TigrblApp(engine=mem())
     app.include_table(Widget, prefix="")
     await app.initialize()
+=======
+    router = Tigrblv3(engine=mem())
+    router.include_model(Widget, prefix="")
+    await router.initialize()
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     prov = _resolver.resolve_provider()
     engine, session_maker = prov.ensure()
     async with session_maker() as session:
@@ -56,8 +62,13 @@ async def client():
     crud.read = row_read  # type: ignore
     crud.list = row_list  # type: ignore
 
+<<<<<<< HEAD
     router = TigrblRouter()
     app.include_router(router)
+=======
+    app = Tigrblv3()
+    app.include_router(router.router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:

@@ -38,15 +38,15 @@ def test_set_auth_after_include_model_exposes_security_metadata_only():
     class Gadget(Base, GUIDPk):
         __tablename__ = "gadgets_security"
 
-    api = TigrblApp()
-    api.include_model(Gadget)
+    router = TigrblApp()
+    router.include_model(Gadget)
 
     def authn(cred=Security(HTTPBearer())):
         return cred
 
-    api.set_auth(authn=authn, allow_anon=False)
+    router.set_auth(authn=authn, allow_anon=False)
     app = APIRouter()
-    app.include_router(api.router)
+    app.include_router(router.router)
     spec = app.openapi()
     post_sec = spec["paths"]["/gadget"]["post"].get("security")
     assert post_sec == [{"HTTPBearer": []}]

@@ -188,7 +188,11 @@ async def test_create_standardized_error():
 @pytest.mark.asyncio
 async def test_error_parity_crud_vs_rpc(app_client):
     """Test that CRUD and RPC operations return equivalent errors."""
+<<<<<<< HEAD
     client, app, _ = app_client
+=======
+    client, router, _ = api_client
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Test 404 error parity
     t = await client.post("/tenant", json={"name": "ghost"})
@@ -226,7 +230,11 @@ async def test_error_parity_crud_vs_rpc(app_client):
 @pytest.mark.asyncio
 async def test_error_parity_validation_errors(app_client):
     """Test that validation errors are consistent between CRUD and RPC."""
+<<<<<<< HEAD
     client, app, _ = app_client
+=======
+    client, router, _ = api_client
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Test validation error - missing required field
     # Try via REST
@@ -273,7 +281,11 @@ async def test_error_mapping_bidirectional_consistency():
 @pytest.mark.asyncio
 async def test_error_response_structure(app_client):
     """Test that error responses have consistent structure."""
+<<<<<<< HEAD
     client, app, _ = app_client
+=======
+    client, router, _ = api_client
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     # Test REST error structure
     rest_response = await client.get("/item/invalid-uuid")

@@ -194,10 +194,17 @@ def create_test_router():
     def _create_router(model_class):
         """Create Tigrbl instance with a single model for testing."""
         Base.metadata.clear()
+<<<<<<< HEAD
         app = TigrblApp(engine=mem(async_=False))
         app.include_table(model_class)
         app.initialize()
         return app.router
+=======
+        router = TigrblApp(engine=mem(async_=False))
+        router.include_model(model_class)
+        router.initialize()
+        return router
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     return _create_router
 
@@ -208,9 +215,15 @@ async def create_test_router_async():
 
     def _create_app_async(model_class):
         Base.metadata.clear()
+<<<<<<< HEAD
         app = TigrblApp(engine=mem())
         app.include_table(model_class)
         return app
+=======
+        router = TigrblApp(engine=mem())
+        router.include_model(model_class)
+        return router
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     return _create_app_async
 
@@ -269,6 +282,7 @@ async def router_client(db_mode):
     app = TigrblApp()
 
     if db_mode == "async":
+<<<<<<< HEAD
         app = TigrblApp(engine=mem())
         app.include_tables([Tenant, Item])
         await app.initialize()
@@ -289,6 +303,23 @@ async def router_client(db_mode):
 async def app_client(router_client):
     """Backwards-compatible alias for integration tests expecting app_client."""
     return router_client
+=======
+        router = TigrblApp(engine=mem())
+        router.include_models([Tenant, Item])
+        await router.initialize()
+
+    else:
+        router = TigrblApp(engine=mem(async_=False))
+        router.include_models([Tenant, Item])
+        router.initialize()
+
+    router.mount_jsonrpc()
+    fastapi_app.include_router(router.router)
+    transport = ASGITransport(app=fastapi_app)
+
+    client = AsyncClient(transport=transport, base_url="http://test")
+    return client, router, Item
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
 
 @pytest.fixture
@@ -351,6 +382,7 @@ async def router_client_v3():
         }
 
     cfg = mem()
+<<<<<<< HEAD
     app = TigrblApp(engine=cfg)
     app.include_table(Widget, prefix="")
     app.mount_jsonrpc()
@@ -361,3 +393,17 @@ async def router_client_v3():
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     return client, app, Widget, session_maker
+=======
+    fastapi_app = TigrblApp()
+    router = TigrblApp(engine=cfg)
+    router.include_model(Widget, prefix="")
+    router.mount_jsonrpc()
+    router.attach_diagnostics()
+    await router.initialize()
+    prov = _resolver.resolve_provider()
+    _, session_maker = prov.ensure()
+    fastapi_app.include_router(router.router)
+    transport = ASGITransport(app=fastapi_app)
+    client = AsyncClient(transport=transport, base_url="http://test")
+    return client, router, Widget, session_maker
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

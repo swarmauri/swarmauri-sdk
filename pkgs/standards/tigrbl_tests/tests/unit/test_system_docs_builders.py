@@ -32,7 +32,7 @@ def test_openrpc_builder_uses_request_origin_and_jsonrpc_prefix() -> None:
     request = Request(
         method="GET",
         path="/openrpc.json",
-        headers={"host": "api.example.com", "x-forwarded-proto": "https"},
+        headers={"host": "router.example.com", "x-forwarded-proto": "https"},
         query={},
         path_params={},
         body=b"",
@@ -41,7 +41,7 @@ def test_openrpc_builder_uses_request_origin_and_jsonrpc_prefix() -> None:
     openrpc_doc = build_openrpc_spec(app, request=request)
 
     assert openrpc_doc["servers"] == [
-        {"name": app.title, "url": "https://api.example.com/gateway/rpc"}
+        {"name": app.title, "url": "https://router.example.com/gateway/rpc"}
     ]
 
 
@@ -52,7 +52,7 @@ def test_openrpc_builder_normalizes_forwarded_host_header_values() -> None:
         method="GET",
         path="/openrpc.json",
         headers={
-            "x-forwarded-host": "api.example.com,edge.proxy.internal",
+            "x-forwarded-host": "router.example.com,edge.proxy.internal",
             "x-forwarded-proto": "https, http",
         },
         query={},
@@ -63,7 +63,7 @@ def test_openrpc_builder_normalizes_forwarded_host_header_values() -> None:
     openrpc_doc = build_openrpc_spec(app, request=request)
 
     assert openrpc_doc["servers"] == [
-        {"name": app.title, "url": "https://api.example.com/gateway/rpc"}
+        {"name": app.title, "url": "https://router.example.com/gateway/rpc"}
     ]
 
 
@@ -73,7 +73,7 @@ def test_openrpc_builder_prefers_request_scheme_without_forwarded_proto() -> Non
     request = Request(
         method="GET",
         path="/openrpc.json",
-        headers={"x-forwarded-host": "api.example.com"},
+        headers={"x-forwarded-host": "router.example.com"},
         query={},
         path_params={},
         body=b"",
@@ -83,7 +83,7 @@ def test_openrpc_builder_prefers_request_scheme_without_forwarded_proto() -> Non
     openrpc_doc = build_openrpc_spec(app, request=request)
 
     assert openrpc_doc["servers"] == [
-        {"name": app.title, "url": "https://api.example.com/gateway/rpc"}
+        {"name": app.title, "url": "https://router.example.com/gateway/rpc"}
     ]
 
 
@@ -93,7 +93,7 @@ def test_openrpc_builder_prefers_forwarded_proto_over_request_scheme() -> None:
     request = Request(
         method="GET",
         path="/openrpc.json",
-        headers={"host": "api.example.com", "x-forwarded-proto": "https"},
+        headers={"host": "router.example.com", "x-forwarded-proto": "https"},
         query={},
         path_params={},
         body=b"",
@@ -103,7 +103,7 @@ def test_openrpc_builder_prefers_forwarded_proto_over_request_scheme() -> None:
     openrpc_doc = build_openrpc_spec(app, request=request)
 
     assert openrpc_doc["servers"] == [
-        {"name": app.title, "url": "https://api.example.com/gateway/rpc"}
+        {"name": app.title, "url": "https://router.example.com/gateway/rpc"}
     ]
 
 
@@ -113,7 +113,7 @@ def test_openrpc_builder_keeps_relative_server_url_without_forwarding_headers() 
     request = Request(
         method="GET",
         path="/openrpc.json",
-        headers={"host": "api.example.com"},
+        headers={"host": "router.example.com"},
         query={},
         path_params={},
         body=b"",

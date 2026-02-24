@@ -85,6 +85,7 @@ def _request_origin(request: Any) -> str | None:
     return f"{scheme}://{host}"
 
 
+<<<<<<< HEAD
 def _table_model(entry: Any) -> type | None:
     if isinstance(entry, type):
         return entry
@@ -94,6 +95,8 @@ def _table_model(entry: Any) -> type | None:
     return None
 
 
+=======
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 def _iter_models(router: Any) -> List[type]:
     seen: set[type] = set()
     models: List[type] = []
@@ -111,9 +114,15 @@ def _iter_models(router: Any) -> List[type]:
                 seen.add(model)
                 models.append(model)
 
+<<<<<<< HEAD
     _add_from(getattr(router, "tables", None) or {})
     for child in _iter_attached_routers(router):
         _add_from(getattr(child, "tables", None) or {})
+=======
+    _add_from(getattr(router, "models", None) or {})
+    for child in getattr(router, "routers", ()) or ():
+        _add_from(getattr(child, "models", None) or {})
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
 
     return models
 
@@ -150,6 +159,7 @@ def _describe_method(model: type, spec: OpSpec) -> str | None:
 
 
 def build_openrpc_spec(router: Any, request: Any | None = None) -> JsonObject:
+<<<<<<< HEAD
     metadata_router = _metadata_router(router)
     info_title = (
         getattr(metadata_router, "title", None)
@@ -158,6 +168,13 @@ def build_openrpc_spec(router: Any, request: Any | None = None) -> JsonObject:
     )
     info_version = getattr(metadata_router, "version", None) or "0.1.0"
     jsonrpc_url = _jsonrpc_path(metadata_router)
+=======
+    info_title = (
+        getattr(router, "title", None) or getattr(router, "name", None) or "API"
+    )
+    info_version = getattr(router, "version", None) or "0.1.0"
+    jsonrpc_url = _jsonrpc_path(router)
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     origin = _request_origin(request)
     server_url = f"{origin}{jsonrpc_url}" if origin else jsonrpc_url
     spec: JsonObject = {
@@ -217,20 +234,34 @@ def build_openrpc_spec(router: Any, request: Any | None = None) -> JsonObject:
 
 def mount_openrpc(
     router: Any,
+<<<<<<< HEAD
+=======
+    app: Any | None = None,
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     *,
     path: str = "/openrpc.json",
     name: str = "openrpc_json",
     tags: list[str] | None = None,
 ) -> Any:
+<<<<<<< HEAD
     """Mount an OpenRPC JSON endpoint onto ``router``."""
 
+=======
+    """Mount an OpenRPC JSON endpoint onto ``app`` or ``router``."""
+
+    target_router = app if app is not None else router
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     normalized_path = _with_leading_slash(path)
     setattr(router, "openrpc_path", normalized_path)
 
     def _openrpc_endpoint(request: Any) -> Response:
         return Response.json(build_openrpc_spec(router, request=request))
 
+<<<<<<< HEAD
     router.add_route(
+=======
+    target_router.add_route(
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
         normalized_path,
         _openrpc_endpoint,
         methods=["GET"],

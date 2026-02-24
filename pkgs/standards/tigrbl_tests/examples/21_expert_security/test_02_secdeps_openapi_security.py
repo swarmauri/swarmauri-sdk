@@ -45,11 +45,11 @@ async def test_openapi_security_from_op_secdeps_on_mounted_api() -> None:
         name = Column(String, nullable=False)
 
     # Instantiation: build the API, include the model, and mount on the app.
-    api = TigrblRouter(engine=mem(async_=False))
-    api.include_model(SecDepsWidget)
+    router = TigrblRouter(engine=mem(async_=False))
+    router.include_model(SecDepsWidget)
 
     app = TigrblApp(engine=mem(async_=False))
-    app.include_router(api)
+    app.include_router(router)
 
     # Deployment: initialize storage and run the app with Uvicorn.
     init_result = app.initialize()

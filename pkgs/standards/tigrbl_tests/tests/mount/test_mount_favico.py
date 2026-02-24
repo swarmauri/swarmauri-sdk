@@ -76,17 +76,17 @@ class TestMountFaviconOnTigrblRouter:
 
     def test_tigrbl_api_binds_mount_favicon_method(self) -> None:
         """``TigrblRouter`` should expose ``mount_favicon`` as an instance API."""
-        api = TigrblRouter()
+        router = TigrblRouter()
 
-        assert hasattr(api, "mount_favicon")
+        assert hasattr(router, "mount_favicon")
 
     @pytest.mark.asyncio
     async def test_bound_mount_favicon_supports_api_instances(self) -> None:
         """The bound method should mount favicon routes on APIs."""
-        api = TigrblRouter()
-        api.mount_favicon(path="/branding/favicon.svg", name="api_branding_favicon")
+        router = TigrblRouter()
+        router.mount_favicon(path="/branding/favicon.svg", name="api_branding_favicon")
 
-        transport = ASGITransport(app=api)
+        transport = ASGITransport(app=router)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             svg_response = await client.get("/branding/favicon.svg")
             ico_response = await client.get("/favicon.ico", follow_redirects=False)
@@ -99,10 +99,10 @@ class TestMountFaviconOnTigrblRouter:
     @pytest.mark.asyncio
     async def test_bound_mount_favicon_retains_default_fallback(self) -> None:
         """Passing ``None`` for favicon path should use the default SVG asset."""
-        api = TigrblRouter()
-        api.mount_favicon(path="/fallback/favicon.svg", favicon_path=None)
+        router = TigrblRouter()
+        router.mount_favicon(path="/fallback/favicon.svg", favicon_path=None)
 
-        transport = ASGITransport(app=api)
+        transport = ASGITransport(app=router)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             svg_response = await client.get("/fallback/favicon.svg")
             ico_response = await client.get("/favicon.ico", follow_redirects=False)

@@ -95,15 +95,24 @@ def mount_favicon(
 
     if resolved.suffix.lower() == ".svg":
         router.add_route(
+<<<<<<< HEAD
             mounted_svg_path,
+=======
+            path,
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
             favicon_endpoint(favicon_path=resolved),
             methods=["GET"],
             name=name,
             include_in_schema=False,
         )
         router.add_route(
+<<<<<<< HEAD
             mounted_ico_path,
             favicon_ico_redirect_endpoint(path=f"{base_prefix}{svg_path}"),
+=======
+            ico_path,
+            favicon_ico_redirect_endpoint(path=path),
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
             methods=["GET"],
             name=f"{name}_ico_redirect",
             include_in_schema=False,
@@ -111,7 +120,11 @@ def mount_favicon(
         return router
 
     router.add_route(
+<<<<<<< HEAD
         mounted_ico_path,
+=======
+        ico_path,
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
         favicon_endpoint(favicon_path=resolved),
         methods=["GET"],
         name=name,

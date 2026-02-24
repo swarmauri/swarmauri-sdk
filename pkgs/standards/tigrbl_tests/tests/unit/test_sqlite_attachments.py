@@ -9,8 +9,13 @@ def _db_names(conn):
 
 def test_initialize_sync_without_sqlite_attachments(sync_db_session):
     engine, get_db = sync_db_session
+<<<<<<< HEAD
     app = TigrblApp(get_db=get_db)
     app.initialize()
+=======
+    router = TigrblApp(get_db=get_db)
+    router.initialize()
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     with engine.connect() as conn:
         assert _db_names(conn) == {"main"}
         fk = conn.exec_driver_sql("PRAGMA foreign_keys").scalar()
@@ -21,8 +26,13 @@ def test_initialize_sync_with_sqlite_attachments(sync_db_session, tmp_path):
     engine, get_db = sync_db_session
     attach_db = tmp_path / "logs.sqlite"
     attach_db.touch()
+<<<<<<< HEAD
     app = TigrblApp(get_db=get_db)
     app.initialize(sqlite_attachments={"logs": str(attach_db)})
+=======
+    router = TigrblApp(get_db=get_db)
+    router.initialize(sqlite_attachments={"logs": str(attach_db)})
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     with engine.connect() as conn:
         assert "logs" in _db_names(conn)
         fk = conn.exec_driver_sql("PRAGMA foreign_keys").scalar()
@@ -32,8 +42,13 @@ def test_initialize_sync_with_sqlite_attachments(sync_db_session, tmp_path):
 @pytest.mark.asyncio
 async def test_initialize_async_without_sqlite_attachments(async_db_session):
     engine, get_db = async_db_session
+<<<<<<< HEAD
     app = TigrblApp(get_db=get_db)
     await app.initialize()
+=======
+    router = TigrblApp(get_db=get_db)
+    await router.initialize()
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     async with engine.connect() as conn:
         result = await conn.exec_driver_sql("PRAGMA database_list")
         names = {row[1] for row in result.fetchall()}
@@ -47,8 +62,13 @@ async def test_initialize_async_with_sqlite_attachments(async_db_session, tmp_pa
     engine, get_db = async_db_session
     attach_db = tmp_path / "logs.sqlite"
     attach_db.touch()
+<<<<<<< HEAD
     app = TigrblApp(get_db=get_db)
     await app.initialize(sqlite_attachments={"logs": str(attach_db)})
+=======
+    router = TigrblApp(get_db=get_db)
+    await router.initialize(sqlite_attachments={"logs": str(attach_db)})
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
     async with engine.connect() as conn:
         result = await conn.exec_driver_sql("PRAGMA database_list")
         names = {row[1] for row in result.fetchall()}

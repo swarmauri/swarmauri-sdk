@@ -61,11 +61,36 @@ class _ResourceProxy:
                 norm_payload,
             )
 
+<<<<<<< HEAD
             seed_ctx: Dict[str, Any] = dict(ctx or {})
             serializer = (
                 (lambda r: _serialize_output(self._model, alias, alias, r))
                 if self._serialize
                 else (lambda r: r)
+=======
+            base_ctx: Dict[str, Any] = dict(ctx or {})
+            base_ctx.setdefault("payload", norm_payload)
+            if request is not None:
+                logger.debug("Request provided for %s.%s", self._model.__name__, alias)
+                base_ctx.setdefault("request", request)
+            # surface contextual metadata for runtime atoms
+            app_ref = (
+                getattr(request, "app", None) or base_ctx.get("app") or self._router
+            )
+            base_ctx.setdefault("app", app_ref)
+            base_ctx.setdefault(
+                "router", base_ctx.get("router") or self._router or app_ref
+            )
+            base_ctx.setdefault("model", self._model)
+            base_ctx.setdefault("op", alias)
+            base_ctx.setdefault("method", alias)
+            base_ctx.setdefault("target", alias)
+            base_ctx.setdefault(
+                "env",
+                SimpleNamespace(
+                    method=alias, params=norm_payload, target=alias, model=self._model
+                ),
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c
             )
 
             # Acquire DB if one was not explicitly provided (op > model > router > app)

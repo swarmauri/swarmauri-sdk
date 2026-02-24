@@ -1,6 +1,8 @@
-# tigrbl/tigrbl/v3/engine/decorators.py
+"""Compatibility wrapper for engine decorators."""
+
 from __future__ import annotations
 
+<<<<<<< HEAD
 import inspect
 from typing import Any, Optional
 
@@ -108,3 +110,6 @@ def engine_ctx(ctx: Optional[EngineCfg] = None, **kw: Any):
 
 
 __all__ = ["engine_ctx"]
+=======
+from ..decorators.engine import *  # noqa: F401,F403
+>>>>>>> a8f183f2e9f9d711015dec095ba64838fae67a3c

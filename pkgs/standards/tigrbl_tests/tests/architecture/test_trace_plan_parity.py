@@ -75,20 +75,20 @@ async def test_trace_labels_match_kernel_plan_for_rest_and_rpc(alias: str):
     from tigrbl.transport.dispatcher import dispatch_operation
 
     model = _build_model()
-    api = SimpleNamespace(models={"DemoModel": model})
+    router = SimpleNamespace(models={"DemoModel": model})
 
     kernel = Kernel()
-    kernel.ensure_primed(api)
+    kernel.ensure_primed(router)
     expected = [
         entry.split(":", 1)[1]
-        for entry in kernel.kernelz_payload(api)["DemoModel"][alias]
+        for entry in kernel.kernelz_payload(router)["DemoModel"][alias]
     ]
     assert expected, "expected kernel plan labels to be non-empty"
 
     async def _invoke(rpc_mode: bool) -> list[str]:
         ctx_seed = {"temp": {}}
         result = await dispatch_operation(
-            api=api,
+            router=router,
             model_or_name="DemoModel",
             alias=alias,
             payload={"id": 1},
@@ -158,17 +158,17 @@ async def test_kernelz_plan_and_trace_include_named_secdeps_and_deps():
         )
     )
 
-    api = SimpleNamespace(models={"DemoModel": DemoModel})
+    router = SimpleNamespace(models={"DemoModel": DemoModel})
 
     kernel = Kernel()
-    payload = kernel.kernelz_payload(api)
+    payload = kernel.kernelz_payload(router)
     labels = payload["DemoModel"]["read"]
-    assert any("secdep:" in entry and "secdep" in entry for entry in labels)
-    assert any("dep:" in entry and ".dep" in entry for entry in labels)
+    assert any(":secdep" in entry for entry in labels)
+    assert any(entry.endswith(":dep") for entry in labels)
 
     ctx_seed = {"temp": {}}
     await dispatch_operation(
-        api=api,
+        router=router,
         model_or_name="DemoModel",
         alias="read",
         payload={},
