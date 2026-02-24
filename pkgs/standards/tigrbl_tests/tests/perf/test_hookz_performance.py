@@ -31,7 +31,7 @@ async def test_hookz_performance(count):
     Model.hooks.create = SimpleNamespace(POST_RESPONSE=hooks)
 
     class API:
-        models = {"Model": Model}
+        tables = {"Model": Model}
 
     hookz = _build_hookz_endpoint(API)
 
@@ -61,7 +61,7 @@ async def test_hookz_cached_call_faster(monkeypatch) -> None:
     Model.hooks.create = SimpleNamespace(POST_RESPONSE=[_hook])
 
     class API:
-        models = {"Model": Model}
+        tables = {"Model": Model}
 
     calls = {"iter": 0}
 
