@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 from typing import Any
 
-from ..router._api import Router
+from ..router import Router
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
