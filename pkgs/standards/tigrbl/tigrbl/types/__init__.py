@@ -52,12 +52,9 @@ from ..deps.pydantic import (
     ValidationError,
 )
 
-from ..router._router import Router
-from ..core.crud.params import Body, Path
-from ..transport import Response
-from ..runtime.status.exceptions import HTTPException, StatusDetailError
-from ..security.dependencies import Depends, Security
-from ..transport import Request
+from ..core.crud.params import Path
+from ..runtime.status.exceptions import StatusDetailError
+from ..security.dependencies import Security
 
 # ── Local Package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
@@ -152,13 +149,26 @@ __all__: list[str] = [
     "Field",
     "ValidationError",
     # routing/dependency support (from deps)
-    "Request",
-    "Response",
-    "Router",
     "Security",
-    "Depends",
     "Path",
-    "Body",
-    "HTTPException",
     "StatusDetailError",
 ]
+
+
+_DEPRECATED_EXPORTS: dict[str, str] = {
+    "Router": "tigrbl.router",
+    "Request": "tigrbl.requests",
+    "Body": "tigrbl.core.crud",
+    "Depends": "tigrbl.security",
+    "HTTPException": "tigrbl.runtime.status",
+    "Response": "tigrbl.responses",
+}
+
+
+def __getattr__(name: str):
+    if name in _DEPRECATED_EXPORTS:
+        module = _DEPRECATED_EXPORTS[name]
+        raise AttributeError(
+            f"tigrbl.types no longer exports '{name}'. Import it from '{module}' instead."
+        )
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

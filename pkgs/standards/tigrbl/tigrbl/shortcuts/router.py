@@ -17,7 +17,7 @@ def defineRouterSpec(
     hooks: Sequence[Any] = (),
     security_deps: Sequence[Any] = (),
     deps: Sequence[Any] = (),
-    models: Sequence[Any] = (),
+    tables: Sequence[Any] = (),
 ) -> Type[RouterSpec]:
     attrs = dict(
         NAME=name,
@@ -29,7 +29,7 @@ def defineRouterSpec(
         HOOKS=tuple(hooks or ()),
         SECURITY_DEPS=tuple(security_deps or ()),
         DEPS=tuple(deps or ()),
-        MODELS=tuple(models or ()),
+        TABLES=tuple(tables or ()),
     )
     return type("RouterSpec", (RouterSpec,), attrs)
 
