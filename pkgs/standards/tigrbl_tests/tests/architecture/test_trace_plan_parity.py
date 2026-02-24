@@ -182,8 +182,12 @@ async def test_kernelz_plan_and_trace_include_named_secdeps_and_deps():
         for step in ctx_seed["temp"]["__trace__"].steps
         if isinstance(step.get("label"), str)
     ]
-    secdep_idx = next(i for i, lbl in enumerate(observed) if lbl.startswith("secdep:"))
-    dep_idx = next(i for i, lbl in enumerate(observed) if lbl.startswith("dep:"))
+    secdep_idx = next(
+        i for i, lbl in enumerate(observed) if lbl.startswith("hook:dep:security:")
+    )
+    dep_idx = next(
+        i for i, lbl in enumerate(observed) if lbl.startswith("hook:dep:extra:")
+    )
     handler_idx = next(i for i, lbl in enumerate(observed) if lbl.endswith("@HANDLER"))
     assert secdep_idx < handler_idx
     assert dep_idx < handler_idx

@@ -15,5 +15,5 @@ async def test_app_includes_model_namespaces() -> None:
     router.include_table(widget, prefix="")
     await router.initialize()
 
-    assert "WidgetRouter" in router.models
-    assert router.models["WidgetRouter"] is widget
+    assert "WidgetRouter" in router.tables
+    assert router.tables["WidgetRouter"] is widget
