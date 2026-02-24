@@ -47,7 +47,7 @@ async def running_api_app():
     router.initialize()
 
     class KappaApp(TigrblApp):
-        APIS = (router,)
+        ROUTERS = (router,)
 
     app = KappaApp(engine=mem(async_=False))
     app.include_router(router)

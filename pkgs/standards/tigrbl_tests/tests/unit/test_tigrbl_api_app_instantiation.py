@@ -29,7 +29,7 @@ def test_tigrbl_api_app_instantiation_sets_composed_state() -> None:
     router = ThetaApi(engine=mem(async_=False))
 
     class ThetaApp(TigrblApp):
-        APIS = (router,)
+        ROUTERS = (router,)
 
     app = ThetaApp(engine=mem(async_=False))
 

@@ -38,10 +38,10 @@ async def test_openapi_security_from_api_constructor_deps() -> None:
         name = Column(String, nullable=False)
 
     # Instantiation: define the API class with constructor-level security deps.
-    class SecuredApi(TigrblRouter):
+    class SecuredRouter(TigrblRouter):
         SECURITY_DEPS = (Security(bearer_scheme),)
 
-    router = SecuredApi(engine=mem(async_=False))
+    router = SecuredRouter(engine=mem(async_=False))
     router.include_model(ApiSecdepsWidget)
 
     # Deployment: initialize storage and attach OpenAPI to the API router.

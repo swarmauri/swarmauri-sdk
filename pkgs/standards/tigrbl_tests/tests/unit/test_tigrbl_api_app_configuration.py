@@ -41,7 +41,7 @@ def test_tigrbl_api_app_constructor_configuration_applies_metadata() -> None:
     )
 
     class IotaApp(TigrblApp):
-        APIS = (router,)
+        ROUTERS = (router,)
 
     app = IotaApp(engine=mem(async_=False), title="Iota App", version="9.9.9")
 
@@ -64,7 +64,7 @@ def test_tigrbl_api_app_post_instantiation_updates_auth_state() -> None:
     router = IotaApi(engine=mem(async_=False))
 
     class IotaApp(TigrblApp):
-        APIS = (router,)
+        ROUTERS = (router,)
 
     app = IotaApp(engine=mem(async_=False))
     router.set_auth(authn=_auth_dependency, allow_anon=False)

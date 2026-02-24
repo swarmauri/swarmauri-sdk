@@ -24,7 +24,7 @@ class ZetaApi(TigrblRouter):
 
 
 class ZetaApp(TigrblApp):
-    APIS = (ZetaApi,)
+    ROUTERS = (ZetaApi,)
 
 
 @pytest.mark.unit
@@ -35,4 +35,4 @@ def test_tigrbl_api_app_subclass_declares_composition() -> None:
     assert "MODELS" in api_dir
     assert "APIS" in app_dir
     assert ZetaApi.MODELS == (Zeta,)
-    assert ZetaApp.APIS == (ZetaApi,)
+    assert ZetaApp.ROUTERS == (ZetaApi,)
