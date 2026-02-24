@@ -125,6 +125,10 @@ def openapi(router: Any) -> dict[str, Any]:
             model = getattr(route, "tigrbl_model", None)
             alias = getattr(route, "tigrbl_alias", None)
             security_deps: list[Any] = []
+            security_deps.extend(list(getattr(route, "dependencies", None) or ()))
+            security_deps.extend(
+                list(getattr(route, "security_dependencies", None) or ())
+            )
             if model is not None and isinstance(alias, str):
                 specs = getattr(getattr(model, "ops", None), "by_alias", {})
                 sp_list = specs.get(alias) or ()
