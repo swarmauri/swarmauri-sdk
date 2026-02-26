@@ -159,7 +159,7 @@ READY: bool = False
 app = TigrblApp(
     title="Peagen Pool-Manager Gateway",
     engine=ENGINE,
-    api_hooks={"PRE_TX_BEGIN": [_shadow_principal]},
+    router_hooks={"PRE_TX_BEGIN": [_shadow_principal]},
 )
 authn_adapter = RemoteAuthNAdapter(
     base_url=settings.authn_base_url,
@@ -173,7 +173,7 @@ app.set_auth(
     optional_authn_dep=authn_adapter.get_principal_optional,
     allow_anon=False,
 )
-app.include_models(
+app.include_tables(
     [
         Tenant,
         User,
@@ -194,8 +194,13 @@ app.include_models(
         RawBlob,
     ]
 )
+# Back-compat for older code/tests that reference app.models.
+app.models = app.tables
 
-app.mount_jsonrpc(prefix="/rpc")
+try:
+    app.mount_jsonrpc(prefix="/rpc")
+except RuntimeError:
+    log.info("JSON-RPC mounting is not available in this tigrbl ingress build")
 app.attach_diagnostics(prefix="/system")
 
 app.include_router(ws_router)
@@ -212,7 +217,7 @@ queue: QueueBase = (
 # Extract all unique tags from routes and sort them alphabetically
 all_tags = set()
 for route in app.routes:
-    if hasattr(route, "tags"):
+    if getattr(route, "tags", None):
         all_tags.update(route.tags)
 
 # Update the OpenAPI schema with sorted tags

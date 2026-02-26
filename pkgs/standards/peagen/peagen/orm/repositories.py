@@ -20,7 +20,7 @@ from tigrbl.orm.mixins import (
     OwnerPolicy,
     StatusColumn,
 )
-from tigrbl.runtime.errors import create_standardized_error
+from tigrbl.runtime.status import create_standardized_error
 from tigrbl.specs import F, IO, S, acol, vcol
 from tigrbl import hook_ctx
 
