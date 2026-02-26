@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 from collections import defaultdict
 from typing import Any
 
@@ -14,7 +15,6 @@ class InMemoryQueue:
         self.hashes: dict[str, dict[str, Any]] = defaultdict(dict)
         self.expiry: dict[str, float] = {}
         self.pubsub: dict[str, list[str]] = defaultdict(list)
-        self._loop = asyncio.get_event_loop()
         self._cond = asyncio.Condition()
         self.maxsize = maxsize
 
@@ -22,7 +22,7 @@ class InMemoryQueue:
         return self
 
     async def _cleanup(self) -> None:
-        now = self._loop.time()
+        now = time.monotonic()
         for key, ts in list(self.expiry.items()):
             if ts <= now:
                 self.hashes.pop(key, None)
@@ -48,7 +48,7 @@ class InMemoryQueue:
         return lst[start : end + 1]
 
     async def blpop(self, keys: list[str], timeout: float) -> tuple[str, str] | None:
-        end_time = self._loop.time() + timeout
+        end_time = time.monotonic() + timeout
         while True:
             await self._cleanup()
             for k in keys:
@@ -56,7 +56,7 @@ class InMemoryQueue:
                 if lst:
                     value = lst.pop(0)
                     return k, value
-            remaining = end_time - self._loop.time()
+            remaining = end_time - time.monotonic()
             if remaining <= 0:
                 return None
             async with self._cond:
@@ -66,7 +66,7 @@ class InMemoryQueue:
                     return None
 
     async def brpop(self, keys: list[str], timeout: float) -> tuple[str, str] | None:
-        end_time = self._loop.time() + timeout
+        end_time = time.monotonic() + timeout
         while True:
             await self._cleanup()
             for k in keys:
@@ -74,7 +74,7 @@ class InMemoryQueue:
                 if lst:
                     value = lst.pop()
                     return k, value
-            remaining = end_time - self._loop.time()
+            remaining = end_time - time.monotonic()
             if remaining <= 0:
                 return None
             async with self._cond:
@@ -102,7 +102,7 @@ class InMemoryQueue:
         return self.hashes.get(key, {}).get(field)
 
     async def expire(self, key: str, ttl: int) -> None:
-        self.expiry[key] = self._loop.time() + ttl
+        self.expiry[key] = time.monotonic() + ttl
 
     async def exists(self, key: str) -> bool:
         await self._cleanup()
