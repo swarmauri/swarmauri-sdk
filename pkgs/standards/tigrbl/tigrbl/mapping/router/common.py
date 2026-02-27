@@ -25,24 +25,6 @@ class AttrDict(dict):
 RouterLike = Any
 
 
-def _resource_name(model: type) -> str:
-    """
-    Compute the Router resource segment.
-
-    Policy:
-      - Prefer explicit `__resource__` when present (caller-controlled).
-      - Otherwise, use the model *class name* in lowercase.
-      - DO NOT use `__tablename__` here (strictly DB-only per project policy).
-    """
-    if hasattr(model, "__resource__"):
-        resource = model.__resource__
-        logger.debug("Using explicit resource '%s' for %s", resource, model.__name__)
-    else:
-        resource = model.__name__.lower()
-        logger.debug("Derived resource '%s' for %s", resource, model.__name__)
-    return resource
-
-
 def _default_prefix(model: type) -> str:
     """Default mount prefix for a model router.
 

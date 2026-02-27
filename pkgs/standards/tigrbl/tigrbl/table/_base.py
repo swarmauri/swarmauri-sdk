@@ -431,6 +431,10 @@ class Base(DeclarativeBase):
     def __tablename__(cls) -> str:  # noqa: N805
         return cls.__name__.lower()
 
+    @declared_attr.directive
+    def resource_name(cls):  # noqa: N805
+        return getattr(cls, "__resource__", cls.__name__.lower())
+
     def __getitem__(self, key: str) -> Any:
         """Allow dict-style access to model attributes."""
         return getattr(self, key)

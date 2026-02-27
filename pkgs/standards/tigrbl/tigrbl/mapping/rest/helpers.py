@@ -41,17 +41,6 @@ def _req_state_db(request: Request) -> Any:
     return getattr(request.state, "db", None)
 
 
-def _resource_name(model: type) -> str:
-    """
-    Resource segment for HTTP paths/tags.
-
-    IMPORTANT: Never use table name here. Only allow an explicit __resource__
-    override or fall back to the model class name in lowercase.
-    """
-    override = getattr(model, "__resource__", None)
-    return override or model.__name__.lower()
-
-
 def _pk_name(model: type) -> str:
     """
     Single primary key name (fallback 'id'). For composite keys, still returns 'id'.
