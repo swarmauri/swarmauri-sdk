@@ -22,7 +22,7 @@ def test_appspec_can_materialize_app_instance() -> None:
     """AppSpec should build a runnable TigrblApp via a single entrypoint."""
     from tigrbl import Base
     from tigrbl._spec import AppSpec
-    from tigrbl.concrete.tigrbl_app import TigrblApp
+    from tigrbl import TigrblApp
     from tigrbl.orm.mixins import GUIDPk
 
     # minimal table
@@ -65,7 +65,7 @@ def test_appspec_can_override_rpc_prefix_only_when_rpc_is_present() -> None:
 
     from tigrbl import Base
     from tigrbl._spec import AppSpec
-    from tigrbl.concrete.tigrbl_app import TigrblApp
+    from tigrbl import TigrblApp
     from tigrbl.orm.mixins import GUIDPk
     from tigrbl._spec import OpSpec
     from tigrbl._spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
@@ -113,7 +113,7 @@ def test_appspec_does_not_mount_rpc_when_no_rpc_bindings_exist() -> None:
 
     from tigrbl import Base
     from tigrbl._spec import AppSpec
-    from tigrbl.concrete.tigrbl_app import TigrblApp
+    from tigrbl import TigrblApp
     from tigrbl.orm.mixins import GUIDPk
     from tigrbl._spec import OpSpec
     from tigrbl._spec import HttpRestBindingSpec
