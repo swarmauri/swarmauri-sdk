@@ -6,7 +6,6 @@ binding the system helper to the API class.
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-
 from tigrbl import TigrblApp, TigrblRouter
 
 

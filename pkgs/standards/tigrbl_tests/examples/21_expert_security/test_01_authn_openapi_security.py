@@ -5,20 +5,17 @@ This example demonstrates how to configure authn dependencies on both
 and confirm OpenAPI reflects security requirements on a per-route basis.
 """
 
-from tigrbl.security import Security
-
 import inspect
 
 import httpx
 import pytest
-from tigrbl.responses import JSONResponse
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
-
-from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
+from tigrbl.responses import JSONResponse
+from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
 from tigrbl.types import Column, String
+from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 
 
 @pytest.mark.asyncio

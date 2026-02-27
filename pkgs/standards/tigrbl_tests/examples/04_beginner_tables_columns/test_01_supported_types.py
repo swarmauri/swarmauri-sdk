@@ -2,20 +2,20 @@ from tigrbl import Base
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import (
     ARRAY,
+    JSON,
+    JSONB,
+    TSVECTOR,
     Boolean,
     Column,
     DateTime,
     Integer,
-    JSON,
-    JSONB,
     LargeBinary,
     Numeric,
     PgEnum,
     PgUUID,
     SAEnum,
-    TSVECTOR,
-    TZDateTime,
     Text,
+    TZDateTime,
 )
 
 
