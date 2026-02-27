@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
-from ..schema.types import SchemaArg, SchemaKind
+from ..schema.types import SchemaArg, SchemaKind, SchemaRef
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,4 +17,4 @@ class SchemaSpec:
     schema: SchemaArg | None = None
 
 
-__all__ = ["SchemaSpec"]
+__all__ = ["SchemaSpec", "SchemaRef"]
