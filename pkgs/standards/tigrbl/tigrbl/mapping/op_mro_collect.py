@@ -4,7 +4,7 @@ import logging
 from functools import lru_cache
 from typing import Any, Callable, Dict
 
-from .._spec.op_spec import OpSpec
+from .._concrete._op import Op as OpSpec
 from ..decorators.op import _maybe_await, _normalize_persist, _unwrap
 from ..runtime.executor import _Ctx
 

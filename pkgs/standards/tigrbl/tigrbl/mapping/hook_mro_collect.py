@@ -7,7 +7,7 @@ from functools import lru_cache
 from typing import Any, Callable, Dict, Iterable, Union
 
 from ..runtime.executor import _Ctx
-from .._spec.op_spec import OpSpec
+from .._concrete._op import Op as OpSpec
 from .op_mro_collect import mro_alias_map_for
 from ..decorators.op import _maybe_await, _unwrap
 from ..decorators.hook import HOOK_DECLS_ATTR, Hook

@@ -7,7 +7,7 @@ from ..config.constants import CANON as CANONICAL_VERB_TUPLE
 from ..hook.types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
 from ..hook import HookSpec as OpHook
 from .._spec.engine_spec import EngineCfg
-from .._spec.op_spec import OpSpec
+from .._concrete._op import Op as OpSpec
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Core aliases & enums
