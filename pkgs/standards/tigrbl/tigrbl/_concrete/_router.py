@@ -11,7 +11,7 @@ from ..mapping import engine_resolver as _resolver
 from .._spec.engine_spec import EngineCfg
 from ._table_registry import TableRegistry
 
-from ..router._routing import (
+from .._routing import (
     add_route as _add_route_impl,
     include_router as _include_router_impl,
     merge_tags,

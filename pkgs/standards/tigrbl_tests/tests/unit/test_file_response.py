@@ -17,7 +17,7 @@ from tigrbl.mapping import (
 from tigrbl import TigrblApp
 from tigrbl.types import Integer, Mapped, mapped_column
 from tigrbl.table import Table
-from tigrbl.router import TigrblRouter
+from tigrbl import TigrblRouter
 from tigrbl.app._app import App as BaseApp
 
 

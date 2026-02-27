@@ -1,5 +1,5 @@
-from tigrbl.router.mro_collect import mro_collect_router_hooks
-from tigrbl.router.shortcuts import defineRouterSpec, deriveRouter
+from tigrbl.mapping.router_mro_collect import mro_collect_router_hooks
+from tigrbl.shortcuts.router import defineRouterSpec, deriveRouter
 from tigrbl.config.constants import TIGRBL_ROUTER_HOOKS_ATTR
 
 

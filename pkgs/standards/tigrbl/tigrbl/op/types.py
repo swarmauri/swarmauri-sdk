@@ -1,13 +1,11 @@
 # tigrbl/v3/ops/types.py
 from __future__ import annotations
 
-from typing import Any, Literal, Tuple, cast
+from typing import Literal, Tuple, cast
 
 from ..config.constants import CANON as CANONICAL_VERB_TUPLE
-from ..hook.types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
-from ..hook import HookSpec as OpHook
-from .._spec.engine_spec import EngineCfg
 from .._concrete._op import Op as OpSpec
+from ..hook.types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Core aliases & enums
@@ -51,4 +49,10 @@ __all__ = [
     "VerbAliasPolicy",
     "OpSpec",
     "CANON",
+    "PHASE",
+    "HookPhase",
+    "PHASES",
+    "Ctx",
+    "StepFn",
+    "HookPredicate",
 ]

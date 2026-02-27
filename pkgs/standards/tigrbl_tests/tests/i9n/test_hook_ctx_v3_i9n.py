@@ -2,7 +2,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import func, select
 from tigrbl import TigrblApp
-from tigrbl.hook import hook_ctx
+from tigrbl.decorators.hook import hook_ctx
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 from tigrbl.types import Column, String

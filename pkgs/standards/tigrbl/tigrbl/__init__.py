@@ -28,7 +28,7 @@ from .schema.types import SchemaRef, SchemaArg
 # ── Ctx-only decorators (new surface; replaces legacy ops.decorators) ─────────
 
 from .op import alias_ctx, op_ctx, alias, op_alias
-from .hook import hook_ctx
+from .decorators.hook import hook_ctx
 from .decorators.engine import engine_ctx
 from .decorators.schema import schema_ctx
 from .decorators.response import response_ctx
@@ -64,7 +64,8 @@ from .ddl import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
 from ._concrete.tigrbl_app import TigrblApp
-from .router import TigrblRouter, route_ctx
+from ._concrete.tigrbl_router import TigrblRouter
+from .decorators.router import route_ctx
 from .table import Base
 from .op import Op
 from .shortcuts.op import op
