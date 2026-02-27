@@ -1,12 +1,12 @@
 """Org model."""
 
-from ._base import Base
+from ._base import TableBase
 from ..mixins import GUIDPk, Timestamped, TenantBound, Principal
 from ...specs import IO, F, acol, S
 from ...types import Mapped, String
 
 
-class Org(Base, GUIDPk, Timestamped, TenantBound, Principal):
+class Org(TableBase, GUIDPk, Timestamped, TenantBound, Principal):
     __tablename__ = "orgs"
     __abstract__ = True
     name: Mapped[str] = acol(
