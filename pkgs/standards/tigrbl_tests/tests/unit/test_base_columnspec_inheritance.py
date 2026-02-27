@@ -5,7 +5,7 @@ import warnings
 from sqlalchemy import Integer, String
 from sqlalchemy.exc import SAWarning
 
-from tigrbl.column import ColumnSpec, S
+from tigrbl._spec import ColumnSpec, StorageSpec as S
 from tigrbl.table._base import Base
 
 

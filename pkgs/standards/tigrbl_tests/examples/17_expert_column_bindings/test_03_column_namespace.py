@@ -7,7 +7,7 @@ consistent introspection across models.
 """
 
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import ColumnSpec, F, IO, S, acol
+from tigrbl._spec import ColumnSpec, F, IO, S, acol
 from tigrbl.table import Table
 from tigrbl.types import String
 

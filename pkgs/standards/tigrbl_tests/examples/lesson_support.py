@@ -4,7 +4,7 @@ from typing import Iterable, Sequence
 
 from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
-from tigrbl.specs import F, IO, S, acol, vcol
+from tigrbl._spec import F, IO, S, acol, vcol
 from tigrbl.types import Integer, String
 
 

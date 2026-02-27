@@ -11,7 +11,7 @@ from tigrbl.mapping.model import bind
 from tigrbl.op.types import PHASES
 from tigrbl.runtime.kernel import build_phase_chains
 from tigrbl.runtime import system as runtime_system
-from tigrbl.specs import IO, S, acol
+from tigrbl._spec import IO, S, acol
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.hook import hook_ctx

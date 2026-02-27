@@ -12,7 +12,7 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 from tigrbl.runtime import system as runtime_system
 from tigrbl.runtime.kernel import build_phase_chains
-from tigrbl.specs import IO, S, acol
+from tigrbl._spec import IO, S, acol
 
 # --- models --------------------------------------------------------------------
 

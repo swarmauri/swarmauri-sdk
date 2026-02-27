@@ -1,4 +1,4 @@
-from tigrbl.specs import IO
+from tigrbl._spec import IO
 from tigrbl.column.io_spec import Pair
 
 

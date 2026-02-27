@@ -1,5 +1,5 @@
 from tigrbl.table._base import _materialize_colspecs_to_sqla
-from tigrbl.specs import acol, S, F, IO
+from tigrbl._spec import acol, S, F, IO
 from tigrbl.types import Integer, String
 from tigrbl.schema import _build_list_params
 from sqlalchemy.orm import Mapped, DeclarativeBase
