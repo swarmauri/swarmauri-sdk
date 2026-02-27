@@ -3,7 +3,7 @@ from httpx import ASGITransport, Client
 
 from tigrbl import TigrblApp, TigrblRouter, alias_ctx
 from tigrbl.column import F, IO, S, makeColumn, makeVirtualColumn
-from tigrbl.engine.shortcuts import engine as build_engine, mem
+from tigrbl.shortcuts.engine import engine, mem
 from tigrbl.orm.tables import Base
 from tigrbl.types import Integer, Mapped, String
 
@@ -12,7 +12,7 @@ from tigrbl.types import Integer, Mapped, String
 
 
 def _setup_router(table):
-    eng = build_engine(mem(async_=False))
+    eng = engine(mem(async_=False))
     router = TigrblRouter(engine=eng)
     router.include_table(table)
     router.initialize()

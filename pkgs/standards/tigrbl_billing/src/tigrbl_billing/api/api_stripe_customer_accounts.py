@@ -6,7 +6,7 @@ API for a specific billing strategy, built with tigrbl + tigrbl_billing.
 """
 
 from tigrbl import TigrblApp
-from tigrbl.engine.shortcuts import engine as build_engine, mem
+from tigrbl.shortcuts.engine import engine, mem
 
 from tigrbl_billing.tables.customer import Customer
 
@@ -18,7 +18,7 @@ ops.attach_payment_method
 
 
 def build_app(async_mode: bool = True) -> TigrblApp:
-    app = TigrblApp(engine=build_engine(mem(async_=async_mode)))
+    app = TigrblApp(engine=engine(mem(async_=async_mode)))
     app.include_models([Customer])
     return app
 

@@ -6,7 +6,7 @@ API for a specific billing strategy, built with tigrbl + tigrbl_billing.
 """
 
 from tigrbl import TigrblApp
-from tigrbl.engine.shortcuts import engine as build_engine, mem
+from tigrbl.shortcuts.engine import engine, mem
 
 from tigrbl_billing import ops
 from tigrbl_billing.tables.subscription import Subscription
@@ -20,7 +20,7 @@ ops.resume_subscription
 
 
 def build_app(async_mode: bool = True) -> TigrblApp:
-    app = TigrblApp(engine=build_engine(mem(async_=async_mode)))
+    app = TigrblApp(engine=engine(mem(async_=async_mode)))
     app.include_models([Subscription, SubscriptionItem])
     return app
 
