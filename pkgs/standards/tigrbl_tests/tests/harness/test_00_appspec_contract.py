@@ -21,7 +21,7 @@ import pytest
 def test_appspec_can_materialize_app_instance() -> None:
     """AppSpec should build a runnable TigrblApp via a single entrypoint."""
     from tigrbl import Base
-    from tigrbl.app import AppSpec
+    from tigrbl._spec import AppSpec
     from tigrbl.concrete.tigrbl_app import TigrblApp
     from tigrbl.orm.mixins import GUIDPk
 
@@ -64,11 +64,11 @@ def test_appspec_can_override_rpc_prefix_only_when_rpc_is_present() -> None:
     from sqlalchemy import Column, String
 
     from tigrbl import Base
-    from tigrbl.app import AppSpec
+    from tigrbl._spec import AppSpec
     from tigrbl.concrete.tigrbl_app import TigrblApp
     from tigrbl.orm.mixins import GUIDPk
-    from tigrbl.op import OpSpec
-    from tigrbl.specs.binding_spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
+    from tigrbl._spec import OpSpec
+    from tigrbl._spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
 
     class Widget(Base, GUIDPk):
         __tablename__ = "widgets_appspec_rpc_prefix"
@@ -112,11 +112,11 @@ def test_appspec_does_not_mount_rpc_when_no_rpc_bindings_exist() -> None:
     from sqlalchemy import Column, String
 
     from tigrbl import Base
-    from tigrbl.app import AppSpec
+    from tigrbl._spec import AppSpec
     from tigrbl.concrete.tigrbl_app import TigrblApp
     from tigrbl.orm.mixins import GUIDPk
-    from tigrbl.op import OpSpec
-    from tigrbl.specs.binding_spec import HttpRestBindingSpec
+    from tigrbl._spec import OpSpec
+    from tigrbl._spec import HttpRestBindingSpec
 
     class Widget(Base, GUIDPk):
         __tablename__ = "widgets_appspec_no_rpc"

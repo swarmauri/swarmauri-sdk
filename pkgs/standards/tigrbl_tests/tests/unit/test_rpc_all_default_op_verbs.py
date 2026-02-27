@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from tigrbl import TigrblApp
 from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
-from tigrbl.op import OpSpec
+from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import BulkCapable, GUIDPk, Replaceable
 from tigrbl.orm.tables import Base
 from tigrbl.specs import IO, S, F, acol as spec_acol

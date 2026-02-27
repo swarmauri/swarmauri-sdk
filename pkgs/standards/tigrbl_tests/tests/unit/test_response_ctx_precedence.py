@@ -8,10 +8,10 @@ from tigrbl.responses import (
     response_ctx,
     resolve_response_spec,
 )
-from tigrbl import RouterSpec
-from tigrbl import AppSpec
-from tigrbl import OpSpec
-from tigrbl import TableSpec
+from tigrbl._spec import RouterSpec
+from tigrbl._spec import AppSpec
+from tigrbl._spec import OpSpec
+from tigrbl._spec import TableSpec
 
 
 def test_response_ctx_precedence():

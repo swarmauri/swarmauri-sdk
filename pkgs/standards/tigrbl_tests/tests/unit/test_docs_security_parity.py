@@ -3,7 +3,7 @@ from sqlalchemy import Column, String
 
 from tigrbl import TigrblApp
 from tigrbl.shortcuts.engine import mem
-from tigrbl.op import OpSpec
+from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 from tigrbl.security import HTTPBearer

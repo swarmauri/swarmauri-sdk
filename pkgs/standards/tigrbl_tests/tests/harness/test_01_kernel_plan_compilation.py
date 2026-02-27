@@ -18,12 +18,12 @@ import pytest
 def test_compile_kernel_plan_indexes_rest_and_jsonrpc_bindings() -> None:
     from sqlalchemy import Column, String
     from tigrbl import Base
-    from tigrbl.app import AppSpec
+    from tigrbl._spec import AppSpec
     from tigrbl.concrete.tigrbl_app import TigrblApp
-    from tigrbl.op import OpSpec
+    from tigrbl._spec import OpSpec
     from tigrbl.orm.mixins import GUIDPk
     from tigrbl.runtime.kernel import Kernel
-    from tigrbl.specs.binding_spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
+    from tigrbl._spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
 
     class Widget(Base, GUIDPk):
         __tablename__ = "widgets_kernel_plan"
@@ -74,13 +74,13 @@ def test_compile_kernel_plan_indexes_rest_and_jsonrpc_bindings() -> None:
 def test_kernel_plan_roundtrips_opkey_to_meta() -> None:
     from sqlalchemy import Column, String
     from tigrbl import Base
-    from tigrbl.app import AppSpec
+    from tigrbl._spec import AppSpec
     from tigrbl.concrete.tigrbl_app import TigrblApp
-    from tigrbl.op import OpSpec
+    from tigrbl._spec import OpSpec
     from tigrbl.orm.mixins import GUIDPk
     from tigrbl.runtime.kernel import Kernel
     from tigrbl.runtime.kernel.models import OpKey
-    from tigrbl.specs.binding_spec import HttpRestBindingSpec
+    from tigrbl._spec import HttpRestBindingSpec
 
     class Widget(Base, GUIDPk):
         __tablename__ = "widgets_kernel_opkey"
