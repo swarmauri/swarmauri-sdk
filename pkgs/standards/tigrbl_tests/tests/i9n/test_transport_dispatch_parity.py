@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from tigrbl import dispatch_operation, resolve_operation
 
 
 @pytest.mark.i9n
@@ -15,9 +14,8 @@ def test_transport_dispatch_modules_removed():
 
 
 @pytest.mark.i9n
-def test_runtime_dispatch_fast_break_messages_are_explicit():
-    with pytest.raises(RuntimeError, match="runtime-owned"):
-        dispatch_operation(router=None)
+def test_tigrbl_dispatch_exports_removed():
+    import tigrbl
 
-    with pytest.raises(RuntimeError, match="runtime-owned"):
-        resolve_operation(router=None)
+    assert not hasattr(tigrbl, "dispatch_operation")
+    assert not hasattr(tigrbl, "resolve_operation")

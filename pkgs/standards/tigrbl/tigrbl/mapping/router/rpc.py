@@ -7,7 +7,6 @@ from typing import Any, Dict, Mapping, Optional, Union
 from .common import RouterLike, _ensure_router_ns
 from ...mapping import engine_resolver as _resolver
 from ...core.crud.helpers.model import _single_pk_name
-from ...dispatch import resolve_operation
 from ...mapping.op_resolver import resolve as resolve_ops
 
 logger = logging.getLogger("uvicorn")
@@ -48,13 +47,7 @@ async def rpc_call(
     logger.debug("rpc_call invoked for model=%s method=%s", model_or_name, method)
     _ensure_router_ns(router)
 
-    try:
-        resolution = resolve_operation(
-            router=router, model_or_name=model_or_name, alias=method
-        )
-    except RuntimeError:
-        # Compatibility path used by direct ``rpc_call`` helper tests.
-        resolution = _fallback_resolution(router, model_or_name, method)
+    resolution = _fallback_resolution(router, model_or_name, method)
     mdl = resolution.model
     logger.debug(
         "Resolved operation model=%s alias=%s target=%s",
