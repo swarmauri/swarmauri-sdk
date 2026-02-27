@@ -158,7 +158,7 @@ __all__: list[str] = [
 
 _DEPRECATED_EXPORTS: dict[str, tuple[str, str]] = {
     "Router": ("tigrbl.router", "Router"),
-    "Request": ("tigrbl.requests", "Request"),
+    "Request": ("tigrbl._concrete._request", "Request"),
     "Body": ("tigrbl.core.crud", "Body"),
     "Depends": ("tigrbl.security", "Depends"),
     "HTTPException": ("tigrbl.runtime.status", "HTTPException"),

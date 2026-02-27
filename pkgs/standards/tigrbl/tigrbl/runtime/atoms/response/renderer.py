@@ -7,7 +7,7 @@ import logging
 from ....responses import Response
 from typing import Callable
 
-from ....responses.shortcuts import (
+from ....shortcuts.responses import (
     as_file,
     as_html,
     as_json,

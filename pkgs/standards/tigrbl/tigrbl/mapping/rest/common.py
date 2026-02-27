@@ -17,7 +17,7 @@ from ...responses import Response
 from ...runtime.status.exceptions import HTTPException
 from ...runtime.status.mappings import status as _status
 from ...security.dependencies import Depends, Security
-from ...requests import Request
+from ..._concrete._request import Request
 from .helpers import (
     _Key,
     _coerce_parent_kw,

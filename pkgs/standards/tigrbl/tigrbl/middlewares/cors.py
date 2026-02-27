@@ -6,7 +6,7 @@ from typing import Any
 import re
 
 from tigrbl._concrete._headers import Headers
-from tigrbl.requests import Request
+from tigrbl._concrete._request import Request
 from tigrbl._concrete._transport_response import Response
 
 from .base import BaseHTTPMiddleware
