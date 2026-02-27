@@ -97,10 +97,10 @@ def _iter_declared_ops(model: Any) -> dict[tuple[Any, str], Mapping[str, Any]]:
     return out
 
 
-def collect_engine_bindings(
+def collect(
     *, app: Any | None = None, router: Any | None = None, tables: Iterable[Any] = ()
 ) -> dict[str, Any]:
-    """Collect engine bindings from first-class objects."""
+    """Collect engine traversal config from first-class objects."""
     app_engine = _read_engine_attr(app) if app is not None else None
     router_engine = _read_engine_attr(router) if router is not None else None
 
@@ -140,8 +140,8 @@ def collect_engine_bindings(
     }
 
 
-def install_engine_bindings(collected: Mapping[str, Any]) -> None:
-    """Install collected engine bindings into the active resolver."""
+def install(collected: Mapping[str, Any]) -> None:
+    """Install collected engine traversal config into the active resolver."""
     default_db = collected.get("default")
     if default_db is not None:
         set_default(default_db)
@@ -159,15 +159,27 @@ def install_engine_bindings(collected: Mapping[str, Any]) -> None:
 def install_from_objects(
     *, app: Any | None = None, router: Any | None = None, tables: Iterable[Any] = ()
 ) -> dict[str, Any]:
-    """Collect and install engine bindings from first-class objects."""
-    collected = collect_engine_bindings(app=app, router=router, tables=tables)
-    install_engine_bindings(collected)
+    """Collect and install engine traversal config from first-class objects."""
+    collected = collect(app=app, router=router, tables=tables)
+    install(collected)
     return collected
 
 
+def collect_engine_bindings(
+    *, app: Any | None = None, router: Any | None = None, tables: Iterable[Any] = ()
+) -> dict[str, Any]:
+    """Backward-compatible alias for :func:`collect`."""
+    return collect(app=app, router=router, tables=tables)
+
+
+def install_engine_bindings(collected: Mapping[str, Any]) -> None:
+    """Backward-compatible alias for :func:`install`."""
+    install(collected)
+
+
 INSTALLS: Mapping[str, Callable[..., Any]] = {
-    "collect": collect_engine_bindings,
-    "install": install_engine_bindings,
+    "collect": collect,
+    "install": install,
     "install_from_objects": install_from_objects,
 }
 
@@ -176,6 +188,8 @@ __all__ = [
     "MRO_COLLECTORS",
     "RESOLVERS",
     "INSTALLS",
+    "collect",
+    "install",
     "collect_engine_bindings",
     "install_engine_bindings",
     "install_from_objects",

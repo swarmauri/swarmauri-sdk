@@ -16,6 +16,8 @@ from .plugins import load_engine_plugins as _bootstrap_load_engine_plugins
 
 __all__ = [
     "collect_engine_config",
+    "collect",
+    "install",
     "bind",
     "install_from_objects",
     "resolver",
@@ -32,6 +34,18 @@ __all__ = [
     "known_engine_kinds",
     "get_engine_registration",
 ]
+
+
+def collect(*args, **kwargs):
+    from .bind import collect as _collect
+
+    return _collect(*args, **kwargs)
+
+
+def install(*args, **kwargs):
+    from .bind import install as _install
+
+    return _install(*args, **kwargs)
 
 
 def bind(*args, **kwargs):

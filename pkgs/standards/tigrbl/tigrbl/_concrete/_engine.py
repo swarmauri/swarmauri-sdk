@@ -117,21 +117,21 @@ class Engine:
         return self.provider.ensure()
 
     @staticmethod
-    def collect_bindings(
+    def collect(
         *,
         app: Any | None = None,
         router: Any | None = None,
         tables: tuple[Any, ...] = (),
     ) -> dict[str, Any]:
-        from ..mapping.traversal import collect_engine_bindings
+        from ..mapping.traversal import collect
 
-        return collect_engine_bindings(app=app, router=router, tables=tables)
+        return collect(app=app, router=router, tables=tables)
 
     @staticmethod
-    def install_bindings(collected: dict[str, Any]) -> None:
-        from ..mapping.traversal import install_engine_bindings
+    def install(collected: dict[str, Any]) -> None:
+        from ..mapping.traversal import install
 
-        install_engine_bindings(collected)
+        install(collected)
 
     @staticmethod
     def install_from_objects(
@@ -140,9 +140,24 @@ class Engine:
         router: Any | None = None,
         tables: tuple[Any, ...] = (),
     ) -> dict[str, Any]:
-        collected = Engine.collect_bindings(app=app, router=router, tables=tables)
-        Engine.install_bindings(collected)
+        collected = Engine.collect(app=app, router=router, tables=tables)
+        Engine.install(collected)
         return collected
+
+    @staticmethod
+    def collect_bindings(
+        *,
+        app: Any | None = None,
+        router: Any | None = None,
+        tables: tuple[Any, ...] = (),
+    ) -> dict[str, Any]:
+        """Backward-compatible alias for :meth:`collect`."""
+        return Engine.collect(app=app, router=router, tables=tables)
+
+    @staticmethod
+    def install_bindings(collected: dict[str, Any]) -> None:
+        """Backward-compatible alias for :meth:`install`."""
+        Engine.install(collected)
 
     @property
     def get_db(self) -> Callable[..., Any]:
