@@ -4,10 +4,10 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Any
 
-from .._spec.op_spec import OpSpec
+from .._base._op_base import OpBase
 
 
-class Op(OpSpec):
+class Op(OpBase):
     """Declarative operation descriptor with optional engine binding."""
 
     __slots__ = ()
