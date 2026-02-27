@@ -42,12 +42,12 @@ postgres = [
 templates = [
     "jinja2>=3.1.4",
 ]
-# tests = [
-#     "tigrbl-tests",
-# ]
+tests = [
+    "tigrbl-tests",
+]
 
-# [tool.uv.sources]
-# tigrbl-tests = { workspace = true }
+[tool.uv.sources]
+tigrbl-tests = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
