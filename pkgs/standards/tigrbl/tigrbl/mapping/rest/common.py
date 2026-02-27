@@ -26,7 +26,6 @@ from .helpers import (
     _pk_name,
     _pk_names,
     _req_state_db,
-    _resource_name,
 )
 from .io import (
     _make_list_query_dep,
@@ -105,7 +104,6 @@ __all__ = [
     "_Key",
     "_ensure_jsonable",
     "_req_state_db",
-    "_resource_name",
     "_pk_name",
     "_pk_names",
     "_get_phase_chains",

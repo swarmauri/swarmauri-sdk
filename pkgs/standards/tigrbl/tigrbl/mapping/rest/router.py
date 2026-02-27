@@ -25,7 +25,6 @@ from .common import (
     _optionalize_list_in_model,
     _path_for_spec,
     _req_state_db,
-    _resource_name,
     _status,
     _status_for,
     _strip_parent_fields,
@@ -81,7 +80,7 @@ def _query_param_schemas_from_model(
 def _build_router(
     model: type, specs: Sequence[OpSpec], *, router: Any | None = None
 ) -> Router:
-    resource = _resource_name(model)
+    resource = model.resource_name
 
     # Router-level deps: extra deps only (transport-level; never part of kernel plan)
     extra_router_deps = _normalize_deps(

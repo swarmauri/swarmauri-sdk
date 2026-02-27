@@ -11,7 +11,6 @@ from .common import (
     _ensure_router_ns,
     _has_include_router,
     _mount_router,
-    _resource_name,
 )
 from .resource_proxy import _ResourceProxy
 from .. import model as _binder
@@ -204,7 +203,7 @@ def _attach_to_router(router: RouterLike, table: type) -> None:
     _ensure_router_ns(router)
 
     tname = table.__name__
-    rname = _resource_name(table)
+    rname = table.resource_name
     rtitle = rname[:1].upper() + rname[1:]
     logger.debug("Attaching table %s as resource '%s'", tname, rname)
 
