@@ -5,7 +5,7 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
 
-def test_include_models_base_prefix_avoids_duplicate_segments():
+def test_inclued_tables_base_prefix_avoids_duplicate_segments():
     app = TigrblApp()
 
     class Key(Base, GUIDPk):

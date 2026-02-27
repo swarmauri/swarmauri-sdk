@@ -40,7 +40,7 @@ def test_security_applied_per_route():
     assert "HTTPBearer" in schema["components"]["securitySchemes"]
 
 
-def test_set_auth_after_include_model_applies_security():
+def test_set_auth_after_inclued_table_applies_security():
     class Gadget(Base, GUIDPk):
         __tablename__ = "gadgets_security"
 
