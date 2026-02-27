@@ -1,14 +1,12 @@
+"""Hook public API."""
+
 from __future__ import annotations
 
-from .._spec.hook_spec import HookSpec
-from .types import Ctx, HookPhase, HookPredicate, PHASE, PHASES, StepFn
 
-__all__ = [
-    "HookSpec",
-    "PHASE",
-    "PHASES",
-    "HookPhase",
-    "Ctx",
-    "StepFn",
-    "HookPredicate",
-]
+def hook_ctx(*args, **kwargs):
+    from ..decorators.hook import hook_ctx as _hook_ctx
+
+    return _hook_ctx(*args, **kwargs)
+
+
+__all__ = ["hook_ctx"]

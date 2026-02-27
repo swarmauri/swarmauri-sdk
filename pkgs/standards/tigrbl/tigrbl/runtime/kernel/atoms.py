@@ -17,7 +17,7 @@ from typing import (
 )
 
 from ...hook.types import PHASES as HOOK_PHASES
-from ...op.types import StepFn
+from ..hook_types import StepFn
 from .. import events as _ev, ordering as _ordering, system as _sys
 
 logger = logging.getLogger(__name__)

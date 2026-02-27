@@ -17,7 +17,7 @@ from typing import (
 )
 
 from ..op import OpSpec
-from ..hook import HookSpec
+from .._spec.hook_spec import HookSpec
 from ..hook.types import PHASES, StepFn
 from ..config.constants import (
     TIGRBL_ROUTER_HOOKS_ATTR,
