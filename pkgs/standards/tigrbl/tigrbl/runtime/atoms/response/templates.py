@@ -4,7 +4,7 @@ import logging
 from typing import Any, Dict, Iterable, Optional, Tuple
 
 from ....requests import Request
-from ....deps.jinja import (
+from ....vendor.jinja import (
     Environment,
     FileSystemLoader,
     PackageLoader,

@@ -1,10 +1,3 @@
-# ── Pydantic Imports ────────────────────────────────────────────────────
-from pydantic import BaseModel, Field, ValidationError
+"""Compatibility shim for :mod:`tigrbl.vendor.pydantic`."""
 
-
-# ── Public Exports ───────────────────────────────────────────────────────
-__all__ = [
-    "BaseModel",
-    "Field",
-    "ValidationError",
-]
+from ..vendor.pydantic import *  # noqa: F403, F401
