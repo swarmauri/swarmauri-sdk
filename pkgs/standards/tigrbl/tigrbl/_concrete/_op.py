@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Any
 
-from ..op.types import OpSpec
+from .._spec.op_spec import OpSpec
 
 
 class Op(OpSpec):

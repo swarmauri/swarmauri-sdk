@@ -6,7 +6,7 @@ import inspect
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Optional, Sequence, Union
 
-from ..op.types import OpSpec, Arity, TargetOp, PersistPolicy
+from .._spec.op_spec import OpSpec, Arity, TargetOp, PersistPolicy
 from ..schema.types import SchemaArg
 
 

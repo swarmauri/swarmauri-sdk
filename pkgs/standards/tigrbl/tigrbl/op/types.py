@@ -1,43 +1,10 @@
 # tigrbl/v3/ops/types.py
 from __future__ import annotations
 
-from typing import Literal, Tuple, cast
+from typing import Tuple, cast, Literal
 
 from ..config.constants import CANON as CANONICAL_VERB_TUPLE
-from ..hook.types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
-from ..hook import HookSpec as OpHook
-from .._spec.engine_spec import EngineCfg
-from .._spec.op_spec import OpSpec
-
-# ───────────────────────────────────────────────────────────────────────────────
-# Core aliases & enums
-# ───────────────────────────────────────────────────────────────────────────────
-
-PersistPolicy = Literal[
-    "default",
-    "prepend",
-    "append",
-    "override",
-    "skip",
-]  # TX policy
-Arity = Literal["collection", "member"]  # HTTP path shape
-
-TargetOp = Literal[
-    "create",
-    "read",
-    "update",
-    "replace",
-    "merge",
-    "delete",
-    "list",
-    "clear",
-    "bulk_create",
-    "bulk_update",
-    "bulk_replace",
-    "bulk_merge",
-    "bulk_delete",
-    "custom",
-]
+from .._spec.op_spec import Arity, OpSpec, PersistPolicy, TargetOp
 
 VerbAliasPolicy = Literal["both", "alias_only", "canonical_only"]  # legacy export
 
@@ -49,14 +16,6 @@ __all__ = [
     "Arity",
     "TargetOp",
     "VerbAliasPolicy",
-    "PHASE",
-    "HookPhase",
-    "PHASES",
-    "Ctx",
-    "StepFn",
-    "HookPredicate",
-    "EngineCfg",
-    "OpHook",
     "OpSpec",
     "CANON",
 ]
