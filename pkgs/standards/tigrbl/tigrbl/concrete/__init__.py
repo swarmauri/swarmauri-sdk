@@ -5,6 +5,7 @@ from __future__ import annotations
 from .tigrbl_app import TigrblApp
 from .tigrbl_router import TigrblRouter
 from .response import Response, Template
+from .hook import Hook
 from .._concrete._transport_response import (
     FileResponse,
     HTMLResponse,
@@ -20,6 +21,7 @@ __all__ = [
     "TigrblRouter",
     "Template",
     "Response",
+    "Hook",
     "TransportResponse",
     "JSONResponse",
     "HTMLResponse",
