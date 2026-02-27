@@ -36,7 +36,7 @@ from .common import (
 from .io_headers import _make_header_dep
 
 from ...runtime.executor.types import _Ctx
-from ...transport.dispatcher import dispatch_operation
+from ...dispatch import dispatch_operation
 
 
 logger = logging.getLogger("uvicorn")

@@ -3,10 +3,10 @@ from __future__ import annotations
 from tigrbl.headers import Headers
 from tigrbl.requests import Request
 from tigrbl.responses import Response
-from tigrbl.transport import finalize_transport_response
+from tigrbl.concrete.transport_response import finalize_transport_response
 
 
-def test_transport_primitives_reexport_from_legacy_modules() -> None:
+def test_transport_primitives_exposed_via_concrete_modules() -> None:
     req = Request(method="GET", path="/", headers={"x-a": "1"})
     assert isinstance(req.headers, Headers)
 

@@ -6,7 +6,7 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 
 
-from tigrbl.router import Router
+from tigrbl import Router
 from tigrbl.security import Security
 
 

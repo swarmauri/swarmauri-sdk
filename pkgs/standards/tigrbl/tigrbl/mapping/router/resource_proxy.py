@@ -4,7 +4,7 @@ import logging
 from typing import Any, Awaitable, Callable, Dict, Mapping, Optional
 
 from ..rpc import _coerce_payload, _validate_input, _serialize_output
-from ...transport.dispatch import dispatch_operation
+from ...dispatch import dispatch_operation
 from ...engine import resolver as _resolver
 
 logger = logging.getLogger("uvicorn")

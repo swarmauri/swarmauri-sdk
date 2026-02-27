@@ -2,7 +2,7 @@ import pytest
 from pydantic import BaseModel
 
 
-from tigrbl.router import Router
+from tigrbl import Router
 from tigrbl.requests import Request
 
 

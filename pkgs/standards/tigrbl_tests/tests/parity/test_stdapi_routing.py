@@ -8,7 +8,7 @@ from tigrbl.runtime.status.mappings import status
 import pytest
 
 
-from tigrbl.router import Router
+from tigrbl import Router
 from tigrbl.security import Depends
 from tigrbl.requests import Request
 

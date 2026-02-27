@@ -8,7 +8,7 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.mapping.rest.router import _build_router
 
 
-from tigrbl.router import Router
+from tigrbl import Router
 from tigrbl.security import Security
 
 

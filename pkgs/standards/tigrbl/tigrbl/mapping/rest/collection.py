@@ -34,7 +34,7 @@ from .common import (
 
 from .io_headers import _make_header_dep
 
-from ...transport.dispatch import dispatch_operation
+from ...dispatch import dispatch_operation
 
 
 logging.getLogger("uvicorn").debug("Loaded module v3/mapping/rest/collection")

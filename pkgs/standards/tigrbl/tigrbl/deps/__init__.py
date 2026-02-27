@@ -6,8 +6,14 @@ This module provides a single location for all third-party dependencies,
 making it easier to manage versions and potential replacements.
 """
 
+from typing import TYPE_CHECKING, Any
+
 from ..router._route import Route, compile_path
-from ..router._router import Router
+
+if TYPE_CHECKING:
+    from tigrbl import Router
+else:
+    Router = Any
 
 # Re-export all SQLAlchemy dependencies
 from .sqlalchemy import relationship  # noqa: F401

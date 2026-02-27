@@ -1,10 +1,13 @@
-from types import SimpleNamespace
-
-from tigrbl.transport import build_jsonrpc_router
+from pathlib import Path
 
 
-def test_jsonrpc_router_default_tag():
-    app = SimpleNamespace()
-    router = build_jsonrpc_router(app)
-    route = router.routes[0]
-    assert route.tags == ["rpc"]
+def test_jsonrpc_transport_dispatcher_module_removed():
+    dispatcher = (
+        Path(__file__).resolve().parents[3]
+        / "tigrbl"
+        / "tigrbl"
+        / "transport"
+        / "jsonrpc"
+        / "dispatcher.py"
+    )
+    assert not dispatcher.exists()

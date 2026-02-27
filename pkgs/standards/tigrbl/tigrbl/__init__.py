@@ -9,6 +9,9 @@ register RPC & REST, and (optionally) mount JSON-RPC and diagnostics.
 
 from __future__ import annotations
 
+from ._concrete import Router
+from .dispatch import dispatch_operation, resolve_operation
+
 # ── OpSpec (source of truth) ───────────────────────────────────────────────────
 from .op import (
     OpSpec,
@@ -53,7 +56,8 @@ from .runtime.executor import _invoke
 from .schema import _build_schema, _build_list_params, get_schema
 
 # ── Transport & Diagnostics (optional) ─────────────────────────────────────────
-from .transport import Request, Response
+from .requests import Request
+from .concrete.transport_response import Response
 from .system import mount_diagnostics
 
 # ── DB/bootstrap helpers (infra; optional) ─────────────────────────────────────
@@ -62,7 +66,7 @@ from .ddl import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
 from .app.tigrbl_app import TigrblApp
-from .router import Router, TigrblRouter, route_ctx
+from .router import TigrblRouter, route_ctx
 from .table import Base
 from .op import Op
 from .security import APIKey, HTTPBearer, MutualTLS, OAuth2, OpenIdConnect
@@ -133,4 +137,6 @@ __all__ += [
     "DEFAULT_HTTP_METHODS",
     "Request",
     "Response",
+    "dispatch_operation",
+    "resolve_operation",
 ]

@@ -2,7 +2,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 
-from ..transport import Request
+from tigrbl import Request
 
 
 class AuthNProvider(ABC):

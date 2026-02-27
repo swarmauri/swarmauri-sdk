@@ -20,7 +20,7 @@ from pydantic import BaseModel
 from ..op import OpSpec
 from ..op.types import PHASES
 from ..runtime.status import HTTPException
-from ..transport.dispatcher import dispatch_operation
+from ..dispatch import dispatch_operation
 
 
 logger = logging.getLogger("uvicorn")
@@ -114,19 +114,12 @@ def _get_phase_chains(
     model: type, alias: str
 ) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
     """Backward-compatible phase chain accessor used by other mapping modules."""
-    try:
-        from ..transport.dispatcher import (
-            _get_phase_chains as _transport_get_phase_chains,
-        )
-
-        return _transport_get_phase_chains(model, alias)
-    except Exception:
-        hooks_root = _ns(model, "hooks")
-        alias_ns = getattr(hooks_root, alias, None)
-        out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
-        for ph in PHASES:
-            out[ph] = list(getattr(alias_ns, ph, []) or [])
-        return out
+    hooks_root = _ns(model, "hooks")
+    alias_ns = getattr(hooks_root, alias, None)
+    out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
+    for ph in PHASES:
+        out[ph] = list(getattr(alias_ns, ph, []) or [])
+    return out
 
 
 def _coerce_payload(payload: Any) -> Any:

@@ -18,7 +18,7 @@ from tigrbl.router._routing import (
     normalize_prefix,
     route,
 )
-from tigrbl.transport.httpx import ensure_httpx_sync_transport
+from tigrbl._concrete._httpx import ensure_httpx_sync_transport
 
 from ._route import Route
 from ..system.docs.openapi.metadata import is_metadata_route as _is_metadata_route_impl
