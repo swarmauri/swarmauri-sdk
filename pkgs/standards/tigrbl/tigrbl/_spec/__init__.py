@@ -11,9 +11,13 @@ from typing import Any
 _EXPORTS = {
     "AliasSpec": "alias_spec",
     "AppSpec": "app_spec",
+    "Binding": "binding_spec",
+    "BindingRegistry": "binding_spec",
+    "BindingSpec": "binding_spec",
     "HttpRestBindingSpec": "binding_spec",
     "HttpJsonRpcBindingSpec": "binding_spec",
     "WsBindingSpec": "binding_spec",
+    "resolve_rest_nested_prefix": "binding_spec",
     "ColumnSpec": "column_spec",
     "EngineSpec": "engine_spec",
     "FieldSpec": "field_spec",
