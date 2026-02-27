@@ -19,6 +19,95 @@ from ..runtime.gw.raw import GwRawEnvelope
 
 
 class App(AppSpec):
+    @staticmethod
+    def _merge_seq_attr(
+        app: type,
+        attr: str,
+        *,
+        include_inherited: bool = False,
+        reverse: bool = False,
+    ) -> tuple[Any, ...]:
+        values: list[Any] = []
+        mro = reversed(app.__mro__) if reverse else app.__mro__
+        for base in mro:
+            if include_inherited:
+                if not hasattr(base, attr):
+                    continue
+                seq = getattr(base, attr) or ()
+            else:
+                seq = base.__dict__.get(attr, ()) or ()
+            try:
+                values.extend(seq)
+            except TypeError:  # pragma: no cover - non-iterable
+                values.append(seq)
+        return tuple(values)
+
+    @classmethod
+    def _collect_mro_spec(cls) -> AppSpec:
+        sentinel = object()
+        title: Any = sentinel
+        version: Any = sentinel
+        engine: Any | None = sentinel  # type: ignore[assignment]
+        response: Any = sentinel
+        jsonrpc_prefix: Any = sentinel
+        system_prefix: Any = sentinel
+        lifespan: Any = sentinel
+
+        for base in cls.__mro__:
+            if "TITLE" in base.__dict__ and title is sentinel:
+                title = base.__dict__["TITLE"]
+            if "VERSION" in base.__dict__ and version is sentinel:
+                version = base.__dict__["VERSION"]
+            if "ENGINE" in base.__dict__ and engine is sentinel:
+                engine = base.__dict__["ENGINE"]
+            if "RESPONSE" in base.__dict__ and response is sentinel:
+                response = base.__dict__["RESPONSE"]
+            if "JSONRPC_PREFIX" in base.__dict__ and jsonrpc_prefix is sentinel:
+                jsonrpc_prefix = base.__dict__["JSONRPC_PREFIX"]
+            if "SYSTEM_PREFIX" in base.__dict__ and system_prefix is sentinel:
+                system_prefix = base.__dict__["SYSTEM_PREFIX"]
+            if "LIFESPAN" in base.__dict__ and lifespan is sentinel:
+                lifespan = base.__dict__["LIFESPAN"]
+
+        if title is sentinel:
+            title = "Tigrbl"
+        if version is sentinel:
+            version = "0.1.0"
+        if engine is sentinel:
+            engine = None
+        if response is sentinel:
+            response = None
+        if jsonrpc_prefix is sentinel:
+            jsonrpc_prefix = "/rpc"
+        if system_prefix is sentinel:
+            system_prefix = "/system"
+        if lifespan is sentinel:
+            lifespan = None
+
+        include_inherited_routers = "ROUTERS" not in cls.__dict__
+        return AppSpec(
+            title=title,
+            version=version,
+            engine=engine,
+            routers=cls._merge_seq_attr(
+                cls,
+                "ROUTERS",
+                include_inherited=include_inherited_routers,
+                reverse=include_inherited_routers,
+            ),
+            ops=cls._merge_seq_attr(cls, "OPS"),
+            tables=cls._merge_seq_attr(cls, "TABLES"),
+            schemas=cls._merge_seq_attr(cls, "SCHEMAS"),
+            hooks=cls._merge_seq_attr(cls, "HOOKS"),
+            security_deps=cls._merge_seq_attr(cls, "SECURITY_DEPS"),
+            deps=cls._merge_seq_attr(cls, "DEPS"),
+            response=response,
+            jsonrpc_prefix=jsonrpc_prefix,
+            system_prefix=system_prefix,
+            middlewares=cls._merge_seq_attr(cls, "MIDDLEWARES"),
+            lifespan=lifespan,
+        )
+
     TITLE = "Tigrbl"
     VERSION = "0.1.0"
     LIFESPAN = None
@@ -39,15 +128,23 @@ class App(AppSpec):
     SYSTEM_PREFIX = "/system"
 
     def __init__(self, *, engine: EngineCfg | None = None, **asgi_kwargs: Any) -> None:
+        collected_spec = self.__class__._collect_mro_spec()
+
         title = asgi_kwargs.pop("title", None)
         if title is not None:
             self.TITLE = title
+        else:
+            title = collected_spec.title
         version = asgi_kwargs.pop("version", None)
         if version is not None:
             self.VERSION = version
+        else:
+            version = collected_spec.version
         lifespan = asgi_kwargs.pop("lifespan", None)
         if lifespan is not None:
             self.LIFESPAN = lifespan
+        else:
+            lifespan = collected_spec.lifespan
         get_db = asgi_kwargs.pop("get_db", None)
         if get_db is not None:
             self.get_db = get_db
@@ -69,25 +166,25 @@ class App(AppSpec):
         include_docs = asgi_kwargs.pop("include_docs", None)
         if include_docs is None:
             include_docs = bool(getattr(self, "INCLUDE_DOCS", False))
-        self.title = self.TITLE
-        self.version = self.VERSION
+        self.title = title
+        self.version = version
         self.description = description
         self.openapi_url = openapi_url
         self.docs_url = docs_url
         self.debug = debug
         self.swagger_ui_version = swagger_ui_version
-        self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
-        self.routers = tuple(getattr(self, "ROUTERS", ()))
-        self.ops = tuple(getattr(self, "OPS", ()))
-        self.tables = initialize_table_registry(getattr(self, "TABLES", ()))
-        self.schemas = tuple(getattr(self, "SCHEMAS", ()))
-        self.hooks = tuple(getattr(self, "HOOKS", ()))
-        self.security_deps = tuple(getattr(self, "SECURITY_DEPS", ()))
-        self.deps = tuple(getattr(self, "DEPS", ()))
-        self.response = getattr(self, "RESPONSE", None)
-        self.jsonrpc_prefix = getattr(self, "JSONRPC_PREFIX", "/rpc")
-        self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
-        self.lifespan = self.LIFESPAN
+        self.engine = engine if engine is not None else collected_spec.engine
+        self.routers = tuple(collected_spec.routers)
+        self.ops = tuple(collected_spec.ops)
+        self.tables = initialize_table_registry(collected_spec.tables)
+        self.schemas = tuple(collected_spec.schemas)
+        self.hooks = tuple(collected_spec.hooks)
+        self.security_deps = tuple(collected_spec.security_deps)
+        self.deps = tuple(collected_spec.deps)
+        self.response = collected_spec.response
+        self.jsonrpc_prefix = collected_spec.jsonrpc_prefix
+        self.system_prefix = collected_spec.system_prefix
+        self.lifespan = lifespan
 
         Router.__init__(
             self,
