@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from tigrbl import bind
 
-from examples.lesson_support import make_widget_model
+from tigrbl_tests.examples.lesson_support import make_widget_model
 
 
 def test_bind_exposes_columns_namespace() -> None:
