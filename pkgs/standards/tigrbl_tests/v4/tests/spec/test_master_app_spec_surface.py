@@ -5,15 +5,15 @@ import datetime as dt
 import pytest
 from sqlalchemy import DateTime, Integer, String
 
-from tigrbl.app.app_spec import AppSpec
-from tigrbl.router.router_spec import RouterSpec
-from tigrbl.column.column_spec import ColumnSpec
-from tigrbl.column.field_spec import FieldSpec as F
-from tigrbl.column.io_spec import IOSpec as IO
-from tigrbl.column.storage_spec import ForeignKeySpec, StorageSpec as S
-from tigrbl.op.types import OpSpec
-from tigrbl.responses.types import ResponseSpec
-from tigrbl.table.table_spec import TableSpec
+from tigrbl import AppSpec
+from tigrbl import RouterSpec
+from tigrbl import ColumnSpec
+from tigrbl import FieldSpec as F
+from tigrbl import IOSpec as IO
+from tigrbl import ForeignKeySpec, StorageSpec as S
+from tigrbl import OpSpec
+from tigrbl import ResponseSpec
+from tigrbl import TableSpec
 
 
 @pytest.fixture

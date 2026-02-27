@@ -20,7 +20,7 @@ def create_client(model_cls):
     app.attach_diagnostics()
     app.initialize()
 
-    from tigrbl.engine import resolver as _resolver
+    from tigrbl import resolver as _resolver
 
     prov = _resolver.resolve_provider()
     _, SessionLocal = prov.ensure()

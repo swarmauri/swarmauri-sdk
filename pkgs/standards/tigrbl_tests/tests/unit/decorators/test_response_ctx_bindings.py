@@ -1,5 +1,5 @@
 from tigrbl import response_ctx
-from tigrbl.responses.types import ResponseSpec
+from tigrbl import ResponseSpec
 
 
 def test_response_ctx_internal_binding_on_function():

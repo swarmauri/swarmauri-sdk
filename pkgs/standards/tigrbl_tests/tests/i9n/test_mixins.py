@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from tigrbl import Base
 from tigrbl.column.shortcuts import IO, F, S, acol
-from tigrbl.engine import resolver as _resolver
+from tigrbl import resolver as _resolver
 from tigrbl.orm.mixins import (
     ActiveToggle,
     AsyncCapable,

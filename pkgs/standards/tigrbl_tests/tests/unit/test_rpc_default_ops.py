@@ -7,7 +7,7 @@ from tigrbl.specs import IO, S, F, acol as spec_acol
 from tigrbl.orm.tables import Base
 from tigrbl.types import Session, String
 from tigrbl.shortcuts.engine import mem
-from tigrbl.engine import resolver as _resolver
+from tigrbl import resolver as _resolver
 
 
 @pytest.fixture()

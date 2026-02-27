@@ -5,7 +5,7 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.orm import sessionmaker
 from tigrbl import TigrblApp, TigrblRouter
-from tigrbl.engine import resolver as _resolver
+from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base

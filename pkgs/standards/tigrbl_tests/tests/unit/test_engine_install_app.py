@@ -1,7 +1,7 @@
 import pytest
 
 from tigrbl import TigrblApp, engine_ctx
-from tigrbl.engine import resolver as _resolver
+from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
 
 

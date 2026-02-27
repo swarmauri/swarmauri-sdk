@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from tigrbl.decorators.engine import (
     engine_ctx,
 )  # :contentReference[oaicite:17]{index=17}
-from tigrbl.engine import install_from_objects
+from tigrbl.mapping import install_from_objects
 from tigrbl.engine import (
     resolver,
 )  # precedence registry  :contentReference[oaicite:18]{index=18}

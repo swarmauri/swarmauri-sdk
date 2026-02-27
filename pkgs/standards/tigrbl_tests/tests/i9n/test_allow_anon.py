@@ -2,7 +2,7 @@ from httpx import ASGITransport, Client
 from sqlalchemy.orm import sessionmaker
 from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
-from tigrbl.engine import resolver as _resolver
+from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base

@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 from sqlalchemy import String
 from tigrbl.config.constants import TIGRBL_GET_DB_ATTR
-from tigrbl.engine import resolver as _resolver
+from tigrbl import resolver as _resolver
 from tigrbl.engine.shortcuts import engine as engine_factory
 from tigrbl.shortcuts.engine import mem
 from tigrbl.mapping import (

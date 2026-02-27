@@ -1,4 +1,4 @@
-from tigrbl.engine import resolver
+from tigrbl import resolver
 from tigrbl.shortcuts.engine import mem
 
 
