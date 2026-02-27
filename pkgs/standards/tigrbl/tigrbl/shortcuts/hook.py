@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Iterable, Union
 
 from ..hook.types import HookPhase, HookPredicate, StepFn
-from ..concrete.hook import Hook
+from .._concrete._hook import Hook
 from .._spec.hook_spec import HookSpec
 
 
