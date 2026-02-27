@@ -1,4 +1,4 @@
-from tigrbl.headers import Headers
+from tigrbl._concrete._headers import Headers
 
 from ._response import (
     FileResponse,

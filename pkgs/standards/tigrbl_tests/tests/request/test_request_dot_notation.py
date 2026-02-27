@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tigrbl.headers import Headers
+from tigrbl._concrete._headers import Headers
 from tigrbl.requests import Request
 
 
