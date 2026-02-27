@@ -7,7 +7,7 @@ from functools import lru_cache
 from typing import Any, Callable, Dict, Iterable, Union
 
 from ..runtime.executor import _Ctx
-from ..op.collect import apply_alias
+from .._spec.op_spec import OpSpec
 from .op_mro_collect import mro_alias_map_for
 from ..decorators.op import _maybe_await, _unwrap
 from ..decorators.hook import HOOK_DECLS_ATTR, Hook
@@ -63,10 +63,12 @@ def _mro_collect_decorated_hooks_cached(
         if spec == "*":
             return visible_aliases
         if isinstance(spec, str):
-            return [spec if spec in visible_aliases else apply_alias(spec, aliases)]
+            return [
+                spec if spec in visible_aliases else OpSpec.apply_alias(spec, aliases)
+            ]
         out: list[str] = []
         for x in spec:
-            out.append(x if x in visible_aliases else apply_alias(x, aliases))
+            out.append(x if x in visible_aliases else OpSpec.apply_alias(x, aliases))
         return out
 
     for base in reversed(table.__mro__):
