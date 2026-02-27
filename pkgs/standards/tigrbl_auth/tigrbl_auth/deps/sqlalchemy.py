@@ -1,10 +1,3 @@
-from sqlalchemy import Select, select, or_, delete
-from sqlalchemy.exc import IntegrityError
+"""Compatibility shim for :mod:`tigrbl_auth.vendor.sqlalchemy`."""
 
-__all__ = [
-    "Select",
-    "select",
-    "or_",
-    "delete",
-    "IntegrityError",
-]
+from ..vendor.sqlalchemy import *  # noqa: F403, F401

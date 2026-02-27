@@ -5,7 +5,7 @@ from typing import Any
 from ._table_registry import TableRegistry
 from .._spec.app_spec import AppSpec
 from ..ddl import initialize as _ddl_initialize
-from ..engine import install_from_objects
+from .._concrete._engine import Engine
 from ..mapping import engine_resolver as _resolver
 from .._spec.engine_spec import EngineCfg
 from ..router._routing import (
@@ -132,9 +132,9 @@ class App(AppSpec):
         tables = tables if tables is not None else self.TABLES
         if routers:
             for a in routers:
-                install_from_objects(app=self, router=a, tables=tables)
+                Engine.install_from_objects(app=self, router=a, tables=tuple(tables))
         else:
-            install_from_objects(app=self, router=None, tables=tables)
+            Engine.install_from_objects(app=self, router=None, tables=tuple(tables))
 
     async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
         env = GwRawEnvelope(kind="asgi3", scope=scope, receive=receive, send=send)

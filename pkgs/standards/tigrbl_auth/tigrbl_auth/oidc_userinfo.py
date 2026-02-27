@@ -26,7 +26,7 @@ from .fastapi_deps import get_current_principal
 from .jwtoken import JWTCoder, InvalidTokenError, _svc
 from .orm import User
 from .rfc.rfc6750 import extract_bearer_token
-from .deps import JWAAlg
+from .vendor import JWAAlg
 
 api = TigrblRouter()
 router = api

@@ -116,6 +116,34 @@ class Engine:
     def raw(self) -> Tuple[Any, SessionFactory]:
         return self.provider.ensure()
 
+    @staticmethod
+    def collect_bindings(
+        *,
+        app: Any | None = None,
+        router: Any | None = None,
+        tables: tuple[Any, ...] = (),
+    ) -> dict[str, Any]:
+        from ..mapping.traversal import collect_engine_bindings
+
+        return collect_engine_bindings(app=app, router=router, tables=tables)
+
+    @staticmethod
+    def install_bindings(collected: dict[str, Any]) -> None:
+        from ..mapping.traversal import install_engine_bindings
+
+        install_engine_bindings(collected)
+
+    @staticmethod
+    def install_from_objects(
+        *,
+        app: Any | None = None,
+        router: Any | None = None,
+        tables: tuple[Any, ...] = (),
+    ) -> dict[str, Any]:
+        collected = Engine.collect_bindings(app=app, router=router, tables=tables)
+        Engine.install_bindings(collected)
+        return collected
+
     @property
     def get_db(self) -> Callable[..., Any]:
         return self.provider.get_db

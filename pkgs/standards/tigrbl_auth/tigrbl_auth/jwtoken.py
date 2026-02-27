@@ -12,7 +12,7 @@ from typing import Any, Dict, Iterable, Optional, Tuple
 
 from .errors import InvalidTokenError
 
-from .deps import (
+from .vendor import (
     ExportPolicy,
     FileKeyProvider,
     JWTTokenService,
