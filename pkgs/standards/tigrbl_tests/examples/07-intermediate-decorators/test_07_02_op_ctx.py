@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from tigrbl import Base, op_ctx
+from tigrbl.decorators import op_ctx
+from tigrbl.table import Base
 
 
 def test_op_ctx_registers_custom_alias() -> None:
