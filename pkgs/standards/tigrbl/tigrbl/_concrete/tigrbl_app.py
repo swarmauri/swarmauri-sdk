@@ -81,7 +81,7 @@ class TigrblApp(_App):
 
     @classmethod
     def from_spec(cls, spec: AppSpec) -> "TigrblApp":
-        """Materialize an app instance from an :class:`~tigrbl.app.AppSpec`."""
+        """Materialize an app instance from an :class:`~tigrbl.AppSpec`."""
         app = cls(
             engine=spec.engine,
             routers=tuple(spec.routers or ()),
