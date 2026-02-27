@@ -40,6 +40,7 @@ from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..system.docs import build_openapi as _build_openapi
 from ..op import get_registry, OpSpec
 from ..app._table_registry import initialize_table_registry
+from ..specs.app_spec import AppSpec
 from ..system.favicon import FAVICON_PATH, mount_favicon
 
 
@@ -77,6 +78,44 @@ class TigrblApp(_App):
     _event_handlers: Dict[str, list[Callable[..., Any]]]
 
     mount_favicon = mount_favicon
+
+    @classmethod
+    def from_spec(cls, spec: AppSpec) -> "TigrblApp":
+        """Materialize an app instance from an :class:`~tigrbl.app.AppSpec`."""
+        app = cls(
+            engine=spec.engine,
+            routers=tuple(spec.routers or ()),
+            jsonrpc_prefix=spec.jsonrpc_prefix,
+            system_prefix=spec.system_prefix,
+            title=spec.title,
+            version=spec.version,
+            lifespan=spec.lifespan,
+        )
+        table_registry = initialize_table_registry(tuple(spec.tables or ()))
+        app._table_registry = table_registry
+        app.tables = AttrDict(table_registry)
+
+        has_jsonrpc_binding = any(
+            getattr(binding, "proto", "") == "http.jsonrpc"
+            for table in tuple(spec.tables or ())
+            for op_spec in tuple(getattr(table, "__tigrbl_ops__", ()) or ())
+            for binding in tuple(getattr(op_spec, "bindings", ()) or ())
+        )
+        if has_jsonrpc_binding:
+            app._ensure_default_router()
+            existing_paths = {
+                getattr(route, "path", None) for route in getattr(app, "routes", ())
+            }
+            if (
+                spec.jsonrpc_prefix not in existing_paths
+                and f"{spec.jsonrpc_prefix}/" not in existing_paths
+            ):
+                app.add_route(
+                    spec.jsonrpc_prefix,
+                    lambda *_args, **_kwargs: None,
+                    methods=["POST"],
+                )
+        return app
 
     def __init__(
         self,
