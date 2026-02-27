@@ -531,8 +531,9 @@ class TigrblApp(_App):
     # ------------------------- extras / mounting -------------------------
 
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
-        del prefix
-        raise RuntimeError("JSON-RPC transport mounting has been removed from ingress.")
+        if prefix is not None:
+            self.jsonrpc_prefix = prefix
+        return None
 
     def mount_openapi(
         self,
