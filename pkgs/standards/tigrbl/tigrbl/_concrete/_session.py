@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 from typing import Any, Callable, Optional
 
-from .base import TigrblSessionBase
+from .._base._session_base import TigrblSessionBase
 from .._spec.session_spec import SessionSpec
 
 

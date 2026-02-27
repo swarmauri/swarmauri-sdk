@@ -26,6 +26,7 @@ _EXPORTS = {
     "StreamingResponse": "_streaming_response",
     "FileResponse": "_file_response",
     "RedirectResponse": "_redirect_response",
+    "DefaultSession": "_session",
 }
 
 __all__ = list(_EXPORTS)
