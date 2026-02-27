@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tigrbl.engine.shortcuts import pga, pgs, prov, sqlitef
+from tigrbl.shortcuts.engine import pga, pgs, prov, sqlitef
 from tigrbl.shortcuts.engine import mem
 from tigrbl import resolver
 

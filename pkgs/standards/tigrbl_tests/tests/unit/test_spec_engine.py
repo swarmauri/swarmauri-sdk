@@ -4,7 +4,7 @@ from tigrbl.engine._engine import Engine, Provider
 from tigrbl.decorators.engine import engine_ctx
 from tigrbl._spec import EngineSpec
 from tigrbl.shortcuts.engine import engine, mem
-from tigrbl.engine.shortcuts import engine_spec, prov
+from tigrbl.shortcuts.engine import engine_spec, prov
 
 
 def test_engine_spec_parses_sqlite_dsn():
