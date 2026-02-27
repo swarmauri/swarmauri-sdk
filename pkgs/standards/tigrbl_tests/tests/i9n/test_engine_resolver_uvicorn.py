@@ -10,7 +10,7 @@ import httpx
 import pytest
 from sqlalchemy import Column, String
 from tigrbl import Base, TigrblApp, TigrblRouter, engine_ctx, op_ctx
-from tigrbl.engine import resolver
+from tigrbl import resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 

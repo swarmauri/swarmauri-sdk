@@ -3,7 +3,7 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from tigrbl import Base, TigrblApp, TigrblRouter, schema_ctx
 from tigrbl.core import crud
-from tigrbl.engine import resolver as _resolver
+from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.types import BaseModel, Column, Integer, String
 

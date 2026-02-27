@@ -2,8 +2,8 @@ from __future__ import annotations
 from types import SimpleNamespace
 import pytest
 
-from tigrbl.op.types import OpSpec
-from tigrbl.responses.types import ResponseSpec, TemplateSpec
+from tigrbl import OpSpec
+from tigrbl import ResponseSpec, TemplateSpec
 from tigrbl.system.diagnostics import _build_kernelz_endpoint
 
 from .response_utils import RESPONSE_KINDS

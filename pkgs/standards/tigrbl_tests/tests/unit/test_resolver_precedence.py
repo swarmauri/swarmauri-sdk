@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 from tigrbl.engine.shortcuts import pga, pgs, prov, sqlitef
 from tigrbl.shortcuts.engine import mem
-from tigrbl.engine import resolver
+from tigrbl import resolver
 
 
 def test_precedence_op_over_model_over_router_over_app(tmp_path):

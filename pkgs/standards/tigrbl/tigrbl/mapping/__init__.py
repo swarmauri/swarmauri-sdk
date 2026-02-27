@@ -47,6 +47,14 @@ from .handlers import build_and_attach as build_handlers
 from .rpc import register_and_attach as register_rpc
 from .rest import build_router_and_attach as build_rest
 from ..responses.bind import bind as bind_response
+from .traversal import (
+    INSTALLS,
+    MRO_COLLECTORS,
+    RESOLVERS,
+    collect_engine_bindings,
+    install_engine_bindings,
+    install_from_objects,
+)
 
 # Router facade integration
 from .router import include_table, include_tables, rpc_call
@@ -70,4 +78,10 @@ __all__ = [
     "include_table",
     "include_tables",
     "rpc_call",
+    "MRO_COLLECTORS",
+    "RESOLVERS",
+    "INSTALLS",
+    "collect_engine_bindings",
+    "install_engine_bindings",
+    "install_from_objects",
 ]

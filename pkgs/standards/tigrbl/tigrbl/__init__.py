@@ -33,7 +33,6 @@ from .hook import hook_ctx
 from .decorators.engine import engine_ctx
 from .decorators.schema import schema_ctx
 from .decorators.response import response_ctx
-from ._spec.response_spec import ResponseSpec
 
 # ── Bindings (model + Router orchestration) ───────────────────────────────────────
 from .mapping import (
@@ -65,11 +64,33 @@ from .ddl import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
 
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
-from .concrete.tigrbl_app import TigrblApp
+from ._concrete.tigrbl_app import TigrblApp
 from .router import TigrblRouter, route_ctx
 from .table import Base
 from .op import Op
+from .engine import resolver
 from .security import APIKey, HTTPBearer, MutualTLS, OAuth2, OpenIdConnect
+from ._spec import (
+    AppSpec,
+    ColumnSpec,
+    EngineSpec,
+    FieldSpec,
+    ForeignKeySpec,
+    IOSpec,
+    RequestSpec,
+    ResponseSpec,
+    RouterSpec,
+    SchemaSpec,
+    SessionSpec,
+    StorageSpec,
+    StorageTransform,
+    TableSpec,
+    TemplateSpec,
+)
+from ._base import ForeignKeyBase, HookBase
+from ._concrete import App, Column, ForeignKey, Hook, Route, Schema, Table
+from .decorators import HOOK_DECLS_ATTR, middleware, middlewares
+
 
 __all__: list[str] = []
 
@@ -139,4 +160,33 @@ __all__ += [
     "Response",
     "dispatch_operation",
     "resolve_operation",
+    "resolver",
+]
+__all__ += [
+    "AppSpec",
+    "RouterSpec",
+    "TableSpec",
+    "ColumnSpec",
+    "FieldSpec",
+    "IOSpec",
+    "StorageSpec",
+    "StorageTransform",
+    "ForeignKeySpec",
+    "RequestSpec",
+    "SchemaSpec",
+    "SessionSpec",
+    "EngineSpec",
+    "TemplateSpec",
+    "ForeignKeyBase",
+    "HookBase",
+    "App",
+    "Table",
+    "Column",
+    "Route",
+    "Schema",
+    "Hook",
+    "ForeignKey",
+    "HOOK_DECLS_ATTR",
+    "middleware",
+    "middlewares",
 ]
