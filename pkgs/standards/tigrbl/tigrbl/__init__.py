@@ -30,7 +30,7 @@ from .schema.types import SchemaRef, SchemaArg
 
 from .op import alias_ctx, op_ctx, alias, op_alias
 from .hook import hook_ctx
-from .engine.decorators import engine_ctx
+from .decorators.engine import engine_ctx
 from .decorators.schema import schema_ctx
 from .decorators.response import response_ctx
 from .specs.response_spec import ResponseSpec
@@ -57,7 +57,7 @@ from .schema import _build_schema, _build_list_params, get_schema
 
 # ── Transport & Diagnostics (optional) ─────────────────────────────────────────
 from .requests import Request
-from ._concrete._transport_response import Response
+from ._concrete._response import Response
 from .system import mount_diagnostics
 
 # ── DB/bootstrap helpers (infra; optional) ─────────────────────────────────────

@@ -17,13 +17,13 @@ _EXPORTS = {
     "Table": "_table",
     "Template": "_response",
     "Response": "_response",
-    "TransportResponse": "_transport_response",
-    "JSONResponse": "_transport_response",
-    "HTMLResponse": "_transport_response",
-    "PlainTextResponse": "_transport_response",
-    "StreamingResponse": "_transport_response",
-    "FileResponse": "_transport_response",
-    "RedirectResponse": "_transport_response",
+    "TransportResponse": "_response",
+    "JSONResponse": "_json_response",
+    "HTMLResponse": "_html_response",
+    "PlainTextResponse": "_plain_text_response",
+    "StreamingResponse": "_streaming_response",
+    "FileResponse": "_file_response",
+    "RedirectResponse": "_redirect_response",
 }
 
 __all__ = list(_EXPORTS)
