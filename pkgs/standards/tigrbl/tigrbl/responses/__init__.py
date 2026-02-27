@@ -1,6 +1,6 @@
 from tigrbl._concrete._headers import Headers
 
-from ._response import (
+from tigrbl._concrete._transport_response import (
     FileResponse,
     HTMLResponse,
     JSONResponse,

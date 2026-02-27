@@ -9,7 +9,7 @@ from typing import Any, Callable, Dict, Iterable, Union
 from ..runtime.executor import _Ctx
 from ..op.collect import apply_alias
 from ..op.mro_collect import mro_alias_map_for
-from ..op.decorators import _maybe_await, _unwrap
+from ..decorators.op import _maybe_await, _unwrap
 from ..decorators.hook import HOOK_DECLS_ATTR, Hook
 
 logger = logging.getLogger("uvicorn")
