@@ -103,65 +103,7 @@ class CORSMiddleware(BaseHTTPMiddleware):
             headers.append(("access-control-allow-credentials", "true"))
         return headers
 
-    async def dispatch(self, request: Request, call_next: Any) -> Response:
-        request_headers = Headers(request.headers)
-        is_preflight = (
-            request.method.upper() == "OPTIONS"
-            and request_headers.get("origin") is not None
-            and request_headers.get("access-control-request-method") is not None
-        )
 
-        if is_preflight:
-            return Response(
-                status_code=204,
-                headers=self._cors_headers(request_headers),
-                body=b"",
-            )
-
-        response = await call_next(request)
-        response_headers = response.headers_map
-        for key, value in self._cors_headers(request_headers):
-            response_headers[key] = value
-        return response
-
-    def wsgi(
-        self,
-        environ: dict[str, Any],
-        start_response: WSGIStartResponse,
-    ) -> list[bytes]:
-        method = (environ.get("REQUEST_METHOD") or "").upper()
-        is_preflight = (
-            method == "OPTIONS"
-            and environ.get("HTTP_ORIGIN")
-            and environ.get("HTTP_ACCESS_CONTROL_REQUEST_METHOD")
-        )
-
-        request_headers = Headers(
-            {
-                "origin": str(environ.get("HTTP_ORIGIN") or ""),
-                "access-control-request-headers": str(
-                    environ.get("HTTP_ACCESS_CONTROL_REQUEST_HEADERS") or ""
-                ),
-            }
-        )
-
-        if is_preflight:
-            start_response("204 No Content", self._cors_headers(request_headers))
-            return [b""]
-
-        def cors_start_response(
-            status: str, headers: list[tuple[str, str]], *args: Any
-        ):
-            merged = [
-                (key, value)
-                for key, value in headers
-                if key.lower() not in self._CORS_HEADER_NAMES
-            ]
-            for key, value in self._cors_headers(request_headers):
-                merged.append((key, value))
-            return start_response(status, merged, *args)
-
-        return self.app(environ, cors_start_response)
 
 
 __all__ = ["CORSMiddleware"]

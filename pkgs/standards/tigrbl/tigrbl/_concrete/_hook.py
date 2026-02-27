@@ -1,5 +1,12 @@
-"""Compatibility shim for Hook concrete import path."""
+"""Concrete runtime hook wrapper for Tigrbl v3."""
 
-from ..concrete.hook import Hook
+from __future__ import annotations
+
+from .._base._hook import HookBase
+
+
+class Hook(HookBase):
+    """Concrete hook implementation."""
+
 
 __all__ = ["Hook"]

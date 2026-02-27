@@ -14,7 +14,7 @@ from ..specs.middleware_spec import (
 )
 
 
-class Middleware:
+class Middleware(MiddlewareBase):
     """Base middleware for composing ASGI/WSGI pipelines."""
 
     def __init__(self, app: ASGIApp | WSGIApp, **kwargs: Any) -> None:

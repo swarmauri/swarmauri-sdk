@@ -10,11 +10,10 @@ from tigrbl._concrete._request_adapters import request_from_asgi
 from tigrbl._concrete._response import Response
 from tigrbl._concrete._transport_common import finalize_transport_response
 
-from .middleware import Middleware
-from ..specs.middleware_spec import ASGIReceive, ASGISend, Message
+from ..specs.middleware_spec import MiddlewareSpec, ASGIReceive, ASGISend, Message
 
 
-class BaseHTTPMiddleware(Middleware):
+class MiddlewareBase(MiddlewareSpec):
     """Base middleware for intercepting HTTP requests in ASGI mode."""
 
     async def dispatch(

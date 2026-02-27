@@ -1,4 +1,4 @@
-# tigrbl/tigrbl/v3/table/_base.py
+# tigrbl/tigrbl/table/_base.py
 from __future__ import annotations
 
 from typing import Any, Optional, Union, get_args, get_origin
@@ -245,7 +245,7 @@ def _ensure_instrumented_attr_accessors() -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 
 
-class Base(DeclarativeBase):
+class TableBase(DeclarativeBase):
     __allow_unmapped__ = True
 
     def __init_subclass__(cls, **kw):
