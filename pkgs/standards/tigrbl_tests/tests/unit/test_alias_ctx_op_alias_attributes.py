@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from tigrbl import alias_ctx, alias, schema_ctx
-from tigrbl.op import resolve
+from tigrbl.mapping.op_resolver import resolve
 from tigrbl.mapping import build_schemas, build_handlers
 
 
