@@ -3,7 +3,7 @@ import inspect
 import httpx
 import pytest
 
-from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
+from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
