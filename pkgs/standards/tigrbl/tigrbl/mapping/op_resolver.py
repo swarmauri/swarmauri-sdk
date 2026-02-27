@@ -5,7 +5,7 @@ import logging
 import re
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
-from ..op.types import OpSpec, TargetOp
+from .._spec.op_spec import OpSpec, TargetOp
 from ..config.constants import TIGRBL_OPS_ATTR
 from ..op.canonical import should_wire_canonical
 from .op_mro_collect import mro_alias_map_for
