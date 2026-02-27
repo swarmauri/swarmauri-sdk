@@ -4,7 +4,7 @@ import warnings
 from uuid import uuid4, UUID
 
 # ── Third-party Dependencies (via deps module) ───────────────────────────
-from ..deps.sqlalchemy import (
+from ..vendor.sqlalchemy import (
     # Core SQLAlchemy
     Boolean,
     Column,
@@ -47,7 +47,7 @@ from ..deps.sqlalchemy import (
 )
 
 
-from ..deps.pydantic import (
+from ..vendor.pydantic import (
     BaseModel,
     Field,
     ValidationError,
