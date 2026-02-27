@@ -67,6 +67,7 @@ from ._concrete.tigrbl_app import TigrblApp
 from .router import TigrblRouter, route_ctx
 from .table import Base
 from .op import Op
+from .shortcuts.op import op
 from .engine import resolver
 from ._concrete._security.api_key import APIKey
 from ._concrete._security.http_bearer import HTTPBearer
@@ -113,6 +114,7 @@ __all__ += [
     "Router",
     "Base",
     "Op",
+    "op",
     "HTTPBearer",
     "APIKey",
     "OAuth2",
