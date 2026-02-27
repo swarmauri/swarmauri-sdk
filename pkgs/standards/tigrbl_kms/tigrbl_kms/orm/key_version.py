@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 
 from tigrbl.runtime.status.exceptions import HTTPException
 
-from tigrbl.hook import hook_ctx
+from tigrbl.decorators.hook import hook_ctx
 from tigrbl.specs import IO, F, S, acol
 from tigrbl.orm.mixins import BulkCapable, Replaceable
 from tigrbl.column.io_spec import Pair

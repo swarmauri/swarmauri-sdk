@@ -17,14 +17,13 @@ from typing import (
 from .._concrete._router import Router as _Router
 from .._spec.engine_spec import EngineCfg
 from ..ddl import initialize as _ddl_initialize
-from ..mapping.router import (
+from ..mapping.router.common import _default_prefix, _mount_router
+from ..mapping.router.include import (
+    _seed_security_and_deps,
     include_table as _include_table,
     include_tables as _include_tables,
-    rpc_call as _rpc_call,
-    _seed_security_and_deps,
-    _mount_router,
-    _default_prefix,
 )
+from ..mapping.router.rpc import rpc_call as _rpc_call
 from ..mapping.model import rebind as _rebind, bind as _bind
 from ..mapping.rest import build_router_and_attach as _build_router_and_attach
 from ..op import get_registry, OpSpec

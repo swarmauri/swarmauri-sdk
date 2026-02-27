@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Optional
 
-from tigrbl.hook import hook_ctx
+from tigrbl.decorators.hook import hook_ctx
 
 from tigrbl_acme_ca.tables.audit_events import AuditEvent
 from tigrbl_acme_ca.services.audit.redact import redact_payload
