@@ -27,7 +27,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Sequence
 
-from ...router import Router
+from ..._concrete._router import Router
 from ...security import Depends
 
 
