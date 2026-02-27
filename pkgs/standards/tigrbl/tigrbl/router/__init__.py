@@ -9,7 +9,7 @@ __all__ = ["RouterSpec", "Router", "Route", "TigrblRouter", "route_ctx", "route"
 
 def __getattr__(name: str) -> Any:
     if name == "RouterSpec":
-        from .router_spec import RouterSpec
+        from ..specs.router_spec import RouterSpec
 
         return RouterSpec
     if name == "Router":

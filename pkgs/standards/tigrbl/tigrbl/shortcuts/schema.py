@@ -12,7 +12,7 @@ except Exception:  # pragma: no cover
 
 
 from ..schema._schema import Schema
-from ..schema.schema_spec import SchemaSpec
+from ..specs.schema_spec import SchemaSpec
 from ..schema.types import SchemaArg, SchemaKind
 
 

@@ -20,7 +20,7 @@ from typing import (
 from .._concrete._app import App as _App
 from ..router.tigrbl_router import TigrblRouter
 from ..router._routing import add_route as _add_route_impl
-from ..engine.engine_spec import EngineCfg
+from ..specs.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
 from ..mapping.router import (

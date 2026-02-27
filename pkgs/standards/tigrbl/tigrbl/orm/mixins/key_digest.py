@@ -3,7 +3,7 @@ from __future__ import annotations
 from hashlib import sha256
 from secrets import token_urlsafe
 
-from ...column.io_spec import Pair
+from ...specs.io_spec import Pair
 from ...specs import F, IO, S, acol
 from ...types import Mapped, String, declarative_mixin
 

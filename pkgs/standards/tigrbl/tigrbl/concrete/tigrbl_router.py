@@ -15,7 +15,7 @@ from typing import (
 )
 
 from ..router._router import Router as _Router
-from ..engine.engine_spec import EngineCfg
+from ..specs.engine_spec import EngineCfg
 from ..ddl import initialize as _ddl_initialize
 from ..mapping.router import (
     include_table as _include_table,

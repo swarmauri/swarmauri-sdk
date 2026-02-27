@@ -9,7 +9,7 @@ from ..engine import install_from_objects  # reuse the collector
 from ..engine import resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
 from ..table._base import Base
-from ..table.table_spec import TableSpec
+from ..specs.table_spec import TableSpec
 
 
 class Table(Base, TableSpec):

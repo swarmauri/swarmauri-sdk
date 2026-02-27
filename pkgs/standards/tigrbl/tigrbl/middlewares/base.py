@@ -6,11 +6,11 @@ from typing import Any
 from urllib.parse import urlencode
 
 from tigrbl.requests import Request
-from tigrbl.requests.adapters import request_from_asgi
+from tigrbl._concrete._request_adapters import request_from_asgi
 from tigrbl.concrete.transport_response import Response, finalize_transport_response
 
 from .middleware import Middleware
-from .spec import ASGIReceive, ASGISend, Message
+from ..specs.middleware_spec import ASGIReceive, ASGISend, Message
 
 
 class BaseHTTPMiddleware(Middleware):

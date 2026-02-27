@@ -1,7 +1,7 @@
 # --- io_spec.py --------------------------------------------------------------
 from dataclasses import dataclass, replace
 from typing import Callable, Tuple, Literal
-from .field_spec import FieldSpec as F
+from ..specs.field_spec import FieldSpec as F
 
 
 @dataclass(frozen=True)

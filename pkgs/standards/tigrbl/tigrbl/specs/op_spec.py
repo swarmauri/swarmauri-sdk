@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Literal, Mapping, Optional, Tuple
 
 from .binding_spec import BindingSpec
 
-from ..engine.engine_spec import EngineCfg
+from ..specs.engine_spec import EngineCfg
 from ..hook import HookSpec as OpHook
 from ..hook.types import StepFn
 

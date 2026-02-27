@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import Any
 
 from ..app._model_registry import initialize_table_registry
-from ..app.app_spec import AppSpec
+from ..specs.app_spec import AppSpec
 from ..ddl import initialize as _ddl_initialize
 from ..engine import install_from_objects
 from ..engine import resolver as _resolver
-from ..engine.engine_spec import EngineCfg
+from ..specs.engine_spec import EngineCfg
 from ..router import Router
 from ..router._routing import (
     include_router as _include_router_impl,

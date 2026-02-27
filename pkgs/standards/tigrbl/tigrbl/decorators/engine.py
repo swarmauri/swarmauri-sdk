@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 # EngineSpec provides the canonical parsing; EngineCfg is the accepted input type
 # (DSN string or mapping) attached by @engine_ctx.
-from ..engine.engine_spec import EngineCfg
+from ..specs.engine_spec import EngineCfg
 
 
 def _normalize(ctx: Optional[EngineCfg] = None, **kw: Any) -> EngineCfg:

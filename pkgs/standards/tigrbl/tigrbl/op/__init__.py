@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ._op import Op
 from .alias import Alias
-from .alias_spec import AliasSpec
+from ..specs.alias_spec import AliasSpec
 from .types import (
     OpSpec,
     OpHook,
