@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Sequence
 
-from ._base import OpenAPISecurityDependency
+from ..._base._security_base import OpenAPISecurityDependency
 
 
 class OpenIdConnect(OpenAPISecurityDependency):
