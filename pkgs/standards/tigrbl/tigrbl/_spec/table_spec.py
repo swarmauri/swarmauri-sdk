@@ -35,3 +35,18 @@ class TableSpec:
         # the model class directly. Keep both surfaces available.
         if self.model is None and self.model_ref is not None:
             self.model = self.model_ref
+
+    @classmethod
+    def collect(cls, model: type) -> "TableSpec":
+        from ..mapping.spec_normalization import merge_seq_attr, resolve_table_engine
+
+        return cls(
+            model=model,
+            engine=resolve_table_engine(model),
+            ops=merge_seq_attr(model, "OPS"),
+            columns=merge_seq_attr(model, "COLUMNS"),
+            schemas=merge_seq_attr(model, "SCHEMAS"),
+            hooks=merge_seq_attr(model, "HOOKS"),
+            security_deps=merge_seq_attr(model, "SECURITY_DEPS"),
+            deps=merge_seq_attr(model, "DEPS"),
+        )
