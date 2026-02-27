@@ -4,7 +4,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped
 from tigrbl import TigrblApp, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.tables import Base as Base3
 from tigrbl.specs import IO, F, S, acol
 

@@ -2,7 +2,7 @@ import httpx
 import pytest
 import pytest_asyncio
 from tigrbl import Base, TigrblApp, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
 from tigrbl.specs import IO, F, S, acol

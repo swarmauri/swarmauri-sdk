@@ -8,7 +8,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String
 from tigrbl import Base, TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.hook import hook_ctx
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import PgUUID

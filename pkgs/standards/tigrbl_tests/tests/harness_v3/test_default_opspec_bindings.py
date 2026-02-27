@@ -14,7 +14,7 @@ from __future__ import annotations
 import inspect
 
 from tigrbl import Base, TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs.binding_spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
 from tigrbl.types import Column, String

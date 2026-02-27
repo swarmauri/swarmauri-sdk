@@ -54,7 +54,7 @@ def _client_for_owner(
 
     from tigrbl.engine._engine import Engine
     from tigrbl.engine.engine_spec import EngineSpec
-    from tigrbl.engine.shortcuts import mem
+    from tigrbl.shortcuts.engine import mem
 
     cfg = {**mem(async_=False), "tag": str(uuid.uuid4())}
     engine = Engine(EngineSpec.from_any(cfg))
@@ -132,7 +132,7 @@ def _client_for_tenant(
 
     from tigrbl.engine._engine import Engine
     from tigrbl.engine.engine_spec import EngineSpec
-    from tigrbl.engine.shortcuts import mem
+    from tigrbl.shortcuts.engine import mem
 
     cfg = {**mem(async_=False), "tag": str(uuid.uuid4())}
     engine = Engine(EngineSpec.from_any(cfg))

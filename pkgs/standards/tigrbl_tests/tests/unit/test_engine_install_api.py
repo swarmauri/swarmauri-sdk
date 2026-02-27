@@ -2,7 +2,7 @@ import pytest
 
 from tigrbl import TigrblRouter, engine_ctx
 from tigrbl.engine import resolver as _resolver
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 
 
 @pytest.mark.unit

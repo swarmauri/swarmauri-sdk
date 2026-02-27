@@ -1,5 +1,5 @@
 from tigrbl.engine import resolver
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 
 
 def _reset_resolver_state() -> None:

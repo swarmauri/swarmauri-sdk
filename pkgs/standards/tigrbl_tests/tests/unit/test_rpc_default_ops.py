@@ -6,7 +6,7 @@ from tigrbl.orm.mixins import BulkCapable, GUIDPk
 from tigrbl.specs import IO, S, F, acol as spec_acol
 from tigrbl.orm.tables import Base
 from tigrbl.types import Session, String
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.engine import resolver as _resolver
 
 

@@ -7,7 +7,7 @@ import pytest
 from tigrbl_client import TigrblClient
 
 from tigrbl import Base
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.shortcuts.app import deriveApp
 from tigrbl.types import Column, String

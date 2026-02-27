@@ -2,7 +2,7 @@ import pytest
 
 from tigrbl import engine_ctx
 from tigrbl.engine import resolver as _resolver
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S
 from tigrbl.shortcuts import acol

@@ -1,7 +1,7 @@
 import pytest
 
 from tigrbl import TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
 
 

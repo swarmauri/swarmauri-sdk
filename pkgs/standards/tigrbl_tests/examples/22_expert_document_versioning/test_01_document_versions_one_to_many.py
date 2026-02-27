@@ -9,7 +9,7 @@ import httpx
 import pytest
 from tigrbl import Base, TigrblApp, TigrblRouter, hook_ctx
 from tigrbl.engine import resolver
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.shortcuts import acol
 from tigrbl.specs import IO, F, S

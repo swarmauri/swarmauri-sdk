@@ -4,7 +4,7 @@ import httpx
 import pytest
 
 from tigrbl import Base, TigrblApp, hook_ctx, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.specs import F, IO, S
 from tigrbl.shortcuts import acol
 from tigrbl.types import Integer, Mapped, String

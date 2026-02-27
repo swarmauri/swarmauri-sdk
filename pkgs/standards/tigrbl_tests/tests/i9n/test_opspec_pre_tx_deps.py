@@ -6,7 +6,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
 from tigrbl import Base, TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.hook import hook_ctx
 from tigrbl.op import OpSpec
 from tigrbl.orm.mixins import GUIDPk

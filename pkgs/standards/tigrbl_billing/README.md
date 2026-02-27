@@ -52,7 +52,7 @@ monorepo using `uv` workspaces.
 ## Quick Start 🚀
 
 ```python
-from tigrbl.engine.shortcuts import engine, mem
+from tigrbl.engine.shortcuts import engine
 from tigrbl_billing.api import billing_api
 
 # Build a fully loaded billing app with async support.

@@ -10,7 +10,7 @@ import inspect
 import httpx
 import pytest
 from tigrbl import Base, TigrblApp, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.responses import JSONResponse
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security

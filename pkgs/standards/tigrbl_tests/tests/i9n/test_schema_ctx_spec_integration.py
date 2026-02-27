@@ -8,7 +8,7 @@ from tigrbl import TigrblApp
 from tigrbl.column.storage_spec import StorageTransform
 from tigrbl.core import crud
 from tigrbl.engine import resolver as _resolver
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.tables import Base as Base3
 from tigrbl.schema.decorators import schema_ctx
 from tigrbl.specs import IO, F, S, acol

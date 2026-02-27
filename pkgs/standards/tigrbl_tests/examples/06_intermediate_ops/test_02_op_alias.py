@@ -1,7 +1,7 @@
 """Lesson 06.2: Renaming canonical operations with `alias_ctx`."""
 
 from tigrbl import Base, TigrblApp, alias, alias_ctx
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 

@@ -7,7 +7,7 @@ searching the class hierarchy manually.
 """
 
 from tigrbl import Base, TigrblRouter, engine_ctx
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
