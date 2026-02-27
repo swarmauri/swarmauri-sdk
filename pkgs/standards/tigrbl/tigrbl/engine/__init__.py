@@ -18,6 +18,7 @@ __all__ = [
     "collect_engine_config",
     "bind",
     "install_from_objects",
+    "resolver",
     "blocking_sqlite_engine",
     "blocking_postgres_engine",
     "async_sqlite_engine",
@@ -82,8 +83,12 @@ def engine(*args, **kwargs):
 
 
 def __getattr__(name: str):
+    if name == "resolver":
+        from ..mapping import engine_resolver as resolver
+
+        return resolver
     if name == "EngineSpec":
-        from ..specs.engine_spec import EngineSpec
+        from .._spec.engine_spec import EngineSpec
 
         return EngineSpec
     raise AttributeError(name)

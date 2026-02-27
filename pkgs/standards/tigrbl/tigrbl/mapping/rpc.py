@@ -19,6 +19,7 @@ from pydantic import BaseModel
 
 from ..op import OpSpec
 from ..op.types import PHASES
+from ..runtime import executor as _executor
 from ..runtime.status import HTTPException
 from ..dispatch import dispatch_operation
 
@@ -369,17 +370,29 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
             ),
         )
 
-        result = await dispatch_operation(
-            router=getattr(model, "router", None),
-            model_or_name=model,
-            alias=alias,
-            payload=base_ctx.get("payload"),
-            db=db,
-            request=request,
-            ctx=base_ctx,
-            response_serializer=lambda r: _serialize_output(model, alias, target, r),
-            rpc_mode=True,
-        )
+        try:
+            result = await dispatch_operation(
+                router=getattr(model, "router", None),
+                model_or_name=model,
+                alias=alias,
+                payload=base_ctx.get("payload"),
+                db=db,
+                request=request,
+                ctx=base_ctx,
+                response_serializer=lambda r: _serialize_output(
+                    model, alias, target, r
+                ),
+                rpc_mode=True,
+            )
+        except RuntimeError:
+            phases = _get_phase_chains(model, alias)
+            fallback = await _executor._invoke(
+                request=request,
+                db=db,
+                phases=phases,
+                ctx=base_ctx,
+            )
+            result = _serialize_output(model, alias, target, fallback)
 
         return result
 

@@ -96,7 +96,7 @@ def _materialize_colspecs_to_sqla(cls, *, map_columns: bool = True) -> None:
     Keep the original specs in __tigrbl_cols__ for downstream builders.
     """
     try:
-        from tigrbl.specs.column_spec import ColumnSpec
+        from tigrbl._spec.column_spec import ColumnSpec
     except Exception:
         return
     try:

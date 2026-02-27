@@ -3,12 +3,11 @@ from __future__ import annotations
 from typing import Any
 
 from ..app._model_registry import initialize_table_registry
-from ..specs.app_spec import AppSpec
+from .._spec.app_spec import AppSpec
 from ..ddl import initialize as _ddl_initialize
 from ..engine import install_from_objects
 from ..mapping import engine_resolver as _resolver
-from ..specs.engine_spec import EngineCfg
-from ..router import Router
+from .._spec.engine_spec import EngineCfg
 from ..router._routing import (
     include_router as _include_router_impl,
     merge_tags as _merge_tags_impl,
@@ -185,6 +184,8 @@ class App(AppSpec):
         self.jsonrpc_prefix = collected_spec.jsonrpc_prefix
         self.system_prefix = collected_spec.system_prefix
         self.lifespan = lifespan
+
+        from ._router import Router
 
         Router.__init__(
             self,

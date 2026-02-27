@@ -6,7 +6,7 @@ from typing import Iterable, Union
 
 from ..hook.types import HookPhase, HookPredicate, StepFn
 from ..concrete.hook import Hook
-from ..specs.hook_spec import HookSpec
+from .._spec.hook_spec import HookSpec
 
 
 def hook(

@@ -20,7 +20,7 @@ from typing import (
 from .._concrete._app import App as _App
 from ..concrete.tigrbl_router import TigrblRouter
 from ..router._routing import add_route as _add_route_impl
-from ..specs.engine_spec import EngineCfg
+from .._spec.engine_spec import EngineCfg
 from ..mapping import engine_resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
 from ..mapping.router import (
@@ -40,7 +40,7 @@ from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..system.docs import build_openapi as _build_openapi
 from ..op import get_registry, OpSpec
 from ..app._model_registry import initialize_table_registry
-from ..specs.app_spec import AppSpec
+from .._spec.app_spec import AppSpec
 from ..system.favicon import FAVICON_PATH, mount_favicon
 
 

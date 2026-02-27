@@ -6,8 +6,8 @@ from typing import Literal, Tuple, cast
 from ..config.constants import CANON as CANONICAL_VERB_TUPLE
 from ..hook.types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
 from ..hook import HookSpec as OpHook
-from ..specs.engine_spec import EngineCfg
-from ..specs.op_spec import OpSpec
+from .._spec.engine_spec import EngineCfg
+from .._spec.op_spec import OpSpec
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Core aliases & enums

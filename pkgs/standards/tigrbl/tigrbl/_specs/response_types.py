@@ -1,12 +1,3 @@
-from __future__ import annotations
+"""Backward-compatible exports for `tigrbl.specs.response_types`."""
 
-from .._concrete._response import Response, Template
-from .response_spec import ResponseKind, ResponseSpec, TemplateSpec
-
-__all__ = [
-    "TemplateSpec",
-    "ResponseSpec",
-    "ResponseKind",
-    "Template",
-    "Response",
-]
+from .._spec.response_types import *  # noqa: F401,F403
