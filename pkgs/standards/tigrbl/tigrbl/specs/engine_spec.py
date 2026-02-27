@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Mapping, Union, Any, Tuple
 from urllib.parse import urlsplit, urlunsplit
 
-from ..engine._engine import Engine, Provider, SessionFactory
+from .._concrete._engine import Engine, Provider, SessionFactory
 from ..engine.builders import (
     async_postgres_engine,
     async_sqlite_engine,

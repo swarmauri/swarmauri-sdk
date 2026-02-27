@@ -9,7 +9,7 @@ import logging
 import threading
 from typing import Any, Callable, Optional
 
-from ._engine import AsyncSession, Engine, Provider, Session
+from .._concrete._engine import AsyncSession, Engine, Provider, Session
 from ..specs.engine_spec import EngineSpec, EngineCfg
 
 logger = logging.getLogger("uvicorn")

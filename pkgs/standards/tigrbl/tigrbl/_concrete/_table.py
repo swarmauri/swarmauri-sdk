@@ -4,7 +4,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from typing import Any, Callable
 
-from ..engine._engine import AsyncSession, Session
+from .._concrete._engine import AsyncSession, Session
 from ..engine import install_from_objects  # reuse the collector
 from ..engine import resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
