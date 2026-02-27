@@ -5,7 +5,7 @@ import inspect
 import httpx
 import pytest
 
-from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
+from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl.concrete.tigrbl_app import TigrblApp
 from tigrbl.router import TigrblRouter
 from tigrbl.table import Base
