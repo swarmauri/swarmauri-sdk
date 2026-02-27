@@ -12,7 +12,7 @@ from collections.abc import Iterable, Mapping
 from urllib.parse import parse_qs
 
 from tigrbl._concrete._headers import HeaderCookies, Headers
-from ..specs.request_spec import RequestSpec
+from .._spec.request_spec import RequestSpec
 
 
 @dataclass(frozen=True)

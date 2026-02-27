@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Union
 
-from ..specs.engine_spec import EngineSpec
+from .._spec.engine_spec import EngineSpec
 from .._concrete._engine import Provider, Engine
 
 EngineCfg = Union[str, Mapping[str, object]]  # DSN string or structured mapping

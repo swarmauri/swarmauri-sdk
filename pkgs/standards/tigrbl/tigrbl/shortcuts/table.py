@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Sequence, Type
 
-from ..specs.table_spec import TableSpec
+from .._spec.table_spec import TableSpec
 from .._concrete._table import Table
 
 

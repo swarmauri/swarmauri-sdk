@@ -1,4 +1,4 @@
-from ..specs.middleware_spec import (
+from .._spec.middleware_spec import (
     ASGIApp,
     ASGIReceive,
     ASGISend,

@@ -4,7 +4,7 @@ from .types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
 from ..shortcuts.hook import hook, hook_spec
 from ..concrete.hook import Hook
 from .exceptions import InvalidHookPhaseError
-from ..specs.hook_spec import HookSpec
+from .._spec.hook_spec import HookSpec
 from .._base._hook import HookBase
 
 __all__ = [

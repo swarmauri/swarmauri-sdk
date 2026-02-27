@@ -2,7 +2,7 @@ from uuid import UUID
 
 
 from ...specs import IO, F, acol, S
-from ...specs.storage_spec import ForeignKeySpec
+from ..._spec.storage_spec import ForeignKeySpec
 from ...types import Integer, String, PgUUID, Mapped
 
 from . import Base

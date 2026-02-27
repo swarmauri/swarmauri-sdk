@@ -12,7 +12,7 @@ from .get_schema import get_schema
 from ..decorators.schema import schema_ctx
 from .collect import collect_decorated_schemas
 from .._concrete._schema import Schema
-from ..specs.schema_spec import SchemaSpec
+from .._spec.schema_spec import SchemaSpec
 from ..shortcuts.schema import schema, schema_spec
 from .types import SchemaRef, SchemaArg, SchemaKind
 

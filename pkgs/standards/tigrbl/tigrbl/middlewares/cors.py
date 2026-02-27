@@ -10,7 +10,7 @@ from tigrbl.requests import Request
 from tigrbl._concrete._response import Response
 
 from .base import BaseHTTPMiddleware
-from ..specs.middleware_spec import WSGIStartResponse
+from .._spec.middleware_spec import WSGIStartResponse
 
 
 class CORSMiddleware(BaseHTTPMiddleware):

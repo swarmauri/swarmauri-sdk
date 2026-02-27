@@ -209,7 +209,7 @@ class Kernel:
             ) from exc
 
     def compile_plan(self, app: Any) -> KernelPlan:
-        from ...specs.binding_spec import (
+        from .._spec.binding_spec import (
             HttpJsonRpcBindingSpec,
             HttpRestBindingSpec,
             WsBindingSpec,
