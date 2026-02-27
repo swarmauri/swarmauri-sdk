@@ -7,8 +7,8 @@ from .._concrete._redirect_response import RedirectResponse
 from .._concrete._response import Response
 from ..decorators.response import get_attached_response_spec, response_ctx
 from ..runtime.atoms.response.templates import render_template
-from ..specs.response_spec import ResponseSpec
-from .resolver import infer_hints, resolve_response_spec
+from .._spec.response_spec import ResponseSpec
+from ..mapping.responses_resolver import infer_hints, resolve_response_spec
 
 __all__ = [
     "FileResponse",

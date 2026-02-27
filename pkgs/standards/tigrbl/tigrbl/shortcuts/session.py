@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Callable, Optional
 
 from ..session.default import DefaultSession
-from ..specs.session_spec import SessionSpec, SessionCfg
+from .._spec.session_spec import SessionSpec, SessionCfg
 
 
 def session_spec(cfg: SessionCfg = None, /, **kw: Any) -> SessionSpec:

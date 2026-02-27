@@ -7,11 +7,10 @@ import surface stable while easing maintenance.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
-from ..._concrete._router import Router
 from ...core.crud.params import Body, Path, Query
 from ...responses import Response
 from ...runtime.status.exceptions import HTTPException
@@ -57,6 +56,16 @@ from ...op.types import CANON, PHASES
 from ...rest import _nested_prefix
 from ...runtime import executor as _executor
 from ...schema.builder import _strip_parent_fields
+
+if TYPE_CHECKING:
+    from ..._concrete._router import Router
+else:
+
+    def Router(*args: Any, **kwargs: Any) -> Any:
+        from ..._concrete._router import Router as _Router
+
+        return _Router(*args, **kwargs)
+
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/rest/common")

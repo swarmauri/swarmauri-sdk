@@ -33,7 +33,7 @@ from .hook import hook_ctx
 from .decorators.engine import engine_ctx
 from .decorators.schema import schema_ctx
 from .decorators.response import response_ctx
-from .specs.response_spec import ResponseSpec
+from ._spec.response_spec import ResponseSpec
 
 # ── Bindings (model + Router orchestration) ───────────────────────────────────────
 from .mapping import (

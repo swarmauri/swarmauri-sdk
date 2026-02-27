@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Iterable, Optional, Union
 
 from ..hook.types import HookPhase, StepFn
-from ..specs.hook_spec import HookSpec
+from .._spec.hook_spec import HookSpec
 
 
 @dataclass(frozen=True, slots=True)

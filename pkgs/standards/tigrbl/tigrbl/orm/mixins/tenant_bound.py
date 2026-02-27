@@ -16,7 +16,7 @@ from ...config.constants import (
 )
 from ...runtime.status import create_standardized_error
 from ...specs import ColumnSpec, F, IO, S
-from ...specs.storage_spec import ForeignKeySpec
+from ..._spec.storage_spec import ForeignKeySpec
 from ...types import Mapped, PgUUID, declared_attr
 
 

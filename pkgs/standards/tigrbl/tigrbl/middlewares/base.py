@@ -11,7 +11,7 @@ from tigrbl._concrete._response import Response
 from tigrbl._concrete._transport_common import finalize_transport_response
 
 from .middleware import Middleware
-from ..specs.middleware_spec import ASGIReceive, ASGISend, Message
+from .._spec.middleware_spec import ASGIReceive, ASGISend, Message
 
 
 class BaseHTTPMiddleware(Middleware):

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Sequence, Type
 
-from ..specs.app_spec import AppSpec
+from .._spec.app_spec import AppSpec
 from .._concrete._app import App
 
 

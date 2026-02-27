@@ -1,25 +1,3 @@
-from __future__ import annotations
+"""Backward-compatible exports for `tigrbl.specs.router_spec`."""
 
-from dataclasses import dataclass, field
-from typing import Any, Callable, Optional, Sequence
-
-from ..specs.engine_spec import EngineCfg
-from ..specs.response_spec import ResponseSpec
-
-
-@dataclass
-class RouterSpec:
-    """Used to produce a router subclass via Router.from_spec()."""
-
-    name: str = "router"
-    prefix: str = ""
-    engine: Optional[EngineCfg] = None
-    tags: Sequence[str] = field(default_factory=tuple)
-    ops: Sequence[Any] = field(default_factory=tuple)
-    schemas: Sequence[Any] = field(default_factory=tuple)
-    hooks: Sequence[Callable[..., Any]] = field(default_factory=tuple)
-    security_deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
-    deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
-    response: Optional[ResponseSpec] = None
-    models: Sequence[Any] = field(default_factory=tuple)
-    tables: Sequence[Any] = field(default_factory=tuple)
+from .._spec.router_spec import *  # noqa: F401,F403

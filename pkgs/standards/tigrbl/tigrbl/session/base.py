@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, List, Optional
 
 from .abc import SessionABC
-from ..specs.session_spec import SessionSpec
+from .._spec.session_spec import SessionSpec
 
 
 @dataclass

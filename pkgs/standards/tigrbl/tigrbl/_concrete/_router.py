@@ -6,19 +6,19 @@ from contextlib import asynccontextmanager
 from typing import Any, Callable
 from types import SimpleNamespace
 
-from ..specs.router_spec import RouterSpec
+from .._spec.router_spec import RouterSpec
 from ..mapping import engine_resolver as _resolver
-from ..specs.engine_spec import EngineCfg
+from .._spec.engine_spec import EngineCfg
 from ..app._model_registry import initialize_table_registry
 
-from tigrbl.router._routing import (
+from ..router._routing import (
     add_route as _add_route_impl,
     include_router as _include_router_impl,
     merge_tags,
     normalize_prefix,
     route,
 )
-from tigrbl._concrete._httpx import ensure_httpx_sync_transport
+from ._httpx import ensure_httpx_sync_transport
 
 from ._route import Route
 from ..system.docs.openapi.metadata import is_metadata_route as _is_metadata_route_impl

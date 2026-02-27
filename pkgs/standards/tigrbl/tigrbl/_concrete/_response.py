@@ -6,7 +6,7 @@ from http.cookies import SimpleCookie
 from typing import Any, Mapping
 
 from ._headers import HeaderCookies, Headers
-from ..specs.response_spec import ResponseSpec, TemplateSpec
+from .._spec.response_spec import ResponseSpec, TemplateSpec
 
 
 class _JSONDualMethod:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ..specs.response_types import (
+from .._spec.response_types import (
     Response,
     ResponseKind,
     ResponseSpec,

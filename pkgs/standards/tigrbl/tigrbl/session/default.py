@@ -4,7 +4,7 @@ import inspect
 from typing import Any, Callable, Optional
 
 from .base import TigrblSessionBase
-from ..specs.session_spec import SessionSpec
+from .._spec.session_spec import SessionSpec
 
 
 class DefaultSession(TigrblSessionBase):
