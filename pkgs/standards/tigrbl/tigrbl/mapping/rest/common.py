@@ -52,7 +52,6 @@ from ...core.crud.params import Body, Path
 from ...op import OpSpec
 from ...op.types import CANON
 from ...rest import _nested_prefix
-from ...runtime import executor as _executor
 from ...runtime.status.exceptions import HTTPException
 from ...runtime.status.mappings import status as _status
 from ...schema.builder import _strip_parent_fields
@@ -99,7 +98,6 @@ __all__ = [
     "_coerce_parent_kw",
     "_default_path_suffix",
     "_ensure_jsonable",
-    "_executor",
     "_get_phase_chains",
     "_is_http_response",
     "_make_list_query_dep",
