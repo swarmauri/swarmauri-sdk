@@ -9,13 +9,20 @@ from ._response import (
     Response,
     StreamingResponse,
 )
-from .decorators import (
+from ..decorators.response import (
     get_attached_response_alias,
     get_attached_response_spec,
     response_ctx,
 )
 from .resolver import infer_hints, resolve_response_spec
-from .shortcuts import as_file, as_html, as_json, as_redirect, as_stream, as_text
+from ..shortcuts.responses import (
+    as_file,
+    as_html,
+    as_json,
+    as_redirect,
+    as_stream,
+    as_text,
+)
 from ..specs.response_types import Response as ResponseConfig
 from ..specs.response_types import ResponseKind, ResponseSpec, Template, TemplateSpec
 from ..runtime.atoms.response.renderer import ResponseHints, render

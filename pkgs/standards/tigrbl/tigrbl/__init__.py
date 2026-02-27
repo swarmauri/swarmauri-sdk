@@ -31,8 +31,8 @@ from .schema.types import SchemaRef, SchemaArg
 from .op import alias_ctx, op_ctx, alias, op_alias
 from .hook import hook_ctx
 from .engine.decorators import engine_ctx
-from .schema.decorators import schema_ctx
-from .responses.decorators import response_ctx
+from .decorators.schema import schema_ctx
+from .decorators.response import response_ctx
 from .specs.response_spec import ResponseSpec
 
 # ── Bindings (model + Router orchestration) ───────────────────────────────────────
