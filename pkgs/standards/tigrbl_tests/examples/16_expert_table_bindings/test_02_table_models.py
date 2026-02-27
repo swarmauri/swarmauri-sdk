@@ -6,7 +6,7 @@ discover model-level metadata without duplicating model discovery logic.
 """
 
 from tigrbl import Base, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 

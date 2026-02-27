@@ -1,5 +1,6 @@
 from tigrbl.engine import install_from_objects, resolver
-from tigrbl.engine.shortcuts import mem, pga, pgs, sqlitef
+from tigrbl.engine.shortcuts import pga, pgs, sqlitef
+from tigrbl.shortcuts.engine import mem
 from tigrbl.op import Op
 
 

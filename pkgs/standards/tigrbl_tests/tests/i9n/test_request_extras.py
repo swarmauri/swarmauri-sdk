@@ -6,7 +6,7 @@ from httpx import ASGITransport, AsyncClient
 from pydantic import Field
 from sqlalchemy import Column, String
 from tigrbl import Base, TigrblApp, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.schema import _build_schema
 
 

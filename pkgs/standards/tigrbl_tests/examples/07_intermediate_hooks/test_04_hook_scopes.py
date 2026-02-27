@@ -1,7 +1,7 @@
 """Lesson 07.4: Scoping hooks to specific operations."""
 
 from tigrbl import Base, TigrblApp, hook_ctx
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 

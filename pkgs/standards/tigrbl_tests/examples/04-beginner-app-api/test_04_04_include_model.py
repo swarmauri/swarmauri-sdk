@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from tigrbl import TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 
 from tigrbl_tests.examples.lesson_support import make_widget_model
 

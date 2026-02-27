@@ -11,7 +11,7 @@ import pytest
 from sqlalchemy import Column, String
 from tigrbl import Base, TigrblApp, TigrblRouter, engine_ctx, op_ctx
 from tigrbl.engine import resolver
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server

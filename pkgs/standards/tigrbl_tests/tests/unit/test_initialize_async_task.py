@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import Column, Integer
 
 from tigrbl import Base, TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 
 
 class Widget(Base):

@@ -22,7 +22,7 @@ from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 

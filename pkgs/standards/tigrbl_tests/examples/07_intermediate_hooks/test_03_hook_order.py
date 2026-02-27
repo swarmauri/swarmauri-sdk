@@ -1,7 +1,7 @@
 """Lesson 07.3: Ordering multiple hooks in the same phase."""
 
 from tigrbl import Base, TigrblApp, hook_ctx
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 

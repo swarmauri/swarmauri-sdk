@@ -2,7 +2,7 @@ from __future__ import annotations
 import pytest
 from tigrbl import alias_ctx
 from tigrbl.responses import response_ctx
-from tigrbl.engine.shortcuts import engine as build_engine, mem
+from tigrbl.shortcuts.engine import engine, mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 from tigrbl.specs import IO, S, F, acol as spec_acol
@@ -24,7 +24,7 @@ async def test_response_ctx_alias_table_rpc():
             io=IO(in_verbs=("create",), out_verbs=("read",)),
         )
 
-    eng = build_engine(mem(async_=False))
+    eng = engine(mem(async_=False))
     router = TigrblRouter(engine=eng)
     router.include_table(Widget, mount_router=False)
     router.initialize()

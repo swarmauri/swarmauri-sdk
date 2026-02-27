@@ -2,7 +2,7 @@ from httpx import ASGITransport, Client
 from sqlalchemy import Column, String
 
 from tigrbl import TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.op import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base

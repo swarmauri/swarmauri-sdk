@@ -5,7 +5,7 @@ from sqlalchemy import Integer, String, select
 from sqlalchemy.orm import Mapped
 from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.engine import resolver as _resolver
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.tables import Base as Base3
 from tigrbl.specs import S, acol
 

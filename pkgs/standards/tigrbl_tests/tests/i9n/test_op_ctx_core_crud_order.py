@@ -6,7 +6,7 @@ from tigrbl import core as _core
 from tigrbl.core import crud
 from tigrbl.engine._engine import Engine
 from tigrbl.engine.engine_spec import EngineSpec
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 

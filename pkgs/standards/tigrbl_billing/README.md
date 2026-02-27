@@ -52,7 +52,7 @@ monorepo using `uv` workspaces.
 ## Quick Start 🚀
 
 ```python
-from tigrbl.engine.shortcuts import engine, mem
+from tigrbl.engine.shortcuts import engine
 from tigrbl_billing.api import billing_api
 
 # Build a fully loaded billing app with async support.
@@ -101,7 +101,7 @@ clean and avoids double registration.
 
 ```python
 from tigrbl import TigrblApp
-from tigrbl.engine.shortcuts import engine as build_engine, mem
+from tigrbl.shortcuts.engine import engine, mem
 
 from tigrbl_billing import ops
 from tigrbl_billing.tables.subscription import Subscription
@@ -112,7 +112,7 @@ ops.cancel_subscription
 
 
 def build_app(async_mode: bool = True) -> TigrblApp:
-    app = TigrblApp(engine=build_engine(mem(async_=async_mode)))
+    app = TigrblApp(engine=engine(mem(async_=async_mode)))
     app.include_models([Subscription])
     return app
 ```

@@ -4,7 +4,7 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from tigrbl import TigrblApp, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import BulkCapable, GUIDPk, Replaceable
 from tigrbl.orm.tables import Base
 from tigrbl.types import Column, String

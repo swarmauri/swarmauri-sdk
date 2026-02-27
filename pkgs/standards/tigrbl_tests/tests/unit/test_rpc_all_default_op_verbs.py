@@ -3,7 +3,7 @@ from collections.abc import Iterator
 
 from tigrbl import TigrblApp
 from tigrbl.engine import resolver as _resolver
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.op import OpSpec
 from tigrbl.orm.mixins import BulkCapable, GUIDPk, Replaceable
 from tigrbl.orm.tables import Base

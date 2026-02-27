@@ -1,7 +1,7 @@
 import pytest
 
 from tigrbl import TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 
 
 @pytest.mark.unit

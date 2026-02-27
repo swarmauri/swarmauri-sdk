@@ -4,7 +4,7 @@ from httpx import ASGITransport, AsyncClient
 from pydantic import BaseModel
 from sqlalchemy import Column, String
 from tigrbl import Base, TigrblApp, TigrblRouter, op_ctx, schema_ctx
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 
 

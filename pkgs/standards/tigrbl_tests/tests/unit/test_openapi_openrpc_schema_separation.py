@@ -1,7 +1,7 @@
 from httpx import ASGITransport, Client
 
 from tigrbl import Base, TigrblApp, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S
 from tigrbl.shortcuts import acol
