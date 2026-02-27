@@ -10,7 +10,7 @@ from ..runtime.executor import _Ctx
 from ..op.collect import apply_alias
 from ..op.mro_collect import mro_alias_map_for
 from ..op.decorators import _maybe_await, _unwrap
-from .decorators import HOOK_DECLS_ATTR, Hook
+from ..decorators.hook import HOOK_DECLS_ATTR, Hook
 
 logger = logging.getLogger("uvicorn")
 

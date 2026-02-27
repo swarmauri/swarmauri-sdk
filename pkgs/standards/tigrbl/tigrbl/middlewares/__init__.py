@@ -12,7 +12,7 @@ from ..specs.middleware_spec import (
 )
 from .middleware import Middleware
 from .base import BaseHTTPMiddleware
-from .decorators import MiddlewareConfig, middleware, middlewares
+from ..decorators.middlewares import MiddlewareConfig, middleware, middlewares
 from .compose import apply_middlewares
 from .cors import CORSMiddleware
 

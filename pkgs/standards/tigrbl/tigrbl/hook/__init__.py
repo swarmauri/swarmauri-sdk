@@ -1,7 +1,7 @@
 from ..config.constants import HOOK_DECLS_ATTR
-from .decorators import hook_ctx
+from ..decorators.hook import hook_ctx
 from .types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
-from .shortcuts import hook, hook_spec
+from ..shortcuts.hook import hook, hook_spec
 from ._hook import Hook
 from .exceptions import InvalidHookPhaseError
 from ..specs.hook_spec import HookSpec

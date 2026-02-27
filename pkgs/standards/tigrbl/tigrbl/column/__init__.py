@@ -30,7 +30,7 @@ from ..specs.storage_spec import (
 from ..specs.io_spec import IOSpec as IO
 
 # Ergonomic constructors
-from .shortcuts import makeColumn, makeVirtualColumn, acol, vcol
+from ..shortcuts.column import makeColumn, makeVirtualColumn, acol, vcol
 
 # Bind-time inference (DB/vendor-agnostic)
 from .infer import (

@@ -3,7 +3,7 @@ from ..specs.session_spec import SessionSpec
 from .base import TigrblSessionBase
 from .default import DefaultSession
 from .decorators import session_ctx, read_only_session
-from .shortcuts import (
+from ..shortcuts.session import (
     session_spec,
     tx_read_committed,
     tx_repeatable_read,

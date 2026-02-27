@@ -11,7 +11,7 @@ from .builders import (
 )
 from ._engine import Engine
 from ..specs.engine_spec import EngineSpec
-from .shortcuts import engine
+from ..shortcuts.engine import engine
 
 __all__ = [
     "collect_engine_config",
