@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Literal, Optional, Type, Union
 
 from ..config.constants import TIGRBL_NESTED_PATHS_ATTR
@@ -32,6 +33,7 @@ BindingSpec = Union[HttpRestBindingSpec, HttpJsonRpcBindingSpec, WsBindingSpec]
 @dataclass(frozen=True, slots=True)
 class Binding:
     """Named binding declaration used for registry composition."""
+    """Named binding wrapper used by registries and planners."""
 
     name: str
     spec: BindingSpec
@@ -39,24 +41,25 @@ class Binding:
 
 @dataclass(slots=True)
 class BindingRegistry:
-    """Minimal in-memory registry for binding declarations."""
+    """Simple in-memory registry for named transport bindings."""
 
-    _bindings: dict[str, BindingSpec] = field(default_factory=dict)
+    _bindings: dict[str, Binding]
+
+    def __init__(self) -> None:
+        self._bindings = {}
 
     def register(self, binding: Binding) -> None:
-        self._bindings[binding.name] = binding.spec
+        self._bindings[binding.name] = binding
 
-    def get(self, name: str) -> BindingSpec | None:
+    def get(self, name: str) -> Optional[Binding]:
         return self._bindings.get(name)
 
-    def items(self) -> tuple[Binding, ...]:
-        return tuple(
-            Binding(name=name, spec=spec) for name, spec in self._bindings.items()
-        )
+    def values(self) -> tuple[Binding, ...]:
+        return tuple(self._bindings.values())
 
 
-def nested_prefix(model: Type) -> Optional[str]:
-    """Return the user-supplied hierarchical prefix or ``None``."""
+def resolve_rest_nested_prefix(model: Type) -> Optional[str]:
+    """Return the configured nested REST prefix for ``model`` if present."""
 
     cb = getattr(model, TIGRBL_NESTED_PATHS_ATTR, None)
     if callable(cb):
@@ -71,5 +74,5 @@ __all__ = [
     "HttpJsonRpcBindingSpec",
     "HttpRestBindingSpec",
     "WsBindingSpec",
-    "nested_prefix",
+    "resolve_rest_nested_prefix",
 ]
