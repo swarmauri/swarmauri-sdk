@@ -12,22 +12,17 @@ except Exception:  # pragma: no cover
         pass
 
 
+from .._base import SchemaBase
 from ..schema.types import SchemaKind
 
 
 @dataclass(frozen=True, slots=True)
-class Schema:
+class Schema(SchemaBase):
     """Concrete schema paired with its alias and kind."""
 
     model: Type[BaseModel]
     kind: SchemaKind = "out"
     alias: str | None = None
-
-    @classmethod
-    def collect(cls, model: type) -> dict[str, dict[str, type]]:
-        from ..schema.collect import collect_decorated_schemas
-
-        return collect_decorated_schemas(model)
 
 
 __all__ = ["Schema"]

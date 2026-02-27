@@ -24,6 +24,7 @@ _EXPORTS = {
     "HTMLResponse": "_html_response",
     "PlainTextResponse": "_plain_text_response",
     "StreamingResponse": "_streaming_response",
+    "DefaultSession": "_session",
     "FileResponse": "_file_response",
     "RedirectResponse": "_redirect_response",
 }

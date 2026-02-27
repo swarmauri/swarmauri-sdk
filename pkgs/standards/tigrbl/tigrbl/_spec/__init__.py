@@ -11,6 +11,8 @@ from typing import Any
 _EXPORTS = {
     "AliasSpec": "alias_spec",
     "AppSpec": "app_spec",
+    "Binding": "binding_spec",
+    "BindingRegistry": "binding_spec",
     "HttpRestBindingSpec": "binding_spec",
     "HttpJsonRpcBindingSpec": "binding_spec",
     "WsBindingSpec": "binding_spec",
@@ -28,6 +30,7 @@ _EXPORTS = {
     "RequestSpec": "request_spec",
     "RouterSpec": "router_spec",
     "SchemaSpec": "schema_spec",
+    "SchemaRef": "schema_spec",
     "SessionSpec": "session_spec",
     "StorageSpec": "storage_spec",
     "StorageTransform": "storage_spec",
