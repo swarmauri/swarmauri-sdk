@@ -8,7 +8,7 @@ from ..ddl import initialize as _ddl_initialize
 from .._concrete._engine import Engine
 from ..mapping import engine_resolver as _resolver
 from .._spec.engine_spec import EngineCfg
-from ..router._routing import (
+from ._routing import (
     include_router as _include_router_impl,
     merge_tags as _merge_tags_impl,
     normalize_prefix as _normalize_prefix_impl,
