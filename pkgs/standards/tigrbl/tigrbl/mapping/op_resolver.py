@@ -8,7 +8,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 from .types import OpSpec, TargetOp
 from ..config.constants import TIGRBL_OPS_ATTR
 from .canonical import should_wire_canonical
-from .mro_collect import mro_alias_map_for
+from .op_mro_collect import mro_alias_map_for
 
 try:
     # Per-model registry (observable, triggers rebind elsewhere)

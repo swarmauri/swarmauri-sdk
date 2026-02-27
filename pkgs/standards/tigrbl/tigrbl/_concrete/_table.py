@@ -6,7 +6,7 @@ from typing import Any, Callable
 
 from .._concrete._engine import AsyncSession, Session
 from ..engine import install_from_objects  # reuse the collector
-from ..engine import resolver as _resolver
+from ..mapping import engine_resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
 from ..table._base import Base
 from ..specs.table_spec import TableSpec

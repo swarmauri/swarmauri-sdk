@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from typing import Any, Dict, Mapping, Optional, Union
 
 from .common import RouterLike, _ensure_router_ns
-from ...engine import resolver as _resolver
+from ...mapping import engine_resolver as _resolver
 from ...core.crud.helpers.model import _single_pk_name
 from ...dispatch import resolve_operation
 
