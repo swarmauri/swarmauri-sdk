@@ -5,7 +5,7 @@ from typing import Any, Mapping
 import pytest
 from tigrbl.core import crud
 from tigrbl.core.crud import helpers
-from tigrbl.engine.shortcuts import engine
+from tigrbl.shortcuts.engine import engine
 from tigrbl.shortcuts.engine import mem
 from tigrbl._spec import IO, S, F, acol
 from tigrbl.types import Column, Integer, SAEnum, SimpleNamespace, String

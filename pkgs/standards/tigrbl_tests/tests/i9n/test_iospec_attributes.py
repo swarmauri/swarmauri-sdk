@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Mapped, sessionmaker
 from sqlalchemy.pool import StaticPool
 from tigrbl import TigrblApp
-from tigrbl.engine.shortcuts import engine as engine_factory
+from tigrbl.shortcuts.engine import engine as engine_factory
 from tigrbl.shortcuts.engine import mem
 from tigrbl.mapping.model import bind
 from tigrbl.mapping.rest.router import _build_router
