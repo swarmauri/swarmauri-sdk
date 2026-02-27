@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Any, Callable, Iterable, Optional, Sequence
 
-from ..op.decorators import _unwrap, op_ctx
+from ..decorators.op import _unwrap, op_ctx
 from ..op.types import Arity, PersistPolicy, TargetOp
 from ..schema.types import SchemaArg
 
