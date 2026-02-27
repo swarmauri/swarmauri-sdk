@@ -1,6 +1,7 @@
 import pytest
 from tigrbl import TigrblApp
-from tigrbl.engine.shortcuts import engine as build_engine, mem
+from tigrbl.engine.shortcuts import engine as build_engine
+from tigrbl.engine.shortcuts import mem
 
 
 def _db_names(conn):

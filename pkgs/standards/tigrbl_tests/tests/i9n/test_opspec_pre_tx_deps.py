@@ -5,14 +5,12 @@ import inspect
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
-
 from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.hook import hook_ctx
 from tigrbl.op import OpSpec
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.runtime.status import HTTPException
-from tigrbl.runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP
+from tigrbl.runtime.status import _RPC_TO_HTTP, ERROR_MESSAGES, HTTPException
 
 
 async def _build_client(model: type, db_mode: str) -> tuple[AsyncClient, TigrblApp]:

@@ -1,7 +1,6 @@
 import httpx
 import pytest
 from sqlalchemy import Column, String
-
 from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
