@@ -4,7 +4,7 @@ import pytest
 
 from tigrbl.middlewares import BaseHTTPMiddleware, CORSMiddleware
 from tigrbl.requests import Request
-from tigrbl.responses import Response
+from tigrbl import Response
 
 
 async def _run_asgi(app, scope: dict, body: bytes = b"") -> list[dict]:
