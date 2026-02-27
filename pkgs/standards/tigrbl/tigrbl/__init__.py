@@ -10,7 +10,6 @@ register RPC & REST, and (optionally) mount JSON-RPC and diagnostics.
 from __future__ import annotations
 
 from ._concrete import Router
-from .dispatch import dispatch_operation, resolve_operation
 
 # ── OpSpec (source of truth) ───────────────────────────────────────────────────
 from .op import (
@@ -172,8 +171,6 @@ __all__ += [
     "DEFAULT_HTTP_METHODS",
     "Request",
     "Response",
-    "dispatch_operation",
-    "resolve_operation",
     "resolver",
 ]
 __all__ += [
