@@ -7,7 +7,7 @@ binding the system helper to the API class.
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl import TigrblRouter, TigrblApp
+from tigrbl import TigrblApp, TigrblRouter
 
 
 @pytest.mark.asyncio
