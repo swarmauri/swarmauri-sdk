@@ -13,7 +13,6 @@ _EXPORTS = {
     "op_alias": "tigrbl.decorators.op",
     "op_ctx": "tigrbl.decorators.op",
     "Arity": "tigrbl.op.types",
-    "CANON": "tigrbl.op.types",
     "PersistPolicy": "tigrbl.op.types",
     "TargetOp": "tigrbl.op.types",
     "VerbAliasPolicy": "tigrbl.op.types",
@@ -38,7 +37,3 @@ def __getattr__(name: str) -> Any:
     value = getattr(module, name)
     globals()[name] = value
     return value
-
-
-def __dir__() -> list[str]:
-    return sorted(__all__ + [k for k in globals() if not k.startswith("_")])

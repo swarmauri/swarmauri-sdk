@@ -6,12 +6,6 @@ from typing import Optional, Mapping, Union, Any, Tuple
 from urllib.parse import urlsplit, urlunsplit
 
 from .._concrete._engine import Engine, Provider, SessionFactory
-from ..engine.builders import (
-    async_postgres_engine,
-    async_sqlite_engine,
-    blocking_postgres_engine,
-    blocking_sqlite_engine,
-)
 
 # The value stored by @engine_ctx on App/API/Table/Op.
 EngineCfg = Union[str, Mapping[str, object], "EngineSpec", Provider, Engine]
@@ -197,6 +191,13 @@ class EngineSpec:
 
     def build(self) -> Tuple[Any, SessionFactory]:
         """Construct the engine and sessionmaker for this spec."""
+        from ..engine.builders import (
+            async_postgres_engine,
+            async_sqlite_engine,
+            blocking_postgres_engine,
+            blocking_sqlite_engine,
+        )
+
         if self.kind == "sqlite":
             if self.memory:
                 if self.async_:
