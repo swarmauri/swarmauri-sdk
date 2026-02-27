@@ -19,7 +19,7 @@ from __future__ import annotations
 
 # Core spec types
 from ..specs.column_spec import ColumnSpec
-from ._column import Column
+from .._concrete._column import Column
 from ..specs.field_spec import FieldSpec as F
 from ..specs.storage_spec import (
     ForeignKey,

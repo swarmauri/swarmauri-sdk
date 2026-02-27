@@ -23,7 +23,9 @@ from tigrbl.runtime.kernel import _default_kernel
 from tigrbl.types import Column, String
 
 
-def _assert_has_match_api(rest_index: Any) -> Callable[[str, str], tuple[int, dict[str, str]]]:
+def _assert_has_match_api(
+    rest_index: Any,
+) -> Callable[[str, str], tuple[int, dict[str, str]]]:
     """Return a (method, path) -> (meta_index, path_params) matcher."""
     if callable(rest_index):
         return rest_index  # type: ignore[return-value]
@@ -107,7 +109,9 @@ def test_kernel_plan_rest_matcher_resolves_collection_and_member_paths() -> None
         ("PATCH", "/widget"),  # member verb on collection
     ],
 )
-def test_kernel_plan_rest_matcher_returns_not_found_for_misses(method: str, path: str) -> None:
+def test_kernel_plan_rest_matcher_returns_not_found_for_misses(
+    method: str, path: str
+) -> None:
     class Widget(Base, GUIDPk):
         __tablename__ = "harness_kernel_widget_misses"
         __allow_unmapped__ = True

@@ -46,7 +46,9 @@ async def wait_until_listening(base_url: str, *, timeout_s: float = 5.0) -> None
     raise RuntimeError(f"uvicorn did not start listening at {base_url}: {last_exc!r}")
 
 
-async def start_uvicorn(app: Any, *, port: int) -> Tuple[str, uvicorn.Server, asyncio.Task[None]]:
+async def start_uvicorn(
+    app: Any, *, port: int
+) -> Tuple[str, uvicorn.Server, asyncio.Task[None]]:
     """Start uvicorn in-process (async task) and return (base_url, server, task)."""
     cfg = uvicorn.Config(
         app,

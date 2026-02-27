@@ -14,7 +14,10 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from tigrbl_tests.tests.i9n.uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
+from tigrbl_tests.tests.i9n.uvicorn_utils import (
+    run_uvicorn_in_task,
+    stop_uvicorn_server,
+)
 
 
 @pytest.mark.acceptance
@@ -41,8 +44,12 @@ async def test_appspec_to_uvicorn_rest_and_rpc_roundtrip() -> None:
             alias="create",
             target="create",
             bindings=(
-                HttpRestBindingSpec(proto="http.rest", path="/widget", methods=("POST",)),
-                HttpJsonRpcBindingSpec(proto="http.jsonrpc", rpc_method="Widget.create"),
+                HttpRestBindingSpec(
+                    proto="http.rest", path="/widget", methods=("POST",)
+                ),
+                HttpJsonRpcBindingSpec(
+                    proto="http.jsonrpc", rpc_method="Widget.create"
+                ),
             ),
         ),
     )

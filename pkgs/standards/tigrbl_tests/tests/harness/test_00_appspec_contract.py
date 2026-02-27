@@ -81,7 +81,9 @@ def test_appspec_can_override_rpc_prefix_only_when_rpc_is_present() -> None:
             alias="create",
             target="create",
             bindings=(
-                HttpRestBindingSpec(proto="http.rest", path="/widget", methods=("POST",)),
+                HttpRestBindingSpec(
+                    proto="http.rest", path="/widget", methods=("POST",)
+                ),
                 HttpJsonRpcBindingSpec(
                     proto="http.jsonrpc",
                     rpc_method="Widget.create",
@@ -126,7 +128,9 @@ def test_appspec_does_not_mount_rpc_when_no_rpc_bindings_exist() -> None:
             alias="create",
             target="create",
             bindings=(
-                HttpRestBindingSpec(proto="http.rest", path="/widget", methods=("POST",)),
+                HttpRestBindingSpec(
+                    proto="http.rest", path="/widget", methods=("POST",)
+                ),
             ),
         ),
     )
