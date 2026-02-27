@@ -1,4 +1,4 @@
-from tigrbl.hook import hook_ctx
+from tigrbl.decorators import hook_ctx
 from tigrbl.mapping.model import bind
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk

@@ -14,7 +14,7 @@ from tigrbl.runtime import system as runtime_system
 from tigrbl._spec import IO, S, acol
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.hook import hook_ctx
+from tigrbl.decorators import hook_ctx
 
 # --- models --------------------------------------------------------------------
 

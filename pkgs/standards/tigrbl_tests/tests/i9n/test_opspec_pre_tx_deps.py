@@ -7,7 +7,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
 from tigrbl import Base, TigrblApp
 from tigrbl.shortcuts.engine import mem
-from tigrbl.hook import hook_ctx
+from tigrbl.decorators import hook_ctx
 from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.runtime.status import _RPC_TO_HTTP, ERROR_MESSAGES, HTTPException

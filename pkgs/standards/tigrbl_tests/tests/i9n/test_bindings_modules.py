@@ -6,7 +6,8 @@ import tigrbl.mapping.handlers as handlers_binding
 import tigrbl.mapping.hooks as hooks_binding
 import tigrbl.mapping.model as model_binding
 import tigrbl.mapping.rest as rest_binding
-import tigrbl.mapping.router as router_binding
+from tigrbl.mapping.router import include as router_include
+from tigrbl.mapping.router import rpc as router_rpc
 import tigrbl.mapping.rpc as rpc_binding
 from tigrbl.column import shortcuts as sc
 from tigrbl.mapping.schemas import build_and_attach as schemas_build_and_attach
@@ -116,15 +117,15 @@ def test_model_bind_and_rebind(model_cls):
 async def test_router_include_and_rpc_call_returns_operation_envelope(model_cls):
     model_binding.bind(model_cls)
     router = SimpleNamespace()
-    router_binding.include_table(router, model_cls, mount_router=False)
+    router_include.include_table(router, model_cls, mount_router=False)
     assert model_cls.__name__ in router.tables
-    routers = router_binding.include_tables(
+    routers = router_include.include_tables(
         SimpleNamespace(), [model_cls], mount_router=False
     )
     assert model_cls.__name__ in routers
 
     payload = {"name": "x"}
-    result = await router_binding.rpc_call(
+    result = await router_rpc.rpc_call(
         router, model_cls, "create", payload=payload, db=object()
     )
     assert result["model"] is model_cls
