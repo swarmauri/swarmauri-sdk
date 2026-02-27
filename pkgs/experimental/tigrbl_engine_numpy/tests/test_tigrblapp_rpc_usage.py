@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from tigrbl import TigrblApp
-from tigrbl.bindings import rpc_call
+from tigrbl import rpc_call
 from tigrbl.engine import EngineSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S
