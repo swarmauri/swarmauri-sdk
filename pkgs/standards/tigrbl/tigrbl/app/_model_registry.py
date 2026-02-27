@@ -1,4 +1,4 @@
-"""Utilities for initializing model registries on App and Router facades."""
+"""Utilities for initializing registry mappings on App and Router facades."""
 
 from __future__ import annotations
 
@@ -19,37 +19,33 @@ class RegistryDict(dict[str, Any]):
         self[name] = value
 
 
-def initialize_table_registry(tables: Iterable[Any]) -> dict[str, Any]:
-    """Build the default ``tables`` mapping for an App or Router instance.
+def initialize_registry(entries: Iterable[Any]) -> RegistryDict:
+    """Normalize model/table declarations into a keyed registry.
 
-    ``defineAppSpec``/``defineRouterSpec`` allow authors to declare default models
-    using bare model classes or ``("alias", Model)`` tuples. Runtime facades,
-    however, expect ``self.tables`` to be a dictionary keyed by model name so
-    that lookups like ``app.tables["Widget"]`` just work.
-
-    This helper normalizes the declared sequence into that dictionary shape and
-    preserves declaration order. When an alias is provided we register both the
-    alias and the model's ``__name__`` so either lookup style succeeds.
+    Supports bare classes and ``("alias", object)`` tuples. Aliased objects are
+    also added under ``__name__`` when available so either lookup style works.
     """
 
-    registry: RegistryDict = RegistryDict()
+    registry = RegistryDict()
 
-    for entry in tables or ():
-        # Support ``("Alias", Model)`` declarations in addition to bare models.
+    for entry in entries or ():
         if isinstance(entry, tuple) and len(entry) == 2 and isinstance(entry[0], str):
-            alias, model = entry
-            registry[alias] = model
-            model_name = getattr(model, "__name__", alias)
-            registry.setdefault(model_name, model)
+            alias, obj = entry
+            registry[alias] = obj
+            obj_name = getattr(obj, "__name__", alias)
+            registry.setdefault(obj_name, obj)
             continue
 
-        model = entry
-        model_name = getattr(model, "__name__", None)
-        if model_name is None:
-            model_name = str(model)
-        registry[model_name] = model
+        obj_name = getattr(entry, "__name__", None) or str(entry)
+        registry[obj_name] = entry
 
     return registry
+
+
+def initialize_table_registry(tables: Iterable[Any]) -> dict[str, Any]:
+    """Build the default ``tables`` mapping for an App or Router instance."""
+
+    return initialize_registry(tables)
 
 
 def initialize_model_registry(models: Iterable[Any]) -> dict[str, Any]:
@@ -64,4 +60,9 @@ def initialize_model_registry(models: Iterable[Any]) -> dict[str, Any]:
     return initialize_table_registry(models)
 
 
-__all__ = ["initialize_table_registry", "initialize_model_registry"]
+__all__ = [
+    "RegistryDict",
+    "initialize_registry",
+    "initialize_table_registry",
+    "initialize_model_registry",
+]

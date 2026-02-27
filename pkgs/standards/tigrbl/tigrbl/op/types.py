@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Literal, Tuple, cast
 
 from ..config.constants import CANON as CANONICAL_VERB_TUPLE
-from ..hook.types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
+from ..runtime.hook_types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
 from ..hook import HookSpec as OpHook
 from .._spec.engine_spec import EngineCfg
 from .._spec.op_spec import OpSpec

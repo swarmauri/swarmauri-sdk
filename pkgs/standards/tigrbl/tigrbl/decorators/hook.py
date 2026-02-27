@@ -7,8 +7,8 @@ from typing import Iterable, Union
 
 from ..config.constants import HOOK_DECLS_ATTR
 from ..concrete.hook import Hook
-from ..hook.exceptions import InvalidHookPhaseError
-from ..hook.types import PHASE, PHASES
+from ..runtime.exceptions import InvalidHookPhaseError
+from ..runtime.hook_types import PHASE, PHASES
 
 
 def hook_ctx(ops: Union[str, Iterable[str]], *, phase: str | PHASE | Enum):

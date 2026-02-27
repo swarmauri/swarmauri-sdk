@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, Optional, Union
 
-from ..hook.types import HookPhase, StepFn
+from ..runtime.hook_types import HookPhase, StepFn
 from .._spec.hook_spec import HookSpec
 
 
