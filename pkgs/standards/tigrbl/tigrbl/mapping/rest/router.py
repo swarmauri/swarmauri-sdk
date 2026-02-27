@@ -80,7 +80,7 @@ def _query_param_schemas_from_model(
 def _build_router(
     model: type, specs: Sequence[OpSpec], *, router: Any | None = None
 ) -> Router:
-    resource = model.resource_name
+    resource = getattr(model, "resource_name", model.__name__.lower())
 
     # Router-level deps: extra deps only (transport-level; never part of kernel plan)
     extra_router_deps = _normalize_deps(

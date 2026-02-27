@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from ._route import Route
+from ._route import Route, compile_path
 
 
 def normalize_prefix(prefix: str) -> str:
@@ -35,7 +35,33 @@ def add_route(
     **kwargs: Any,
 ) -> None:
     full_path = f"{normalize_prefix(getattr(router, 'prefix', ''))}{path or ''}" or "/"
-    route = Route(path=full_path, endpoint=endpoint, methods=tuple(methods), **kwargs)
+    pattern, param_names = compile_path(full_path)
+    route = Route(
+        methods=frozenset(methods),
+        path_template=full_path,
+        pattern=pattern,
+        param_names=param_names,
+        handler=endpoint,
+        name=kwargs.get("name") or getattr(endpoint, "__name__", "<lambda>"),
+        summary=kwargs.get("summary"),
+        description=kwargs.get("description"),
+        tags=kwargs.get("tags"),
+        deprecated=bool(kwargs.get("deprecated", False)),
+        request_schema=kwargs.get("request_schema"),
+        response_schema=kwargs.get("response_schema"),
+        path_param_schemas=kwargs.get("path_param_schemas"),
+        query_param_schemas=kwargs.get("query_param_schemas"),
+        include_in_schema=kwargs.get("include_in_schema", True),
+        operation_id=kwargs.get("operation_id"),
+        response_model=kwargs.get("response_model"),
+        request_model=kwargs.get("request_model"),
+        responses=kwargs.get("responses"),
+        status_code=kwargs.get("status_code"),
+        dependencies=kwargs.get("dependencies"),
+        security_dependencies=kwargs.get("security_dependencies"),
+        tigrbl_model=kwargs.get("tigrbl_model"),
+        tigrbl_alias=kwargs.get("tigrbl_alias"),
+    )
     routes = getattr(router, "_routes", None)
     if routes is None:
         routes = []
@@ -61,13 +87,22 @@ def include_router(router: Any, child: Any, *, prefix: str = "") -> None:
             name=getattr(r, "name", None),
             include_in_schema=getattr(r, "include_in_schema", True),
             response_model=getattr(r, "response_model", None),
+            request_model=getattr(r, "request_model", None),
             status_code=getattr(r, "status_code", None),
             summary=getattr(r, "summary", None),
             description=getattr(r, "description", None),
             tags=getattr(r, "tags", None),
             operation_id=getattr(r, "operation_id", None),
+            deprecated=getattr(r, "deprecated", False),
+            request_schema=getattr(r, "request_schema", None),
+            response_schema=getattr(r, "response_schema", None),
+            path_param_schemas=getattr(r, "path_param_schemas", None),
+            query_param_schemas=getattr(r, "query_param_schemas", None),
             dependencies=getattr(r, "dependencies", None),
+            security_dependencies=getattr(r, "security_dependencies", None),
             responses=getattr(r, "responses", None),
+            tigrbl_model=getattr(r, "tigrbl_model", None),
+            tigrbl_alias=getattr(r, "tigrbl_alias", None),
         )
 
 

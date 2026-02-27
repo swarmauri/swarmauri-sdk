@@ -7,7 +7,7 @@ import surface stable while easing maintenance.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -40,11 +40,7 @@ from .routing import (
 )
 from ..._concrete._request import Request
 from ..._concrete._response import Response
-
-if TYPE_CHECKING:
-    from ..._concrete._router import Router
-else:
-    Router = Any
+from ..._concrete._router import Router
 from ...config.constants import (
     TIGRBL_ALLOW_ANON_ATTR,
     TIGRBL_AUTH_CONTEXT_ATTR,
