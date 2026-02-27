@@ -5,7 +5,7 @@ from httpx import ASGITransport, Client
 
 from tigrbl.op.mro_collect import mro_collect_decorated_ops
 from tigrbl.op import op_ctx
-from tigrbl.responses.shortcuts import as_file
+from tigrbl.shortcuts.responses import as_file
 from tigrbl.mapping import (
     build_hooks,
     build_handlers,

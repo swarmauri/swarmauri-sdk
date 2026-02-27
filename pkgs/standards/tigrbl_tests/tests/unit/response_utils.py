@@ -9,7 +9,7 @@ from tigrbl.mapping import (
 )
 from tigrbl.op.mro_collect import mro_collect_decorated_ops
 from tigrbl.responses import response_ctx, render_template
-from tigrbl.responses.shortcuts import (
+from tigrbl.shortcuts.responses import (
     as_file,
     as_html,
     as_json,

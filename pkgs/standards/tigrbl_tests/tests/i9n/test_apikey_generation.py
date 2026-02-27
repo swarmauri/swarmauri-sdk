@@ -11,7 +11,7 @@ from tigrbl.orm.mixins import (
     LastUsed,
     ValidityWindow,
 )
-from tigrbl.orm.tables._base import Base
+from tigrbl.table import Base
 from tigrbl.specs import F, IO, S, acol
 
 

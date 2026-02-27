@@ -1,7 +1,7 @@
 # tests/test_decorator_and_collect.py
 from types import SimpleNamespace
 
-from tigrbl.engine.decorators import (
+from tigrbl.decorators.engine import (
     engine_ctx,
 )  # :contentReference[oaicite:17]{index=17}
 from tigrbl.engine import install_from_objects

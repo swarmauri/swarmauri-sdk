@@ -25,7 +25,7 @@ class _Base(DeclarativeBase):
     """Local base that materializes ColumnSpecs to SQLAlchemy Columns."""
 
     def __init_subclass__(cls, **kw):
-        from tigrbl.orm.tables._base import _materialize_colspecs_to_sqla
+        from tigrbl.table._base import _materialize_colspecs_to_sqla
 
         _materialize_colspecs_to_sqla(cls)
         super().__init_subclass__(**kw)

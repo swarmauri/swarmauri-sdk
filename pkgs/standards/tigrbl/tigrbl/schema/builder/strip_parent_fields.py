@@ -18,7 +18,7 @@ from typing import (
 
 from pydantic import BaseModel, create_model
 
-from .compat import PydanticUndefined
+from pydantic_core import PydanticUndefined
 
 
 def _strip_parent_fields(base: Type[BaseModel], *, drop: Set[str]) -> Type[BaseModel]:

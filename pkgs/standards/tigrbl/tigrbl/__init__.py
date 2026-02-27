@@ -57,7 +57,7 @@ from .schema import _build_schema, _build_list_params, get_schema
 
 # ── Transport & Diagnostics (optional) ─────────────────────────────────────────
 from .requests import Request
-from .concrete.transport_response import Response
+from ._concrete._transport_response import Response
 from .system import mount_diagnostics
 
 # ── DB/bootstrap helpers (infra; optional) ─────────────────────────────────────
