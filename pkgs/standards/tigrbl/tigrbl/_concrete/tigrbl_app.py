@@ -39,7 +39,7 @@ from ..system import mount_openrpc as _mount_openrpc
 from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..system.docs import build_openapi as _build_openapi
 from ..op import get_registry, OpSpec
-from ..app._model_registry import initialize_table_registry
+from ._table_registry import TableRegistry
 from .._spec.app_spec import AppSpec
 from ..system.favicon import FAVICON_PATH, mount_favicon
 
@@ -91,7 +91,7 @@ class TigrblApp(_App):
             version=spec.version,
             lifespan=spec.lifespan,
         )
-        table_registry = initialize_table_registry(tuple(spec.tables or ()))
+        table_registry = TableRegistry(tables=tuple(spec.tables or ()))
         app._table_registry = table_registry
         app.tables = AttrDict(table_registry)
 
@@ -143,7 +143,7 @@ class TigrblApp(_App):
         self._middlewares: list[tuple[Any, dict[str, Any]]] = []
         self.middlewares = tuple(getattr(self, "MIDDLEWARES", ()))
         declared_tables = getattr(self, "TABLES", ())
-        self._table_registry = initialize_table_registry(declared_tables)
+        self._table_registry = TableRegistry(tables=declared_tables)
         self._favicon_path = favicon_path
         for mw in self.middlewares:
             mw_cls = getattr(mw, "cls", mw.__class__)

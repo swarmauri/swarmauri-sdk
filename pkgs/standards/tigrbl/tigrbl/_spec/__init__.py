@@ -33,6 +33,7 @@ _EXPORTS = {
     "StorageTransform": "storage_spec",
     "ForeignKeySpec": "storage_spec",
     "TableSpec": "table_spec",
+    "TableRegistrySpec": "table_registry_spec",
 }
 
 __all__ = list(_EXPORTS)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..app._model_registry import initialize_table_registry
+from ._table_registry import TableRegistry
 from .._spec.app_spec import AppSpec
 from ..ddl import initialize as _ddl_initialize
 from ..engine import install_from_objects
@@ -175,7 +175,7 @@ class App(AppSpec):
         self.engine = engine if engine is not None else collected_spec.engine
         self.routers = tuple(collected_spec.routers)
         self.ops = tuple(collected_spec.ops)
-        self.tables = initialize_table_registry(collected_spec.tables)
+        self.tables = TableRegistry(tables=collected_spec.tables)
         self.schemas = tuple(collected_spec.schemas)
         self.hooks = tuple(collected_spec.hooks)
         self.security_deps = tuple(collected_spec.security_deps)

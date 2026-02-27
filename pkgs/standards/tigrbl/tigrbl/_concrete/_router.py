@@ -9,7 +9,7 @@ from types import SimpleNamespace
 from .._spec.router_spec import RouterSpec
 from ..mapping import engine_resolver as _resolver
 from .._spec.engine_spec import EngineCfg
-from ..app._model_registry import initialize_table_registry
+from ._table_registry import TableRegistry
 
 from ..router._routing import (
     add_route as _add_route_impl,
@@ -111,7 +111,7 @@ class Router(RouterSpec):
         self.rest_prefix = getattr(self, "REST_PREFIX", "/router")
         self.rpc_prefix = getattr(self, "RPC_PREFIX", "/rpc")
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
-        self.tables = initialize_table_registry(getattr(self, "TABLES", ()))
+        self.tables = TableRegistry(tables=getattr(self, "TABLES", ()))
 
         default_dependencies = list(self.security_deps) + list(self.deps)
         self.dependencies = list(dependencies or default_dependencies)

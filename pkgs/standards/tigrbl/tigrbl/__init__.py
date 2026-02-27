@@ -84,11 +84,21 @@ from ._spec import (
     SessionSpec,
     StorageSpec,
     StorageTransform,
+    TableRegistrySpec,
     TableSpec,
     TemplateSpec,
 )
-from ._base import ForeignKeyBase, HookBase
-from ._concrete import App, Column, ForeignKey, Hook, Route, Schema, Table
+from ._base import ForeignKeyBase, HookBase, TableRegistryBase
+from ._concrete import (
+    App,
+    Column,
+    ForeignKey,
+    Hook,
+    Route,
+    Schema,
+    Table,
+    TableRegistry,
+)
 from .decorators import HOOK_DECLS_ATTR, middleware, middlewares
 
 
@@ -166,6 +176,7 @@ __all__ += [
     "AppSpec",
     "RouterSpec",
     "TableSpec",
+    "TableRegistrySpec",
     "ColumnSpec",
     "FieldSpec",
     "IOSpec",
@@ -179,6 +190,7 @@ __all__ += [
     "TemplateSpec",
     "ForeignKeyBase",
     "HookBase",
+    "TableRegistryBase",
     "App",
     "Table",
     "Column",
@@ -186,6 +198,7 @@ __all__ += [
     "Schema",
     "Hook",
     "ForeignKey",
+    "TableRegistry",
     "HOOK_DECLS_ATTR",
     "middleware",
     "middlewares",
