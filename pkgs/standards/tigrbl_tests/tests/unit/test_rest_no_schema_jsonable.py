@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped
 
 from tigrbl import TigrblApp
 from tigrbl.shortcuts.engine import mem
-from tigrbl._spec import F, IO, S
+from tigrbl import F, IO, S
 from tigrbl.shortcuts import acol
 from tigrbl.orm.tables import Base as Base3
 

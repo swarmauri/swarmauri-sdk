@@ -1,6 +1,6 @@
 from tigrbl.mapping.rest import build_router_and_attach
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl._spec import OpSpec
+from tigrbl import OpSpec
 from tigrbl.orm.tables import Base
 from tigrbl.types import Column, String
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from tigrbl import Base
 from tigrbl.types import CheckConstraint, Index, Integer, String, UniqueConstraint
-from tigrbl._spec import F, IO, S
+from tigrbl import F, IO, S
 from tigrbl.shortcuts import acol
 from tigrbl.types import Mapped
 

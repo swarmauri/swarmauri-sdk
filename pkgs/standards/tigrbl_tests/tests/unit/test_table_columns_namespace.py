@@ -1,7 +1,7 @@
 import pytest
 
 from tigrbl.table import Table
-from tigrbl._spec import ColumnSpec
+from tigrbl import ColumnSpec
 
 
 class Example(Table):

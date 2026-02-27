@@ -29,7 +29,7 @@ from .schema.types import SchemaRef, SchemaArg
 # ── Ctx-only decorators (new surface; replaces legacy ops.decorators) ─────────
 
 from .op import alias_ctx, op_ctx, alias, op_alias
-from .hook import hook_ctx
+from .decorators.hook import hook_ctx
 from .decorators.engine import engine_ctx
 from .decorators.schema import schema_ctx
 from .decorators.response import response_ctx
@@ -78,12 +78,18 @@ from ._spec import (
     AppSpec,
     ColumnSpec,
     EngineSpec,
+    F,
     FieldSpec,
     ForeignKeySpec,
+    HookSpec,
+    HttpJsonRpcBindingSpec,
+    HttpRestBindingSpec,
+    IO,
     IOSpec,
     RequestSpec,
     ResponseSpec,
     RouterSpec,
+    S,
     SchemaSpec,
     SessionSpec,
     StorageSpec,
@@ -91,6 +97,10 @@ from ._spec import (
     TableRegistrySpec,
     TableSpec,
     TemplateSpec,
+    acol,
+    makeColumn,
+    makeVirtualColumn,
+    vcol,
 )
 from ._base import ForeignKeyBase, HookBase, TableRegistryBase
 from ._concrete import (
@@ -183,10 +193,20 @@ __all__ += [
     "TableRegistrySpec",
     "ColumnSpec",
     "FieldSpec",
+    "F",
+    "IO",
+    "S",
     "IOSpec",
     "StorageSpec",
     "StorageTransform",
+    "makeColumn",
+    "makeVirtualColumn",
+    "acol",
+    "vcol",
     "ForeignKeySpec",
+    "HookSpec",
+    "HttpJsonRpcBindingSpec",
+    "HttpRestBindingSpec",
     "RequestSpec",
     "SchemaSpec",
     "SessionSpec",

@@ -21,9 +21,9 @@ from tigrbl_client import TigrblClient
 from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl._spec import F, IO, S
+from tigrbl import F, IO, S
 from tigrbl.shortcuts import acol
-from tigrbl._spec import ForeignKeySpec
+from tigrbl import ForeignKeySpec
 from tigrbl.system import stop_uvicorn_server
 from tigrbl.types import Mapped, PgUUID, String, UUID, relationship
 

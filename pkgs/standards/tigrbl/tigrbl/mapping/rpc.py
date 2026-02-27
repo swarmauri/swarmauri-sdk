@@ -17,7 +17,7 @@ from typing import (
 
 from pydantic import BaseModel
 
-from ..op import OpSpec
+from .._spec.op_spec import OpSpec
 from ..op.types import PHASES
 from ..runtime import executor as _executor
 from ..runtime.status import HTTPException

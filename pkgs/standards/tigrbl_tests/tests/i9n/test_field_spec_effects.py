@@ -10,7 +10,7 @@ from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 from tigrbl.runtime.atoms.schema import collect_in
-from tigrbl._spec import IO, F, S, acol
+from tigrbl import IO, F, S, acol
 from tigrbl.types import String
 
 

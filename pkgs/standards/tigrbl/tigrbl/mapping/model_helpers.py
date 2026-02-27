@@ -7,7 +7,7 @@ import logging
 from types import SimpleNamespace
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
-from ..op import OpSpec
+from .._spec.op_spec import OpSpec
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/model_helpers")

@@ -16,7 +16,7 @@ from tigrbl.orm.tables import Base
 from tigrbl.runtime import system as runtime_system
 from tigrbl.runtime.executor import _Ctx
 from tigrbl.runtime.kernel import build_phase_chains
-from tigrbl._spec import IO, S, acol
+from tigrbl import IO, S, acol
 
 
 def _fresh_session():

@@ -1,6 +1,6 @@
 from tigrbl import Base
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl._spec import S, acol
+from tigrbl import S, acol
 from tigrbl.types import String
 
 

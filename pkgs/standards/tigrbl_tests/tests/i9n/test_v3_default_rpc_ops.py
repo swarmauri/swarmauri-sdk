@@ -5,7 +5,7 @@ from tigrbl import TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import BulkCapable, Mergeable, Replaceable
 from tigrbl.orm.tables import Base
-from tigrbl._spec import IO, F, S, acol
+from tigrbl import IO, F, S, acol
 from tigrbl.types import Integer, Mapped, String, uuid4
 
 

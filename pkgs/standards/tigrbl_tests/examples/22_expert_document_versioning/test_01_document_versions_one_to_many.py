@@ -12,8 +12,8 @@ from tigrbl import resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.shortcuts import acol
-from tigrbl._spec import IO, F, S
-from tigrbl._spec import ForeignKeySpec
+from tigrbl import IO, F, S
+from tigrbl import ForeignKeySpec
 from tigrbl.types import (
     UUID,
     Integer,

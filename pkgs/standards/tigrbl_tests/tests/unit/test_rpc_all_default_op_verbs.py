@@ -4,10 +4,10 @@ from collections.abc import Iterator
 from tigrbl import TigrblApp
 from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
-from tigrbl._spec import OpSpec
+from tigrbl import OpSpec
 from tigrbl.orm.mixins import BulkCapable, GUIDPk, Replaceable
 from tigrbl.orm.tables import Base
-from tigrbl._spec import IO, S, F, acol as spec_acol
+from tigrbl import IO, S, F, acol as spec_acol
 from tigrbl.types import Session, String, uuid4
 
 

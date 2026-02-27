@@ -1,11 +1,11 @@
 from __future__ import annotations
 import pytest
 from tigrbl import alias_ctx
-from tigrbl.responses import response_ctx
+from tigrbl import response_ctx
 from tigrbl.shortcuts.engine import engine, mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
-from tigrbl._spec import IO, S, F, acol as spec_acol
+from tigrbl import IO, S, F, acol as spec_acol
 from tigrbl.types import String
 from tigrbl.router import TigrblRouter
 

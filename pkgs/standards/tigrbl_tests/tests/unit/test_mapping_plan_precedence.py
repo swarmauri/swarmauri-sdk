@@ -1,7 +1,7 @@
 from tigrbl.mapping.context import MappingContext
 from tigrbl.mapping.plan import Step, compile_plan
 from tigrbl.mapping.precedence import merge_op_specs
-from tigrbl._spec import OpSpec
+from tigrbl import OpSpec
 
 
 def test_mapping_plan_step_order_is_deterministic():

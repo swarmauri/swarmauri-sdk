@@ -9,7 +9,7 @@ from tigrbl.orm.mixins import (
     LastUsed,
     ValidityWindow,
 )
-from tigrbl._spec import IO, F, S, acol
+from tigrbl import IO, F, S, acol
 from tigrbl.table import Base
 from tigrbl.types import Mapped, String
 

@@ -1,4 +1,4 @@
-from tigrbl._spec import F
+from tigrbl import F
 
 
 def test_field_spec_describes_python_type():

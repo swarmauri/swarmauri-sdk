@@ -1,4 +1,4 @@
-from tigrbl._spec import FieldSpec as F, IOSpec as IO
+from tigrbl import FieldSpec as F, IOSpec as IO
 from tigrbl.column.io_spec import Pair
 
 

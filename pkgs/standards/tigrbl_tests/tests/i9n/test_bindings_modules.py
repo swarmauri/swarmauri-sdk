@@ -13,7 +13,7 @@ from tigrbl.mapping.schemas import build_and_attach as schemas_build_and_attach
 from tigrbl.op import resolve
 from tigrbl.orm.tables import Base
 from tigrbl.runtime import executor as _executor
-from tigrbl._spec import IO, ColumnSpec, F, S
+from tigrbl import IO, ColumnSpec, F, S
 from tigrbl.types import (
     InstrumentedAttribute,
     Integer,

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Dict
 
-from ..op import OpSpec
+from .._spec.op_spec import OpSpec
 from .context import MappingKey
 
 

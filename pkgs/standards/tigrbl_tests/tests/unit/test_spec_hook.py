@@ -1,6 +1,6 @@
 from tigrbl.config.constants import HOOK_DECLS_ATTR
 from tigrbl.hook.decorators import hook_ctx
-from tigrbl._spec import HookSpec
+from tigrbl import HookSpec
 from tigrbl.hook.shortcuts import hook, hook_spec
 
 

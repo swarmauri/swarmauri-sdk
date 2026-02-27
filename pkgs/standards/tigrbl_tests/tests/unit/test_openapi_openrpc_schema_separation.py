@@ -3,7 +3,7 @@ from httpx import ASGITransport, Client
 from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl._spec import F, IO, S
+from tigrbl import F, IO, S
 from tigrbl.shortcuts import acol
 from tigrbl.types import Mapped, String
 

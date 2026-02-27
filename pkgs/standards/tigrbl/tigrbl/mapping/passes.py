@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Callable, Iterable, List
 
 from .hook_mro_collect import mro_collect_decorated_hooks
-from ..op import resolve as resolve_ops
+from .op_resolver import resolve as resolve_ops
 from ..op.types import PHASES
 from .context import MappingContext
 from .precedence import key_for, merge_op_specs

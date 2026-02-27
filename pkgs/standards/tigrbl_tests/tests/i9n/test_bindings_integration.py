@@ -16,7 +16,7 @@ from tigrbl.mapping import (
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 from tigrbl.runtime import build_phase_chains
-from tigrbl._spec import IO, S, acol
+from tigrbl import IO, S, acol
 from tigrbl.types import uuid4
 
 

@@ -27,7 +27,8 @@ from ..mapping.router import (
 )
 from ..mapping.model import rebind as _rebind, bind as _bind
 from ..mapping.rest import build_router_and_attach as _build_router_and_attach
-from ..op import get_registry, OpSpec
+from .._concrete._op_registry import get_registry
+from .._spec.op_spec import OpSpec
 from ._table_registry import TableRegistry
 from ..system.favicon import mount_favicon
 from ..router._routing import include_router as _include_router_impl

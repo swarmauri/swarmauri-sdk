@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Optional, Set, Tuple
 
-from ..op import OpSpec
+from .._spec.op_spec import OpSpec
 from .apply import apply
 from .collect import collect
 from .context import MappingKey

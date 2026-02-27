@@ -7,7 +7,7 @@ from tigrbl import TigrblApp, TigrblRouter
 from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.tables import Base as Base3
-from tigrbl._spec import S, acol
+from tigrbl import S, acol
 
 
 @pytest_asyncio.fixture()

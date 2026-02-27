@@ -1,6 +1,6 @@
-from tigrbl._spec import StorageSpec as S
+from tigrbl import StorageSpec as S
 from tigrbl import ForeignKey
-from tigrbl._spec import ForeignKeySpec, StorageTransform
+from tigrbl import ForeignKeySpec, StorageTransform
 
 
 def test_storage_spec_defaults_and_fk():

@@ -4,7 +4,7 @@ from httpx import ASGITransport, AsyncClient
 from tigrbl import TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.tables import Base as Base3
-from tigrbl._spec import IO, F, S, acol
+from tigrbl import IO, F, S, acol
 from tigrbl.types import Integer, Mapped, String
 
 

@@ -2,9 +2,9 @@ import pytest
 import pytest_asyncio
 from tigrbl import TigrblApp, Base
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
-from tigrbl._spec import F, IO, S
+from tigrbl import F, IO, S
 from tigrbl.shortcuts import acol
-from tigrbl._spec import StorageTransform
+from tigrbl import StorageTransform
 from tigrbl.schema import builder as v3_builder
 from tigrbl.runtime import kernel as runtime_kernel
 from tigrbl.shortcuts.engine import mem
