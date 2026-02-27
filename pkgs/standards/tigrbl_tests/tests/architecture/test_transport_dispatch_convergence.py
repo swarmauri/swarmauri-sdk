@@ -29,14 +29,16 @@ def test_gateway_executor_invokes_runtime_kernel_plan_and_executor():
     assert "await _invoke(" in source
 
 
-def test_mapping_imports_top_level_dispatch_not_transport_dispatchers():
+def test_mapping_does_not_import_dispatch_modules():
     rest_collection = ROOT / "mapping" / "rest" / "collection.py"
     rest_member = ROOT / "mapping" / "rest" / "member.py"
     rpc_mapping = ROOT / "mapping" / "rpc.py"
     router_proxy = ROOT / "mapping" / "router" / "resource_proxy.py"
 
     for path in (rest_collection, rest_member, rpc_mapping, router_proxy):
-        assert _imports_module(path, "tigrbl", "dispatch_operation")
+        assert not _imports_module(path, "tigrbl", "dispatch_operation")
+        assert not _imports_module(path, "..dispatch")
+        assert not _imports_module(path, "...dispatch")
 
 
 def test_removed_transport_dispatcher_files_are_absent():
