@@ -6,7 +6,7 @@ import pytest
 
 
 from tigrbl import Router
-from tigrbl import Request
+from tigrbl.requests import Request
 from tigrbl import Response
 
 

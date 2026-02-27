@@ -1,5 +1,5 @@
 from tigrbl.runtime.status import HTTPException
-from tigrbl import Request
+from tigrbl.requests import Request
 from tigrbl import Response
 
 

@@ -5,7 +5,7 @@ import json
 import pytest
 
 from tigrbl import Response
-from tigrbl import Request
+from tigrbl.requests import Request
 
 
 def _make_request(

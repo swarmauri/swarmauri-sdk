@@ -20,7 +20,7 @@ class Widget(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class WidgerRouter(TigrblRouter):
+class WidgetRouter(TigrblRouter):
     PREFIX = "/widgets"
     TAGS = ("widgets",)
     TABLES = (Widget,)
@@ -28,11 +28,11 @@ class WidgerRouter(TigrblRouter):
 
 @pytest.mark.unit
 def test_tigrbl_router_subclass_declares_metadata() -> None:
-    class_dir = dir(WidgerRouter)
+    class_dir = dir(WidgetRouter)
 
     assert "TABLES" in class_dir
     assert "TAGS" in class_dir
     assert "PREFIX" in class_dir
-    assert WidgerRouter.TABLES == (Widget,)
-    assert WidgerRouter.TAGS == ("widgets",)
-    assert WidgerRouter.PREFIX == "/widgets"
+    assert WidgetRouter.TABLES == (Widget,)
+    assert WidgetRouter.TAGS == ("widgets",)
+    assert WidgetRouter.PREFIX == "/widgets"

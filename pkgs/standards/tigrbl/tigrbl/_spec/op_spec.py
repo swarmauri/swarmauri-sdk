@@ -5,6 +5,9 @@ from typing import TYPE_CHECKING, Any, Literal, Mapping, Optional, Tuple
 
 from .binding_spec import BindingSpec
 
+from .._spec.hook_spec import HookSpec as OpHook
+from ..hook.types import StepFn
+
 PersistPolicy = Literal["default", "prepend", "append", "override", "skip"]
 Arity = Literal["collection", "member"]
 TargetOp = Literal[
@@ -24,16 +27,13 @@ TargetOp = Literal[
     "custom",
 ]
 
+
 if TYPE_CHECKING:  # pragma: no cover
     from .._spec.engine_spec import EngineCfg
-    from ..hook import HookSpec as OpHook
-    from ..hook.types import StepFn
     from .._spec.response_spec import ResponseSpec
     from ..schema.types import SchemaArg
-else:  # pragma: no cover
+else:
     EngineCfg = Any
-    OpHook = Any
-    StepFn = Any
 
 
 @dataclass(frozen=True, slots=True)

@@ -8,12 +8,11 @@ import tigrbl.mapping.model as model_binding
 import tigrbl.mapping.rest as rest_binding
 import tigrbl.mapping.router as router_binding
 import tigrbl.mapping.rpc as rpc_binding
-from tigrbl.shortcuts import column as sc
 from tigrbl.mapping.schemas import build_and_attach as schemas_build_and_attach
-from tigrbl.op import resolve
+from tigrbl.mapping.op_resolver import resolve
 from tigrbl.orm.tables import Base
-from tigrbl.runtime import executor as _executor
-from tigrbl import IO, ColumnSpec, F, S
+from tigrbl._spec import IO, ColumnSpec, F, S
+from tigrbl import acol
 from tigrbl.types import (
     InstrumentedAttribute,
     Integer,
@@ -28,15 +27,15 @@ def _make_model():
     class Item(Base):  # type: ignore[misc]
         __tablename__ = "items"
 
-        id = sc.acol(
-            storage=sc.S(type_=Integer, primary_key=True),
-            field=sc.F(py_type=int),
-            io=sc.IO(in_verbs=("create",), out_verbs=("read", "list")),
+        id = acol(
+            storage=S(type_=Integer, primary_key=True),
+            field=F(py_type=int),
+            io=IO(in_verbs=("create",), out_verbs=("read", "list")),
         )
-        name = sc.acol(
-            storage=sc.S(type_=String, nullable=False),
-            field=sc.F(py_type=str),
-            io=sc.IO(
+        name = acol(
+            storage=S(type_=String, nullable=False),
+            field=F(py_type=str),
+            io=IO(
                 in_verbs=("create", "update", "replace"),
                 out_verbs=("read", "list"),
             ),
@@ -114,7 +113,7 @@ def test_model_bind_and_rebind(model_cls):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_router_include_and_rpc_call(monkeypatch, model_cls):
+async def test_router_include_and_rpc_call_returns_operation_envelope(model_cls):
     model_binding.bind(model_cls)
     router = SimpleNamespace()
     router_binding.include_table(router, model_cls, mount_router=False)
@@ -124,15 +123,16 @@ async def test_router_include_and_rpc_call(monkeypatch, model_cls):
     )
     assert model_cls.__name__ in routers
 
-    async def fake_invoke(*, request, db, phases, ctx):  # noqa: D401
-        return ctx["payload"]
-
-    monkeypatch.setattr(_executor, "_invoke", fake_invoke)
     payload = {"name": "x"}
     result = await router_binding.rpc_call(
         router, model_cls, "create", payload=payload, db=object()
     )
-    assert result == payload
+    assert result["model"] is model_cls
+    assert result["alias"] == "create"
+    assert result["target"] == "create"
+    assert result["payload"] == payload
+    assert isinstance(result["phases"], dict)
+    assert callable(result["serialize"])
 
 
 @pytest.mark.i9n

@@ -16,7 +16,7 @@ from typing import (
 )
 import weakref
 
-from .._spec.op_spec import OpSpec, TargetOp
+from ..op.types import OpSpec, TargetOp
 
 # Listener signature: (registry, changed_keys) -> None
 # where changed_keys is a set of (alias, target) tuples indicating what changed.

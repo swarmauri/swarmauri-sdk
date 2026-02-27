@@ -5,7 +5,7 @@ import threading
 from types import SimpleNamespace
 from typing import Any, ClassVar, Dict, List, Mapping, Optional, Sequence, Tuple
 
-from ...op.types import StepFn
+from ..hook_types import StepFn
 from ..executor import _Ctx, _invoke
 from .. import events as _ev
 from .atoms import (

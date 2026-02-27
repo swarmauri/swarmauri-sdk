@@ -10,7 +10,6 @@ register RPC & REST, and (optionally) mount JSON-RPC and diagnostics.
 from __future__ import annotations
 
 from ._concrete import Router
-from .dispatch import dispatch_operation, resolve_operation
 
 # ── OpSpec (source of truth) ───────────────────────────────────────────────────
 from .op import (
@@ -79,6 +78,7 @@ from ._concrete.tigrbl_router import TigrblRouter
 from .decorators.router import route_ctx
 from .orm.tables import Base
 from .op import Op
+from .shortcuts.op import op
 from .engine import resolver
 from ._concrete._security.api_key import APIKey
 from ._concrete._security.http_bearer import HTTPBearer
@@ -140,6 +140,7 @@ __all__ += [
     "Router",
     "Base",
     "Op",
+    "op",
     "HTTPBearer",
     "HTTPAuthorizationCredentials",
     "APIKey",
@@ -217,8 +218,6 @@ __all__ += [
     "DEFAULT_HTTP_METHODS",
     "Request",
     "Response",
-    "dispatch_operation",
-    "resolve_operation",
     "resolver",
 ]
 __all__ += [

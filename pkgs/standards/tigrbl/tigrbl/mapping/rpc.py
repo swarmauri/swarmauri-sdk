@@ -17,11 +17,9 @@ from typing import (
 
 from pydantic import BaseModel
 
-from .._spec.op_spec import OpSpec
-from ..op.types import PHASES
-from ..runtime import executor as _executor
+from ..op import OpSpec
+from ..runtime.hook_types import PHASES
 from ..runtime.status import HTTPException
-from ..dispatch import dispatch_operation
 
 
 logger = logging.getLogger("uvicorn")
@@ -290,10 +288,8 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
 
 def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]]:
     """
-    Create an async callable that:
-      1) validates payload (if schema present),
-      2) runs the executor with the model's phase chains (Kernel-preferred),
-      3) serializes the result to the expected return form.
+    Create an async callable that validates payload and returns an operation
+    envelope for the runtime gateway/executor.
 
     Signature:
         async def rpc_method(payload: Mapping | BaseModel | None = None, *, db, request=None, ctx=None) -> Any
@@ -343,7 +339,7 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
             for key, value in norm_payload.items():
                 merged_payload[key] = value
 
-        # 2) build executor context & phases
+        # 2) build execution context seed for downstream runtime execution
         base_ctx: Dict[str, Any] = dict(ctx or {})
         base_ctx.setdefault("payload", merged_payload)
         base_ctx.setdefault("db", db)
@@ -370,31 +366,18 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
             ),
         )
 
-        try:
-            result = await dispatch_operation(
-                router=getattr(model, "router", None),
-                model_or_name=model,
-                alias=alias,
-                payload=base_ctx.get("payload"),
-                db=db,
-                request=request,
-                ctx=base_ctx,
-                response_serializer=lambda r: _serialize_output(
-                    model, alias, target, r
-                ),
-                rpc_mode=True,
-            )
-        except RuntimeError:
-            phases = _get_phase_chains(model, alias)
-            fallback = await _executor._invoke(
-                request=request,
-                db=db,
-                phases=phases,
-                ctx=base_ctx,
-            )
-            result = _serialize_output(model, alias, target, fallback)
-
-        return result
+        phases = _get_phase_chains(model, alias)
+        return {
+            "model": model,
+            "alias": alias,
+            "target": target,
+            "payload": merged_payload,
+            "db": db,
+            "request": request,
+            "ctx": base_ctx,
+            "phases": phases,
+            "serialize": lambda result: _serialize_output(model, alias, target, result),
+        }
 
     # Give the callable a nice name for introspection/logging
     _rpc_method.__name__ = f"rpc_{model.__name__}_{alias}"

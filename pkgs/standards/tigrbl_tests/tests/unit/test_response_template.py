@@ -1,7 +1,7 @@
 from __future__ import annotations
 import pytest
 
-from tigrbl import render_template
+from tigrbl.runtime.atoms.response.templates import render_template
 
 pytest.importorskip("jinja2")
 

@@ -4,7 +4,7 @@ import json
 from collections.abc import Mapping
 from typing import Any
 
-from tigrbl import Request
+from tigrbl.requests import Request
 from tigrbl import Response
 
 ADMIN_KEY = "admin-secret"

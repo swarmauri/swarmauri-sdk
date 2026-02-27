@@ -21,13 +21,13 @@ class Widget(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class WidgerRouter(TigrblRouter):
+class WidgetRouter(TigrblRouter):
     TABLES = (Widget,)
 
 
 @pytest.mark.unit
 def test_tigrbl_router_instantiation_sets_containers() -> None:
-    router = WidgerRouter(engine=mem(async_=False))
+    router = WidgetRouter(engine=mem(async_=False))
     router_dir = dir(router)
 
     assert "tables" in router_dir

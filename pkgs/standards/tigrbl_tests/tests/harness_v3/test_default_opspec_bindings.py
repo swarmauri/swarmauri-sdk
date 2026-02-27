@@ -5,7 +5,7 @@ Contract (TDD):
    specs (collection + member arities).
 2) Those op specs automatically get REST + JSON-RPC BindingSpecs.
 
-This suite deliberately avoids assertions about Starlette/FastAPI routes.
+This suite deliberately avoids assertions about framework-specific concrete routes.
 Instead it asserts on *specs* and *bindings* that power runtime-owned routing.
 """
 

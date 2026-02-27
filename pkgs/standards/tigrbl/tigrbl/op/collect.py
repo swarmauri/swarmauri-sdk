@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Mapping
 
-from .._spec.op_spec import OpSpec
+from .._concrete._op import Op as OpSpec
 
 
 def apply_alias(verb: str, alias_map: Mapping[str, str]) -> str:

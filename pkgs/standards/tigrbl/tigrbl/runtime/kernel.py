@@ -26,7 +26,7 @@ from typing import (
 
 from .executor import _invoke, _Ctx
 from . import events as _ev, ordering as _ordering, system as _sys
-from ..op.types import PHASES, StepFn
+from ..runtime.hook_types import PHASES, StepFn
 from ..mapping.column_mro_collect import mro_collect_columns
 
 logger = logging.getLogger(__name__)

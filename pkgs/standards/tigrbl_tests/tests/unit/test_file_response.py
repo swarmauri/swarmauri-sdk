@@ -4,7 +4,7 @@ from pathlib import Path
 from httpx import ASGITransport, Client
 
 from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
-from tigrbl.op import op_ctx
+from tigrbl.decorators.op import op_ctx
 from tigrbl.shortcuts.responses import as_file
 from tigrbl.mapping import (
     build_hooks,

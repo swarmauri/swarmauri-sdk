@@ -16,8 +16,8 @@ from typing import (
     Tuple,
 )
 
-from .._spec.op_spec import OpSpec
-from ..hook import HookSpec
+from ..op import OpSpec
+from .._spec.hook_spec import HookSpec
 from ..hook.types import PHASES, StepFn
 from ..config.constants import (
     TIGRBL_ROUTER_HOOKS_ATTR,

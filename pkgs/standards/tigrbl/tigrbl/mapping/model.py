@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any, Optional, Set, Tuple
 
-from .._spec.op_spec import OpSpec
+if TYPE_CHECKING:
+    from ..op import OpSpec
 from .apply import apply
 from .collect import collect
 from .context import MappingKey
@@ -14,7 +15,7 @@ def bind(
     *,
     router: Any | None = None,
     only_keys: Optional[Set[MappingKey]] = None,
-) -> Tuple[OpSpec, ...]:
+) -> Tuple["OpSpec", ...]:
     context = collect(model, router=router, only_keys=only_keys)
     mapping_plan = plan(context)
     return tuple(apply(mapping_plan))
@@ -25,7 +26,7 @@ def rebind(
     *,
     router: Any | None = None,
     changed_keys: Optional[Set[MappingKey]] = None,
-) -> Tuple[OpSpec, ...]:
+) -> Tuple["OpSpec", ...]:
     return bind(model, router=router, only_keys=changed_keys)
 
 
