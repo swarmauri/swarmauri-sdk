@@ -66,6 +66,7 @@ def _build_client():
     router.initialize()
     app = TigrblApp()
     app.include_router(router)
+    app.initialize()
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -98,6 +99,7 @@ def _build_client_attr():
     router.initialize()
     app = TigrblApp()
     app.include_router(router)
+    app.initialize()
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -167,6 +169,7 @@ def _build_client_create_noauth():
 
     app = TigrblApp()
     app.include_router(router)
+    app.initialize()
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -198,6 +201,7 @@ def _build_client_create_attr_noauth():
 
     app = TigrblApp()
     app.include_router(router)
+    app.initialize()
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
