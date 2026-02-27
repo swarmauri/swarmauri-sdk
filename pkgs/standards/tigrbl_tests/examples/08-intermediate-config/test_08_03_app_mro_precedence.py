@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from tigrbl.app.mro_collect import mro_collect_app_spec
-from tigrbl.app.shortcuts import defineAppSpec
+from tigrbl.shortcuts.app import defineAppSpec
 
 
 def test_app_mro_precedence() -> None:
