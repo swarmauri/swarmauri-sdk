@@ -9,7 +9,7 @@ from tigrbl.shortcuts.engine import mem
 from tigrbl.mapping.model import bind
 from tigrbl.mapping.rest.router import _build_router
 from tigrbl.mapping.rpc import register_and_attach
-from tigrbl.op import OpSpec
+from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 from tigrbl.runtime.atoms.resolve import assemble

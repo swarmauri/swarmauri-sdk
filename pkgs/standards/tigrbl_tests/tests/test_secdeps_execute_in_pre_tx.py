@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from tigrbl.op import OpSpec
+from tigrbl._spec import OpSpec
 from tigrbl.runtime import events as _ev
 from tigrbl.runtime import system as _sys
 from tigrbl.runtime.kernel import Kernel

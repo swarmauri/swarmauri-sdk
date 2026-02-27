@@ -11,7 +11,7 @@ from sqlalchemy.orm import DeclarativeBase
 
 from tigrbl.mapping.model import bind
 from tigrbl.mapping.rest.router import _build_router
-from tigrbl.op import OpSpec
+from tigrbl._spec import OpSpec
 from tigrbl.runtime.atoms.resolve import assemble
 from tigrbl.runtime.atoms.schema import collect_in, collect_out
 from tigrbl.runtime.kernel import _default_kernel as K

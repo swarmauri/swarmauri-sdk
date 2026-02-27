@@ -3,7 +3,7 @@ import pytest
 from tigrbl import get_schema
 from tigrbl.mapping import build_schemas
 from tigrbl.mapping.model import bind
-from tigrbl.op import OpSpec
+from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 from tigrbl.types import Column, String

@@ -26,12 +26,12 @@ async def test_appspec_to_uvicorn_rest_and_rpc_roundtrip() -> None:
     from sqlalchemy import Column, String
 
     from tigrbl import Base
-    from tigrbl.app import AppSpec
+    from tigrbl._spec import AppSpec
     from tigrbl.concrete.tigrbl_app import TigrblApp
     from tigrbl.shortcuts.engine import mem
     from tigrbl.orm.mixins import GUIDPk
-    from tigrbl.op import OpSpec
-    from tigrbl.specs.binding_spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
+    from tigrbl._spec import OpSpec
+    from tigrbl._spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
 
     class Widget(Base, GUIDPk):
         __tablename__ = "widgets_appspec_e2e"

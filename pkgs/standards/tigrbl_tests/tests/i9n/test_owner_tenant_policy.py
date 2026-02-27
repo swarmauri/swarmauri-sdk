@@ -53,7 +53,7 @@ def _client_for_owner(
         __tigrbl_owner_policy__ = policy
 
     from tigrbl.engine._engine import Engine
-    from tigrbl.engine.engine_spec import EngineSpec
+    from tigrbl._spec import EngineSpec
     from tigrbl.shortcuts.engine import mem
 
     cfg = {**mem(async_=False), "tag": str(uuid.uuid4())}
@@ -131,7 +131,7 @@ def _client_for_tenant(
         __tigrbl_tenant_policy__ = policy
 
     from tigrbl.engine._engine import Engine
-    from tigrbl.engine.engine_spec import EngineSpec
+    from tigrbl._spec import EngineSpec
     from tigrbl.shortcuts.engine import mem
 
     cfg = {**mem(async_=False), "tag": str(uuid.uuid4())}
