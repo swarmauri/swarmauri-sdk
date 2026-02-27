@@ -6,7 +6,8 @@ from enum import Enum
 
 from tigrbl.table import Base
 from tigrbl.orm.mixins import GUIDPk, Timestamped
-from tigrbl.specs import F, IO, S, acol
+from tigrbl.specs import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.types import Mapped, String, JSONB, SAEnum, UniqueConstraint, TZDateTime
 
 from ._mixins.extref import StripeExtRef
