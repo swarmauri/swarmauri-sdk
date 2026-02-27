@@ -1,20 +1,12 @@
-from __future__ import annotations
+"""Base operation descriptor implementation for Tigrbl."""
 
-from abc import ABC, abstractmethod
-from typing import Any
+from __future__ import annotations
 
 from .._spec.op_spec import OpSpec
 
 
-class OpBase(OpSpec, ABC):
-    """Abstract operation descriptor base built on top of :class:`OpSpec`."""
+class OpBase(OpSpec):
+    """Base operation descriptor type."""
 
-    __slots__ = ()
 
-    @abstractmethod
-    def __set_name__(self, owner: type, name: str) -> None: ...
-
-    @abstractmethod
-    def install_engines(
-        self, *, router: Any | None = None, model: type | None = None
-    ) -> None: ...
+__all__ = ["OpBase"]

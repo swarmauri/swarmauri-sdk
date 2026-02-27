@@ -4,11 +4,10 @@ from __future__ import annotations
 from typing import Any, Literal, Tuple, cast
 
 from ..config.constants import CANON as CANONICAL_VERB_TUPLE
-from ..runtime.hook_types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
-
-EngineCfg = Any
-OpHook = Any
-OpSpec = Any
+from ..hook.types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
+from ..hook import HookSpec as OpHook
+from .._spec.engine_spec import EngineCfg
+from .._concrete._op import Op as OpSpec
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Core aliases & enums
