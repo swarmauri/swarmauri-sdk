@@ -7,7 +7,8 @@ from tigrbl.core import crud
 from tigrbl.core.crud import helpers
 from tigrbl.engine.shortcuts import engine
 from tigrbl.shortcuts.engine import mem
-from tigrbl.specs import IO, S, F, acol
+from tigrbl._spec import IOSpec as IO, StorageSpec as S, FieldSpec as F
+from tigrbl.shortcuts.column import acol
 from tigrbl.types import Column, Integer, SAEnum, SimpleNamespace, String
 from sqlalchemy import select
 from sqlalchemy.orm import declarative_base

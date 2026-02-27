@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from tigrbl import Base
 from tigrbl.orm.mixins import ActiveToggle
-from tigrbl.specs import F, IO, S
+from tigrbl._spec import FieldSpec as F, IOSpec as IO, StorageSpec as S
 from tigrbl.shortcuts import acol
 from tigrbl.types import Integer, Mapped, String
 

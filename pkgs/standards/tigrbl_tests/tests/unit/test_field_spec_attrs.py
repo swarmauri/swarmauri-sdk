@@ -3,7 +3,8 @@ from types import SimpleNamespace
 
 from tigrbl.mapping.model import bind
 from tigrbl.runtime.atoms.schema import collect_in, collect_out
-from tigrbl.specs import F, IO, S, acol, vcol
+from tigrbl._spec import FieldSpec as F, IOSpec as IO, StorageSpec as S
+from tigrbl.shortcuts.column import acol, vcol
 from tigrbl.orm.tables import Base
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped

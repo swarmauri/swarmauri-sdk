@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from tigrbl.specs import ColumnSpec, F, IO, S, acol
+from tigrbl._spec import ColumnSpec, FieldSpec as F, IOSpec as IO, StorageSpec as S
+from tigrbl.shortcuts.column import acol
 from tigrbl.types import String
 
 

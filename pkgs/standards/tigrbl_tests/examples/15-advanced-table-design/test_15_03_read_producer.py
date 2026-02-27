@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from tigrbl.specs import ColumnSpec, F, IO, vcol
+from tigrbl._spec import ColumnSpec, FieldSpec as F, IOSpec as IO
+from tigrbl.shortcuts.column import vcol
 
 
 def test_virtual_column_read_producer() -> None:

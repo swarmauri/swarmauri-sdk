@@ -8,7 +8,8 @@ field rules in a single declarative object per attribute.
 
 from tigrbl import Base, bind
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import IO, ColumnSpec, F, S, acol
+from tigrbl._spec import IOSpec as IO, ColumnSpec, FieldSpec as F, StorageSpec as S
+from tigrbl.shortcuts.column import acol
 from tigrbl.types import String
 
 

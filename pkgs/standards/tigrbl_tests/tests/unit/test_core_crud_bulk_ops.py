@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
 
 from tigrbl.core import crud
-from tigrbl.specs import F, IO, S
+from tigrbl._spec import FieldSpec as F, IOSpec as IO, StorageSpec as S
 from tigrbl.shortcuts import acol
 from tigrbl.types import Integer, Session, String
 

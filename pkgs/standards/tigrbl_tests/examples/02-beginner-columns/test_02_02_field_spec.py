@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tigrbl.specs import F
+from tigrbl._spec import FieldSpec as F
 
 
 def test_field_spec_basics() -> None:

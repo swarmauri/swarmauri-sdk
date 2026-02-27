@@ -3,7 +3,8 @@ import pytest
 import pytest_asyncio
 from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import IO, F, S, acol
+from tigrbl._spec import IOSpec as IO, FieldSpec as F, StorageSpec as S
+from tigrbl.shortcuts.column import acol
 from tigrbl.table import Base
 from tigrbl.types import Mapped, String
 

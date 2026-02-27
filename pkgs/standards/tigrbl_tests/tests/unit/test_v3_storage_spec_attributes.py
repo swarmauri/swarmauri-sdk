@@ -7,7 +7,8 @@ from tigrbl.runtime.kernel import (
     OpView,
     _default_kernel as K,
 )
-from tigrbl.specs import S, acol
+from tigrbl._spec import StorageSpec as S
+from tigrbl.shortcuts.column import acol
 from tigrbl.column.storage_spec import ForeignKeySpec, StorageTransform
 from tigrbl.orm.tables import Base
 from sqlalchemy import Integer, String, text

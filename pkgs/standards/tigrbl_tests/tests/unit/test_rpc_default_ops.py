@@ -3,7 +3,8 @@ from collections.abc import Iterator
 
 from tigrbl import TigrblApp
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
-from tigrbl.specs import IO, S, F, acol as spec_acol
+from tigrbl._spec import IOSpec as IO, StorageSpec as S, FieldSpec as F
+from tigrbl.shortcuts.column import acol as spec_acol
 from tigrbl.orm.tables import Base
 from tigrbl.types import Session, String
 from tigrbl.shortcuts.engine import mem

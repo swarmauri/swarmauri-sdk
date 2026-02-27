@@ -1,7 +1,8 @@
 from tigrbl import TigrblApp
 from tigrbl.mapping.model import bind
 from tigrbl.runtime.kernel import _default_kernel as K
-from tigrbl.specs import S, IO, acol
+from tigrbl._spec import StorageSpec as S, IOSpec as IO
+from tigrbl.shortcuts.column import acol
 from tigrbl.orm.tables import Base
 from tigrbl.types import Integer as IntType
 

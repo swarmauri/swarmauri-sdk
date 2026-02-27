@@ -11,7 +11,8 @@ from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 from tigrbl.runtime.atoms.resolve import assemble
-from tigrbl.specs import IO, S, acol
+from tigrbl._spec import IOSpec as IO, StorageSpec as S
+from tigrbl.shortcuts.column import acol
 from tigrbl.types import UUID, String
 
 

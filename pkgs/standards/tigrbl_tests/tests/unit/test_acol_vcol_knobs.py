@@ -4,7 +4,8 @@ from datetime import datetime
 from tigrbl.mapping.model import bind
 from tigrbl.runtime.atoms.schema import collect_in, collect_out
 from tigrbl.runtime.kernel import _default_kernel as K
-from tigrbl.specs import ColumnSpec, F, IO, S, acol, vcol
+from tigrbl._spec import ColumnSpec, FieldSpec as F, IOSpec as IO, StorageSpec as S
+from tigrbl.shortcuts.column import acol, vcol
 from tigrbl.orm.tables import Base
 from tigrbl.types import (
     Column,

@@ -1,6 +1,7 @@
 from tigrbl import Base
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import S, acol
+from tigrbl._spec import StorageSpec as S
+from tigrbl.shortcuts.column import acol
 from tigrbl.types import Column, String
 
 

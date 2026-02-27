@@ -3,7 +3,8 @@ from __future__ import annotations
 from tigrbl.column.mro_collect import mro_collect_columns
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.table import Base
-from tigrbl.specs import S, acol
+from tigrbl._spec import StorageSpec as S
+from tigrbl.shortcuts.column import acol
 from tigrbl.types import Mapped, String
 
 

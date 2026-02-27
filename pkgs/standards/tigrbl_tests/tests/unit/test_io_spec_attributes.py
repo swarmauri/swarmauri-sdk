@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl.specs import ColumnSpec, F, IO, S, acol
+from tigrbl._spec import ColumnSpec, FieldSpec as F, IOSpec as IO, StorageSpec as S
+from tigrbl.shortcuts.column import acol
 from tigrbl.runtime.atoms.schema import collect_in, collect_out
 from tigrbl.runtime.atoms.out import masking
 from tigrbl.runtime.kernel import _default_kernel as K

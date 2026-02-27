@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tigrbl.specs import IO
+from tigrbl._spec import IOSpec as IO
 
 
 def test_io_spec_aliases() -> None:

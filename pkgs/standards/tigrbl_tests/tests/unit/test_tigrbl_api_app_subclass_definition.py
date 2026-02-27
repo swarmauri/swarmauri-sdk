@@ -2,7 +2,7 @@ import pytest
 
 from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S
+from tigrbl._spec import FieldSpec as F, IOSpec as IO, StorageSpec as S
 from tigrbl.shortcuts import acol
 from tigrbl.types import Mapped, String
 
