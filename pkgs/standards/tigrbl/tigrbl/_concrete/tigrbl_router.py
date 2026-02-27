@@ -30,7 +30,7 @@ from ..mapping.rest import build_router_and_attach as _build_router_and_attach
 from ..op import get_registry, OpSpec
 from ._table_registry import TableRegistry
 from ..system.favicon import mount_favicon
-from ..router._routing import include_router as _include_router_impl
+from ._routing import include_router as _include_router_impl
 from ..system import mount_openrpc as _mount_openrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..mapping import engine_resolver as _resolver
