@@ -3,7 +3,8 @@
 from __future__ import annotations
 from tigrbl.table import Base
 from tigrbl.orm.mixins import GUIDPk, Timestamped, ActiveToggle
-from tigrbl.specs import F, IO, S, acol
+from tigrbl.specs import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.types import Mapped, String, Integer, JSONB, UniqueConstraint
 
 

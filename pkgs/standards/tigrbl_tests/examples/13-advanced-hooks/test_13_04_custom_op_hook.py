@@ -5,7 +5,8 @@ import pytest
 
 from tigrbl import Base, TigrblApp, hook_ctx, op_ctx, TigrblRouter
 from tigrbl.engine.shortcuts import mem
-from tigrbl.specs import F, IO, S, acol
+from tigrbl.specs import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.types import Integer, Mapped, String
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn

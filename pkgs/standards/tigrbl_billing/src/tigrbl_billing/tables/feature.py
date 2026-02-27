@@ -5,7 +5,8 @@ from __future__ import annotations
 from enum import Enum
 from tigrbl import Base
 from tigrbl.orm.mixins import GUIDPk, Timestamped, ActiveToggle
-from tigrbl.specs import F, IO, S, acol
+from tigrbl.specs import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.types import String, Text, JSONB, SAEnum, Mapped
 
 

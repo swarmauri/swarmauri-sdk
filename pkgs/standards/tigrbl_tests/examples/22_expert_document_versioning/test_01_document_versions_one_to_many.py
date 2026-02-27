@@ -14,7 +14,8 @@ from tigrbl import Base, TigrblApp, hook_ctx, TigrblRouter
 from tigrbl.engine import resolver
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
+from tigrbl.specs import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.specs.storage_spec import ForeignKeySpec
 from tigrbl.types import (
     Integer,

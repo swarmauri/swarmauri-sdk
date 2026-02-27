@@ -8,7 +8,8 @@ keeping persistence and schema layers in sync.
 
 from tigrbl import Base
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
+from tigrbl.specs import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.types import String
 
 
