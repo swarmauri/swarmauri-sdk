@@ -1,6 +1,5 @@
 import httpx
 import pytest
-
 from tigrbl import TigrblApp
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server

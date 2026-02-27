@@ -1,14 +1,6 @@
 import inspect
 
 import pytest
-from tigrbl.orm.tables import Base
-from tigrbl.types import (
-    InstrumentedAttribute,
-    Integer,
-    SimpleNamespace,
-    String,
-)
-
 import tigrbl.mapping.columns as columns_binding
 import tigrbl.mapping.handlers as handlers_binding
 import tigrbl.mapping.hooks as hooks_binding
@@ -16,11 +8,18 @@ import tigrbl.mapping.model as model_binding
 import tigrbl.mapping.rest as rest_binding
 import tigrbl.mapping.router as router_binding
 import tigrbl.mapping.rpc as rpc_binding
-from tigrbl.mapping.schemas import build_and_attach as schemas_build_and_attach
-from tigrbl.specs import ColumnSpec, F, IO, S
-from tigrbl.op import resolve
-from tigrbl.runtime import executor as _executor
 from tigrbl.column import shortcuts as sc
+from tigrbl.mapping.schemas import build_and_attach as schemas_build_and_attach
+from tigrbl.op import resolve
+from tigrbl.orm.tables import Base
+from tigrbl.runtime import executor as _executor
+from tigrbl.specs import IO, ColumnSpec, F, S
+from tigrbl.types import (
+    InstrumentedAttribute,
+    Integer,
+    SimpleNamespace,
+    String,
+)
 
 
 def _make_model():

@@ -4,9 +4,7 @@ from importlib.metadata import version
 from pathlib import Path
 
 import pytest
-
 import tigrbl.types as types_module
-
 
 _DEPRECATED_NAMES = {
     "Router": "tigrbl.router",

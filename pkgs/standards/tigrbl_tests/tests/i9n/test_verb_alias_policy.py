@@ -1,7 +1,6 @@
 """Tests for Tigrbl verb alias configuration (currently ignored)."""
 
 import pytest
-
 from tigrbl import Base
 from tigrbl.orm.mixins import GUIDPk
 

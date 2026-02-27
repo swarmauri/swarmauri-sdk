@@ -1,13 +1,11 @@
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-
-from tigrbl.types import Integer, Mapped, String
-
 from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import mem
-from tigrbl.specs import F, IO, S, acol
 from tigrbl.orm.tables import Base as Base3
+from tigrbl.specs import IO, F, S, acol
+from tigrbl.types import Integer, Mapped, String
 
 
 @pytest_asyncio.fixture()

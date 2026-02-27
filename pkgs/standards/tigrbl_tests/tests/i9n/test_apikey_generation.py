@@ -1,9 +1,7 @@
 import pytest
+from httpx import ASGITransport, AsyncClient
 from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import mem
-from tigrbl.types import Mapped, String
-from httpx import ASGITransport, AsyncClient
-
 from tigrbl.orm.mixins import (
     Created,
     GUIDPk,
@@ -11,8 +9,9 @@ from tigrbl.orm.mixins import (
     LastUsed,
     ValidityWindow,
 )
+from tigrbl.specs import IO, F, S, acol
 from tigrbl.table import Base
-from tigrbl.specs import F, IO, S, acol
+from tigrbl.types import Mapped, String
 
 
 class ConcreteApiKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):

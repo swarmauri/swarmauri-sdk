@@ -1,6 +1,5 @@
 import httpx
 import pytest
-
 from tigrbl import TigrblApp
 from tigrbl.system import mount_openapi
 
