@@ -21,7 +21,7 @@ from .._concrete._app import App as _App
 from ..concrete.tigrbl_router import TigrblRouter
 from ..router._routing import add_route as _add_route_impl
 from ..specs.engine_spec import EngineCfg
-from ..engine import resolver as _resolver
+from ..mapping import engine_resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
 from ..mapping.router import (
     rpc_call as _rpc_call,

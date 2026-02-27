@@ -5,7 +5,7 @@ from typing import Any, Awaitable, Callable, Dict, Mapping, Optional
 
 from ..rpc import _coerce_payload, _validate_input, _serialize_output
 from ...dispatch import dispatch_operation
-from ...engine import resolver as _resolver
+from ...mapping import engine_resolver as _resolver
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/resource_proxy")

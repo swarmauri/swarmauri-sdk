@@ -4,7 +4,7 @@ from typing import Any, Dict, Mapping, Tuple
 
 import logging
 
-from ....column.mro_collect import mro_collect_columns
+from ....mapping.column_mro_collect import mro_collect_columns
 
 logger = logging.getLogger("uvicorn")
 

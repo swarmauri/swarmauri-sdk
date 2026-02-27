@@ -6,7 +6,7 @@ import inspect
 from typing import Any, Iterable, get_args, get_origin
 
 from ....core.crud.params import Param
-from ....core.resolver import (
+from ....mapping.core_resolver import (
     annotation_marker as _annotation_marker,
     split_annotated as _split_annotated,
 )

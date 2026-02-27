@@ -5,7 +5,7 @@ import inspect
 from pathlib import Path
 from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
 
-from ..engine import resolver as _resolver
+from ..mapping import engine_resolver as _resolver
 
 try:  # pragma: no cover
     from sqlalchemy import event, text

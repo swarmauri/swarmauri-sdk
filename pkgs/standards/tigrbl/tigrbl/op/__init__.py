@@ -16,7 +16,7 @@ from .types import (
     PHASES,
     VerbAliasPolicy,
 )
-from .resolver import resolve
+from ..mapping.op_resolver import resolve
 from .collect import apply_alias
 from .model_registry import (
     OpspecRegistry,

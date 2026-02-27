@@ -21,7 +21,7 @@ from ...config.constants import (
     TIGRBL_RPC_DEPENDENCIES_ATTR,
     TIGRBL_ALLOW_ANON_ATTR,
 )
-from ...engine import resolver as _resolver
+from ...mapping import engine_resolver as _resolver
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/include")

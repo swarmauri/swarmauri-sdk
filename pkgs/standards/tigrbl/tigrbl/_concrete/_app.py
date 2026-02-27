@@ -6,7 +6,7 @@ from ..app._model_registry import initialize_table_registry
 from ..specs.app_spec import AppSpec
 from ..ddl import initialize as _ddl_initialize
 from ..engine import install_from_objects
-from ..engine import resolver as _resolver
+from ..mapping import engine_resolver as _resolver
 from ..specs.engine_spec import EngineCfg
 from ..router import Router
 from ..router._routing import (
