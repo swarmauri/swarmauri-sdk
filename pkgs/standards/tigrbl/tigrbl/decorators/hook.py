@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Iterable, Union
 
 from ..config.constants import HOOK_DECLS_ATTR
-from ..concrete.hook import Hook
+from .._concrete import Hook
 from ..hook.exceptions import InvalidHookPhaseError
 from ..hook.types import PHASE, PHASES
 

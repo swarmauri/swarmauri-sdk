@@ -7,6 +7,7 @@ _EXPORTS = {
     "Op": "tigrbl._concrete._op",
     "OpSpec": "tigrbl._spec.op_spec",
     "get_registry": "tigrbl._concrete._op_registry",
+    "OpspecRegistry": "tigrbl._concrete._op_registry",
     "alias": "tigrbl.decorators.op",
     "alias_ctx": "tigrbl.decorators.op",
     "op_alias": "tigrbl.decorators.op",
@@ -23,6 +24,7 @@ _EXPORTS = {
     "StepFn": "tigrbl.runtime.hook_types",
     "HookPredicate": "tigrbl.runtime.hook_types",
     "OpHook": "tigrbl._spec.hook_spec",
+    "resolve": "tigrbl.mapping.op_resolver",
 }
 
 __all__ = list(_EXPORTS)

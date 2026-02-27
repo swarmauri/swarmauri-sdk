@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Mapping, Optional
 
-from ...op.types import StepFn
+from ..hook_types import StepFn
 from ..executor import _Ctx, _invoke
 from .core import Kernel
 from .models import OpView, SchemaIn, SchemaOut

@@ -10,7 +10,7 @@ from tigrbl._concrete._request_adapters import request_from_asgi
 from tigrbl._concrete._response import Response
 from tigrbl._concrete._transport_common import finalize_transport_response
 
-from ..specs.middleware_spec import MiddlewareSpec, ASGIReceive, ASGISend, Message
+from .._spec.middleware_spec import MiddlewareSpec, ASGIReceive, ASGISend, Message
 
 
 class MiddlewareBase(MiddlewareSpec):

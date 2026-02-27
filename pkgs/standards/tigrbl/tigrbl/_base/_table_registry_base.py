@@ -2,16 +2,14 @@ from __future__ import annotations
 
 from typing import Any, Iterable
 
-from .._spec.table_registry_spec import TableRegistrySpec
 
-
-class TableRegistryBase(dict[str, Any], TableRegistrySpec):
+class TableRegistryBase(dict[str, Any]):
     """Dict-like registry used for table/model lookups."""
 
     def __init__(self, tables: Iterable[Any] = ()) -> None:
         resolved_tables = tuple(tables or ())
         dict.__init__(self)
-        TableRegistrySpec.__init__(self, tables=resolved_tables)
+        self.tables = resolved_tables
         self.register_many(resolved_tables)
 
     def __getattr__(self, name: str) -> Any:
