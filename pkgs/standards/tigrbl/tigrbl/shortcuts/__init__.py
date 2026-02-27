@@ -10,7 +10,6 @@ _MODULES = (
     "responses",
     "router",
     "schema",
-    "session",
     "table",
 )
 

@@ -69,7 +69,11 @@ from .router import TigrblRouter, route_ctx
 from .table import Base
 from .op import Op
 from .engine import resolver
-from ._concrete._security import APIKey, HTTPBearer, MutualTLS, OAuth2, OpenIdConnect
+from ._concrete._security.api_key import APIKey
+from ._concrete._security.http_bearer import HTTPBearer
+from ._concrete._security.mutual_tls import MutualTLS
+from ._concrete._security.oauth2 import OAuth2
+from ._concrete._security.openid_connect import OpenIdConnect
 from ._spec import (
     AppSpec,
     ColumnSpec,

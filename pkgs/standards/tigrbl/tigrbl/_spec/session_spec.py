@@ -110,3 +110,51 @@ class SessionSpec:
             allowed = {f.name for f in fields(SessionSpec)}
             return SessionSpec(**{k: v for k, v in m.items() if k in allowed})
         raise TypeError(f"Unsupported SessionSpec input: {type(x)}")
+
+
+def session_spec(cfg: SessionCfg = None, /, **kw: Any) -> SessionSpec:
+    """Build a SessionSpec from either a mapping/spec or kwargs."""
+    if cfg is not None and kw:
+        raise ValueError("Provide either a mapping/spec or kwargs, not both")
+    return SessionSpec.from_any(cfg or kw) or SessionSpec()
+
+
+def tx_read_committed(*, read_only: Optional[bool] = None) -> SessionSpec:
+    return SessionSpec(isolation="read_committed", read_only=read_only)
+
+
+def tx_repeatable_read(*, read_only: Optional[bool] = None) -> SessionSpec:
+    return SessionSpec(isolation="repeatable_read", read_only=read_only)
+
+
+def tx_serializable(*, read_only: Optional[bool] = None) -> SessionSpec:
+    return SessionSpec(isolation="serializable", read_only=read_only)
+
+
+def readonly() -> SessionSpec:
+    return SessionSpec(read_only=True)
+
+
+def wrap_sessionmaker(maker, spec: SessionSpec):
+    """Wrap a provider session factory to yield DefaultSession instances."""
+    from .._concrete._session import DefaultSession
+
+    def _mk() -> DefaultSession:
+        underlying = maker()
+        s = DefaultSession(underlying, spec)
+        s.apply_spec(spec)
+        return s
+
+    return _mk
+
+
+__all__ = [
+    "SessionCfg",
+    "SessionSpec",
+    "session_spec",
+    "tx_read_committed",
+    "tx_repeatable_read",
+    "tx_serializable",
+    "readonly",
+    "wrap_sessionmaker",
+]

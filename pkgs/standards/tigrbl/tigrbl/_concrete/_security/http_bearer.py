@@ -7,7 +7,7 @@ from typing import Any, Sequence
 
 from ...runtime.status.exceptions import HTTPException
 from ...runtime.status.mappings import status
-from ._base import OpenAPISecurityDependency
+from ..._base._security_base import OpenAPISecurityDependency
 
 
 @dataclass(frozen=True)
