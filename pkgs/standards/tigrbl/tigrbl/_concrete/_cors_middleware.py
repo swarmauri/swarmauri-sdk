@@ -2,15 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
 import re
 
 from tigrbl._concrete._headers import Headers
-from tigrbl.requests import Request
-from tigrbl._concrete._response import Response
 
 from .base import BaseHTTPMiddleware
-from .._spec.middleware_spec import WSGIStartResponse
 
 
 class CORSMiddleware(BaseHTTPMiddleware):
@@ -102,8 +98,6 @@ class CORSMiddleware(BaseHTTPMiddleware):
         if self.allow_credentials:
             headers.append(("access-control-allow-credentials", "true"))
         return headers
-
-
 
 
 __all__ = ["CORSMiddleware"]

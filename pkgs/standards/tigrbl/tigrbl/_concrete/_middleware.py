@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .._base._middleware_base import MiddlewareBase
 from .._spec.middleware_spec import (
     ASGIApp,
     ASGIReceive,

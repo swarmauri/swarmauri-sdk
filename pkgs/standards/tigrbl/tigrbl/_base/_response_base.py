@@ -1,5 +1,37 @@
+from __future__ import annotations
+
+import json as json_module
+from dataclasses import dataclass
+from http.cookies import SimpleCookie
+from typing import Any, Mapping
+
+from tigrbl._concrete._headers import HeaderCookies, Headers
 
 from ..specs.response_spec import ResponseSpec, TemplateSpec
+
+
+class _JSONDualMethod:
+    def __get__(
+        self,
+        obj: "ResponseBase" | None,
+        owner: type["ResponseBase"],
+    ):
+        if obj is None:
+
+            def _factory(
+                data: Any,
+                status_code: int = 200,
+                headers: Mapping[str, str] | None = None,
+            ) -> "ResponseBase":
+                return owner.from_json(data, status_code=status_code, headers=headers)
+
+            return _factory
+
+        def _instance_json() -> Any:
+            return obj.json_body()
+
+        return _instance_json
+
 
 class ResponseBase(ResponseSpec):
     """Concrete HTTP response object that also implements ``ResponseSpec``."""
@@ -133,7 +165,7 @@ class ResponseBase(ResponseSpec):
         data: Any,
         status_code: int = 200,
         headers: Mapping[str, str] | None = None,
-    ) -> "Response":
+    ) -> "ResponseBase":
         payload = json_module.dumps(
             data, ensure_ascii=False, separators=(",", ":"), default=str
         ).encode("utf-8")
@@ -153,7 +185,7 @@ class ResponseBase(ResponseSpec):
         html: str,
         status_code: int = 200,
         headers: Mapping[str, str] | None = None,
-    ) -> "Response":
+    ) -> "ResponseBase":
         payload = html.encode("utf-8")
         hdrs = [("content-type", "text/html; charset=utf-8")]
         for k, v in (headers or {}).items():
@@ -171,7 +203,7 @@ class ResponseBase(ResponseSpec):
         text: str,
         status_code: int = 200,
         headers: Mapping[str, str] | None = None,
-    ) -> "Response":
+    ) -> "ResponseBase":
         payload = text.encode("utf-8")
         hdrs = [("content-type", "text/plain; charset=utf-8")]
         for k, v in (headers or {}).items():
