@@ -17,6 +17,7 @@ _EXPORTS = {
     "ForeignKey": "_storage",
     "Table": "_table",
     "Template": "_response",
+    "TableRegistry": "_table_registry",
     "Response": "_response",
     "TransportResponse": "_response",
     "JSONResponse": "_json_response",
