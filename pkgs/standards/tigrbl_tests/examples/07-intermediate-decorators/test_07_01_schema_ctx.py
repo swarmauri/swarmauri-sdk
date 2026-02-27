@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from tigrbl import Base, schema_ctx
+from tigrbl.decorators import schema_ctx
+from tigrbl.table import Base
 from tigrbl.types import BaseModel
 
 
