@@ -7,7 +7,7 @@ import surface stable while easing maintenance.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
@@ -40,7 +40,6 @@ from .routing import (
 )
 from ..._concrete._request import Request
 from ..._concrete._response import Response
-from ..._concrete._router import Router
 from ...config.constants import (
     TIGRBL_ALLOW_ANON_ATTR,
     TIGRBL_AUTH_CONTEXT_ATTR,
@@ -55,10 +54,15 @@ from ...rest import _nested_prefix
 from ...runtime.status.exceptions import HTTPException
 from ...runtime.status.mappings import status as _status
 from ...schema.builder import _strip_parent_fields
-from ...security.dependencies import Depends
+from ..._concrete.dependencies import Depends
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/rest/common")
+
+if TYPE_CHECKING:  # pragma: no cover
+    from ..._concrete._router import Router
+else:  # pragma: no cover
+    Router = Any
 
 
 def _is_http_response(obj: Any) -> bool:

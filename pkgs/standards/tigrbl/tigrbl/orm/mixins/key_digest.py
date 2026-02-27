@@ -4,7 +4,7 @@ from hashlib import sha256
 from secrets import token_urlsafe
 
 from ..._spec.io_spec import Pair
-from ...specs import F, IO, S, acol
+from ..._spec import F, IO, S, acol
 from ...types import Mapped, String, declarative_mixin
 
 

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from tigrbl import Base
-from tigrbl.table.mro_collect import mro_collect_table_spec
-from tigrbl.table.shortcuts import defineTableSpec
+from tigrbl.mapping.table_mro_collect import mro_collect_table_spec
+from tigrbl.shortcuts.table import defineTableSpec
 
 
 def test_define_table_spec_ops_and_columns() -> None:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ...specs import ColumnSpec, F, S, acol
+from ..._spec import ColumnSpec, F, S, acol
 from ..._spec.storage_spec import ForeignKeySpec
 from ...types import PgUUID, UUID, String, declarative_mixin, declared_attr, Mapped
 

@@ -6,7 +6,7 @@ import re
 
 from tigrbl._concrete._headers import Headers
 
-from .base import BaseHTTPMiddleware
+from .._base._middleware_base import MiddlewareBase as BaseHTTPMiddleware
 
 
 class CORSMiddleware(BaseHTTPMiddleware):

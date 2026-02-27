@@ -2,7 +2,7 @@ import json
 
 from tigrbl import SchemaRef, TigrblApp, alias, alias_ctx, op_ctx, schema_ctx
 from tigrbl.op import resolve
-from tigrbl.op.mro_collect import mro_collect_decorated_ops
+from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
 from tigrbl.mapping import build_schemas, build_hooks, build_handlers, build_rest
 
 # REST test client

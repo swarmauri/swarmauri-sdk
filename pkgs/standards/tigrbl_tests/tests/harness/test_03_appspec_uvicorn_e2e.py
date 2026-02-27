@@ -27,7 +27,7 @@ async def test_appspec_to_uvicorn_rest_and_rpc_roundtrip() -> None:
 
     from tigrbl import Base
     from tigrbl._spec import AppSpec
-    from tigrbl.concrete.tigrbl_app import TigrblApp
+    from tigrbl import TigrblApp
     from tigrbl.shortcuts.engine import mem
     from tigrbl.orm.mixins import GUIDPk
     from tigrbl._spec import OpSpec

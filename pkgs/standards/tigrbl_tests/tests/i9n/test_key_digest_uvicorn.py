@@ -16,7 +16,7 @@ from tigrbl.orm.mixins import (
 )
 from tigrbl.orm.mixins.utils import CRUD_IO
 from tigrbl import F, S, acol
-from tigrbl.table import Base
+from tigrbl import Base
 from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server

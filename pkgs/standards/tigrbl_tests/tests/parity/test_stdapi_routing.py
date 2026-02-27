@@ -9,8 +9,8 @@ import pytest
 
 
 from tigrbl import Router
-from tigrbl.security import Depends
-from tigrbl.requests import Request
+from tigrbl import Depends
+from tigrbl import Request
 
 
 @pytest.mark.xfail(

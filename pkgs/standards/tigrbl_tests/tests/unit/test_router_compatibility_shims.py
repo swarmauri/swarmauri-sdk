@@ -2,7 +2,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from tigrbl import TigrblRouter, TigrblApp
-from tigrbl.security.dependencies import Dependency
+from tigrbl import Dependency
 
 
 class StatusDetailError(Exception):

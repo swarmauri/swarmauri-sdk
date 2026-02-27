@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
 from tigrbl import F, S, acol
-from tigrbl.table import Table
+from tigrbl import Table
 from tigrbl.types import Integer, Mapped
 
 

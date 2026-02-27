@@ -55,8 +55,18 @@ from .runtime.executor import _invoke
 from .schema import _build_schema, _build_list_params, get_schema
 
 # ── Transport & Diagnostics (optional) ─────────────────────────────────────────
-from .requests import Request
+from ._concrete._request import Request
+from ._concrete._request import AwaitableValue, URL, _b64url_decode, _b64url_encode
 from ._concrete._response import Response
+from ._concrete._json_response import JSONResponse
+from ._concrete import (
+    HTMLResponse,
+    PlainTextResponse,
+    StreamingResponse,
+    FileResponse,
+    RedirectResponse,
+)
+from .runtime.atoms.response.templates import render_template
 from .system import mount_diagnostics
 
 # ── DB/bootstrap helpers (infra; optional) ─────────────────────────────────────
@@ -65,15 +75,21 @@ from .ddl import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
 from ._concrete.tigrbl_app import TigrblApp
-from .router import TigrblRouter, route_ctx
-from .table import Base
+from ._concrete.tigrbl_router import TigrblRouter
+from .decorators.router import route_ctx
+from .orm.tables import Base
 from .op import Op
 from .engine import resolver
 from ._concrete._security.api_key import APIKey
 from ._concrete._security.http_bearer import HTTPBearer
+from ._concrete._security.http_bearer import HTTPAuthorizationCredentials
 from ._concrete._security.mutual_tls import MutualTLS
 from ._concrete._security.oauth2 import OAuth2
 from ._concrete._security.openid_connect import OpenIdConnect
+from ._base._security_base import OpenAPISecurityDependency
+from ._concrete.dependencies import Dependency, Depends, Security
+from .decorators.response import get_attached_response_spec
+from .mapping.responses_resolver import infer_hints, resolve_response_spec
 from ._spec import (
     AppSpec,
     ColumnSpec,
@@ -125,10 +141,26 @@ __all__ += [
     "Base",
     "Op",
     "HTTPBearer",
+    "HTTPAuthorizationCredentials",
     "APIKey",
     "OAuth2",
     "OpenIdConnect",
     "MutualTLS",
+    "OpenAPISecurityDependency",
+    "Dependency",
+    "Depends",
+    "Security",
+    "JSONResponse",
+    "HTMLResponse",
+    "PlainTextResponse",
+    "StreamingResponse",
+    "FileResponse",
+    "RedirectResponse",
+    "render_template",
+    "AwaitableValue",
+    "URL",
+    "_b64url_encode",
+    "_b64url_decode",
 ]
 
 __all__ += [
@@ -151,10 +183,13 @@ __all__ += [
     "hook_ctx",
     "schema_ctx",
     "response_ctx",
+    "get_attached_response_spec",
     "alias",
     "op_alias",
     "engine_ctx",
     "ResponseSpec",
+    "infer_hints",
+    "resolve_response_spec",
     # Bindings
     "bind",
     "rebind",

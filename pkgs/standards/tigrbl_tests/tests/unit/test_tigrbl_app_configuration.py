@@ -2,7 +2,7 @@ import pytest
 
 from tigrbl import TigrblApp
 from tigrbl.shortcuts.engine import mem
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
+from tigrbl import HTTPAuthorizationCredentials, HTTPBearer, Security
 
 
 def _auth_dependency(

@@ -7,7 +7,7 @@ from typing import Any, Mapping
 
 from tigrbl._concrete._headers import HeaderCookies, Headers
 
-from ..specs.response_spec import ResponseSpec, TemplateSpec
+from .._spec.response_spec import ResponseSpec, TemplateSpec
 
 
 class _JSONDualMethod:

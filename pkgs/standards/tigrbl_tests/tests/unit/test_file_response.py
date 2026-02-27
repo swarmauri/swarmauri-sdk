@@ -3,7 +3,7 @@ from pathlib import Path
 
 from httpx import ASGITransport, Client
 
-from tigrbl.op.mro_collect import mro_collect_decorated_ops
+from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
 from tigrbl.op import op_ctx
 from tigrbl.shortcuts.responses import as_file
 from tigrbl.mapping import (
@@ -16,9 +16,9 @@ from tigrbl.mapping import (
 )
 from tigrbl import TigrblApp
 from tigrbl.types import Integer, Mapped, mapped_column
-from tigrbl.table import Table
-from tigrbl.router import TigrblRouter
-from tigrbl.app._app import App as BaseApp
+from tigrbl import Table
+from tigrbl import TigrblRouter
+from tigrbl._concrete._app import App as BaseApp
 
 
 def _build_model(base: type, file_path: Path, *, bind: bool = True) -> type:

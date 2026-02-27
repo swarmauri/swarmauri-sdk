@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from ...specs import acol, F, IO, S
+from ..._spec import acol, F, IO, S
 from ...types import Integer, Mapped, SAEnum, String
 
 from ._base import TableBase

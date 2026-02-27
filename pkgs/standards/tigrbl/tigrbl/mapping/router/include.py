@@ -279,8 +279,8 @@ def include_model(
     # run after a registry dispose still have working models.
     if not hasattr(model, "__table__"):
         try:  # pragma: no cover - defensive path exercised in tests
-            from ...table import Base
-            from ...table._base import _materialize_colspecs_to_sqla
+            from ...orm.tables import Base
+            from ..._base._table_base import _materialize_colspecs_to_sqla
 
             # Recreate mapped_column attributes from ColumnSpecs then map
             _materialize_colspecs_to_sqla(model)

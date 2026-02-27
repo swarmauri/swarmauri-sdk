@@ -9,7 +9,7 @@ from ..mixins import (
     AsyncCapable,
     ActiveToggle,
 )
-from ...specs import IO, acol, F, S
+from ..._spec import IO, acol, F, S
 from ...types import Mapped, String
 
 

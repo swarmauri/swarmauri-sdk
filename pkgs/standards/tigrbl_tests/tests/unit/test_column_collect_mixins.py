@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from tigrbl.column.mro_collect import mro_collect_columns
+from tigrbl.mapping.column_mro_collect import mro_collect_columns
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.table import Base
+from tigrbl import Base
 from tigrbl import S, acol
 from tigrbl.types import Mapped, String
 

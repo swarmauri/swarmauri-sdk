@@ -1,16 +1,16 @@
 from __future__ import annotations
 from types import SimpleNamespace
 
-from tigrbl.responses import (
+from tigrbl import (
     ResponseSpec,
     get_attached_response_spec,
     infer_hints,
     response_ctx,
     resolve_response_spec,
 )
-from tigrbl import RouterSpec
 from tigrbl import AppSpec
 from tigrbl import OpSpec
+from tigrbl import RouterSpec
 from tigrbl import TableSpec
 
 

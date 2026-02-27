@@ -19,7 +19,7 @@ def test_compile_kernel_plan_indexes_rest_and_jsonrpc_bindings() -> None:
     from sqlalchemy import Column, String
     from tigrbl import Base
     from tigrbl._spec import AppSpec
-    from tigrbl.concrete.tigrbl_app import TigrblApp
+    from tigrbl import TigrblApp
     from tigrbl._spec import OpSpec
     from tigrbl.orm.mixins import GUIDPk
     from tigrbl.runtime.kernel import Kernel
@@ -75,7 +75,7 @@ def test_kernel_plan_roundtrips_opkey_to_meta() -> None:
     from sqlalchemy import Column, String
     from tigrbl import Base
     from tigrbl._spec import AppSpec
-    from tigrbl.concrete.tigrbl_app import TigrblApp
+    from tigrbl import TigrblApp
     from tigrbl._spec import OpSpec
     from tigrbl.orm.mixins import GUIDPk
     from tigrbl.runtime.kernel import Kernel

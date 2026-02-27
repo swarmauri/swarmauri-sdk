@@ -10,7 +10,6 @@ from .builders import (
     blocking_postgres_engine,
     blocking_sqlite_engine,
 )
-from .collect import collect_engine_config
 from .plugins import load_engine_plugins as _bootstrap_load_engine_plugins
 
 
@@ -58,6 +57,12 @@ def install_from_objects(*args, **kwargs):
     from .bind import install_from_objects as _install_from_objects
 
     return _install_from_objects(*args, **kwargs)
+
+
+def collect_engine_config(*args, **kwargs):
+    from .collect import collect_engine_config as _collect_engine_config
+
+    return _collect_engine_config(*args, **kwargs)
 
 
 def load_engine_plugins(*args, **kwargs):

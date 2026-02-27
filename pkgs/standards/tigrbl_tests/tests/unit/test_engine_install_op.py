@@ -6,7 +6,7 @@ from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl import F, IO, S
 from tigrbl.shortcuts import acol
-from tigrbl.table import Table
+from tigrbl import Table
 from tigrbl.types import Mapped, String
 
 

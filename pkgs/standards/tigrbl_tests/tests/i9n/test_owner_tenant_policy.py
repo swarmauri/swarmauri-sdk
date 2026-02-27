@@ -9,9 +9,9 @@ from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.mixins.ownable import Ownable, OwnerPolicy
 from tigrbl.orm.mixins.tenant_bound import TenantBound, TenantPolicy
-from tigrbl.requests import Request
+from tigrbl import Request
 from tigrbl.runtime.status import HTTPException
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
+from tigrbl import HTTPAuthorizationCredentials, HTTPBearer, Security
 from tigrbl.types.authn_abc import AuthNProvider
 
 
@@ -52,7 +52,7 @@ def _client_for_owner(
         name = Column(String, nullable=False)
         __tigrbl_owner_policy__ = policy
 
-    from tigrbl.engine._engine import Engine
+    from tigrbl._concrete._engine import Engine
     from tigrbl._spec import EngineSpec
     from tigrbl.shortcuts.engine import mem
 
@@ -130,7 +130,7 @@ def _client_for_tenant(
         name = Column(String, nullable=False)
         __tigrbl_tenant_policy__ = policy
 
-    from tigrbl.engine._engine import Engine
+    from tigrbl._concrete._engine import Engine
     from tigrbl._spec import EngineSpec
     from tigrbl.shortcuts.engine import mem
 

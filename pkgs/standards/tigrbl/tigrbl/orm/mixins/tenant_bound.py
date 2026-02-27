@@ -8,14 +8,14 @@ from typing import Any, Mapping
 from uuid import UUID
 
 from ._RowBound import _RowBound
-from ...specs import acol
+from ..._spec import acol
 from ...config.constants import (
     TIGRBL_TENANT_POLICY_ATTR,
     CTX_AUTH_KEY,
     CTX_TENANT_ID_KEY,
 )
 from ...runtime.status import create_standardized_error
-from ...specs import ColumnSpec, F, IO, S
+from ..._spec import ColumnSpec, F, IO, S
 from ..._spec.storage_spec import ForeignKeySpec
 from ...types import Mapped, PgUUID, declared_attr
 

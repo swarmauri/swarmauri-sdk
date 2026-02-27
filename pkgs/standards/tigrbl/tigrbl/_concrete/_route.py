@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from types import SimpleNamespace
 from typing import Annotated, Any, Callable, get_args, get_origin
 
-from ..security.dependencies import Dependency
+from .dependencies import Dependency
 
 Handler = Callable[..., Any]
 

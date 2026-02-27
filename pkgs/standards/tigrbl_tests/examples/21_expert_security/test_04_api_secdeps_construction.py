@@ -5,14 +5,14 @@ through its class configuration and verify that the OpenAPI schema marks
 routes as secured when the API runs under Uvicorn.
 """
 
-from tigrbl.security import Security
+from tigrbl import Security
 
 import inspect
 
 import httpx
 import pytest
-from tigrbl.security import HTTPBearer
-from tigrbl.responses import JSONResponse
+from tigrbl import HTTPBearer
+from tigrbl import JSONResponse
 
 from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApp, TigrblRouter

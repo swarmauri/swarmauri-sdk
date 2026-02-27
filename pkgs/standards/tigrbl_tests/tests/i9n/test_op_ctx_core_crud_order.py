@@ -4,7 +4,7 @@ from sqlalchemy import Column, String
 from tigrbl import TigrblApp, TigrblRouter, op_ctx
 from tigrbl import core as _core
 from tigrbl.core import crud
-from tigrbl.engine._engine import Engine
+from tigrbl._concrete._engine import Engine
 from tigrbl import EngineSpec
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk

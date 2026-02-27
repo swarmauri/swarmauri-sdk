@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any, Sequence
 
 
-@dataclass(slots=True)
+@dataclass
 class TableRegistrySpec:
     """Spec payload for building a table registry."""
 

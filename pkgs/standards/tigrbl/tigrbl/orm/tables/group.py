@@ -2,7 +2,7 @@
 
 from ._base import TableBase
 from ..mixins import GUIDPk, Timestamped, TenantBound, Principal
-from ...specs import IO, F, acol, S
+from ..._spec import IO, F, acol, S
 from ...types import Mapped, String
 
 

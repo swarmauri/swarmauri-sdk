@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-from ...specs import ColumnSpec, F, S, acol
+from ..._spec import ColumnSpec, F, S, acol
 from ..._spec.storage_spec import ForeignKeySpec
 from ...types import PgUUID, TZDateTime, UUID, declarative_mixin, Mapped
 

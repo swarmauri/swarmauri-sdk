@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...config.constants import CTX_AUTH_KEY, CTX_USER_ID_KEY
-from ...specs import ColumnSpec, F, S, acol
+from ..._spec import ColumnSpec, F, S, acol
 from ..._spec.storage_spec import ForeignKeySpec
 from ...types import PgUUID, UUID, Mapped
 

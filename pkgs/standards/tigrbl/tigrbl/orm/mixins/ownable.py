@@ -8,7 +8,7 @@ from uuid import UUID
 
 from ...types import PgUUID, Mapped, declared_attr
 
-from ...specs import acol
+from ..._spec import acol
 from ...config.constants import (
     TIGRBL_HOOKS_ATTR,
     TIGRBL_OWNER_POLICY_ATTR,
@@ -16,7 +16,7 @@ from ...config.constants import (
     CTX_USER_ID_KEY,
 )
 from ...runtime.status import create_standardized_error
-from ...specs import ColumnSpec, F, IO, S
+from ..._spec import ColumnSpec, F, IO, S
 from ..._spec.storage_spec import ForeignKeySpec
 
 log = logging.getLogger(__name__)

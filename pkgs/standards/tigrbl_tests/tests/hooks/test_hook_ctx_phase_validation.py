@@ -2,8 +2,9 @@ from enum import Enum
 
 import pytest
 
-from tigrbl.hook import InvalidHookPhaseError, hook_ctx
-from tigrbl.hook.types import PHASE
+from tigrbl.runtime.exceptions import InvalidHookPhaseError
+from tigrbl import hook_ctx
+from tigrbl.op.types import PHASE
 
 
 class InvalidPhase(Enum):

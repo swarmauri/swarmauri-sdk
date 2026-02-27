@@ -46,7 +46,6 @@ from .hooks import normalize_and_attach as build_hooks
 from .handlers import build_and_attach as build_handlers
 from .rpc import register_and_attach as register_rpc
 from .rest import build_router_and_attach as build_rest
-from ..responses.bind import bind as bind_response
 from .traversal import (
     INSTALLS,
     MRO_COLLECTORS,
@@ -63,6 +62,10 @@ from .router import include_table, include_tables, rpc_call
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/__init__")
+
+# Backward-compatible alias retained for callers that expect response binding
+# under mapping; current binding entrypoint is model bind/rebind.
+bind_response = bind
 
 
 __all__ = [

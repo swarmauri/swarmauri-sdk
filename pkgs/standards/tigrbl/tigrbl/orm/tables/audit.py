@@ -4,7 +4,7 @@ from uuid import UUID
 
 from . import TableBase
 from ..mixins import GUIDPk, Timestamped
-from ...specs import IO, F, acol, S
+from ..._spec import IO, F, acol, S
 from ...types import DateTime, Integer, String, PgUUID, Mapped
 
 

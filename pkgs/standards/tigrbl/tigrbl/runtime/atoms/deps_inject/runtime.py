@@ -13,7 +13,7 @@ from ....mapping.core_resolver import (
 )
 from ....runtime.status.exceptions import HTTPException
 from ....runtime.status.mappings import status
-from ....security.dependencies import Dependency
+from ...._concrete.dependencies import Dependency
 
 
 @dataclass(frozen=True)

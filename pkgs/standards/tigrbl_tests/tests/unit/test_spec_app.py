@@ -1,6 +1,6 @@
-from tigrbl.app.mro_collect import mro_collect_app_spec
-from tigrbl.app import App
-from tigrbl.app.shortcuts import defineAppSpec, deriveApp
+from tigrbl.mapping.app_mro_collect import mro_collect_app_spec
+from tigrbl import App
+from tigrbl.shortcuts.app import defineAppSpec, deriveApp
 
 
 class BaseAppSpec(defineAppSpec(title="Base", version="1.0", routers=("base",))):

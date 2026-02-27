@@ -8,7 +8,7 @@ from .._concrete._engine import AsyncSession, Session
 from ..ddl import initialize as _ddl_initialize
 from .._concrete._engine import Engine  # reuse the collector
 from ..mapping import engine_resolver as _resolver
-from ..specs.table_spec import TableSpec
+from .._spec.table_spec import TableSpec
 from .._base._table_base import TableBase
 
 

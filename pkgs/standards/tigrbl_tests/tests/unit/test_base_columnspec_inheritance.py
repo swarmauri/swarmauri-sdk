@@ -6,7 +6,7 @@ from sqlalchemy import Integer, String
 from sqlalchemy.exc import SAWarning
 
 from tigrbl import ColumnSpec, StorageSpec as S
-from tigrbl.table._base import Base
+from tigrbl.orm.tables import Base
 
 
 def test_columnspec_inheritance_does_not_warn() -> None:

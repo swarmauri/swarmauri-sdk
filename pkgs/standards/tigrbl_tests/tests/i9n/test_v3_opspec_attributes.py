@@ -8,7 +8,7 @@ from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
 from tigrbl import TigrblApp
 from tigrbl import core as _core
-from tigrbl.hook import hook_ctx
+from tigrbl import hook_ctx
 from tigrbl.mapping.model import bind
 from tigrbl.op.types import PHASES
 from tigrbl.orm.mixins import GUIDPk

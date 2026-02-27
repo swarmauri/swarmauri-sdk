@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 
 from tigrbl import Router
-from tigrbl.requests import Request
+from tigrbl import Request
 
 
 class CreateWidget(BaseModel):

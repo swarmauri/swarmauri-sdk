@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from tigrbl.engine.shortcuts import (
+from tigrbl.shortcuts.engine import (
     engine_spec,
     engine,
     mem,

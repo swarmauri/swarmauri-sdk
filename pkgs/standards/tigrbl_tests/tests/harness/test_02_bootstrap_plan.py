@@ -25,7 +25,7 @@ def test_kernel_compiles_bootstrap_plan_with_required_anchors() -> None:
 
     from tigrbl import Base
     from tigrbl._spec import AppSpec
-    from tigrbl.concrete.tigrbl_app import TigrblApp
+    from tigrbl import TigrblApp
     from tigrbl.orm.mixins import GUIDPk
     from tigrbl._spec import OpSpec
     from tigrbl.runtime import events as ev
