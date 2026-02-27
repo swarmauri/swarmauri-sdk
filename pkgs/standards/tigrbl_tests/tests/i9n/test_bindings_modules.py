@@ -10,7 +10,7 @@ import tigrbl.mapping.router as router_binding
 import tigrbl.mapping.rpc as rpc_binding
 from tigrbl.column import shortcuts as sc
 from tigrbl.mapping.schemas import build_and_attach as schemas_build_and_attach
-from tigrbl.op import resolve
+from tigrbl.mapping.op_resolver import resolve
 from tigrbl.orm.tables import Base
 from tigrbl.runtime import executor as _executor
 from tigrbl._spec import IO, ColumnSpec, F, S
