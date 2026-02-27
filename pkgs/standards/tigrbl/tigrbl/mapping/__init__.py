@@ -40,8 +40,10 @@ def __getattr__(name: str):
         return import_module(".rest", __name__).build_router_and_attach
     if name == "bind_response":
         return import_module("..responses.bind", __name__).bind
-    if name in {"include_table", "include_tables", "rpc_call"}:
-        return getattr(import_module(".router", __name__), name)
+    if name in {"include_table", "include_tables"}:
+        return getattr(import_module(".router.include", __name__), name)
+    if name == "rpc_call":
+        return getattr(import_module(".router.rpc", __name__), name)
     if name in {
         "INSTALLS",
         "MRO_COLLECTORS",

@@ -1,4 +1,6 @@
-from tigrbl.hook import HOOK_DECLS_ATTR, Hook, hook_ctx
+from tigrbl import Hook
+from tigrbl.config.constants import HOOK_DECLS_ATTR
+from tigrbl.decorators.hook import hook_ctx
 
 
 def test_hook_ctx_marks_ctx_only():

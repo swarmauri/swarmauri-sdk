@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from tigrbl.hook import hook_ctx
+from tigrbl.decorators.hook import hook_ctx
 
 
 def _emit_evidence(ctx, kind: str, data: dict):

@@ -23,13 +23,9 @@ from ._routing import add_route as _add_route_impl
 from .._spec.engine_spec import EngineCfg
 from ..mapping import engine_resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
-from ..mapping.router import (
-    rpc_call as _rpc_call,
-    _seed_security_and_deps,
-    _mount_router,
-    _default_prefix,
-    AttrDict,
-)
+from ..mapping.router.common import AttrDict, _default_prefix, _mount_router
+from ..mapping.router.include import _seed_security_and_deps
+from ..mapping.router.rpc import rpc_call as _rpc_call
 from ..mapping.table import rebind as _rebind, bind as _bind
 from ..mapping.rest import build_router_and_attach as _build_router_and_attach
 from ..system import mount_diagnostics as _mount_diagnostics

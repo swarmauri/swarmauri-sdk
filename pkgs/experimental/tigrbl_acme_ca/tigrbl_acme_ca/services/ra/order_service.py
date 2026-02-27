@@ -6,7 +6,7 @@ from typing import Sequence
 
 from fastapi import HTTPException
 from tigrbl.op import op_ctx
-from tigrbl.hook import hook_ctx
+from tigrbl.decorators.hook import hook_ctx
 
 from tigrbl_acme_ca.tables.orders import Order
 from tigrbl_acme_ca.tables.authorizations import Authorization

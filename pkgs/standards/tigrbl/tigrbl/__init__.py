@@ -28,7 +28,7 @@ from .schema.types import SchemaRef, SchemaArg
 # ── Ctx-only decorators (new surface; replaces legacy ops.decorators) ─────────
 
 from .op import alias_ctx, op_ctx, alias, op_alias
-from .hook import hook_ctx
+from .decorators.hook import hook_ctx
 from .decorators.engine import engine_ctx
 from .decorators.schema import schema_ctx
 from .decorators.response import response_ctx
