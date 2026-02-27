@@ -2,26 +2,82 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import Any, Callable
+from typing import Any, Callable, Mapping
 
 from .._concrete._engine import AsyncSession, Session
+from ..ddl import initialize as _ddl_initialize
 from ..engine import install_from_objects  # reuse the collector
 from ..mapping import engine_resolver as _resolver
-from ..ddl import initialize as _ddl_initialize
-from ..table._base import Base
 from ..specs.table_spec import TableSpec
+from ..table._base import Base
 
 
 class Table(Base, TableSpec):
     """Declarative ORM table base.
 
     This class now integrates :class:`Base` so ORM models and tables share
-    the same type.  Column specifications are exposed via ``columns`` for
+    the same type. Column specifications are exposed via ``columns`` for
     convenience.
     """
 
     __abstract__ = True
     columns: SimpleNamespace = SimpleNamespace()
+
+    @staticmethod
+    def _merge_seq_attr(model: type, attr: str) -> tuple[Any, ...]:
+        values: list[Any] = []
+        for base in model.__mro__:
+            seq = base.__dict__.get(attr, ()) or ()
+            try:
+                values.extend(seq)
+            except TypeError:  # pragma: no cover - non-iterable
+                values.append(seq)
+        return tuple(values)
+
+    @classmethod
+    def _collect_mro_spec(cls) -> TableSpec:
+        direct_engine: Any | None = None
+        inherited_engine: Any | None = None
+
+        for base in cls.__mro__:
+            if "table_config" in base.__dict__:
+                cfg = base.__dict__.get("table_config")
+                if isinstance(cfg, Mapping):
+                    eng = (
+                        cfg.get("engine")
+                        or cfg.get("db")
+                        or cfg.get("database")
+                        or cfg.get("engine_provider")
+                        or cfg.get("db_provider")
+                    )
+                    if eng is not None and direct_engine is None:
+                        direct_engine = eng
+                continue
+
+            cfg = getattr(base, "table_config", None)
+            if isinstance(cfg, Mapping):
+                eng = (
+                    cfg.get("engine")
+                    or cfg.get("db")
+                    or cfg.get("database")
+                    or cfg.get("engine_provider")
+                    or cfg.get("db_provider")
+                )
+                if eng is not None:
+                    inherited_engine = eng
+
+        engine = inherited_engine if inherited_engine is not None else direct_engine
+
+        return TableSpec(
+            model=cls,
+            engine=engine,
+            ops=cls._merge_seq_attr(cls, "OPS"),
+            columns=cls._merge_seq_attr(cls, "COLUMNS"),
+            schemas=cls._merge_seq_attr(cls, "SCHEMAS"),
+            hooks=cls._merge_seq_attr(cls, "HOOKS"),
+            security_deps=cls._merge_seq_attr(cls, "SECURITY_DEPS"),
+            deps=cls._merge_seq_attr(cls, "DEPS"),
+        )
 
     def __init__(self, **kw: Any) -> None:  # pragma: no cover - SQLA sets attrs
         for k, v in kw.items():
@@ -29,6 +85,20 @@ class Table(Base, TableSpec):
 
     def __init_subclass__(cls, **kw: Any) -> None:  # noqa: D401
         super().__init_subclass__(**kw)
+
+        collected_spec = cls._collect_mro_spec()
+
+        cls.OPS = tuple(collected_spec.ops)
+        cls.COLUMNS = tuple(collected_spec.columns)
+        cls.SCHEMAS = tuple(collected_spec.schemas)
+        cls.HOOKS = tuple(collected_spec.hooks)
+        cls.SECURITY_DEPS = tuple(collected_spec.security_deps)
+        cls.DEPS = tuple(collected_spec.deps)
+
+        if collected_spec.engine is not None:
+            cfg = dict(getattr(cls, "table_config", {}) or {})
+            cfg.setdefault("engine", collected_spec.engine)
+            cls.table_config = cfg
 
         # expose ColumnSpecs under `columns` namespace
         specs = getattr(cls, "__tigrbl_cols__", {})
