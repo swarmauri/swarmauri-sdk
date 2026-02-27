@@ -12,7 +12,6 @@ from tigrbl.column import shortcuts as sc
 from tigrbl.mapping.schemas import build_and_attach as schemas_build_and_attach
 from tigrbl.mapping.op_resolver import resolve
 from tigrbl.orm.tables import Base
-from tigrbl.runtime import executor as _executor
 from tigrbl._spec import IO, ColumnSpec, F, S
 from tigrbl.types import (
     InstrumentedAttribute,
@@ -114,7 +113,7 @@ def test_model_bind_and_rebind(model_cls):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_router_include_and_rpc_call(monkeypatch, model_cls):
+async def test_router_include_and_rpc_call_returns_operation_envelope(model_cls):
     model_binding.bind(model_cls)
     router = SimpleNamespace()
     router_binding.include_table(router, model_cls, mount_router=False)
@@ -124,15 +123,16 @@ async def test_router_include_and_rpc_call(monkeypatch, model_cls):
     )
     assert model_cls.__name__ in routers
 
-    async def fake_invoke(*, request, db, phases, ctx):  # noqa: D401
-        return ctx["payload"]
-
-    monkeypatch.setattr(_executor, "_invoke", fake_invoke)
     payload = {"name": "x"}
     result = await router_binding.rpc_call(
         router, model_cls, "create", payload=payload, db=object()
     )
-    assert result == payload
+    assert result["model"] is model_cls
+    assert result["alias"] == "create"
+    assert result["target"] == "create"
+    assert result["payload"] == payload
+    assert isinstance(result["phases"], dict)
+    assert callable(result["serialize"])
 
 
 @pytest.mark.i9n

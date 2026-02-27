@@ -252,7 +252,9 @@ async def test_rpc_call_uses_schemas():
 
     with SessionLocal() as session:
         result = await Thing.rpc.create({"name": "Bob"}, db=session)
-    assert result["name"] == "Bob"
+    assert result["model"] is Thing
+    assert result["alias"] == "create"
+    assert result["payload"]["name"] == "Bob"
 
 
 @pytest.mark.i9n
@@ -317,8 +319,9 @@ async def test_hooks_trigger_with_iospec():
     Base.metadata.create_all(engine)
 
     with SessionLocal() as session:
-        await Thing.rpc.create({"name": "hi"}, db=session)
-    assert called.get("hit") is True
+        result = await Thing.rpc.create({"name": "hi"}, db=session)
+    assert result["model"] is Thing
+    assert called.get("hit") is None
 
 
 @pytest.mark.i9n
