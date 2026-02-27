@@ -4,7 +4,7 @@ import pytest_asyncio
 
 from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables._base import Base
+from tigrbl.table import Base
 from tigrbl.specs import F, S, IO, acol
 from tigrbl.types import Mapped, String
 

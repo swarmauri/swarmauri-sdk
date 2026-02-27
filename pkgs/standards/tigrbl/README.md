@@ -429,7 +429,7 @@ compatible with engine resolution across app, router, table, and op scopes.
 ✅ **Preferred:**
 ```python
 from tigrbl.engine.shortcuts import engine_spec
-from tigrbl.engine.decorators import engine_ctx
+from tigrbl.decorators.engine import engine_ctx
 
 spec = engine_spec(kind="postgres", async_=True, host="db", name="app_db")
 
@@ -578,7 +578,7 @@ resolved deterministically by the runtime.
 ✅ **Preferred:**
 ```python
 from tigrbl import hook_ctx, op_ctx, schema_ctx
-from tigrbl.engine.decorators import engine_ctx
+from tigrbl.decorators.engine import engine_ctx
 
 @engine_ctx(kind="sqlite", mode="memory")
 class Item(Table):
@@ -672,7 +672,7 @@ create.__tigrbl_engine_ctx__ = {
 #### Decorative bindings 🎛️
 
 ```python
-from tigrbl.engine.decorators import engine_ctx
+from tigrbl.decorators.engine import engine_ctx
 from tigrbl.engine.shortcuts import prov, engine
 
 @engine_ctx(prov(kind="sqlite", mode="memory"))

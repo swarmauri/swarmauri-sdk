@@ -15,7 +15,7 @@ from tigrbl.orm.mixins import (
     tzutcnow_plus_day,
 )
 from tigrbl.orm.mixins.utils import CRUD_IO
-from tigrbl.orm.tables._base import Base
+from tigrbl.table import Base
 from tigrbl.specs import F, S, acol
 from tigrbl.types import Mapped, String
 from sqlalchemy import inspect
