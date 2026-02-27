@@ -41,6 +41,11 @@ def test_mapping_does_not_import_dispatch_modules():
         assert not _imports_module(path, "...dispatch")
 
 
+def test_mapping_layers_return_operation_envelopes_without_invoke_calls():
+    rpc_source = _source("mapping/rpc.py")
+    assert "_invoke(" not in rpc_source
+
+
 def test_removed_transport_dispatcher_files_are_absent():
     removed = (
         ROOT / "transport" / "dispatch.py",

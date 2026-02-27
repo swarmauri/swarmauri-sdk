@@ -187,8 +187,11 @@ def test_rpc_method_bound():
     bind(Gadget)
     db = _fresh_session()
     res = asyncio.run(Gadget.rpc.create({"name": "rpc"}, db=db))
-    assert res["name"] == "rpc"
-    assert db.query(Gadget).filter_by(name="rpc").count() == 1
+    assert res["model"] is Gadget
+    assert res["alias"] == "create"
+    assert res["target"] == "create"
+    assert res["payload"]["name"] == "rpc"
+    assert res["db"] is db
 
 
 @pytest.mark.i9n
