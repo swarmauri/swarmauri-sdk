@@ -7,7 +7,8 @@ from urllib.parse import urlencode
 
 from tigrbl.requests import Request
 from tigrbl._concrete._request_adapters import request_from_asgi
-from tigrbl._concrete._transport_response import Response, finalize_transport_response
+from tigrbl._concrete._response import Response
+from tigrbl._concrete._response_finalization import finalize_transport_response
 
 from .middleware import Middleware
 from ..specs.middleware_spec import ASGIReceive, ASGISend, Message
