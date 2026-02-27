@@ -251,12 +251,12 @@ class TableBase(DeclarativeBase):
     def __init_subclass__(cls, **kw):
         # 0) Remove any previously registered class with the same module path.
         try:
-            reg = Base.registry._class_registry
+            reg = TableBase.registry._class_registry
             name = cls.__name__
             existing = reg.get(name)
             if existing is not None:
                 try:
-                    Base.registry._dispose_cls(existing)
+                    TableBase.registry._dispose_cls(existing)
                 except Exception:
                     pass
                 reg.pop(name, None)
@@ -280,7 +280,7 @@ class TableBase(DeclarativeBase):
         # to extend it instead of raising duplicate-table errors.
         try:
             table_name = getattr(cls, "__tablename__", None)
-            if table_name and table_name in Base.metadata.tables:
+            if table_name and table_name in TableBase.metadata.tables:
                 table_args = getattr(cls, "__table_args__", None)
                 if table_args is None:
                     cls.__table_args__ = {"extend_existing": True}
@@ -440,4 +440,4 @@ class TableBase(DeclarativeBase):
         return getattr(self, key)
 
 
-__all__ = ["Base"]
+__all__ = ["TableBase"]

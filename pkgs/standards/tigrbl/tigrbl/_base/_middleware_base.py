@@ -138,4 +138,4 @@ class MiddlewareBase(MiddlewareSpec):
         )
 
 
-__all__ = ["BaseHTTPMiddleware"]
+__all__ = ["MiddlewareBase"]

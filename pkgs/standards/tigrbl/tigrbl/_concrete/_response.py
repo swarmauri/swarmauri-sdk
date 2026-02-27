@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-import json as json_module
 from dataclasses import dataclass
-from http.cookies import SimpleCookie
 from typing import Any, Mapping
 
-from ._headers import HeaderCookies, Headers
 from .._base.response_base import ResponseBase, TemplateBase
 
 
@@ -36,5 +33,6 @@ class Template(TemplateBase):
 @dataclass
 class Response(ResponseBase):
     """Concrete response configuration used at runtime."""
+
 
 __all__ = ["Template", "Response"]

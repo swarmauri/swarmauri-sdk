@@ -3,6 +3,9 @@ from __future__ import annotations
 from types import SimpleNamespace
 from typing import Any, Sequence
 
+from ...op import OpSpec
+from .router import _build_router
+
 
 def build_router_and_attach(
     model: type,
