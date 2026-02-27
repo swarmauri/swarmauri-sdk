@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from httpx import ASGITransport, Client
-from sqlalchemy import Column, String
 
 from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 class Widget(Base, GUIDPk):
