@@ -10,16 +10,28 @@ from typing import Any, Iterable, Mapping
 from .._concrete._engine import Engine
 
 
-def collect_engine_bindings(
+def collect(
     *, app: Any | None = None, router: Any | None = None, tables: Iterable[Any] = ()
 ) -> dict[str, Any]:
     """Collect engine configuration from first-class objects."""
-    return Engine.collect_bindings(app=app, router=router, tables=tuple(tables))
+    return Engine.collect(app=app, router=router, tables=tuple(tables))
+
+
+def install(collected: Mapping[str, Any]) -> None:
+    """Install a collected configuration mapping into the resolver."""
+    Engine.install(dict(collected))
+
+
+def collect_engine_bindings(
+    *, app: Any | None = None, router: Any | None = None, tables: Iterable[Any] = ()
+) -> dict[str, Any]:
+    """Backward-compatible alias for :func:`collect`."""
+    return collect(app=app, router=router, tables=tables)
 
 
 def bind(collected: Mapping[str, Any]) -> None:
-    """Bind a collected configuration mapping into the resolver."""
-    Engine.install_bindings(dict(collected))
+    """Backward-compatible alias for :func:`install`."""
+    install(collected)
 
 
 def install_from_objects(
@@ -32,4 +44,10 @@ def install_from_objects(
     Engine.install_from_objects(app=app, router=router, tables=tuple(tables))
 
 
-__all__ = ["collect_engine_bindings", "bind", "install_from_objects"]
+__all__ = [
+    "collect",
+    "install",
+    "collect_engine_bindings",
+    "bind",
+    "install_from_objects",
+]
