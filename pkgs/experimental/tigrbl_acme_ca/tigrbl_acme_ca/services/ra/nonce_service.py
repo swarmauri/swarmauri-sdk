@@ -4,7 +4,7 @@ import base64
 import os
 from datetime import datetime, timedelta, timezone
 
-from tigrbl.op import op_ctx
+from tigrbl.decorators import op_ctx
 from tigrbl.decorators.hook import hook_ctx
 
 from tigrbl_acme_ca.tables.nonces import Nonce

@@ -12,7 +12,7 @@ from tigrbl.orm.mixins import BulkCapable, Replaceable
 from tigrbl.orm.tables import Base
 from tigrbl.specs import acol, vcol, S, F, IO
 from tigrbl.decorators.hook import hook_ctx
-from tigrbl.op import op_ctx
+from tigrbl.decorators import op_ctx
 from tigrbl.runtime.status.exceptions import HTTPException
 from tigrbl.responses import Response
 
