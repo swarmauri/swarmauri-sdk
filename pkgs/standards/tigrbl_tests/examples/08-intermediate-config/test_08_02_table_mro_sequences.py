@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from tigrbl import Base
 from tigrbl.table.mro_collect import mro_collect_table_spec
-from tigrbl.table.shortcuts import defineTableSpec
+from tigrbl.shortcuts.table import defineTableSpec
 
 
 def test_table_mro_sequence_merge() -> None:
