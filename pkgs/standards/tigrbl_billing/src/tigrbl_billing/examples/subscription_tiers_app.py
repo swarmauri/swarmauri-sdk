@@ -8,7 +8,7 @@ from typing import Any, Dict
 import httpx
 
 from tigrbl import TigrblApp
-from tigrbl.engine.shortcuts import engine as build_engine, mem
+from tigrbl.shortcuts.engine import engine, mem
 
 from tigrbl_billing import ops as billing_ops
 from tigrbl_billing.tables.customer import Customer
@@ -38,7 +38,7 @@ _REQUIRED_OPS = (
 def build_subscription_tiers_app(async_mode: bool = True) -> TigrblApp:
     """Create a :class:`~tigrbl.TigrblApp` preloaded with subscription billing tables."""
 
-    app = TigrblApp(engine=build_engine(mem(async_=async_mode)))
+    app = TigrblApp(engine=engine(mem(async_=async_mode)))
     app.include_models(
         [
             Product,
