@@ -18,7 +18,7 @@ from typing import (
 )
 
 from .._concrete._app import App as _App
-from ..router.tigrbl_router import TigrblRouter
+from ..concrete.tigrbl_router import TigrblRouter
 from ..router._routing import add_route as _add_route_impl
 from ..specs.engine_spec import EngineCfg
 from ..engine import resolver as _resolver

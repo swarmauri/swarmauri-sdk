@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any, Sequence, Type
 
 from ..specs.table_spec import TableSpec
-from ..table._table import Table
+from .._concrete._table import Table
 
 
 def defineTableSpec(

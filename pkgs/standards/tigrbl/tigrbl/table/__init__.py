@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ._base import Base
-from ._table import Table
+from .._concrete._table import Table
 from ..specs.table_spec import TableSpec
 
 __all__ = ["Base", "Table", "TableSpec"]

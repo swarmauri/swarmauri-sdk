@@ -36,7 +36,9 @@ def test_compile_kernel_plan_indexes_rest_and_jsonrpc_bindings() -> None:
             alias="create",
             target="create",
             bindings=(
-                HttpRestBindingSpec(proto="http.rest", path="/widget", methods=("POST",)),
+                HttpRestBindingSpec(
+                    proto="http.rest", path="/widget", methods=("POST",)
+                ),
                 HttpJsonRpcBindingSpec(
                     proto="http.jsonrpc",
                     rpc_method="Widget.create",
@@ -92,7 +94,9 @@ def test_kernel_plan_roundtrips_opkey_to_meta() -> None:
             alias="list",
             target="list",
             bindings=(
-                HttpRestBindingSpec(proto="http.rest", path="/widget", methods=("GET",)),
+                HttpRestBindingSpec(
+                    proto="http.rest", path="/widget", methods=("GET",)
+                ),
             ),
         ),
     )

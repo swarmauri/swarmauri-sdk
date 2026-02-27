@@ -14,7 +14,7 @@ from typing import (
     Tuple,
 )
 
-from ..router._router import Router as _Router
+from .._concrete._router import Router as _Router
 from ..specs.engine_spec import EngineCfg
 from ..ddl import initialize as _ddl_initialize
 from ..mapping.router import (

@@ -21,11 +21,15 @@ from tigrbl.types import Column, String
 
 
 def _rest_bindings(op) -> list[HttpRestBindingSpec]:
-    return [b for b in getattr(op, "bindings", ()) if isinstance(b, HttpRestBindingSpec)]
+    return [
+        b for b in getattr(op, "bindings", ()) if isinstance(b, HttpRestBindingSpec)
+    ]
 
 
 def _rpc_bindings(op) -> list[HttpJsonRpcBindingSpec]:
-    return [b for b in getattr(op, "bindings", ()) if isinstance(b, HttpJsonRpcBindingSpec)]
+    return [
+        b for b in getattr(op, "bindings", ()) if isinstance(b, HttpJsonRpcBindingSpec)
+    ]
 
 
 def test_include_table_builds_default_opspecs_and_bindings() -> None:
@@ -61,18 +65,25 @@ def test_include_table_builds_default_opspecs_and_bindings() -> None:
 
     # --- REST BindingSpecs (canonical CRUD routes) ---
     # Collection routes.
-    assert any(b.path == "/widget" and "POST" in b.methods for b in _rest_bindings(create))
-    assert any(b.path == "/widget" and "GET" in b.methods for b in _rest_bindings(list_))
+    assert any(
+        b.path == "/widget" and "POST" in b.methods for b in _rest_bindings(create)
+    )
+    assert any(
+        b.path == "/widget" and "GET" in b.methods for b in _rest_bindings(list_)
+    )
 
     # Member routes (note: the runtime must match concrete IDs like /widget/<uuid>).
     assert any(
-        b.path == "/widget/{item_id}" and "GET" in b.methods for b in _rest_bindings(read)
+        b.path == "/widget/{item_id}" and "GET" in b.methods
+        for b in _rest_bindings(read)
     )
     assert any(
-        b.path == "/widget/{item_id}" and "PATCH" in b.methods for b in _rest_bindings(update)
+        b.path == "/widget/{item_id}" and "PATCH" in b.methods
+        for b in _rest_bindings(update)
     )
     assert any(
-        b.path == "/widget/{item_id}" and "DELETE" in b.methods for b in _rest_bindings(delete)
+        b.path == "/widget/{item_id}" and "DELETE" in b.methods
+        for b in _rest_bindings(delete)
     )
 
     # --- JSON-RPC BindingSpecs ---

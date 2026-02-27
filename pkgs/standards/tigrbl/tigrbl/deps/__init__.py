@@ -8,7 +8,7 @@ making it easier to manage versions and potential replacements.
 
 from typing import TYPE_CHECKING, Any
 
-from ..router._route import Route, compile_path
+from .._concrete._route import Route, compile_path
 
 if TYPE_CHECKING:
     from tigrbl import Router
