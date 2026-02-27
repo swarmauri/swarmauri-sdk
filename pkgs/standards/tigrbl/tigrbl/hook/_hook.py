@@ -1,3 +1,3 @@
-from .._concrete._hook import Hook
+from ..concrete.hook import Hook
 
 __all__ = ["Hook"]

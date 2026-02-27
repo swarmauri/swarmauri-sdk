@@ -2,9 +2,10 @@ from ..config.constants import HOOK_DECLS_ATTR
 from ..decorators.hook import hook_ctx
 from .types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
 from ..shortcuts.hook import hook, hook_spec
-from .._concrete._hook import Hook
+from ..concrete.hook import Hook
 from .exceptions import InvalidHookPhaseError
 from ..specs.hook_spec import HookSpec
+from .._base._hook import HookBase
 
 __all__ = [
     "hook_ctx",
@@ -19,5 +20,6 @@ __all__ = [
     "hook",
     "hook_spec",
     "HookSpec",
+    "HookBase",
     "InvalidHookPhaseError",
 ]
