@@ -12,7 +12,11 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.shortcuts.app import deriveApp
 from tigrbl.types import Column, String
 
-from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
+from tigrbl_tests.tests.harness_v3._support import (
+    pick_unique_port,
+    start_uvicorn,
+    stop_uvicorn,
+)
 
 
 @pytest.mark.acceptance
@@ -42,8 +46,7 @@ async def test_appspec_to_uvicorn_to_rest_client_e2e() -> None:
     if inspect.isawaitable(init_result):
         await init_result
 
-    # Needed for uvicorn readiness probing (/healthz)
-    app.attach_diagnostics(prefix="", app=app)
+    app.attach_diagnostics(prefix="")
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
@@ -82,10 +85,10 @@ async def test_appspec_to_uvicorn_to_rpc_client_e2e() -> None:
     if inspect.isawaitable(init_result):
         await init_result
 
+    app.attach_diagnostics(prefix="")
+
     # Harness expectation: JSON-RPC is auto-mounted when JSON-RPC bindings exist.
     # (No imperative mount_jsonrpc call here.)
-
-    app.attach_diagnostics(prefix="", app=app)
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
@@ -125,7 +128,7 @@ async def test_appspec_to_uvicorn_rest_and_rpc_parity_e2e() -> None:
     if inspect.isawaitable(init_result):
         await init_result
 
-    app.attach_diagnostics(prefix="", app=app)
+    app.attach_diagnostics(prefix="")
 
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
@@ -137,7 +140,11 @@ async def test_appspec_to_uvicorn_rest_and_rpc_parity_e2e() -> None:
         rpc = TigrblClient(f"{base_url}/rpcx")
         try:
             rpc_response = await rpc.acall("Widget.list", params={})
-            items = rpc_response.get("items") if isinstance(rpc_response, dict) else rpc_response
+            items = (
+                rpc_response.get("items")
+                if isinstance(rpc_response, dict)
+                else rpc_response
+            )
             assert items
             assert any(it.get("name") == "gamma" for it in items)
         finally:
