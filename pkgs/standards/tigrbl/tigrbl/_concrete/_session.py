@@ -3,31 +3,23 @@ from __future__ import annotations
 import inspect
 from typing import Any, Callable, Optional
 
-from .base import TigrblSessionBase
+from .._base import TigrblSessionBase
 from .._spec.session_spec import SessionSpec
 
 
 class DefaultSession(TigrblSessionBase):
-    """
-    Delegating session that wraps an underlying native session object
-    (sync or async) and exposes the Tigrbl Session ABC.
-
-    No third-party imports: we rely on duck-typed methods on the underlying
-    object (begin/commit/rollback, add/delete/flush/refresh/get/execute/close).
-    """
+    """Delegating wrapper for native provider sessions."""
 
     def __init__(self, underlying: Any, spec: Optional[SessionSpec] = None) -> None:
         super().__init__(spec)
         self._u = underlying
 
-    # ---- async marker ----
     async def run_sync(self, fn: Callable[[Any], Any]) -> Any:
         rv = fn(self._u)
         if inspect.isawaitable(rv):
             return await rv
         return rv
 
-    # ---- TX primitives ----
     async def _tx_begin_impl(self) -> None:
         fn = getattr(self._u, "begin", None)
         if not callable(fn):
@@ -61,7 +53,6 @@ class DefaultSession(TigrblSessionBase):
                 pass
         return super().in_transaction()
 
-    # ---- CRUD primitives ----
     def _add_impl(self, obj: Any) -> Any:
         fn = getattr(self._u, "add", None)
         if not callable(fn):
@@ -116,3 +107,6 @@ class DefaultSession(TigrblSessionBase):
             rv = fn()
             if inspect.isawaitable(rv):
                 await rv
+
+
+__all__ = ["DefaultSession"]

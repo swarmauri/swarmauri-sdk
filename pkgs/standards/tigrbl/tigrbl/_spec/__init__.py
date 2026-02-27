@@ -32,6 +32,7 @@ _EXPORTS = {
     "RequestSpec": "request_spec",
     "RouterSpec": "router_spec",
     "SchemaSpec": "schema_spec",
+    "SchemaRef": "schema_spec",
     "SessionSpec": "session_spec",
     "StorageSpec": "storage_spec",
     "StorageTransform": "storage_spec",

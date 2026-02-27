@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from dataclasses import dataclass
 from typing import Literal, Optional, Type, Union
 
@@ -31,6 +32,7 @@ BindingSpec = Union[HttpRestBindingSpec, HttpJsonRpcBindingSpec, WsBindingSpec]
 
 @dataclass(frozen=True, slots=True)
 class Binding:
+    """Named binding declaration used for registry composition."""
     """Named binding wrapper used by registries and planners."""
 
     name: str

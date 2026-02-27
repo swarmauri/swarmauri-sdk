@@ -1,7 +1,4 @@
-"""tigrbl_routes.py
-Helpers that build path prefixes for nested REST endpoints.
-The logic is intentionally minimal; extend or override as needed.
-"""
+"""Compatibility namespace for legacy REST helpers."""
 
 from __future__ import annotations
 from typing import Optional, Type

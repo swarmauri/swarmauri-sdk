@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Callable, Optional
 
-from ..session.default import DefaultSession
+from .._concrete._session import DefaultSession
 from .._spec.session_spec import SessionSpec, SessionCfg
 
 
