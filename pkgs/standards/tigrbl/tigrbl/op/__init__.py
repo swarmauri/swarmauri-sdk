@@ -25,7 +25,7 @@ from .model_registry import (
     get_registered_ops,
     clear_registry,
 )
-from .decorators import alias, alias_ctx, op_alias, op_ctx
+from ..decorators.op import alias, alias_ctx, op_alias, op_ctx
 
 __all__ = [
     "Op",

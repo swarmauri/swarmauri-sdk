@@ -5,7 +5,7 @@ from functools import lru_cache
 from typing import Any, Callable, Dict
 
 from ..specs.op_spec import OpSpec
-from .decorators import _maybe_await, _normalize_persist, _unwrap
+from ..decorators.op import _maybe_await, _normalize_persist, _unwrap
 from ..runtime.executor import _Ctx
 
 logger = logging.getLogger("uvicorn")
