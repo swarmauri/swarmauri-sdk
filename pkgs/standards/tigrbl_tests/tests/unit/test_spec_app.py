@@ -1,4 +1,5 @@
 from tigrbl.app.mro_collect import mro_collect_app_spec
+from tigrbl.app import App
 from tigrbl.app.shortcuts import defineAppSpec, deriveApp
 
 
@@ -26,3 +27,22 @@ def test_app_spec_shortcut_derivation():
     Derived = deriveApp(title="Svc", version="2.0")
     assert Derived.TITLE == "Svc"
     assert Derived.VERSION == "2.0"
+
+
+class BaseConcreteApp(App):
+    ROUTERS = ("base_router",)
+    OPS = ("base_op",)
+    TABLES = ("base_table",)
+
+
+class ChildConcreteApp(BaseConcreteApp):
+    ROUTERS = ("child_router",)
+    OPS = ("child_op",)
+
+
+def test_concrete_app_initializes_from_mro_collect_spec():
+    app = ChildConcreteApp()
+
+    assert app.routers == ("child_router", "base_router")
+    assert app.ops == ("child_op", "base_op")
+    assert tuple(app.tables.values()) == ("base_table",)
