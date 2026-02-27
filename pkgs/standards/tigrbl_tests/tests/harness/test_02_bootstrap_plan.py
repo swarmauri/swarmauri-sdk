@@ -24,7 +24,7 @@ def test_kernel_compiles_bootstrap_plan_with_required_anchors() -> None:
     from sqlalchemy import Column, String
 
     from tigrbl import Base
-    from tigrbl.app import AppSpec
+    from tigrbl.specs.app_spec import AppSpec
     from tigrbl.concrete.tigrbl_app import TigrblApp
     from tigrbl.orm.mixins import GUIDPk
     from tigrbl.op import OpSpec
@@ -42,7 +42,9 @@ def test_kernel_compiles_bootstrap_plan_with_required_anchors() -> None:
             alias="create",
             target="create",
             bindings=(
-                HttpRestBindingSpec(proto="http.rest", path="/widget", methods=("POST",)),
+                HttpRestBindingSpec(
+                    proto="http.rest", path="/widget", methods=("POST",)
+                ),
                 HttpJsonRpcBindingSpec(
                     proto="http.jsonrpc",
                     rpc_method="Widget.create",
