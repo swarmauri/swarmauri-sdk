@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import Any, Callable, Optional
 
 from ..column._column import Column
-from ..column.column_spec import ColumnSpec
-from ..column.field_spec import FieldSpec as F
-from ..column.io_spec import IOSpec as IO
-from ..column.storage_spec import StorageSpec as S
+from ..specs.column_spec import ColumnSpec
+from ..specs.field_spec import FieldSpec as F
+from ..specs.io_spec import IOSpec as IO
+from ..specs.storage_spec import StorageSpec as S
 
 __all__ = [
     "makeColumn",

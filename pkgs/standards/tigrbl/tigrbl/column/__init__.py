@@ -18,11 +18,16 @@ Public surface:
 from __future__ import annotations
 
 # Core spec types
-from .column_spec import ColumnSpec
+from ..specs.column_spec import ColumnSpec
 from ._column import Column
-from .field_spec import FieldSpec as F
-from .storage_spec import ForeignKey, ForeignKeySpec, StorageSpec as S, StorageTransform
-from .io_spec import IOSpec as IO
+from ..specs.field_spec import FieldSpec as F
+from ..specs.storage_spec import (
+    ForeignKey,
+    ForeignKeySpec,
+    StorageSpec as S,
+    StorageTransform,
+)
+from ..specs.io_spec import IOSpec as IO
 
 # Ergonomic constructors
 from .shortcuts import makeColumn, makeVirtualColumn, acol, vcol

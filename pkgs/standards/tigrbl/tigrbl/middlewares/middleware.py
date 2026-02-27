@@ -4,7 +4,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from .spec import ASGIApp, ASGIReceive, ASGISend, Message, WSGIApp, WSGIStartResponse
+from ..specs.middleware_spec import (
+    ASGIApp,
+    ASGIReceive,
+    ASGISend,
+    Message,
+    WSGIApp,
+    WSGIStartResponse,
+)
 
 
 class Middleware:

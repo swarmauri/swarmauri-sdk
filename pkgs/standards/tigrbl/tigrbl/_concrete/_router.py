@@ -6,9 +6,9 @@ from contextlib import asynccontextmanager
 from typing import Any, Callable
 from types import SimpleNamespace
 
-from ..router.router_spec import RouterSpec
+from ..specs.router_spec import RouterSpec
 from ..engine import resolver as _resolver
-from ..engine.engine_spec import EngineCfg
+from ..specs.engine_spec import EngineCfg
 from ..app._model_registry import initialize_table_registry
 
 from tigrbl.router._routing import (

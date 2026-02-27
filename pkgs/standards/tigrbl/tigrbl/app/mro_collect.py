@@ -4,7 +4,7 @@ import logging
 from functools import lru_cache
 from typing import Any, Tuple
 
-from .app_spec import AppSpec
+from ..specs.app_spec import AppSpec
 
 logger = logging.getLogger("uvicorn")
 

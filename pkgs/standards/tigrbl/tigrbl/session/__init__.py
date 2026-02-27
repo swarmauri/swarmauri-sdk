@@ -1,5 +1,5 @@
 from .abc import SessionABC
-from .spec import SessionSpec
+from ..specs.session_spec import SessionSpec
 from .base import TigrblSessionBase
 from .default import DefaultSession
 from .decorators import session_ctx, read_only_session

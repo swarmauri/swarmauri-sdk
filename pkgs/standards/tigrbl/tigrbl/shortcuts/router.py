@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Sequence, Type
 
-from ..router.router_spec import RouterSpec
+from ..specs.router_spec import RouterSpec
 from ..router._router import Router
 
 

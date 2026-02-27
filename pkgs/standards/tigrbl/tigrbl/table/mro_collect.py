@@ -4,7 +4,7 @@ import logging
 from functools import lru_cache
 from typing import Any, Mapping, Tuple
 
-from .table_spec import TableSpec
+from ..specs.table_spec import TableSpec
 
 logger = logging.getLogger("uvicorn")
 

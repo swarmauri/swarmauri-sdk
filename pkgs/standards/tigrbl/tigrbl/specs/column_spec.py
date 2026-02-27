@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Any, Callable, Optional
 
-from .field_spec import FieldSpec as F
-from .io_spec import IOSpec as IO
-from .storage_spec import StorageSpec as S
+from ..specs.field_spec import FieldSpec as F
+from ..specs.io_spec import IOSpec as IO
+from ..specs.storage_spec import StorageSpec as S
 
 
 class ColumnSpec:

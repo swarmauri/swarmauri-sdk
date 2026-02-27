@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from typing import Any, Sequence, Type
 
-from ..app.app_spec import AppSpec
-from ..app._app import App
+from ..specs.app_spec import AppSpec
+from .._concrete._app import App
 
 
 def defineAppSpec(

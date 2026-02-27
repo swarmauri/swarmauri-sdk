@@ -22,7 +22,7 @@ class SessionFactory(Protocol):
 Builder = Callable[[], Tuple[Any, SessionFactory]]  # returns (engine, sessionmaker)
 
 if TYPE_CHECKING:  # pragma: no cover - for type checkers only
-    from ..engine.engine_spec import EngineSpec
+    from ..specs.engine_spec import EngineSpec
 
 
 @dataclass(frozen=True)

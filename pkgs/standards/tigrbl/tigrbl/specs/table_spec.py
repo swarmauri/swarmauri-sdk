@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Optional, Sequence
 
-from ..engine.engine_spec import EngineCfg
+from ..specs.engine_spec import EngineCfg
 from ..specs.response_spec import ResponseSpec
 
 

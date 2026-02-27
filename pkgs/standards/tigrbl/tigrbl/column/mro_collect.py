@@ -4,9 +4,9 @@ import logging
 from functools import lru_cache
 from typing import Dict
 
-from .column_spec import ColumnSpec
-from .io_spec import IOSpec as IO
-from .storage_spec import StorageSpec as S
+from ..specs.column_spec import ColumnSpec
+from ..specs.io_spec import IOSpec as IO
+from ..specs.storage_spec import StorageSpec as S
 
 logger = logging.getLogger("uvicorn")
 
