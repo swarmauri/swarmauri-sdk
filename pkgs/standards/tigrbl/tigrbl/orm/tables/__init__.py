@@ -12,7 +12,7 @@ Usage
 
 import importlib
 from typing import TYPE_CHECKING, Any
-from ._base import Base
+from ._base import TableBase, Base
 
 __all__ = [
     "Tenant",
@@ -26,6 +26,7 @@ __all__ = [
     "Status",
     "StatusEnum",
     "Change",
+    "TableBase",
     "Base",
 ]
 
@@ -61,7 +62,7 @@ def __getattr__(name: str) -> Any:  # noqa: D401
 # Static typing support – imported eagerly only during type checking.
 # ------------------------------------------------------------------ #
 if TYPE_CHECKING:  # pragma: no cover
-    from ._base import Base
+    from ._base import TableBase, Base
     from .tenant import Tenant
     from .client import Client
     from .user import User

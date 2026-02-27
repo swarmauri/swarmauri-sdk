@@ -1,6 +1,6 @@
 """User model."""
 
-from ._base import Base
+from ._base import TableBase
 from ..mixins import (
     GUIDPk,
     Timestamped,
@@ -14,7 +14,7 @@ from ...types import Mapped, String
 
 
 class User(
-    Base, GUIDPk, Timestamped, TenantBound, Principal, AsyncCapable, ActiveToggle
+    TableBase, GUIDPk, Timestamped, TenantBound, Principal, AsyncCapable, ActiveToggle
 ):
     __tablename__ = "users"
     __abstract__ = True

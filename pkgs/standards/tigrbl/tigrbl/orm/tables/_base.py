@@ -1,5 +1,7 @@
-"""Backward-compatible Base export for ORM tables."""
+"""Backward-compatible TableBase export for ORM tables."""
 
-from ...table._base import Base
+from ..._base._table_base import TableBase
 
-__all__ = ["Base"]
+Base = TableBase
+
+__all__ = ["TableBase", "Base"]
