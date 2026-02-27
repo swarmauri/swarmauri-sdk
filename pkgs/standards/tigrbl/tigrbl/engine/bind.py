@@ -1,22 +1,18 @@
 """Compatibility wrappers for engine binding APIs.
 
-Canonical collect/install traversal now lives in ``tigrbl.mapping.traversal``.
+Canonical collect/install APIs now live on :class:`tigrbl._concrete._engine.Engine`.
 """
 
 from __future__ import annotations
 
 from typing import Any, Iterable, Mapping
 
-from ..mapping.traversal import (
-    collect_engine_bindings,
-    install_engine_bindings,
-    install_from_objects as _install_from_objects,
-)
+from .._concrete._engine import Engine
 
 
 def bind(collected: Mapping[str, Any]) -> None:
     """Bind a collected configuration mapping into the resolver."""
-    install_engine_bindings(collected)
+    Engine.install_engine_bindings(collected)
 
 
 def install_from_objects(
@@ -26,7 +22,14 @@ def install_from_objects(
     tables: Iterable[Any] = (),
 ) -> None:
     """Collect engine config from objects and bind them to the resolver."""
-    _install_from_objects(app=app, router=router, tables=tables)
+    Engine.install_from_objects(app=app, router=router, tables=tables)
+
+
+def collect_engine_bindings(
+    *, app: Any | None = None, router: Any | None = None, tables: Iterable[Any] = ()
+) -> Mapping[str, Any]:
+    """Collect engine bindings from app/router/table objects."""
+    return Engine.collect_engine_bindings(app=app, router=router, tables=tables)
 
 
 __all__ = ["bind", "install_from_objects", "collect_engine_bindings"]

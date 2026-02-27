@@ -5,7 +5,17 @@ from contextlib import contextmanager, asynccontextmanager
 from dataclasses import dataclass, field
 import asyncio
 import inspect
-from typing import Any, Callable, Optional, Tuple, Union, Protocol, TYPE_CHECKING
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Iterable,
+    Mapping,
+    Optional,
+    Protocol,
+    Tuple,
+    Union,
+)
 
 try:
     from sqlalchemy.orm import Session
@@ -115,6 +125,37 @@ class Engine:
 
     def raw(self) -> Tuple[Any, SessionFactory]:
         return self.provider.ensure()
+
+    @staticmethod
+    def collect_engine_bindings(
+        *,
+        app: Any | None = None,
+        router: Any | None = None,
+        tables: Iterable[Any] = (),
+    ) -> Mapping[str, Any]:
+        """Collect engine bindings from app/router/table objects."""
+        from ..mapping.traversal import collect_engine_bindings
+
+        return collect_engine_bindings(app=app, router=router, tables=tables)
+
+    @staticmethod
+    def install_engine_bindings(collected: Mapping[str, Any]) -> None:
+        """Install collected engine bindings into the resolver."""
+        from ..mapping.traversal import install_engine_bindings
+
+        install_engine_bindings(collected)
+
+    @classmethod
+    def install_from_objects(
+        cls,
+        *,
+        app: Any | None = None,
+        router: Any | None = None,
+        tables: Iterable[Any] = (),
+    ) -> None:
+        """Collect and install engine bindings from app/router/table objects."""
+        collected = cls.collect_engine_bindings(app=app, router=router, tables=tables)
+        cls.install_engine_bindings(collected)
 
     @property
     def get_db(self) -> Callable[..., Any]:
