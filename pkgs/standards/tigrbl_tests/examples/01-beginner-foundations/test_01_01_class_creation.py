@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from tigrbl import Base
-
 from tigrbl_tests.examples.lesson_support import make_widget_model
 
 
