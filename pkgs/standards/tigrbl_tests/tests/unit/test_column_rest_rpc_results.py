@@ -1,11 +1,10 @@
 import pytest
 from httpx import ASGITransport, Client
 
-from tigrbl import TigrblRouter, alias_ctx
+from tigrbl import TigrblApp, TigrblRouter, alias_ctx
 from tigrbl.column import F, IO, S, makeColumn, makeVirtualColumn
 from tigrbl.engine.shortcuts import engine as build_engine, mem
 from tigrbl.orm.tables import Base
-from tigrbl import TigrblApp
 from tigrbl.types import Integer, Mapped, String
 
 

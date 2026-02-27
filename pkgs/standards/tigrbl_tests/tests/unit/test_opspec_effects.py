@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import asyncio
-import pytest
 
-from tigrbl import TigrblApp
+import pytest
+from tigrbl import TigrblApp, core as _core
 from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -14,7 +14,6 @@ from tigrbl.runtime import system as runtime_system
 from tigrbl.specs import IO, S, acol
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl import core as _core
 from tigrbl.hook import hook_ctx
 
 # --- models --------------------------------------------------------------------
