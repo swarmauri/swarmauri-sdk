@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from tigrbl.types import Integer, String
 
-from examples.lesson_support import make_widget_model
+from tigrbl_tests.examples.lesson_support import make_widget_model
 
 
 def test_columns_are_registered_on_model() -> None:
