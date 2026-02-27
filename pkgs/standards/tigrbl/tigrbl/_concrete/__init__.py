@@ -27,6 +27,7 @@ _EXPORTS = {
     "DefaultSession": "_session",
     "FileResponse": "_file_response",
     "RedirectResponse": "_redirect_response",
+    "Request": "_request",
 }
 
 __all__ = list(_EXPORTS)
