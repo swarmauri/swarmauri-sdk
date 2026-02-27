@@ -91,3 +91,9 @@ class OpSpec:
     extra: Mapping[str, Any] = field(default_factory=dict)
     deps: Tuple[StepFn | str, ...] = field(default_factory=tuple)
     secdeps: Tuple[StepFn | str, ...] = field(default_factory=tuple)
+
+    @staticmethod
+    def apply_alias(verb: str, alias_map: Mapping[str, str]) -> str:
+        """Resolve canonical verb → alias (falls back to verb)."""
+
+        return alias_map.get(verb, verb)
