@@ -10,9 +10,7 @@ from tigrbl.engine.shortcuts import (
     prov,
     sqlitef,
 )  # :contentReference[oaicite:2]{index=2}
-from tigrbl.engine.engine_spec import (
-    EngineSpec,
-)  # :contentReference[oaicite:3]{index=3}
+from tigrbl._spec import EngineSpec
 from tigrbl.engine.resolver import _SECRET_KEYS, _hash_secret, _spec_key
 
 

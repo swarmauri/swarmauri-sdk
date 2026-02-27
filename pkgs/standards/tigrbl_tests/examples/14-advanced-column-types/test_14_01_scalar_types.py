@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tigrbl.specs import S
+from tigrbl._spec import S
 from tigrbl.types import Boolean, Integer, Numeric, String
 
 

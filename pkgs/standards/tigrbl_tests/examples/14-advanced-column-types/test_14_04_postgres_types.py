@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-from tigrbl.specs import S
+from tigrbl._spec import S
 from tigrbl.types import PgEnum, PgUUID, SAEnum, SqliteUUID, TSVECTOR
 
 

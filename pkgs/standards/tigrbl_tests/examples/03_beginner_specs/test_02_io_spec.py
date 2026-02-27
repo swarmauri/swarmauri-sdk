@@ -1,4 +1,4 @@
-from tigrbl.specs import IO
+from tigrbl._spec import IO
 
 
 def test_io_spec_controls_verb_visibility():

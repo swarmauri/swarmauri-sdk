@@ -16,7 +16,7 @@ from tigrbl.runtime.atoms.resolve import assemble
 from tigrbl.runtime.atoms.schema import collect_in, collect_out
 from tigrbl.runtime.kernel import _default_kernel as K
 from tigrbl.runtime.kernel import build_phase_chains
-from tigrbl.specs import IO, F, S, acol, vcol
+from tigrbl._spec import IO, F, S, acol, vcol
 from tigrbl.types import Integer as IntType
 from tigrbl.types import SimpleNamespace
 from tigrbl.types import String as StrType

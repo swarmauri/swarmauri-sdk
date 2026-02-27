@@ -8,7 +8,7 @@ from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk, KeyDigest
 from tigrbl.orm.tables import Base
 from tigrbl.schema import _build_schema
-from tigrbl.specs import IO, S, acol
+from tigrbl._spec import IO, S, acol
 from tigrbl.types import String
 
 
