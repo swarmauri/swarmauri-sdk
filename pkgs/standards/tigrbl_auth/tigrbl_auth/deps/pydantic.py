@@ -1,21 +1,3 @@
-from pydantic import (
-    BaseModel,
-    EmailStr,
-    Field,
-    ValidationError,
-    AnyHttpUrl,
-    ConfigDict,
-    field_validator,
-    constr,
-)
+"""Compatibility shim for :mod:`tigrbl_auth.vendor.pydantic`."""
 
-__all__ = [
-    "BaseModel",
-    "EmailStr",
-    "Field",
-    "ValidationError",
-    "AnyHttpUrl",
-    "ConfigDict",
-    "field_validator",
-    "constr",
-]
+from ..vendor.pydantic import *  # noqa: F403, F401

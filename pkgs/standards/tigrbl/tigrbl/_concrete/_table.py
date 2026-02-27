@@ -6,7 +6,7 @@ from typing import Any, Callable
 
 from .._concrete._engine import AsyncSession, Session
 from ..ddl import initialize as _ddl_initialize
-from ..engine import install_from_objects  # reuse the collector
+from .._concrete._engine import Engine  # reuse the collector
 from ..mapping import engine_resolver as _resolver
 from ..specs.table_spec import TableSpec
 from .._base._table_base import TableBase
@@ -82,13 +82,13 @@ class Table(TableBase):
 
         # auto-register table-level bindings if declared
         try:
-            install_from_objects(tables=[cls])
+            Engine.install_from_objects(tables=(cls,))
         except Exception:  # pragma: no cover - best effort
             pass
 
     @classmethod
     def install_engines(cls, *, router: Any | None = None) -> None:
-        install_from_objects(router=router, tables=[cls])
+        Engine.install_from_objects(router=router, tables=(cls,))
 
     @classmethod
     def acquire(

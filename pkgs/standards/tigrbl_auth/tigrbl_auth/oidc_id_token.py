@@ -17,7 +17,7 @@ from datetime import timedelta
 from functools import lru_cache
 from typing import Any, Iterable, Mapping, Tuple
 
-from .deps import (
+from .vendor import (
     ExportPolicy,
     FileKeyProvider,
     JWAAlg,

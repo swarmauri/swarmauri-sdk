@@ -34,7 +34,7 @@ from ..router._routing import include_router as _include_router_impl
 from ..system import mount_openrpc as _mount_openrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..mapping import engine_resolver as _resolver
-from ..engine import install_from_objects
+from .._concrete._engine import Engine
 
 
 class TigrblRouter(_Router):
@@ -194,7 +194,9 @@ class TigrblRouter(_Router):
         """Install engine providers for this router and optional table set."""
         selected_router = self if router is None else router
         selected_tables = tables if tables is not None else tuple(self.tables.values())
-        install_from_objects(router=selected_router, tables=selected_tables)
+        Engine.install_from_objects(
+            router=selected_router, tables=tuple(selected_tables)
+        )
 
     async def rpc_call(
         self,

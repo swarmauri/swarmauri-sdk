@@ -14,7 +14,7 @@ from functools import lru_cache
 from typing import Tuple
 
 import bcrypt
-from .deps import FileKeyProvider, ExportPolicy, KeyAlg, KeyClass, KeySpec, KeyUse
+from .vendor import FileKeyProvider, ExportPolicy, KeyAlg, KeyClass, KeySpec, KeyUse
 
 # ---------------------------------------------------------------------
 # Password hashing helpers

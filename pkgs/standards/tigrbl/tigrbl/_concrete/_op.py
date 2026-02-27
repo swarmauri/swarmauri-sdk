@@ -24,8 +24,8 @@ class Op(OpSpec):
     def install_engines(
         self, *, router: Any | None = None, model: type | None = None
     ) -> None:
-        from ..engine import install_from_objects
+        from .._concrete._engine import Engine
 
         m = model if model is not None else self.table
         if m is not None:
-            install_from_objects(router=router, tables=[m])
+            Engine.install_from_objects(router=router, tables=(m,))
