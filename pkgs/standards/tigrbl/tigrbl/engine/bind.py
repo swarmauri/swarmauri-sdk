@@ -1,13 +1,13 @@
 """Compatibility wrappers for engine binding APIs.
 
-Canonical collect/install traversal now lives in ``tigrbl.mapping.traversal``.
+Canonical collect/install traversal now lives on ``tigrbl._concrete._engine``.
 """
 
 from __future__ import annotations
 
 from typing import Any, Iterable, Mapping
 
-from ..mapping.traversal import (
+from .._concrete._engine import (
     collect_engine_bindings,
     install_engine_bindings,
     install_from_objects as _install_from_objects,
