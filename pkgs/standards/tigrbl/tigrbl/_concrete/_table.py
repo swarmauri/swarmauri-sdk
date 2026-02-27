@@ -9,19 +9,47 @@ from ..ddl import initialize as _ddl_initialize
 from ..engine import install_from_objects  # reuse the collector
 from ..mapping import engine_resolver as _resolver
 from ..specs.table_spec import TableSpec
-from ..table._base import Base
+from .._base._table_base import TableBase
 
 
-class Table(Base, TableSpec):
+class Table(TableBase):
     """Declarative ORM table base.
 
-    This class now integrates :class:`Base` so ORM models and tables share
+    This class now integrates :class:`TableBase` so ORM models and tables share
     the same type. Column specifications are exposed via ``columns`` for
     convenience.
     """
 
     __abstract__ = True
     columns: SimpleNamespace = SimpleNamespace()
+
+    DEFAULT_CANON_VERBS = {
+        "create",
+        "read",
+        "update",
+        "replace",
+        "delete",
+        "list",
+        "clear",
+    }
+
+    @classmethod
+    def should_wire_canonical(cls, op: str) -> bool:
+        from ..config.constants import (
+            TIGRBL_DEFAULTS_EXCLUDE_ATTR,
+            TIGRBL_DEFAULTS_INCLUDE_ATTR,
+            TIGRBL_DEFAULTS_MODE_ATTR,
+        )
+
+        mode = getattr(cls, TIGRBL_DEFAULTS_MODE_ATTR, "all")
+        inc = set(getattr(cls, TIGRBL_DEFAULTS_INCLUDE_ATTR, set()))
+        exc = set(getattr(cls, TIGRBL_DEFAULTS_EXCLUDE_ATTR, set()))
+        if mode == "none":
+            return False
+        if mode == "some":
+            return op in inc
+        allowed = (cls.DEFAULT_CANON_VERBS | inc) - exc
+        return op in allowed
 
     @staticmethod
     def _merge_seq_attr(model: type, attr: str) -> tuple[Any, ...]:

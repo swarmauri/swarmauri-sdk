@@ -97,3 +97,11 @@ class OpSpec:
         """Resolve canonical verb → alias (falls back to verb)."""
 
         return alias_map.get(verb, verb)
+
+    @classmethod
+    def collect(cls, table: type) -> tuple["OpSpec", ...]:
+        """Collect decorated operations declared across ``table`` MRO."""
+
+        from ..mapping.op_mro_collect import mro_collect_decorated_ops
+
+        return tuple(mro_collect_decorated_ops(table))

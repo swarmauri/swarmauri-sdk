@@ -23,5 +23,11 @@ class Schema:
     kind: SchemaKind = "out"
     alias: str | None = None
 
+    @classmethod
+    def collect(cls, model: type) -> dict[str, dict[str, type]]:
+        from ..schema.collect import collect_decorated_schemas
+
+        return collect_decorated_schemas(model)
+
 
 __all__ = ["Schema"]
