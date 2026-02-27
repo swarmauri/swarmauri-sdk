@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from tigrbl.responses import Response
+from tigrbl import Response
 from tigrbl.requests import Request
 
 

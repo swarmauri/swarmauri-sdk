@@ -1,7 +1,7 @@
 from __future__ import annotations
 import pytest
 from tigrbl import alias_ctx
-from tigrbl.responses import response_ctx
+from tigrbl import response_ctx
 from tigrbl.shortcuts.engine import engine, mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base

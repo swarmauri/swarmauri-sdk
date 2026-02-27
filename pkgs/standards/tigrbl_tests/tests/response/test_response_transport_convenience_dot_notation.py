@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tigrbl.responses import Response
+from tigrbl import Response
 
 
 def test_response_supports_instance_json_method_for_body_payload() -> None:

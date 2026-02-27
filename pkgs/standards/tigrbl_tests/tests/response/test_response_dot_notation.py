@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from tigrbl._concrete._headers import Headers
-from tigrbl.responses import Response
+from tigrbl import Response
 
 
 def test_response_headers_support_dot_notation_access_and_assignment() -> None:

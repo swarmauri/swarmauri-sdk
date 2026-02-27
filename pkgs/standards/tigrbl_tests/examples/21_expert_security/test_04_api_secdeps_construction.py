@@ -12,7 +12,7 @@ import inspect
 import httpx
 import pytest
 from tigrbl.security import HTTPBearer
-from tigrbl.responses import JSONResponse
+from tigrbl.shortcuts.responses import JSONResponse
 
 from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApp, TigrblRouter
