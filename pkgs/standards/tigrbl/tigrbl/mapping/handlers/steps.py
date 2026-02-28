@@ -7,7 +7,7 @@ from functools import lru_cache
 from typing import Any, Callable, Mapping, Optional
 
 from ... import core as _core
-from ...op import OpSpec
+from ..._spec import OpSpec
 from ...op.types import StepFn
 from ...runtime.executor import _Ctx
 from .ctx import _ctx_db, _ctx_payload, _ctx_request

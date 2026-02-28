@@ -1,8 +1,7 @@
 from sqlalchemy import Integer
 
-from tigrbl._spec import ColumnSpec, FieldSpec as F, IOSpec as IO
+from tigrbl._spec import ColumnSpec, FieldSpec as F, IOSpec as IO, StorageSpec
 from tigrbl.column import acol, is_virtual, makeVirtualColumn
-from tigrbl._spec import StorageSpec
 
 
 def test_column_spec_defaults_and_virtual_detection():
