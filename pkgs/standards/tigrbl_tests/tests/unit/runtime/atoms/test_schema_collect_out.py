@@ -1,6 +1,6 @@
+from tigrbl.runtime.atoms.schema.collect_out import run as collect_out_run
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.schema import collect_out
 from tigrbl.runtime.kernel import (
     SchemaIn,
     SchemaOut,
@@ -36,7 +36,7 @@ def test_collect_out_loads_schema() -> None:
     K._primed[app] = True
 
     ctx = SimpleNamespace(app=app, model=Model, op=alias, temp={})
-    collect_out.run(None, ctx)
+    collect_out_run(None, ctx)
     schema = ctx.temp["schema_out"]
     assert schema["by_field"]["name"]["sensitive"] is True
     assert schema["by_field"]["name"]["alias_out"] == "alias"

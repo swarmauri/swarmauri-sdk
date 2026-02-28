@@ -6,7 +6,7 @@ from tigrbl.shortcuts.engine import mem
 from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
-from tigrbl.security import HTTPBearer
+from tigrbl import HTTPBearer
 from tigrbl.types import Security
 
 

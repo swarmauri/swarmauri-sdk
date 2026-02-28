@@ -11,7 +11,9 @@ from tigrbl.orm.mixins.ownable import Ownable, OwnerPolicy
 from tigrbl.orm.mixins.tenant_bound import TenantBound, TenantPolicy
 from tigrbl import Request
 from tigrbl.runtime.status import HTTPException
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
+from tigrbl import HTTPBearer
+from tigrbl.security import Security
+from tigrbl._concrete._security.http_bearer import HTTPAuthorizationCredentials
 from tigrbl.types.authn_abc import AuthNProvider
 
 

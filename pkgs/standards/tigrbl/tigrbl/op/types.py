@@ -5,6 +5,7 @@ from typing import Literal, Tuple, cast
 
 from ..config.constants import CANON as CANONICAL_VERB_TUPLE
 from .._concrete._op import Op as OpSpec
+from ..hook.types import PHASE, PHASES, StepFn
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Core aliases & enums
@@ -47,5 +48,8 @@ __all__ = [
     "TargetOp",
     "VerbAliasPolicy",
     "OpSpec",
+    "PHASE",
+    "PHASES",
+    "StepFn",
     "CANON",
 ]

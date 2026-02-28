@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from typing import Any, Awaitable, Callable, Dict, Mapping, Sequence, Tuple
 
 from ...requests import Request
-from ...op.types import PHASES
+from ...hook.types import PHASES
 
 try:
     from ...runtime.kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore

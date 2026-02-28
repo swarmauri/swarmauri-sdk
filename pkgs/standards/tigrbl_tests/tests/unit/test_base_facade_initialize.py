@@ -6,7 +6,7 @@ from sqlalchemy import Column, Integer
 from tigrbl import TigrblApp, TigrblRouter
 from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
-from tigrbl.table import Base
+from tigrbl.orm.tables import Base
 
 
 class SimpleApp(TigrblApp):

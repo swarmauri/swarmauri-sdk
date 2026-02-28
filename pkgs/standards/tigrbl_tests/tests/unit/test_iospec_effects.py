@@ -13,7 +13,8 @@ from tigrbl.mapping.model import bind
 from tigrbl.mapping.rest.router import _build_router
 from tigrbl._spec import OpSpec
 from tigrbl.runtime.atoms.resolve import assemble
-from tigrbl.runtime.atoms.schema import collect_in, collect_out
+from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
+from tigrbl.runtime.atoms.schema.collect_out import run as collect_out_run
 from tigrbl.runtime.kernel import _default_kernel as K
 from tigrbl.schema import _build_list_params
 from tigrbl._spec import ColumnSpec, F, IO, S, acol, vcol
@@ -25,7 +26,7 @@ class _Base(DeclarativeBase):
     """Local base that materializes ColumnSpecs to SQLAlchemy Columns."""
 
     def __init_subclass__(cls, **kw):
-        from tigrbl.table._base import _materialize_colspecs_to_sqla
+        from tigrbl._base._table_base import _materialize_colspecs_to_sqla
 
         _materialize_colspecs_to_sqla(cls)
         super().__init_subclass__(**kw)
@@ -54,14 +55,14 @@ def test_iospec_aliases_affect_schemas() -> None:
     specs = Thing.__tigrbl_cols__
     ov_in = K._compile_opview_from_specs(specs, SimpleNamespace(alias="create"))
     ctx_in = SimpleNamespace(opview=ov_in, temp={})
-    collect_in.run(None, ctx_in)
+    collect_in_run(None, ctx_in)
     schema_in = ctx_in.temp["schema_in"]
     assert "id" not in schema_in["by_field"]
     assert schema_in["by_field"]["name"]["alias_in"] == "first_name"
 
     ov_out = K._compile_opview_from_specs(specs, SimpleNamespace(alias="read"))
     ctx_out = SimpleNamespace(opview=ov_out, temp={})
-    collect_out.run(None, ctx_out)
+    collect_out_run(None, ctx_out)
     schema_out = ctx_out.temp["schema_out"]
     assert "id" in schema_out["by_field"]
     assert schema_out["by_field"]["name"]["alias_out"] == "firstName"

@@ -4,7 +4,7 @@ from sqlalchemy import Integer, String
 
 from tigrbl.mapping import include_table
 from tigrbl._spec import ColumnSpec, StorageSpec as S
-from tigrbl.table import Table
+from tigrbl import Table
 
 
 class Widget(Table):

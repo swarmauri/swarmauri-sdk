@@ -5,7 +5,7 @@ import logging
 from typing import Optional, Sequence, Tuple
 
 from ..._spec import OpSpec
-from ...op.types import StepFn
+from ...hook.types import StepFn
 from .namespaces import _ensure_alias_handlers_ns, _ensure_alias_hooks_ns
 from .steps import _wrap_core, _wrap_custom
 
