@@ -14,7 +14,7 @@ from ...runtime.status.exceptions import HTTPException
 from ...runtime.status.mappings import status as _status
 from ...requests import Request
 from .helpers import _ensure_jsonable
-from ...op import OpSpec
+from ..._spec import OpSpec
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/rest/io")

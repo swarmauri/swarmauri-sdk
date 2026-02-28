@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional, Set, Tuple
 
 if TYPE_CHECKING:
-    from ..op import OpSpec
+    from .._spec import OpSpec
 from .apply import apply
 from .collect import collect
 from .context import MappingKey
