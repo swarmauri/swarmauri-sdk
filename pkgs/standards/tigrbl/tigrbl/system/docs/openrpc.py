@@ -4,7 +4,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Sequence
 
 from pydantic import BaseModel
 
-from ...responses import Response
+from ..._concrete import Response
 from ...op import OpSpec
 from .openapi.helpers import (
     _security_from_dependencies,

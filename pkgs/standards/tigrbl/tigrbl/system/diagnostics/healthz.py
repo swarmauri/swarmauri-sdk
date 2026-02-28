@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable, Optional
 
-from ...responses import JSONResponse
+from ..._concrete import JSONResponse
 from ...types import Depends, Request
 from .utils import maybe_execute
 
