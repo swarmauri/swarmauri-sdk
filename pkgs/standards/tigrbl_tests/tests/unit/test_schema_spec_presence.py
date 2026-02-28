@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from tigrbl.shortcuts.app import deriveApp
-from tigrbl.router.shortcuts import deriveRouter
+from tigrbl.shortcuts.router import deriveRouter
 from tigrbl.shortcuts.table import defineTableSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base

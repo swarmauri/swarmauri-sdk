@@ -7,7 +7,7 @@ import pytest
 import tigrbl.types as types_module
 
 _DEPRECATED_NAMES = {
-    "Router": "tigrbl.router",
+    "Router": "tigrbl",
     "Request": "tigrbl.requests",
     "Body": "tigrbl.core.crud",
     "Depends": "tigrbl.security",

@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from tigrbl.router.resolve import resolve_handler_kwargs
+from tigrbl.runtime.dependencies import resolve_handler_kwargs
 from tigrbl.runtime.dependencies import (
     DependencyToken,
     execute_dependency_tokens,
