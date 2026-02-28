@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any, Callable, Tuple, Mapping, Optional
 
-from tigrbl.engine._engine import Engine  # first-class engine façade
+from tigrbl._concrete._engine import Engine  # first-class engine façade
 from .session import RedisSession
 
 

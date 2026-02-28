@@ -52,7 +52,7 @@ def _client_for_owner(
         name = Column(String, nullable=False)
         __tigrbl_owner_policy__ = policy
 
-    from tigrbl.engine._engine import Engine
+    from tigrbl._concrete._engine import Engine
     from tigrbl._spec import EngineSpec
     from tigrbl.shortcuts.engine import mem
 
@@ -130,7 +130,7 @@ def _client_for_tenant(
         name = Column(String, nullable=False)
         __tigrbl_tenant_policy__ = policy
 
-    from tigrbl.engine._engine import Engine
+    from tigrbl._concrete._engine import Engine
     from tigrbl._spec import EngineSpec
     from tigrbl.shortcuts.engine import mem
 

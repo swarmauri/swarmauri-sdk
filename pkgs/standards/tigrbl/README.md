@@ -601,7 +601,7 @@ async def validate(ctx):
 
 ```python
 from tigrbl.engine.shortcuts import engine_spec, prov
-from tigrbl.engine._engine import Engine, Provider
+from tigrbl._concrete._engine import Engine, Provider
 
 # Build an EngineSpec from a DSN string
 spec = engine_spec("sqlite://:memory:")
