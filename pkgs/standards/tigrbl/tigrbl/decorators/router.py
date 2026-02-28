@@ -102,7 +102,7 @@ def route(
 ) -> Callable[[Handler], Handler]:
     """Register an HTTP route against a router instance.
 
-    This decorator mirrors :meth:`tigrbl.router.Router.route` as a standalone
+    This decorator mirrors :meth:`tigrbl.Router.route` as a standalone
     helper so callers can use ``@route(router, ...)`` style declarations.
     """
 
