@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from tigrbl import Base
 from tigrbl.shortcuts.engine import mem
-from tigrbl.table.mro_collect import mro_collect_table_spec
+from tigrbl.mapping.table_mro_collect import mro_collect_table_spec
 from tigrbl.shortcuts.table import defineTableSpec
 
 

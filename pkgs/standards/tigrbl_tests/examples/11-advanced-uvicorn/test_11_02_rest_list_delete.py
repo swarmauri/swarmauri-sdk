@@ -8,7 +8,7 @@ import pytest
 from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import TigrblApp
 from tigrbl import TigrblRouter
-from tigrbl.table import Base
+from tigrbl import Base
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String

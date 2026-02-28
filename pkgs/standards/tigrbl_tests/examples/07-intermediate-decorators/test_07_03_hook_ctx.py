@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from tigrbl.decorators import hook_ctx
-from tigrbl.table import Base
+from tigrbl import Base
 
 
 def test_hook_ctx_registers_hook() -> None:
