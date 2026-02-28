@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-from tigrbl.app.shortcuts import deriveApp
+from tigrbl.shortcuts.app import deriveApp
 from tigrbl.shortcuts.router import deriveRouter
-from tigrbl.table.shortcuts import defineTableSpec
+from tigrbl.shortcuts.table import defineTableSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 from sqlalchemy import Column, String

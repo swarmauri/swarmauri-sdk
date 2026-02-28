@@ -1,5 +1,5 @@
 from tigrbl.table.mro_collect import mro_collect_table_spec
-from tigrbl.table.shortcuts import defineTableSpec
+from tigrbl.shortcuts.table import defineTableSpec
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
 
