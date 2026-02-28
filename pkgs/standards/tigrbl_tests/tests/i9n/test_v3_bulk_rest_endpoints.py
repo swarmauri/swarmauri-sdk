@@ -3,10 +3,9 @@ from typing import Iterator
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from tigrbl import TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import BulkCapable, GUIDPk, Replaceable
-from tigrbl.orm.tables import Base
 from tigrbl.types import Column, String
 
 pytestmark = pytest.mark.skip("bulk rest endpoints require revision")
@@ -14,9 +13,9 @@ pytestmark = pytest.mark.skip("bulk rest endpoints require revision")
 
 @pytest_asyncio.fixture()
 async def v3_client() -> Iterator[tuple[AsyncClient, type]]:
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Widget(Base, GUIDPk, BulkCapable, Replaceable):
+    class Widget(TableBase, GUIDPk, BulkCapable, Replaceable):
         __tablename__ = "widgets"
         name = Column(String, nullable=False)
         description = Column(String, nullable=True)

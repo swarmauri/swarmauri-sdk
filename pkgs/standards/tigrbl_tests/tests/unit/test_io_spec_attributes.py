@@ -1,3 +1,4 @@
+from tigrbl import TableBase
 from types import SimpleNamespace
 
 from tigrbl._spec import ColumnSpec, F, IO, S, acol
@@ -5,7 +6,6 @@ from tigrbl.runtime.atoms.schema import collect_in, collect_out
 from tigrbl.runtime.atoms.out import masking
 from tigrbl.runtime.kernel import _default_kernel as K
 from tigrbl.core.crud import helpers
-from tigrbl.orm.tables import Base
 from sqlalchemy import Integer
 from sqlalchemy.orm import Mapped
 
@@ -130,7 +130,7 @@ def test_sortable_allows_sorting():
     )
     unsortable_spec = acol(storage=S(type_=Integer), io=IO(sortable=False))
 
-    class SortModel(Base):
+    class SortModel(TableBase):
         __tablename__ = "sortables"
         __allow_unmapped__ = True
 

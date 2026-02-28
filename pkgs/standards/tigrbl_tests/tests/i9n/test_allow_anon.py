@@ -1,14 +1,15 @@
 from httpx import ASGITransport, Client
 from sqlalchemy.orm import sessionmaker
-from tigrbl import TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables import Base
 from tigrbl import Request
 from tigrbl.runtime.status import HTTPException
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
+from fastapi.security import HTTPAuthorizationCredentials
+from tigrbl import HTTPBearer
+from tigrbl.security import Security
 from tigrbl.types import (
     AllowAnonProvider,
     AuthNProvider,
@@ -40,13 +41,13 @@ class DummyAuth(AuthNProvider):
 
 
 def _build_client():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
@@ -75,13 +76,13 @@ def _build_client():
 
 
 def _build_client_attr():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
@@ -144,13 +145,13 @@ def test_openapi_marks_anon_and_protected_routes():
 
 
 def _build_client_create_noauth():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk, AllowAnonProvider):
+    class Item(TableBase, GUIDPk, AllowAnonProvider):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
@@ -178,13 +179,13 @@ def _build_client_create_noauth():
 
 
 def _build_client_create_attr_noauth():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk, AllowAnonProvider):
+    class Item(TableBase, GUIDPk, AllowAnonProvider):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False

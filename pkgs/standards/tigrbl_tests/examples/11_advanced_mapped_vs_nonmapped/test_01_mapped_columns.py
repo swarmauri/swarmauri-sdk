@@ -1,4 +1,4 @@
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, Integer, Mapped, String, mapped_column
 
@@ -6,7 +6,7 @@ from tigrbl.types import Column, Integer, Mapped, String, mapped_column
 def test_mapped_columns_use_typed_annotations():
     """Test mapped columns use typed annotations."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "mapped_adv_widgets"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)

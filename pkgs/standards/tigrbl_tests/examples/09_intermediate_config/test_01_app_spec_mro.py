@@ -1,6 +1,6 @@
 """Lesson 09.1: Understanding app-level configuration precedence."""
 
-from tigrbl import Base, TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -40,13 +40,13 @@ def test_app_spec_mro_merges_sequence_attributes():
     """
 
     # Setup: define two minimal models for app composition.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_app_widget"
         __allow_unmapped__ = True
 
         name = Column(String, nullable=False)
 
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "lesson_app_gadget"
         __allow_unmapped__ = True
 

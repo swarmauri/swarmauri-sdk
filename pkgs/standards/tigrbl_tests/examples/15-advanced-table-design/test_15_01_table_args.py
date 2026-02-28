@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.types import CheckConstraint, Index, UniqueConstraint
 
 
 def test_table_args_multiple_constraints() -> None:
-    class Catalog(Base):
+    class Catalog(TableBase):
         __tablename__ = "catalogs"
         __table_args__ = (
             UniqueConstraint("slug", name="uq_catalog_slug"),

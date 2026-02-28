@@ -9,10 +9,10 @@ import inspect
 
 import httpx
 import pytest
-from tigrbl.security import HTTPBearer
+from tigrbl import HTTPBearer
 
 from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblRouter, TigrblApp
+from tigrbl import TableBase, TigrblRouter, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -31,7 +31,7 @@ async def test_openapi_security_from_op_secdeps_on_mounted_api() -> None:
     bearer_scheme = HTTPBearer()
 
     # Configuration: define a model with a list operation secured via sec deps.
-    class SecDepsWidget(Base, GUIDPk):
+    class SecDepsWidget(TableBase, GUIDPk):
         __tablename__ = "lesson_security_secdeps_widget"
         __allow_unmapped__ = True
         __tigrbl_ops__ = {

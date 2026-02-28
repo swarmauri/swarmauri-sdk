@@ -55,7 +55,6 @@ from .schema import _build_schema, _build_list_params, get_schema
 
 # ── Transport & Diagnostics (optional) ─────────────────────────────────────────
 from .requests import Request
-from .security import Depends
 from ._concrete._json_response import JSONResponse
 from ._concrete._response import Response
 from .system import mount_diagnostics
@@ -68,7 +67,7 @@ from .config.constants import DEFAULT_HTTP_METHODS
 from ._concrete.tigrbl_app import TigrblApp
 from ._concrete.tigrbl_router import TigrblRouter
 from .decorators.router import route_ctx
-from .table import Base
+from .orm.tables._base import TableBase
 from .op import Op
 from .shortcuts.op import op
 from .engine import resolver
@@ -119,7 +118,7 @@ __all__ += [
     "Router",
     "Depends",
     "HTTPException",
-    "Base",
+    "TableBase",
     "Op",
     "op",
     "HTTPBearer",

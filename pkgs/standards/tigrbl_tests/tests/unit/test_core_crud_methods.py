@@ -1,3 +1,4 @@
+from tigrbl import TableBase
 import asyncio
 import enum
 from typing import Any, Mapping
@@ -16,7 +17,7 @@ from sqlalchemy.orm import declarative_base
 Base = declarative_base()
 
 
-class Widget(Base):
+class Widget(TableBase):
     __tablename__ = "widgets"
     id = acol(
         storage=S(type_=Integer, primary_key=True, autoincrement=True),
@@ -61,7 +62,7 @@ class Status(enum.Enum):
     TWO = "two"
 
 
-class EnumModel(Base):
+class EnumModel(TableBase):
     __tablename__ = "enummodel"
     id = Column(Integer, primary_key=True)
     status = Column(SAEnum(Status))
@@ -71,7 +72,7 @@ class EnumModel(Base):
 def session():
     eng = engine(mem(async_=False))
     raw_engine, maker = eng.raw()
-    Base.metadata.create_all(raw_engine)
+    TableBase.metadata.create_all(raw_engine)
     with maker() as s:
         yield s
 

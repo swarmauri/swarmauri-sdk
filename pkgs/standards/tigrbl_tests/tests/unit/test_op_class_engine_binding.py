@@ -1,4 +1,5 @@
-from tigrbl.mapping import install_from_objects, resolver
+from tigrbl.engine import install_from_objects
+from tigrbl import resolver
 from tigrbl.shortcuts.engine import pga, pgs, sqlitef
 from tigrbl.shortcuts.engine import mem
 from tigrbl._concrete._op import Op

@@ -1,18 +1,17 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
-from tigrbl import TigrblApp, TigrblRouter, op_ctx
+from tigrbl import TableBase, TigrblApp, TigrblRouter, op_ctx
 from tigrbl import core as _core
 from tigrbl.core import crud
 from tigrbl._concrete._engine import Engine
 from tigrbl._spec import EngineSpec
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables import Base
 
 
 def setup_app(model_cls):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     spec = EngineSpec.from_any(mem(async_=False))
     engine = Engine(spec)
     app = TigrblApp(engine=engine)
@@ -63,7 +62,7 @@ async def test_op_ctx_alias(
     monkeypatch.setattr(_core, verb, wrapped)
     monkeypatch.setattr(crud, verb, wrapped)
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets"
         __resource__ = "widget"
         name = Column(String)
@@ -150,7 +149,7 @@ async def test_op_ctx_alias(
     ],
 )
 async def test_op_ctx_override(verb, http_method, arity, needs_id):
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets"
         __resource__ = "widget"
         name = Column(String)

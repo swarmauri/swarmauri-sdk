@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from tigrbl.middlewares import BaseHTTPMiddleware, CORSMiddleware
-from tigrbl import Request
-from tigrbl import Response
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.cors import CORSMiddleware
+from tigrbl import Request, Response
 
 
 async def _run_asgi(app, scope: dict, body: bytes = b"") -> list[dict]:

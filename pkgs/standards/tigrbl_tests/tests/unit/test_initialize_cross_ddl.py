@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl import Base, TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl._spec import S, acol
 from tigrbl.shortcuts.engine import mem
 from sqlalchemy import Integer
@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped
 
 
 def _model():
-    class Widget(Base):
+    class Widget(TableBase):
         __tablename__ = "widgets"
         id: Mapped[int] = acol(storage=S(type_=Integer, primary_key=True))
         __tigrbl_cols__ = {"id": id}
@@ -18,7 +18,7 @@ def _model():
 
 @pytest.mark.asyncio
 async def test_initialize_with_sync_engine():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     Widget = _model()
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(Widget)

@@ -23,7 +23,7 @@ import pytest
 def test_kernel_compiles_bootstrap_plan_with_required_anchors() -> None:
     from sqlalchemy import Column, String
 
-    from tigrbl import Base
+    from tigrbl import TableBase
     from tigrbl._spec import AppSpec
     from tigrbl import TigrblApp
     from tigrbl.orm.mixins import GUIDPk
@@ -32,7 +32,7 @@ def test_kernel_compiles_bootstrap_plan_with_required_anchors() -> None:
     from tigrbl.runtime.kernel import Kernel
     from tigrbl._spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets_bootstrap_plan"
         __resource__ = "widget"
         name = Column(String, nullable=False)

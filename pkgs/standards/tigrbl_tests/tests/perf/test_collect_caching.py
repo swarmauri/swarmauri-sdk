@@ -1,3 +1,4 @@
+from tigrbl import TableBase
 import logging
 import time
 
@@ -27,7 +28,7 @@ def test_mro_collect_columns_cached():
     class Base:
         pass
 
-    class Model(Base):
+    class Model(TableBase):
         pass
 
     cold, cached = _measure(mro_collect_columns, Model, iterations=50)

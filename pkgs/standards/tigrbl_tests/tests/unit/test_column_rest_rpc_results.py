@@ -1,10 +1,9 @@
 import pytest
 from httpx import ASGITransport, Client
 
-from tigrbl import TigrblApp, TigrblRouter, alias_ctx
+from tigrbl import TableBase, TigrblApp, TigrblRouter, alias_ctx
 from tigrbl._spec import FieldSpec as F, IOSpec as IO, S, makeColumn, makeVirtualColumn
 from tigrbl.shortcuts.engine import engine, mem
-from tigrbl.orm.tables import Base
 from tigrbl.types import Integer, Mapped, String
 
 
@@ -27,9 +26,9 @@ def _setup_router(table):
 @pytest.mark.parametrize("use_mapped", [True, False])
 @pytest.mark.asyncio
 async def test_make_column_only_rest_rpc(use_mapped):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = f"mc_only_{'m' if use_mapped else 'u'}"
         if not use_mapped:
             __allow_unmapped__ = True
@@ -65,9 +64,9 @@ async def test_make_column_only_rest_rpc(use_mapped):
 @pytest.mark.parametrize("use_mapped", [True, False])
 @pytest.mark.asyncio
 async def test_make_virtual_column_only_rest_rpc(use_mapped):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = f"mv_only_{'m' if use_mapped else 'u'}"
         if not use_mapped:
             __allow_unmapped__ = True
@@ -113,10 +112,10 @@ async def test_make_virtual_column_only_rest_rpc(use_mapped):
 @pytest.mark.parametrize("use_mapped", [True, False])
 @pytest.mark.asyncio
 async def test_make_column_with_alias_rest_rpc(use_mapped):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
     @alias_ctx(read="fetch")
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = f"mc_alias_{'m' if use_mapped else 'u'}"
         if not use_mapped:
             __allow_unmapped__ = True
@@ -152,10 +151,10 @@ async def test_make_column_with_alias_rest_rpc(use_mapped):
 @pytest.mark.parametrize("use_mapped", [True, False])
 @pytest.mark.asyncio
 async def test_make_virtual_column_with_aliases_rest_rpc(use_mapped):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
     @alias_ctx(create="register", read="fetch")
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = f"mv_alias_{'m' if use_mapped else 'u'}"
         if not use_mapped:
             __allow_unmapped__ = True
@@ -201,9 +200,9 @@ async def test_make_virtual_column_with_aliases_rest_rpc(use_mapped):
 @pytest.mark.parametrize("use_mapped", [True, False])
 @pytest.mark.asyncio
 async def test_make_column_and_virtual_rest_rpc(use_mapped):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = f"both_{'m' if use_mapped else 'u'}"
         if not use_mapped:
             __allow_unmapped__ = True
@@ -260,10 +259,10 @@ async def test_make_column_and_virtual_rest_rpc(use_mapped):
 @pytest.mark.parametrize("use_mapped", [True, False])
 @pytest.mark.asyncio
 async def test_make_column_and_virtual_with_alias_rest_rpc(use_mapped):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
     @alias_ctx(create="register", read="fetch")
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = f"both_alias_{'m' if use_mapped else 'u'}"
         if not use_mapped:
             __allow_unmapped__ = True

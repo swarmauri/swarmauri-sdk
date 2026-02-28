@@ -1,7 +1,7 @@
 import pytest
 from collections.abc import Iterator
 
-from tigrbl import TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
 from tigrbl._spec import IO, S, F, acol as spec_acol
 from tigrbl.orm.tables import Base
@@ -12,7 +12,7 @@ from tigrbl import resolver as _resolver
 
 @pytest.fixture()
 def app_and_session() -> Iterator[tuple[TigrblApp, Session, type[Base]]]:
-    class Widget(Base, GUIDPk, BulkCapable):
+    class Widget(TableBase, GUIDPk, BulkCapable):
         __tablename__ = "widgets_rpc_ops"
         __allow_unmapped__ = True
 

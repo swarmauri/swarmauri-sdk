@@ -1,16 +1,15 @@
 import pytest
 
-from tigrbl import get_schema
+from tigrbl import TableBase, get_schema
 from tigrbl.mapping import build_schemas
 from tigrbl.mapping.model import bind
 from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables import Base
 from tigrbl.types import Column, String
 
 
 def test_get_schema_returns_bound_request_and_response_from_bind():
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets_get_schema"
         name = Column(String, nullable=False)
 
@@ -21,7 +20,7 @@ def test_get_schema_returns_bound_request_and_response_from_bind():
 
 
 def test_get_schema_kind_is_case_insensitive():
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "gadgets_get_schema"
         name = Column(String, nullable=False)
 
@@ -39,7 +38,7 @@ def test_get_schema_raises_for_unbound_model():
 
 
 def test_get_schema_raises_for_unknown_op():
-    class Gizmo(Base, GUIDPk):
+    class Gizmo(TableBase, GUIDPk):
         __tablename__ = "gizmos_get_schema"
         name = Column(String, nullable=False)
 
@@ -51,7 +50,7 @@ def test_get_schema_raises_for_unknown_op():
 
 
 def test_get_schema_raises_for_invalid_kind():
-    class Thing(Base, GUIDPk):
+    class Thing(TableBase, GUIDPk):
         __tablename__ = "things_get_schema"
         name = Column(String, nullable=False)
 
@@ -63,7 +62,7 @@ def test_get_schema_raises_for_invalid_kind():
 
 
 def test_get_schema_raises_when_kind_not_bound():
-    class Custom(Base, GUIDPk):
+    class Custom(TableBase, GUIDPk):
         __tablename__ = "custom_get_schema"
         name = Column(String, nullable=False)
 

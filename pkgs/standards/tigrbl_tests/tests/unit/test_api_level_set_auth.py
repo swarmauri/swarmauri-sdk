@@ -1,10 +1,9 @@
 import pytest
 
-from tigrbl import TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl import Router
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables import Base
-from tigrbl.security import HTTPBearer
+from tigrbl import HTTPBearer
 from tigrbl.security import Security
 
 
@@ -14,7 +13,7 @@ pytestmark = pytest.mark.xfail(
 )
 
 
-class Widget(Base, GUIDPk):
+class Widget(TableBase, GUIDPk):
     __tablename__ = "widgets_router_level_set_auth"
     __tigrbl_allow_anon__ = ["list"]
 

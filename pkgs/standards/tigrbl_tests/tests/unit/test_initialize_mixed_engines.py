@@ -3,17 +3,17 @@ import asyncio
 import pytest
 from sqlalchemy import Column, Integer
 
-from tigrbl import Base, TigrblRouter, TigrblApp
+from tigrbl import TableBase, TigrblRouter, TigrblApp
 from tigrbl.shortcuts.engine import mem
 
 
-class AsyncWidget(Base):
+class AsyncWidget(TableBase):
     __tablename__ = "widgets_async_router"
 
     id = Column(Integer, primary_key=True)
 
 
-class SyncWidget(Base):
+class SyncWidget(TableBase):
     __tablename__ = "widgets_sync_router"
 
     id = Column(Integer, primary_key=True)

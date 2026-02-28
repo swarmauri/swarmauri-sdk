@@ -8,7 +8,7 @@ import httpx
 import pytest
 
 from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.types import Column, ForeignKey, Integer, String, relationship
 
@@ -18,7 +18,7 @@ async def test_self_referential_relationship_via_rest() -> None:
     """Show a self-referential relationship for hierarchical data."""
 
     # Step 1: Define a hierarchical model that references itself.
-    class Category(Base):
+    class Category(TableBase):
         __tablename__ = "lesson_rel_category"
         __allow_unmapped__ = True
 

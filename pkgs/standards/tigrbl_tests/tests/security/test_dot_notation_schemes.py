@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tigrbl.security import APIKey, HTTPBearer
+from tigrbl import APIKey, HTTPBearer
 from tigrbl import Request
 
 

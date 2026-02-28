@@ -1,7 +1,7 @@
 import httpx
 import pytest
 from sqlalchemy import Column, String
-from tigrbl import Base, TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.system import mount_openrpc
@@ -9,7 +9,7 @@ from tigrbl.system import mount_openrpc
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
 
-class Thing(Base, GUIDPk):
+class Thing(TableBase, GUIDPk):
     __tablename__ = "things_openrpc_mountable"
     name = Column(String, nullable=False)
 

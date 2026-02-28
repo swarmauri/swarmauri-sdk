@@ -9,7 +9,7 @@ import pytest
 
 
 from tigrbl import Router
-from tigrbl.security import Depends
+from tigrbl import Depends
 from tigrbl import Request
 
 

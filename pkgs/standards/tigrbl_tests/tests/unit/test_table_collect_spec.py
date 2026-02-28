@@ -1,6 +1,6 @@
-from tigrbl.table.mro_collect import mro_collect_table_spec
+from tigrbl import TableBase
+from tigrbl.mapping.table_mro_collect import mro_collect_table_spec
 from tigrbl.shortcuts.table import defineTableSpec
-from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
 
 
@@ -25,7 +25,7 @@ SpecB = defineTableSpec(
 )
 
 
-class Model(SpecA, SpecB, Base, GUIDPk):
+class Model(SpecA, SpecB, TableBase, GUIDPk):
     __tablename__ = "collect_spec_model"
 
 

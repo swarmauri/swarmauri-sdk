@@ -6,7 +6,7 @@ import pytest
 from tigrbl_client import TigrblClient
 
 from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -22,7 +22,7 @@ async def test_tigrbl_client_matches_httpx_response():
     """
 
     # Setup: define a model to compare client behavior.
-    class LessonClient(Base, GUIDPk):
+    class LessonClient(TableBase, GUIDPk):
         __tablename__ = "lesson_client"
         __allow_unmapped__ = True
 
@@ -74,7 +74,7 @@ async def test_tigrbl_client_list_returns_created_items():
     """
 
     # Setup: define a model for list parity validation.
-    class LessonClientList(Base, GUIDPk):
+    class LessonClientList(TableBase, GUIDPk):
         __tablename__ = "lesson_client_list"
         __allow_unmapped__ = True
 

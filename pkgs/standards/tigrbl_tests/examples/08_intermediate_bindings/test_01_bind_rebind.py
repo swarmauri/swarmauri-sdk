@@ -1,6 +1,6 @@
 """Lesson 08.1: Binding and rebinding models."""
 
-from tigrbl import Base, bind, rebind
+from tigrbl import TableBase, bind, rebind
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -14,7 +14,7 @@ def test_bind_and_rebind_update_specs():
     """
 
     # Setup: define a model so binding can build namespaces and columns.
-    class LessonBind(Base, GUIDPk):
+    class LessonBind(TableBase, GUIDPk):
         __tablename__ = "lesson_bind"
         __allow_unmapped__ = True
 
@@ -39,7 +39,7 @@ def test_bind_populates_ops_index():
     """
 
     # Setup: create a model with default operations.
-    class LessonBindIndex(Base, GUIDPk):
+    class LessonBindIndex(TableBase, GUIDPk):
         __tablename__ = "lesson_bind_index"
         __allow_unmapped__ = True
 

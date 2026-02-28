@@ -1,8 +1,7 @@
 import pytest
 from pydantic import BaseModel
-from tigrbl import op_alias, op_ctx
+from tigrbl import TableBase, op_alias, op_ctx
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables import Base
 from tigrbl._spec import F, S, acol
 from tigrbl.types import Column, Mapped, String
 
@@ -13,7 +12,7 @@ from .test_op_ctx_behavior import setup_router
 def test_op_ctx_alias_create_examples(sync_db_session):
     _, get_db = sync_db_session
 
-    class Person(Base, GUIDPk):
+    class Person(TableBase, GUIDPk):
         __tablename__ = "people"
         __resource__ = "person"
         name: Mapped[str] = acol(
@@ -49,7 +48,7 @@ def test_op_ctx_alias_inherits_canonical_schemas(sync_db_session):
         request_model=CreateReq,
         response_model=CreateResp,
     )
-    class Person(Base, GUIDPk):
+    class Person(TableBase, GUIDPk):
         __tablename__ = "people2"
         __resource__ = "person2"
         name: Mapped[str] = Column(String)

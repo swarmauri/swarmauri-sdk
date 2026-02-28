@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from httpx import ASGITransport, Client
 
-from tigrbl import Base, TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
 
-class Widget(Base, GUIDPk):
+class Widget(TableBase, GUIDPk):
     __tablename__ = "widgets_rpc_options"
     name = Column(String, nullable=False)
 

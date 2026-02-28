@@ -5,7 +5,7 @@ their construction. The design keeps diagnostic routes colocated with app
 configuration and avoids manual router wiring.
 """
 
-from tigrbl import Base, TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -14,7 +14,7 @@ from tigrbl.types import Column, String
 def test_app_binding_mounts_diagnostics_router():
     """attach_diagnostics returns the diagnostics router for mounting."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_app_diagnostics"
         __allow_unmapped__ = True
 
@@ -31,7 +31,7 @@ def test_app_binding_mounts_diagnostics_router():
 def test_app_diagnostics_attach_to_host_routes():
     """Diagnostics routing should be attached to the host app."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_app_diagnostics_host"
         __allow_unmapped__ = True
 

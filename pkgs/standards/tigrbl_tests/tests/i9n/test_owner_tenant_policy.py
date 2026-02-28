@@ -4,14 +4,16 @@ from typing import Iterable
 import pytest
 from httpx import ASGITransport, Client
 from sqlalchemy import Column, String
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.mixins.ownable import Ownable, OwnerPolicy
 from tigrbl.orm.mixins.tenant_bound import TenantBound, TenantPolicy
 from tigrbl import Request
 from tigrbl.runtime.status import HTTPException
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
+from fastapi.security import HTTPAuthorizationCredentials
+from tigrbl import HTTPBearer
+from tigrbl.security import Security
 from tigrbl.types.authn_abc import AuthNProvider
 
 
@@ -39,14 +41,14 @@ def _client_for_owner(
     tenant_id: uuid.UUID,
     extra_user_ids: Iterable[uuid.UUID] | None = None,
 ) -> Client:
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class User(Base, GUIDPk):
+    class User(TableBase, GUIDPk):
         __tablename__ = "users"
         __table_args__ = {"schema": "main"}
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk, Ownable):
+    class Item(TableBase, GUIDPk, Ownable):
         __tablename__ = "items"
         __table_args__ = {"schema": "main"}
         name = Column(String, nullable=False)
@@ -59,7 +61,7 @@ def _client_for_owner(
     cfg = {**mem(async_=False), "tag": str(uuid.uuid4())}
     engine = Engine(EngineSpec.from_any(cfg))
     db_engine, _ = engine.raw()
-    Base.metadata.create_all(bind=db_engine)
+    TableBase.metadata.create_all(bind=db_engine)
 
     with engine.session() as session:
         session.execute(User.__table__.insert().values(id=user_id, name="owner"))
@@ -117,14 +119,14 @@ def _client_for_tenant(
     tenant_id: uuid.UUID,
     extra_tenant_ids: Iterable[uuid.UUID] | None = None,
 ) -> Client:
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         __table_args__ = {"schema": "main"}
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk, TenantBound):
+    class Item(TableBase, GUIDPk, TenantBound):
         __tablename__ = "items"
         __table_args__ = {"schema": "main"}
         name = Column(String, nullable=False)
@@ -137,7 +139,7 @@ def _client_for_tenant(
     cfg = {**mem(async_=False), "tag": str(uuid.uuid4())}
     engine = Engine(EngineSpec.from_any(cfg))
     db_engine, _ = engine.raw()
-    Base.metadata.create_all(bind=db_engine)
+    TableBase.metadata.create_all(bind=db_engine)
 
     with engine.session() as session:
         session.execute(Tenant.__table__.insert().values(id=tenant_id, name="acme"))

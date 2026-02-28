@@ -1,7 +1,6 @@
 import pytest
 
 from tigrbl.column import (
-    Column,
     ColumnSpec,
     F,
     S,
@@ -15,7 +14,7 @@ from tigrbl.types import Integer
 
 def test_make_column_components() -> None:
     col = makeColumn(storage=S(type_=Integer))
-    assert isinstance(col, Column)
+    assert isinstance(col, ColumnSpec)
     assert col.storage.type_ is Integer
 
 
@@ -41,7 +40,7 @@ def test_make_virtual_column_components() -> None:
         return 1
 
     col = makeVirtualColumn(field=F(py_type=int), producer=producer)
-    assert isinstance(col, Column)
+    assert isinstance(col, ColumnSpec)
     assert col.storage is None
     assert col.read_producer is producer
 

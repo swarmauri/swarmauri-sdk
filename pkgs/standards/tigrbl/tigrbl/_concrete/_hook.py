@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .._base._hook import HookBase
+from .._base._hook_base import HookBase
 
 
 class Hook(HookBase):

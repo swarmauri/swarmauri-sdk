@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import inspect
 
-from tigrbl import Base, TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
@@ -33,7 +33,7 @@ def _rpc_bindings(op) -> list[HttpJsonRpcBindingSpec]:
 
 
 def test_include_table_builds_default_opspecs_and_bindings() -> None:
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "harness_widget"
         __allow_unmapped__ = True
 
@@ -97,7 +97,7 @@ def test_include_table_builds_default_opspecs_and_bindings() -> None:
 def test_model_initialize_is_awaitable_or_sync() -> None:
     """Smoke test: initialize() may be sync or async depending on engine kind."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "harness_widget_init"
         __allow_unmapped__ = True
 

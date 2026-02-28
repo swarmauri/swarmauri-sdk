@@ -1,6 +1,6 @@
 """Lesson 07.3: Ordering multiple hooks in the same phase."""
 
-from tigrbl import Base, TigrblApp, hook_ctx
+from tigrbl import TableBase, TigrblApp, hook_ctx
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -14,7 +14,7 @@ def test_hook_order_collects_multiple_hooks():
     """
 
     # Setup: attach two hooks to a model class for the same phase.
-    class LessonHookOrder(Base, GUIDPk):
+    class LessonHookOrder(TableBase, GUIDPk):
         __tablename__ = "lesson_hook_order"
         __allow_unmapped__ = True
 
@@ -51,7 +51,7 @@ def test_hook_order_preserves_declaration_sequence():
     """
 
     # Setup: attach ordered hooks to a model so the binder can collect them.
-    class LessonHookOrderSequence(Base, GUIDPk):
+    class LessonHookOrderSequence(TableBase, GUIDPk):
         __tablename__ = "lesson_hook_order_sequence"
         __allow_unmapped__ = True
 

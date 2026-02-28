@@ -1,19 +1,18 @@
 import pytest
 from collections.abc import Iterator
 
-from tigrbl import TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import BulkCapable, GUIDPk, Replaceable
-from tigrbl.orm.tables import Base
 from tigrbl._spec import IO, S, F, acol as spec_acol
 from tigrbl.types import Session, String, uuid4
 
 
 @pytest.fixture()
 def app_and_session() -> Iterator[tuple[TigrblApp, Session]]:
-    class Widget(Base, GUIDPk, BulkCapable, Replaceable):
+    class Widget(TableBase, GUIDPk, BulkCapable, Replaceable):
         __tablename__ = "widgets_rpc_all_ops"
         __allow_unmapped__ = True
         __tigrbl_ops__ = (

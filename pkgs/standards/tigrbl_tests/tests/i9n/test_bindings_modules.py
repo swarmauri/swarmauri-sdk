@@ -1,3 +1,4 @@
+from tigrbl import TableBase
 import inspect
 
 import pytest
@@ -7,11 +8,10 @@ import tigrbl.mapping.hooks as hooks_binding
 import tigrbl.mapping.model as model_binding
 import tigrbl.mapping.rest as rest_binding
 import tigrbl.mapping.rpc as rpc_binding
-from tigrbl.mapping import include_table, include_tables, rpc_call
-from tigrbl.column import shortcuts as sc
+from tigrbl.mapping import include_table, include_tables
+import tigrbl.column as sc
 from tigrbl.mapping.schemas import build_and_attach as schemas_build_and_attach
 from tigrbl.mapping.op_resolver import resolve
-from tigrbl.orm.tables import Base
 from tigrbl._spec import IO, ColumnSpec, F, S
 from tigrbl.types import (
     InstrumentedAttribute,
@@ -22,9 +22,9 @@ from tigrbl.types import (
 
 
 def _make_model():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Item(Base):  # type: ignore[misc]
+    class Item(TableBase):  # type: ignore[misc]
         __tablename__ = "items"
 
         id = sc.acol(
@@ -122,7 +122,7 @@ async def test_router_include_and_rpc_call_returns_operation_envelope(model_cls)
     assert model_cls.__name__ in routers
 
     payload = {"id": 1, "name": "x"}
-    result = await router_binding.rpc_call(
+    result = await rpc_binding.rpc_call(
         router, model_cls, "create", payload=payload, db=object()
     )
     assert result["model"] is model_cls

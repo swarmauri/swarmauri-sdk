@@ -1,3 +1,4 @@
+from tigrbl import TableBase
 from tigrbl.mapping.router_mro_collect import mro_collect_router_hooks
 from tigrbl.shortcuts.router import defineRouterSpec, deriveRouter
 from tigrbl.config.constants import TIGRBL_ROUTER_HOOKS_ATTR
@@ -31,12 +32,12 @@ def test_router_hook_mro_collection():
         pass
 
     setattr(
-        Base,
+        TableBase,
         TIGRBL_ROUTER_HOOKS_ATTR,
         {"read": {"pre": [_sample_hook]}},
     )
 
-    class Child(Base):
+    class Child(TableBase):
         pass
 
     setattr(

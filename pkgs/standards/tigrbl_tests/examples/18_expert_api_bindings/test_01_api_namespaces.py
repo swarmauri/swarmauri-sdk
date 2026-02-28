@@ -6,7 +6,7 @@ pattern is preferred because it keeps generated bindings grouped by model name
 and avoids leaking implementation details into unrelated modules.
 """
 
-from tigrbl import Base, TigrblRouter
+from tigrbl import TableBase, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -15,7 +15,7 @@ from tigrbl.types import Column, String
 def test_router_binding_attaches_namespaces():
     """Including a model exposes schema and handler namespaces on the API."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_router_namespaces"
         __allow_unmapped__ = True
 
@@ -32,7 +32,7 @@ def test_router_binding_attaches_namespaces():
 def test_router_namespace_entries_are_model_scoped():
     """Namespace attributes are keyed by model name for clear introspection."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_router_namespaces_scoped"
         __allow_unmapped__ = True
 

@@ -1,10 +1,12 @@
 import httpx
 import pytest
 import pytest_asyncio
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
+from fastapi.security import HTTPAuthorizationCredentials
+from tigrbl import HTTPBearer
+from tigrbl.security import Security
 from tigrbl._spec import IO, F, S, acol
 from tigrbl.types import Mapped, String
 
@@ -19,7 +21,7 @@ def auth_dependency(
     return credentials
 
 
-class Alpha(Base, GUIDPk):
+class Alpha(TableBase, GUIDPk):
     __tablename__ = "alpha_router_usage"
     __allow_unmapped__ = True
 
@@ -32,7 +34,7 @@ class Alpha(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class Beta(Base, GUIDPk):
+class Beta(TableBase, GUIDPk):
     __tablename__ = "beta_router_usage"
     __allow_unmapped__ = True
 

@@ -1,10 +1,9 @@
 from __future__ import annotations
 import pytest
-from tigrbl import alias_ctx
+from tigrbl import TableBase, alias_ctx
 from tigrbl import response_ctx
 from tigrbl.shortcuts.engine import engine, mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables import Base
 from tigrbl._spec import IO, S, F, acol as spec_acol
 from tigrbl.types import String
 from tigrbl import TigrblRouter
@@ -14,7 +13,7 @@ from tigrbl import TigrblRouter
 async def test_response_ctx_alias_table_rpc():
     @alias_ctx(read="fetch")
     @response_ctx(headers={"X-Table": "alias"})
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets_alias"
         __allow_unmapped__ = True
 

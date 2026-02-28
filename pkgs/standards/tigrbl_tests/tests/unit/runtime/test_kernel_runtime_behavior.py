@@ -1,15 +1,14 @@
-from tigrbl import TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.mapping.model import bind
-from tigrbl.orm.tables import Base
 from tigrbl.runtime.kernel import _default_kernel as K
 from tigrbl._spec import IO, S, acol
 from tigrbl.types import Integer as IntType
 
 
 def test_kernel_get_opview_caches_runtime_result() -> None:
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class RuntimeKernelModel(Base):
+    class RuntimeKernelModel(TableBase):
         __tablename__ = "runtime_kernel_behavior"
         __allow_unmapped__ = True
         id = acol(

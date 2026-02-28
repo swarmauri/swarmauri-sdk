@@ -1,10 +1,9 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import func, select
-from tigrbl import TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.decorators.hook import hook_ctx
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables import Base
 from tigrbl.types import Column, String
 
 # ---------------------------------------------------------------------------
@@ -38,10 +37,10 @@ def create_client(model_cls):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hook_ctx_binding_i9n():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
@@ -62,10 +61,10 @@ async def test_hook_ctx_binding_i9n():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hook_ctx_request_response_schema_i9n():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
@@ -88,10 +87,10 @@ async def test_hook_ctx_request_response_schema_i9n():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hook_ctx_columns_i9n():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
@@ -117,10 +116,10 @@ async def test_hook_ctx_columns_i9n():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hook_ctx_defaults_resolution_i9n():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         name = Column(String, nullable=True)
 
@@ -144,10 +143,10 @@ async def test_hook_ctx_defaults_resolution_i9n():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hook_ctx_internal_model_i9n():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
@@ -173,10 +172,10 @@ async def test_hook_ctx_internal_model_i9n():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hook_ctx_openapi_json_i9n():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
@@ -198,10 +197,10 @@ async def test_hook_ctx_openapi_json_i9n():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hook_ctx_storage_sqlalchemy_i9n():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
@@ -228,10 +227,10 @@ async def test_hook_ctx_storage_sqlalchemy_i9n():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hook_ctx_rest_call_i9n():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
@@ -253,10 +252,10 @@ async def test_hook_ctx_rest_call_i9n():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hook_ctx_rpc_method_i9n():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
@@ -286,10 +285,10 @@ async def test_hook_ctx_rpc_method_i9n():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hook_ctx_core_crud_i9n():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
@@ -312,10 +311,10 @@ async def test_hook_ctx_core_crud_i9n():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hook_ctx_hookz_i9n():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
@@ -339,10 +338,10 @@ async def test_hook_ctx_hookz_i9n():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hook_ctx_atomz_i9n():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
@@ -368,10 +367,10 @@ async def test_hook_ctx_atomz_i9n():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hook_ctx_system_steps_i9n():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 

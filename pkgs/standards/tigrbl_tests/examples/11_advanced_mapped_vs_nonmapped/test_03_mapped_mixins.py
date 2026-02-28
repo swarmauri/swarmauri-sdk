@@ -1,4 +1,4 @@
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, Integer, Mapped, String, mapped_column
 
@@ -6,7 +6,7 @@ from tigrbl.types import Column, Integer, Mapped, String, mapped_column
 def test_mapped_mixins_extend_base_model():
     """Test mapped mixins extend base model."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "mapped_mixins"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)

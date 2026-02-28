@@ -1,4 +1,4 @@
-from tigrbl import TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.types import (
     Column,
     InstrumentedAttribute,
@@ -17,7 +17,6 @@ from tigrbl.runtime.atoms.schema import collect_in, collect_out
 from tigrbl.runtime.kernel import _default_kernel as K
 from tigrbl.schema import _build_list_params
 from tigrbl._spec import ColumnSpec, F, IO, S, acol, vcol
-from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
 
 
@@ -25,14 +24,14 @@ class _Base(DeclarativeBase):
     """Local base that materializes ColumnSpecs to SQLAlchemy Columns."""
 
     def __init_subclass__(cls, **kw):
-        from tigrbl.table._base import _materialize_colspecs_to_sqla
+        from tigrbl._base._table_base import _materialize_colspecs_to_sqla
 
         _materialize_colspecs_to_sqla(cls)
         super().__init_subclass__(**kw)
 
 
 def test_iospec_aliases_affect_schemas() -> None:
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "iospec_schema"
         __allow_unmapped__ = True
 
@@ -87,7 +86,7 @@ def test_iospec_filter_ops_and_sortable_in_list_params() -> None:
 
 
 def test_iospec_default_factory_resolves_absent_values() -> None:
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "iospec_defaults"
         __allow_unmapped__ = True
 
@@ -112,7 +111,7 @@ def test_iospec_default_factory_resolves_absent_values() -> None:
 
 
 def test_iospec_bindings_attach_to_model() -> None:
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "iospec_bind"
         __allow_unmapped__ = True
 
@@ -131,7 +130,7 @@ def test_iospec_bindings_attach_to_model() -> None:
 
 
 def test_iospec_in_verbs_reflected_in_openapi() -> None:
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets_openapi"
         __allow_unmapped__ = True
 
@@ -153,7 +152,7 @@ def test_iospec_in_verbs_reflected_in_openapi() -> None:
 
 
 def test_iospec_virtual_columns_materialized_and_tracked() -> None:
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "iospec_storage"
         __allow_unmapped__ = True
 

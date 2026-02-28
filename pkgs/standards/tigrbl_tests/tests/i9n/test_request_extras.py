@@ -5,16 +5,16 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from pydantic import Field
 from sqlalchemy import Column, String
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.schema import _build_schema
 
 
 @pytest_asyncio.fixture()
 async def app_client_with_extras(db_mode):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Widget(Base):
+    class Widget(TableBase):
         __tablename__ = "widgets"
         id = Column(String, primary_key=True, default=lambda: str(uuid4()))
         name = Column(String, nullable=False)

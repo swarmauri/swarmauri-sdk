@@ -1,11 +1,13 @@
 from httpx import ASGITransport, Client
-from tigrbl import Base, TigrblApp, hook_ctx
+from tigrbl import TableBase, TigrblApp, hook_ctx
 from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl import Request
 from tigrbl.runtime.status import HTTPException
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
+from fastapi.security import HTTPAuthorizationCredentials
+from tigrbl import HTTPBearer
+from tigrbl.security import Security
 from tigrbl.types.authn_abc import AuthNProvider
 
 
@@ -28,11 +30,11 @@ class HookedAuth(AuthNProvider):
 
 
 def _build_client_with_auth():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
     auth = HookedAuth()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
 
         @hook_ctx(ops="create", phase="PRE_HANDLER")

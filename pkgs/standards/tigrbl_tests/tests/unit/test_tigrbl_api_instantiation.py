@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl import Base, TigrblRouter
+from tigrbl import TableBase, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import F, IO, S
@@ -8,7 +8,7 @@ from tigrbl.shortcuts import acol
 from tigrbl.types import Mapped, String
 
 
-class Widget(Base, GUIDPk):
+class Widget(TableBase, GUIDPk):
     __tablename__ = "widgets_router_inst"
     __allow_unmapped__ = True
 

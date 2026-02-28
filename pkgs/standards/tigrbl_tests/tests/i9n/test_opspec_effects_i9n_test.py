@@ -3,7 +3,7 @@ import asyncio
 import pytest
 from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
-from tigrbl import TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl import core as _core
 from tigrbl.decorators.hook import hook_ctx
 from tigrbl.mapping.model import bind
@@ -18,7 +18,7 @@ from tigrbl._spec import IO, S, acol
 
 
 # NOTE:
-# Historically this test called ``Base.metadata.clear()`` at import time to
+# Historically this test called ``TableBase.metadata.clear()`` at import time to
 # ensure a pristine declarative registry.  When the test module is imported as
 # part of the full suite, clearing the global metadata wipes out tables defined
 # by earlier tests which still rely on the shared ``Base``.  Subsequent tests
@@ -28,7 +28,7 @@ from tigrbl._spec import IO, S, acol
 # preserve isolation without impacting other tests.
 
 
-class Gadget(Base, GUIDPk):
+class Gadget(TableBase, GUIDPk):
     __tablename__ = "gadgets_opspec"
     __allow_unmapped__ = True
 
@@ -38,7 +38,7 @@ class Gadget(Base, GUIDPk):
     )
 
 
-class Hooked(Base, GUIDPk):
+class Hooked(TableBase, GUIDPk):
     __tablename__ = "hooked_opspec"
     __allow_unmapped__ = True
 
@@ -64,8 +64,8 @@ def _ensure_tables():
     for model, table in ((Gadget, GADGET_TABLE), (Hooked, HOOKED_TABLE)):
         if not hasattr(model, "__table__"):
             model.__table__ = table  # type: ignore[attr-defined]
-        if table.key not in Base.metadata.tables:
-            Base.metadata._add_table(table.name, table.schema, table)
+        if table.key not in TableBase.metadata.tables:
+            TableBase.metadata._add_table(table.name, table.schema, table)
         if not hasattr(model, "__mapper__"):
             Base.registry.map_imperatively(model, table)
 
@@ -73,7 +73,9 @@ def _ensure_tables():
 def _fresh_session():
     engine = create_engine("sqlite:///:memory:")
     _ensure_tables()
-    Base.metadata.create_all(bind=engine, tables=[Gadget.__table__, Hooked.__table__])
+    TableBase.metadata.create_all(
+        bind=engine, tables=[Gadget.__table__, Hooked.__table__]
+    )
     return sessionmaker(bind=engine)()
 
 

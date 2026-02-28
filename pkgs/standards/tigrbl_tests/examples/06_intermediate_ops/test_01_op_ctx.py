@@ -1,6 +1,6 @@
 """Lesson 06.1: Declaring context-only operations with `op_ctx`."""
 
-from tigrbl import Base, TigrblApp, op_ctx
+from tigrbl import TableBase, TigrblApp, op_ctx
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -16,7 +16,7 @@ def test_custom_op_ctx_registers_alias():
     """
 
     # Setup: define a minimal model with a required column.
-    class LessonOp(Base, GUIDPk):
+    class LessonOp(TableBase, GUIDPk):
         __tablename__ = "lesson_ops"
         __allow_unmapped__ = True
 
@@ -50,7 +50,7 @@ def test_op_ctx_metadata_records_target_and_arity():
     """
 
     # Setup: define a simple model so we can attach a custom operation.
-    class LessonOpMeta(Base, GUIDPk):
+    class LessonOpMeta(TableBase, GUIDPk):
         __tablename__ = "lesson_op_meta"
         __allow_unmapped__ = True
 

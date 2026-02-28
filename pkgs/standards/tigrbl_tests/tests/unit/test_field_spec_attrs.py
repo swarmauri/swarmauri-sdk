@@ -1,16 +1,16 @@
+from tigrbl import TableBase
 from types import SimpleNamespace
 
 
 from tigrbl.mapping.model import bind
 from tigrbl.runtime.atoms.schema import collect_in, collect_out
 from tigrbl._spec import F, IO, S, acol, vcol
-from tigrbl.orm.tables import Base
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped
 
 
 def test_field_spec_py_type_overrides_annotation():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "things_py_type"
         __allow_unmapped__ = True
 
@@ -32,7 +32,7 @@ def test_field_spec_py_type_overrides_annotation():
 
 
 def test_field_spec_constraints_affect_sqla_column():
-    class Item(Base):
+    class Item(TableBase):
         __tablename__ = "items_constraints"
         __allow_unmapped__ = True
 
@@ -49,7 +49,7 @@ def test_field_spec_constraints_affect_sqla_column():
 
 
 def test_field_spec_required_in_marks_field_required():
-    class Product(Base):
+    class Product(TableBase):
         __tablename__ = "products_required_in"
         __allow_unmapped__ = True
 
@@ -71,7 +71,7 @@ def test_field_spec_required_in_marks_field_required():
 
 
 def test_field_spec_allow_null_in_overrides_nullable():
-    class Profile(Base):
+    class Profile(TableBase):
         __tablename__ = "profiles_allow_null"
         __allow_unmapped__ = True
 

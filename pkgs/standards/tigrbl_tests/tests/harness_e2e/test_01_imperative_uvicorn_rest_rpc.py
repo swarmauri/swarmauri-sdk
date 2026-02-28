@@ -4,7 +4,7 @@ import inspect
 
 import httpx
 import pytest
-from tigrbl import Base, TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -17,7 +17,7 @@ from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop
 async def test_imperative_to_uvicorn_to_rest_client_e2e() -> None:
     """Imperative app: REST create works end-to-end."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "harness_imp_rest"
         __allow_unmapped__ = True
 
@@ -48,7 +48,7 @@ async def test_imperative_to_uvicorn_to_rest_client_e2e() -> None:
 async def test_imperative_to_uvicorn_to_rpc_client_e2e() -> None:
     """Imperative app: JSON-RPC create works end-to-end."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "harness_imp_rpc"
         __allow_unmapped__ = True
 
@@ -82,7 +82,7 @@ async def test_imperative_to_uvicorn_to_rpc_client_e2e() -> None:
 async def test_imperative_to_uvicorn_rest_and_rpc_parity_e2e() -> None:
     """Imperative app: REST create is visible via RPC list."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "harness_imp_parity"
         __allow_unmapped__ = True
 

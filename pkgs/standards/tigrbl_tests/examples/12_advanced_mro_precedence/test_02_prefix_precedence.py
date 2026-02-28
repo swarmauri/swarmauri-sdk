@@ -1,5 +1,5 @@
 from tigrbl import TigrblApp
-from tigrbl.app.shortcuts import defineAppSpec
+from tigrbl.shortcuts.app import defineAppSpec
 
 
 def test_prefix_precedence_overrides_parent():

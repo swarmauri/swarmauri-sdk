@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl.table import Table
+from tigrbl import Table
 from tigrbl._spec import ColumnSpec
 
 

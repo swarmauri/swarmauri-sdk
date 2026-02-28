@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 from sqlalchemy import String
 from tigrbl.config.constants import TIGRBL_GET_DB_ATTR
-from tigrbl import resolver as _resolver
+from tigrbl import TableBase, resolver as _resolver
 from tigrbl.shortcuts.engine import engine as engine_factory
 from tigrbl.shortcuts.engine import mem
 from tigrbl.mapping import (
@@ -14,13 +14,12 @@ from tigrbl.mapping import (
     rpc_call,
 )
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables import Base
 from tigrbl.runtime import build_phase_chains
 from tigrbl._spec import IO, S, acol
 from tigrbl.types import uuid4
 
 
-class Widget(Base, GUIDPk):
+class Widget(TableBase, GUIDPk):
     __tablename__ = "widgets_bindings"
     __allow_unmapped__ = True
 
@@ -30,7 +29,7 @@ class Widget(Base, GUIDPk):
     )
 
 
-class Gizmo(Base, GUIDPk):
+class Gizmo(TableBase, GUIDPk):
     __tablename__ = "gizmos_bindings"
     __allow_unmapped__ = True
 
@@ -45,7 +44,7 @@ def _make_db():
     raw_engine, _ = engine.raw()
     # The shared Declarative ``Base`` is cleared in various tests to maintain
     # isolation. If another test clears the metadata before this helper runs,
-    # ``Base.metadata.create_all`` would create no tables, leading to runtime
+    # ``TableBase.metadata.create_all`` would create no tables, leading to runtime
     # failures. Creating the tables directly from the model definitions keeps
     # this helper resilient regardless of prior test side effects.
     Widget.__table__.create(bind=raw_engine)

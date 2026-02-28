@@ -1,16 +1,15 @@
 import httpx
 import pytest
 import pytest_asyncio
-from tigrbl import TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import IO, F, S, acol
-from tigrbl.table import Base
 from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
 
-class Item(Base, GUIDPk):
+class Item(TableBase, GUIDPk):
     __tablename__ = "items_hdr"
     __resource__ = "item"
 

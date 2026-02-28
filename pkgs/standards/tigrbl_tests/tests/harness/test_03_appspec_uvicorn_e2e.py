@@ -25,7 +25,7 @@ from tigrbl_tests.tests.i9n.uvicorn_utils import (
 async def test_appspec_to_uvicorn_rest_and_rpc_roundtrip() -> None:
     from sqlalchemy import Column, String
 
-    from tigrbl import Base
+    from tigrbl import TableBase
     from tigrbl._spec import AppSpec
     from tigrbl import TigrblApp
     from tigrbl.shortcuts.engine import mem
@@ -33,7 +33,7 @@ async def test_appspec_to_uvicorn_rest_and_rpc_roundtrip() -> None:
     from tigrbl._spec import OpSpec
     from tigrbl._spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets_appspec_e2e"
         __resource__ = "widget"
         name = Column(String, nullable=False)

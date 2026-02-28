@@ -1,6 +1,6 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
-from tigrbl import TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import (
     Created,
@@ -10,11 +10,10 @@ from tigrbl.orm.mixins import (
     ValidityWindow,
 )
 from tigrbl._spec import IO, F, S, acol
-from tigrbl.table import Base
 from tigrbl.types import Mapped, String
 
 
-class ConcreteApiKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):
+class ConcreteApiKey(TableBase, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):
     """Concrete table for testing API key generation."""
 
     __abstract__ = False

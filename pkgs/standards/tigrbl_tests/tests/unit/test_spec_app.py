@@ -1,5 +1,5 @@
-from tigrbl.app.mro_collect import mro_collect_app_spec
-from tigrbl.app import App
+from tigrbl.mapping.app_mro_collect import mro_collect_app_spec
+from tigrbl import App
 from tigrbl.shortcuts.app import defineAppSpec, deriveApp
 
 

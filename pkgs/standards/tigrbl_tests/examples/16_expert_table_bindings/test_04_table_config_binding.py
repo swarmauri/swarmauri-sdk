@@ -6,7 +6,7 @@ model, providing a structured way to inspect runtime metadata without
 searching the class hierarchy manually.
 """
 
-from tigrbl import Base, TigrblRouter, engine_ctx
+from tigrbl import TableBase, TigrblRouter, engine_ctx
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -15,7 +15,7 @@ from tigrbl.types import Column, String
 def test_table_binding_reads_table_config():
     """Engine configuration stored on a model appears in the API table config."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_table_config"
         __allow_unmapped__ = True
 
@@ -33,7 +33,7 @@ def test_table_binding_reads_table_config():
 def test_table_config_registry_is_model_specific():
     """Each model keeps its own configuration entry in the registry."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_table_config_primary"
         __allow_unmapped__ = True
 
@@ -41,7 +41,7 @@ def test_table_config_registry_is_model_specific():
 
     engine_ctx(kind="sqlite", mode="memory", async_=False)(Widget)
 
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "lesson_table_config_secondary"
         __allow_unmapped__ = True
 

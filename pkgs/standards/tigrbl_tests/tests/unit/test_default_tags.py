@@ -1,14 +1,14 @@
+from tigrbl import TableBase
 from tigrbl.mapping.rest.router import _build_router
 from tigrbl._spec import OpSpec
-from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
 
-Base.metadata.clear()
+TableBase.metadata.clear()
 
 
-class Widget(Base, GUIDPk):
+class Widget(TableBase, GUIDPk):
     __tablename__ = "widgets"
     name = Column(String, nullable=False)
 

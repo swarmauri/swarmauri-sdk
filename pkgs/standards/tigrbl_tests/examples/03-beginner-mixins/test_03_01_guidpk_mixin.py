@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 
 
 def test_guidpk_mixin_primary_key() -> None:
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "guidpk_gadgets"
 
     assert Gadget.id.storage.primary_key is True

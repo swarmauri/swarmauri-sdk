@@ -1,3 +1,4 @@
+from tigrbl import TableBase
 from tigrbl.column import makeVirtualColumn
 
 
@@ -5,11 +6,11 @@ class Base:
     base = makeVirtualColumn()
 
 
-class One(Base):
+class One(TableBase):
     one = makeVirtualColumn()
 
 
-class Two(Base):
+class Two(TableBase):
     two = makeVirtualColumn()
 
 

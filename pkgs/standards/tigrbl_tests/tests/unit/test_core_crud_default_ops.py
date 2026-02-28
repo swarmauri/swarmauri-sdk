@@ -1,3 +1,4 @@
+from tigrbl import TableBase
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, declarative_base
@@ -11,7 +12,7 @@ from sqlalchemy.orm.exc import NoResultFound
 Base = declarative_base()
 
 
-class Widget(Base):
+class Widget(TableBase):
     __tablename__ = "widgets"
     id = acol(
         storage=S(type_=Integer, primary_key=True, autoincrement=True),
@@ -54,7 +55,7 @@ class Widget(Base):
 @pytest.fixture()
 def session():
     engine = create_engine("sqlite:///:memory:")
-    Base.metadata.create_all(engine)
+    TableBase.metadata.create_all(engine)
     with Session(engine) as s:
         yield s
 

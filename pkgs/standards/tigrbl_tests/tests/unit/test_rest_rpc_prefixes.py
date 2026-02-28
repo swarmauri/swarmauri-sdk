@@ -1,5 +1,4 @@
-from tigrbl import TigrblApp
-from tigrbl.orm.tables import Base
+from tigrbl import TableBase, TigrblApp
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -10,9 +9,9 @@ def _router_paths(app, name: str) -> set[str]:
 
 
 def test_default_resource_and_rpc_prefixes():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
@@ -25,9 +24,9 @@ def test_default_resource_and_rpc_prefixes():
 
 
 def test_resource_override_affects_prefixes():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         __resource__ = "test"
         name = Column(String, nullable=False)
