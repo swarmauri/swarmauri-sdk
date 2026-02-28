@@ -1,7 +1,7 @@
 import logging
 import time
 
-from tigrbl.column.mro_collect import mro_collect_columns
+from tigrbl.mapping.column_mro_collect import mro_collect_columns
 from tigrbl.mapping.collect_decorated_schemas import collect_decorated_schemas
 
 

@@ -1,6 +1,6 @@
 import inspect
 
-from tigrbl.engine._engine import Engine, Provider
+from tigrbl._concrete._engine import Engine, Provider
 from tigrbl.decorators.engine import engine_ctx
 from tigrbl._spec import EngineSpec
 from tigrbl.shortcuts.engine import engine, mem
