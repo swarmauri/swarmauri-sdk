@@ -10,7 +10,7 @@ import pytest
 from tigrbl_client import TigrblClient
 
 from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, TigrblRouter, hook_ctx
+from tigrbl import TableBase, TigrblApp, TigrblRouter, hook_ctx
 from tigrbl import resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
@@ -32,7 +32,7 @@ from tigrbl.types import (
 async def test_document_versions_self_referential_lineage() -> None:
     """Chain versions together using a self-referential relationship."""
 
-    class Document(Base, GUIDPk):
+    class Document(TableBase, GUIDPk):
         """Document with version history that tracks parent-child lineage."""
 
         __tablename__ = "lesson_doc_self_documents"
@@ -104,7 +104,7 @@ async def test_document_versions_self_referential_lineage() -> None:
             db.add(version_row)
             db.flush()
 
-    class DocumentVersion(Base, GUIDPk):
+    class DocumentVersion(TableBase, GUIDPk):
         """Version snapshots linked to both a document and a parent version."""
 
         __tablename__ = "lesson_doc_self_versions"

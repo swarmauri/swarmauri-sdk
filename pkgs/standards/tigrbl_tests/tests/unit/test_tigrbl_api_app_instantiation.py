@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl import Base, TigrblRouter, TigrblApp
+from tigrbl import TableBase, TigrblRouter, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import F, IO, S
@@ -8,7 +8,7 @@ from tigrbl.shortcuts import acol
 from tigrbl.types import Mapped, String
 
 
-class Theta(Base, GUIDPk):
+class Theta(TableBase, GUIDPk):
     __tablename__ = "theta_router_app_inst"
     __allow_unmapped__ = True
 

@@ -7,7 +7,7 @@ import inspect
 
 import httpx
 import pytest
-from tigrbl import Base, TigrblApp, TigrblRouter, hook_ctx
+from tigrbl import TableBase, TigrblApp, TigrblRouter, hook_ctx
 from tigrbl import resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
@@ -31,7 +31,7 @@ from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop
 async def test_document_versions_one_to_many() -> None:
     """Create and update a document while auto-creating version history."""
 
-    class Document(Base, GUIDPk):
+    class Document(TableBase, GUIDPk):
         """A document that owns a one-to-many version history."""
 
         __tablename__ = "lesson_doc_otm_documents"
@@ -99,7 +99,7 @@ async def test_document_versions_one_to_many() -> None:
             db.add(version_row)
             db.flush()
 
-    class DocumentVersion(Base, GUIDPk):
+    class DocumentVersion(TableBase, GUIDPk):
         """Stored snapshots that belong to a parent document."""
 
         __tablename__ = "lesson_doc_otm_versions"

@@ -6,7 +6,7 @@ import httpx
 import pytest
 from tigrbl_client import TigrblClient
 
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.shortcuts.app import deriveApp
@@ -24,7 +24,7 @@ from tigrbl_tests.tests.harness_v3._support import (
 async def test_appspec_to_uvicorn_to_rest_client_e2e() -> None:
     """AppSpec-driven app: REST create works end-to-end."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "harness_appspec_rest"
         __allow_unmapped__ = True
 
@@ -65,7 +65,7 @@ async def test_appspec_to_uvicorn_to_rest_client_e2e() -> None:
 async def test_appspec_to_uvicorn_to_rpc_client_e2e() -> None:
     """AppSpec-driven app: JSON-RPC create works end-to-end."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "harness_appspec_rpc"
         __allow_unmapped__ = True
 
@@ -108,7 +108,7 @@ async def test_appspec_to_uvicorn_to_rpc_client_e2e() -> None:
 async def test_appspec_to_uvicorn_rest_and_rpc_parity_e2e() -> None:
     """AppSpec-driven app: REST create is visible via RPC list."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "harness_appspec_parity"
         __allow_unmapped__ = True
 

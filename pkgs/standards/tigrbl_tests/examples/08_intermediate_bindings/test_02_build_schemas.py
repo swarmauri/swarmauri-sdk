@@ -1,6 +1,6 @@
 """Lesson 08.2: Building request/response schemas."""
 
-from tigrbl import Base, bind, build_schemas
+from tigrbl import TableBase, bind, build_schemas
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -14,7 +14,7 @@ def test_build_schemas_returns_schema_map():
     """
 
     # Setup: declare a model with a single field.
-    class LessonSchemas(Base, GUIDPk):
+    class LessonSchemas(TableBase, GUIDPk):
         __tablename__ = "lesson_schemas"
         __allow_unmapped__ = True
 
@@ -39,7 +39,7 @@ def test_build_schemas_creates_per_op_namespace():
     """
 
     # Setup: define a model for schema generation.
-    class LessonSchemasNamespace(Base, GUIDPk):
+    class LessonSchemasNamespace(TableBase, GUIDPk):
         __tablename__ = "lesson_schemas_namespace"
         __allow_unmapped__ = True
 

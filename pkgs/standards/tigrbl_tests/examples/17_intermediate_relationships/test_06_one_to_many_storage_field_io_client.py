@@ -18,7 +18,7 @@ import pytest
 import uvicorn
 from tigrbl_client import TigrblClient
 
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import F, IO, S
@@ -32,7 +32,7 @@ from tigrbl.types import Mapped, PgUUID, String, UUID, relationship
 async def test_one_to_many_relationship_storage_field_io_client_experience() -> None:
     """Show one project owning many tasks, validated through both API styles."""
 
-    class Project(Base, GUIDPk):
+    class Project(TableBase, GUIDPk):
         """Parent model that owns a collection of tasks."""
 
         __tablename__ = "lesson_rel_sfic_project"
@@ -51,7 +51,7 @@ async def test_one_to_many_relationship_storage_field_io_client_experience() -> 
             lazy="selectin",
         )
 
-    class Task(Base, GUIDPk):
+    class Task(TableBase, GUIDPk):
         """Child model: many tasks can point to the same project."""
 
         __tablename__ = "lesson_rel_sfic_task"

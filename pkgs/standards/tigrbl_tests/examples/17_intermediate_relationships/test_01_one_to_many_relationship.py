@@ -6,7 +6,7 @@ import inspect
 
 import httpx
 import pytest
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.types import Column, ForeignKey, Integer, String, relationship
 from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
@@ -17,7 +17,7 @@ async def test_one_to_many_relationship_via_rest() -> None:
     """Show a one-to-many relationship using REST endpoints."""
 
     # Step 1: Define the parent model for the relationship.
-    class Author(Base):
+    class Author(TableBase):
         __tablename__ = "lesson_rel_author"
         __allow_unmapped__ = True
 
@@ -30,7 +30,7 @@ async def test_one_to_many_relationship_via_rest() -> None:
         )
 
     # Step 2: Define the child model that carries the foreign key.
-    class Book(Base):
+    class Book(TableBase):
         __tablename__ = "lesson_rel_book"
         __allow_unmapped__ = True
 

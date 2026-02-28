@@ -5,7 +5,7 @@ registry. This keeps shared schema rules centralized in mixins, which is the
 preferred design for reusable identifiers like primary keys.
 """
 
-from tigrbl import Base, bind
+from tigrbl import TableBase, bind
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import F, IO, S
 from tigrbl.shortcuts import acol
@@ -15,7 +15,7 @@ from tigrbl.types import String
 def test_column_binding_includes_mixin_specs():
     """Mixin-provided ColumnSpecs appear in the model's column registry."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_column_mixin"
         __allow_unmapped__ = True
 
@@ -34,7 +34,7 @@ def test_column_binding_includes_mixin_specs():
 def test_mixin_column_spec_matches_table_column():
     """Mixin specs should align with the mapped table's primary key column."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_column_mixin_table"
         __allow_unmapped__ = True
 

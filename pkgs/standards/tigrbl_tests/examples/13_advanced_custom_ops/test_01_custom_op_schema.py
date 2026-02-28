@@ -1,4 +1,4 @@
-from tigrbl import Base, SchemaRef, TigrblApp, op_ctx
+from tigrbl import TableBase, SchemaRef, TigrblApp, op_ctx
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -8,7 +8,7 @@ def test_custom_op_declares_schema_refs():
     """Test custom op declares schema refs."""
 
     # Setup: define a model to host a custom collection op.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonschema"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)

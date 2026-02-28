@@ -5,7 +5,7 @@ the router on the app instance ensures a consistent integration point for
 transport layers and documentation tools.
 """
 
-from tigrbl import Base, TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -14,7 +14,7 @@ from tigrbl.types import Column, String
 def test_app_binding_mounts_jsonrpc_router():
     """mount_jsonrpc produces a router for JSON-RPC endpoints."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_app_jsonrpc"
         __allow_unmapped__ = True
 
@@ -31,7 +31,7 @@ def test_app_binding_mounts_jsonrpc_router():
 def test_app_jsonrpc_mount_uses_prefix_setting():
     """The JSON-RPC prefix is configurable on the app instance."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_app_jsonrpc_prefix"
         __allow_unmapped__ = True
 

@@ -11,10 +11,10 @@ import inspect
 
 import httpx
 import pytest
-from tigrbl.security import HTTPBearer
+from tigrbl import HTTPBearer
 
 from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblRouter, TigrblApp
+from tigrbl import TableBase, TigrblRouter, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -35,7 +35,7 @@ async def test_openapi_security_from_app_and_router_deps() -> None:
     router_only_scheme = HTTPBearer(scheme_name="ApiOnly")
 
     # Configuration: declare a model to mount on the API.
-    class CombinedSecdepsWidget(Base, GUIDPk):
+    class CombinedSecdepsWidget(TableBase, GUIDPk):
         __tablename__ = "lesson_security_app_router_secdeps_widget"
         __allow_unmapped__ = True
 

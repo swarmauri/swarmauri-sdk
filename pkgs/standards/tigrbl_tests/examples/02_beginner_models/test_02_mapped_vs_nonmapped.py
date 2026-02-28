@@ -1,4 +1,4 @@
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, Integer, Mapped, String
 
@@ -15,14 +15,14 @@ def test_mapped_and_nonmapped_columns_coexist():
     """
 
     # Setup: define a model using ``Mapped`` annotations with explicit Columns.
-    class MappedWidget(Base, GUIDPk):
+    class MappedWidget(TableBase, GUIDPk):
         __tablename__ = "mapped_widgets"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
         quantity: Mapped[int] = Column(Integer, default=0)
 
     # Setup: define the same model with classic Column declarations.
-    class PlainWidget(Base, GUIDPk):
+    class PlainWidget(TableBase, GUIDPk):
         __tablename__ = "plain_widgets"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
@@ -45,14 +45,14 @@ def test_mapped_and_nonmapped_share_column_defaults():
     """
 
     # Setup: declare Mapped annotations with explicit Columns and defaults.
-    class MappedWidget(Base, GUIDPk):
+    class MappedWidget(TableBase, GUIDPk):
         __tablename__ = "mapped_widgets_defaults"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
         quantity: Mapped[int] = Column(Integer, default=0)
 
     # Setup: declare a classic Column-only model for comparison.
-    class PlainWidget(Base, GUIDPk):
+    class PlainWidget(TableBase, GUIDPk):
         __tablename__ = "plain_widgets_defaults"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)

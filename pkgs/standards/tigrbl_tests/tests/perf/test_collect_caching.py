@@ -24,10 +24,10 @@ def _measure(func, obj, iterations=100):
 
 
 def test_mro_collect_columns_cached():
-    class Base:
+    class TableBase:
         pass
 
-    class Model(Base):
+    class Model(TableBase):
         pass
 
     cold, cached = _measure(mro_collect_columns, Model, iterations=50)

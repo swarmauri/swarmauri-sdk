@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import inspect
 
-from tigrbl import Base, TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.runtime.kernel import _default_kernel
@@ -28,7 +28,7 @@ def _init_if_needed(app: TigrblApp) -> None:
 
 
 def test_kernel_ensure_primed_compiles_plan_once() -> None:
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "harness_bootstrap_widget"
         __allow_unmapped__ = True
 
@@ -51,7 +51,7 @@ def test_kernel_ensure_primed_compiles_plan_once() -> None:
 
 
 def test_opview_is_compiled_once_per_model_alias() -> None:
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "harness_opview_widget"
         __allow_unmapped__ = True
 

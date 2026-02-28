@@ -5,7 +5,7 @@ model namespace (``__tigrbl_ops__``) for discovery. This pattern is preferred
 because it keeps bespoke operations co-located with the model definition.
 """
 
-from tigrbl import Base, bind, op_ctx
+from tigrbl import TableBase, bind, op_ctx
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -13,7 +13,7 @@ from tigrbl.types import Column, String
 def test_custom_op_binding_registers_op():
     """Custom operations should appear in the bound OpSpec list."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_op_binding"
         __allow_unmapped__ = True
 
@@ -31,7 +31,7 @@ def test_custom_op_binding_registers_op():
 def test_custom_op_binding_populates_model_registry():
     """Custom op declarations stay attached to the classmethod."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_op_binding_registry"
         __allow_unmapped__ = True
 

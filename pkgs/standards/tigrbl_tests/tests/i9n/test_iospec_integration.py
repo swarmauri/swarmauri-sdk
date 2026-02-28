@@ -9,13 +9,13 @@ from tigrbl.core import crud
 from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.runtime.atoms.resolve import assemble
 from tigrbl._spec import IO, S, acol
 from tigrbl.types import UUID, String
 
 
-class Widget(Base, GUIDPk):
+class Widget(TableBase, GUIDPk):
     __tablename__ = "widgets"
 
     name = acol(

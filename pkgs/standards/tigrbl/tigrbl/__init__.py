@@ -68,7 +68,7 @@ from .config.constants import DEFAULT_HTTP_METHODS
 from ._concrete.tigrbl_app import TigrblApp
 from ._concrete.tigrbl_router import TigrblRouter
 from .decorators.router import route_ctx
-from .orm.tables import Base
+from .orm.tables import TableBase
 from .op import Op
 from .shortcuts.op import op
 from .engine import resolver
@@ -118,7 +118,7 @@ __all__ += [
     "Router",
     "Depends",
     "HTTPException",
-    "Base",
+    "TableBase",
     "Op",
     "op",
     "HTTPBearer",

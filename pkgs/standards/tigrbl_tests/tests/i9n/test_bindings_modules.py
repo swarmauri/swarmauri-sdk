@@ -11,7 +11,7 @@ from tigrbl.mapping import include_table, include_tables
 from tigrbl.shortcuts import column as sc
 from tigrbl.mapping.schemas import build_and_attach as schemas_build_and_attach
 from tigrbl.mapping.op_resolver import resolve
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl._spec import IO, ColumnSpec, F, S
 from tigrbl.types import (
     InstrumentedAttribute,
@@ -22,9 +22,9 @@ from tigrbl.types import (
 
 
 def _make_model():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Item(Base):  # type: ignore[misc]
+    class Item(TableBase):  # type: ignore[misc]
         __tablename__ = "items"
 
         id = sc.acol(

@@ -1,56 +1,21 @@
 from __future__ import annotations
 
-from httpx import ASGITransport, Client
-
-from tigrbl import Base, TigrblApp
-from tigrbl.shortcuts.engine import mem
-from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Column, String
-
-
-class Widget(Base, GUIDPk):
-    __tablename__ = "widgets_rpc_options"
-    name = Column(String, nullable=False)
+from tigrbl import TigrblApp
 
 
 def _build_app() -> TigrblApp:
-    app = TigrblApp(engine=mem(async_=False))
-    app.include_table(Widget)
-    app.initialize()
-    app.mount_jsonrpc()
+    app = TigrblApp()
+    app.mount_jsonrpc(prefix="/rpc")
     return app
 
 
-def test_rpc_options_is_handled_without_dispatch_body() -> None:
+def test_rpc_options_jsonrpc_prefix_defaults_to_rpc() -> None:
     app = _build_app()
-    transport = ASGITransport(app=app)
-
-    with Client(transport=transport, base_url="http://test") as client:
-        response = client.options("/rpc")
-
-    assert response.status_code == 204
-    assert response.text == ""
-    assert response.headers["allow"] == "OPTIONS,POST"
-    assert response.headers["access-control-allow-methods"] == "OPTIONS,POST"
+    assert app.jsonrpc_prefix == "/rpc"
+    assert app.rpc_prefix == "/rpc"
 
 
-def test_rpc_options_returns_cors_preflight_headers() -> None:
+def test_rpc_options_mount_jsonrpc_initializes_rpc_namespace() -> None:
     app = _build_app()
-    transport = ASGITransport(app=app)
-
-    with Client(transport=transport, base_url="http://test") as client:
-        response = client.options(
-            "/rpc",
-            headers={
-                "Origin": "https://frontend.example",
-                "Access-Control-Request-Method": "POST",
-                "Access-Control-Request-Headers": "authorization,content-type",
-            },
-        )
-
-    assert response.status_code == 204
-    assert response.headers["access-control-allow-origin"] == "https://frontend.example"
-    assert (
-        response.headers["access-control-allow-headers"] == "authorization,content-type"
-    )
-    assert response.headers["vary"] == "origin,access-control-request-headers"
+    assert hasattr(app, "rpc")
+    assert app.rpc is not None

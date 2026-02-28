@@ -1,6 +1,6 @@
 """Lesson 07.4: Scoping hooks to specific operations."""
 
-from tigrbl import Base, TigrblApp, hook_ctx
+from tigrbl import TableBase, TigrblApp, hook_ctx
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -15,7 +15,7 @@ def test_hook_scopes_apply_to_specific_ops():
     """
 
     # Setup: attach the hook to a model so binding can collect it.
-    class LessonHookScope(Base, GUIDPk):
+    class LessonHookScope(TableBase, GUIDPk):
         __tablename__ = "lesson_hook_scope"
         __allow_unmapped__ = True
 
@@ -50,7 +50,7 @@ def test_hook_scopes_exclude_unlisted_ops():
     """
 
     # Setup: attach the hook to a model class.
-    class LessonHookScopeIsolation(Base, GUIDPk):
+    class LessonHookScopeIsolation(TableBase, GUIDPk):
         __tablename__ = "lesson_hook_scope_isolation"
         __allow_unmapped__ = True
 

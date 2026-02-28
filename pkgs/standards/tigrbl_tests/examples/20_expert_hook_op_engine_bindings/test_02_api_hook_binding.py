@@ -5,7 +5,7 @@ are included. This pattern is preferred because it enables cross-cutting
 behavior (like auditing) to be configured once at the API layer.
 """
 
-from tigrbl import Base, TigrblRouter
+from tigrbl import TableBase, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -20,7 +20,7 @@ def test_router_hook_binding_merges_into_model():
     router_hooks = {"*": {"PRE_HANDLER": [audit]}}
     router = TigrblRouter(engine=mem(async_=False), router_hooks=router_hooks)
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_router_hook_binding"
         __allow_unmapped__ = True
 
@@ -41,7 +41,7 @@ def test_router_hook_binding_respects_alias_namespace():
     router_hooks = {"*": {"PRE_HANDLER": [audit]}}
     router = TigrblRouter(engine=mem(async_=False), router_hooks=router_hooks)
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_router_hook_alias_binding"
         __allow_unmapped__ = True
 

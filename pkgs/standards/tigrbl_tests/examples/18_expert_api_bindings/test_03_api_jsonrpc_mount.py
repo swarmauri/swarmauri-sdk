@@ -6,7 +6,7 @@ preferred pattern because it preserves routing metadata alongside model
 configuration.
 """
 
-from tigrbl import Base, TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -15,7 +15,7 @@ from tigrbl.types import Column, String
 def test_app_binding_mounts_jsonrpc_router():
     """mount_jsonrpc returns a router ready to be attached to an app."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_app_jsonrpc"
         __allow_unmapped__ = True
 
@@ -32,7 +32,7 @@ def test_app_binding_mounts_jsonrpc_router():
 def test_jsonrpc_mount_uses_configured_prefix():
     """The JSON-RPC prefix on the API should be configurable."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_app_jsonrpc_prefix"
         __allow_unmapped__ = True
 

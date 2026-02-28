@@ -7,7 +7,7 @@ from tigrbl import TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl._spec import F, IO, S
 from tigrbl.shortcuts import acol
-from tigrbl.orm.tables import Base as Base3
+from tigrbl.orm.tables import TableBase as Base3
 
 
 @pytest.fixture()

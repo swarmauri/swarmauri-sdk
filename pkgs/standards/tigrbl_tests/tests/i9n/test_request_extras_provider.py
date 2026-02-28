@@ -1,5 +1,5 @@
 import pytest
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.schema import _build_schema
 from tigrbl.types import Column, Field, RequestExtrasProvider, String
@@ -9,9 +9,9 @@ from tigrbl.types.request_extras_provider import list_request_extras_providers
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_request_extras_provider_in_schema():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Widget(Base, GUIDPk, RequestExtrasProvider):
+    class Widget(TableBase, GUIDPk, RequestExtrasProvider):
         __tablename__ = "widgets"
         name = Column(String, nullable=False)
         __tigrbl_request_extras__ = {

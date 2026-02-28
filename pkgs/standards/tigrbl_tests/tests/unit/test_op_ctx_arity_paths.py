@@ -1,15 +1,15 @@
 from tigrbl import TigrblApp, op_ctx
 from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
 from tigrbl.mapping.rest.router import _build_router
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
 
 def test_member_arity_rest_path_includes_pk():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class MemberModel(Base, GUIDPk):
+    class MemberModel(TableBase, GUIDPk):
         __tablename__ = "member_path_model"
         name = Column(String, nullable=False)
 
@@ -24,9 +24,9 @@ def test_member_arity_rest_path_includes_pk():
 
 
 def test_collection_arity_rest_path_excludes_pk():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class CollectionModel(Base, GUIDPk):
+    class CollectionModel(TableBase, GUIDPk):
         __tablename__ = "collection_path_model"
         name = Column(String, nullable=False)
 
@@ -41,9 +41,9 @@ def test_collection_arity_rest_path_excludes_pk():
 
 
 def test_member_arity_openapi_has_path_param():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class MemberModel(Base, GUIDPk):
+    class MemberModel(TableBase, GUIDPk):
         __tablename__ = "member_openapi_model"
         name = Column(String, nullable=False)
 
@@ -62,9 +62,9 @@ def test_member_arity_openapi_has_path_param():
 
 
 def test_collection_arity_openapi_has_no_path_param():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class CollectionModel(Base, GUIDPk):
+    class CollectionModel(TableBase, GUIDPk):
         __tablename__ = "collection_openapi_model"
         name = Column(String, nullable=False)
 

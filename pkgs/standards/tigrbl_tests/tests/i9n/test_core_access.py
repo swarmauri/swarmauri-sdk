@@ -2,14 +2,14 @@ from typing import Any, Mapping
 
 import pytest
 import pytest_asyncio
-from tigrbl import Base, TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import engine, mem
 from tigrbl.orm.mixins import BulkCapable, GUIDPk, Replaceable
 from tigrbl.runtime.status import HTTPException
 from tigrbl.types import UUID, Column, Integer, String, uuid4
 
 
-class CoreTestUser(Base, GUIDPk, BulkCapable, Replaceable):
+class CoreTestUser(TableBase, GUIDPk, BulkCapable, Replaceable):
     __tablename__ = "test_users"
     name = Column(String(100), nullable=True)
     email = Column(String(255), unique=True, nullable=True)
@@ -24,7 +24,7 @@ def _get(obj: Any, attr: str) -> Any:
 @pytest.fixture
 def sync_app():
     """Create a sync Tigrbl instance with CoreTestUser."""
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     eng = engine(mem(async_=False))
     app = TigrblApp(engine=eng)
     app.include_table(CoreTestUser)
@@ -35,7 +35,7 @@ def sync_app():
 @pytest_asyncio.fixture
 async def async_app():
     """Create an async Tigrbl instance with CoreTestUser."""
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     eng = engine(mem(async_=True))
     app = TigrblApp(engine=eng)
     app.include_table(CoreTestUser)

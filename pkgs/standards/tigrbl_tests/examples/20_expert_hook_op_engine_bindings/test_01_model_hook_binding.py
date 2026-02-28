@@ -6,7 +6,7 @@ preferred because it keeps hook discovery close to the model definition and
 makes ordering explicit.
 """
 
-from tigrbl import Base, bind, hook_ctx
+from tigrbl import TableBase, bind, hook_ctx
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -14,7 +14,7 @@ from tigrbl.types import Column, String
 def test_model_hook_binding_populates_phase_chain():
     """Hook decorators attach callables to the model hook namespace."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_hook_binding"
         __allow_unmapped__ = True
 
@@ -33,7 +33,7 @@ def test_model_hook_binding_populates_phase_chain():
 def test_model_hook_namespace_exposes_phase_lists():
     """The hook namespace should expose a list for each configured phase."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_hook_binding_phase"
         __allow_unmapped__ = True
 

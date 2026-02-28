@@ -1,4 +1,4 @@
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import (
     ARRAY,
@@ -30,7 +30,7 @@ def test_type_gallery_defines_all_supported_columns():
     """
 
     # Setup: build a gallery model that enumerates supported column types.
-    class Gallery(Base, GUIDPk):
+    class Gallery(TableBase, GUIDPk):
         __tablename__ = "type_gallery"
         __allow_unmapped__ = True
 
@@ -82,7 +82,7 @@ def test_type_gallery_includes_array_and_jsonb_types():
     """
 
     # Setup: reuse a compact gallery model for advanced type inspection.
-    class Gallery(Base, GUIDPk):
+    class Gallery(TableBase, GUIDPk):
         __tablename__ = "type_gallery_advanced"
         __allow_unmapped__ = True
 

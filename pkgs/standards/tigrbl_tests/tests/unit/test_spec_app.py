@@ -3,7 +3,7 @@ from tigrbl._concrete._app import App
 from tigrbl.shortcuts.app import defineAppSpec, deriveApp
 
 
-class BaseAppSpec(defineAppSpec(title="Base", version="1.0", routers=("base",))):
+class BaseAppSpec(defineAppSpec(title="TableBase", version="1.0", routers=("base",))):
     pass
 
 
@@ -14,7 +14,7 @@ class ChildApp(BaseAppSpec):
 
 def test_app_spec_defaults_and_merge():
     spec = AppSpec.collect(ChildApp)
-    assert spec.title == "Base"
+    assert spec.title == "TableBase"
     assert spec.version == "1.0"
     assert spec.routers == ("child", "base")
     assert spec.ops == ("read",)

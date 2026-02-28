@@ -15,7 +15,7 @@ import pytest
 import uvicorn
 from tigrbl_client import TigrblClient
 
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import F, IO, S
@@ -29,7 +29,7 @@ from tigrbl.types import Mapped, PgUUID, String, UUID, relationship
 async def test_many_to_many_relationship_storage_field_io_client_experience() -> None:
     """Demonstrate many-to-many linking with both REST writes and RPC reads."""
 
-    class Learner(Base, GUIDPk):
+    class Learner(TableBase, GUIDPk):
         """A person who can enroll in many workshops."""
 
         __tablename__ = "lesson_rel_sfic_learner"
@@ -48,7 +48,7 @@ async def test_many_to_many_relationship_storage_field_io_client_experience() ->
             lazy="selectin",
         )
 
-    class Workshop(Base, GUIDPk):
+    class Workshop(TableBase, GUIDPk):
         """A class that can have many learners."""
 
         __tablename__ = "lesson_rel_sfic_workshop"
@@ -67,7 +67,7 @@ async def test_many_to_many_relationship_storage_field_io_client_experience() ->
             lazy="selectin",
         )
 
-    class LearnerWorkshop(Base, GUIDPk):
+    class LearnerWorkshop(TableBase, GUIDPk):
         """Association model that realizes the many-to-many relationship."""
 
         __tablename__ = "lesson_rel_sfic_learner_workshop"

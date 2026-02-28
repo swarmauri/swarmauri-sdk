@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from tigrbl.decorators import response_ctx
-from tigrbl.table import Base
+from tigrbl import TableBase
 from tigrbl.types import BaseModel
 
 
 def test_response_ctx_sets_response_spec() -> None:
-    class Widget(Base):
+    class Widget(TableBase):
         __tablename__ = "response_ctx_widgets"
 
         @response_ctx(alias="echo")

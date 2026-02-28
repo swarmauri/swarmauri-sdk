@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from tigrbl.decorators import hook_ctx
-from tigrbl.table import Base
+from tigrbl import TableBase
 
 
 def test_hook_ctx_registers_hook() -> None:
-    class Widget(Base):
+    class Widget(TableBase):
         __tablename__ = "hook_ctx_widgets"
 
         @hook_ctx(ops="create", phase="PRE_HANDLER")

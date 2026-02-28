@@ -4,17 +4,17 @@ from httpx import ASGITransport, AsyncClient
 from tigrbl import TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import BulkCapable, Mergeable, Replaceable
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl._spec import IO, F, S, acol
 from tigrbl.types import Integer, Mapped, String, uuid4
 
 
 @pytest_asyncio.fixture()
 async def client_and_model():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Gadget(Base):
+    class Gadget(TableBase):
         __tablename__ = "gadgets"
         __allow_unmapped__ = True
 
@@ -138,10 +138,10 @@ async def test_bulk_methods_absent(client_and_model):
 
 @pytest_asyncio.fixture()
 async def wrapper_field_client_and_model():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class WrapperNamed(Base):
+    class WrapperNamed(TableBase):
         __tablename__ = "wrapper_named"
         __allow_unmapped__ = True
 
@@ -225,10 +225,10 @@ async def test_rest_create_rejects_wrapper_object(wrapper_key, client_and_model)
 
 @pytest_asyncio.fixture()
 async def bulk_client_and_model():
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Gadget(Base, BulkCapable, Replaceable, Mergeable):
+    class Gadget(TableBase, BulkCapable, Replaceable, Mergeable):
         __tablename__ = "gadgets"
         __allow_unmapped__ = True
 

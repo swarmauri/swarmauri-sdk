@@ -1,4 +1,4 @@
-from tigrbl import Base, schema_ctx
+from tigrbl import TableBase, schema_ctx
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.mapping.collect_decorated_schemas import collect_decorated_schemas
 from tigrbl.types import BaseModel
@@ -7,7 +7,7 @@ from tigrbl.types import BaseModel
 def test_schema_ctx_promotes_plain_classes_to_pydantic():
     collect_decorated_schemas.cache_clear()
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "plain_widget"
 
         @schema_ctx(alias="Ping", kind="in")

@@ -1,7 +1,7 @@
 import inspect
 
 import pytest
-from tigrbl import Base, TigrblApp, op_ctx, TigrblRouter
+from tigrbl import TableBase, TigrblApp, op_ctx, TigrblRouter
 from tigrbl_client import TigrblClient
 
 from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
@@ -14,7 +14,7 @@ from tigrbl.types import Column, String
 async def test_custom_op_via_rpc():
     """Test custom op via rpc."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_custom_rpc"
         __allow_unmapped__ = True
 

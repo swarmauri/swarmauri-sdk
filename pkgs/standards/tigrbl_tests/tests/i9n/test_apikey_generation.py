@@ -10,11 +10,11 @@ from tigrbl.orm.mixins import (
     ValidityWindow,
 )
 from tigrbl._spec import IO, F, S, acol
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.types import Mapped, String
 
 
-class ConcreteApiKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):
+class ConcreteApiKey(TableBase, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):
     """Concrete table for testing API key generation."""
 
     __abstract__ = False

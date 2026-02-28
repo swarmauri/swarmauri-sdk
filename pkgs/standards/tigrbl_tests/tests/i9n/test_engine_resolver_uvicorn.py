@@ -9,7 +9,7 @@ from __future__ import annotations
 import httpx
 import pytest
 from sqlalchemy import Column, String
-from tigrbl import Base, TigrblApp, TigrblRouter, engine_ctx, op_ctx
+from tigrbl import TableBase, TigrblApp, TigrblRouter, engine_ctx, op_ctx
 from tigrbl import resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
@@ -31,13 +31,13 @@ async def test_tigrblapp_multi_table_engine_precedence_uvicorn() -> None:
     app_engine = {**mem(async_=False), "tag": "app-default"}
     table_engine = {**mem(async_=False), "tag": "table-override"}
 
-    class AppWidget(Base, GUIDPk):
+    class AppWidget(TableBase, GUIDPk):
         __tablename__ = "app_widgets"
         __resource__ = "app-widget"
         name = Column(String, nullable=False)
 
     @engine_ctx(table_engine)
-    class AppGadget(Base, GUIDPk):
+    class AppGadget(TableBase, GUIDPk):
         __tablename__ = "app_gadgets"
         __resource__ = "app-gadget"
         name = Column(String, nullable=False)
@@ -97,13 +97,13 @@ async def test_tigrblrouter_multi_table_engine_binding_uvicorn() -> None:
     router_engine = {**mem(async_=False), "tag": "router-default"}
     table_engine = {**mem(async_=False), "tag": "router-table"}
 
-    class ApiWidget(Base, GUIDPk):
+    class ApiWidget(TableBase, GUIDPk):
         __tablename__ = "api_widgets"
         __resource__ = "api-widget"
         name = Column(String, nullable=False)
 
     @engine_ctx(table_engine)
-    class ApiGadget(Base, GUIDPk):
+    class ApiGadget(TableBase, GUIDPk):
         __tablename__ = "api_gadgets"
         __resource__ = "api-gadget"
         name = Column(String, nullable=False)
@@ -169,18 +169,18 @@ async def test_multi_router_precedence_dedupe_and_op_engine_uvicorn() -> None:
     model_engine = {**mem(async_=False), "tag": "model-two"}
     op_engine = {**mem(async_=False), "tag": "op-override"}
 
-    class AlphaWidget(Base, GUIDPk):
+    class AlphaWidget(TableBase, GUIDPk):
         __tablename__ = "alpha_widgets"
         __resource__ = "alpha-widget"
         name = Column(String, nullable=False)
 
-    class AlphaGadget(Base, GUIDPk):
+    class AlphaGadget(TableBase, GUIDPk):
         __tablename__ = "alpha_gadgets"
         __resource__ = "alpha-gadget"
         name = Column(String, nullable=False)
 
     @engine_ctx(model_engine)
-    class BetaWidget(Base, GUIDPk):
+    class BetaWidget(TableBase, GUIDPk):
         __tablename__ = "beta_widgets"
         __resource__ = "beta-widget"
         name = Column(String, nullable=False)
@@ -190,7 +190,7 @@ async def test_multi_router_precedence_dedupe_and_op_engine_uvicorn() -> None:
         async def ping(cls, ctx):
             return {"status": "ok", "engine": "op"}
 
-    class BetaGadget(Base, GUIDPk):
+    class BetaGadget(TableBase, GUIDPk):
         __tablename__ = "beta_gadgets"
         __resource__ = "beta-gadget"
         name = Column(String, nullable=False)
