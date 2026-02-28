@@ -55,6 +55,7 @@ from .schema import _build_schema, _build_list_params, get_schema
 
 # ── Transport & Diagnostics (optional) ─────────────────────────────────────────
 from .requests import Request
+from .security import Depends
 from ._concrete._json_response import JSONResponse
 from ._concrete._response import Response
 from .system import mount_diagnostics
@@ -76,6 +77,8 @@ from ._concrete._security.http_bearer import HTTPBearer
 from ._concrete._security.mutual_tls import MutualTLS
 from ._concrete._security.oauth2 import OAuth2
 from ._concrete._security.openid_connect import OpenIdConnect
+from ._concrete.dependencies import Depends
+from .runtime.status.exceptions import HTTPException
 from ._spec import (
     AppSpec,
     ColumnSpec,
@@ -114,6 +117,8 @@ __all__ += [
     "TigrblApp",
     "TigrblRouter",
     "Router",
+    "Depends",
+    "HTTPException",
     "Base",
     "Op",
     "op",
@@ -174,6 +179,7 @@ __all__ += [
     # Config
     "DEFAULT_HTTP_METHODS",
     "Request",
+    "Depends",
     "Response",
     "JSONResponse",
     "resolver",
