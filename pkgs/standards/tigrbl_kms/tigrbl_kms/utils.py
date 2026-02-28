@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 from typing import Any, Mapping, Optional
 
-from tigrbl.requests import Request
+from tigrbl import Request
 
 from swarmauri_core.crypto.types import ExportPolicy, KeyType, KeyUse
 
