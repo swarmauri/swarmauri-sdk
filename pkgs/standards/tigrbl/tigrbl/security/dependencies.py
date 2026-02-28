@@ -1,6 +1,5 @@
-"""Compatibility wrappers for FastAPI dependency helpers."""
+"""Dependency wrappers for API/security injection semantics."""
 
-from fastapi import Depends, Security
-from fastapi.params import Depends as Dependency
+from .._concrete.dependencies import Dependency, Depends, Security
 
 __all__ = ["Depends", "Security", "Dependency"]
