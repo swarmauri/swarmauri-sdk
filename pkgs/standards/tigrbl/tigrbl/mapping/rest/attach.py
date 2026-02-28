@@ -3,7 +3,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from typing import Any, Sequence
 
-from ...op import OpSpec
+from ..._spec import OpSpec
 from .router import _build_router
 
 

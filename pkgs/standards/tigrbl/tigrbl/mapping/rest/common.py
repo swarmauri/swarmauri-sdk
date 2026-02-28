@@ -53,7 +53,7 @@ from ...config.constants import (
     TIGRBL_REST_DEPENDENCIES_ATTR,
 )
 from ...core.crud.params import Body, Path
-from ...op import OpSpec
+from ..._spec import OpSpec
 from ...op.types import CANON
 from ...rest import _nested_prefix
 from ...runtime.status.exceptions import HTTPException
