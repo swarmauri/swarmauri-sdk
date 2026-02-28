@@ -1,6 +1,6 @@
 from tigrbl import Base, schema_ctx
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.schema import collect_decorated_schemas
+from tigrbl.mapping.collect_decorated_schemas import collect_decorated_schemas
 from tigrbl.types import BaseModel
 
 
