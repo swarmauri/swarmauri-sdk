@@ -1,4 +1,4 @@
-# tigrbl/v3/schema/collect.py
+# tigrbl/v3/mapping/collect_decorated_schemas.py
 from __future__ import annotations
 
 import inspect

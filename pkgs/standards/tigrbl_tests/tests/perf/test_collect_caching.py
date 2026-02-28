@@ -2,7 +2,7 @@ import logging
 import time
 
 from tigrbl.column.mro_collect import mro_collect_columns
-from tigrbl.schema.collect import collect_decorated_schemas
+from tigrbl.mapping.collect_decorated_schemas import collect_decorated_schemas
 
 
 logging.getLogger("uvicorn").setLevel(logging.WARNING)
