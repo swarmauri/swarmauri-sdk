@@ -12,7 +12,7 @@ from tigrbl.op.types import PHASES
 from tigrbl.runtime.kernel import build_phase_chains
 from tigrbl.runtime import system as runtime_system
 from tigrbl._spec import IO, S, acol
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.decorators.hook import hook_ctx
 
@@ -21,7 +21,7 @@ from tigrbl.decorators.hook import hook_ctx
 
 @pytest.fixture
 def gadget_model():
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "gadgets_opspec"
         __allow_unmapped__ = True
 
@@ -35,7 +35,7 @@ def gadget_model():
 
 @pytest.fixture
 def hooked_model():
-    class Hooked(Base, GUIDPk):
+    class Hooked(TableBase, GUIDPk):
         __tablename__ = "hooked_opspec"
         __allow_unmapped__ = True
 
@@ -58,7 +58,7 @@ def hooked_model():
 
 def _fresh_session():
     engine = create_engine("sqlite:///:memory:")
-    Base.metadata.create_all(bind=engine)
+    TableBase.metadata.create_all(bind=engine)
     return sessionmaker(bind=engine)()
 
 

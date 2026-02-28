@@ -18,10 +18,11 @@ import inspect
 
 import httpx
 import pytest
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
+from tigrbl import HTTPBearer
+from tigrbl._concrete._security.http_bearer import HTTPAuthorizationCredentials
 
 from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -35,7 +36,7 @@ PUBLIC_SESSION_TOKEN = "public-session-token"
 async def test_set_auth_header_gate_for_rest_paths() -> None:
     """Show REST access control with admin/public headers plus anon paths."""
 
-    class HeaderGateRestWidget(Base, GUIDPk):
+    class HeaderGateRestWidget(TableBase, GUIDPk):
         __tablename__ = "lesson_security_header_gate_rest_widget"
         __allow_unmapped__ = True
         __tigrbl_allow_anon__ = ("list",)
@@ -134,7 +135,7 @@ async def test_set_auth_header_gate_for_rest_paths() -> None:
 async def test_set_auth_header_gate_for_rpc_methods() -> None:
     """Show JSON-RPC access control with admin/public headers plus anon methods."""
 
-    class HeaderGateRpcWidget(Base, GUIDPk):
+    class HeaderGateRpcWidget(TableBase, GUIDPk):
         __tablename__ = "lesson_security_header_gate_rpc_widget"
         __allow_unmapped__ = True
         __tigrbl_allow_anon__ = ("list",)

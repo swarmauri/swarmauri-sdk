@@ -1,4 +1,4 @@
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -6,7 +6,7 @@ from tigrbl.types import Column, String
 def test_class_creation_builds_table_and_columns():
     """Ensure model class creation wires table metadata and columns.
 
-    Purpose: demonstrate that subclassing the Tigrbl Base automatically
+    Purpose: demonstrate that subclassing the Tigrbl TableBase automatically
     registers SQLAlchemy table metadata, even before any database connection.
     This helps new users verify that their models are discoverable and that
     columns are ready for migrations or schema inspection.
@@ -16,7 +16,7 @@ def test_class_creation_builds_table_and_columns():
     """
 
     # Setup: declare a minimal model with a required column.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonwidgets"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
@@ -39,7 +39,7 @@ def test_class_creation_sets_column_nullability_and_type():
     """
 
     # Setup: define a model with a required name field.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonwidgetrules"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)

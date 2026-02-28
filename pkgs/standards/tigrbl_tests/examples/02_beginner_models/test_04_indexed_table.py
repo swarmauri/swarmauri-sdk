@@ -1,4 +1,4 @@
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, Index, String
 
@@ -14,7 +14,7 @@ def test_table_args_support_indexes():
     """
 
     # Setup: declare a model with an explicit index in ``__table_args__``.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonindex"
         __allow_unmapped__ = True
         __table_args__ = (Index("ix_widget_name", "name"),)
@@ -37,7 +37,7 @@ def test_indexes_capture_target_columns():
     """
 
     # Setup: define another indexed model to inspect index targets.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonindexcolumns"
         __allow_unmapped__ = True
         __table_args__ = (Index("ix_widget_name", "name"),)

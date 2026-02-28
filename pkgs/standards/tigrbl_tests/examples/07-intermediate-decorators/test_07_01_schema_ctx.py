@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from tigrbl.decorators import schema_ctx
-from tigrbl.table import Base
+from tigrbl import TableBase
 from tigrbl.types import BaseModel
 
 
 def test_schema_ctx_attaches_schemas() -> None:
-    class Widget(Base):
+    class Widget(TableBase):
         __tablename__ = "schema_ctx_widgets"
 
         @schema_ctx(alias="Ping", kind="in")
@@ -17,4 +17,4 @@ def test_schema_ctx_attaches_schemas() -> None:
         class PingOut(BaseModel):
             message: str
 
-    assert hasattr(Widget, "schemas")
+    assert hasattr(Widget, "SCHEMAS")

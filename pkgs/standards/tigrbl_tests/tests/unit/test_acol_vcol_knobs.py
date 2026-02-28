@@ -6,7 +6,7 @@ from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
 from tigrbl.runtime.atoms.schema.collect_out import run as collect_out_run
 from tigrbl.runtime.kernel import _default_kernel as K
 from tigrbl._spec import ColumnSpec, F, IO, S, acol, vcol
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.types import (
     Column,
     DateTime,
@@ -21,9 +21,9 @@ from tigrbl.types import (
 def test_acol_vcol_knobs_affect_bindings_and_schemas():
     """Ensure acol/vcol knobs influence bindings and schemas."""
 
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "things"
         __allow_unmapped__ = True
 

@@ -1,7 +1,7 @@
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from tigrbl import Base, TigrblApp, TigrblRouter, schema_ctx
+from tigrbl import TableBase, TigrblApp, TigrblRouter, schema_ctx
 from tigrbl.core import crud
 from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
@@ -10,9 +10,9 @@ from tigrbl.types import BaseModel, Column, Integer, String
 
 @pytest_asyncio.fixture
 async def schema_ctx_client():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Widget(Base):
+    class Widget(TableBase):
         __tablename__ = "widgets"
         id = Column(Integer, primary_key=True, autoincrement=True)
         name = Column(String, nullable=False)

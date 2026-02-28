@@ -1,4 +1,4 @@
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import F, IO, S
 from tigrbl.shortcuts import acol
@@ -16,7 +16,7 @@ def test_column_specs_create_io_ready_columns():
     """
 
     # Setup: define a model using ColumnSpec helpers for storage + IO.
-    class SpecWidget(Base, GUIDPk):
+    class SpecWidget(TableBase, GUIDPk):
         __tablename__ = "spec_widgets"
         __allow_unmapped__ = True
 
@@ -42,7 +42,7 @@ def test_column_specs_preserve_storage_metadata():
     """
 
     # Setup: declare a second model to validate spec metadata.
-    class SpecWidget(Base, GUIDPk):
+    class SpecWidget(TableBase, GUIDPk):
         __tablename__ = "spec_widgets_rules"
         __allow_unmapped__ = True
 

@@ -1,12 +1,12 @@
 import pytest
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
 
 @pytest.mark.i9n
 def test_acronym_model_route_name_uses_compact_lowercase_resource() -> None:
-    class GPGKey(Base, GUIDPk):
+    class GPGKey(TableBase, GUIDPk):
         __tablename__ = "gpg_keys"
         key = Column(String, nullable=False)
 
@@ -16,7 +16,7 @@ def test_acronym_model_route_name_uses_compact_lowercase_resource() -> None:
 
 @pytest.mark.i9n
 def test_resource_name_uses_explicit_resource_override() -> None:
-    class GPGKey(Base, GUIDPk):
+    class GPGKey(TableBase, GUIDPk):
         __tablename__ = "gpg_keys"
         __resource__ = "gpg-key"
         key = Column(String, nullable=False)

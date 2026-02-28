@@ -3,7 +3,7 @@ import inspect
 import pytest
 
 from tigrbl import TigrblApp
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.orm.mixins import (
     GUIDPk,
     BulkCapable,
@@ -48,9 +48,9 @@ def _assert_symmetry(model, verbs, rest_params):
 
 @pytest.mark.xfail(reason="REST/RPC parity pending header support in JSON-RPC methods")
 def test_rest_rpc_symmetry_for_default_verbs():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Thing(Base, GUIDPk):
+    class Thing(TableBase, GUIDPk):
         __tablename__ = "things"
         __tigrbl_defaults_mode__ = "none"
         name = Column(String, nullable=False)
@@ -85,9 +85,9 @@ def test_rest_rpc_symmetry_for_default_verbs():
 
 @pytest.mark.xfail(reason="REST/RPC parity pending header support in JSON-RPC methods")
 def test_rest_rpc_symmetry_for_bulk_verbs():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Thing(Base, GUIDPk, BulkCapable):
+    class Thing(TableBase, GUIDPk, BulkCapable):
         __tablename__ = "things"
         __tigrbl_defaults_mode__ = "none"
         name = Column(String, nullable=False)
@@ -109,9 +109,9 @@ def test_rest_rpc_symmetry_for_bulk_verbs():
 
 @pytest.mark.xfail(reason="REST/RPC parity pending header support in JSON-RPC methods")
 def test_rest_rpc_symmetry_for_replaceable_verbs():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Thing(Base, GUIDPk, BulkCapable, Replaceable):
+    class Thing(TableBase, GUIDPk, BulkCapable, Replaceable):
         __tablename__ = "things"
         __tigrbl_defaults_mode__ = "none"
         name = Column(String, nullable=False)
@@ -132,9 +132,9 @@ def test_rest_rpc_symmetry_for_replaceable_verbs():
 
 @pytest.mark.xfail(reason="REST/RPC parity pending header support in JSON-RPC methods")
 def test_rest_rpc_symmetry_for_mergeable_verbs():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Thing(Base, GUIDPk, BulkCapable, Mergeable):
+    class Thing(TableBase, GUIDPk, BulkCapable, Mergeable):
         __tablename__ = "things"
         __tigrbl_defaults_mode__ = "none"
         name = Column(String, nullable=False)

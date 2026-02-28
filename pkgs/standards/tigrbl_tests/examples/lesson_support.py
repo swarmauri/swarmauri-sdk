@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Iterable, Sequence
 
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl._spec import F, IO, S, acol, vcol
 from tigrbl.types import Integer, String
@@ -43,7 +43,7 @@ def make_widget_model(
         )
         attrs["label"] = label_col
         attrs["__tigrbl_cols__"]["label"] = label_col
-    return type(model_name, (Base, *mixins), attrs)
+    return type(model_name, (TableBase, *mixins), attrs)
 
 
 async def build_widget_app(

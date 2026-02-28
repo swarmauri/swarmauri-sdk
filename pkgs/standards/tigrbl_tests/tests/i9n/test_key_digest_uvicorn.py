@@ -16,13 +16,13 @@ from tigrbl.orm.mixins import (
 )
 from tigrbl.orm.mixins.utils import CRUD_IO
 from tigrbl._spec import F, S, acol
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
 
-class ApiKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):
+class ApiKey(TableBase, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):
     __abstract__ = False
     __tablename__ = "apikeys_uvicorn"
     __resource__ = "apikey"

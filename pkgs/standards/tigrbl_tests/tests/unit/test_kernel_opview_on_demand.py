@@ -2,14 +2,14 @@ from tigrbl import TigrblApp
 from tigrbl.mapping.model import bind
 from tigrbl.runtime.kernel import _default_kernel as K
 from tigrbl._spec import S, IO, acol
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.types import Integer as IntType
 
 
 def test_compiles_opview_for_new_model_after_prime():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class A(Base):
+    class A(TableBase):
         __tablename__ = "kernel_on_demand_a"
         __allow_unmapped__ = True
         id = acol(
@@ -22,7 +22,7 @@ def test_compiles_opview_for_new_model_after_prime():
     # prime kernel for first model
     K.get_opview(app, A, "read")
 
-    class B(Base):
+    class B(TableBase):
         __tablename__ = "kernel_on_demand_b"
         __allow_unmapped__ = True
         id = acol(

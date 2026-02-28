@@ -2,7 +2,7 @@ import pytest
 from tigrbl.mapping.rest import build_router_and_attach
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import OpSpec
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.types import Column, String
 
 
@@ -43,9 +43,9 @@ def _route_map(router) -> dict[str, tuple[str, set[str]]]:
     ],
 )
 def test_rest_default_op_verbs(alias, target, path, methods):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 

@@ -6,7 +6,7 @@ aligned with the declarative column specs, which is the preferred pattern for
 keeping persistence and schema layers in sync.
 """
 
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import F, IO, S
 from tigrbl.shortcuts import acol
@@ -16,7 +16,7 @@ from tigrbl.types import String
 def test_column_specs_materialize_sqla_columns():
     """Column specs should produce SQLAlchemy columns on the mapped table."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_column_table"
         __allow_unmapped__ = True
 
@@ -33,7 +33,7 @@ def test_column_specs_materialize_sqla_columns():
 def test_materialized_columns_preserve_table_name():
     """The model's SQLAlchemy table retains the declared table name."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessoncolumntablenames"
         __allow_unmapped__ = True
 

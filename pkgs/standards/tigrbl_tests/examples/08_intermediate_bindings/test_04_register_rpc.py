@@ -1,6 +1,6 @@
 """Lesson 08.4: Registering JSON-RPC callables."""
 
-from tigrbl import Base, bind, register_rpc
+from tigrbl import TableBase, bind, register_rpc
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -14,7 +14,7 @@ def test_register_rpc_returns_router():
     """
 
     # Setup: declare a model to register RPC callables against.
-    class LessonRPCBind(Base, GUIDPk):
+    class LessonRPCBind(TableBase, GUIDPk):
         __tablename__ = "lesson_rpc_bind"
         __allow_unmapped__ = True
 
@@ -36,7 +36,7 @@ def test_register_rpc_exposes_list_callable():
     """
 
     # Setup: define a model with default ops for RPC exposure.
-    class LessonRPCBindList(Base, GUIDPk):
+    class LessonRPCBindList(TableBase, GUIDPk):
         __tablename__ = "lesson_rpc_bind_list"
         __allow_unmapped__ = True
 

@@ -1,6 +1,6 @@
-"""Backward-compatible TableBase export for ORM tables."""
+"""Primary TableBase export for ORM tables."""
 
-from ..._base._table_base import TableBase
+from ..._concrete._table import Table as TableBase
 
 Base = TableBase
 

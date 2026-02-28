@@ -18,7 +18,7 @@ import pytest
 import uvicorn
 from tigrbl_client import TigrblClient
 
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import F, IO, S
@@ -32,7 +32,7 @@ from tigrbl.types import Mapped, PgUUID, String, UUID, relationship
 async def test_one_to_one_relationship_storage_field_io_client_experience() -> None:
     """Demonstrate a one-to-one model with REST + JSON-RPC client interactions."""
 
-    class Account(Base, GUIDPk):
+    class Account(TableBase, GUIDPk):
         """Parent record in a one-to-one relationship."""
 
         __tablename__ = "lesson_rel_sfic_account"
@@ -52,7 +52,7 @@ async def test_one_to_one_relationship_storage_field_io_client_experience() -> N
             lazy="selectin",
         )
 
-    class Profile(Base, GUIDPk):
+    class Profile(TableBase, GUIDPk):
         """Child record that is uniquely linked to one account."""
 
         __tablename__ = "lesson_rel_sfic_profile"

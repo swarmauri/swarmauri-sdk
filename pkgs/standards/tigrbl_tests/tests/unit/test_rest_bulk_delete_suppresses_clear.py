@@ -1,14 +1,14 @@
 from tigrbl.mapping.rest import build_router_and_attach
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import OpSpec
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.types import Column, String
 
 
 def test_bulk_delete_suppresses_clear_route():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items_bulk_delete_route"
         name = Column(String, nullable=False)
 

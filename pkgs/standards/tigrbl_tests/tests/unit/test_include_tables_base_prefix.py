@@ -1,6 +1,6 @@
 from tigrbl import TigrblApp, TigrblRouter
 
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -8,11 +8,11 @@ from tigrbl.types import Column, String
 def test_inclued_tables_base_prefix_avoids_duplicate_segments():
     app = TigrblApp()
 
-    class Key(Base, GUIDPk):
+    class Key(TableBase, GUIDPk):
         __tablename__ = "Key"
         name = Column(String, nullable=False)
 
-    class KeyVersion(Base, GUIDPk):
+    class KeyVersion(TableBase, GUIDPk):
         __tablename__ = "key_versions"
         name = Column(String, nullable=False)
 

@@ -1,4 +1,4 @@
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import CheckConstraint, Column, String, UniqueConstraint
 
@@ -18,7 +18,7 @@ def test_table_args_register_constraints():
         CheckConstraint("length(name) > 0", name="ck_widget_name"),
     )
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonconstraints"
         __allow_unmapped__ = True
         __table_args__ = constraints
@@ -46,7 +46,7 @@ def test_table_args_are_exposed_on_the_model_class():
         CheckConstraint("length(name) > 0", name="ck_widget_name"),
     )
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonconstraintsreview"
         __allow_unmapped__ = True
         __table_args__ = constraints

@@ -1,4 +1,4 @@
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, Index, String
 
@@ -13,7 +13,7 @@ def test_index_metadata_registered():
     """
 
     # Setup: add an index via ``__table_args__``.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonindexmeta"
         __allow_unmapped__ = True
         __table_args__ = (Index("ix_name", "name"),)
@@ -34,7 +34,7 @@ def test_index_columns_are_recorded():
     """
 
     # Setup: define another indexed model to inspect column bindings.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonindexmetacols"
         __allow_unmapped__ = True
         __table_args__ = (Index("ix_name", "name"),)

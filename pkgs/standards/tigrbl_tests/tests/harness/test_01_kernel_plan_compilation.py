@@ -17,7 +17,7 @@ import pytest
 @pytest.mark.acceptance
 def test_compile_kernel_plan_indexes_rest_and_jsonrpc_bindings() -> None:
     from sqlalchemy import Column, String
-    from tigrbl import Base
+    from tigrbl import TableBase
     from tigrbl._spec import AppSpec
     from tigrbl import TigrblApp
     from tigrbl._spec import OpSpec
@@ -25,7 +25,7 @@ def test_compile_kernel_plan_indexes_rest_and_jsonrpc_bindings() -> None:
     from tigrbl.runtime.kernel import Kernel
     from tigrbl._spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets_kernel_plan"
         __resource__ = "widget"
         name = Column(String, nullable=False)
@@ -73,7 +73,7 @@ def test_compile_kernel_plan_indexes_rest_and_jsonrpc_bindings() -> None:
 @pytest.mark.acceptance
 def test_kernel_plan_roundtrips_opkey_to_meta() -> None:
     from sqlalchemy import Column, String
-    from tigrbl import Base
+    from tigrbl import TableBase
     from tigrbl._spec import AppSpec
     from tigrbl import TigrblApp
     from tigrbl._spec import OpSpec
@@ -82,7 +82,7 @@ def test_kernel_plan_roundtrips_opkey_to_meta() -> None:
     from tigrbl.runtime.kernel.models import OpKey
     from tigrbl._spec import HttpRestBindingSpec
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets_kernel_opkey"
         __resource__ = "widget"
         name = Column(String, nullable=False)

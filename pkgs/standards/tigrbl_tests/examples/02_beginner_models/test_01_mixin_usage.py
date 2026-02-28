@@ -1,4 +1,4 @@
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -14,7 +14,7 @@ def test_guidpk_mixin_adds_id_column():
     """
 
     # Setup: define a model that inherits GUIDPk for shared ID behavior.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonmixins"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
@@ -36,7 +36,7 @@ def test_guidpk_mixin_marks_id_as_primary_key():
     """
 
     # Setup: declare another model with GUIDPk.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonmixinprimarykeys"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)

@@ -1,6 +1,6 @@
 """Lesson 06.3: Verifying payload handlers for custom operations."""
 
-from tigrbl import Base, TigrblApp, op_ctx
+from tigrbl import TableBase, TigrblApp, op_ctx
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -16,7 +16,7 @@ def test_custom_op_returns_payload():
     """
 
     # Setup: declare a model with a column so bindings can materialize.
-    class LessonPayload(Base, GUIDPk):
+    class LessonPayload(TableBase, GUIDPk):
         __tablename__ = "lesson_payloads"
         __allow_unmapped__ = True
 
@@ -50,7 +50,7 @@ def test_custom_op_exposes_target_and_handler():
     """
 
     # Setup: declare a model to bind a custom operation against.
-    class LessonPayloadMeta(Base, GUIDPk):
+    class LessonPayloadMeta(TableBase, GUIDPk):
         __tablename__ = "lesson_payload_meta"
         __allow_unmapped__ = True
 

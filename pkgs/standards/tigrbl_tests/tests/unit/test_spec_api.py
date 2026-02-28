@@ -27,16 +27,16 @@ def test_router_spec_shortcuts_and_defaults():
 
 
 def test_router_hook_mro_collection():
-    class Base:
+    class TableBase:
         pass
 
     setattr(
-        Base,
+        TableBase,
         TIGRBL_ROUTER_HOOKS_ATTR,
         {"read": {"pre": [_sample_hook]}},
     )
 
-    class Child(Base):
+    class Child(TableBase):
         pass
 
     setattr(

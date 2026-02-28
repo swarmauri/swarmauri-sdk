@@ -2,7 +2,7 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import PgUUID
@@ -10,14 +10,14 @@ from tigrbl.types import PgUUID
 
 @pytest_asyncio.fixture
 async def three_level_app_client(db_mode):
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
 
-    class Company(Base, GUIDPk):
+    class Company(TableBase, GUIDPk):
         __tablename__ = "companies"
         name = Column(String, nullable=False)
 
-    class Department(Base, GUIDPk):
+    class Department(TableBase, GUIDPk):
         __tablename__ = "departments"
         company_id = Column(
             PgUUID(as_uuid=True), ForeignKey("companies.id"), nullable=False
@@ -28,7 +28,7 @@ async def three_level_app_client(db_mode):
         def __tigrbl_nested_paths__(cls):
             return "/company/{company_id}/department"
 
-    class Employee(Base, GUIDPk):
+    class Employee(TableBase, GUIDPk):
         __tablename__ = "employees"
         company_id = Column(
             PgUUID(as_uuid=True), ForeignKey("companies.id"), nullable=False

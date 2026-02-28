@@ -6,14 +6,14 @@ from tigrbl.mapping.model import bind
 from tigrbl.mapping.schemas.defaults import _default_schemas_for_spec
 from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk, KeyDigest
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.schema import _build_schema
 from tigrbl._spec import IO, S, acol
 from tigrbl.types import String
 
 
 def _build_router_key_model() -> type:
-    class RouterKeyModel(Base, GUIDPk, KeyDigest):
+    class RouterKeyModel(TableBase, GUIDPk, KeyDigest):
         __tablename__ = "apikey_schema_selection"
         __resource__ = "apikey"
         __allow_unmapped__ = True
@@ -92,7 +92,7 @@ def test_default_create_out_schema_excludes_create_only_alias_fields():
 
 
 def test_default_custom_target_uses_alias_specific_io_sets():
-    class CustomModel(Base, GUIDPk):
+    class CustomModel(TableBase, GUIDPk):
         __tablename__ = "custom_schema_selection"
         __resource__ = "custom"
         __allow_unmapped__ = True

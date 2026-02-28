@@ -1,6 +1,6 @@
 """Lesson 06.2: Renaming canonical operations with `op_alias`."""
 
-from tigrbl import Base, TigrblApp, op_alias
+from tigrbl import TableBase, TigrblApp, op_alias
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -16,7 +16,7 @@ def test_op_alias_registers_custom_name():
 
     # Setup: define a model and apply an alias override for a canonical op.
     @op_alias(alias="lookup", target="read", arity="member")
-    class LessonAlias(Base, GUIDPk):
+    class LessonAlias(TableBase, GUIDPk):
         __tablename__ = "lesson_aliases"
         __allow_unmapped__ = True
 
@@ -45,7 +45,7 @@ def test_op_alias_override_applies_arity():
 
     # Setup: define a model and override arity for the read verb alias.
     @op_alias(alias="peek", target="read", arity="member")
-    class LessonAliasOverride(Base, GUIDPk):
+    class LessonAliasOverride(TableBase, GUIDPk):
         __tablename__ = "lesson_alias_overrides"
         __allow_unmapped__ = True
 

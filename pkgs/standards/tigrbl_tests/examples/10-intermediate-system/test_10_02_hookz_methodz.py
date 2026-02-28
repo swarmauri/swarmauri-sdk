@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, hook_ctx, TigrblRouter
+from tigrbl import TableBase, TigrblApp, hook_ctx, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -14,7 +14,7 @@ from tigrbl.types import Column, String
 
 @pytest.mark.asyncio
 async def test_hookz_and_methodz_endpoints() -> None:
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_hookz_methodz_widget"
         __allow_unmapped__ = True
 

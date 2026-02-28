@@ -5,12 +5,12 @@ import pytest
 
 def test_base_is_exported() -> None:
     module = importlib.import_module("tigrbl.orm.tables")
-    assert hasattr(module, "Base")
+    assert hasattr(module, "TableBase")
 
 
 def test_base_is_singleton() -> None:
-    from tigrbl.orm.tables import Base as table_base
-    from tigrbl.orm.tables import Base as orm_base
+    from tigrbl.orm.tables import TableBase as table_base
+    from tigrbl.orm.tables import TableBase as orm_base
 
     assert table_base is orm_base
 

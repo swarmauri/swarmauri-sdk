@@ -3,14 +3,14 @@ from typing import get_args, get_origin
 from tigrbl.mapping.rest.collection import _make_collection_endpoint
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
 from tigrbl._spec import OpSpec
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.types import Column, String
 
 
 def test_bulk_create_body_annotation_is_list() -> None:
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Widget(Base, GUIDPk, BulkCapable):
+    class Widget(TableBase, GUIDPk, BulkCapable):
         __tablename__ = "widgets_anno"
         name = Column(String, nullable=False)
 

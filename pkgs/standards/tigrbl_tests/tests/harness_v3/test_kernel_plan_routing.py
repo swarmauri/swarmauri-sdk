@@ -16,7 +16,7 @@ from typing import Any, Callable
 
 import pytest
 
-from tigrbl import Base, TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.runtime.kernel import _default_kernel
@@ -38,7 +38,7 @@ def _assert_has_match_api(
 
 
 def test_kernel_plan_compiles_rest_and_rpc_indices() -> None:
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "harness_kernel_widget"
         __allow_unmapped__ = True
 
@@ -62,7 +62,7 @@ def test_kernel_plan_compiles_rest_and_rpc_indices() -> None:
 
 
 def test_kernel_plan_rest_matcher_resolves_collection_and_member_paths() -> None:
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "harness_kernel_widget_match"
         __allow_unmapped__ = True
 
@@ -112,7 +112,7 @@ def test_kernel_plan_rest_matcher_resolves_collection_and_member_paths() -> None
 def test_kernel_plan_rest_matcher_returns_not_found_for_misses(
     method: str, path: str
 ) -> None:
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "harness_kernel_widget_misses"
         __allow_unmapped__ = True
 

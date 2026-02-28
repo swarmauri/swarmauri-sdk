@@ -6,7 +6,7 @@ from tigrbl.runtime.atoms.schema.collect_out import run as collect_out_run
 from tigrbl.runtime.atoms.out import masking
 from tigrbl.runtime.kernel import _default_kernel as K
 from tigrbl.core.crud import helpers
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from sqlalchemy import Integer
 from sqlalchemy.orm import Mapped
 
@@ -131,7 +131,7 @@ def test_sortable_allows_sorting():
     )
     unsortable_spec = acol(storage=S(type_=Integer), io=IO(sortable=False))
 
-    class SortModel(Base):
+    class SortModel(TableBase):
         __tablename__ = "sortables"
         __allow_unmapped__ = True
 

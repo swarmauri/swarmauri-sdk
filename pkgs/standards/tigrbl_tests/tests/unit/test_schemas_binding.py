@@ -1,10 +1,10 @@
 from tigrbl.mapping.model import bind
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.orm.mixins import GUIDPk, Replaceable
 from tigrbl.types import Column, String
 
 
-class Gadget(Base, GUIDPk, Replaceable):
+class Gadget(TableBase, GUIDPk, Replaceable):
     __tablename__ = "gadgets_schemas_binding"
     name = Column(String, nullable=False)
 

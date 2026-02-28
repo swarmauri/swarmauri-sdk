@@ -1,11 +1,11 @@
-from tigrbl import TigrblRouter, Base, op_ctx
+from tigrbl import TigrblRouter, TableBase, op_ctx
 from sqlalchemy.orm import Mapped, mapped_column
 
 
 def test_op_ctx_dynamic_attach_auto_discovers_ops():
     router = TigrblRouter()
 
-    class Book(Base):
+    class Book(TableBase):
         __tablename__ = "book"
         id: Mapped[int] = mapped_column(primary_key=True)
 

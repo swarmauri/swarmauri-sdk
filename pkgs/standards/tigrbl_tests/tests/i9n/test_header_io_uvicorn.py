@@ -4,13 +4,13 @@ import pytest_asyncio
 from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import IO, F, S, acol
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
 
-class Item(Base, GUIDPk):
+class Item(TableBase, GUIDPk):
     __tablename__ = "items_hdr"
     __resource__ = "item"
 

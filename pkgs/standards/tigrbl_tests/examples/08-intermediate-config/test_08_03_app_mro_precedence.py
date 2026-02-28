@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from tigrbl.app.mro_collect import mro_collect_app_spec
+from tigrbl.mapping.app_mro_collect import mro_collect_app_spec
 from tigrbl.shortcuts.app import defineAppSpec
 
 
 def test_app_mro_precedence() -> None:
-    class BaseSpec(defineAppSpec(title="Base", version="1.0", routers=("base",))):
+    class BaseSpec(defineAppSpec(title="TableBase", version="1.0", routers=("base",))):
         pass
 
     class OverrideSpec(

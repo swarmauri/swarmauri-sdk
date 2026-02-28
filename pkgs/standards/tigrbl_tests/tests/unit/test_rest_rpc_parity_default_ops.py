@@ -3,7 +3,7 @@ import pytest
 
 from tigrbl import TigrblApp
 from tigrbl.orm.mixins import GUIDPk, BulkCapable, Mergeable
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.op.types import CANON
 from tigrbl.types import Column, String
 
@@ -44,9 +44,9 @@ def _route_map(router) -> dict[str, tuple[str, set[str]]]:
     ],
 )
 def test_rest_rpc_parity_for_default_verbs(alias, target, path, methods):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Item(Base, GUIDPk, BulkCapable, Mergeable):
+    class Item(TableBase, GUIDPk, BulkCapable, Mergeable):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
@@ -70,9 +70,9 @@ def test_rest_rpc_parity_for_default_verbs(alias, target, path, methods):
 
 
 def test_non_bulkcapable_prefers_create() -> None:
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Item(Base, GUIDPk, Mergeable):
+    class Item(TableBase, GUIDPk, Mergeable):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 

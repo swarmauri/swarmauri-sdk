@@ -6,7 +6,7 @@ ColumnSpec approach is preferred because it keeps storage, IO, and Python
 field rules in a single declarative object per attribute.
 """
 
-from tigrbl import Base, bind
+from tigrbl import TableBase, bind
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import IO, ColumnSpec, F, S, acol
 from tigrbl.types import String
@@ -15,7 +15,7 @@ from tigrbl.types import String
 def test_column_specs_bound_on_model():
     """Column specs should be discoverable on the model's columns registry."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_column_specs"
         __allow_unmapped__ = True
 
@@ -35,7 +35,7 @@ def test_column_specs_bound_on_model():
 def test_column_specs_expose_field_metadata():
     """Column specs surface field metadata for schema generation workflows."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_column_specs_field"
         __allow_unmapped__ = True
 

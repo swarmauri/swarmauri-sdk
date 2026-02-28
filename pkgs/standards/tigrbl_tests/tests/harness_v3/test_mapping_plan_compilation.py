@@ -13,7 +13,7 @@ and exposed via REST + JSON-RPC.)
 
 from __future__ import annotations
 
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.mapping import collect as collect_ctx
 from tigrbl.mapping import plan as mapping_plan
 from tigrbl.orm.mixins import GUIDPk
@@ -36,7 +36,7 @@ def test_mapping_compile_plan_step_order_is_canonical() -> None:
 
 
 def test_mapping_plan_produces_visible_specs_for_default_ops() -> None:
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "harness_mapping_widget"
         __allow_unmapped__ = True
 

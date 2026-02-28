@@ -6,7 +6,7 @@ import pytest
 from tigrbl_client import TigrblClient
 
 from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -21,7 +21,7 @@ async def test_rpc_call_works_over_jsonrpc():
     """
 
     # Setup: define a model to expose over JSON-RPC.
-    class LessonRPCClient(Base, GUIDPk):
+    class LessonRPCClient(TableBase, GUIDPk):
         __tablename__ = "lesson_rpc_client"
         __allow_unmapped__ = True
 
@@ -60,7 +60,7 @@ async def test_rpc_list_reflects_rest_creates():
     """
 
     # Setup: define a model for REST/RPC parity checks.
-    class LessonRPCClientList(Base, GUIDPk):
+    class LessonRPCClientList(TableBase, GUIDPk):
         __tablename__ = "lesson_rpc_client_list"
         __allow_unmapped__ = True
 

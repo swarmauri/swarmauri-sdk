@@ -8,7 +8,7 @@ from tigrbl import TigrblApp, TigrblRouter
 from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
 from tigrbl._spec import IO, F, S, acol
 from tigrbl.types import String
@@ -16,14 +16,14 @@ from tigrbl.types import String
 
 @pytest_asyncio.fixture
 async def fs_app():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     cfg = mem(async_=False)
     _resolver.set_default(cfg)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
-    class FSItem(Base, GUIDPk):
+    class FSItem(TableBase, GUIDPk):
         __tablename__ = "fs_items"
         name = acol(
             storage=S(type_=String, nullable=False),
@@ -35,7 +35,7 @@ async def fs_app():
             io=IO(in_verbs=("create", "update"), out_verbs=("read",)),
         )
 
-    Base.metadata.create_all(engine)
+    TableBase.metadata.create_all(engine)
     app = TigrblApp()
     router = TigrblRouter(engine=cfg)
     app.include_table(FSItem)

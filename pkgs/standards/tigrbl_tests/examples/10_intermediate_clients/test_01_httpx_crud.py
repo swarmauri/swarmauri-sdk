@@ -4,7 +4,7 @@ import inspect
 
 import httpx
 import pytest
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -20,7 +20,7 @@ async def test_httpx_crud_roundtrip():
     """
 
     # Setup: define a model inline for the REST endpoint.
-    class LessonHttpx(Base, GUIDPk):
+    class LessonHttpx(TableBase, GUIDPk):
         __tablename__ = "lesson_httpx"
         __allow_unmapped__ = True
 
@@ -62,7 +62,7 @@ async def test_httpx_list_returns_collection():
     """
 
     # Setup: define a model for list/collection behavior.
-    class LessonHttpxList(Base, GUIDPk):
+    class LessonHttpxList(TableBase, GUIDPk):
         __tablename__ = "lesson_httpx_list"
         __allow_unmapped__ = True
 

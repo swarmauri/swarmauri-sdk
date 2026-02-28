@@ -18,7 +18,7 @@ from __future__ import annotations
 import pytest
 import httpx
 
-from tigrbl import Base, TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -28,7 +28,7 @@ from ._support import running_server
 
 @pytest.mark.asyncio
 async def test_appspec_to_uvicorn_rest_and_rpc_roundtrip() -> None:
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "harness_e2e_widget"
         __allow_unmapped__ = True
 

@@ -1,4 +1,4 @@
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -16,7 +16,7 @@ def test_model_instantiation_sets_attributes():
     """
 
     # Setup: define a simple widget model with one required column.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessoninstances"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
@@ -38,7 +38,7 @@ def test_multiple_instances_keep_independent_state():
     """
 
     # Setup: reuse the same model definition for multiple instances.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonmultiinstances"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)

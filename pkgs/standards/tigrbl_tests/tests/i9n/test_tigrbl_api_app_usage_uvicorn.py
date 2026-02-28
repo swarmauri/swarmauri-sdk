@@ -1,7 +1,7 @@
 import httpx
 import pytest
 import pytest_asyncio
-from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl import TableBase, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl import HTTPBearer
@@ -21,7 +21,7 @@ def auth_dependency(
     return credentials
 
 
-class Kappa(Base, GUIDPk):
+class Kappa(TableBase, GUIDPk):
     __tablename__ = "kappa_router_app_usage"
     __allow_unmapped__ = True
 
