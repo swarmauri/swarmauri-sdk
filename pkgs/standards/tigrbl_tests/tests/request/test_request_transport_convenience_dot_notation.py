@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from tigrbl.requests import Request
+from tigrbl import Request
 
 
 def _make_request(*, headers: dict[str, str], body: bytes = b"") -> Request:

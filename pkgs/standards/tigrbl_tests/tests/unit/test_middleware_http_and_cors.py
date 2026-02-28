@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from tigrbl.middlewares import BaseHTTPMiddleware, CORSMiddleware
-from tigrbl.requests import Request
+from tigrbl import Request
 from tigrbl import Response
 
 

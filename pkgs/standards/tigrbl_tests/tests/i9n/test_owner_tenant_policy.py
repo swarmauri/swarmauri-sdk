@@ -9,7 +9,7 @@ from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.mixins.ownable import Ownable, OwnerPolicy
 from tigrbl.orm.mixins.tenant_bound import TenantBound, TenantPolicy
-from tigrbl.requests import Request
+from tigrbl import Request
 from tigrbl.runtime.status import HTTPException
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
 from tigrbl.types.authn_abc import AuthNProvider

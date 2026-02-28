@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tigrbl.requests import Request
+from tigrbl import Request
 
 
 def test_request_accepts_scope_with_receive_kwarg_for_compatibility() -> None:

@@ -11,7 +11,7 @@ from tigrbl.runtime.dependencies import (
     execute_route_dependencies,
 )
 from tigrbl.security.dependencies import Depends
-from tigrbl.requests import Request
+from tigrbl import Request
 
 
 @pytest.mark.asyncio

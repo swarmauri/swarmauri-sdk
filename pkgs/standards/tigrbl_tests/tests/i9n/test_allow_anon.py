@@ -6,7 +6,7 @@ from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
-from tigrbl.requests import Request
+from tigrbl import Request
 from tigrbl.runtime.status import HTTPException
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
 from tigrbl.types import (
