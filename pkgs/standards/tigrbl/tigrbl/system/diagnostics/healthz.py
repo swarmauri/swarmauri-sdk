@@ -3,9 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable, Optional
 
-from ... import Request
+from ... import Depends, Request
 from ..._concrete import JSONResponse
-from ..._concrete.dependencies import Depends
 from .utils import maybe_execute
 
 logger = logging.getLogger(__name__)
