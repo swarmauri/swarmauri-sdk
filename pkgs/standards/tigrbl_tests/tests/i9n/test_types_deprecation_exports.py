@@ -8,7 +8,7 @@ import tigrbl.types as types_module
 
 _DEPRECATED_NAMES = {
     "Router": "tigrbl",
-    "Request": "tigrbl.requests",
+    "Request": "tigrbl",
     "Body": "tigrbl.core.crud",
     "Depends": "tigrbl.security",
     "HTTPException": "tigrbl.runtime.status",
