@@ -1,4 +1,4 @@
-"""Router primitives backing ``tigrbl.router`` and ``tigrbl.App``."""
+"""Router primitives backing ``tigrbl.Router`` and ``tigrbl.App``."""
 
 from __future__ import annotations
 
