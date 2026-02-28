@@ -11,7 +11,7 @@ header gate with ``__tigrbl_allow_anon__``.
 """
 
 from tigrbl.runtime.status import HTTPException
-from tigrbl.requests import Request
+from tigrbl import Request
 from tigrbl.security import Security
 
 import inspect

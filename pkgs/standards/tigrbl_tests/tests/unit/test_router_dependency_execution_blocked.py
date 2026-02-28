@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl.requests import Request
+from tigrbl import Request
 from tigrbl import Router
 from tigrbl._concrete._route import Route, compile_path
 from tigrbl.security.dependencies import Dependency

@@ -11,7 +11,7 @@ from urllib.parse import parse_qs
 from tigrbl import Router, TigrblApp, Response, Request
 from tigrbl.decorators.router import route
 from tigrbl.shortcuts.engine import engine as build_engine
-from tigrbl.runtime.status import HTTPExceptio
+from tigrbl.runtime.status import HTTPException
 from tigrbl.security.dependencies import Depends
 
 
