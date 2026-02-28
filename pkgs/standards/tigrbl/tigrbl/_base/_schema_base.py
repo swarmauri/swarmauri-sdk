@@ -6,7 +6,9 @@ class SchemaBase:
 
     @classmethod
     def collect(cls, model: type) -> dict[str, dict[str, type]]:
-        from ..schema.collect import collect_decorated_schemas
+        from ..mapping.schemas.collect_decorated_schemas import (
+            collect_decorated_schemas,
+        )
 
         return collect_decorated_schemas(model)
 

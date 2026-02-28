@@ -1,4 +1,4 @@
-# tigrbl/v3/schema/collect.py
+# tigrbl/v3/mapping/schemas/collect_decorated_schemas.py
 from __future__ import annotations
 
 import inspect
@@ -6,9 +6,8 @@ import logging
 from functools import lru_cache
 from typing import Dict
 
-from ..config.constants import TIGRBL_SCHEMA_DECLS_ATTR
-
-from ..decorators.schema import _SchemaDecl
+from ...config.constants import TIGRBL_SCHEMA_DECLS_ATTR
+from ...decorators.schema import _SchemaDecl
 from pydantic import BaseModel, create_model
 
 logger = logging.getLogger("uvicorn")
