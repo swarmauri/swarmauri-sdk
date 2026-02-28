@@ -39,7 +39,7 @@ def __getattr__(name: str):
     if name == "build_rest":
         return import_module(".rest", __name__).build_router_and_attach
     if name == "bind_response":
-        return import_module("..responses.bind", __name__).bind
+        return import_module(".responses_resolver", __name__).resolve_response_spec
     if name in {"include_table", "include_tables"}:
         return getattr(import_module(".router.include", __name__), name)
     if name == "rpc_call":
