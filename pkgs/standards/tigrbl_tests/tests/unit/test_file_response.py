@@ -16,9 +16,9 @@ from tigrbl.mapping import (
 )
 from tigrbl import TigrblApp
 from tigrbl.types import Integer, Mapped, mapped_column
-from tigrbl.table import Table
+from tigrbl import Table
 from tigrbl import TigrblRouter
-from tigrbl.app._app import App as BaseApp
+from tigrbl._concrete._app import App as BaseApp
 
 
 def _build_model(base: type, file_path: Path, *, bind: bool = True) -> type:

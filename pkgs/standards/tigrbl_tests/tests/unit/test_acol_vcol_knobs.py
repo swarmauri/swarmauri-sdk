@@ -2,7 +2,8 @@ from datetime import datetime
 
 
 from tigrbl.mapping.model import bind
-from tigrbl.runtime.atoms.schema import collect_in, collect_out
+from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
+from tigrbl.runtime.atoms.schema.collect_out import run as collect_out_run
 from tigrbl.runtime.kernel import _default_kernel as K
 from tigrbl._spec import ColumnSpec, F, IO, S, acol, vcol
 from tigrbl.orm.tables import Base
@@ -62,7 +63,7 @@ def test_acol_vcol_knobs_affect_bindings_and_schemas():
     # openapi request schema via collect_in
     ov_in = K._compile_opview_from_specs(specs, Thing.ops.by_alias["create"][0])
     ctx_in = SimpleNamespace(opview=ov_in, op="create", temp={})
-    collect_in.run(None, ctx_in)
+    collect_in_run(None, ctx_in)
     schema_in = ctx_in.temp["schema_in"]
     assert schema_in["by_field"]["name"]["required"] is True
     assert schema_in["by_field"]["nickname"]["required"] is False
@@ -71,7 +72,7 @@ def test_acol_vcol_knobs_affect_bindings_and_schemas():
     # openapi response schema via collect_out
     ov_out = K._compile_opview_from_specs(specs, Thing.ops.by_alias["read"][0])
     ctx_out = SimpleNamespace(opview=ov_out, op="read", temp={})
-    collect_out.run(None, ctx_out)
+    collect_out_run(None, ctx_out)
     schema_out = ctx_out.temp["schema_out"]
     for field in ("name", "created_at", "nickname", "slug"):
         assert field in schema_out["by_field"]

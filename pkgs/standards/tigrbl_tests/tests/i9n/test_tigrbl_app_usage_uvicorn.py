@@ -4,7 +4,9 @@ import pytest_asyncio
 from tigrbl import Base, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
+from tigrbl import HTTPBearer
+from tigrbl.security import Security
+from tigrbl._concrete._security.http_bearer import HTTPAuthorizationCredentials
 from tigrbl._spec import IO, F, S, acol
 from tigrbl.types import Mapped, String
 

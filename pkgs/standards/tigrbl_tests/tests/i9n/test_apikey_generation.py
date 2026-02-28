@@ -10,7 +10,7 @@ from tigrbl.orm.mixins import (
     ValidityWindow,
 )
 from tigrbl._spec import IO, F, S, acol
-from tigrbl.table import Base
+from tigrbl.orm.tables import Base
 from tigrbl.types import Mapped, String
 
 

@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.schema import collect_in
+from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
 from tigrbl.runtime.kernel import (
     SchemaIn,
     SchemaOut,
@@ -37,7 +37,7 @@ def test_collect_in_builds_schema() -> None:
     K._primed[app] = True
 
     ctx = SimpleNamespace(app=app, model=Model, op=alias, temp={})
-    collect_in.run(None, ctx)
+    collect_in_run(None, ctx)
     schema = ctx.temp["schema_in"]
     assert schema["by_field"]["name"]["alias_in"] == "alias"
     assert "name" in schema["required"]

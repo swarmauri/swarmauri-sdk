@@ -1,6 +1,6 @@
 import logging
 
-from tigrbl.schema import collect as schema_collect
+from tigrbl.schema import utils as schema_collect
 
 
 class _ListHandler(logging.Handler):

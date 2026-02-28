@@ -3,7 +3,9 @@ import pytest
 from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
+from tigrbl import HTTPBearer
+from tigrbl.security import Security
+from tigrbl._concrete._security.http_bearer import HTTPAuthorizationCredentials
 from tigrbl._spec import F, IO, S
 from tigrbl.shortcuts import acol
 from tigrbl.types import Mapped, String

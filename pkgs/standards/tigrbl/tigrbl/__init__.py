@@ -68,7 +68,7 @@ from .config.constants import DEFAULT_HTTP_METHODS
 from ._concrete.tigrbl_app import TigrblApp
 from ._concrete.tigrbl_router import TigrblRouter
 from .decorators.router import route_ctx
-from .table import Base
+from .orm.tables import Base
 from .op import Op
 from .shortcuts.op import op
 from .engine import resolver
@@ -77,7 +77,6 @@ from ._concrete._security.http_bearer import HTTPBearer
 from ._concrete._security.mutual_tls import MutualTLS
 from ._concrete._security.oauth2 import OAuth2
 from ._concrete._security.openid_connect import OpenIdConnect
-from ._concrete.dependencies import Depends
 from .runtime.status.exceptions import HTTPException
 from ._spec import (
     AppSpec,

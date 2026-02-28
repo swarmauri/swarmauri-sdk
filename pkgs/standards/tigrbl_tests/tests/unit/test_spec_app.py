@@ -1,5 +1,5 @@
-from tigrbl.app.mro_collect import mro_collect_app_spec
-from tigrbl.app import App
+from tigrbl._spec.app_spec import AppSpec
+from tigrbl._concrete._app import App
 from tigrbl.shortcuts.app import defineAppSpec, deriveApp
 
 
@@ -13,7 +13,7 @@ class ChildApp(BaseAppSpec):
 
 
 def test_app_spec_defaults_and_merge():
-    spec = mro_collect_app_spec(ChildApp)
+    spec = AppSpec.collect(ChildApp)
     assert spec.title == "Base"
     assert spec.version == "1.0"
     assert spec.routers == ("child", "base")
