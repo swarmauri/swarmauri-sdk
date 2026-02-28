@@ -12,7 +12,7 @@ _DEPRECATED_NAMES = {
     "Body": "tigrbl.core.crud",
     "Depends": "tigrbl.security",
     "HTTPException": "tigrbl.runtime.status",
-    "Response": "tigrbl.responses",
+    "Response": "tigrbl",
 }
 
 
