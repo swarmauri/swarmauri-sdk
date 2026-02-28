@@ -76,6 +76,8 @@ from ._concrete._security.http_bearer import HTTPBearer
 from ._concrete._security.mutual_tls import MutualTLS
 from ._concrete._security.oauth2 import OAuth2
 from ._concrete._security.openid_connect import OpenIdConnect
+from ._concrete.dependencies import Depends
+from .runtime.status.exceptions import HTTPException
 from ._spec import (
     AppSpec,
     ColumnSpec,
@@ -114,6 +116,8 @@ __all__ += [
     "TigrblApp",
     "TigrblRouter",
     "Router",
+    "Depends",
+    "HTTPException",
     "Base",
     "Op",
     "op",
