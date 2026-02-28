@@ -121,12 +121,15 @@ async def test_router_include_and_rpc_call_returns_operation_envelope(model_cls)
     routers = include_tables(SimpleNamespace(), [model_cls], mount_router=False)
     assert model_cls.__name__ in routers
 
-    payload = {"name": "x"}
-    result = await rpc_call(router, model_cls, "create", payload=payload, db=object())
+    payload = {"id": 1, "name": "x"}
+    result = await router_binding.rpc_call(
+        router, model_cls, "create", payload=payload, db=object()
+    )
     assert result["model"] is model_cls
     assert result["alias"] == "create"
     assert result["target"] == "create"
     assert result["payload"] == payload
+    assert result["ctx"]["payload"] == payload
     assert isinstance(result["phases"], dict)
     assert callable(result["serialize"])
 
