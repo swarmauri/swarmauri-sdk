@@ -6,7 +6,7 @@ import pytest
 
 
 from tigrbl import TigrblApp, TigrblRouter
-from tigrbl.requests import Request
+from tigrbl import Request
 
 
 @pytest.mark.asyncio()
