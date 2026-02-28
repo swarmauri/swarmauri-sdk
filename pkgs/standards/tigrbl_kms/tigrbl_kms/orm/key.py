@@ -14,7 +14,7 @@ from tigrbl.specs import acol, vcol, S, F, IO
 from tigrbl.decorators.hook import hook_ctx
 from tigrbl.decorators import op_ctx
 from tigrbl.runtime.status.exceptions import HTTPException
-from tigrbl.responses import Response
+from tigrbl import Response
 
 if TYPE_CHECKING:
     from .key_version import KeyVersion

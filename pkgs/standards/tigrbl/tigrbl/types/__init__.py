@@ -158,11 +158,11 @@ __all__: list[str] = [
 
 _DEPRECATED_EXPORTS: dict[str, tuple[str, str]] = {
     "Router": ("tigrbl", "Router"),
-    "Request": ("tigrbl.requests", "Request"),
+    "Request": ("tigrbl", "Request"),
     "Body": ("tigrbl.core.crud", "Body"),
     "Depends": ("tigrbl.security", "Depends"),
     "HTTPException": ("tigrbl.runtime.status", "HTTPException"),
-    "Response": ("tigrbl.responses", "Response"),
+    "Response": ("tigrbl", "Response"),
 }
 
 
