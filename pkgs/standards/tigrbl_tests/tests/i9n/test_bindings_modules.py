@@ -8,7 +8,7 @@ import tigrbl.mapping.model as model_binding
 import tigrbl.mapping.rest as rest_binding
 import tigrbl.mapping.router as router_binding
 import tigrbl.mapping.rpc as rpc_binding
-from tigrbl.column import shortcuts as sc
+from tigrbl import column as sc
 from tigrbl.mapping.schemas import build_and_attach as schemas_build_and_attach
 from tigrbl.mapping.op_resolver import resolve
 from tigrbl.orm.tables import Base
