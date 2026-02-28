@@ -55,6 +55,7 @@ from .schema import _build_schema, _build_list_params, get_schema
 
 # ── Transport & Diagnostics (optional) ─────────────────────────────────────────
 from .requests import Request
+from ._concrete._json_response import JSONResponse
 from ._concrete._response import Response
 from .system import mount_diagnostics
 
@@ -174,6 +175,7 @@ __all__ += [
     "DEFAULT_HTTP_METHODS",
     "Request",
     "Response",
+    "JSONResponse",
     "resolver",
 ]
 __all__ += [
