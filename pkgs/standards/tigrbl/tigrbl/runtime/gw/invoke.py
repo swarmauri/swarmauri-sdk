@@ -4,7 +4,7 @@ import json
 from typing import Any
 
 from ..executor import _Ctx, _invoke
-from ..kernel.core import Kernel, deepmerge_phase_chains
+from ..kernel.core import Kernel
 from .raw import GwRawEnvelope
 
 
@@ -40,12 +40,8 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
     ctx.op = opmeta.alias
     ctx.opview = kernel.get_opview(app, opmeta.model, opmeta.alias)
 
-    merged = deepmerge_phase_chains(
-        plan.ingress_chain,
-        plan.phase_chains.get(opmeta_index, {}),
-        plan.egress_chain,
-    )
-    await _invoke(request=None, db=None, phases=merged, ctx=ctx)
+    phases = plan.phase_chains.get(opmeta_index, {})
+    await _invoke(request=None, db=None, phases=phases, ctx=ctx)
 
     egress = ctx.temp.get("egress", {}) if isinstance(ctx.temp, dict) else {}
     response = egress.get("transport_response") if isinstance(egress, dict) else None

@@ -274,13 +274,19 @@ class Kernel:
         opmeta: list[OpMeta] = []
         opkey_to_meta: dict[OpKey, int] = {}
         phase_chains: dict[int, Mapping[str, list[StepFn]]] = {}
+        ingress_chain = self.build_ingress(app)
+        egress_chain = self.build_egress(app)
 
         for model in _table_iter(app):
             for sp in _opspecs(model):
                 meta_index = len(opmeta)
                 target = (getattr(sp, "target", sp.alias) or sp.alias).lower()
                 opmeta.append(OpMeta(model=model, alias=sp.alias, target=target))
-                phase_chains[meta_index] = self.build_op(model, sp.alias)
+                phase_chains[meta_index] = deepmerge_phase_chains(
+                    ingress_chain,
+                    self.build_op(model, sp.alias),
+                    egress_chain,
+                )
 
                 for binding in getattr(sp, "bindings", ()) or ():
                     if isinstance(binding, HttpRestBindingSpec):
@@ -320,9 +326,9 @@ class Kernel:
             proto_indices=proto_indices,
             opmeta=tuple(opmeta),
             opkey_to_meta=opkey_to_meta,
-            ingress_chain=self.build_ingress(app),
+            ingress_chain=ingress_chain,
             phase_chains=phase_chains,
-            egress_chain=self.build_egress(app),
+            egress_chain=egress_chain,
         )
 
     def kernel_plan(self, app: Any) -> KernelPlan:
