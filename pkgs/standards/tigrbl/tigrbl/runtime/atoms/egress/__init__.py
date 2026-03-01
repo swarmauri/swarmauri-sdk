@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from ... import events as _ev
+from . import asgi_send as _asgi_send
 from . import envelope_apply as _envelope_apply
 from . import headers_apply as _headers_apply
 from . import http_finalize as _http_finalize
@@ -24,6 +25,7 @@ _ORDERED: Tuple[Tuple[str, str, str, RunFn], ...] = (
         _to_transport_response.ANCHOR,
         _to_transport_response.run,
     ),
+    ("egress", "asgi_send", _asgi_send.ANCHOR, _asgi_send.run),
 )
 
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
