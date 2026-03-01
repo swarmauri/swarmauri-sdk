@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..._concrete import Response
+from ..._concrete._response import Response
 
 
 def _resolve_docs_owner(target: Any) -> Any:

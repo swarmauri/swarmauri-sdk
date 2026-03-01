@@ -54,7 +54,7 @@ from .runtime.executor import _invoke
 from .schema import _build_schema, _build_list_params, get_schema
 
 # ── Transport & Diagnostics (optional) ─────────────────────────────────────────
-from .requests import Request
+from ._concrete._request import Request
 from .security import Depends
 from ._concrete._json_response import JSONResponse
 from ._concrete._response import Response
