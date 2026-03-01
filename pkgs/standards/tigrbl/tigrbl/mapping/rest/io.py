@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, create_model
 from ...core.crud.params import Query
 from ...runtime.status.exceptions import HTTPException
 from ...runtime.status.mappings import status as _status
-from ...requests import Request
+from ..._concrete._request import Request
 from .helpers import _ensure_jsonable
 from ..._spec import OpSpec
 
@@ -29,7 +29,9 @@ def _serialize_output(
     can JSON-encode the response.
     """
 
-    from ..._concrete import Response as _Response  # local import to avoid cycles
+    from ..._concrete._response import (
+        Response as _Response,
+    )  # local import to avoid cycles
 
     if isinstance(result, _Response):
         return result
