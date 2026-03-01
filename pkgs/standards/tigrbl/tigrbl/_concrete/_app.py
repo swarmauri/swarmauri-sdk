@@ -13,7 +13,7 @@ from ._routing import (
     merge_tags as _merge_tags_impl,
     normalize_prefix as _normalize_prefix_impl,
 )
-from ..runtime.gw.executor import RawEnvelopeExecutor
+from ..runtime.gw.invoke import invoke
 from ..runtime.gw.raw import GwRawEnvelope
 
 
@@ -115,7 +115,6 @@ class App(AppSpec):
             include_docs=include_docs,
             **asgi_kwargs,
         )
-        self.executor = RawEnvelopeExecutor(app=self)
         _engine_ctx = self.engine
         if _engine_ctx is not None:
             _resolver.set_default(_engine_ctx)
@@ -136,9 +135,12 @@ class App(AppSpec):
         else:
             Engine.install_from_objects(app=self, router=None, tables=tuple(tables))
 
+    async def invoke(self, env: GwRawEnvelope) -> None:
+        await invoke(env, app=self)
+
     async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
         env = GwRawEnvelope(kind="asgi3", scope=scope, receive=receive, send=send)
-        await self.executor.invoke(env)
+        await self.invoke(env)
 
     def _normalize_prefix(self, prefix: str) -> str:
         return _normalize_prefix_impl(prefix)

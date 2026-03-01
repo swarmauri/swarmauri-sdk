@@ -16,7 +16,7 @@ def get_cached_specs(model: type) -> Mapping[str, Any]:
 
 
 def build_phase_chains(model: type, alias: str) -> Dict[str, List[StepFn]]:
-    return _default_kernel.build(model, alias)
+    return _default_kernel.build_op(model, alias)
 
 
 def plan_labels(model: type, alias: str) -> list[str]:
@@ -31,7 +31,7 @@ async def run(
     request: Any | None = None,
     ctx: Optional[Mapping[str, Any]] = None,
 ) -> Any:
-    phases = _default_kernel.build(model, alias)
+    phases = _default_kernel.build_op(model, alias)
     base_ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
     return await _invoke(request=request, db=db, phases=phases, ctx=base_ctx)
 

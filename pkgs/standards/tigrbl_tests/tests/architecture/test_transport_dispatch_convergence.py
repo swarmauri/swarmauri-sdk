@@ -23,9 +23,9 @@ def _imports_module(path: Path, module: str, symbol: str | None = None) -> bool:
     return False
 
 
-def test_gateway_executor_invokes_runtime_kernel_plan_and_executor():
-    source = _source("runtime/gw/executor.py")
-    assert "kernel_plan(self.app)" in source
+def test_gateway_invoke_invokes_runtime_kernel_plan_and_executor():
+    source = _source("runtime/gw/invoke.py")
+    assert "kernel.kernel_plan(app)" in source
     assert "await _invoke(" in source
 
 

@@ -11,11 +11,11 @@ def test_dependency_invoke_is_runtime_event_anchor():
     assert '"PRE_TX_BEGIN"' in events
 
 
-def test_runtime_gateway_owns_ingress_route_and_egress_send():
-    executor = (PKG / "runtime" / "gw" / "executor.py").read_text()
-    assert "_routing_atoms" in executor
-    assert "kernel_plan(self.app)" in executor
-    assert "_send_transport_response" in executor
+def test_runtime_gateway_owns_runtime_entrypoint_and_send():
+    invoke_source = (PKG / "runtime" / "gw" / "invoke.py").read_text()
+    assert "kernel.kernel_plan(app)" in invoke_source
+    assert "await _invoke(" in invoke_source
+    assert "_send_transport_response" in invoke_source
 
 
 def test_docs_generation_reads_secdeps_metadata():
