@@ -1,8 +1,8 @@
 from tigrbl.mapping.rest.router import _build_router
-from tigrbl.op import OpSpec
+from tigrbl import OpSpec
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk, BulkCapable, Mergeable
-from tigrbl.specs import F, S, acol
+from tigrbl import F, S, acol
 from tigrbl import TigrblApp
 from tigrbl.types import Mapped, String
 

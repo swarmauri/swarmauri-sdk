@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ...specs import ColumnSpec, F, S, acol
+from ..._spec import ColumnSpec, F, S, acol
 from ...types import Integer, String, declarative_mixin, Mapped
 
 from .utils import CRUD_IO

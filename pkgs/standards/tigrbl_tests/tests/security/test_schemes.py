@@ -2,8 +2,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from tigrbl.security import APIKey, HTTPBearer, MutualTLS, OAuth2, OpenIdConnect
-from tigrbl.security.schemes import OpenAPISecurityDependency
+from tigrbl import APIKey, HTTPBearer, MutualTLS, OAuth2, OpenIdConnect
+from tigrbl import OpenAPISecurityDependency
 
 
 @pytest.mark.unit

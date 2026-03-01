@@ -1,11 +1,10 @@
 import pytest
-from httpx import AsyncClient, ASGITransport
-
-from tigrbl.mapping.rest.router import _build_router
-from tigrbl.op import OpSpec
-from tigrbl.orm.tables import Base
-from tigrbl.orm.mixins import GUIDPk, BulkCapable
+from httpx import ASGITransport, AsyncClient
 from tigrbl import TigrblApp
+from tigrbl.mapping.rest.router import _build_router
+from tigrbl import OpSpec
+from tigrbl.orm.mixins import BulkCapable, GUIDPk
+from tigrbl.orm.tables import Base
 from tigrbl.types import Column, String
 
 

@@ -1,5 +1,5 @@
 from tigrbl import TigrblApp
-from tigrbl.engine.shortcuts import engine as build_engine, mem
+from tigrbl.shortcuts.engine import engine, mem
 from tigrbl_billing.tables.customer_balance import CustomerBalance
 from tigrbl_billing.tables.balance_top_off import BalanceTopOff
 from tigrbl_billing.tables.credit_ledger import CreditLedger
@@ -13,7 +13,7 @@ ops.check_and_top_off
 
 
 def build_app(async_mode: bool = True) -> TigrblApp:
-    app = TigrblApp(engine=build_engine(mem(async_=async_mode)))
+    app = TigrblApp(engine=engine(mem(async_=async_mode)))
     app.include_models([CustomerBalance, BalanceTopOff, CreditLedger])
     return app
 

@@ -1,4 +1,4 @@
-"""Router primitives backing ``tigrbl.router`` and ``tigrbl.app.App``."""
+"""Router primitives backing ``tigrbl.router`` and ``tigrbl.App``."""
 
 from __future__ import annotations
 
@@ -6,19 +6,19 @@ from contextlib import asynccontextmanager
 from typing import Any, Callable
 from types import SimpleNamespace
 
-from ..router.router_spec import RouterSpec
-from ..engine import resolver as _resolver
-from ..engine.engine_spec import EngineCfg
-from ..app._model_registry import initialize_table_registry
+from .._spec.router_spec import RouterSpec
+from ..mapping import engine_resolver as _resolver
+from .._spec.engine_spec import EngineCfg
+from ._table_registry import TableRegistry
 
-from tigrbl.router._routing import (
+from ._routing import (
     add_route as _add_route_impl,
     include_router as _include_router_impl,
     merge_tags,
     normalize_prefix,
     route,
 )
-from tigrbl.transport.httpx import ensure_httpx_sync_transport
+from ._httpx import ensure_httpx_sync_transport
 
 from ._route import Route
 from ..system.docs.openapi.metadata import is_metadata_route as _is_metadata_route_impl
@@ -111,7 +111,7 @@ class Router(RouterSpec):
         self.rest_prefix = getattr(self, "REST_PREFIX", "/router")
         self.rpc_prefix = getattr(self, "RPC_PREFIX", "/rpc")
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
-        self.tables = initialize_table_registry(getattr(self, "TABLES", ()))
+        self.tables = TableRegistry(tables=getattr(self, "TABLES", ()))
 
         default_dependencies = list(self.security_deps) + list(self.deps)
         self.dependencies = list(dependencies or default_dependencies)

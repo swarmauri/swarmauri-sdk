@@ -22,7 +22,7 @@ class SessionFactory(Protocol):
 Builder = Callable[[], Tuple[Any, SessionFactory]]  # returns (engine, sessionmaker)
 
 if TYPE_CHECKING:  # pragma: no cover - for type checkers only
-    from ..engine.engine_spec import EngineSpec
+    from .._spec.engine_spec import EngineSpec
 
 
 @dataclass(frozen=True)
@@ -115,6 +115,49 @@ class Engine:
 
     def raw(self) -> Tuple[Any, SessionFactory]:
         return self.provider.ensure()
+
+    @staticmethod
+    def collect(
+        *,
+        app: Any | None = None,
+        router: Any | None = None,
+        tables: tuple[Any, ...] = (),
+    ) -> dict[str, Any]:
+        from ..mapping.traversal import collect
+
+        return collect(app=app, router=router, tables=tables)
+
+    @staticmethod
+    def install(collected: dict[str, Any]) -> None:
+        from ..mapping.traversal import install
+
+        install(collected)
+
+    @staticmethod
+    def install_from_objects(
+        *,
+        app: Any | None = None,
+        router: Any | None = None,
+        tables: tuple[Any, ...] = (),
+    ) -> dict[str, Any]:
+        collected = Engine.collect(app=app, router=router, tables=tables)
+        Engine.install(collected)
+        return collected
+
+    @staticmethod
+    def collect_bindings(
+        *,
+        app: Any | None = None,
+        router: Any | None = None,
+        tables: tuple[Any, ...] = (),
+    ) -> dict[str, Any]:
+        """Backward-compatible alias for :meth:`collect`."""
+        return Engine.collect(app=app, router=router, tables=tables)
+
+    @staticmethod
+    def install_bindings(collected: dict[str, Any]) -> None:
+        """Backward-compatible alias for :meth:`install`."""
+        Engine.install(collected)
 
     @property
     def get_db(self) -> Callable[..., Any]:

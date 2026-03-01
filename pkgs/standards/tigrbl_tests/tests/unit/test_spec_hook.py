@@ -1,7 +1,7 @@
 from tigrbl.config.constants import HOOK_DECLS_ATTR
-from tigrbl.hook.decorators import hook_ctx
-from tigrbl.hook.hook_spec import HookSpec
-from tigrbl.hook.shortcuts import hook, hook_spec
+from tigrbl.decorators.hook import hook_ctx
+from tigrbl import HookSpec
+from tigrbl.shortcuts.hook import hook, hook_spec
 
 
 def _step(ctx):

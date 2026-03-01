@@ -1,15 +1,12 @@
-import pytest
-import pytest_asyncio
 from typing import Any, Mapping
 
-from tigrbl.types import UUID, Column, Integer, String, uuid4
-
-from tigrbl import TigrblApp, Base
-from tigrbl.engine.shortcuts import engine as build_engine, mem
-from tigrbl.orm.mixins import GUIDPk, BulkCapable, Replaceable
-
-
+import pytest
+import pytest_asyncio
+from tigrbl import Base, TigrblApp
+from tigrbl.shortcuts.engine import engine, mem
+from tigrbl.orm.mixins import BulkCapable, GUIDPk, Replaceable
 from tigrbl.runtime.status import HTTPException
+from tigrbl.types import UUID, Column, Integer, String, uuid4
 
 
 class CoreTestUser(Base, GUIDPk, BulkCapable, Replaceable):
@@ -28,7 +25,7 @@ def _get(obj: Any, attr: str) -> Any:
 def sync_app():
     """Create a sync Tigrbl instance with CoreTestUser."""
     Base.metadata.clear()
-    eng = build_engine(mem(async_=False))
+    eng = engine(mem(async_=False))
     app = TigrblApp(engine=eng)
     app.include_table(CoreTestUser)
     app.initialize()
@@ -39,7 +36,7 @@ def sync_app():
 async def async_app():
     """Create an async Tigrbl instance with CoreTestUser."""
     Base.metadata.clear()
-    eng = build_engine(mem(async_=True))
+    eng = engine(mem(async_=True))
     app = TigrblApp(engine=eng)
     app.include_table(CoreTestUser)
     await app.initialize()

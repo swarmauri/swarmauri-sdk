@@ -3,16 +3,15 @@ from __future__ import annotations
 import logging
 from typing import Any, Awaitable, Callable, Dict, Mapping, Optional
 
-from ..rpc import _coerce_payload, _validate_input, _serialize_output
-from ...transport.dispatch import dispatch_operation
-from ...engine import resolver as _resolver
+from ..rpc import _coerce_payload, _validate_input
+from ...mapping import engine_resolver as _resolver
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/resource_proxy")
 
 
 class _ResourceProxy:
-    """Dynamic proxy that executes core operations."""
+    """Dynamic proxy that resolves operation payloads for core operations."""
 
     __slots__ = ("_model", "_serialize", "_router")
 
@@ -45,7 +44,7 @@ class _ResourceProxy:
         ) -> Any:
             raw_payload = _coerce_payload(payload)
             logger.debug(
-                "Calling %s.%s with payload %s",
+                "Preparing %s.%s with payload %s",
                 self._model.__name__,
                 alias,
                 raw_payload,
@@ -54,67 +53,23 @@ class _ResourceProxy:
                 raw_payload = {"ids": raw_payload}
                 logger.debug("Coerced bulk_delete payload to mapping: %s", raw_payload)
             norm_payload = _validate_input(self._model, alias, alias, raw_payload)
-            logger.debug(
-                "Validated payload for %s.%s: %s",
-                self._model.__name__,
-                alias,
-                norm_payload,
-            )
 
             seed_ctx: Dict[str, Any] = dict(ctx or {})
-            serializer = (
-                (lambda r: _serialize_output(self._model, alias, alias, r))
-                if self._serialize
-                else (lambda r: r)
-            )
 
-            # Acquire DB if one was not explicitly provided (op > model > router > app)
-            _release_db = None
             if db is None:
-                try:
-                    logger.debug(
-                        "Acquiring DB for %s.%s via resolver",
-                        self._model.__name__,
-                        alias,
-                    )
-                    db, _release_db = _resolver.acquire(
-                        router=self._router, model=self._model, op_alias=alias
-                    )
-                except Exception:
-                    logger.exception(
-                        "DB acquire failed for %s.%s; no default configured?",
-                        self._model.__name__,
-                        alias,
-                    )
-                    raise
-            else:
-                logger.debug("Using provided DB for %s.%s", self._model.__name__, alias)
-
-            try:
-                return await dispatch_operation(
-                    router=self._router,
-                    request=request,
-                    db=db,
-                    model_or_name=self._model,
-                    alias=alias,
-                    target=alias,
-                    payload=norm_payload,
-                    seed_ctx=seed_ctx,
-                    rpc_mode=True,
-                    response_serializer=serializer,
+                db, _ = _resolver.acquire(
+                    router=self._router, model=self._model, op_alias=alias
                 )
-            finally:
-                if _release_db is not None:
-                    try:
-                        _release_db()
-                        logger.debug(
-                            "Released DB for %s.%s", self._model.__name__, alias
-                        )
-                    except Exception:
-                        logger.debug(
-                            "Non-fatal: error releasing acquired DB session",
-                            exc_info=True,
-                        )
+
+            return {
+                "model": self._model,
+                "alias": alias,
+                "target": alias,
+                "payload": norm_payload,
+                "db": db,
+                "request": request,
+                "ctx": seed_ctx,
+            }
 
         _call.__name__ = f"{self._model.__name__}.{alias}"
         _call.__qualname__ = _call.__name__

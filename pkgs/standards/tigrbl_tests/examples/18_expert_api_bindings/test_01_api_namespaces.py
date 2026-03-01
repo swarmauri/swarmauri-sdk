@@ -7,7 +7,7 @@ and avoids leaking implementation details into unrelated modules.
 """
 
 from tigrbl import Base, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 

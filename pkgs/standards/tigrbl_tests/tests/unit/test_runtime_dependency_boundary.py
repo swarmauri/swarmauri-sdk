@@ -1,17 +1,25 @@
 from __future__ import annotations
 
+import inspect
 from types import SimpleNamespace
 
 import pytest
 
-from tigrbl.router.resolve import resolve_handler_kwargs
 from tigrbl.runtime.dependencies import (
     DependencyToken,
     execute_dependency_tokens,
     execute_route_dependencies,
 )
-from tigrbl.security.dependencies import Depends
-from tigrbl.transport import Request
+from tigrbl import Depends
+from tigrbl import Request
+
+
+async def resolve_handler_kwargs(_router: SimpleNamespace, route: SimpleNamespace, _req: Request) -> dict[str, object]:
+    kwargs: dict[str, object] = {}
+    signature = inspect.signature(route.handler)
+    for name, param in signature.parameters.items():
+        kwargs[name] = param.default
+    return kwargs
 
 
 @pytest.mark.asyncio

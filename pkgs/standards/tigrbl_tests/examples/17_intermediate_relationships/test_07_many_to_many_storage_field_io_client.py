@@ -16,10 +16,11 @@ import uvicorn
 from tigrbl_client import TigrblClient
 
 from tigrbl import Base, TigrblApp, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
-from tigrbl.specs.storage_spec import ForeignKeySpec
+from tigrbl import F, IO, S
+from tigrbl.shortcuts import acol
+from tigrbl import ForeignKeySpec
 from tigrbl.system import stop_uvicorn_server
 from tigrbl.types import Mapped, PgUUID, String, UUID, relationship
 

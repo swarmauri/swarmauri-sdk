@@ -4,7 +4,7 @@ import inspect
 from typing import Any, Callable
 
 from ....core.crud.params import Param
-from ....core.resolver import (
+from ....mapping.core_resolver import (
     annotation_marker,
     extract_param_value,
     is_request_annotation,
@@ -12,7 +12,7 @@ from ....core.resolver import (
 )
 from ....runtime.status.exceptions import HTTPException
 from ....runtime.status.mappings import status
-from ....security.dependencies import Dependency
+from ...._concrete.dependencies import Dependency
 from ... import events as _ev
 
 ANCHOR = _ev.DEP_EXTRA

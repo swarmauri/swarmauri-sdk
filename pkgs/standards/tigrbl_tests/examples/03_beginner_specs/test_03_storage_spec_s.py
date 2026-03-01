@@ -1,4 +1,4 @@
-from tigrbl.specs import S
+from tigrbl import S
 from tigrbl.types import Integer
 
 

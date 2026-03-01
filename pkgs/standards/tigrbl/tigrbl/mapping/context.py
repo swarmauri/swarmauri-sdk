@@ -13,7 +13,7 @@ from typing import (
     Tuple,
 )
 
-from ..op import OpSpec
+from .._spec.op_spec import OpSpec
 
 MappingKey = Tuple[str, str]
 

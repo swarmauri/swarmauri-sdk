@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from tigrbl import TigrblApp
 from httpx import AsyncClient, ASGITransport
 
-from tigrbl.system.diagnostics import mount_diagnostics
+from tigrbl import mount_diagnostics
 
 
 class DummyDB:

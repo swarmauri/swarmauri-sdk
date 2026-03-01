@@ -1,11 +1,11 @@
 from uuid import UUID
 
 
-from ...specs import IO, F, acol, S
-from ...specs.storage_spec import ForeignKeySpec
+from ..._spec import IO, F, acol, S
+from ..._spec.storage_spec import ForeignKeySpec
 from ...types import Integer, String, PgUUID, Mapped
 
-from . import Base
+from . import TableBase
 from ..mixins import (
     GUIDPk,
     TenantBound,
@@ -16,7 +16,7 @@ from ..mixins import (
 
 
 # ───────── RBAC core ──────────────────────────────────────────────────
-class Role(Base, GUIDPk, Timestamped, TenantBound):
+class Role(TableBase, GUIDPk, Timestamped, TenantBound):
     __tablename__ = "roles"
     slug: Mapped[str] = acol(
         storage=S(String, unique=True),
@@ -30,7 +30,7 @@ class Role(Base, GUIDPk, Timestamped, TenantBound):
     )
 
 
-class RolePerm(Base, GUIDPk, Timestamped, TenantBound, RelationEdge, MaskableEdge):
+class RolePerm(TableBase, GUIDPk, Timestamped, TenantBound, RelationEdge, MaskableEdge):
     __tablename__ = "role_perms"
     role_id: Mapped[UUID] = acol(
         storage=S(PgUUID, fk=ForeignKeySpec("roles.id")),
@@ -49,7 +49,7 @@ class RolePerm(Base, GUIDPk, Timestamped, TenantBound, RelationEdge, MaskableEdg
     )  # row or sentinel
 
 
-class RoleGrant(Base, GUIDPk, Timestamped, TenantBound, RelationEdge):
+class RoleGrant(TableBase, GUIDPk, Timestamped, TenantBound, RelationEdge):
     __tablename__ = "role_grants"
     principal_id: Mapped[UUID] = acol(
         storage=S(PgUUID),

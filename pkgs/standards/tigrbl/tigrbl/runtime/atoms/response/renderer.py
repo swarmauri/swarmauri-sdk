@@ -4,10 +4,10 @@ from pathlib import Path
 from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union, cast
 import logging
 
-from ....responses import Response
+from ...._concrete._response import Response
 from typing import Callable
 
-from ....responses.shortcuts import (
+from ....shortcuts.responses import (
     as_file,
     as_html,
     as_json,

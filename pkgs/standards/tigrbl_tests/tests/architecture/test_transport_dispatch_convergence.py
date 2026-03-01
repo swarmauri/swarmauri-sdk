@@ -23,63 +23,33 @@ def _imports_module(path: Path, module: str, symbol: str | None = None) -> bool:
     return False
 
 
-def _calls_named(path: Path, name: str) -> bool:
-    tree = ast.parse(path.read_text(), filename=str(path))
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Call):
-            fn = node.func
-            if isinstance(fn, ast.Name) and fn.id == name:
-                return True
-            if isinstance(fn, ast.Attribute) and fn.attr == name:
-                return True
-    return False
+def test_gateway_executor_invokes_runtime_kernel_plan_and_executor():
+    source = _source("runtime/gw/executor.py")
+    assert "kernel_plan(self.app)" in source
+    assert "await _invoke(" in source
 
 
-def test_jsonrpc_dispatcher_uses_unified_dispatch_only():
-    source = _source("transport/jsonrpc/dispatcher.py")
-    assert "dispatch_operation" in source
-    assert "_select_auth_dep" not in source
-    assert "_user_from_request" not in source
-    assert "_authorize(" not in source
-
-
-def test_rest_and_rpc_call_transport_dispatcher_operation():
+def test_mapping_does_not_import_dispatch_modules():
     rest_collection = ROOT / "mapping" / "rest" / "collection.py"
     rest_member = ROOT / "mapping" / "rest" / "member.py"
-    rpc_dispatcher = ROOT / "transport" / "jsonrpc" / "dispatcher.py"
+    rpc_mapping = ROOT / "mapping" / "rpc.py"
+    router_proxy = ROOT / "mapping" / "router" / "resource_proxy.py"
 
-    for path in (rest_collection, rest_member, rpc_dispatcher):
-        assert _imports_module(path, "...transport.dispatcher", "dispatch_operation")
-        assert _calls_named(path, "dispatch_operation")
-
-
-def test_only_transport_dispatcher_invokes_runtime_executor_directly():
-    violations: list[str] = []
-    targets = [ROOT / "transport", ROOT / "mapping" / "rest"]
-    for target in targets:
-        for path in target.rglob("*.py"):
-            rel = path.relative_to(ROOT)
-            if rel.as_posix() == "transport/dispatcher.py":
-                continue
-            tree = ast.parse(path.read_text(), filename=str(path))
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Attribute) and node.attr == "_invoke":
-                    violations.append(f"{rel}:{node.lineno}")
-    assert violations == [], "\n".join(violations)
+    for path in (rest_collection, rest_member, rpc_mapping, router_proxy):
+        assert not _imports_module(path, "tigrbl", "dispatch_operation")
+        assert not _imports_module(path, "..dispatch")
+        assert not _imports_module(path, "...dispatch")
 
 
-def test_dep_name_strategy_prefers_explicit_then_module_qualname():
-    from tigrbl.runtime.atoms.deps_inject._common import dep_name
+def test_mapping_layers_return_operation_envelopes_without_invoke_calls():
+    rpc_source = _source("mapping/rpc.py")
+    assert "_invoke(" not in rpc_source
 
-    def local_dep():
-        return None
 
-    assert dep_name(local_dep).endswith(".local_dep")
-
-    class NamedDep:
-        __tigrbl_dep_name__ = "custom.dep"
-
-        def __call__(self):
-            return None
-
-    assert dep_name(NamedDep()) == "custom.dep"
+def test_removed_transport_dispatcher_files_are_absent():
+    removed = (
+        ROOT / "transport" / "dispatch.py",
+        ROOT / "transport" / "dispatcher.py",
+        ROOT / "transport" / "jsonrpc" / "dispatcher.py",
+    )
+    assert all(not path.exists() for path in removed)

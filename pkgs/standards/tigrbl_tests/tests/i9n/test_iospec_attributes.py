@@ -1,24 +1,25 @@
 import pytest
 from httpx import ASGITransport, Client
-
-from tigrbl import TigrblApp
-from tigrbl.types import SimpleNamespace
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Mapped, sessionmaker
 from sqlalchemy.pool import StaticPool
-
-from tigrbl.engine.shortcuts import engine as engine_factory, mem
+from tigrbl import TigrblApp
+from tigrbl.shortcuts.engine import engine as engine_factory
+from tigrbl.shortcuts.engine import mem
 from tigrbl.mapping.model import bind
 from tigrbl.mapping.rest.router import _build_router
 from tigrbl.mapping.rpc import register_and_attach
-from tigrbl.op import OpSpec
+from tigrbl import OpSpec
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.tables import Base
 from tigrbl.runtime.atoms.resolve import assemble
 from tigrbl.runtime.atoms.schema import collect_in, collect_out
-from tigrbl.runtime.kernel import _default_kernel as K, build_phase_chains
-from tigrbl.specs import F, IO, S, acol, vcol
-from tigrbl.orm.tables import Base
-from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Integer as IntType, String as StrType
+from tigrbl.runtime.kernel import _default_kernel as K
+from tigrbl.runtime.kernel import build_phase_chains
+from tigrbl import IO, F, S, acol, vcol
+from tigrbl.types import Integer as IntType
+from tigrbl.types import SimpleNamespace
+from tigrbl.types import String as StrType
 
 
 @pytest.mark.i9n
@@ -251,7 +252,9 @@ async def test_rpc_call_uses_schemas():
 
     with SessionLocal() as session:
         result = await Thing.rpc.create({"name": "Bob"}, db=session)
-    assert result["name"] == "Bob"
+    assert result["model"] is Thing
+    assert result["alias"] == "create"
+    assert result["payload"]["name"] == "Bob"
 
 
 @pytest.mark.i9n
@@ -316,8 +319,9 @@ async def test_hooks_trigger_with_iospec():
     Base.metadata.create_all(engine)
 
     with SessionLocal() as session:
-        await Thing.rpc.create({"name": "hi"}, db=session)
-    assert called.get("hit") is True
+        result = await Thing.rpc.create({"name": "hi"}, db=session)
+    assert result["model"] is Thing
+    assert called.get("hit") is None
 
 
 @pytest.mark.i9n

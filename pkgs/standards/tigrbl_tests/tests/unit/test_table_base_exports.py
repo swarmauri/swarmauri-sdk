@@ -3,14 +3,14 @@ import importlib
 import pytest
 
 
-@pytest.mark.parametrize("module_path", ["tigrbl.table", "tigrbl.orm.tables"])
+@pytest.mark.parametrize("module_path", ["tigrbl", "tigrbl.orm.tables"])
 def test_base_is_exported(module_path: str) -> None:
     module = importlib.import_module(module_path)
     assert hasattr(module, "Base")
 
 
 def test_base_is_singleton() -> None:
-    from tigrbl.table import Base as table_base
+    from tigrbl import Base as table_base
     from tigrbl.orm.tables import Base as orm_base
 
     assert table_base is orm_base

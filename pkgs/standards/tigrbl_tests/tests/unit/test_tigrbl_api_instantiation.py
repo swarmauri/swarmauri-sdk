@@ -1,9 +1,10 @@
 import pytest
 
 from tigrbl import Base, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
+from tigrbl import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.types import Mapped, String
 
 
@@ -20,13 +21,13 @@ class Widget(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class WidgerRouter(TigrblRouter):
+class WidgetRouter(TigrblRouter):
     TABLES = (Widget,)
 
 
 @pytest.mark.unit
 def test_tigrbl_router_instantiation_sets_containers() -> None:
-    router = WidgerRouter(engine=mem(async_=False))
+    router = WidgetRouter(engine=mem(async_=False))
     router_dir = dir(router)
 
     assert "tables" in router_dir

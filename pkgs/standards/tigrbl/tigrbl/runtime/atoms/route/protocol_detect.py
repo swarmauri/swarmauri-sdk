@@ -31,6 +31,14 @@ def run(obj: object | None, ctx: Any) -> None:
             proto = scheme
 
     if proto is None:
+        raw = getattr(ctx, "raw", None)
+        scope = getattr(raw, "scope", None) if raw is not None else None
+        if isinstance(scope, dict) and scope.get("type") == "http":
+            scheme = str(scope.get("scheme") or "http")
+            if scheme in {"http", "https"}:
+                proto = f"{scheme}.rest"
+
+    if proto is None:
         request = getattr(ctx, "request", None)
         scope = getattr(request, "scope", None) if request is not None else None
         protocol = scope.get("type") if isinstance(scope, dict) else None

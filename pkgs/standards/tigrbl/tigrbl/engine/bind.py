@@ -1,26 +1,37 @@
-"""Bind collected engine configuration to the resolver."""
+"""Compatibility wrappers for engine binding APIs.
+
+Canonical collect/install traversal now lives in ``tigrbl.mapping.traversal``.
+"""
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable
+from typing import Any, Iterable, Mapping
 
-from .resolver import register_router, register_op, register_table, set_default
+from .._concrete._engine import Engine
 
 
-def bind(collected: Dict[str, Any]) -> None:
-    """Bind a collected configuration mapping into the resolver."""
-    default_db = collected.get("default")
-    if default_db is not None:
-        set_default(default_db)
+def collect(
+    *, app: Any | None = None, router: Any | None = None, tables: Iterable[Any] = ()
+) -> dict[str, Any]:
+    """Collect engine configuration from first-class objects."""
+    return Engine.collect(app=app, router=router, tables=tuple(tables))
 
-    for router_obj, db in collected.get("router", {}).items():
-        register_router(router_obj, db)
 
-    for table_obj, db in collected.get("tables", {}).items():
-        register_table(table_obj, db)
+def install(collected: Mapping[str, Any]) -> None:
+    """Install a collected configuration mapping into the resolver."""
+    Engine.install(dict(collected))
 
-    for (model, alias), db in collected.get("ops", {}).items():
-        register_op(model, alias, db)
+
+def collect_engine_bindings(
+    *, app: Any | None = None, router: Any | None = None, tables: Iterable[Any] = ()
+) -> dict[str, Any]:
+    """Backward-compatible alias for :func:`collect`."""
+    return collect(app=app, router=router, tables=tables)
+
+
+def bind(collected: Mapping[str, Any]) -> None:
+    """Backward-compatible alias for :func:`install`."""
+    install(collected)
 
 
 def install_from_objects(
@@ -30,7 +41,13 @@ def install_from_objects(
     tables: Iterable[Any] = (),
 ) -> None:
     """Collect engine config from objects and bind them to the resolver."""
-    from .collect import collect_engine_config
+    Engine.install_from_objects(app=app, router=router, tables=tuple(tables))
 
-    collected = collect_engine_config(app=app, router=router, tables=tables)
-    bind(collected)
+
+__all__ = [
+    "collect",
+    "install",
+    "collect_engine_bindings",
+    "bind",
+    "install_from_objects",
+]

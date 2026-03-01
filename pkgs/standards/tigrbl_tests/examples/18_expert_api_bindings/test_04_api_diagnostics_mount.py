@@ -6,7 +6,7 @@ responsible for its own diagnostic endpoints.
 """
 
 from tigrbl import Base, TigrblRouter, TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 

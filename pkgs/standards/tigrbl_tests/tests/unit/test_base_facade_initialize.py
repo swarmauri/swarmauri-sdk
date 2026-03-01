@@ -4,9 +4,9 @@ import pytest
 from sqlalchemy import Column, Integer
 
 from tigrbl import TigrblApp, TigrblRouter
-from tigrbl.engine import resolver as _resolver
-from tigrbl.engine.shortcuts import mem
-from tigrbl.table import Base
+from tigrbl import resolver as _resolver
+from tigrbl.shortcuts.engine import mem
+from tigrbl import Base
 
 
 class SimpleApp(TigrblApp):

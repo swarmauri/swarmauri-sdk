@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-from ...specs import IO
+from ..._spec import IO
 from ...types import UUID
 
 

@@ -2,7 +2,7 @@ from httpx import ASGITransport, Client
 import pytest
 
 from tigrbl import TigrblApp
-from tigrbl.responses import Response
+from tigrbl import Response
 
 
 @pytest.mark.xfail(

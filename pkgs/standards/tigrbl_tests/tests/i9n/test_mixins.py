@@ -4,12 +4,12 @@ Mixins Tests for Tigrbl v3
 Tests all mixins and their expected behavior using individual DummyModel instances.
 """
 
-import pytest
 from datetime import datetime, timedelta, timezone
-from tigrbl.types import String, uuid4
-from tigrbl.column.shortcuts import acol, F, IO, S
 
+import pytest
 from tigrbl import Base
+from tigrbl.column import IO, F, S, acol
+from tigrbl import resolver as _resolver
 from tigrbl.orm.mixins import (
     ActiveToggle,
     AsyncCapable,
@@ -34,8 +34,7 @@ from tigrbl.orm.mixins import (
     tzutcnow_plus_day,
 )
 from tigrbl.schema import _build_schema
-from tigrbl.engine import resolver as _resolver
-
+from tigrbl.types import String, uuid4
 
 NAME_FIELD = acol(
     storage=S(type_=String, nullable=False),

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from tigrbl.app.mro_collect import mro_collect_app_spec
-from tigrbl.app.shortcuts import deriveApp
+from tigrbl.mapping.app_mro_collect import mro_collect_app_spec
+from tigrbl.shortcuts.app import deriveApp
 
 
 def test_derive_app_spec_values() -> None:

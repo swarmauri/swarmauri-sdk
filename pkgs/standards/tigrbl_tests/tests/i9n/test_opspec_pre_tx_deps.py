@@ -5,14 +5,12 @@ import inspect
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
-
 from tigrbl import Base, TigrblApp
-from tigrbl.engine.shortcuts import mem
-from tigrbl.hook import hook_ctx
-from tigrbl.op import OpSpec
+from tigrbl.shortcuts.engine import mem
+from tigrbl import hook_ctx
+from tigrbl import OpSpec
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.runtime.status import HTTPException
-from tigrbl.runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP
+from tigrbl.runtime.status import _RPC_TO_HTTP, ERROR_MESSAGES, HTTPException
 
 
 async def _build_client(model: type, db_mode: str) -> tuple[AsyncClient, TigrblApp]:
@@ -22,12 +20,14 @@ async def _build_client(model: type, db_mode: str) -> tuple[AsyncClient, TigrblA
     if inspect.isawaitable(init_result):
         await init_result
 
-    host_app = TigrblApp(engine=app.engine)
-    host_app.include_router(app.router)
-    host_app.mount_jsonrpc()
-    host_app.attach_diagnostics()
+    router = app.router
+    engine = app.engine
+    app = TigrblApp(engine=engine)
+    app.include_router(router)
+    app.mount_jsonrpc()
+    app.attach_diagnostics()
     return (
-        AsyncClient(transport=ASGITransport(app=host_app), base_url="http://test"),
+        AsyncClient(transport=ASGITransport(app=app), base_url="http://test"),
         app,
     )
 

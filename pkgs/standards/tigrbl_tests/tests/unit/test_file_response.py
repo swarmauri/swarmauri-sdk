@@ -3,9 +3,9 @@ from pathlib import Path
 
 from httpx import ASGITransport, Client
 
-from tigrbl.op.mro_collect import mro_collect_decorated_ops
-from tigrbl.op import op_ctx
-from tigrbl.responses.shortcuts import as_file
+from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
+from tigrbl.decorators.op import op_ctx
+from tigrbl.shortcuts.responses import as_file
 from tigrbl.mapping import (
     build_hooks,
     build_handlers,
@@ -14,11 +14,11 @@ from tigrbl.mapping import (
     register_rpc,
     include_table,
 )
-from tigrbl import TigrblApp as FastApp
+from tigrbl import TigrblApp
 from tigrbl.types import Integer, Mapped, mapped_column
-from tigrbl.table import Table
-from tigrbl.router import TigrblRouter
-from tigrbl.app._app import App as BaseApp
+from tigrbl import Table
+from tigrbl import TigrblRouter
+from tigrbl._concrete._app import App as BaseApp
 
 
 def _build_model(base: type, file_path: Path, *, bind: bool = True) -> type:
@@ -53,7 +53,7 @@ def _build_model(base: type, file_path: Path, *, bind: bool = True) -> type:
 
 
 def _server_client_roundtrip(router_provider):
-    app = FastApp()
+    app = TigrblApp()
     app.include_router(router_provider)
     transport = ASGITransport(app=app)
     with Client(transport=transport, base_url="http://test") as client:
@@ -104,7 +104,7 @@ def test_file_response_api(tmp_path):
     resp = asyncio.run(Widget.handlers.download.handler({}))
     assert resp.path == str(file_path)
 
-    app = FastApp()
+    app = TigrblApp()
     app.include_router(router)
     transport = ASGITransport(app=app)
     with Client(transport=transport, base_url="http://test") as client:

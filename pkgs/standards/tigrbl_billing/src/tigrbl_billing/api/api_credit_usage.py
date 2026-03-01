@@ -1,5 +1,5 @@
 from tigrbl import TigrblApp
-from tigrbl.engine.shortcuts import engine as build_engine, mem
+from tigrbl.shortcuts.engine import engine, mem
 from tigrbl_billing.tables.credit_usage_policy import CreditUsagePolicy
 from tigrbl_billing.tables.usage_event import UsageEvent
 from tigrbl_billing.tables.credit_ledger import CreditLedger
@@ -11,7 +11,7 @@ ops.charge_credits
 
 
 def build_app(async_mode: bool = True) -> TigrblApp:
-    app = TigrblApp(engine=build_engine(mem(async_=async_mode)))
+    app = TigrblApp(engine=engine(mem(async_=async_mode)))
     app.include_models([CreditUsagePolicy, UsageEvent, CreditLedger])
     return app
 

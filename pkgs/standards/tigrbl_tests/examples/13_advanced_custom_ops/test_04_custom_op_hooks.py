@@ -1,7 +1,7 @@
 import inspect
 
 from tigrbl import Base, TigrblApp, hook_ctx, op_ctx
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 

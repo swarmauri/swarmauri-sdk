@@ -1,10 +1,10 @@
 """Tenant model."""
 
-from ._base import Base
+from ._base import TableBase
 from ..mixins import GUIDPk, Slugged, Timestamped
 
 
-class Tenant(Base, GUIDPk, Slugged, Timestamped):
+class Tenant(TableBase, GUIDPk, Slugged, Timestamped):
     __tablename__ = "tenants"
     __abstract__ = True
 

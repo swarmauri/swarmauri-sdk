@@ -18,10 +18,10 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from ...specs import acol, F, IO, S
+from ..._spec import acol, F, IO, S
 from ...types import Integer, Mapped, SAEnum, String
 
-from ._base import Base
+from ._base import TableBase
 from ..mixins import Timestamped  # created_at / updated_at
 
 
@@ -60,7 +60,7 @@ class Status(StrEnum):
 # ────────────────────────────────────────────────────────────────────────
 # 2. Persistent lookup table
 # ────────────────────────────────────────────────────────────────────────
-class StatusEnum(Base, Timestamped):
+class StatusEnum(TableBase, Timestamped):
     """
     id       – surrogate PK (easy FK if needed elsewhere)
     code     – canonical string value from the Status enum

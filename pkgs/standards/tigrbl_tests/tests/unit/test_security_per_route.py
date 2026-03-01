@@ -1,15 +1,11 @@
 import pytest
 
-from tigrbl import TigrblApp
-from tigrbl.security import HTTPBearer
-from tigrbl.op import OpSpec
-from tigrbl.orm.tables import Base
-from tigrbl.orm.mixins import GUIDPk
+from tigrbl import Router, TigrblApp
 from tigrbl.mapping.rest.router import _build_router
-
-
-from tigrbl.router import Router
-from tigrbl.security import Security
+from tigrbl import OpSpec
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.tables import Base
+from tigrbl import HTTPBearer, Security
 
 
 pytestmark = pytest.mark.xfail(
@@ -40,7 +36,7 @@ def test_security_applied_per_route():
     assert "HTTPBearer" in schema["components"]["securitySchemes"]
 
 
-def test_set_auth_after_include_model_applies_security():
+def test_set_auth_after_inclued_table_applies_security():
     class Gadget(Base, GUIDPk):
         __tablename__ = "gadgets_security"
 

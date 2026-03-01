@@ -1,5 +1,5 @@
-from tigrbl.engine import resolver
-from tigrbl.engine.shortcuts import mem
+from tigrbl import resolver
+from tigrbl.shortcuts.engine import mem
 
 
 def test_engine_usage_levels_and_precedence():

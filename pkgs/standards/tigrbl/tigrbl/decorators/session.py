@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Optional
-from ..session.spec import SessionSpec, SessionCfg
+from .._spec.session_spec import SessionSpec, SessionCfg
 
 
 def _normalize(cfg: Optional[SessionCfg] = None, **kw: Any) -> SessionSpec:

@@ -1,15 +1,14 @@
 from httpx import ASGITransport, Client
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
-from tigrbl.requests import Request
-from tigrbl.runtime.status import HTTPException
-from tigrbl.engine import resolver as _resolver
-from tigrbl.engine.shortcuts import mem
 from sqlalchemy.orm import sessionmaker
-
 from tigrbl import TigrblApp, TigrblRouter
+from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from tigrbl import resolver as _resolver
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
-from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from tigrbl import Request
+from tigrbl.runtime.status import HTTPException
+from tigrbl import HTTPAuthorizationCredentials, HTTPBearer, Security
 from tigrbl.types import (
     AllowAnonProvider,
     AuthNProvider,
@@ -66,6 +65,7 @@ def _build_client():
     router.initialize()
     app = TigrblApp()
     app.include_router(router)
+    app.initialize()
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -98,6 +98,7 @@ def _build_client_attr():
     router.initialize()
     app = TigrblApp()
     app.include_router(router)
+    app.initialize()
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -167,6 +168,7 @@ def _build_client_create_noauth():
 
     app = TigrblApp()
     app.include_router(router)
+    app.initialize()
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -198,6 +200,7 @@ def _build_client_create_attr_noauth():
 
     app = TigrblApp()
     app.include_router(router)
+    app.initialize()
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)

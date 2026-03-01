@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tigrbl.specs import S
+from tigrbl import S
 from tigrbl.types import Integer
 
 

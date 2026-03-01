@@ -11,7 +11,6 @@ from .common import (
     _ensure_router_ns,
     _has_include_router,
     _mount_router,
-    _resource_name,
 )
 from .resource_proxy import _ResourceProxy
 from .. import model as _binder
@@ -22,7 +21,7 @@ from ...config.constants import (
     TIGRBL_RPC_DEPENDENCIES_ATTR,
     TIGRBL_ALLOW_ANON_ATTR,
 )
-from ...engine import resolver as _resolver
+from ...mapping import engine_resolver as _resolver
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/include")
@@ -204,7 +203,7 @@ def _attach_to_router(router: RouterLike, table: type) -> None:
     _ensure_router_ns(router)
 
     tname = table.__name__
-    rname = _resource_name(table)
+    rname = table.resource_name
     rtitle = rname[:1].upper() + rname[1:]
     logger.debug("Attaching table %s as resource '%s'", tname, rname)
 
@@ -280,8 +279,8 @@ def include_model(
     # run after a registry dispose still have working models.
     if not hasattr(model, "__table__"):
         try:  # pragma: no cover - defensive path exercised in tests
-            from ...table import Base
-            from ...table._base import _materialize_colspecs_to_sqla
+            from ...orm.tables import Base
+            from ..._base._table_base import _materialize_colspecs_to_sqla
 
             # Recreate mapped_column attributes from ColumnSpecs then map
             _materialize_colspecs_to_sqla(model)

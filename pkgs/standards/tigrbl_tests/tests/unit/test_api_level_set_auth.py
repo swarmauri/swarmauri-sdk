@@ -1,13 +1,11 @@
 import pytest
 
 from tigrbl import TigrblApp
-from tigrbl.security import HTTPBearer
+from tigrbl import Router
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
-
-
-from tigrbl.router import Router
-from tigrbl.security import Security
+from tigrbl import HTTPBearer
+from tigrbl import Security
 
 
 pytestmark = pytest.mark.xfail(

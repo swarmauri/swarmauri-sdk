@@ -1,22 +1,18 @@
+import uuid
 from typing import Iterable
 
-from httpx import ASGITransport, Client
 import pytest
-import uuid
+from httpx import ASGITransport, Client
 from sqlalchemy import Column, String
-
-from tigrbl import TigrblApp, Base, TigrblRouter
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
+from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.mixins.ownable import Ownable, OwnerPolicy
 from tigrbl.orm.mixins.tenant_bound import TenantBound, TenantPolicy
-from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
-from tigrbl.types.authn_abc import AuthNProvider
-
-
+from tigrbl import Request
 from tigrbl.runtime.status import HTTPException
-from tigrbl.requests import Request
-from tigrbl.security import Security
+from tigrbl import HTTPAuthorizationCredentials, HTTPBearer, Security
+from tigrbl.types.authn_abc import AuthNProvider
 
 
 class DummyAuth(AuthNProvider):
@@ -56,9 +52,9 @@ def _client_for_owner(
         name = Column(String, nullable=False)
         __tigrbl_owner_policy__ = policy
 
-    from tigrbl.engine.shortcuts import mem
-    from tigrbl.engine.engine_spec import EngineSpec
-    from tigrbl.engine._engine import Engine
+    from tigrbl._concrete._engine import Engine
+    from tigrbl._spec import EngineSpec
+    from tigrbl.shortcuts.engine import mem
 
     cfg = {**mem(async_=False), "tag": str(uuid.uuid4())}
     engine = Engine(EngineSpec.from_any(cfg))
@@ -134,9 +130,9 @@ def _client_for_tenant(
         name = Column(String, nullable=False)
         __tigrbl_tenant_policy__ = policy
 
-    from tigrbl.engine.shortcuts import mem
-    from tigrbl.engine.engine_spec import EngineSpec
-    from tigrbl.engine._engine import Engine
+    from tigrbl._concrete._engine import Engine
+    from tigrbl._spec import EngineSpec
+    from tigrbl.shortcuts.engine import mem
 
     cfg = {**mem(async_=False), "tag": str(uuid.uuid4())}
     engine = Engine(EngineSpec.from_any(cfg))

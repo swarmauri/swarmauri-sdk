@@ -6,7 +6,7 @@ import inspect
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Optional, Sequence, Union
 
-from ..op.types import OpSpec, Arity, TargetOp, PersistPolicy
+from .._spec.op_spec import OpSpec, Arity, TargetOp, PersistPolicy
 from ..schema.types import SchemaArg
 
 
@@ -87,7 +87,7 @@ def alias_ctx(**verb_to_alias_or_decl: Union[str, AliasDecl]):
         setattr(cls, "__tigrbl_aliases__", amap)
         setattr(cls, "__tigrbl_alias_overrides__", overrides)
         try:  # clear cached alias maps so late-applied decorators take effect
-            from ..op.mro_collect import mro_alias_map_for
+            from ..mapping.op_mro_collect import mro_alias_map_for
 
             mro_alias_map_for.cache_clear()
         except Exception:  # pragma: no cover - best effort

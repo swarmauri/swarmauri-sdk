@@ -5,8 +5,9 @@ from typing import Any, Mapping
 import pytest
 from tigrbl.core import crud
 from tigrbl.core.crud import helpers
-from tigrbl.engine.shortcuts import engine, mem
-from tigrbl.specs import IO, S, F, acol
+from tigrbl.shortcuts.engine import engine
+from tigrbl.shortcuts.engine import mem
+from tigrbl import IO, S, F, acol
 from tigrbl.types import Column, Integer, SAEnum, SimpleNamespace, String
 from sqlalchemy import select
 from sqlalchemy.orm import declarative_base

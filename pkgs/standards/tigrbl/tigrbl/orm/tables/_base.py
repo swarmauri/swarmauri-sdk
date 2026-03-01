@@ -1,8 +1,7 @@
-"""Compatibility layer for Base moved to tigrbl.table."""
+"""Backward-compatible TableBase export for ORM tables."""
 
-from __future__ import annotations
+from ..._base._table_base import TableBase
 
-from ...table import Base
-from ...table._base import _materialize_colspecs_to_sqla
+Base = TableBase
 
-__all__ = ["Base", "_materialize_colspecs_to_sqla"]
+__all__ = ["TableBase", "Base"]

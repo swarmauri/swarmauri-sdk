@@ -12,11 +12,12 @@ except Exception:  # pragma: no cover
         pass
 
 
+from .._base import SchemaBase
 from ..schema.types import SchemaKind
 
 
 @dataclass(frozen=True, slots=True)
-class Schema:
+class Schema(SchemaBase):
     """Concrete schema paired with its alias and kind."""
 
     model: Type[BaseModel]

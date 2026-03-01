@@ -1,11 +1,10 @@
 import httpx
 import pytest
 import pytest_asyncio
-
 from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables._base import Base
-from tigrbl.specs import F, S, IO, acol
+from tigrbl import IO, F, S, acol
+from tigrbl import Base
 from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server

@@ -4,7 +4,7 @@ from time import perf_counter, sleep
 
 from tigrbl.system.diagnostics import _build_methodz_endpoint
 from tigrbl.system import diagnostics as _diag
-from tigrbl.op import OpSpec
+from tigrbl import OpSpec
 
 
 @pytest.mark.asyncio

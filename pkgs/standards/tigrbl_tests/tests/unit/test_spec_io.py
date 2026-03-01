@@ -1,5 +1,5 @@
-from tigrbl.column import F, IO
-from tigrbl.column.io_spec import Pair
+from tigrbl import FieldSpec as F, IOSpec as IO
+from tigrbl._spec.io_spec import Pair
 
 
 def test_io_spec_assemble_and_alias_readtime():

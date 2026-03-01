@@ -1,6 +1,5 @@
-from tigrbl import TigrblApp
-from tigrbl import op_ctx
-from tigrbl.op.mro_collect import mro_collect_decorated_ops
+from tigrbl import TigrblApp, op_ctx
+from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
 from tigrbl.mapping.rest.router import _build_router
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk

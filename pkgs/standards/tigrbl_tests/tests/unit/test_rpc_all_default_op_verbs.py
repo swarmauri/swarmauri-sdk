@@ -2,12 +2,12 @@ import pytest
 from collections.abc import Iterator
 
 from tigrbl import TigrblApp
-from tigrbl.engine import resolver as _resolver
-from tigrbl.engine.shortcuts import mem
-from tigrbl.op import OpSpec
+from tigrbl import resolver as _resolver
+from tigrbl.shortcuts.engine import mem
+from tigrbl import OpSpec
 from tigrbl.orm.mixins import BulkCapable, GUIDPk, Replaceable
 from tigrbl.orm.tables import Base
-from tigrbl.specs import IO, S, F, acol as spec_acol
+from tigrbl import IO, S, F, acol as spec_acol
 from tigrbl.types import Session, String, uuid4
 
 

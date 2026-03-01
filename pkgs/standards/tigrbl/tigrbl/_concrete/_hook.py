@@ -1,22 +1,12 @@
-"""Runtime hook wrapper for Tigrbl v3."""
+"""Concrete runtime hook wrapper for Tigrbl v3."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Iterable, Optional, Union
-
-from ..hook.types import HookPhase, StepFn
+from .._base._hook_base import HookBase
 
 
-@dataclass(frozen=True, slots=True)
-class Hook:
-    """Concrete hook bound to a phase and one or more ops."""
-
-    phase: HookPhase
-    fn: StepFn
-    ops: Union[str, Iterable[str]]
-    name: Optional[str] = None
-    description: Optional[str] = None
+class Hook(HookBase):
+    """Concrete hook implementation."""
 
 
 __all__ = ["Hook"]

@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from tigrbl import op_alias
-from tigrbl.op import resolve
+from tigrbl.mapping.op_resolver import resolve
 
 
 def _get_spec(**decorator_kwargs):

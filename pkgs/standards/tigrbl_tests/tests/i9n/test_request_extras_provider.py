@@ -1,5 +1,4 @@
 import pytest
-
 from tigrbl import Base
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.schema import _build_schema

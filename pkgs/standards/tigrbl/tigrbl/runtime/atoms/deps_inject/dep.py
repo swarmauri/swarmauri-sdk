@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
-ANCHOR = "prex_tx_begin:dep"
+from ... import events as _ev
+
+ANCHOR = _ev.DEP_EXTRA
 
 
 async def run(_obj: Any, ctx: Any) -> None:

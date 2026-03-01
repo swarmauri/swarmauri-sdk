@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Sequence, Tuple
 
 
 from ...runtime.status.mappings import status as _status
-from ...security.dependencies import Depends
+from ..._concrete.dependencies import Depends
 from ...op import OpSpec
 from ...op.types import CANON
 

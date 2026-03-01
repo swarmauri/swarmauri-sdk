@@ -1,21 +1,6 @@
-"""Dependency wrappers for API/security injection semantics."""
+"""Compatibility wrappers for FastAPI dependency helpers."""
 
-from __future__ import annotations
+from fastapi import Depends, Security
+from fastapi.params import Depends as Dependency
 
-from typing import Any, Callable
-
-
-class Dependency:
-    def __init__(self, dependency: Callable[..., Any]) -> None:
-        self.dependency = dependency
-
-
-def Depends(fn: Callable[..., Any]) -> Dependency:
-    return Dependency(fn)
-
-
-def Security(fn: Callable[..., Any]) -> Dependency:
-    return Dependency(fn)
-
-
-__all__ = ["Dependency", "Depends", "Security"]
+__all__ = ["Depends", "Security", "Dependency"]

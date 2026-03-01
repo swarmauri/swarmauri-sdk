@@ -1,12 +1,12 @@
 import pytest
 
 from tigrbl.mapping.rest.router import _build_router
-from tigrbl.op import OpSpec
+from tigrbl import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 
 
-from tigrbl.router import Router
+from tigrbl import Router
 
 
 pytestmark = pytest.mark.xfail(

@@ -7,9 +7,10 @@ from tigrbl.mapping import (
     build_schemas,
     register_rpc,
 )
-from tigrbl.op.mro_collect import mro_collect_decorated_ops
-from tigrbl.responses import response_ctx, render_template
-from tigrbl.responses.shortcuts import (
+from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
+from tigrbl import response_ctx
+from tigrbl.runtime.atoms.response.templates import render_template
+from tigrbl.shortcuts.responses import (
     as_file,
     as_html,
     as_json,
@@ -19,7 +20,7 @@ from tigrbl.responses.shortcuts import (
 )
 from pydantic import BaseModel
 from typing import get_args
-from tigrbl.responses.types import ResponseKind
+from tigrbl._spec.response_spec import ResponseKind
 
 
 RESPONSE_KINDS = get_args(ResponseKind)

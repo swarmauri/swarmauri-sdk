@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlalchemy import Column, String
 
 from tigrbl import Base, TigrblApp
-from tigrbl.op import OpSpec
+from tigrbl import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 
 

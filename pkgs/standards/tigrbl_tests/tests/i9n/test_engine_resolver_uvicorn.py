@@ -9,10 +9,9 @@ from __future__ import annotations
 import httpx
 import pytest
 from sqlalchemy import Column, String
-
-from tigrbl import Base, TigrblRouter, TigrblApp, engine_ctx, op_ctx
-from tigrbl.engine import resolver
-from tigrbl.engine.shortcuts import mem
+from tigrbl import Base, TigrblApp, TigrblRouter, engine_ctx, op_ctx
+from tigrbl import resolver
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server

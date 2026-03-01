@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..app._model_registry import initialize_table_registry
-from ..app.app_spec import AppSpec
+from ._table_registry import TableRegistry
+from .._spec.app_spec import AppSpec
 from ..ddl import initialize as _ddl_initialize
-from ..engine import install_from_objects
-from ..engine import resolver as _resolver
-from ..engine.engine_spec import EngineCfg
-from ..router import Router
-from ..router._routing import (
+from .._concrete._engine import Engine
+from ..mapping import engine_resolver as _resolver
+from .._spec.engine_spec import EngineCfg
+from ._routing import (
     include_router as _include_router_impl,
     merge_tags as _merge_tags_impl,
     normalize_prefix as _normalize_prefix_impl,
@@ -19,6 +18,10 @@ from ..runtime.gw.raw import GwRawEnvelope
 
 
 class App(AppSpec):
+    @classmethod
+    def _collect_mro_spec(cls) -> AppSpec:
+        return AppSpec.collect(cls)
+
     TITLE = "Tigrbl"
     VERSION = "0.1.0"
     LIFESPAN = None
@@ -39,15 +42,23 @@ class App(AppSpec):
     SYSTEM_PREFIX = "/system"
 
     def __init__(self, *, engine: EngineCfg | None = None, **asgi_kwargs: Any) -> None:
+        collected_spec = self.__class__._collect_mro_spec()
+
         title = asgi_kwargs.pop("title", None)
         if title is not None:
             self.TITLE = title
+        else:
+            title = collected_spec.title
         version = asgi_kwargs.pop("version", None)
         if version is not None:
             self.VERSION = version
+        else:
+            version = collected_spec.version
         lifespan = asgi_kwargs.pop("lifespan", None)
         if lifespan is not None:
             self.LIFESPAN = lifespan
+        else:
+            lifespan = collected_spec.lifespan
         get_db = asgi_kwargs.pop("get_db", None)
         if get_db is not None:
             self.get_db = get_db
@@ -69,25 +80,27 @@ class App(AppSpec):
         include_docs = asgi_kwargs.pop("include_docs", None)
         if include_docs is None:
             include_docs = bool(getattr(self, "INCLUDE_DOCS", False))
-        self.title = self.TITLE
-        self.version = self.VERSION
+        self.title = title
+        self.version = version
         self.description = description
         self.openapi_url = openapi_url
         self.docs_url = docs_url
         self.debug = debug
         self.swagger_ui_version = swagger_ui_version
-        self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
-        self.routers = tuple(getattr(self, "ROUTERS", ()))
-        self.ops = tuple(getattr(self, "OPS", ()))
-        self.tables = initialize_table_registry(getattr(self, "TABLES", ()))
-        self.schemas = tuple(getattr(self, "SCHEMAS", ()))
-        self.hooks = tuple(getattr(self, "HOOKS", ()))
-        self.security_deps = tuple(getattr(self, "SECURITY_DEPS", ()))
-        self.deps = tuple(getattr(self, "DEPS", ()))
-        self.response = getattr(self, "RESPONSE", None)
-        self.jsonrpc_prefix = getattr(self, "JSONRPC_PREFIX", "/rpc")
-        self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
-        self.lifespan = self.LIFESPAN
+        self.engine = engine if engine is not None else collected_spec.engine
+        self.routers = tuple(collected_spec.routers)
+        self.ops = tuple(collected_spec.ops)
+        self.tables = TableRegistry(tables=collected_spec.tables)
+        self.schemas = tuple(collected_spec.schemas)
+        self.hooks = tuple(collected_spec.hooks)
+        self.security_deps = tuple(collected_spec.security_deps)
+        self.deps = tuple(collected_spec.deps)
+        self.response = collected_spec.response
+        self.jsonrpc_prefix = collected_spec.jsonrpc_prefix
+        self.system_prefix = collected_spec.system_prefix
+        self.lifespan = lifespan
+
+        from ._router import Router
 
         Router.__init__(
             self,
@@ -119,9 +132,9 @@ class App(AppSpec):
         tables = tables if tables is not None else self.TABLES
         if routers:
             for a in routers:
-                install_from_objects(app=self, router=a, tables=tables)
+                Engine.install_from_objects(app=self, router=a, tables=tuple(tables))
         else:
-            install_from_objects(app=self, router=None, tables=tables)
+            Engine.install_from_objects(app=self, router=None, tables=tuple(tables))
 
     async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
         env = GwRawEnvelope(kind="asgi3", scope=scope, receive=receive, send=send)

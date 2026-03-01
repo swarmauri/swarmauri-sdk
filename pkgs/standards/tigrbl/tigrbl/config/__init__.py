@@ -10,7 +10,7 @@ Exports:
 from __future__ import annotations
 
 from .defaults import DEFAULTS
-from .resolver import CfgView, resolve_cfg
+from ..mapping.config_resolver import CfgView, resolve_cfg
 
 __all__ = [
     "DEFAULTS",

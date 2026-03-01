@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from tigrbl.table import Base
 from tigrbl.orm.mixins import GUIDPk, Timestamped
-from tigrbl.specs import F, IO, S, acol
+from tigrbl.specs import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.specs.storage_spec import ForeignKeySpec
 from tigrbl.types import (
     Mapped,

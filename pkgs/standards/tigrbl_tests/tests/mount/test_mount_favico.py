@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl import TigrblRouter, TigrblApp
+from tigrbl import TigrblApp, TigrblRouter
 
 
 class TestMountFaviconOnTigrblApp:

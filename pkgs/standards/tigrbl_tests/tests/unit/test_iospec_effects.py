@@ -11,12 +11,12 @@ from sqlalchemy.orm import DeclarativeBase
 
 from tigrbl.mapping.model import bind
 from tigrbl.mapping.rest.router import _build_router
-from tigrbl.op import OpSpec
+from tigrbl import OpSpec
 from tigrbl.runtime.atoms.resolve import assemble
 from tigrbl.runtime.atoms.schema import collect_in, collect_out
 from tigrbl.runtime.kernel import _default_kernel as K
 from tigrbl.schema import _build_list_params
-from tigrbl.specs import ColumnSpec, F, IO, S, acol, vcol
+from tigrbl import ColumnSpec, F, IO, S, acol, vcol
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
 
@@ -25,7 +25,7 @@ class _Base(DeclarativeBase):
     """Local base that materializes ColumnSpecs to SQLAlchemy Columns."""
 
     def __init_subclass__(cls, **kw):
-        from tigrbl.orm.tables._base import _materialize_colspecs_to_sqla
+        from tigrbl._base._table_base import _materialize_colspecs_to_sqla
 
         _materialize_colspecs_to_sqla(cls)
         super().__init_subclass__(**kw)

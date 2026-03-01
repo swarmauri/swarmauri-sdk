@@ -1,14 +1,12 @@
 import pytest
 
-from tigrbl import Base, TigrblRouter, TigrblApp
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
-from tigrbl.engine.shortcuts import mem
+from tigrbl import Base, TigrblApp, TigrblRouter
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
+from tigrbl import HTTPAuthorizationCredentials, HTTPBearer, Security
+from tigrbl import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.types import Mapped, String
-
-
-from tigrbl.security import Security
 
 
 def _auth_dependency(

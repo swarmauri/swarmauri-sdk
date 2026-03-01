@@ -1,20 +1,13 @@
 import json
 
-from tigrbl import (
-    alias_ctx,
-    alias,
-    op_ctx,
-    schema_ctx,
-    SchemaRef,
-)
-from tigrbl.op import resolve
-from tigrbl.op.mro_collect import mro_collect_decorated_ops
+from tigrbl import SchemaRef, TigrblApp, alias, alias_ctx, op_ctx, schema_ctx
+from tigrbl.mapping.op_resolver import resolve
+from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
 from tigrbl.mapping import build_schemas, build_hooks, build_handlers, build_rest
 
 # REST test client
 from httpx import ASGITransport, Client
 
-from tigrbl import TigrblApp
 from tigrbl.types import BaseModel
 
 

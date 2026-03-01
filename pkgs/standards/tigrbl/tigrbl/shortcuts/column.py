@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import Any, Callable, Optional
 
-from ..column._column import Column
-from ..column.column_spec import ColumnSpec
-from ..column.field_spec import FieldSpec as F
-from ..column.io_spec import IOSpec as IO
-from ..column.storage_spec import StorageSpec as S
+from .._concrete._column import Column
+from .._spec.column_spec import ColumnSpec
+from .._spec.field_spec import FieldSpec as F
+from .._spec.io_spec import IOSpec as IO
+from .._spec.storage_spec import StorageSpec as S
 
 __all__ = [
     "makeColumn",

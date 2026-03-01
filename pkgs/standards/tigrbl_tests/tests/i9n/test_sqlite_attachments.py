@@ -1,6 +1,6 @@
 import pytest
 from tigrbl import TigrblApp
-from tigrbl.engine.shortcuts import engine as build_engine, mem
+from tigrbl.shortcuts.engine import engine, mem
 
 
 def _db_names(conn):
@@ -9,7 +9,7 @@ def _db_names(conn):
 
 
 def test_initialize_sync_with_sqlite_attachments(tmp_path):
-    eng = build_engine(mem(async_=False))
+    eng = engine(mem(async_=False))
     attach_db = tmp_path / "logs.sqlite"
     attach_db.touch()
     app = TigrblApp(engine=eng)
@@ -23,7 +23,7 @@ def test_initialize_sync_with_sqlite_attachments(tmp_path):
 
 @pytest.mark.asyncio
 async def test_initialize_async_with_sqlite_attachments(tmp_path):
-    eng = build_engine(mem())
+    eng = engine(mem())
     attach_db = tmp_path / "logs.sqlite"
     attach_db.touch()
     app = TigrblApp(engine=eng)

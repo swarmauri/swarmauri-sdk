@@ -5,12 +5,29 @@ from types import SimpleNamespace
 from typing import Any, Dict, Mapping, Optional, Union
 
 from .common import RouterLike, _ensure_router_ns
-from ...engine import resolver as _resolver
+from ...mapping import engine_resolver as _resolver
 from ...core.crud.helpers.model import _single_pk_name
-from ...transport.dispatcher import resolve_operation
+from ...mapping.op_resolver import resolve as resolve_ops
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/rpc")
+
+
+def _fallback_resolution(
+    router: RouterLike, model_or_name: Union[type, str], alias: str
+) -> SimpleNamespace:
+    if isinstance(model_or_name, type):
+        model = model_or_name
+    else:
+        tables = getattr(router, "tables", {}) or {}
+        model = tables.get(model_or_name)
+    if model is None:
+        raise AttributeError(f"Unknown model '{model_or_name}'")
+
+    specs = resolve_ops(model)
+    spec = next((sp for sp in specs if sp.alias == alias), None)
+    target = spec.target if spec is not None else alias
+    return SimpleNamespace(model=model, target=target)
 
 
 async def rpc_call(
@@ -30,9 +47,7 @@ async def rpc_call(
     logger.debug("rpc_call invoked for model=%s method=%s", model_or_name, method)
     _ensure_router_ns(router)
 
-    resolution = resolve_operation(
-        router=router, model_or_name=model_or_name, alias=method
-    )
+    resolution = _fallback_resolution(router, model_or_name, method)
     mdl = resolution.model
     logger.debug(
         "Resolved operation model=%s alias=%s target=%s",

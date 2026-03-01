@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from tigrbl.requests import Request
-from tigrbl.responses import Response
+from tigrbl import Response
 
 ADMIN_KEY = "admin-secret"
 

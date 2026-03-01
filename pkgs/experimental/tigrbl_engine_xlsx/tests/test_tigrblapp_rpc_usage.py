@@ -6,10 +6,11 @@ from openpyxl import Workbook
 import pytest
 
 from tigrbl import TigrblApp
-from tigrbl.bindings import rpc_call
+from tigrbl import rpc_call
 from tigrbl.engine import EngineSpec
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
+from tigrbl.specs import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.table import Table
 from tigrbl.types import Mapped, String
 

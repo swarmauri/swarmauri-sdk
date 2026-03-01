@@ -1,4 +1,4 @@
-from tigrbl.hook.types import PHASES as HOOK_PHASES
+from tigrbl.op.types import PHASES as HOOK_PHASES
 from tigrbl.runtime.events import PHASES as RUNTIME_PHASES
 
 

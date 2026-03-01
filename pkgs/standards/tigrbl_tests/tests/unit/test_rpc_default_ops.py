@@ -3,11 +3,11 @@ from collections.abc import Iterator
 
 from tigrbl import TigrblApp
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
-from tigrbl.specs import IO, S, F, acol as spec_acol
+from tigrbl import IO, S, F, acol as spec_acol
 from tigrbl.orm.tables import Base
 from tigrbl.types import Session, String
-from tigrbl.engine.shortcuts import mem
-from tigrbl.engine import resolver as _resolver
+from tigrbl.shortcuts.engine import mem
+from tigrbl import resolver as _resolver
 
 
 @pytest.fixture()

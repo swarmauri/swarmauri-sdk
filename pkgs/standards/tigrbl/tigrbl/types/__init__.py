@@ -4,7 +4,7 @@ import warnings
 from uuid import uuid4, UUID
 
 # ── Third-party Dependencies (via deps module) ───────────────────────────
-from ..deps.sqlalchemy import (
+from ..vendor.sqlalchemy import (
     # Core SQLAlchemy
     Boolean,
     Column,
@@ -47,7 +47,7 @@ from ..deps.sqlalchemy import (
 )
 
 
-from ..deps.pydantic import (
+from ..vendor.pydantic import (
     BaseModel,
     Field,
     ValidationError,
@@ -55,7 +55,7 @@ from ..deps.pydantic import (
 
 from ..core.crud.params import Path
 from ..runtime.status.exceptions import StatusDetailError
-from ..security.dependencies import Security
+from .._concrete.dependencies import Security
 
 # ── Local Package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
@@ -157,12 +157,12 @@ __all__: list[str] = [
 
 
 _DEPRECATED_EXPORTS: dict[str, tuple[str, str]] = {
-    "Router": ("tigrbl.router", "Router"),
-    "Request": ("tigrbl.requests", "Request"),
+    "Router": ("tigrbl", "Router"),
+    "Request": ("tigrbl", "Request"),
     "Body": ("tigrbl.core.crud", "Body"),
-    "Depends": ("tigrbl.security", "Depends"),
+    "Depends": ("tigrbl", "Depends"),
     "HTTPException": ("tigrbl.runtime.status", "HTTPException"),
-    "Response": ("tigrbl.responses", "Response"),
+    "Response": ("tigrbl", "Response"),
 }
 
 

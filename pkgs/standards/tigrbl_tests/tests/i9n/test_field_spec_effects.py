@@ -2,17 +2,16 @@ from types import SimpleNamespace
 
 import pytest
 import pytest_asyncio
-from tigrbl import TigrblApp, TigrblRouter
 from httpx import ASGITransport, AsyncClient
-from tigrbl.engine import resolver as _resolver
-from tigrbl.engine.shortcuts import mem
 from sqlalchemy.orm import sessionmaker
-
-from tigrbl.orm.tables import Base
+from tigrbl import TigrblApp, TigrblRouter
+from tigrbl import resolver as _resolver
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import acol, F, IO, S
-from tigrbl.types import String
+from tigrbl.orm.tables import Base
 from tigrbl.runtime.atoms.schema import collect_in
+from tigrbl import IO, F, S, acol
+from tigrbl.types import String
 
 
 @pytest_asyncio.fixture

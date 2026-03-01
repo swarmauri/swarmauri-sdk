@@ -1,33 +1,3 @@
-from fastapi import (
-    APIRouter,
-    Body,
-    FastAPI,
-    HTTPException,
-    Request,
-    status,
-    Depends,
-    Response,
-    Form,
-    Header,
-    Security,
-)
-from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
-from fastapi.security import APIKeyHeader
+"""Compatibility shim for :mod:`tigrbl_auth.vendor.fastapi`."""
 
-__all__ = [
-    "APIRouter",
-    "Body",
-    "FastAPI",
-    "HTTPException",
-    "Request",
-    "status",
-    "Depends",
-    "Response",
-    "Form",
-    "Header",
-    "Security",
-    "JSONResponse",
-    "HTMLResponse",
-    "RedirectResponse",
-    "APIKeyHeader",
-]
+from ..vendor.fastapi import *  # noqa: F403, F401

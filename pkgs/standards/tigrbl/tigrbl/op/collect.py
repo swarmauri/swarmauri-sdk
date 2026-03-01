@@ -1,11 +1,20 @@
 from __future__ import annotations
 
-from typing import Dict
+from typing import Mapping
+
+from .._concrete._op import Op as OpSpec
 
 
-def apply_alias(verb: str, alias_map: Dict[str, str]) -> str:
-    """Resolve canonical verb → alias (falls back to verb)."""
-    return alias_map.get(verb, verb)
+def apply_alias(verb: str, alias_map: Mapping[str, str]) -> str:
+    """Deprecated compatibility shim; use :meth:`OpSpec.apply_alias`."""
+
+    return OpSpec.apply_alias(verb, alias_map)
 
 
-__all__ = ["apply_alias"]
+def collect(table: type) -> tuple[OpSpec, ...]:
+    """Deprecated compatibility shim; use :meth:`OpSpec.collect`."""
+
+    return OpSpec.collect(table)
+
+
+__all__ = ["apply_alias", "collect"]

@@ -1,23 +1,13 @@
-from ..config.constants import HOOK_DECLS_ATTR
-from .decorators import hook_ctx
-from .types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
-from .shortcuts import hook, hook_spec
-from ._hook import Hook
-from .exceptions import InvalidHookPhaseError
-from .hook_spec import HookSpec
+"""Hook public API."""
 
-__all__ = [
-    "hook_ctx",
-    "HOOK_DECLS_ATTR",
-    "Hook",
-    "PHASE",
-    "HookPhase",
-    "PHASES",
-    "Ctx",
-    "StepFn",
-    "HookPredicate",
-    "hook",
-    "hook_spec",
-    "HookSpec",
-    "InvalidHookPhaseError",
-]
+from __future__ import annotations
+
+from .._spec.hook_spec import HookSpec, OpHook
+
+def hook_ctx(*args, **kwargs):
+    from ..decorators.hook import hook_ctx as _hook_ctx
+
+    return _hook_ctx(*args, **kwargs)
+
+
+__all__ = ["HookSpec", "OpHook", "hook_ctx"]
