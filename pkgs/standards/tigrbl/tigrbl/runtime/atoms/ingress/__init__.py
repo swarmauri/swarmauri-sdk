@@ -11,6 +11,7 @@ from . import method_extract as _method_extract
 from . import metrics_start as _metrics_start
 from . import path_extract as _path_extract
 from . import query_parse as _query_parse
+from . import raw_from_scope as _raw_from_scope
 
 RunFn = Callable[[Optional[object], Any], Any]
 
@@ -18,6 +19,7 @@ REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
     ("ingress", "ctx_init"): (_ctx_init.ANCHOR, _ctx_init.run),
     ("ingress", "attach_compiled"): (_attach_compiled.ANCHOR, _attach_compiled.run),
     ("ingress", "metrics_start"): (_metrics_start.ANCHOR, _metrics_start.run),
+    ("ingress", "raw_from_scope"): (_raw_from_scope.ANCHOR, _raw_from_scope.run),
     ("ingress", "method_extract"): (_method_extract.ANCHOR, _method_extract.run),
     ("ingress", "path_extract"): (_path_extract.ANCHOR, _path_extract.run),
     ("ingress", "headers_parse"): (_headers_parse.ANCHOR, _headers_parse.run),
