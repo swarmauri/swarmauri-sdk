@@ -19,6 +19,7 @@ from .dep import REGISTRY as _DEP
 from .egress import REGISTRY as _EGRESS
 from .ingress import REGISTRY as _INGRESS
 from .route import REGISTRY as _ROUTE
+from .sys import REGISTRY as _SYS
 
 # Runner signature: (obj|None, ctx) -> None
 RunFn = Callable[[Optional[object], Any], None]
@@ -56,6 +57,7 @@ _add_bulk(_DEP)
 _add_bulk(_INGRESS)
 _add_bulk(_ROUTE)
 _add_bulk(_EGRESS)
+_add_bulk(_SYS)
 
 logger.info("Loaded %d runtime atoms", len(REGISTRY))
 
