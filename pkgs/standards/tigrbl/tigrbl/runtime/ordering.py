@@ -19,6 +19,7 @@ _PREF: Dict[str, Tuple[str, ...]] = {
     _ev.INGRESS_CTX_INIT: ("ingress:ctx_init",),
     _ev.INGRESS_CTX_ATTACH_COMPILED: ("ingress:attach_compiled",),
     _ev.INGRESS_METRICS_START: ("ingress:metrics_start",),
+    _ev.INGRESS_RAW_FROM_SCOPE: ("ingress:raw_from_scope",),
     _ev.INGRESS_METHOD_EXTRACT: ("ingress:method_extract",),
     _ev.INGRESS_PATH_EXTRACT: ("ingress:path_extract",),
     _ev.INGRESS_HEADERS_PARSE: ("ingress:headers_parse",),
