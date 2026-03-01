@@ -49,6 +49,19 @@ def _normalize_query_map(query: object) -> dict[str, list[Any]] | None:
     return out
 
 
+def _parse_scope_query(ctx: Any) -> dict[str, list[str]] | None:
+    raw = getattr(ctx, "raw", None)
+    scope = getattr(raw, "scope", None) if raw is not None else None
+    if not isinstance(scope, dict):
+        return None
+    query_string = scope.get("query_string", b"")
+    if isinstance(query_string, (bytes, bytearray)):
+        return parse_qs(bytes(query_string).decode("latin-1"), keep_blank_values=True)
+    if isinstance(query_string, str):
+        return parse_qs(query_string, keep_blank_values=True)
+    return None
+
+
 def run(obj: object | None, ctx: Any) -> None:
     del obj
     parsed: dict[str, list[Any]] | None = None
@@ -58,21 +71,12 @@ def run(obj: object | None, ctx: Any) -> None:
     parsed = _normalize_query_map(query)
 
     if parsed is None:
+        parsed = _parse_scope_query(ctx)
+
+    if parsed is None:
         gw_raw = getattr(ctx, "gw_raw", None)
         gw_query = getattr(gw_raw, "query", None) if gw_raw is not None else None
         parsed = _normalize_query_map(gw_query)
-
-    if parsed is None:
-        raw = getattr(ctx, "raw", None)
-        scope = getattr(raw, "scope", None) if raw is not None else None
-        if isinstance(scope, dict):
-            query_string = scope.get("query_string", b"")
-            if isinstance(query_string, (bytes, bytearray)):
-                parsed = parse_qs(
-                    bytes(query_string).decode("latin-1"), keep_blank_values=True
-                )
-            elif isinstance(query_string, str):
-                parsed = parse_qs(query_string, keep_blank_values=True)
 
     if parsed is None:
         return

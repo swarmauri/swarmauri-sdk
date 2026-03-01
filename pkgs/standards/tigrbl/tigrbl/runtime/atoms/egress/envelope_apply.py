@@ -17,11 +17,17 @@ def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
 
 def _is_jsonrpc(ctx: Any, egress: MutableMapping[str, Any]) -> bool:
     route = getattr(ctx, "gw_raw", None)
-    kind = getattr(route, "kind", None)
-    if kind == "jsonrpc":
+    if getattr(route, "kind", None) == "jsonrpc":
         return True
+
     explicit = egress.get("response_kind")
-    return explicit == "jsonrpc"
+    if explicit == "jsonrpc":
+        return True
+
+    route_temp = getattr(ctx, "temp", None)
+    route_ns = route_temp.get("route") if isinstance(route_temp, dict) else None
+    rpc_env = route_ns.get("rpc_envelope") if isinstance(route_ns, dict) else None
+    return isinstance(rpc_env, dict) and rpc_env.get("jsonrpc") == "2.0"
 
 
 def run(obj: object | None, ctx: Any) -> None:
