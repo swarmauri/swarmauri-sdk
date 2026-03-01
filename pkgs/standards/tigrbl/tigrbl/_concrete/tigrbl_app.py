@@ -130,12 +130,15 @@ class TigrblApp(_App):
         title = asgi_kwargs.pop("title", None)
         if title is not None:
             self.TITLE = title
+            asgi_kwargs["title"] = title
         version = asgi_kwargs.pop("version", None)
         if version is not None:
             self.VERSION = version
+            asgi_kwargs["version"] = version
         lifespan = asgi_kwargs.pop("lifespan", None)
         if lifespan is not None:
             self.LIFESPAN = lifespan
+            asgi_kwargs["lifespan"] = lifespan
         super().__init__(engine=engine, **asgi_kwargs)
         self._middlewares: list[tuple[Any, dict[str, Any]]] = []
         self.middlewares = tuple(getattr(self, "MIDDLEWARES", ()))
