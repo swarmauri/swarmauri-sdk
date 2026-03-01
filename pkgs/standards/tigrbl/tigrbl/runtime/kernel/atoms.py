@@ -197,8 +197,17 @@ def _inject_atoms(
 
 def _inject_txn_system_steps(chains: Dict[str, List[StepFn]]) -> None:
     start_anchor, start_run = _sys.get("txn", "begin")
+    handler_anchor, handler_run = _sys.get("handler", "crud")
     end_anchor, end_run = _sys.get("txn", "commit")
-    chains.setdefault(start_anchor, []).append(
-        _wrap_atom(start_run, anchor=start_anchor)
-    )
-    chains.setdefault(end_anchor, []).append(_wrap_atom(end_run, anchor=end_anchor))
+
+    start_step = _wrap_atom(start_run, anchor=start_anchor)
+    setattr(start_step, "__tigrbl_label", f"hook:sys:txn:begin@{start_anchor}")
+    chains.setdefault(_ev.phase_for_event(start_anchor), []).append(start_step)
+
+    handler_step = _wrap_atom(handler_run, anchor=handler_anchor)
+    setattr(handler_step, "__tigrbl_label", f"hook:sys:handler:crud@{handler_anchor}")
+    chains.setdefault(_ev.phase_for_event(handler_anchor), []).append(handler_step)
+
+    end_step = _wrap_atom(end_run, anchor=end_anchor)
+    setattr(end_step, "__tigrbl_label", f"hook:sys:txn:commit@{end_anchor}")
+    chains.setdefault(_ev.phase_for_event(end_anchor), []).append(end_step)

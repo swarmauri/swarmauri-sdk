@@ -39,6 +39,9 @@ _PREF: Dict[str, Tuple[str, ...]] = {
     _ev.ROUTE_CTX_FINALIZE: ("route:ctx_finalize",),
     _ev.DEP_SECURITY: (_ev.DEP_SECURITY,),
     _ev.DEP_EXTRA: (_ev.DEP_EXTRA,),
+    _ev.SYS_TXN_BEGIN: ("sys:txn:begin",),
+    _ev.SYS_HANDLER_CRUD: ("sys:handler:crud",),
+    _ev.SYS_TXN_COMMIT: ("sys:txn:commit",),
     _ev.SCHEMA_COLLECT_IN: ("schema:collect_in",),
     _ev.IN_VALIDATE: ("wire:build_in", "wire:validate_in"),
     _ev.RESOLVE_VALUES: ("resolve:assemble", "resolve:paired_gen"),
@@ -165,6 +168,14 @@ def flatten(
         out,
         by_anchor,
         anchors,
+        target_phase="START_TX",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
         target_phase="PRE_HANDLER",
         anchor_policies=anchor_policies,
         persist=persist,
@@ -173,7 +184,23 @@ def flatten(
         out,
         by_anchor,
         anchors,
+        target_phase="HANDLER",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
         target_phase="POST_HANDLER",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
+        target_phase="END_TX",
         anchor_policies=anchor_policies,
         persist=persist,
     )

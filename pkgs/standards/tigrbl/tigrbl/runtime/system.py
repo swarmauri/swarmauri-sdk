@@ -5,15 +5,16 @@ import logging
 import inspect
 from typing import Any, Callable, Dict, Mapping, MutableMapping, Optional, Tuple
 
+from . import events as _ev
 from . import status as _err
 from .executor.helpers import _in_tx, _is_async_db
 
 log = logging.getLogger(__name__)
 
 # Canonical anchors for system steps (ordering uses these symbolic anchors)
-START_TX = "START_TX"
-HANDLER = "HANDLER"
-END_TX = "END_TX"
+START_TX = _ev.SYS_TXN_BEGIN
+HANDLER = _ev.SYS_HANDLER_CRUD
+END_TX = _ev.SYS_TXN_COMMIT
 
 # Runner signature (matches atoms): (obj|None, ctx) -> None
 SysRunFn = Callable[[Optional[object], Any], None]

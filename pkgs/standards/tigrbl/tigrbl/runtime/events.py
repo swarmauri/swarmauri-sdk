@@ -103,6 +103,11 @@ ROUTE_CTX_FINALIZE = "route.ctx.finalize"
 DEP_SECURITY = "dep:security"
 DEP_EXTRA = "dep:extra"
 
+# START_TX / HANDLER / END_TX (system persistence lifecycle)
+SYS_TXN_BEGIN = "sys.txn.begin"
+SYS_HANDLER_CRUD = "sys.handler.crud"
+SYS_TXN_COMMIT = "sys.txn.commit"
+
 # PRE_HANDLER
 SCHEMA_COLLECT_IN = "schema:collect_in"
 IN_VALIDATE = "in:validate"
@@ -162,6 +167,10 @@ _EVENT_ORDER: Tuple[str, ...] = (
     # PRE_TX_BEGIN
     DEP_SECURITY,
     DEP_EXTRA,
+    # START_TX / HANDLER / END_TX
+    SYS_TXN_BEGIN,
+    SYS_HANDLER_CRUD,
+    SYS_TXN_COMMIT,
     # PRE_HANDLER
     SCHEMA_COLLECT_IN,
     IN_VALIDATE,
@@ -223,6 +232,9 @@ _ANCHOR_PHASE: Dict[str, Phase] = {
     ROUTE_CTX_FINALIZE: "INGRESS_ROUTE",
     DEP_SECURITY: "PRE_TX_BEGIN",
     DEP_EXTRA: "PRE_TX_BEGIN",
+    SYS_TXN_BEGIN: "START_TX",
+    SYS_HANDLER_CRUD: "HANDLER",
+    SYS_TXN_COMMIT: "END_TX",
     SCHEMA_COLLECT_IN: "PRE_HANDLER",
     IN_VALIDATE: "PRE_HANDLER",
     RESOLVE_VALUES: "PRE_HANDLER",
@@ -384,6 +396,9 @@ __all__ = [
     "AnchorInfo",
     "DEP_SECURITY",
     "DEP_EXTRA",
+    "SYS_TXN_BEGIN",
+    "SYS_HANDLER_CRUD",
+    "SYS_TXN_COMMIT",
     "is_valid_event",
     "phase_for_event",
     "is_persist_tied",
