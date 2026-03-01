@@ -195,10 +195,19 @@ def _inject_atoms(
         chains.setdefault(phase, []).append(_wrap_atom(run, anchor=anchor))
 
 
-def _inject_txn_system_steps(chains: Dict[str, List[StepFn]]) -> None:
+def _inject_txn_system_steps(
+    chains: Dict[str, List[StepFn]], *, model: Any | None = None
+) -> None:
     start_anchor, start_run = _sys.get("txn", "begin")
     end_anchor, end_run = _sys.get("txn", "commit")
     chains.setdefault(start_anchor, []).append(
         _wrap_atom(start_run, anchor=start_anchor)
     )
+
+    if not chains.get(_sys.HANDLER) and _sys.can_resolve_handler(model):
+        handler_anchor, handler_run = _sys.get("handler", "crud")
+        chains.setdefault(handler_anchor, []).append(
+            _wrap_atom(handler_run, anchor=handler_anchor)
+        )
+
     chains.setdefault(end_anchor, []).append(_wrap_atom(end_run, anchor=end_anchor))

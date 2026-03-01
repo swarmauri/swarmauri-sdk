@@ -16,20 +16,51 @@ def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     return temp
 
 
+def _normalize_query_map(query: object) -> dict[str, list[Any]] | None:
+    if query is None:
+        return None
+
+    if hasattr(query, "multi_items"):
+        out: dict[str, list[Any]] = {}
+        for key, value in query.multi_items():  # type: ignore[attr-defined]
+            out.setdefault(str(key), []).append(value)
+        return out
+
+    if isinstance(query, dict):
+        out: dict[str, list[Any]] = {}
+        for key, value in query.items():
+            if isinstance(value, (list, tuple)):
+                out[str(key)] = list(value)
+            else:
+                out[str(key)] = [value]
+        return out
+
+    try:
+        items = list(dict(query).items())
+    except Exception:
+        return None
+
+    out = {}
+    for key, value in items:
+        if isinstance(value, (list, tuple)):
+            out[str(key)] = list(value)
+        else:
+            out[str(key)] = [value]
+    return out
+
+
 def run(obj: object | None, ctx: Any) -> None:
     del obj
-    parsed: dict[str, Any] | None = None
+    parsed: dict[str, list[Any]] | None = None
 
     request = getattr(ctx, "request", None)
     query = getattr(request, "query_params", None) if request is not None else None
-    if query is not None:
-        parsed = dict(query)
+    parsed = _normalize_query_map(query)
 
     if parsed is None:
         gw_raw = getattr(ctx, "gw_raw", None)
         gw_query = getattr(gw_raw, "query", None) if gw_raw is not None else None
-        if gw_query is not None:
-            parsed = dict(gw_query)
+        parsed = _normalize_query_map(gw_query)
 
     if parsed is None:
         raw = getattr(ctx, "raw", None)

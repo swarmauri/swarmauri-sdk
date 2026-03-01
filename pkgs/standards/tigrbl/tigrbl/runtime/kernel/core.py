@@ -107,7 +107,7 @@ class Kernel:
 
         if persistent:
             try:
-                _inject_txn_system_steps(chains)
+                _inject_txn_system_steps(chains, model=model)
             except Exception:
                 logger.exception(
                     "kernel: failed to inject txn system steps for %s.%s",
