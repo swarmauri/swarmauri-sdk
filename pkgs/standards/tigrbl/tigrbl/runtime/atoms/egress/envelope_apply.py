@@ -1,21 +1,59 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, MutableMapping
 
 from ... import events as _ev
 
 ANCHOR = _ev.EGRESS_ENVELOPE_APPLY
 
 
-def run(obj: object | None, ctx: Any) -> None:
+def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
         temp = {}
         setattr(ctx, "temp", temp)
+    return temp
+
+
+def _is_jsonrpc(ctx: Any, egress: MutableMapping[str, Any]) -> bool:
+    route = getattr(ctx, "gw_raw", None)
+    kind = getattr(route, "kind", None)
+    if kind == "jsonrpc":
+        return True
+    if kind == "maybe-jsonrpc":
+        headers = getattr(route, "headers", {}) if route is not None else {}
+        ctype = str(headers.get("content-type", "")).lower()
+        return "application/json" in ctype
+    explicit = egress.get("response_kind")
+    return explicit == "jsonrpc"
+
+
+def run(obj: object | None, ctx: Any) -> None:
+    del obj
+    temp = _ensure_temp(ctx)
     egress = temp.setdefault("egress", {})
+
     payload = egress.get("wire_payload")
-    if payload is not None:
-        egress["enveloped"] = {"data": payload}
+    if payload is None:
+        return
+
+    if _is_jsonrpc(ctx, egress):
+        request_rpc = getattr(getattr(ctx, "gw_raw", None), "rpc", None)
+        rpc_id = request_rpc.get("id") if isinstance(request_rpc, dict) else None
+        egress["enveloped"] = {
+            "jsonrpc": "2.0",
+            "result": payload,
+            "id": rpc_id,
+        }
+        return
+
+    envelope = egress.get("envelope")
+    if isinstance(envelope, dict):
+        data = dict(envelope)
+        data.setdefault("data", payload)
+        egress["enveloped"] = data
+    else:
+        egress["enveloped"] = payload
 
 
 __all__ = ["ANCHOR", "run"]
