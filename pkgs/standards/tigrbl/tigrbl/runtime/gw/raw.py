@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Literal, Mapping
+from typing import Any, Awaitable, Callable, Literal, Mapping, Sequence
 
 
 @dataclass(slots=True)
@@ -20,7 +20,7 @@ class GwRouteEnvelope:
     method: str | None
     path: str | None
     headers: Mapping[str, str]
-    query: Mapping[str, str]
+    query: Mapping[str, Sequence[str]]
     body: bytes | None
     ws_event: Any | None
     rpc: Mapping[str, Any] | None

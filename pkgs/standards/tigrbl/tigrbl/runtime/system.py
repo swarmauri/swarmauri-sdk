@@ -143,6 +143,20 @@ def _sys_handler_crud(obj: Optional[object], ctx: Any) -> None:
         raise _err.SystemStepError("Handler execution failed.", cause=e)
 
 
+def can_resolve_handler(model: Any | None = None) -> bool:
+    """Return True when a CRUD handler can be resolved without request-local context."""
+    if callable(INSTALLED.handler):
+        return True
+    mdl = model
+    if mdl is not None:
+        runtime_handler = getattr(getattr(mdl, "runtime", None), "handler", None)
+        if callable(runtime_handler):
+            return True
+        if callable(getattr(mdl, "handler", None)):
+            return True
+    return False
+
+
 async def _sys_tx_commit(_obj: Optional[object], ctx: Any) -> None:
     """
     sys:txn:commit — commit the transaction if begin ran and adapter installed commit.

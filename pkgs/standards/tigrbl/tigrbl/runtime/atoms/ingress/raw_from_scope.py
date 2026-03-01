@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from urllib.parse import parse_qsl
+from urllib.parse import parse_qs
 from typing import Any, MutableMapping
 
 from ... import events as _ev
@@ -30,14 +30,12 @@ def _decode_headers(headers: object) -> dict[str, str]:
     return out
 
 
-def _parse_query(raw_query: object) -> dict[str, str]:
+def _parse_query(raw_query: object) -> dict[str, list[str]]:
     if isinstance(raw_query, (bytes, bytearray)):
-        pairs = parse_qsl(bytes(raw_query).decode("latin-1"), keep_blank_values=True)
-    elif isinstance(raw_query, str):
-        pairs = parse_qsl(raw_query, keep_blank_values=True)
-    else:
-        return {}
-    return {k: v for k, v in pairs}
+        return parse_qs(bytes(raw_query).decode("latin-1"), keep_blank_values=True)
+    if isinstance(raw_query, str):
+        return parse_qs(raw_query, keep_blank_values=True)
+    return {}
 
 
 def run(obj: object | None, ctx: object) -> None:

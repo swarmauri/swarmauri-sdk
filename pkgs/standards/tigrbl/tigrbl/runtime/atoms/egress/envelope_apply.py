@@ -20,10 +20,6 @@ def _is_jsonrpc(ctx: Any, egress: MutableMapping[str, Any]) -> bool:
     kind = getattr(route, "kind", None)
     if kind == "jsonrpc":
         return True
-    if kind == "maybe-jsonrpc":
-        headers = getattr(route, "headers", {}) if route is not None else {}
-        ctype = str(headers.get("content-type", "")).lower()
-        return "application/json" in ctype
     explicit = egress.get("response_kind")
     return explicit == "jsonrpc"
 
