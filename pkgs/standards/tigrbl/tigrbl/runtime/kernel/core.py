@@ -16,12 +16,24 @@ from .atoms import (
     _inject_pre_tx_dep_atoms,
     _inject_txn_system_steps,
     _is_persistent,
+    _wrap_atom,
 )
 from .cache import _SpecsOnceCache, _WeakMaybeDict
 from .models import KernelPlan, OpKey, OpMeta, OpView
 from .opview_compiler import compile_opview_from_specs
 
 logger = logging.getLogger(__name__)
+
+
+def deepmerge_phase_chains(
+    *phase_maps: Mapping[str, Sequence[StepFn]],
+) -> Dict[str, List[StepFn]]:
+    """Deterministically concatenate phase step lists into a new mapping."""
+    merged: Dict[str, List[StepFn]] = {}
+    for phase_map in phase_maps:
+        for phase, steps in (phase_map or {}).items():
+            merged.setdefault(phase, []).extend(list(steps or ()))
+    return {phase: list(steps) for phase, steps in merged.items()}
 
 
 class Kernel:
@@ -71,7 +83,7 @@ class Kernel:
     def invalidate_specs(self, model: Optional[type] = None) -> None:
         self._specs_cache.invalidate(model)
 
-    def build(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
+    def build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
         chains = _hook_phase_chains(model, alias)
         specs = getattr(getattr(model, "ops", SimpleNamespace()), "by_alias", {})
         sp_list = specs.get(alias) or ()
@@ -106,9 +118,48 @@ class Kernel:
             chains.setdefault(phase, [])
         return chains
 
+    def build(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
+        return self.build_op(model, alias)
+
+    def build_ingress(self, app: Any) -> Dict[str, List[StepFn]]:
+        del app
+        order = {name: idx for idx, name in enumerate(_ev.all_events_ordered())}
+        ingress_atoms: Dict[str, List[tuple[str, Any]]] = {}
+        for anchor, run in self._atoms() or ():
+            if not _ev.is_valid_event(anchor):
+                continue
+            phase = _ev.phase_for_event(anchor)
+            if phase not in {"INGRESS_BEGIN", "INGRESS_PARSE", "INGRESS_ROUTE"}:
+                continue
+            ingress_atoms.setdefault(phase, []).append((anchor, run))
+
+        out: Dict[str, List[StepFn]] = {}
+        for phase, atoms in ingress_atoms.items():
+            ordered = sorted(atoms, key=lambda item: order.get(item[0], 10_000))
+            out[phase] = [_wrap_atom(run, anchor=anchor) for anchor, run in ordered]
+        return out
+
+    def build_egress(self, app: Any) -> Dict[str, List[StepFn]]:
+        del app
+        order = {name: idx for idx, name in enumerate(_ev.all_events_ordered())}
+        egress_atoms: Dict[str, List[tuple[str, Any]]] = {}
+        for anchor, run in self._atoms() or ():
+            if not _ev.is_valid_event(anchor):
+                continue
+            phase = _ev.phase_for_event(anchor)
+            if phase not in {"EGRESS_SHAPE", "EGRESS_FINALIZE", "POST_RESPONSE"}:
+                continue
+            egress_atoms.setdefault(phase, []).append((anchor, run))
+
+        out: Dict[str, List[StepFn]] = {}
+        for phase, atoms in egress_atoms.items():
+            ordered = sorted(atoms, key=lambda item: order.get(item[0], 10_000))
+            out[phase] = [_wrap_atom(run, anchor=anchor) for anchor, run in ordered]
+        return out
+
     def plan_labels(self, model: type, alias: str) -> list[str]:
         labels: list[str] = []
-        chains = self.build(model, alias)
+        chains = self.build_op(model, alias)
         ordered_anchors = _ev.all_events_ordered()
         ranked: list[tuple[int, int, str]] = []
         anchor_idx = {anchor: i for i, anchor in enumerate(ordered_anchors)}
@@ -139,7 +190,7 @@ class Kernel:
         ctx: Optional[Mapping[str, Any]] = None,
     ) -> Any:
         """Execute an operation for ``model.alias`` using the executor."""
-        phases = self.build(model, alias)
+        phases = self.build_op(model, alias)
         base_ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
         base_ctx.model = model
         base_ctx.op = alias
@@ -229,7 +280,7 @@ class Kernel:
                 meta_index = len(opmeta)
                 target = (getattr(sp, "target", sp.alias) or sp.alias).lower()
                 opmeta.append(OpMeta(model=model, alias=sp.alias, target=target))
-                phase_chains[meta_index] = self.build(model, sp.alias)
+                phase_chains[meta_index] = self.build_op(model, sp.alias)
 
                 for binding in getattr(sp, "bindings", ()) or ():
                     if isinstance(binding, HttpRestBindingSpec):
@@ -269,7 +320,9 @@ class Kernel:
             proto_indices=proto_indices,
             opmeta=tuple(opmeta),
             opkey_to_meta=opkey_to_meta,
+            ingress_chain=self.build_ingress(app),
             phase_chains=phase_chains,
+            egress_chain=self.build_egress(app),
         )
 
     def kernel_plan(self, app: Any) -> KernelPlan:

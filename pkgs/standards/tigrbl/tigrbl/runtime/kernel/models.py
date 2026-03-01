@@ -45,6 +45,8 @@ class KernelPlan:
     proto_indices: Mapping[str, Any] = field(default_factory=dict)
     opmeta: tuple[OpMeta, ...] = ()
     opkey_to_meta: Mapping[OpKey, int] = field(default_factory=dict)
+    ingress_chain: Mapping[str, list[Callable[..., Any]]] = field(default_factory=dict)
     phase_chains: Mapping[int, Mapping[str, list[Callable[..., Any]]]] = field(
         default_factory=dict
     )
+    egress_chain: Mapping[str, list[Callable[..., Any]]] = field(default_factory=dict)
