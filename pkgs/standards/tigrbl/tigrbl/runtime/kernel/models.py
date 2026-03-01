@@ -3,6 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Mapping, Tuple
 
+from ..hook_types import StepFn
+
+
+PhaseChains = Mapping[str, list[StepFn]]
+
 
 @dataclass(frozen=True)
 class SchemaIn:
@@ -45,6 +50,6 @@ class KernelPlan:
     proto_indices: Mapping[str, Any] = field(default_factory=dict)
     opmeta: tuple[OpMeta, ...] = ()
     opkey_to_meta: Mapping[OpKey, int] = field(default_factory=dict)
-    phase_chains: Mapping[int, Mapping[str, list[Callable[..., Any]]]] = field(
-        default_factory=dict
-    )
+    ingress_chain: PhaseChains = field(default_factory=dict)
+    phase_chains: Mapping[int, PhaseChains] = field(default_factory=dict)
+    egress_chain: PhaseChains = field(default_factory=dict)

@@ -13,7 +13,11 @@ from ._routing import (
     merge_tags as _merge_tags_impl,
     normalize_prefix as _normalize_prefix_impl,
 )
-from ..runtime.gw.executor import RawEnvelopeExecutor
+import json
+
+from ..runtime.executor import _Ctx, _invoke
+from ..runtime.kernel.core import Kernel
+from ..runtime.kernel.models import OpKey
 from ..runtime.gw.raw import GwRawEnvelope
 
 
@@ -115,7 +119,7 @@ class App(AppSpec):
             include_docs=include_docs,
             **asgi_kwargs,
         )
-        self.executor = RawEnvelopeExecutor(app=self)
+        self._kernel = Kernel()
         _engine_ctx = self.engine
         if _engine_ctx is not None:
             _resolver.set_default(_engine_ctx)
@@ -138,7 +142,150 @@ class App(AppSpec):
 
     async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
         env = GwRawEnvelope(kind="asgi3", scope=scope, receive=receive, send=send)
-        await self.executor.invoke(env)
+        await self.invoke(env)
+
+    async def invoke(self, env: GwRawEnvelope) -> None:
+        scope_type = env.scope.get("type")
+
+        if scope_type == "lifespan":
+            await self._handle_lifespan(env)
+            return
+
+        if scope_type != "http":
+            return
+
+        plan = self._kernel.kernel_plan(self)
+        ctx = _Ctx.ensure(request=None, db=None)
+        ctx.app = self
+        ctx.router = self
+        ctx.raw = env
+        ctx.kernel_plan = plan
+
+        for phase in ("INGRESS_BEGIN", "INGRESS_PARSE", "INGRESS_ROUTE"):
+            for step in plan.ingress_chain.get(phase, ()):
+                result = step(None, ctx)
+                if hasattr(result, "__await__"):
+                    await result
+
+        proto = getattr(ctx, "proto", None)
+        selector = getattr(ctx, "selector", None)
+        route = ctx.temp.get("route", {}) if isinstance(ctx.temp, dict) else {}
+        if not isinstance(proto, str):
+            proto = route.get("protocol", proto)
+        if not isinstance(selector, str):
+            selector = route.get("selector", selector)
+        if (
+            not isinstance(selector, str)
+            and isinstance(proto, str)
+            and proto.endswith(".rest")
+        ):
+            gw_raw = getattr(ctx, "gw_raw", None)
+            method = getattr(gw_raw, "method", None)
+            path = getattr(gw_raw, "path", None)
+            if isinstance(method, str) and isinstance(path, str):
+                selector = f"{method.upper()} {path}"
+        if (
+            not isinstance(selector, str)
+            and isinstance(proto, str)
+            and proto.endswith(".jsonrpc")
+        ):
+            selector = route.get("rpc_method")
+
+        if not isinstance(proto, str) or not isinstance(selector, str):
+            await self._send_json(
+                env, 404, {"detail": "No runtime operation matched request."}
+            )
+            return
+
+        opmeta_index = plan.opkey_to_meta.get(OpKey(proto=proto, selector=selector))
+        if not isinstance(opmeta_index, int) or not (
+            0 <= opmeta_index < len(plan.opmeta)
+        ):
+            await self._send_json(
+                env, 404, {"detail": "No runtime operation matched request."}
+            )
+            return
+
+        opmeta = plan.opmeta[opmeta_index]
+        ctx.model = opmeta.model
+        ctx.op = opmeta.alias
+        ctx.opview = self._kernel.get_opview(self, opmeta.model, opmeta.alias)
+        ctx.proto = proto
+        ctx.selector = selector
+
+        phases = dict(plan.phase_chains.get(opmeta_index, {}))
+        phases["INGRESS_BEGIN"] = []
+        phases["INGRESS_PARSE"] = []
+        phases["INGRESS_ROUTE"] = []
+
+        await _invoke(request=None, db=None, phases=phases, ctx=ctx)
+
+        egress = ctx.temp.get("egress", {}) if isinstance(ctx.temp, dict) else {}
+        response = (
+            egress.get("transport_response") if isinstance(egress, dict) else None
+        )
+        if isinstance(response, dict):
+            await self._send_transport_response(env, response)
+            return
+
+        status = int(getattr(ctx, "status_code", 200) or 200)
+        body = getattr(ctx, "result", None)
+        await self._send_json(env, status, body)
+
+    async def _send_transport_response(
+        self, env: GwRawEnvelope, response: dict[str, Any]
+    ) -> None:
+        status = int(response.get("status_code", 200) or 200)
+        headers_obj = response.get("headers")
+        headers: list[tuple[bytes, bytes]] = []
+        if isinstance(headers_obj, dict):
+            headers = [
+                (str(k).encode("latin-1"), str(v).encode("latin-1"))
+                for k, v in headers_obj.items()
+            ]
+        body = response.get("body", b"")
+        if isinstance(body, str):
+            body = body.encode("utf-8")
+        elif body is None:
+            body = b""
+        elif not isinstance(body, (bytes, bytearray)):
+            body = json.dumps(body).encode("utf-8")
+
+        await env.send(
+            {"type": "http.response.start", "status": status, "headers": headers}
+        )
+        await env.send(
+            {"type": "http.response.body", "body": bytes(body), "more_body": False}
+        )
+
+    async def _send_json(self, env: GwRawEnvelope, status: int, payload: Any) -> None:
+        await env.send(
+            {
+                "type": "http.response.start",
+                "status": status,
+                "headers": [(b"content-type", b"application/json")],
+            }
+        )
+        await env.send(
+            {
+                "type": "http.response.body",
+                "body": json.dumps(payload).encode("utf-8"),
+                "more_body": False,
+            }
+        )
+
+    async def _handle_lifespan(self, env: GwRawEnvelope) -> None:
+        while True:
+            message = await env.receive()
+            message_type = message.get("type")
+            if message_type == "lifespan.startup":
+                await self.run_event_handlers("startup")
+                await env.send({"type": "lifespan.startup.complete"})
+                continue
+            if message_type == "lifespan.shutdown":
+                await self.run_event_handlers("shutdown")
+                await env.send({"type": "lifespan.shutdown.complete"})
+            return
 
     def _normalize_prefix(self, prefix: str) -> str:
         return _normalize_prefix_impl(prefix)
