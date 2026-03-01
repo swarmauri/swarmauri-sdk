@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Mapping
 
 from ..executor import _Ctx, _invoke
 from ..kernel.core import Kernel
@@ -40,7 +40,7 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
     ctx.op = opmeta.alias
     ctx.opview = kernel.get_opview(app, opmeta.model, opmeta.alias)
 
-    phases = plan.phase_chains.get(opmeta_index, {})
+    phases = _without_ingress_phases(plan.phase_chains.get(opmeta_index, {}))
     await _invoke(request=None, db=None, phases=phases, ctx=ctx)
 
     egress = ctx.temp.get("egress", {}) if isinstance(ctx.temp, dict) else {}
@@ -87,6 +87,13 @@ async def _run_phase_chain(ctx: _Ctx, phases: Any) -> None:
             rv = step(ctx)
             if hasattr(rv, "__await__"):
                 await rv
+
+
+def _without_ingress_phases(phases: Mapping[str, Any] | None) -> dict[str, Any]:
+    if not phases:
+        return {}
+    ingress = {"INGRESS_BEGIN", "INGRESS_PARSE", "INGRESS_ROUTE"}
+    return {phase: steps for phase, steps in phases.items() if phase not in ingress}
 
 
 async def _send_transport_response(
