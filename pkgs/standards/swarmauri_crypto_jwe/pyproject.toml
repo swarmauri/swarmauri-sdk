@@ -24,6 +24,7 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "cryptography>=41",
+    "pqcrypto>=0.3.1",
 ]
 keywords = [
     'swarmauri',
