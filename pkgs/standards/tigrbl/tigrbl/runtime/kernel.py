@@ -230,6 +230,7 @@ def _inject_atoms(
     atoms: Iterable[_DiscoveredAtom],
     *,
     persistent: bool,
+    model: type | None = None,
 ) -> None:
     order = {name: i for i, name in enumerate(_ev.all_events_ordered())}
 
@@ -249,9 +250,13 @@ def _inject_atoms(
             info = _ev.get_anchor_info(anchor)
         except Exception:
             continue
-        if info.phase in ("START_TX", "END_TX"):
-            continue
         if not persistent and info.persist_tied:
+            continue
+        if (
+            info.name == _ev.SYS_HANDLER_PERSISTENCE
+            and chains.get("HANDLER")
+            and not _sys.can_resolve_handler(model)
+        ):
             continue
         phase_atoms.setdefault(info.phase, []).append(_wrap_atom(run, anchor=anchor))
 
@@ -323,29 +328,18 @@ class Kernel:
             persist_policy != "skip" and target not in {"read", "list"}
         ) or _is_persistent(chains)
         try:
-            _inject_atoms(chains, self._atoms() or (), persistent=persistent)
+            _inject_atoms(
+                chains,
+                self._atoms() or (),
+                persistent=persistent,
+                model=model,
+            )
         except Exception:
             logger.exception(
                 "kernel: atom injection failed for %s.%s",
                 getattr(model, "__name__", model),
                 alias,
             )
-        if persistent:
-            try:
-                start_anchor, start_run = _sys.get("txn", "begin")
-                end_anchor, end_run = _sys.get("txn", "commit")
-                chains.setdefault(start_anchor, []).append(
-                    _wrap_atom(start_run, anchor=start_anchor)
-                )
-                chains.setdefault(end_anchor, []).append(
-                    _wrap_atom(end_run, anchor=end_anchor)
-                )
-            except Exception:
-                logger.exception(
-                    "kernel: failed to inject txn system steps for %s.%s",
-                    getattr(model, "__name__", model),
-                    alias,
-                )
         for ph in PHASES:
             chains.setdefault(ph, [])
         return chains
