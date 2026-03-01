@@ -44,6 +44,7 @@ def test_supports_expected_algorithms(cipher_suite: Tls13CipherSuite) -> None:
         "TLS_AES_128_GCM_SHA256",
         "TLS_AES_256_GCM_SHA384",
         "TLS_CHACHA20_POLY1305_SHA256",
+        "TLS_AES_256_GCM_SHA384_KYBER768",
     }
     for operation in ("encrypt", "decrypt"):
         assert set(supports[operation]) == expected
@@ -52,7 +53,7 @@ def test_supports_expected_algorithms(cipher_suite: Tls13CipherSuite) -> None:
 @pytest.mark.unit
 @pytest.mark.parametrize("operation", ["encrypt", "decrypt"])
 def test_default_alg(cipher_suite: Tls13CipherSuite, operation: str) -> None:
-    assert cipher_suite.default_alg(operation) == "TLS_AES_256_GCM_SHA384"
+    assert cipher_suite.default_alg(operation) == "TLS_AES_256_GCM_SHA384_KYBER768"
 
 
 @pytest.mark.unit
@@ -60,14 +61,20 @@ def test_features_descriptor(cipher_suite: Tls13CipherSuite) -> None:
     features = cipher_suite.features()
     assert features["suite"] == "tls13"
     assert features["version"] == 1
-    assert features["ops"]["encrypt"]["default"] == "TLS_AES_256_GCM_SHA384"
+    assert features["ops"]["encrypt"]["default"] == "TLS_AES_256_GCM_SHA384_KYBER768"
     assert features["ops"]["encrypt"]["allowed"] == [
         "TLS_AES_128_GCM_SHA256",
         "TLS_AES_256_GCM_SHA384",
         "TLS_CHACHA20_POLY1305_SHA256",
+        "TLS_AES_256_GCM_SHA384_KYBER768",
     ]
     assert features["constraints"]["record_max"] == 16384
     assert features["constraints"]["aead"] == {"tagBits": 128}
+    assert features["compliance"]["pq_ready"] is True
+    assert features["compliance"]["min_key_sizes"] == {
+        "symmetric": 256,
+        "kem": "ML-KEM-768",
+    }
 
 
 @pytest.mark.unit
@@ -94,11 +101,11 @@ def test_normalize_with_explicit_alg(cipher_suite: Tls13CipherSuite) -> None:
 def test_normalize_defaults(cipher_suite: Tls13CipherSuite) -> None:
     descriptor = cipher_suite.normalize(op="decrypt")
 
-    assert descriptor["alg"] == "TLS_AES_256_GCM_SHA384"
+    assert descriptor["alg"] == "TLS_AES_256_GCM_SHA384_KYBER768"
     assert descriptor["dialect"] == "tls"
     assert descriptor["mapped"] == {
-        "tls": "TLS_AES_256_GCM_SHA384",
-        "provider": "TLS_AES_256_GCM_SHA384",
+        "tls": "TLS_AES_256_GCM_SHA384_KYBER768",
+        "provider": "ML-KEM-768",
     }
     assert descriptor["params"] == {}
 
@@ -107,3 +114,22 @@ def test_normalize_defaults(cipher_suite: Tls13CipherSuite) -> None:
 def test_normalize_rejects_unsupported_alg(cipher_suite: Tls13CipherSuite) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="encrypt", alg="TLS_AES_128_CCM_SHA256")
+
+
+@pytest.mark.unit
+def test_normalize_accepts_pq_hybrid(cipher_suite: Tls13CipherSuite) -> None:
+    descriptor = cipher_suite.normalize(
+        op="encrypt",
+        alg="TLS_AES_256_GCM_SHA384_KYBER768",
+    )
+
+    assert descriptor["alg"] == "TLS_AES_256_GCM_SHA384_KYBER768"
+    assert descriptor["mapped"]["provider"] == "ML-KEM-768"
+
+
+@pytest.mark.unit
+def test_normalize_rejects_unsupported_pq_fallback(
+    cipher_suite: Tls13CipherSuite,
+) -> None:
+    with pytest.raises(ValueError):
+        cipher_suite.normalize(op="encrypt", alg="TLS_AES_256_GCM_SHA384_KYBER512")
