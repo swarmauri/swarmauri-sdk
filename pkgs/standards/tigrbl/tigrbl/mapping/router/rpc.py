@@ -8,6 +8,7 @@ from .common import RouterLike, _ensure_router_ns
 from ...mapping import engine_resolver as _resolver
 from ...core.crud.helpers.model import _single_pk_name
 from ...mapping.op_resolver import resolve as resolve_ops
+from ...runtime.executor.invoke import _invoke
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/rpc")
@@ -112,7 +113,23 @@ async def rpc_call(
 
     try:
         logger.debug("Executing rpc_call %s.%s", getattr(mdl, "__name__", mdl), method)
-        return await fn(payload, db=db, request=request, ctx=ctx_dict)
+        result = await fn(payload, db=db, request=request, ctx=ctx_dict)
+        if isinstance(result, Mapping) and {
+            "phases",
+            "ctx",
+            "serialize",
+            "request",
+            "db",
+        }.issubset(result.keys()):
+            invoke_ctx: Dict[str, Any] = dict(result["ctx"])
+            invoke_ctx["response_serializer"] = result["serialize"]
+            return await _invoke(
+                request=result["request"],
+                db=result["db"],
+                phases=result["phases"],
+                ctx=invoke_ctx,
+            )
+        return result
     finally:
         if _release_db is not None:
             try:
