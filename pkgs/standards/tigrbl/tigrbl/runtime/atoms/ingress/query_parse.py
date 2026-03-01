@@ -74,6 +74,12 @@ def run(obj: object | None, ctx: Any) -> None:
         parsed = _parse_scope_query(ctx)
 
     if parsed is None:
+        temp = getattr(ctx, "temp", None)
+        ingress = temp.get("ingress") if isinstance(temp, dict) else None
+        raw_query = ingress.get("raw_query") if isinstance(ingress, dict) else None
+        parsed = _normalize_query_map(raw_query)
+
+    if parsed is None:
         gw_raw = getattr(ctx, "gw_raw", None)
         gw_query = getattr(gw_raw, "query", None) if gw_raw is not None else None
         parsed = _normalize_query_map(gw_query)
