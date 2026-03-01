@@ -27,6 +27,46 @@ logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/include")
 
 
+def _build_router_rpc_namespace(router: RouterLike, model: type) -> SimpleNamespace:
+    """Return router-scoped RPC methods that execute and serialize results."""
+    from .rpc import rpc_call as _rpc_call
+
+    model_rpc_ns = getattr(model, "rpc", SimpleNamespace())
+    router_rpc_ns = SimpleNamespace()
+
+    for attr_name, attr_value in vars(model_rpc_ns).items():
+        if not callable(attr_value):
+            setattr(router_rpc_ns, attr_name, attr_value)
+            continue
+
+        async def _router_rpc_method(
+            payload: Any = None,
+            *,
+            db: Any | None = None,
+            request: Any = None,
+            ctx: Dict[str, Any] | None = None,
+            _alias: str = attr_name,
+        ) -> Any:
+            return await _rpc_call(
+                router,
+                model,
+                _alias,
+                payload,
+                db=db,
+                request=request,
+                ctx=ctx,
+            )
+
+        _router_rpc_method.__name__ = f"rpc_{model.__name__}_{attr_name}"
+        _router_rpc_method.__qualname__ = _router_rpc_method.__name__
+        _router_rpc_method.__doc__ = (
+            f"Router RPC method for {model.__name__}.{attr_name}"
+        )
+        setattr(router_rpc_ns, attr_name, _router_rpc_method)
+
+    return router_rpc_ns
+
+
 def _coerce_model_columns(columns: Any) -> Tuple[str, ...]:
     if isinstance(columns, SimpleNamespace):
         return tuple(columns.__dict__.keys())
@@ -213,7 +253,7 @@ def _attach_to_router(router: RouterLike, table: type) -> None:
     setattr(router.schemas, tname, getattr(table, "schemas", SimpleNamespace()))
     setattr(router.handlers, tname, getattr(table, "handlers", SimpleNamespace()))
     setattr(router.hooks, tname, getattr(table, "hooks", SimpleNamespace()))
-    rpc_ns = getattr(table, "rpc", SimpleNamespace())
+    rpc_ns = _build_router_rpc_namespace(router, table)
     setattr(router.rpc, tname, rpc_ns)
     if rtitle != tname:
         setattr(router.rpc, rtitle, rpc_ns)
