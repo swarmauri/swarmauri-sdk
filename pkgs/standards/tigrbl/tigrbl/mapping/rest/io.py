@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, create_model
 from ...core.crud.params import Query
 from ...runtime.status.exceptions import HTTPException
 from ...runtime.status.mappings import status as _status
-from ...requests import Request
+from tigrbl import Request
 from .helpers import _ensure_jsonable
 from ..._spec import OpSpec
 

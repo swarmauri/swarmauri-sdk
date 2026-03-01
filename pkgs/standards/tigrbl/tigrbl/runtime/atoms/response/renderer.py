@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union, cast
 import logging
 
-from ...._concrete import Response
+from tigrbl import Response
 from typing import Callable
 
 from ....shortcuts.responses import (
