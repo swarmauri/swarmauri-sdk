@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from urllib.parse import parse_qs
-from typing import Any, MutableMapping
+from typing import Any, Mapping, MutableMapping, Sequence
 
 from ... import events as _ev
 
@@ -26,10 +26,12 @@ def _normalize_query_map(query: object) -> dict[str, list[Any]] | None:
             out.setdefault(str(key), []).append(value)
         return out
 
-    if isinstance(query, dict):
+    if isinstance(query, Mapping):
         out: dict[str, list[Any]] = {}
         for key, value in query.items():
-            if isinstance(value, (list, tuple)):
+            if isinstance(value, Sequence) and not isinstance(
+                value, (str, bytes, bytearray)
+            ):
                 out[str(key)] = list(value)
             else:
                 out[str(key)] = [value]
@@ -62,6 +64,13 @@ def _parse_scope_query(ctx: Any) -> dict[str, list[str]] | None:
     return None
 
 
+def _parse_temp_raw_query(ctx: Any) -> dict[str, list[str]] | None:
+    temp = getattr(ctx, "temp", None)
+    ingress = temp.get("ingress") if isinstance(temp, dict) else None
+    raw_query = ingress.get("raw_query") if isinstance(ingress, dict) else None
+    return _normalize_query_map(raw_query) if raw_query is not None else None
+
+
 def run(obj: object | None, ctx: Any) -> None:
     del obj
     parsed: dict[str, list[Any]] | None = None
@@ -74,10 +83,7 @@ def run(obj: object | None, ctx: Any) -> None:
         parsed = _parse_scope_query(ctx)
 
     if parsed is None:
-        temp = getattr(ctx, "temp", None)
-        ingress = temp.get("ingress") if isinstance(temp, dict) else None
-        raw_query = ingress.get("raw_query") if isinstance(ingress, dict) else None
-        parsed = _normalize_query_map(raw_query)
+        parsed = _parse_temp_raw_query(ctx)
 
     if parsed is None:
         gw_raw = getattr(ctx, "gw_raw", None)
