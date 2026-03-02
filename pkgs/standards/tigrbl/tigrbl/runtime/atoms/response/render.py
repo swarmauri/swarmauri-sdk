@@ -20,6 +20,9 @@ def run(obj: Optional[object], ctx: Any) -> Any:
     if result is None:
         return None
     hints = getattr(resp_ns, "hints", None)
+    status_code = getattr(ctx, "status_code", None)
+    if hints is not None and status_code is not None:
+        hints.status_code = int(status_code)
     default_media = getattr(resp_ns, "default_media", "application/json")
     envelope_default = getattr(resp_ns, "envelope_default", False)
     resp = render(
