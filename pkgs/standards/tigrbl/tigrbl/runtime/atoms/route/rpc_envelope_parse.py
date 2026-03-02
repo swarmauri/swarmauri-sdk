@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import replace
 from typing import Any, Mapping
+from uuid import uuid4
 
 from ... import events as _ev
 from ...gw.raw import GwRouteEnvelope
@@ -32,6 +33,19 @@ def _is_rpc_payload(payload: Mapping[str, Any]) -> bool:
     # Accept both strict JSON-RPC 2.0 envelopes and shorthand method/params
     # payloads used by compatibility clients.
     return payload.get("jsonrpc") == "2.0" or "params" in payload
+
+
+def _normalize_rpc_envelope(payload: Mapping[str, Any]) -> dict[str, Any]:
+    """Normalize compatibility JSON-RPC payloads into canonical envelopes.
+
+    For shorthand payloads (method/params without explicit ``jsonrpc`` marker),
+    synthesize request metadata expected by downstream transport atoms.
+    """
+    envelope = dict(payload)
+    if envelope.get("jsonrpc") != "2.0":
+        envelope["jsonrpc"] = "2.0"
+        envelope.setdefault("id", str(uuid4()))
+    return envelope
 
 
 def run(obj: object | None, ctx: Any) -> None:
@@ -87,7 +101,7 @@ def run(obj: object | None, ctx: Any) -> None:
     if not isinstance(parsed_payload, Mapping):
         parsed_payload = getattr(ctx, "body", None)
     if isinstance(parsed_payload, Mapping) and _is_rpc_payload(parsed_payload):
-        rpc_envelope = dict(parsed_payload)
+        rpc_envelope = _normalize_rpc_envelope(parsed_payload)
         route["rpc_envelope"] = rpc_envelope
         setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=rpc_envelope))
         return
@@ -101,7 +115,7 @@ def run(obj: object | None, ctx: Any) -> None:
         ingress = temp.get("ingress") if isinstance(temp.get("ingress"), dict) else {}
         body = ingress.get("body") if isinstance(ingress, dict) else None
     if _has_rpc_method(body):
-        rpc_data = dict(body) if isinstance(body, Mapping) else {}
+        rpc_data = _normalize_rpc_envelope(body) if isinstance(body, Mapping) else {}
         route["rpc_envelope"] = rpc_data
         setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=rpc_data))
         return
@@ -114,7 +128,8 @@ def run(obj: object | None, ctx: Any) -> None:
         return
 
     if isinstance(parsed, dict) and _is_rpc_payload(parsed):
-        route["rpc_envelope"] = parsed
-        setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=parsed))
+        normalized = _normalize_rpc_envelope(parsed)
+        route["rpc_envelope"] = normalized
+        setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=normalized))
     else:
         setattr(ctx, "gw_raw", replace(env, kind="rest"))
