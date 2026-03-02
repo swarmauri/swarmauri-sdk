@@ -44,7 +44,7 @@ class AppSpec:
 
     @classmethod
     def collect(cls, app: type) -> "AppSpec":
-        from ..mapping.spec_normalization import merge_seq_attr
+        from ..mapping.spec_normalization import merge_seq_attr, normalize_app_spec
 
         sentinel = object()
         title: Any = sentinel
@@ -114,21 +114,23 @@ class AppSpec:
             middlewares=tuple(merge_seq_attr(app, "MIDDLEWARES") or ()),
             lifespan=lifespan,
         )
-        return cls(
-            title=spec.title,
-            description=spec.description,
-            version=spec.version,
-            engine=spec.engine,
-            routers=tuple(spec.routers or ()),
-            ops=tuple(spec.ops or ()),
-            tables=tuple(spec.tables or ()),
-            schemas=tuple(spec.schemas or ()),
-            hooks=tuple(spec.hooks or ()),
-            security_deps=tuple(spec.security_deps or ()),
-            deps=tuple(spec.deps or ()),
-            response=spec.response,
-            jsonrpc_prefix=(spec.jsonrpc_prefix or "/rpc"),
-            system_prefix=(spec.system_prefix or "/system"),
-            middlewares=tuple(spec.middlewares or ()),
-            lifespan=spec.lifespan,
+        return normalize_app_spec(
+            cls(
+                title=spec.title,
+                description=spec.description,
+                version=spec.version,
+                engine=spec.engine,
+                routers=tuple(spec.routers or ()),
+                ops=tuple(spec.ops or ()),
+                tables=tuple(spec.tables or ()),
+                schemas=tuple(spec.schemas or ()),
+                hooks=tuple(spec.hooks or ()),
+                security_deps=tuple(spec.security_deps or ()),
+                deps=tuple(spec.deps or ()),
+                response=spec.response,
+                jsonrpc_prefix=(spec.jsonrpc_prefix or "/rpc"),
+                system_prefix=(spec.system_prefix or "/system"),
+                middlewares=tuple(spec.middlewares or ()),
+                lifespan=spec.lifespan,
+            )
         )

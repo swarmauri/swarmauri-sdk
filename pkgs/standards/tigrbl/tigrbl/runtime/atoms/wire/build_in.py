@@ -40,15 +40,15 @@ def run(obj: Optional[object], ctx: Any) -> None:
     - This atom does *not* perform validation—that belongs to wire:validate_in.
     - For bulk inputs, adapters may pre-split and invoke the executor per-item.
     """
+    payload = _coerce_payload(ctx)
     schema_in = _schema_in(ctx)
+    _reject_disallowed_wrapper_keys(payload, schema_in=schema_in or {})
     if not schema_in:
         logger.debug("No schema_in available; skipping wire:build_in")
         return  # nothing to do
 
     logger.debug("Running wire:build_in")
     temp = _ensure_temp(ctx)
-
-    payload = _coerce_payload(ctx)
     if not isinstance(payload, Mapping):
         logger.debug("Payload is not a mapping; skipping normalization")
         # Non-mapping payloads are ignored here; adapters can pre-normalize.
@@ -170,30 +170,33 @@ def _safe_str(v: Any) -> Optional[str]:
 
 
 def _reject_disallowed_wrapper_keys(
-    ctx: Any,
-    payload: Mapping[str, Any],
-    schema_in: Mapping[str, Any],
+    payload: Any, *, schema_in: Mapping[str, Any]
 ) -> None:
     by_field = schema_in.get("by_field", {})
-    if not isinstance(by_field, Mapping):
+    field_names = set(by_field.keys()) if isinstance(by_field, Mapping) else set()
+    allowed_wrapper_keys = field_names & _WRAPPER_KEYS
+
+    def _check_mapping(item: Mapping[str, Any]) -> None:
+        disallowed = sorted(
+            key for key in item if key in _WRAPPER_KEYS and key not in allowed_wrapper_keys
+        )
+        if disallowed:
+            raise HTTPException(
+                status_code=_status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail={
+                    "reason": "Wrapper keys are not allowed; params must match the operation schema.",
+                    "disallowed_keys": disallowed,
+                },
+            )
+
+    if isinstance(payload, Mapping):
+        _check_mapping(payload)
         return
 
-    allowed = {str(name) for name in by_field.keys() if str(name) in _WRAPPER_KEYS}
-    disallowed = sorted(
-        k for k in payload.keys() if k in _WRAPPER_KEYS and k not in allowed
-    )
-    if not disallowed:
-        return
-
-    detail = {
-        "reason": "Wrapper keys are not allowed; params must match the operation schema.",
-        "disallowed_keys": disallowed,
-    }
-    temp = _ensure_temp(ctx)
-    temp["in_errors"] = [detail]
-    raise HTTPException(
-        status_code=_status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail
-    )
+    if isinstance(payload, list):
+        for item in payload:
+            if isinstance(item, Mapping):
+                _check_mapping(item)
 
 
 __all__ = ["ANCHOR", "run"]

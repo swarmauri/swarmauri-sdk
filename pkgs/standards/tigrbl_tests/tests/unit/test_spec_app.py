@@ -46,3 +46,27 @@ def test_concrete_app_initializes_from_mro_collect_spec():
     assert app.routers == ("child_router", "base_router")
     assert app.ops == ("child_op", "base_op")
     assert tuple(app.tables.values()) == ("base_table",)
+
+
+class ScalarAttrsApp(App):
+    ROUTERS = "router"
+    OPS = "read"
+    TABLES = "widgets"
+    SCHEMAS = "WidgetSchema"
+    HOOKS = "hook"
+    SECURITY_DEPS = "security"
+    DEPS = "dep"
+    MIDDLEWARES = "mw"
+
+
+def test_app_spec_normalizes_scalar_sequence_fields():
+    spec = AppSpec.collect(ScalarAttrsApp)
+
+    assert spec.routers == ("router",)
+    assert spec.ops == ("read",)
+    assert spec.tables == ("widgets",)
+    assert spec.schemas == ("WidgetSchema",)
+    assert spec.hooks == ("hook",)
+    assert spec.security_deps == ("security",)
+    assert spec.deps == ("dep",)
+    assert spec.middlewares == ("mw",)
