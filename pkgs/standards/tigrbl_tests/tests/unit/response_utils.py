@@ -1,5 +1,5 @@
 from __future__ import annotations
-from tigrbl import alias_ctx, op_ctx, schema_ctx
+from tigrbl import TableBase, alias_ctx, op_ctx, schema_ctx
 from tigrbl.mapping import (
     build_handlers,
     build_hooks,
@@ -28,7 +28,7 @@ RESPONSE_KINDS = get_args(ResponseKind)
 
 def build_ping_model():
     @response_ctx(headers={"X-Table": "table"})
-    class Widget:
+    class Widget(TableBase):
         @schema_ctx(alias="ping", kind="out")
         class PingOut(BaseModel):
             pong: bool
@@ -54,7 +54,7 @@ def build_model_for_response(kind: str, tmp_path) -> tuple[type, str | None]:
 
     @alias_ctx(read="download")
     @response_ctx(headers={"X-Table": "table"})
-    class Widget:
+    class Widget(TableBase):
         @op_ctx(alias="download", target="custom", arity="collection", persist="none")
         @response_ctx(kind=kind)
         def download(cls, ctx):
@@ -89,7 +89,7 @@ def build_model_for_response_non_alias(kind: str, tmp_path) -> tuple[type, str |
         file_path.write_text("pong")
 
     @response_ctx(headers={"X-Table": "table"})
-    class Widget:
+    class Widget(TableBase):
         @op_ctx(alias="download", target="custom", arity="collection", persist="none")
         @response_ctx(kind=kind)
         def download(cls, ctx):
@@ -124,7 +124,7 @@ def build_model_for_jinja_response(tmp_path) -> type:
 
     @alias_ctx(read="download")
     @response_ctx(headers={"X-Table": "table"})
-    class Widget:
+    class Widget(TableBase):
         @op_ctx(alias="download", target="custom", arity="collection", persist="none")
         async def download(cls, ctx):
             html = await render_template(
