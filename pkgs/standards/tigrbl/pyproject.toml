@@ -48,6 +48,7 @@ tests = [
 
 [tool.uv.sources]
 tigrbl-tests = { workspace = true }
+tigrbl_client = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
@@ -81,6 +82,7 @@ packages = [
 
 [dependency-groups]
 dev = [
+    "tigrbl_client",
     "pytest>=8.0",
     "pytest-asyncio>=0.24.0",
     "pytest-xdist>=3.6.1",
