@@ -299,9 +299,19 @@ def _attach_to_router(router: RouterLike, table: type) -> None:
     )
 
     # Table metadata (introspection only)
-    columns = _coerce_model_columns(getattr(table, "columns", ()))
-    if not columns:
-        columns = tuple(mro_collect_columns(table).keys())
+    declared_columns = _coerce_model_columns(getattr(table, "columns", ()))
+    collected_columns = tuple(mro_collect_columns(table).keys())
+    if declared_columns:
+        ordered = []
+        seen = set()
+        for name in (*declared_columns, *collected_columns):
+            if name in seen:
+                continue
+            seen.add(name)
+            ordered.append(name)
+        columns = tuple(ordered)
+    else:
+        columns = collected_columns
     router.columns[tname] = columns
     router.table_config[tname] = dict(getattr(table, "table_config", {}) or {})
 
