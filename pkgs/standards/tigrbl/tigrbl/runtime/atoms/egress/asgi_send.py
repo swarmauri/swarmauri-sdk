@@ -83,9 +83,6 @@ async def run(obj: object | None, ctx: Any) -> None:
             "headers": _to_headers_mapping(headers),
             "body": body,
         }
-        if getattr(ctx, "kernel_plan", None) is not None:
-            return
-
         await send(
             {
                 "type": "http.response.start",
@@ -103,9 +100,6 @@ async def run(obj: object | None, ctx: Any) -> None:
         },
         "body": resp.body or b"",
     }
-    if getattr(ctx, "kernel_plan", None) is not None:
-        return
-
     await send(
         {
             "type": "http.response.start",

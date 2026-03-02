@@ -8,6 +8,26 @@ from .renderer import render
 ANCHOR = _ev.OUT_DUMP  # "out:dump"
 
 
+def _is_jsonrpc_request(ctx: Any) -> bool:
+    raw = getattr(ctx, "gw_raw", None) or getattr(ctx, "raw", None)
+    if getattr(raw, "kind", None) == "jsonrpc":
+        return True
+
+    temp = getattr(ctx, "temp", None)
+    route = temp.get("route", {}) if isinstance(temp, dict) else {}
+    rpc_env = route.get("rpc_envelope") if isinstance(route, dict) else None
+    if isinstance(rpc_env, dict) and rpc_env.get("jsonrpc") == "2.0":
+        return True
+
+    path = getattr(raw, "path", None)
+    app = getattr(ctx, "app", None)
+    prefix = getattr(app, "jsonrpc_prefix", None)
+    if isinstance(path, str) and isinstance(prefix, str):
+        return (path.rstrip("/") or "/") == (prefix.rstrip("/") or "/")
+
+    return False
+
+
 def run(obj: Optional[object], ctx: Any) -> Any:
     """response:render@out:dump
 
@@ -37,6 +57,10 @@ def run(obj: Optional[object], ctx: Any) -> Any:
     if isinstance(temp, dict):
         egress = temp.setdefault("egress", {})
         if isinstance(egress, dict):
+            if _is_jsonrpc_request(ctx) and isinstance(
+                egress.get("transport_response"), dict
+            ):
+                return resp
             egress["transport_response"] = {
                 "status_code": int(resp.status_code),
                 "headers": {
