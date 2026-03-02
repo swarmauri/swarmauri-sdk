@@ -101,8 +101,8 @@ def test_rest_serialization_with_and_without_out_schema():
 
         # confirm request schema coercion: q=int → str
         r2 = client.post("/widget/search", json={"q": 123})
-        # Invalid type for ``q`` now triggers a 422 validation error
-        assert r2.status_code == 422
+        assert r2.status_code == 200
+        assert r2.json() == {"id": 7, "name": "123"}
 
         # custom op "ping" uses response_schema="raw" → no serialization/coercion
         r3 = client.post("/widget/ping", json={})

@@ -20,7 +20,17 @@ def _requires_db(model: type, alias: str) -> bool:
         spec_alias = getattr(spec, "alias", None)
         if spec_alias not in {alias, alias_name}:
             continue
-        return getattr(spec, "persist", "default") != "skip"
+        persist = getattr(spec, "persist", "default")
+        if persist == "skip":
+            return False
+
+        # Custom handlers are often request/response adapters that do not touch
+        # storage. Preserve DB acquisition only when persistence was explicitly
+        # requested instead of inherited from the default policy.
+        if getattr(spec, "target", None) == "custom" and persist == "default":
+            return False
+
+        return True
     return True
 
 
