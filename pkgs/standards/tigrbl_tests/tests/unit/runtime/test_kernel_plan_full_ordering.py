@@ -66,15 +66,17 @@ def test_kernel_plan_labels_cover_dep_hook_and_atom_ordering() -> None:
     labels = kernel.plan_labels(Model, "create")
 
     assert labels == [
-        "hook:dep:security:0@dep:security",
-        "hook:dep:security:1@dep:security",
-        "hook:dep:security:2@dep:security",
-        "hook:dep:extra:0@dep:extra",
-        "hook:dep:extra:1@dep:extra",
-        "hook:router:pre@schema:collect_in",
-        "atom:schema:collect_in@schema:collect_in",
-        "hook:table:post@out:build",
-        "atom:wire:build_out@out:build",
+        "START_TX:hook:sys:txn:begin@START_TX",
+        "PRE_TX_BEGIN:hook:dep:security:0@dep:security",
+        "PRE_TX_BEGIN:hook:dep:security:1@dep:security",
+        "PRE_TX_BEGIN:hook:dep:security:2@dep:security",
+        "PRE_TX_BEGIN:hook:dep:extra:0@dep:extra",
+        "PRE_TX_BEGIN:hook:dep:extra:1@dep:extra",
+        "PRE_HANDLER:hook:router:pre@schema:collect_in",
+        "PRE_HANDLER:atom:schema:collect_in@schema:collect_in",
+        "POST_HANDLER:hook:table:post@out:build",
+        "POST_HANDLER:atom:wire:build_out@out:build",
+        "END_TX:hook:sys:txn:commit@END_TX",
     ]
 
 
