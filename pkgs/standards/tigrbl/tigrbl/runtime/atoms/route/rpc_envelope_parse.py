@@ -10,34 +10,6 @@ from ...gw.raw import GwRouteEnvelope
 ANCHOR = _ev.ROUTE_RPC_ENVELOPE_PARSE
 
 
-def _is_rpc_envelope(payload: Mapping[str, Any]) -> bool:
-    method = payload.get("method")
-    if not isinstance(method, str) or not method.strip():
-        return False
-
-    marker = payload.get("jsonrpc")
-    if marker is None:
-        return True
-    return marker == "2.0"
-
-
-def _set_rpc_route(
-    ctx: Any, route: dict[str, Any], env: GwRouteEnvelope, rpc: Mapping[str, Any] | Any
-) -> None:
-    rpc_dict = _to_rpc_dict(rpc)
-    route["rpc_envelope"] = rpc_dict
-    setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=rpc_dict))
-
-
-def _to_rpc_dict(payload: Mapping[str, Any] | Any) -> dict[str, Any]:
-    if isinstance(payload, Mapping):
-        return dict(payload)
-    data = getattr(payload, "__dict__", None)
-    if isinstance(data, dict):
-        return dict(data)
-    return {}
-
-
 def _normalize_path(path: str | None) -> str:
     if not isinstance(path, str) or not path:
         return "/"
@@ -73,8 +45,16 @@ def run(obj: object | None, ctx: Any) -> None:
     env = getattr(ctx, "gw_raw", None)
     if not isinstance(env, GwRouteEnvelope):
         payload = getattr(ctx, "payload", None)
-        if isinstance(payload, Mapping) and _is_rpc_envelope(payload):
-            route["rpc_envelope"] = payload
+        if isinstance(payload, Mapping):
+            method = payload.get("method")
+            marker = payload.get("jsonrpc")
+            if (
+                isinstance(method, str)
+                and method.strip()
+                and (marker is None or marker == "2.0")
+            ):
+                route["rpc_envelope"] = dict(payload)
+                return
         return
 
     route_proto = route.get("protocol")
@@ -107,7 +87,9 @@ def run(obj: object | None, ctx: Any) -> None:
     if not isinstance(parsed_payload, Mapping):
         parsed_payload = getattr(ctx, "body", None)
     if isinstance(parsed_payload, Mapping) and _is_rpc_payload(parsed_payload):
-        _set_rpc_route(ctx, route, env, parsed_payload)
+        rpc_envelope = dict(parsed_payload)
+        route["rpc_envelope"] = rpc_envelope
+        setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=rpc_envelope))
         return
 
     body = env.body
@@ -119,7 +101,9 @@ def run(obj: object | None, ctx: Any) -> None:
         ingress = temp.get("ingress") if isinstance(temp.get("ingress"), dict) else {}
         body = ingress.get("body") if isinstance(ingress, dict) else None
     if _has_rpc_method(body):
-        _set_rpc_route(ctx, route, env, body)
+        rpc_data = dict(body) if isinstance(body, Mapping) else {}
+        route["rpc_envelope"] = rpc_data
+        setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=rpc_data))
         return
     if not isinstance(body, (bytes, bytearray)):
         return
@@ -130,6 +114,7 @@ def run(obj: object | None, ctx: Any) -> None:
         return
 
     if isinstance(parsed, dict) and _is_rpc_payload(parsed):
-        _set_rpc_route(ctx, route, env, parsed)
+        route["rpc_envelope"] = parsed
+        setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=parsed))
     else:
         setattr(ctx, "gw_raw", replace(env, kind="rest"))

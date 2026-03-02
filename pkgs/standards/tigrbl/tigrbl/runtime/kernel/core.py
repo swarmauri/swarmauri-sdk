@@ -61,6 +61,7 @@ class Kernel:
         self._atoms_cache = list(atoms) if atoms else None
         self._specs_cache = _SpecsOnceCache()
         self._opviews = _WeakMaybeDict()
+        self._kernel_plans = _WeakMaybeDict()
         self._kernelz_payload = _WeakMaybeDict()
         self._primed = _WeakMaybeDict()
         self._lock = threading.Lock()
@@ -333,25 +334,45 @@ class Kernel:
 
     def kernel_plan(self, app: Any) -> KernelPlan:
         self.ensure_primed(app)
-        plan = self._kernelz_payload.get(app)
+        plan = self._kernel_plans.get(app)
         if isinstance(plan, KernelPlan):
             return plan
+
         compiled = self.compile_plan(app)
-        self._kernelz_payload[app] = compiled
+        self._kernel_plans[app] = compiled
+
+        from ...system.diagnostics.utils import (
+            table_iter as _table_iter,
+            opspecs as _opspecs,
+        )
+
+        payload: dict[str, dict[str, list[str]]] = {}
+        for model in _table_iter(app):
+            model_name = getattr(model, "__name__", str(model))
+            payload[model_name] = {}
+            for sp in _opspecs(model):
+                payload[model_name][sp.alias] = self.plan_labels(model, sp.alias)
+        self._kernelz_payload[app] = payload
+
         return compiled
 
-    def kernelz_payload(self, app: Any) -> KernelPlan:
-        """Thin accessor for endpoint: guarantees primed, returns compiled kernel plan."""
-        self.ensure_primed(app)
-        return self.kernel_plan(app)
+    def kernelz_payload(self, app: Any) -> dict[str, dict[str, list[str]]]:
+        """Thin accessor for endpoint: guarantees primed diagnostics payload."""
+        self.kernel_plan(app)
+        payload = self._kernelz_payload.get(app)
+        if isinstance(payload, dict):
+            return payload
+        return {}
 
     def invalidate_kernelz_payload(self, app: Optional[Any] = None) -> None:
         with self._lock:
             if app is None:
+                self._kernel_plans = _WeakMaybeDict()
                 self._kernelz_payload = _WeakMaybeDict()
                 self._opviews = _WeakMaybeDict()
                 self._primed = _WeakMaybeDict()
             else:
+                self._kernel_plans.pop(app, None)
                 self._kernelz_payload.pop(app, None)
                 self._opviews.pop(app, None)
                 self._primed.pop(app, None)

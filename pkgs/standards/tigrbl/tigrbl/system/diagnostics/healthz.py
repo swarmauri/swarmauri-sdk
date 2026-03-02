@@ -16,7 +16,10 @@ def _resolve_db(candidate: Any) -> Any:
         return candidate
 
     state = getattr(candidate, "state", None)
-    return getattr(state, "db", candidate)
+    db = getattr(state, "db", None)
+    if db is not None:
+        return db
+    return None
 
 
 def build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
@@ -29,6 +32,8 @@ def build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
 
         async def _healthz(db: Any = Depends(dep)):
             db = _resolve_db(db)
+            if db is None:
+                return {"ok": True, "warning": "no-db"}
             try:
                 await maybe_execute(db, "SELECT 1")
                 return {"ok": True}

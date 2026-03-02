@@ -90,7 +90,12 @@ class TigrblRouter(_Router):
             if system_prefix is not None
             else getattr(self, "SYSTEM_PREFIX", "/system")
         )
-        self.rest_prefix = getattr(self, "REST_PREFIX", "/api")
+        # ``prefix=...`` is the canonical REST mount prefix for router-scoped
+        # table routes. Fall back to REST_PREFIX only when no explicit prefix
+        # is provided.
+        self.rest_prefix = (
+            prefix if prefix is not None else getattr(self, "REST_PREFIX", "/api")
+        )
 
         # public containers (mirrors used by bindings.router)
         self.tables = TableRegistry(tables=getattr(self, "TABLES", ()))
@@ -161,8 +166,7 @@ class TigrblRouter(_Router):
             self, model, app=None, prefix=prefix, mount_router=mount_router
         )
         if mount_router and router is not None:
-            mount_prefix = self.rest_prefix if prefix is None else prefix
-            _include_router_impl(self, router, prefix=mount_prefix)
+            _include_router_impl(self, router, prefix=prefix)
         return included_table, router
 
     def include_tables(
@@ -182,10 +186,9 @@ class TigrblRouter(_Router):
             mount_router=mount_router,
         )
         if mount_router:
-            mount_prefix = self.rest_prefix if base_prefix is None else base_prefix
             for router in included.values():
                 if router is not None:
-                    _include_router_impl(self, router, prefix=mount_prefix)
+                    _include_router_impl(self, router, prefix=base_prefix)
         return included
 
     def install_engines(
