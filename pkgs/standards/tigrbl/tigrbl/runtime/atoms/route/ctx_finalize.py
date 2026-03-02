@@ -14,9 +14,11 @@ _RUNTIME_ROUTE_ALIAS_PREFIX = "__route__:"
 
 
 def _requires_db(model: type, alias: str) -> bool:
+    alias_name = alias.split(".")[-1]
     opspecs = getattr(getattr(model, "opspecs", None), "all", ()) or ()
     for spec in opspecs:
-        if getattr(spec, "alias", None) != alias:
+        spec_alias = getattr(spec, "alias", None)
+        if spec_alias not in {alias, alias_name}:
             continue
         return getattr(spec, "persist", "default") != "skip"
     return True
@@ -24,11 +26,16 @@ def _requires_db(model: type, alias: str) -> bool:
 
 def _select_out_model(model: type, alias: str):
     schemas_root = getattr(model, "schemas", None)
-    alias_ns = getattr(schemas_root, alias, None) if schemas_root else None
+    alias_name = alias.split(".")[-1]
+    alias_ns = None
+    if schemas_root:
+        alias_ns = getattr(schemas_root, alias, None) or getattr(
+            schemas_root, alias_name, None
+        )
     if not alias_ns:
         return None
 
-    target = alias.split(".")[-1]
+    target = alias_name
     if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_merge"}:
         return getattr(alias_ns, "out_item", None)
     return getattr(alias_ns, "out", None)
@@ -47,6 +54,18 @@ def _build_response_serializer(model: type, alias: str):
         return None
 
     def _serialize(value: Any) -> Any:
+        target = alias.split(".")[-1]
+        if target == "list" and isinstance(value, dict):
+            items = value.get("items")
+            if isinstance(items, (list, tuple)):
+                payload = dict(value)
+                payload["items"] = [
+                    out_model.model_validate(item).model_dump(
+                        exclude_none=False, by_alias=True
+                    )
+                    for item in items
+                ]
+                return payload
         if isinstance(value, (list, tuple)):
             return [
                 out_model.model_validate(item).model_dump(
