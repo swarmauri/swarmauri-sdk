@@ -43,9 +43,11 @@ def test_kernel_plan_labels_follow_canonical_event_order() -> None:
     labels = kernel.plan_labels(Model, "create")
 
     assert labels == [
-        "atom:schema:collect_in@schema:collect_in",
-        "atom:wire:build_out@out:build",
-        "atom:out:dump@out:dump",
+        "START_TX:hook:sys:txn:begin@START_TX",
+        "PRE_HANDLER:atom:schema:collect_in@schema:collect_in",
+        "POST_HANDLER:atom:wire:build_out@out:build",
+        "POST_RESPONSE:atom:out:dump@out:dump",
+        "END_TX:hook:sys:txn:commit@END_TX",
     ]
 
 
@@ -73,4 +75,8 @@ def test_kernel_plan_labels_prune_persist_tied_events_for_read() -> None:
 
     labels = kernel.plan_labels(Model, "read")
 
-    assert labels == ["atom:wire:build_out@out:build"]
+    assert labels == [
+        "START_TX:hook:sys:txn:begin@START_TX",
+        "POST_HANDLER:atom:wire:build_out@out:build",
+        "END_TX:hook:sys:txn:commit@END_TX",
+    ]
