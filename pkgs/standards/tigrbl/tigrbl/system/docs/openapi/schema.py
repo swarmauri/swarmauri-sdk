@@ -148,6 +148,23 @@ def openapi(router: Any) -> dict[str, Any]:
 
             path_item[method.lower()] = op
 
+    if "securitySchemes" not in components:
+        authn_candidates: list[Any] = []
+        authn = getattr(router, "_authn", None)
+        if authn is not None:
+            authn_candidates.append(authn)
+
+        mounted = getattr(router, "routers", None)
+        if isinstance(mounted, dict):
+            for child in mounted.values():
+                child_authn = getattr(child, "_authn", None)
+                if child_authn is not None and child_authn not in authn_candidates:
+                    authn_candidates.append(child_authn)
+
+        fallback_security = _security_schemes_from_dependencies(authn_candidates)
+        if fallback_security:
+            components["securitySchemes"] = fallback_security
+
     doc: dict[str, Any] = {
         "openapi": "3.1.0",
         "info": {"title": router.title, "version": router.version},

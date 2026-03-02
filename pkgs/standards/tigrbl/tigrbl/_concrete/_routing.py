@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+from types import SimpleNamespace
 from typing import Any, Callable, Sequence
+
+from .._spec.binding_spec import HttpRestBindingSpec
 
 from ._route import Route, compile_path
 
@@ -109,6 +113,68 @@ def include_router(owner: Any, router: Any, *, prefix: str = "") -> None:
             tigrbl_model=route.tigrbl_model,
             tigrbl_alias=route.tigrbl_alias,
         )
+        _sync_rest_binding(
+            model=route.tigrbl_model,
+            alias=route.tigrbl_alias,
+            path=path,
+            methods=tuple(route.methods),
+        )
+
+
+def _sync_rest_binding(
+    *,
+    model: Any,
+    alias: Any,
+    path: str,
+    methods: Sequence[str],
+) -> None:
+    if not (isinstance(model, type) and isinstance(alias, str) and methods):
+        return
+
+    op_ns = getattr(model, "opspecs", None)
+    all_specs = tuple(getattr(op_ns, "all", ()) or ())
+    if not all_specs:
+        return
+
+    normalized_path = path if path.startswith("/") else f"/{path}"
+    binding = HttpRestBindingSpec(
+        proto="http.rest",
+        methods=tuple(str(method).upper() for method in methods),
+        path=normalized_path,
+    )
+
+    patched = []
+    changed = False
+    for spec in all_specs:
+        if getattr(spec, "alias", None) != alias:
+            patched.append(spec)
+            continue
+        existing = tuple(getattr(spec, "bindings", ()) or ())
+        if binding in existing:
+            patched.append(spec)
+            continue
+        patched.append(replace(spec, bindings=(*existing, binding)))
+        changed = True
+
+    if not changed:
+        return
+
+    by_alias: dict[str, tuple[Any, ...]] = {}
+    by_key: dict[tuple[str, str], Any] = {}
+    for spec in patched:
+        spec_alias = getattr(spec, "alias", None)
+        if isinstance(spec_alias, str):
+            by_alias.setdefault(spec_alias, tuple())
+            by_alias[spec_alias] = (*by_alias[spec_alias], spec)
+        key = (getattr(spec, "alias", None), getattr(spec, "target", None))
+        if isinstance(key[0], str) and isinstance(key[1], str):
+            by_key[key] = spec
+
+    model.opspecs = model.ops = SimpleNamespace(
+        all=tuple(patched),
+        by_alias=by_alias,
+        by_key=by_key,
+    )
 
 
 def route(

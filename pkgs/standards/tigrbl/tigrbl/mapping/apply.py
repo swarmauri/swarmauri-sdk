@@ -24,22 +24,37 @@ from .model_registry import (
 from .context import MappingContext
 
 
-def _normalize_bindings(model: type, specs: list[Any]) -> tuple[Any, ...]:
+def _normalize_bindings(
+    model: type, specs: list[Any], *, router: Any | None = None
+) -> tuple[Any, ...]:
     rest_by_alias: dict[str, list[HttpRestBindingSpec]] = {}
+    route_sources = []
+    if router is not None:
+        route_sources.append(router)
     rest_router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
-    for route in tuple(getattr(rest_router, "routes", ()) or ()):
-        alias = getattr(route, "tigrbl_alias", None)
-        path = getattr(route, "path_template", None)
-        methods = tuple(getattr(route, "methods", ()) or ())
-        if not (isinstance(alias, str) and isinstance(path, str) and methods):
-            continue
-        rest_by_alias.setdefault(alias, []).append(
-            HttpRestBindingSpec(
+    if rest_router is not None and rest_router not in route_sources:
+        route_sources.append(rest_router)
+
+    for source in route_sources:
+        for route in tuple(getattr(source, "routes", ()) or ()):  # type: ignore[arg-type]
+            route_model = getattr(route, "tigrbl_model", None)
+            if route_model is not None and route_model is not model:
+                continue
+
+            alias = getattr(route, "tigrbl_alias", None)
+            path = getattr(route, "path_template", None)
+            methods = tuple(getattr(route, "methods", ()) or ())
+            if not (isinstance(alias, str) and isinstance(path, str) and methods):
+                continue
+
+            candidate = HttpRestBindingSpec(
                 proto="http.rest",
                 methods=tuple(str(method).upper() for method in methods),
                 path=path,
             )
-        )
+            alias_bindings = rest_by_alias.setdefault(alias, [])
+            if candidate not in alias_bindings:
+                alias_bindings.append(candidate)
 
     normalized = []
     for spec in specs:
@@ -83,7 +98,11 @@ def apply(context: MappingContext):
         only_keys=context.only_keys,
     )
 
-    normalized_specs = _normalize_bindings(model, list(context.all_specs))
+    normalized_specs = _normalize_bindings(
+        model,
+        list(context.all_specs),
+        router=context.router,
+    )
     all_specs, by_key, by_alias = _index_specs(list(normalized_specs))
     model.ops = SimpleNamespace(all=all_specs, by_key=by_key, by_alias=by_alias)
     model.opspecs = model.ops

@@ -88,7 +88,7 @@ def run(obj: object | None, ctx: Any) -> None:
     if env.kind == "rest" and not rest_jsonrpc_endpoint and not binding_preselected_rpc:
         return
 
-    def _is_rpc_envelope(payload: Mapping[str, Any] | Any) -> bool:
+    def _looks_like_rpc_envelope(payload: Mapping[str, Any] | Any) -> bool:
         if isinstance(payload, Mapping):
             method = payload.get("method")
         else:
@@ -98,7 +98,7 @@ def run(obj: object | None, ctx: Any) -> None:
     parsed_payload = getattr(ctx, "payload", None)
     if not isinstance(parsed_payload, Mapping):
         parsed_payload = getattr(ctx, "body", None)
-    if _is_rpc_envelope(parsed_payload):
+    if _looks_like_rpc_envelope(parsed_payload):
         _set_rpc_route(ctx, route, env, parsed_payload)
         return
 
@@ -113,7 +113,7 @@ def run(obj: object | None, ctx: Any) -> None:
     if not isinstance(body, (bytes, bytearray)):
         ingress = temp.get("ingress") if isinstance(temp.get("ingress"), dict) else {}
         body = ingress.get("body") if isinstance(ingress, dict) else None
-    if _is_rpc_envelope(body):
+    if _looks_like_rpc_envelope(body):
         _set_rpc_route(ctx, route, env, body)
         return
     if not isinstance(body, (bytes, bytearray)):
@@ -124,7 +124,7 @@ def run(obj: object | None, ctx: Any) -> None:
     except Exception:
         return
 
-    if _is_rpc_envelope(parsed):
+    if _looks_like_rpc_envelope(parsed):
         _set_rpc_route(ctx, route, env, parsed)
     else:
         setattr(ctx, "gw_raw", replace(env, kind="rest"))

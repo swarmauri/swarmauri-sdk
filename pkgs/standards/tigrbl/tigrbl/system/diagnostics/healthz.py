@@ -18,8 +18,15 @@ def build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
     """
     if dep is not None:
 
-        async def _healthz(db: Any = Depends(dep)):
+        async def _healthz(db: Any = Depends(dep), request: Request | None = None):
+            if isinstance(db, Request):
+                request = db
+                db = getattr(request.state, "db", None)
             try:
+                if db is None and request is not None:
+                    db = getattr(request.state, "db", None)
+                if db is None:
+                    return {"ok": True, "warning": "no-db"}
                 await maybe_execute(db, "SELECT 1")
                 return {"ok": True}
             except Exception as e:  # pragma: no cover
