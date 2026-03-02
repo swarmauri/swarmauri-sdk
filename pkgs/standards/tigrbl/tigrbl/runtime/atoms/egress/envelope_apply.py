@@ -36,19 +36,32 @@ def run(obj: object | None, ctx: Any) -> None:
     egress = temp.setdefault("egress", {})
 
     payload = egress.get("wire_payload")
-    if payload is None:
+    temp = getattr(ctx, "temp", None)
+    rpc_error = temp.get("rpc_error") if isinstance(temp, dict) else None
+    if payload is None and not isinstance(rpc_error, dict):
         return
 
     if _is_jsonrpc(ctx, egress):
         request_rpc = getattr(getattr(ctx, "gw_raw", None), "rpc", None)
+        if not isinstance(request_rpc, dict) and isinstance(temp, dict):
+            route = temp.get("route")
+            maybe_env = route.get("rpc_envelope") if isinstance(route, dict) else None
+            if isinstance(maybe_env, dict):
+                request_rpc = maybe_env
+
         rpc_id = request_rpc.get("id") if isinstance(request_rpc, dict) else None
-        egress["enveloped"] = {
-            "jsonrpc": "2.0",
-            "result": payload,
-            "id": rpc_id,
-        }
-        egress["status_code"] = 200
-        setattr(ctx, "status_code", 200)
+        if isinstance(rpc_error, dict):
+            egress["enveloped"] = {
+                "jsonrpc": "2.0",
+                "error": dict(rpc_error),
+                "id": rpc_id,
+            }
+        else:
+            egress["enveloped"] = {
+                "jsonrpc": "2.0",
+                "result": payload,
+                "id": rpc_id,
+            }
         return
 
     envelope = egress.get("envelope")

@@ -482,6 +482,7 @@ class TigrblApp(_App):
         """Mirror the auto-created Router registries onto the app facade."""
         if self._default_router is None:
             return
+        existing_tables = dict(getattr(self, "tables", {}) or {})
         self.schemas = self._default_router.schemas
         self.handlers = self._default_router.handlers
         self.hooks = self._default_router.hooks
@@ -494,6 +495,12 @@ class TigrblApp(_App):
         self.table_config = self._default_router.table_config
         self.core = self._default_router.core
         self.core_raw = self._default_router.core_raw
+
+        # Preserve app-level system models (for docs/metadata runtime ops) that
+        # may have been mounted before the default router existed.
+        for model_name, model in existing_tables.items():
+            self.tables.setdefault(model_name, model)
+            self._default_router.tables.setdefault(model_name, model)
 
     def include_router(
         self,
@@ -541,6 +548,22 @@ class TigrblApp(_App):
                 self.tables.setdefault(name, table)
             if self._default_router is not None and self._default_router is not router:
                 for name, table in resolved_tables.items():
+                    self._default_router.tables.setdefault(name, table)
+
+        route_models: Dict[str, type] = {}
+        for route in getattr(router, "routes", ()):
+            model = getattr(route, "tigrbl_model", None)
+            if not isinstance(model, type):
+                continue
+            model_name = getattr(model, "__name__", None)
+            if isinstance(model_name, str) and model_name:
+                route_models.setdefault(model_name, model)
+
+        if route_models:
+            for name, table in route_models.items():
+                self.tables.setdefault(name, table)
+            if self._default_router is not None and self._default_router is not router:
+                for name, table in route_models.items():
                     self._default_router.tables.setdefault(name, table)
 
         if not mount_router:

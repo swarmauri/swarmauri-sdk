@@ -13,6 +13,15 @@ _METADATA_OP_ALIASES = {"__openapi__", "__docs__"}
 _RUNTIME_ROUTE_ALIAS_PREFIX = "__route__:"
 
 
+def _requires_db(model: type, alias: str) -> bool:
+    opspecs = getattr(getattr(model, "opspecs", None), "all", ()) or ()
+    for spec in opspecs:
+        if getattr(spec, "alias", None) != alias:
+            continue
+        return getattr(spec, "persist", "default") != "skip"
+    return True
+
+
 def _select_out_model(model: type, alias: str):
     schemas_root = getattr(model, "schemas", None)
     alias_ns = getattr(schemas_root, alias, None) if schemas_root else None
@@ -74,6 +83,9 @@ def run(obj: object | None, ctx: Any) -> None:
     if op_alias in _METADATA_OP_ALIASES or str(op_alias).startswith(
         _RUNTIME_ROUTE_ALIAS_PREFIX
     ):
+        return
+
+    if not _requires_db(model, op_alias):
         return
 
     db, release = _resolver.acquire(router=router, model=model, op_alias=op_alias)
