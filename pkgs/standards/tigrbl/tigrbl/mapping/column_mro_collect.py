@@ -119,8 +119,6 @@ def mro_collect_columns(
     return _mro_collect_columns_cached(model, _cache_bust)
 
 
-# Preserve legacy cache API expected by perf tests.
-mro_collect_columns.cache_clear = _mro_collect_columns_cached.cache_clear  # type: ignore[attr-defined]
-
+mro_collect_columns.cache_clear = _mro_collect_columns_cached.cache_clear
 
 __all__ = ["mro_collect_columns"]

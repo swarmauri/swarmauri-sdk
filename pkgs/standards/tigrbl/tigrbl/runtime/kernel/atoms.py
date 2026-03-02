@@ -193,6 +193,7 @@ def _inject_atoms(
         return anchor_idx, token_idx
 
     for anchor, run in sorted(atoms, key=_sort_key):
+        anchor_is_phase = False
         if _ev.is_valid_event(anchor):
             info = _ev.get_anchor_info(anchor)
             phase = info.phase
@@ -200,6 +201,7 @@ def _inject_atoms(
         elif anchor in _ev.PHASES:
             phase = anchor
             persist_tied = False
+            anchor_is_phase = True
         else:
             continue
 
