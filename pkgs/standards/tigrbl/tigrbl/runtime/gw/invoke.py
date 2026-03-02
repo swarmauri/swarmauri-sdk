@@ -4,8 +4,8 @@ import json
 from typing import Any, Mapping
 
 from ..executor import _Ctx, _invoke
-from ..status import StatusDetailError
 from ..kernel.core import Kernel
+from ..status import StatusDetailError
 from .raw import GwRawEnvelope
 
 
@@ -52,8 +52,6 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
             env, int(getattr(exc, "status_code", 500) or 500), {"detail": detail}
         )
         return
-
-    return
 
 
 async def _send_json(env: GwRawEnvelope, status: int, payload: Any) -> None:
