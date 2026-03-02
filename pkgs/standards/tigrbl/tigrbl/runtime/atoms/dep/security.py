@@ -29,7 +29,11 @@ async def invoke_dependency(router: Any, dep: Callable[..., Any], req: Any) -> A
         dependency_marker = annotation_marker(extras, Dependency)
         param_marker = annotation_marker(extras, Param)
 
-        if is_request_annotation(base_annotation) or name == "request":
+        if (
+            is_request_annotation(base_annotation)
+            or name == "request"
+            or name.lower().endswith("request")
+        ):
             kwargs[name] = req
         elif isinstance(param.default, Dependency) or dependency_marker is not None:
             child = (
@@ -93,7 +97,13 @@ async def run(dep: object | None, ctx: Any) -> Any:
     router = getattr(ctx, "router", None) or ctx_map.get("router")
 
     if req is not None and router is not None:
-        return await invoke_dependency(router, fn, req)
+        value = await invoke_dependency(router, fn, req)
+        if getattr(fn, "__tigrbl_require_auth__", False) and value is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Unauthorized",
+            )
+        return value
 
     try:
         rv = fn(ctx)

@@ -80,10 +80,17 @@ def add_route(
 
 def include_router(owner: Any, router: Any, *, prefix: str = "") -> None:
     nested_prefix = normalize_prefix(prefix)
+    router_dependencies = list(getattr(router, "dependencies", ()) or ())
     for route in getattr(router, "routes", ()):
         path = route.path_template
         if nested_prefix:
             path = f"{nested_prefix}{path}" if path != "/" else nested_prefix
+
+        route_dependencies = list(getattr(route, "dependencies", ()) or ())
+        merged_dependencies = [
+            dep for dep in router_dependencies if dep not in route_dependencies
+        ] + route_dependencies
+
         add_route(
             owner,
             path,
@@ -104,7 +111,7 @@ def include_router(owner: Any, router: Any, *, prefix: str = "") -> None:
             request_model=route.request_model,
             responses=route.responses,
             status_code=route.status_code,
-            dependencies=route.dependencies,
+            dependencies=merged_dependencies,
             security_dependencies=route.security_dependencies,
             tigrbl_model=route.tigrbl_model,
             tigrbl_alias=route.tigrbl_alias,
