@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any, Mapping
 
 from .._base._response_base import ResponseBase, TemplateBase
@@ -25,12 +24,10 @@ class _JSONDualMethod:
         return _instance_json
 
 
-@dataclass
 class Template(TemplateBase):
     """Concrete template configuration used at runtime."""
 
 
-@dataclass
 class Response(ResponseBase):
     """Concrete response configuration used at runtime."""
 
