@@ -43,7 +43,10 @@ def __getattr__(name: str):
     if name in {"include_table", "include_tables"}:
         return getattr(import_module(".router.include", __name__), name)
     if name == "rpc_call":
-        return getattr(import_module(".router.rpc", __name__), name)
+        # ``tigrbl.mapping.rpc_call`` is a compatibility API that returns the
+        # operation envelope built by ``model.rpc.<alias>``. Router-level
+        # dispatch remains available from ``tigrbl.mapping.router.rpc``.
+        return getattr(import_module(".rpc", __name__), name)
     if name in {
         "INSTALLS",
         "MRO_COLLECTORS",
