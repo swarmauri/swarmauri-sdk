@@ -18,6 +18,8 @@ def run(obj: object | None, ctx: Any) -> None:
     if isinstance(envelope, dict) and "method" in envelope:
         rpc_method = envelope["method"]
         route["rpc_method"] = rpc_method
+        # JSON-RPC transport always returns HTTP 200 with an enveloped payload.
+        setattr(ctx, "status_code", 200)
         proto = route.get("protocol")
         if isinstance(proto, str) and proto.endswith(".rest"):
             route["protocol"] = proto.replace(".rest", ".jsonrpc")
