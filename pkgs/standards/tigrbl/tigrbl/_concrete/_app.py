@@ -19,8 +19,13 @@ from ..runtime.gw.raw import GwRawEnvelope
 
 class App(AppSpec):
     @classmethod
-    def _collect_mro_spec(cls) -> AppSpec:
+    def collect(cls) -> AppSpec:
+        """Collect and normalize AppSpec configuration for this App class."""
         return AppSpec.collect(cls)
+
+    @classmethod
+    def _collect_mro_spec(cls) -> AppSpec:
+        return cls.collect()
 
     TITLE = "Tigrbl"
     VERSION = "0.1.0"
