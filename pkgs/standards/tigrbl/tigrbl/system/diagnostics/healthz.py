@@ -38,8 +38,11 @@ def build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
                 await maybe_execute(db, "SELECT 1")
                 return {"ok": True}
             except Exception as e:  # pragma: no cover
-                logger.exception("/healthz failed")
-                return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+                logger.warning("/healthz degraded: %s", e)
+                return JSONResponse(
+                    {"ok": False, "warning": "db-unavailable", "error": str(e)},
+                    status_code=200,
+                )
 
         return _healthz
 
@@ -51,7 +54,10 @@ def build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
             await maybe_execute(db, "SELECT 1")
             return {"ok": True}
         except Exception as e:  # pragma: no cover
-            logger.exception("/healthz failed")
-            return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+            logger.warning("/healthz degraded: %s", e)
+            return JSONResponse(
+                {"ok": False, "warning": "db-unavailable", "error": str(e)},
+                status_code=200,
+            )
 
     return _healthz
