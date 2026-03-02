@@ -84,7 +84,11 @@ def _resolve_handler_kwargs(
         base_annotation, extras = split_annotated(param.annotation)
         param_marker = annotation_marker(extras, Param)
 
-        if is_request_annotation(base_annotation) or name == "request":
+        if (
+            is_request_annotation(base_annotation)
+            or name == "request"
+            or name.lower().endswith("request")
+        ):
             kwargs[name] = request
             continue
 

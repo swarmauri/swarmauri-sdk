@@ -34,6 +34,7 @@ from ._table_registry import TableRegistry
 from ._routing import include_router as _include_router_impl
 from ..system import mount_openrpc as _mount_openrpc
 from ..system import mount_diagnostics as _mount_diagnostics
+from ..system.docs import build_openapi as _build_openapi
 from ..mapping import engine_resolver as _resolver
 from .._concrete._engine import Engine
 
@@ -299,6 +300,10 @@ class TigrblRouter(_Router):
             if callable(include_other):
                 include_other(router, prefix=px)
         return router
+
+    def openapi(self) -> Dict[str, Any]:
+        """Build and return the OpenAPI document for this router."""
+        return _build_openapi(self)
 
     # ------------------------- registry passthroughs -------------------------
 
