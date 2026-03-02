@@ -7,6 +7,10 @@ from ... import events as _ev
 ANCHOR = _ev.ROUTE_OP_RESOLVE
 
 
+def _default_status_for_target(target: Any) -> int:
+    return 201 if target == "create" else 200
+
+
 def run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = getattr(ctx, "temp", None)
@@ -25,6 +29,12 @@ def run(obj: object | None, ctx: Any) -> None:
             route["op"] = getattr(meta, "alias", None)
             setattr(ctx, "op", getattr(meta, "alias", None))
             setattr(ctx, "model", getattr(meta, "model", None))
+            if getattr(ctx, "status_code", None) is None:
+                setattr(
+                    ctx,
+                    "status_code",
+                    _default_status_for_target(getattr(meta, "target", None)),
+                )
             return
 
     if "op" not in route:
