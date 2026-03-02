@@ -78,9 +78,11 @@ async def test_diagnostics_kernelz_active_for_jinja_response(tmp_path):
     app = SimpleNamespace(tables={"Widget": Widget})
     kernelz = _build_kernelz_endpoint(app)
     data = await kernelz()
-    assert "atom:response:template@out:dump" in data["Widget"]["download"]
-    assert "atom:response:negotiate@out:dump" in data["Widget"]["download"]
-    assert "atom:response:render@out:dump" in data["Widget"]["download"]
+    assert "POST_RESPONSE:atom:response:template@out:dump" in data["Widget"]["download"]
+    assert (
+        "POST_RESPONSE:atom:response:negotiate@out:dump" in data["Widget"]["download"]
+    )
+    assert "POST_RESPONSE:atom:response:render@out:dump" in data["Widget"]["download"]
 
 
 # 5. Kernel state
