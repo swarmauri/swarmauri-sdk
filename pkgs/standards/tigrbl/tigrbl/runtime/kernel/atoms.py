@@ -210,7 +210,7 @@ def _inject_atoms(
         if anchor == _ev.SYS_HANDLER_PERSISTENCE and chains.get("HANDLER"):
             continue
         domain, _subject = _infer_domain_subject(run)
-        if domain in {"dep", "deps_inject"}:
+        if domain == "dep":
             continue
 
         chains.setdefault(phase, []).append(_wrap_atom(run, anchor=anchor))
