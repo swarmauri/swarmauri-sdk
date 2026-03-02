@@ -21,6 +21,12 @@ def _add_field(
     py_t: type | Any,
     field: Field | None = None,
 ) -> None:
+    # ``property`` descriptors can leak into extras definitions when callers
+    # register computed attributes directly (instead of their return type).
+    # Pydantic cannot generate schemas for a raw property object, so degrade to
+    # ``Any`` and let runtime serializers provide the concrete value.
+    if isinstance(py_t, property):
+        py_t = Any
     sink[name] = (py_t, field if field is not None else Field(None))
 
 
