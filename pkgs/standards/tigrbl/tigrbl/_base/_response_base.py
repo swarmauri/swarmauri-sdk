@@ -43,7 +43,8 @@ class ResponseBase(ResponseSpec):
         *,
         status_code: int = 200,
         headers: Mapping[str, str] | list[tuple[str, str]] | None = None,
-        body: bytes = b"",
+        body: bytes | None = None,
+        content: bytes | None = None,
         media_type: str | None = None,
         kind: str = "auto",
         envelope: bool | None = None,
@@ -54,6 +55,15 @@ class ResponseBase(ResponseSpec):
         cache_control: str | None = None,
         redirect_to: str | None = None,
     ) -> None:
+        if body is not None and content is not None:
+            raise TypeError(
+                "ResponseBase: provide either 'body' or 'content', not both"
+            )
+
+        payload = (
+            body if body is not None else (content if content is not None else b"")
+        )
+
         super().__init__(
             kind=kind,
             media_type=media_type,
@@ -74,7 +84,7 @@ class ResponseBase(ResponseSpec):
         )
         self.status_code = status_code
         self.headers = Headers(headers or {})
-        self.body = body
+        self.body = payload
         self.media_type = media_type
         self._headers = self.headers
 
