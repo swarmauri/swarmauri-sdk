@@ -42,6 +42,7 @@ from ._table_registry import TableRegistry
 from .._spec.app_spec import AppSpec
 from ..mapping.runtime_routes import register_runtime_route
 from ..mapping.spec_normalization import normalize_app_spec
+from ..mapping.spec_normalization import _seqify
 from ..system.favicon import FAVICON_PATH, mount_favicon
 from ..mapping.model_helpers import _OpSpecGroup
 
@@ -155,7 +156,7 @@ class TigrblApp(_App):
             asgi_kwargs["lifespan"] = lifespan
         super().__init__(engine=engine, **asgi_kwargs)
         self._middlewares: list[tuple[Any, dict[str, Any]]] = []
-        self.middlewares = tuple(getattr(self, "MIDDLEWARES", ()))
+        self.middlewares = _seqify(getattr(self, "MIDDLEWARES", ()))
         declared_tables = getattr(self, "TABLES", ())
         self._table_registry = TableRegistry(tables=declared_tables)
         self._favicon_path = favicon_path
@@ -180,7 +181,7 @@ class TigrblApp(_App):
         # public containers (mirrors used by bindings.router)
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
-        self.hooks = tuple(getattr(self, "HOOKS", ()))
+        self.hooks = _seqify(getattr(self, "HOOKS", ()))
         self.state = SimpleNamespace()
         self.rpc = SimpleNamespace()
         self.rest = SimpleNamespace()
@@ -190,7 +191,7 @@ class TigrblApp(_App):
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
         self.core_raw = SimpleNamespace()
-        initial_routers = list(getattr(self, "ROUTERS", ()))
+        initial_routers = list(_seqify(getattr(self, "ROUTERS", ())))
         self._event_handlers = {
             "startup": [],
             "shutdown": [],
