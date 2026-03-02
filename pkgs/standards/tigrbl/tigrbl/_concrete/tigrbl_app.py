@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import inspect
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 from typing import (
@@ -510,6 +511,82 @@ class TigrblApp(_App):
         mount_router: bool = True,
     ) -> Any:
         """Mount a Tigrbl Router router onto this app and track it."""
+
+        def _normalize_mount_prefix(value: str | None) -> str:
+            if not value:
+                return ""
+            token = str(value).strip()
+            if not token:
+                return ""
+            if not token.startswith("/"):
+                token = f"/{token}"
+            return token.rstrip("/")
+
+        def _apply_mount_prefix_to_model_bindings(
+            model: type, mount_prefix: str
+        ) -> None:
+            if not mount_prefix:
+                return
+
+            ops_ns = getattr(model, "ops", None)
+            specs = tuple(getattr(ops_ns, "all", ()) or ())
+            if not specs:
+                return
+
+            updated_specs: list[Any] = []
+            changed = False
+            for spec in specs:
+                bindings = tuple(getattr(spec, "bindings", ()) or ())
+                updated_bindings: list[Any] = []
+                local_changed = False
+                for binding in bindings:
+                    if not isinstance(binding, HttpRestBindingSpec):
+                        updated_bindings.append(binding)
+                        continue
+
+                    path = str(binding.path or "")
+                    if not path.startswith("/"):
+                        path = f"/{path}"
+                    prefixed_path = (
+                        path
+                        if path == mount_prefix or path.startswith(f"{mount_prefix}/")
+                        else f"{mount_prefix}{path}"
+                    )
+                    if prefixed_path != binding.path:
+                        local_changed = True
+                        updated_bindings.append(replace(binding, path=prefixed_path))
+                    else:
+                        updated_bindings.append(binding)
+
+                if local_changed:
+                    changed = True
+                    updated_specs.append(
+                        replace(spec, bindings=tuple(updated_bindings))
+                    )
+                else:
+                    updated_specs.append(spec)
+
+            if not changed:
+                return
+
+            updated_all = tuple(updated_specs)
+            by_alias: dict[str, tuple[Any, ...]] = {}
+            by_key: dict[tuple[str, str], Any] = {}
+            for spec in updated_all:
+                by_alias.setdefault(spec.alias, tuple())
+                by_alias[spec.alias] = by_alias[spec.alias] + (spec,)
+                by_key[(spec.alias, spec.target)] = spec
+
+            updated_ops_ns = SimpleNamespace(
+                all=updated_all, by_alias=by_alias, by_key=by_key
+            )
+            model.ops = updated_ops_ns
+            model.opspecs = updated_ops_ns
+
+        mount_prefix = _normalize_mount_prefix(
+            prefix if prefix is not None else getattr(router, "prefix", None)
+        )
+
         if isinstance(self.routers, dict):
             key = (
                 getattr(router, "name", None)
@@ -560,6 +637,8 @@ class TigrblApp(_App):
                 route_models.setdefault(model_name, model)
 
         if route_models:
+            for table in route_models.values():
+                _apply_mount_prefix_to_model_bindings(table, mount_prefix)
             for name, table in route_models.items():
                 self.tables.setdefault(name, table)
             if self._default_router is not None and self._default_router is not router:
