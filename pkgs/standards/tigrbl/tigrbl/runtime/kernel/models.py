@@ -1,7 +1,75 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import re
 from typing import Any, Callable, Dict, Mapping, Tuple
+
+
+_ROUTE_SEGMENT_RE = re.compile(r"^\{(?P<name>[a-zA-Z_][a-zA-Z0-9_]*)\}$")
+
+
+class RestRouteIndex(dict[str, int]):
+    """REST selector index with ``match(method, path)`` compatibility API."""
+
+    def __call__(self, method: str, path: str) -> tuple[int, dict[str, str]]:
+        return self.match(method, path)
+
+    def match(self, method: str, path: str) -> tuple[int, dict[str, str]]:
+        normalized_method = (method or "").upper()
+        normalized_path = self._normalize_path(path)
+        selector = f"{normalized_method} {normalized_path}"
+
+        exact = self.get(selector)
+        if isinstance(exact, int):
+            return exact, {}
+
+        path_parts = self._split_path(normalized_path)
+        for candidate, meta_index in self.items():
+            try:
+                cand_method, cand_path = candidate.split(" ", 1)
+            except ValueError:
+                continue
+            if cand_method != normalized_method:
+                continue
+
+            params = self._match_template(cand_path, path_parts)
+            if params is not None:
+                return meta_index, params
+
+        raise KeyError(selector)
+
+    @staticmethod
+    def _normalize_path(path: str) -> str:
+        text = (path or "").strip()
+        if not text:
+            return "/"
+        if not text.startswith("/"):
+            text = f"/{text}"
+        return text.rstrip("/") or "/"
+
+    @staticmethod
+    def _split_path(path: str) -> tuple[str, ...]:
+        if path == "/":
+            return ()
+        return tuple(segment for segment in path.split("/") if segment)
+
+    @classmethod
+    def _match_template(
+        cls, template_path: str, actual_parts: tuple[str, ...]
+    ) -> dict[str, str] | None:
+        template_parts = cls._split_path(cls._normalize_path(template_path))
+        if len(template_parts) != len(actual_parts):
+            return None
+
+        out: dict[str, str] = {}
+        for template_part, actual_part in zip(template_parts, actual_parts):
+            matched = _ROUTE_SEGMENT_RE.match(template_part)
+            if matched:
+                out[matched.group("name")] = actual_part
+                continue
+            if template_part != actual_part:
+                return None
+        return out
 
 
 @dataclass(frozen=True)
@@ -50,6 +118,13 @@ class KernelPlan:
         default_factory=dict
     )
     egress_chain: Mapping[str, list[Callable[..., Any]]] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        rest_index = self.proto_indices.get("http.rest")
+        if isinstance(rest_index, dict) and not isinstance(rest_index, RestRouteIndex):
+            normalized = dict(self.proto_indices)
+            normalized["http.rest"] = RestRouteIndex(rest_index)
+            object.__setattr__(self, "proto_indices", normalized)
 
     def _legacy_payload(self) -> dict[str, dict[str, list[str]]]:
         payload: dict[str, dict[str, list[str]]] = {}
