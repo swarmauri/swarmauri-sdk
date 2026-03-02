@@ -86,6 +86,10 @@ class _Ctx(dict):
             key == "response"
             and value is not None
             and not isinstance(value, _ResponseState)
+            and (
+                (isinstance(value, Mapping) and "result" in value)
+                or hasattr(value, "result")
+            )
         ):
             value = _ResponseState(self, value)
         if key == "result":
