@@ -9,10 +9,11 @@ from tigrbl.mapping import build_schemas, build_hooks, build_handlers, build_res
 from httpx import ASGITransport, Client
 
 from tigrbl.types import BaseModel
+from tigrbl.orm.tables import TableBase
 
 
 @alias_ctx(read=alias("get", response_schema="Search.out"))
-class Widget:
+class Widget(TableBase):
     # --- model-scoped schemas via schema_ctx -------------------------------
 
     @schema_ctx(alias="Search", kind="in")
