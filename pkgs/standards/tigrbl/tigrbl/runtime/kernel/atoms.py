@@ -209,7 +209,6 @@ def _inject_atoms(
             "INGRESS_ROUTE",
             "EGRESS_SHAPE",
             "EGRESS_FINALIZE",
-            "POST_RESPONSE",
             "START_TX",
             "END_TX",
         ):
