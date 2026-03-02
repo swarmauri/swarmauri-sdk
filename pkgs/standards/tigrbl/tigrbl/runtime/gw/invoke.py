@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from typing import Any, Mapping
 
 from ..executor import _Ctx, _invoke
@@ -33,7 +32,12 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
 
     opmeta_index = _resolve_op_index(ctx, plan)
     if opmeta_index is None:
-        await _send_json(env, 404, {"detail": "No runtime operation matched request."})
+        await _emit_transport_error_via_kernel(
+            ctx,
+            kernel,
+            status=404,
+            detail="No runtime operation matched request.",
+        )
         return
 
     opmeta = plan.opmeta[opmeta_index]
@@ -48,27 +52,33 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
         detail = (
             exc.detail if getattr(exc, "detail", None) not in (None, "") else str(exc)
         )
-        await _send_json(
-            env, int(getattr(exc, "status_code", 500) or 500), {"detail": detail}
+        await _emit_transport_error_via_kernel(
+            ctx,
+            kernel,
+            status=int(getattr(exc, "status_code", 500) or 500),
+            detail=detail,
         )
         return
 
 
-async def _send_json(env: GwRawEnvelope, status: int, payload: Any) -> None:
-    await env.send(
-        {
-            "type": "http.response.start",
-            "status": status,
-            "headers": [(b"content-type", b"application/json")],
-        }
-    )
-    await env.send(
-        {
-            "type": "http.response.body",
-            "body": json.dumps(payload).encode("utf-8"),
-            "more_body": False,
-        }
-    )
+async def _emit_transport_error_via_kernel(
+    ctx: _Ctx,
+    kernel: Kernel,
+    *,
+    status: int,
+    detail: str,
+) -> None:
+    temp = getattr(ctx, "temp", None)
+    if not isinstance(temp, dict):
+        temp = {}
+        setattr(ctx, "temp", temp)
+    egress = temp.setdefault("egress", {})
+    egress["transport_response"] = {
+        "status_code": int(status),
+        "headers": {"content-type": "application/json; charset=utf-8"},
+        "body": {"detail": detail},
+    }
+    await _invoke(request=None, db=None, phases=kernel.build_egress(ctx.app), ctx=ctx)
 
 
 def _resolve_app(env: GwRawEnvelope) -> Any | None:
