@@ -183,12 +183,16 @@ async def _invoke(
 
     serializer = ctx.get("response_serializer")
     current_result = ctx.get("result")
+    temp = ctx.get("temp") if isinstance(ctx, Mapping) else None
+    rpc_error = temp.get("rpc_error") if isinstance(temp, Mapping) else None
     response_state = getattr(ctx, "response", None)
     if current_result is None and response_state is not None:
         current_result = getattr(response_state, "result", None)
     if current_result is None:
         current_result = getattr(ctx, "obj", None)
-    if callable(serializer):
+    if isinstance(rpc_error, Mapping):
+        ctx["result"] = None
+    elif callable(serializer):
         try:
             ctx["result"] = serializer(current_result)
         except Exception:
@@ -221,6 +225,12 @@ async def _invoke(
     )
     if ctx.get("result") is not None and getattr(ctx, "response", None) is not None:
         setattr(ctx.response, "result", ctx.get("result"))
+
+    release = None
+    if isinstance(temp, Mapping):
+        release = temp.pop("__sys_db_release__", None)
+    if callable(release):
+        release()
 
     if getattr(ctx, "response", None) is not None:
         return getattr(ctx.response, "result", ctx.get("result"))

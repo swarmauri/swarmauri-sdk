@@ -168,7 +168,8 @@ async def _run_chain(
                 ctx.result = None
                 if isinstance(temp, dict):
                     temp["rpc_short_circuit"] = True
-                    temp["rpc_error"] = to_rpc_error_payload(std_exc)
+                    if not isinstance(temp.get("rpc_error"), dict):
+                        temp["rpc_error"] = to_rpc_error_payload(std_exc)
                 if _trace is not None:
                     _trace.attach_error(ctx, seq, exc)
                     _trace.end(ctx, seq, status=_trace.ERROR)
