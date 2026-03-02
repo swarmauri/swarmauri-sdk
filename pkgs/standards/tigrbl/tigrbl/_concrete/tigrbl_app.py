@@ -719,15 +719,15 @@ class TigrblApp(_App):
 
         router = self._ensure_default_router()
         existing_paths = {getattr(route, "path", None) for route in self.routes}
-        if (
-            self.jsonrpc_prefix not in existing_paths
-            and f"{self.jsonrpc_prefix}/" not in existing_paths
-        ):
-            self.add_route(
-                self.jsonrpc_prefix,
-                lambda *_args, **_kwargs: None,
-                methods=["POST"],
-            )
+        base_prefix = self.jsonrpc_prefix.rstrip("/") or "/"
+        candidate_paths = (
+            base_prefix,
+            f"{base_prefix}/" if base_prefix != "/" else "/",
+        )
+        for path in candidate_paths:
+            if path in existing_paths:
+                continue
+            self.add_route(path, lambda *_args, **_kwargs: None, methods=["POST"])
         return router
 
     def mount_openapi(
