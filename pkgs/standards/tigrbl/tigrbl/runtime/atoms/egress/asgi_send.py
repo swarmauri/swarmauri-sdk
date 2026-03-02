@@ -32,6 +32,11 @@ async def run(obj: object | None, ctx: Any) -> None:
     if not callable(send) or not isinstance(scope, dict) or scope.get("type") != "http":
         return
 
+    temp = getattr(ctx, "temp", None)
+    egress = temp.get("egress") if isinstance(temp, dict) else None
+    if isinstance(egress, dict) and egress.get("suppress_asgi_send"):
+        return
+
     resp = None
     resp_ns = getattr(ctx, "response", None)
     if resp_ns is not None:
