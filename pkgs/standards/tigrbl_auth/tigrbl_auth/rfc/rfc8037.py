@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any, Awaitable
 
-from ..deps import Ed25519EnvelopeSigner
+from ..vendor import Ed25519EnvelopeSigner
 from ..runtime_cfg import settings
 
 try:  # pragma: no cover - optional dependency

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import inspect
 
-from tigrbl_auth.deps import (
+from tigrbl_auth.vendor import (
     TigrblRouter,
     TigrblApp,
     HTTPException,

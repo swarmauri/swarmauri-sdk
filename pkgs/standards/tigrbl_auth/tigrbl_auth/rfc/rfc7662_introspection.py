@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from urllib.parse import parse_qs
 
-from tigrbl_auth.deps import TigrblRouter, HTTPException, Request, status
+from tigrbl_auth.vendor import TigrblRouter, HTTPException, Request, status
 
 from ..runtime_cfg import settings
 from ..routers.schemas import IntrospectOut

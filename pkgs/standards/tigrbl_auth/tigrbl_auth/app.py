@@ -15,7 +15,7 @@ Features
 
 from __future__ import annotations
 
-from tigrbl_auth.deps import TigrblApp
+from tigrbl_auth.vendor import TigrblApp
 import inspect
 
 from .routers.surface import surface_api

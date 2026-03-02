@@ -15,7 +15,7 @@ import secrets
 import string
 from typing import Final, Literal, TYPE_CHECKING
 
-from tigrbl_auth.deps import BaseModel, hook_ctx
+from tigrbl_auth.vendor import BaseModel, hook_ctx
 from typing import Any, Mapping
 
 from ..runtime_cfg import settings

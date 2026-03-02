@@ -7,7 +7,7 @@ from httpx import ASGITransport, AsyncClient, BasicAuth
 from unittest.mock import AsyncMock
 
 from tigrbl_auth.fastapi_deps import get_db
-from tigrbl_auth.deps import TigrblApp
+from tigrbl_auth.vendor import TigrblApp
 from tigrbl_auth.routers.auth_flows import router
 from tigrbl_auth.runtime_cfg import settings
 from tigrbl_auth.orm import Client

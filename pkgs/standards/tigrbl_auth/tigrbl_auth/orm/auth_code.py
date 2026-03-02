@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-from tigrbl_auth.deps import (
+from tigrbl_auth.vendor import (
     Base,
     TenantColumn,
     Timestamped,
