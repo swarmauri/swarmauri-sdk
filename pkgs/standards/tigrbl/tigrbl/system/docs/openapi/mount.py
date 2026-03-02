@@ -22,7 +22,7 @@ def _register_runtime_openapi_op(router: Any, *, path: str, alias: str) -> None:
         model = type("TigrblSystemDocs", (), {})
         model.resource_name = "system_docs"
         model.hooks = SimpleNamespace()
-        model.ops = SimpleNamespace(by_alias={})
+        model.ops = SimpleNamespace(by_alias={}, all=())
         model.opspecs = SimpleNamespace(all=())
         tables[model_name] = model
 
@@ -32,6 +32,7 @@ def _register_runtime_openapi_op(router: Any, *, path: str, alias: str) -> None:
         arity="collection",
         persist="skip",
         expose_routes=False,
+        expose_rpc=False,
         bindings=(HttpRestBindingSpec(proto="http.rest", path=path, methods=("GET",)),),
     )
     model.ops.by_alias[alias] = _OpSpecGroup((op,))
