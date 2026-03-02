@@ -55,7 +55,7 @@ testpaths = ["../tigrbl_tests/tests"]
 markers = [
     "test: standard test",
     "unit: Unit tests",
-    "i9n: Integration tests",
+    "i9n: mark integration tests",
     "r8n: Regression tests",
     "timeout: mark test to timeout after X seconds",
     "xpass: Expected passes",
