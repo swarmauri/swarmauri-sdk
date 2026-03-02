@@ -17,6 +17,22 @@ def _set_rpc_route(
     setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=dict(rpc)))
 
 
+def _normalize_path(path: str | None) -> str:
+    if not isinstance(path, str) or not path:
+        return "/"
+    if path == "/":
+        return "/"
+    return path.rstrip("/") or "/"
+
+
+def _is_jsonrpc_endpoint(ctx: Any, env: GwRouteEnvelope) -> bool:
+    app = getattr(ctx, "app", None)
+    prefix = getattr(app, "jsonrpc_prefix", None)
+    if not isinstance(prefix, str):
+        return False
+    return _normalize_path(env.path) == _normalize_path(prefix)
+
+
 def run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = getattr(ctx, "temp", None)
@@ -32,7 +48,23 @@ def run(obj: object | None, ctx: Any) -> None:
             route["rpc_envelope"] = payload
         return
 
-    if env.kind != "maybe-jsonrpc":
+    route_proto = route.get("protocol")
+    binding_preselected_rpc = (
+        isinstance(route_proto, str)
+        and route_proto.endswith(".jsonrpc")
+        and route.get("binding") is not None
+    )
+
+    rest_jsonrpc_endpoint = env.kind == "rest" and _is_jsonrpc_endpoint(ctx, env)
+
+    if (
+        env.kind not in {"maybe-jsonrpc", "rest"}
+        and not binding_preselected_rpc
+        and not rest_jsonrpc_endpoint
+    ):
+        return
+
+    if env.kind == "rest" and not rest_jsonrpc_endpoint and not binding_preselected_rpc:
         return
 
     parsed_payload = getattr(ctx, "payload", None)

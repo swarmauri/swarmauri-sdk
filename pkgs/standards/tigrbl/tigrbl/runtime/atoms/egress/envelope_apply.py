@@ -36,6 +36,17 @@ def run(obj: object | None, ctx: Any) -> None:
     egress = temp.setdefault("egress", {})
 
     payload = egress.get("wire_payload")
+    rpc_error = temp.get("rpc_error")
+    if isinstance(rpc_error, dict) and _is_jsonrpc(ctx, egress):
+        request_rpc = getattr(getattr(ctx, "gw_raw", None), "rpc", None)
+        rpc_id = request_rpc.get("id") if isinstance(request_rpc, dict) else None
+        egress["enveloped"] = {
+            "jsonrpc": "2.0",
+            "error": dict(rpc_error),
+            "id": rpc_id,
+        }
+        return
+
     if payload is None:
         return
 

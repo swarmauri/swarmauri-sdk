@@ -308,10 +308,9 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         schemas_root = getattr(model, "schemas", None)
         alias_ns = getattr(schemas_root, alias, None)
         item_in_model = getattr(alias_ns, "in_item", None)
-        allowed_wrapper_keys = _allowed_wrapper_keys(model, alias, target)
-
         raw_payload = _coerce_payload(payload)
-        _reject_wrapper_keys(raw_payload, allowed_keys=allowed_wrapper_keys)
+        # Runtime kernel atoms enforce wrapper-key policy for end-to-end calls.
+        # Keep mapping-level callables focused on payload coercion/validation.
         if target == "bulk_delete" and not isinstance(raw_payload, Mapping):
             raw_payload = {"ids": raw_payload}
         if (

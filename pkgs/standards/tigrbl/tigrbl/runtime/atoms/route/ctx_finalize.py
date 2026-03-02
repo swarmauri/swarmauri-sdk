@@ -34,6 +34,9 @@ def _select_out_model(model: type, alias: str):
 
 
 def _build_response_serializer(model: type, alias: str):
+    if alias.split(".")[-1] in {"delete", "bulk_delete", "clear"}:
+        return None
+
     out_model = _select_out_model(model, alias)
     if (
         not out_model
