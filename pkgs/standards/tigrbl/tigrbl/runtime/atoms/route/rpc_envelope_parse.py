@@ -17,6 +17,14 @@ def _set_rpc_route(
     setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=dict(rpc)))
 
 
+def _is_rpc_payload(payload: Mapping[str, Any]) -> bool:
+    if "method" not in payload:
+        return False
+    # Accept both strict JSON-RPC 2.0 envelopes and shorthand method/params
+    # payloads used by compatibility clients.
+    return payload.get("jsonrpc") == "2.0" or "params" in payload
+
+
 def run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = getattr(ctx, "temp", None)
@@ -38,11 +46,7 @@ def run(obj: object | None, ctx: Any) -> None:
     parsed_payload = getattr(ctx, "payload", None)
     if not isinstance(parsed_payload, Mapping):
         parsed_payload = getattr(ctx, "body", None)
-    if (
-        isinstance(parsed_payload, Mapping)
-        and parsed_payload.get("jsonrpc") == "2.0"
-        and "method" in parsed_payload
-    ):
+    if isinstance(parsed_payload, Mapping) and _is_rpc_payload(parsed_payload):
         _set_rpc_route(ctx, route, env, parsed_payload)
         return
 
@@ -62,11 +66,7 @@ def run(obj: object | None, ctx: Any) -> None:
     except Exception:
         return
 
-    if (
-        isinstance(parsed, dict)
-        and parsed.get("jsonrpc") == "2.0"
-        and "method" in parsed
-    ):
+    if isinstance(parsed, dict) and _is_rpc_payload(parsed):
         _set_rpc_route(ctx, route, env, parsed)
     else:
         setattr(ctx, "gw_raw", replace(env, kind="rest"))
