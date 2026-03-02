@@ -20,6 +20,11 @@ def run(obj: object | None, ctx: Any) -> None:
     temp = _ensure_temp(ctx)
     egress = temp.setdefault("egress", {})
 
+    if isinstance(temp.get("rpc_error"), dict):
+        egress["result"] = None
+        setattr(ctx, "result", None)
+        return
+
     if "result" not in egress:
         if hasattr(ctx, "result"):
             egress["result"] = getattr(ctx, "result")

@@ -38,6 +38,30 @@ def _to_rpc_dict(payload: Mapping[str, Any] | Any) -> dict[str, Any]:
     return {}
 
 
+def _normalize_path(path: str | None) -> str:
+    if not isinstance(path, str) or not path:
+        return "/"
+    if path == "/":
+        return "/"
+    return path.rstrip("/") or "/"
+
+
+def _is_jsonrpc_endpoint(ctx: Any, env: GwRouteEnvelope) -> bool:
+    app = getattr(ctx, "app", None)
+    prefix = getattr(app, "jsonrpc_prefix", None)
+    if not isinstance(prefix, str):
+        return False
+    return _normalize_path(env.path) == _normalize_path(prefix)
+
+
+def _is_rpc_payload(payload: Mapping[str, Any]) -> bool:
+    if "method" not in payload:
+        return False
+    # Accept both strict JSON-RPC 2.0 envelopes and shorthand method/params
+    # payloads used by compatibility clients.
+    return payload.get("jsonrpc") == "2.0" or "params" in payload
+
+
 def run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = getattr(ctx, "temp", None)
@@ -53,7 +77,23 @@ def run(obj: object | None, ctx: Any) -> None:
             route["rpc_envelope"] = payload
         return
 
-    if env.kind != "maybe-jsonrpc":
+    route_proto = route.get("protocol")
+    binding_preselected_rpc = (
+        isinstance(route_proto, str)
+        and route_proto.endswith(".jsonrpc")
+        and route.get("binding") is not None
+    )
+
+    rest_jsonrpc_endpoint = env.kind == "rest" and _is_jsonrpc_endpoint(ctx, env)
+
+    if (
+        env.kind not in {"maybe-jsonrpc", "rest"}
+        and not binding_preselected_rpc
+        and not rest_jsonrpc_endpoint
+    ):
+        return
+
+    if env.kind == "rest" and not rest_jsonrpc_endpoint and not binding_preselected_rpc:
         return
 
     def _has_rpc_method(payload: Mapping[str, Any] | Any) -> bool:
@@ -66,7 +106,7 @@ def run(obj: object | None, ctx: Any) -> None:
     parsed_payload = getattr(ctx, "payload", None)
     if not isinstance(parsed_payload, Mapping):
         parsed_payload = getattr(ctx, "body", None)
-    if _has_rpc_method(parsed_payload):
+    if isinstance(parsed_payload, Mapping) and _is_rpc_payload(parsed_payload):
         _set_rpc_route(ctx, route, env, parsed_payload)
         return
 
@@ -89,7 +129,7 @@ def run(obj: object | None, ctx: Any) -> None:
     except Exception:
         return
 
-    if _is_rpc_envelope(parsed):
+    if isinstance(parsed, dict) and _is_rpc_payload(parsed):
         _set_rpc_route(ctx, route, env, parsed)
     else:
         setattr(ctx, "gw_raw", replace(env, kind="rest"))

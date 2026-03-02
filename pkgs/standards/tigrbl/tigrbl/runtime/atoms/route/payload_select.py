@@ -1,11 +1,87 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Mapping, Sequence
 
 from ... import events as _ev
 
 ANCHOR = _ev.ROUTE_PAYLOAD_SELECT
+
+
+_BULKABLE_ALIASES = frozenset({"create", "update", "replace", "merge"})
+
+
+def _coerce_route_params(ctx: Any, params: Mapping[str, Any]) -> dict[str, Any]:
+    if not params:
+        return {}
+
+    model = getattr(ctx, "model", None)
+    table = getattr(model, "__table__", None)
+    columns = getattr(table, "columns", None)
+    if columns is None:
+        return dict(params)
+
+    coerced: dict[str, Any] = {}
+    for name, value in params.items():
+        try:
+            column = columns.get(name)
+            py_type = getattr(getattr(column, "type", None), "python_type", None)
+            if (
+                py_type is not None
+                and value is not None
+                and not isinstance(value, py_type)
+            ):
+                coerced[name] = py_type(value)
+                continue
+        except Exception:
+            pass
+        coerced[name] = value
+    return coerced
+
+
+def _apply_route_params(payload: Any, params: Mapping[str, Any]) -> Any:
+    if not params:
+        return payload
+    if isinstance(payload, Mapping):
+        return {**dict(payload), **dict(params)}
+    if isinstance(payload, Sequence) and not isinstance(
+        payload, (str, bytes, bytearray)
+    ):
+        out: list[Any] = []
+        for item in payload:
+            if isinstance(item, Mapping):
+                out.append({**dict(item), **dict(params)})
+            else:
+                out.append(item)
+        return out
+    return payload
+
+
+def _promote_bulk_alias(ctx: Any, route: dict[str, Any], payload: Any) -> None:
+    if not (
+        isinstance(payload, Sequence)
+        and not isinstance(payload, (str, bytes, bytearray, Mapping))
+    ):
+        return
+
+    alias = route.get("op") or getattr(ctx, "op", None)
+    if alias not in _BULKABLE_ALIASES:
+        return
+
+    bulk_alias = f"bulk_{alias}"
+    plan = getattr(ctx, "kernel_plan", None) or getattr(ctx, "plan", None)
+    opmeta = getattr(plan, "opmeta", ()) if plan is not None else ()
+    model = route.get("model") or getattr(ctx, "model", None)
+
+    for idx, meta in enumerate(opmeta):
+        if (
+            getattr(meta, "model", None) is model
+            and getattr(meta, "alias", None) == bulk_alias
+        ):
+            route["op"] = bulk_alias
+            route["opmeta_index"] = idx
+            setattr(ctx, "op", bulk_alias)
+            return
 
 
 def run(obj: object | None, ctx: Any) -> None:
@@ -16,6 +92,10 @@ def run(obj: object | None, ctx: Any) -> None:
         setattr(ctx, "temp", temp)
 
     route = temp.setdefault("route", {})
+    route_params_raw = (
+        route.get("params") if isinstance(route.get("params"), Mapping) else {}
+    )
+    route_params = _coerce_route_params(ctx, route_params_raw)
     rpc_envelope = route.get("rpc_envelope")
     if isinstance(rpc_envelope, dict):
         payload = rpc_envelope.get("params", {})
@@ -26,6 +106,7 @@ def run(obj: object | None, ctx: Any) -> None:
             and not isinstance(payload, dict)
         ):
             payload = {"ids": payload}
+        payload = _apply_route_params(payload, route_params)
         route["payload"] = payload
         setattr(ctx, "payload", payload)
         return
@@ -42,6 +123,8 @@ def run(obj: object | None, ctx: Any) -> None:
             payload = {}
 
     if payload is not None:
+        payload = _apply_route_params(payload, route_params)
+        _promote_bulk_alias(ctx, route, payload)
         route["payload"] = payload
         setattr(ctx, "payload", payload)
 
