@@ -87,7 +87,7 @@ class AppSpec:
             lifespan = None
 
         include_inherited_routers = "ROUTERS" not in app.__dict__
-        return cls(
+        spec = cls(
             title=title,
             version=version,
             engine=engine,
@@ -108,4 +108,22 @@ class AppSpec:
             system_prefix=system_prefix,
             middlewares=merge_seq_attr(app, "MIDDLEWARES"),
             lifespan=lifespan,
+        )
+        return cls(
+            title=spec.title,
+            description=spec.description,
+            version=spec.version,
+            engine=spec.engine,
+            routers=tuple(spec.routers or ()),
+            ops=tuple(spec.ops or ()),
+            tables=tuple(spec.tables or ()),
+            schemas=tuple(spec.schemas or ()),
+            hooks=tuple(spec.hooks or ()),
+            security_deps=tuple(spec.security_deps or ()),
+            deps=tuple(spec.deps or ()),
+            response=spec.response,
+            jsonrpc_prefix=(spec.jsonrpc_prefix or "/rpc"),
+            system_prefix=(spec.system_prefix or "/system"),
+            middlewares=tuple(spec.middlewares or ()),
+            lifespan=spec.lifespan,
         )
