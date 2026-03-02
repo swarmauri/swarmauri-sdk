@@ -37,6 +37,9 @@ async def run(obj: object | None, ctx: Any) -> None:
     if isinstance(egress, dict) and egress.get("suppress_asgi_send"):
         return
 
+    if getattr(ctx, "kernel_plan", None) is not None:
+        return
+
     resp = None
     resp_ns = getattr(ctx, "response", None)
     if resp_ns is not None:
@@ -71,9 +74,6 @@ async def run(obj: object | None, ctx: Any) -> None:
             "headers": dict(headers),
             "body": body,
         }
-        if getattr(ctx, "kernel_plan", None) is not None:
-            return
-
         await send(
             {
                 "type": "http.response.start",
@@ -91,9 +91,6 @@ async def run(obj: object | None, ctx: Any) -> None:
         },
         "body": resp.body or b"",
     }
-    if getattr(ctx, "kernel_plan", None) is not None:
-        return
-
     await send(
         {
             "type": "http.response.start",

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping, Optional
+from typing import Any, Dict, Mapping, Optional, Sequence
 import logging
 
 from ... import events as _ev
@@ -21,6 +21,31 @@ def run(obj: Optional[object], ctx: Any) -> None:
     expose = schema_out["expose"]
 
     temp = _ensure_temp(ctx)
+    seed = obj if obj is not None else getattr(ctx, "result", None)
+
+    if isinstance(seed, Sequence) and not isinstance(seed, (str, bytes, bytearray)):
+        rows: list[Dict[str, Any]] = []
+        for item in seed:
+            if item is None:
+                continue
+            row: Dict[str, Any] = {}
+            for field in expose:
+                desc = by_field.get(field, {})
+                if desc.get("virtual"):
+                    producer = ov.virtual_producers.get(field)
+                    if callable(producer):
+                        try:
+                            row[field] = producer(item, ctx)
+                        except Exception:
+                            row[field] = None
+                    else:
+                        row[field] = None
+                    continue
+                row[field] = _read_current_value(item, ctx, field)
+            rows.append(row)
+        temp["out_values"] = rows
+        return
+
     out_values: Dict[str, Any] = {}
     produced_virtuals: list[str] = []
     missing: list[str] = []
@@ -42,7 +67,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
                 logger.debug("No producer for virtual field %s", field)
             continue
 
-        value = _read_current_value(obj, ctx, field)
+        value = _read_current_value(seed, ctx, field)
         if value is None:
             missing.append(field)
             logger.debug("No value available for field %s", field)

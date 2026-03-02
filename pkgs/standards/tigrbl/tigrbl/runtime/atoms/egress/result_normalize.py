@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import json
 from typing import Any, MutableMapping
 
 from ... import events as _ev
+from ...._concrete._response import Response
+from ....mapping.rest.helpers import _ensure_jsonable
 
 ANCHOR = _ev.EGRESS_RESULT_NORMALIZE
 
@@ -21,10 +24,24 @@ def run(obj: object | None, ctx: Any) -> None:
     egress = temp.setdefault("egress", {})
 
     if "result" not in egress:
-        if hasattr(ctx, "result"):
-            egress["result"] = getattr(ctx, "result")
-        elif "response_payload" in temp:
+        if "response_payload" in temp:
             egress["result"] = temp.get("response_payload")
+        elif hasattr(ctx, "result"):
+            result = getattr(ctx, "result")
+            if isinstance(result, Response):
+                body = getattr(result, "body", None)
+                if isinstance(body, (bytes, bytearray)):
+                    try:
+                        egress["result"] = json.loads(bytes(body).decode("utf-8"))
+                    except Exception:
+                        egress["result"] = None
+                else:
+                    egress["result"] = None
+            else:
+                egress["result"] = _ensure_jsonable(result)
+
+    if "status_code" not in egress and getattr(ctx, "op_target", None) == "create":
+        egress["status_code"] = 201
 
 
 __all__ = ["ANCHOR", "run"]

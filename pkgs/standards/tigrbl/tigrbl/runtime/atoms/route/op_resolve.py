@@ -23,8 +23,10 @@ def run(obj: object | None, ctx: Any) -> None:
             meta = opmeta[maybe_index]
             route["opmeta_index"] = maybe_index
             route["op"] = getattr(meta, "alias", None)
+            route["target"] = getattr(meta, "target", None)
             setattr(ctx, "op", getattr(meta, "alias", None))
             setattr(ctx, "model", getattr(meta, "model", None))
+            setattr(ctx, "op_target", getattr(meta, "target", None))
             return
 
     if "op" not in route:

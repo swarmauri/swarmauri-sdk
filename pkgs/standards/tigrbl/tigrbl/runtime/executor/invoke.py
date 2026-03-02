@@ -85,52 +85,69 @@ async def _invoke(
         finally:
             guard.restore()
 
-    await _run_phase(
-        "INGRESS_BEGIN", allow_flush=False, allow_commit=False, in_tx=False
-    )
-    await _run_phase(
-        "INGRESS_PARSE", allow_flush=False, allow_commit=False, in_tx=False
-    )
-    await _run_phase(
-        "INGRESS_ROUTE", allow_flush=False, allow_commit=False, in_tx=False
-    )
-    await _run_phase("PRE_TX_BEGIN", allow_flush=False, allow_commit=False, in_tx=False)
-
-    if not skip_persist:
+    try:
         await _run_phase(
-            "START_TX",
-            allow_flush=False,
-            allow_commit=False,
-            in_tx=False,
-            require_owned_for_commit=True,
+            "INGRESS_BEGIN", allow_flush=False, allow_commit=False, in_tx=False
+        )
+        await _run_phase(
+            "INGRESS_PARSE", allow_flush=False, allow_commit=False, in_tx=False
+        )
+        await _run_phase(
+            "INGRESS_ROUTE", allow_flush=False, allow_commit=False, in_tx=False
+        )
+        await _run_phase(
+            "PRE_TX_BEGIN", allow_flush=False, allow_commit=False, in_tx=False
         )
 
-    await _run_phase(
-        "PRE_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
-    )
+        if not skip_persist:
+            await _run_phase(
+                "START_TX",
+                allow_flush=False,
+                allow_commit=False,
+                in_tx=False,
+                require_owned_for_commit=True,
+            )
 
-    await _run_phase(
-        "HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
-    )
-
-    await _run_phase(
-        "POST_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
-    )
-
-    await _run_phase(
-        "PRE_COMMIT", allow_flush=False, allow_commit=False, in_tx=not skip_persist
-    )
-
-    if not skip_persist:
-        owns_tx_for_commit = (not existed_tx_before) and (db is not None and _in_tx(db))
         await _run_phase(
-            "END_TX",
-            allow_flush=True,
-            allow_commit=True,
-            in_tx=True,
-            require_owned_for_commit=True,
-            owns_tx_for_phase=owns_tx_for_commit,
+            "PRE_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
         )
+
+        await _run_phase(
+            "HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
+        )
+
+        await _run_phase(
+            "POST_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
+        )
+
+        await _run_phase(
+            "PRE_COMMIT", allow_flush=False, allow_commit=False, in_tx=not skip_persist
+        )
+
+        if not skip_persist:
+            owns_tx_for_commit = (not existed_tx_before) and (
+                db is not None and _in_tx(db)
+            )
+            await _run_phase(
+                "END_TX",
+                allow_flush=True,
+                allow_commit=True,
+                in_tx=True,
+                require_owned_for_commit=True,
+                owns_tx_for_phase=owns_tx_for_commit,
+            )
+    except Exception as exc:
+        err = create_standardized_error(exc)
+        status_code = int(getattr(err, "status_code", 500) or 500)
+        detail = getattr(err, "detail", str(err))
+        temp = ctx.setdefault("temp", {})
+        egress = temp.setdefault("egress", {})
+        egress["transport_response"] = {
+            "status_code": status_code,
+            "headers": {"content-type": "application/json"},
+            "body": {"detail": detail},
+        }
+        return {"detail": detail}
 
     from types import SimpleNamespace as _NS
 

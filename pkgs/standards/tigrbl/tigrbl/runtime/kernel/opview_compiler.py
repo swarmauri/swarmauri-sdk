@@ -53,6 +53,19 @@ def compile_opview_from_specs(specs: Mapping[str, Any], sp: Any) -> OpView:
                 meta_out["py_type"] = py_type
             by_field_out[name] = meta_out
 
+    if not out_fields and alias in {"create", "update", "replace", "merge"}:
+        for name, spec in specs.items():
+            storage = getattr(spec, "storage", None)
+            if storage is None:
+                continue
+            out_fields.append(name)
+            meta_out: Dict[str, object] = dict(by_field_out.get(name, {}))
+            io = getattr(spec, "io", None)
+            alias_out = getattr(io, "alias_out", None)
+            if alias_out:
+                meta_out["alias_out"] = alias_out
+            by_field_out[name] = meta_out
+
     schema_in = SchemaIn(
         fields=tuple(sorted(in_fields)),
         by_field={field: by_field_in.get(field, {}) for field in sorted(in_fields)},

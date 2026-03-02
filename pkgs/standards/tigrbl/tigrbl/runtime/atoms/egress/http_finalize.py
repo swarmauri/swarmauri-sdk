@@ -22,6 +22,10 @@ def run(obj: object | None, ctx: Any) -> None:
 
     status_code = egress.get("status_code", getattr(ctx, "status_code", None))
     if status_code is None:
+        target = getattr(ctx, "op_target", None)
+        if target == "create":
+            status_code = 201
+    if status_code is None:
         status_code = 200
     status = int(status_code)
 
