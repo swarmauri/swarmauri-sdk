@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Tuple, get_type_hints
+from types import UnionType
+from typing import Any, Dict, Tuple, Union, get_args, get_origin, get_type_hints
 
 from pydantic import Field
 
@@ -16,17 +17,32 @@ def _bool(x: Any) -> bool:
 
 def _normalize_py_type(py_t: type | Any) -> type | Any:
     """Normalize dynamic field type declarations for safe schema generation."""
-    if not isinstance(py_t, property):
-        return py_t
+    if isinstance(py_t, property):
+        getter = py_t.fget
+        if getter is None:
+            return Any
 
-    getter = py_t.fget
-    if getter is None:
-        return Any
+        try:
+            return _normalize_py_type(get_type_hints(getter).get("return", Any))
+        except Exception:  # pragma: no cover
+            return Any
 
-    try:
-        return get_type_hints(getter).get("return", Any)
-    except Exception:  # pragma: no cover
-        return Any
+    # ``typing.Union[..., <property object>]`` can appear when extras or
+    # computed columns accidentally register a ``property`` INSTANCE in a type
+    # declaration. Recursively normalize union members so we can safely rebuild
+    # a pydantic-compatible annotation.
+    origin = get_origin(py_t)
+    if origin in (Union, UnionType):
+        args = tuple(_normalize_py_type(arg) for arg in get_args(py_t))
+        filtered = tuple(arg for arg in args if arg is not None)
+        if not filtered:
+            return Any
+        rebuilt = filtered[0]
+        for arg in filtered[1:]:
+            rebuilt = rebuilt | arg
+        return rebuilt
+
+    return py_t
 
 
 def _add_field(
@@ -40,8 +56,7 @@ def _add_field(
     # register computed attributes directly (instead of their return type).
     # Pydantic cannot generate schemas for a raw property object, so degrade to
     # ``Any`` and let runtime serializers provide the concrete value.
-    if isinstance(py_t, property):
-        py_t = Any
+    py_t = _normalize_py_type(py_t)
     sink[name] = (py_t, field if field is not None else Field(None))
 
 
