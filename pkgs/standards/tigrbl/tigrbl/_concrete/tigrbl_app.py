@@ -22,6 +22,7 @@ from .._concrete._app import App as _App
 from .._concrete.tigrbl_router import TigrblRouter
 from ._routing import add_route as _add_route_impl
 from .._spec.op_spec import OpSpec
+from .._spec.binding_spec import HttpRestBindingSpec
 from .._spec.engine_spec import EngineCfg
 from ..mapping import engine_resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
