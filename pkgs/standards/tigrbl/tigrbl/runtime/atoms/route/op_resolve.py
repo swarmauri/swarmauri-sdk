@@ -8,7 +8,16 @@ ANCHOR = _ev.ROUTE_OP_RESOLVE
 
 
 def _default_status_for_target(target: Any) -> int:
-    return 201 if target == "create" else 200
+    token: Any = target
+    if isinstance(token, dict):
+        token = token.get("target") or token.get("alias")
+    elif not isinstance(token, str):
+        token = getattr(token, "target", None) or getattr(token, "alias", None)
+
+    if isinstance(token, str):
+        token = token.rsplit(".", 1)[-1].lower()
+
+    return 201 if token in {"create", "bulk_create"} else 200
 
 
 def run(obj: object | None, ctx: Any) -> None:

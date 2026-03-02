@@ -14,7 +14,16 @@ logger = logging.getLogger(__name__)
 
 
 def _default_status_for_alias(alias: Any) -> int:
-    return 201 if alias in {"create", "bulk_create"} else 200
+    token: Any = alias
+    if isinstance(token, Mapping):
+        token = token.get("alias") or token.get("target")
+    elif not isinstance(token, str):
+        token = getattr(token, "alias", None) or getattr(token, "target", None)
+
+    if isinstance(token, str):
+        token = token.rsplit(".", 1)[-1]
+
+    return 201 if token in {"create", "bulk_create"} else 200
 
 
 def _normalize_result_payload(payload: Any) -> Any:

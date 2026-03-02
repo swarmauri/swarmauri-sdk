@@ -66,6 +66,9 @@ async def run(obj: object | None, ctx: Any) -> None:
         tr = egress.get("transport_response") if isinstance(egress, dict) else None
 
         status = int(tr.get("status_code", 200)) if isinstance(tr, dict) else 200
+        ctx_status = getattr(ctx, "status_code", None)
+        if ctx_status is not None:
+            status = int(ctx_status)
         headers = tr.get("headers", {}) if isinstance(tr, dict) else {}
         body_obj = tr.get("body", None) if isinstance(tr, dict) else None
 

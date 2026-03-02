@@ -20,7 +20,12 @@ def run(obj: object | None, ctx: Any) -> None:
     temp = _ensure_temp(ctx)
     egress = temp.setdefault("egress", {})
 
-    if isinstance(egress.get("transport_response"), dict):
+    existing = egress.get("transport_response")
+    if isinstance(existing, dict):
+        status_value = egress.get("status_code", getattr(ctx, "status_code", None))
+        if status_value is not None:
+            existing["status_code"] = int(status_value)
+            setattr(ctx, "transport_response", existing)
         return
 
     body = egress.get("enveloped")

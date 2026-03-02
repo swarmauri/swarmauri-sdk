@@ -56,6 +56,8 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
     egress = ctx.temp.get("egress", {}) if isinstance(ctx.temp, dict) else {}
     response = egress.get("transport_response") if isinstance(egress, dict) else None
     if isinstance(response, dict):
+        if int(response.get("status_code", 200) or 200) == 200:
+            response["status_code"] = _default_status_for_alias(getattr(ctx, "op", None))
         await _send_transport_response(env, response)
         return
 
@@ -67,7 +69,16 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
 
 
 def _default_status_for_alias(alias: Any) -> int:
-    return 201 if alias in {"create", "bulk_create"} else 200
+    token: Any = alias
+    if isinstance(token, Mapping):
+        token = token.get("alias") or token.get("target")
+    elif not isinstance(token, str):
+        token = getattr(token, "alias", None) or getattr(token, "target", None)
+
+    if isinstance(token, str):
+        token = token.rsplit(".", 1)[-1]
+
+    return 201 if token in {"create", "bulk_create"} else 200
 
 
 def _normalize_payload(payload: Any) -> Any:
