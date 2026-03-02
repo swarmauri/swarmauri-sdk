@@ -54,6 +54,12 @@ def _normalize_jsonrpc_transport_response(
     ctx: Any, response: dict[str, Any]
 ) -> dict[str, Any]:
     normalized = dict(response)
+    request_id = _jsonrpc_request_id(ctx)
+    if request_id is None:
+        normalized["status_code"] = 204
+        normalized["body"] = b""
+        return normalized
+
     body = normalized.get("body")
     if body is None:
         body = getattr(ctx, "result", None)
@@ -64,7 +70,7 @@ def _normalize_jsonrpc_transport_response(
             body = bytes(body).decode("utf-8", errors="replace")
 
     if not (isinstance(body, Mapping) and body.get("jsonrpc") == "2.0"):
-        body = {"jsonrpc": "2.0", "result": body, "id": _jsonrpc_request_id(ctx)}
+        body = {"jsonrpc": "2.0", "result": body, "id": request_id}
 
     normalized["status_code"] = 200
     normalized["body"] = body

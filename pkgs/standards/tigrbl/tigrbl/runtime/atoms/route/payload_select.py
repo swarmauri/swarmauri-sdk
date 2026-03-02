@@ -144,6 +144,12 @@ def run(obj: object | None, ctx: Any) -> None:
     rpc_envelope = route.get("rpc_envelope")
     if isinstance(rpc_envelope, dict):
         payload = rpc_envelope.get("params", {})
+        if (
+            isinstance(payload, Mapping)
+            and set(payload.keys()) == {"params"}
+            and isinstance(payload.get("params"), Mapping)
+        ):
+            payload = dict(payload["params"])
         rpc_method = rpc_envelope.get("method")
         if (
             isinstance(rpc_method, str)
