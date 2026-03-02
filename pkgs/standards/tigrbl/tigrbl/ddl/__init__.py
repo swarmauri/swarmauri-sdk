@@ -17,6 +17,14 @@ except Exception:  # pragma: no cover
 
 from ..config.constants import __SAFE_IDENT__
 
+
+class _NoopAwaitable:
+    def __await__(self):
+        if False:
+            yield None
+        return None
+
+
 __all__ = [
     "register_sqlite_attach",
     "ensure_schemas",
@@ -205,7 +213,7 @@ def _create_all_on_bind(
     tables = list(tables or [])
 
     if not hasattr(engine, "dialect"):
-        return
+        return _NoopAwaitable()
 
     schema_names = set(schemas or [])
     for t in tables:
@@ -304,7 +312,7 @@ def initialize(
     def _close_with_loop(db):
         close = getattr(db, "close", None)
         if not callable(close):
-            return None
+            return _NoopAwaitable()
         out = close()
         if inspect.isawaitable(out):
             loop = asyncio.get_running_loop()
@@ -328,7 +336,7 @@ def initialize(
             finally:
                 _close_without_loop(db)
         setattr(obj, "_ddl_executed", True)
-        return
+        return _NoopAwaitable()
     else:
         # If we're already inside an event loop but the provider is synchronous
         # (i.e. ``get_db`` is neither coroutine nor async generator), we can
@@ -356,7 +364,7 @@ def initialize(
             setattr(obj, "_ddl_executed", True)
             if pending_closes:
                 return asyncio.gather(*pending_closes)
-            return None
+            return _NoopAwaitable()
 
         async def _inner():
             for active_provider, active_tables in provider_tables:
