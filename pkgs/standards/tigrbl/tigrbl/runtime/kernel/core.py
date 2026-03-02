@@ -26,6 +26,83 @@ from .opview_compiler import compile_opview_from_specs
 logger = logging.getLogger(__name__)
 
 
+class _RestMatcher:
+    """REST selector matcher supporting exact and templated paths."""
+
+    def __init__(self) -> None:
+        self._exact: dict[tuple[str, str], int] = {}
+        self._templated: list[tuple[str, re.Pattern[str], tuple[str, ...], int]] = []
+        self._selectors: dict[str, int] = {}
+
+    @staticmethod
+    def _normalize_path(path: str) -> str:
+        p = path if path.startswith("/") else f"/{path}"
+        return p.rstrip("/") or "/"
+
+    def add(self, method: str, path: str, meta_index: int) -> None:
+        m = method.upper()
+        normalized = self._normalize_path(path)
+        self._selectors[f"{m} {normalized}"] = meta_index
+        if "{" not in normalized:
+            self._exact[(m, normalized)] = meta_index
+            return
+
+        names = tuple(re.findall(r"\{([^{}]+)\}", normalized))
+        pattern = "^" + re.sub(r"\{([^{}]+)\}", r"(?P<\1>[^/]+)", normalized) + "$"
+        self._templated.append((m, re.compile(pattern), names, meta_index))
+
+    def match(self, method: str, path: str) -> tuple[int, dict[str, str]]:
+        m = method.upper()
+        normalized = self._normalize_path(path)
+
+        exact = self._exact.get((m, normalized))
+        if exact is not None:
+            return exact, {}
+
+        for templ_method, pattern, names, meta_index in self._templated:
+            if templ_method != m:
+                continue
+            matched = pattern.match(normalized)
+            if matched is None:
+                continue
+            params = {
+                name: matched.group(name)
+                for name in names
+                if matched.group(name) is not None
+            }
+            return meta_index, params
+
+        raise KeyError((m, normalized))
+
+    def __call__(self, method: str, path: str) -> tuple[int, dict[str, str]]:
+        return self.match(method, path)
+
+    # Compatibility mapping surface used by older tests and adapters.
+    def __contains__(self, selector: object) -> bool:
+        return isinstance(selector, str) and selector in self._selectors
+
+    def __getitem__(self, selector: str) -> int:
+        return self._selectors[selector]
+
+    def get(self, selector: str, default: Any = None) -> Any:
+        return self._selectors.get(selector, default)
+
+    def keys(self):
+        return self._selectors.keys()
+
+    def items(self):
+        return self._selectors.items()
+
+    def values(self):
+        return self._selectors.values()
+
+    def __iter__(self):
+        return iter(self._selectors)
+
+    def __len__(self) -> int:
+        return len(self._selectors)
+
+
 def deepmerge_phase_chains(
     *phase_maps: Mapping[str, Sequence[StepFn]],
 ) -> Dict[str, List[StepFn]]:
