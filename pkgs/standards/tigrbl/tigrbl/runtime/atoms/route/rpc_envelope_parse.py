@@ -2,12 +2,19 @@ from __future__ import annotations
 
 import json
 from dataclasses import replace
-from typing import Any
+from typing import Any, Mapping
 
 from ... import events as _ev
 from ...gw.raw import GwRouteEnvelope
 
 ANCHOR = _ev.ROUTE_RPC_ENVELOPE_PARSE
+
+
+def _set_rpc_route(
+    ctx: Any, route: dict[str, Any], env: GwRouteEnvelope, rpc: Mapping[str, Any]
+) -> None:
+    route["rpc_envelope"] = dict(rpc)
+    setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=dict(rpc)))
 
 
 def run(obj: object | None, ctx: Any) -> None:
@@ -26,6 +33,17 @@ def run(obj: object | None, ctx: Any) -> None:
         return
 
     if env.kind != "maybe-jsonrpc":
+        return
+
+    parsed_payload = getattr(ctx, "payload", None)
+    if not isinstance(parsed_payload, Mapping):
+        parsed_payload = getattr(ctx, "body", None)
+    if (
+        isinstance(parsed_payload, Mapping)
+        and parsed_payload.get("jsonrpc") == "2.0"
+        and "method" in parsed_payload
+    ):
+        _set_rpc_route(ctx, route, env, parsed_payload)
         return
 
     body = env.body
@@ -49,7 +67,6 @@ def run(obj: object | None, ctx: Any) -> None:
         and parsed.get("jsonrpc") == "2.0"
         and "method" in parsed
     ):
-        route["rpc_envelope"] = parsed
-        setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=parsed))
+        _set_rpc_route(ctx, route, env, parsed)
     else:
         setattr(ctx, "gw_raw", replace(env, kind="rest"))
