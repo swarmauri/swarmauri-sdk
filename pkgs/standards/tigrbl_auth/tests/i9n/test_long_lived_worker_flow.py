@@ -1,7 +1,7 @@
 import time
 import pytest
 from httpx import AsyncClient
-from tigrbl_auth.deps import (
+from tigrbl_auth.vendor import (
     status,
     LocalKeyProvider,
     KeySpec,

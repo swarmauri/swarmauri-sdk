@@ -2,7 +2,7 @@ from tigrbl import TigrblApp, TigrblRouter, op_ctx, hook_ctx, engine_ctx
 from tigrbl.engine import HybridSession as AsyncSession, engine as build_engine
 from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl.types.authn_abc import AuthNProvider
-from tigrbl.column.storage_spec import ForeignKeySpec
+from tigrbl._spec.storage_spec import ForeignKeySpec
 from tigrbl.orm.tables import (
     User as UserBase,
     Tenant as TenantBase,

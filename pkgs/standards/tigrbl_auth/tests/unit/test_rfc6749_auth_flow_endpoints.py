@@ -1,7 +1,7 @@
 """Tests for presence of core OAuth2 endpoints and missing authorization endpoint per RFC 6749."""
 
 import pytest
-from tigrbl_auth.deps import TigrblApp
+from tigrbl_auth.vendor import TigrblApp
 
 from tigrbl_auth.routers.auth_flows import router
 

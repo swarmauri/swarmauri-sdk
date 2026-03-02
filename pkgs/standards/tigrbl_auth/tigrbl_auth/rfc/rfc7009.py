@@ -13,7 +13,7 @@ from urllib.parse import parse_qs
 
 from typing import Final, Set
 
-from tigrbl_auth.deps import TigrblRouter, TigrblApp, HTTPException, Request, status
+from tigrbl_auth.vendor import TigrblRouter, TigrblApp, HTTPException, Request, status
 
 from ..runtime_cfg import settings
 

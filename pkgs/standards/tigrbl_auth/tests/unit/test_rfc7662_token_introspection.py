@@ -3,7 +3,7 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl_auth.deps import TigrblApp, status
+from tigrbl_auth.vendor import TigrblApp, status
 from tigrbl_auth.rfc.rfc7662 import register_token, reset_tokens
 from tigrbl_auth.rfc.rfc7662_introspection import router
 
