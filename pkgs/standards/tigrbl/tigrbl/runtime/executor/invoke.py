@@ -167,13 +167,19 @@ async def _invoke(
     from types import SimpleNamespace as _NS
 
     serializer = ctx.get("response_serializer")
+    current_result = ctx.get("result")
+    response_state = getattr(ctx, "response", None)
+    if current_result is None and response_state is not None:
+        current_result = getattr(response_state, "result", None)
+    if current_result is None:
+        current_result = getattr(ctx, "obj", None)
     if callable(serializer):
         try:
-            ctx["result"] = serializer(ctx.get("result"))
+            ctx["result"] = serializer(current_result)
         except Exception:
             logger.exception("response serialization failed", exc_info=True)
     else:
-        ctx["result"] = _normalize_result_payload(ctx.get("result"))
+        ctx["result"] = _normalize_result_payload(current_result)
 
     if getattr(ctx, "status_code", None) is None:
         ctx.status_code = _default_status_for_alias(getattr(ctx, "op", None))
