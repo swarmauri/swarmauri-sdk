@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Mapping, Tuple
+import datetime as dt
 
 import logging
 
@@ -90,8 +91,8 @@ def _filter_in_values(
     for k, v in data.items():
         sp = specs.get(k)
         if sp is None:
-            out[k] = v
-            continue
+            raise ValueError(f"unknown_field:{k}")
+
         io = getattr(sp, "io", None)
         allowed = True
         if io is not None:
@@ -101,17 +102,34 @@ def _filter_in_values(
                 allowed = False
             if mutable and verb not in mutable:
                 allowed = False
-        if allowed:
-            try:
-                col = getattr(getattr(model, "__table__", None), "columns", {}).get(k)
-                py_t = getattr(getattr(col, "type", None), "python_type", None)
-                if py_t is not None and v is not None and not isinstance(v, py_t):
-                    out[k] = py_t(v)
-                else:
-                    out[k] = v
-            except Exception:
-                # Best effort coercion only; preserve original value on failure.
+        if not allowed:
+            raise ValueError(f"field_not_allowed:{k}")
+
+        try:
+            py_type = getattr(getattr(sp, "field", None), "py_type", None)
+            if py_type in {dt.datetime, dt.date} and isinstance(v, str):
+                out[k] = (
+                    dt.datetime.fromisoformat(v)
+                    if py_type is dt.datetime
+                    else dt.date.fromisoformat(v)
+                )
+                continue
+
+            col = getattr(getattr(model, "__table__", None), "columns", {}).get(k)
+            col_py_t = getattr(getattr(col, "type", None), "python_type", None)
+            if col_py_t in {dt.datetime, dt.date} and isinstance(v, str):
+                out[k] = (
+                    dt.datetime.fromisoformat(v)
+                    if col_py_t is dt.datetime
+                    else dt.date.fromisoformat(v)
+                )
+            elif col_py_t is not None and v is not None and not isinstance(v, col_py_t):
+                out[k] = col_py_t(v)
+            else:
                 out[k] = v
+        except Exception:
+            # Best effort coercion only; preserve original value on failure.
+            out[k] = v
     logger.info("_filter_in_values returning %s", out)
     return out
 

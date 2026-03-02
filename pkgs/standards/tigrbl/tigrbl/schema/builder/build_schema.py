@@ -166,12 +166,14 @@ def _build_schema(
 
         logger.debug("schema: processing column %s (verb=%s)", attr_name, verb)
 
+        fs = getattr(spec, "field", None)
         # Determine type and requiredness
-        py_t = _python_type(col)
+        py_t = getattr(fs, "py_type", Any) if fs is not None else Any
+        if py_t is Any:
+            py_t = _python_type(col)
         required = _is_required(col, verb)
 
         # Field construction (collect kwargs then create Field once)
-        fs = getattr(spec, "field", None)
         field_kwargs: Dict[str, Any] = dict(getattr(fs, "constraints", {}) or {})
         description = getattr(fs, "description", None)
         if description and "description" not in field_kwargs:
