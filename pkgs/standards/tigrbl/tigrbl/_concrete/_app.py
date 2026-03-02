@@ -115,6 +115,20 @@ class App(AppSpec):
             include_docs=include_docs,
             **asgi_kwargs,
         )
+        # Router.__init__ seeds several attributes from class-level defaults.
+        # Re-apply merged AppSpec values so MRO-collected app configuration
+        # remains the source of truth for the app instance.
+        self.routers = tuple(collected_spec.routers)
+        self.ops = tuple(collected_spec.ops)
+        self.tables = TableRegistry(tables=collected_spec.tables)
+        self.schemas = tuple(collected_spec.schemas)
+        self.hooks = tuple(collected_spec.hooks)
+        self.security_deps = tuple(collected_spec.security_deps)
+        self.deps = tuple(collected_spec.deps)
+        self.response = collected_spec.response
+        self.jsonrpc_prefix = collected_spec.jsonrpc_prefix
+        self.system_prefix = collected_spec.system_prefix
+
         _engine_ctx = self.engine
         if _engine_ctx is not None:
             _resolver.set_default(_engine_ctx)
