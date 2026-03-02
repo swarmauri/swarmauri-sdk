@@ -6,6 +6,7 @@ from typing import Any
 from ...._concrete._response import Response
 from ...._spec.binding_spec import HttpRestBindingSpec
 from ...._spec.op_spec import OpSpec
+from ....mapping.model_helpers import _OpSpecGroup
 from .schema import openapi
 
 
@@ -21,7 +22,7 @@ def _register_runtime_openapi_op(router: Any, *, path: str, alias: str) -> None:
         model = type("TigrblSystemDocs", (), {})
         model.resource_name = "system_docs"
         model.hooks = SimpleNamespace()
-        model.ops = SimpleNamespace(by_alias={})
+        model.ops = SimpleNamespace(by_alias={}, all=())
         model.opspecs = SimpleNamespace(all=())
         tables[model_name] = model
 
@@ -31,9 +32,10 @@ def _register_runtime_openapi_op(router: Any, *, path: str, alias: str) -> None:
         arity="collection",
         persist="skip",
         expose_routes=False,
+        expose_rpc=False,
         bindings=(HttpRestBindingSpec(proto="http.rest", path=path, methods=("GET",)),),
     )
-    model.ops.by_alias[alias] = (op,)
+    model.ops.by_alias[alias] = _OpSpecGroup((op,))
     model.opspecs.all = tuple(
         spec for spec in model.opspecs.all if getattr(spec, "alias", None) != alias
     ) + (op,)

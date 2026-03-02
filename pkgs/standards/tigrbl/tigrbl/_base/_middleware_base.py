@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 from urllib.parse import urlencode
 
-from tigrbl import Request
+from tigrbl._concrete._request import Request
 from tigrbl._concrete._request_adapters import request_from_asgi
 from tigrbl._concrete._response import Response
 from tigrbl._concrete._transport_common import finalize_transport_response

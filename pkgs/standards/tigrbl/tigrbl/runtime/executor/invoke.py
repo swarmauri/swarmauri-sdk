@@ -20,6 +20,8 @@ def _default_status_for_alias(alias: Any) -> int:
 def _normalize_result_payload(payload: Any) -> Any:
     if isinstance(payload, (str, int, float, bool)) or payload is None:
         return payload
+    if hasattr(payload, "status_code") and hasattr(payload, "body"):
+        return payload
     if isinstance(payload, Mapping):
         return {str(k): _normalize_result_payload(v) for k, v in payload.items()}
     if isinstance(payload, (list, tuple, set)):
@@ -166,14 +168,33 @@ async def _invoke(
 
     from types import SimpleNamespace as _NS
 
+    if ctx.get("result") is None:
+        fallback = (
+            ctx.get("obj")
+            or ctx.get("objs")
+            or (
+                ctx.get("temp", {}).get("egress", {}).get("result")
+                if isinstance(ctx.get("temp"), Mapping)
+                else None
+            )
+        )
+        if fallback is not None:
+            ctx["result"] = fallback
+
     serializer = ctx.get("response_serializer")
+    current_result = ctx.get("result")
+    response_state = getattr(ctx, "response", None)
+    if current_result is None and response_state is not None:
+        current_result = getattr(response_state, "result", None)
+    if current_result is None:
+        current_result = getattr(ctx, "obj", None)
     if callable(serializer):
         try:
-            ctx["result"] = serializer(ctx.get("result"))
+            ctx["result"] = serializer(current_result)
         except Exception:
             logger.exception("response serialization failed", exc_info=True)
     else:
-        ctx["result"] = _normalize_result_payload(ctx.get("result"))
+        ctx["result"] = _normalize_result_payload(current_result)
 
     if getattr(ctx, "status_code", None) is None:
         ctx.status_code = _default_status_for_alias(getattr(ctx, "op", None))

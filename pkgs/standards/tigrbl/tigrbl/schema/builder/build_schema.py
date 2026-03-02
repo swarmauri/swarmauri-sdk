@@ -11,7 +11,7 @@ from ..utils import namely_model
 from ...mapping.column_mro_collect import mro_collect_columns
 from .cache import _SchemaCache
 from .extras import _merge_request_extras, _merge_response_extras
-from .helpers import _add_field, _is_required, _python_type
+from .helpers import _add_field, _is_required, _normalize_py_type, _python_type
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +34,23 @@ def _build_schema(
     )
     cached = _SchemaCache.get(cache_key)
     if cached is not None:
-        logger.debug("schema: cache hit %s verb=%s", orm_cls.__name__, verb)
-        return cached
+        # A schema can be requested while SQLAlchemy metadata is still being
+        # constructed. In that transient state we may cache an empty model and
+        # later serve it even after columns are available. Guard against that
+        # by invalidating empty cache entries once the model exposes colspecs.
+        if cached.model_fields:
+            logger.debug("schema: cache hit %s verb=%s", orm_cls.__name__, verb)
+            return cached
+        cached_specs = mro_collect_columns(orm_cls)
+        if not cached_specs:
+            logger.debug("schema: cache hit %s verb=%s", orm_cls.__name__, verb)
+            return cached
+        logger.debug(
+            "schema: invalidating empty cache entry for %s verb=%s",
+            orm_cls.__name__,
+            verb,
+        )
+        _SchemaCache.pop(cache_key, None)
 
     logger.debug(
         "schema: building %s verb=%s include=%s exclude=%s",
@@ -80,6 +95,7 @@ def _build_schema(
 
             fs = getattr(spec, "field", None)
             py_t = getattr(fs, "py_type", Any) if fs is not None else Any
+            py_t = _normalize_py_type(py_t)
             if py_t is Any:
                 storage_type = getattr(storage, "type_", None)
                 try:
@@ -168,6 +184,7 @@ def _build_schema(
 
         # Determine type and requiredness
         py_t = _python_type(col)
+        py_t = _normalize_py_type(py_t)
         required = _is_required(col, verb)
 
         # Field construction (collect kwargs then create Field once)
@@ -237,6 +254,7 @@ def _build_schema(
 
         fs = getattr(spec, "field", None)
         py_t = getattr(fs, "py_type", Any) if fs is not None else Any
+        py_t = _normalize_py_type(py_t)
         required = bool(fs and verb in getattr(fs, "required_in", ()))
         allow_null = bool(fs and verb in getattr(fs, "allow_null_in", ()))
         nullable = bool(getattr(spec, "nullable", True))

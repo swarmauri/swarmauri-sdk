@@ -113,12 +113,20 @@ def _get_phase_chains(
     model: type, alias: str
 ) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
     """Backward-compatible phase chain accessor used by other mapping modules."""
-    hooks_root = _ns(model, "hooks")
-    alias_ns = getattr(hooks_root, alias, None)
-    out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
-    for ph in PHASES:
-        out[ph] = list(getattr(alias_ns, ph, []) or [])
-    return out
+    try:
+        from ..runtime.kernel.core import Kernel
+
+        return {
+            phase: list(steps)
+            for phase, steps in (Kernel().build_op(model, alias) or {}).items()
+        }
+    except Exception:
+        hooks_root = _ns(model, "hooks")
+        alias_ns = getattr(hooks_root, alias, None)
+        out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
+        for ph in PHASES:
+            out[ph] = list(getattr(alias_ns, ph, []) or [])
+        return out
 
 
 def _coerce_payload(payload: Any) -> Any:

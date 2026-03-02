@@ -3,8 +3,9 @@ from __future__ import annotations
 import logging
 from typing import Any, Awaitable, Callable, Dict, Mapping, Optional
 
-from ..rpc import _coerce_payload, _validate_input
+from ..rpc import _coerce_payload, _get_phase_chains, _serialize_output, _validate_input
 from ...mapping import engine_resolver as _resolver
+from ...runtime.executor.invoke import _invoke
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/resource_proxy")
@@ -56,20 +57,46 @@ class _ResourceProxy:
 
             seed_ctx: Dict[str, Any] = dict(ctx or {})
 
+            release_db = None
             if db is None:
-                db, _ = _resolver.acquire(
+                db, release_db = _resolver.acquire(
                     router=self._router, model=self._model, op_alias=alias
                 )
 
-            return {
-                "model": self._model,
-                "alias": alias,
-                "target": alias,
-                "payload": norm_payload,
-                "db": db,
-                "request": request,
-                "ctx": seed_ctx,
-            }
+            seed_ctx.setdefault("payload", norm_payload)
+            seed_ctx.setdefault("db", db)
+            if request is not None:
+                seed_ctx.setdefault("request", request)
+            app_ref = (
+                getattr(request, "app", None)
+                or seed_ctx.get("app")
+                or self._router
+                or self._model
+            )
+            seed_ctx.setdefault("app", app_ref)
+            seed_ctx.setdefault("router", seed_ctx.get("router") or app_ref)
+            seed_ctx.setdefault("model", self._model)
+            seed_ctx.setdefault("op", alias)
+            seed_ctx.setdefault("method", alias)
+            seed_ctx.setdefault("target", alias)
+
+            try:
+                if self._serialize:
+                    seed_ctx["response_serializer"] = lambda result: _serialize_output(
+                        self._model, alias, alias, result
+                    )
+                return await _invoke(
+                    request=request,
+                    db=db,
+                    phases=_get_phase_chains(self._model, alias),
+                    ctx=seed_ctx,
+                )
+            finally:
+                if release_db is not None:
+                    try:
+                        release_db()
+                    except Exception:
+                        logger.debug("Error releasing core proxy DB", exc_info=True)
 
         _call.__name__ = f"{self._model.__name__}.{alias}"
         _call.__qualname__ = _call.__name__

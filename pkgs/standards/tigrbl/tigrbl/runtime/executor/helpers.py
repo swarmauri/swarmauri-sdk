@@ -137,6 +137,12 @@ async def _run_chain(
 
                 if result is None:
                     continue
+                if hasattr(result, "status_code") and hasattr(result, "body"):
+                    continue
+                if isinstance(result, dict) and any(
+                    key in result for key in ("status_code", "headers", "body")
+                ):
+                    continue
 
                 safe_result = _normalize_payload(result)
                 if safe_result == before_post_response:
@@ -156,7 +162,7 @@ async def _run_chain(
             temp = getattr(ctx, "temp", None)
             route = temp.get("route") if isinstance(temp, dict) else None
             rpc_env = route.get("rpc_envelope") if isinstance(route, dict) else None
-            if isinstance(rpc_env, dict) and rpc_env.get("jsonrpc") == "2.0":
+            if isinstance(rpc_env, dict):
                 std_exc = create_standardized_error(exc)
                 ctx.status_code = 200
                 ctx.result = None

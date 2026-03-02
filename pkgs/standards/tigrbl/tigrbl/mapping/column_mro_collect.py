@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from functools import lru_cache
+from types import SimpleNamespace
 from typing import Dict
 
 from .._spec.column_spec import ColumnSpec
@@ -33,9 +34,28 @@ def _model_label(model: object) -> str:
     )
 
 
+def _coerce_columns_iterable(columns: object) -> tuple[object, ...]:
+    """Normalize model/table column containers to an iterable tuple.
+
+    Some table classes expose ``columns`` as a ``SimpleNamespace`` of
+    ``ColumnSpec`` objects for convenience. Runtime collectors should treat that
+    namespace as a mapping and iterate over its values rather than trying to
+    iterate the namespace object directly.
+    """
+
+    if isinstance(columns, SimpleNamespace):
+        return tuple(columns.__dict__.values())
+    if isinstance(columns, dict):
+        return tuple(columns.values())
+    try:
+        return tuple(columns)  # type: ignore[arg-type]
+    except TypeError:
+        return ()
+
+
 @lru_cache(maxsize=None)
-def mro_collect_columns(
-    model: object, *, _cache_bust: int | None = None
+def _mro_collect_columns_cached(
+    model: object, _cache_bust: int
 ) -> Dict[str, ColumnSpec]:
     """Collect ColumnSpecs declared on *model* and all mixins.
 
@@ -63,7 +83,7 @@ def mro_collect_columns(
         cols = getattr(model, "columns", None)
 
     if cols is not None:
-        for col in cols:
+        for col in _coerce_columns_iterable(cols):
             name = getattr(col, "key", None) or getattr(col, "name", None)
             if not isinstance(name, str):
                 continue
@@ -71,6 +91,32 @@ def mro_collect_columns(
 
     logger.info("Collected %d columns for %s", len(out), _model_label(model))
     return out
+
+
+def mro_collect_columns(
+    model: object, *, _cache_bust: int | None = None
+) -> Dict[str, ColumnSpec]:
+    """Collect ColumnSpecs for *model* while keeping cache entries topology-aware.
+
+    SQLAlchemy materialization and mixin colspec aggregation can happen after an
+    early probe of a model. If we cache that pre-materialized probe forever,
+    downstream schema generation may observe an empty column map. We therefore
+    derive a cache-busting token from model topology when one is not supplied.
+    """
+
+    if _cache_bust is None:
+        table = getattr(model, "__table__", None)
+        cols = getattr(table, "columns", None) if table is not None else None
+        col_count = len(_coerce_columns_iterable(cols)) if cols is not None else 0
+        _cache_bust = hash(
+            (
+                id(getattr(model, "__tigrbl_colspecs__", None)),
+                id(getattr(model, "__tigrbl_cols__", None)),
+                id(table),
+                col_count,
+            )
+        )
+    return _mro_collect_columns_cached(model, _cache_bust)
 
 
 __all__ = ["mro_collect_columns"]

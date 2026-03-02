@@ -72,6 +72,11 @@ PHASES: Tuple[Phase, ...] = (
 # Keep these names stable; labels use them directly: step_kind:domain:subject@ANCHOR
 # ──────────────────────────────────────────────────────────────────────────────
 
+# Canonical phase name exports (used by harness tests and diagnostics).
+INGRESS_BEGIN: Phase = "INGRESS_BEGIN"
+INGRESS_PARSE: Phase = "INGRESS_PARSE"
+INGRESS_ROUTE: Phase = "INGRESS_ROUTE"
+
 # INGRESS_BEGIN
 INGRESS_CTX_INIT = "ingress.ctx.init"
 INGRESS_CTX_ATTACH_COMPILED = "ingress.ctx.attach_compiled"
@@ -184,6 +189,7 @@ _EVENT_ORDER: Tuple[str, ...] = (
     EMIT_ALIASES_PRE,
     # START_TX / HANDLER / END_TX (persistence system steps)
     SYS_TX_BEGIN,
+    "HANDLER",
     SYS_HANDLER_PERSISTENCE,
     SYS_TX_COMMIT,
     # POST_HANDLER
@@ -249,6 +255,7 @@ _ANCHOR_PHASE: Dict[str, Phase] = {
     SYS_TX_BEGIN: "START_TX",
     PRE_FLUSH: "PRE_HANDLER",
     EMIT_ALIASES_PRE: "PRE_HANDLER",
+    "HANDLER": "HANDLER",
     SYS_HANDLER_PERSISTENCE: "HANDLER",
     SYS_TX_COMMIT: "END_TX",
     POST_FLUSH: "POST_HANDLER",
