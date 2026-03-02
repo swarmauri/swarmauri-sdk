@@ -54,8 +54,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
         # Non-mapping payloads are ignored here; adapters can pre-normalize.
         return
 
-    _reject_disallowed_wrapper_keys(ctx, payload, schema_in)
-
     by_field: Mapping[str, Mapping[str, Any]] = schema_in.get("by_field", {})  # type: ignore[assignment]
     # Build alias→field and ingress whitelist (field and alias forms)
     alias_to_field: Dict[str, str] = {}
@@ -178,7 +176,9 @@ def _reject_disallowed_wrapper_keys(
 
     def _check_mapping(item: Mapping[str, Any]) -> None:
         disallowed = sorted(
-            key for key in item if key in _WRAPPER_KEYS and key not in allowed_wrapper_keys
+            key
+            for key in item
+            if key in _WRAPPER_KEYS and key not in allowed_wrapper_keys
         )
         if disallowed:
             raise HTTPException(
