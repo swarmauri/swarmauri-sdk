@@ -22,6 +22,7 @@ from ...config.constants import (
     TIGRBL_ALLOW_ANON_ATTR,
 )
 from ...mapping import engine_resolver as _resolver
+from ..model_helpers import _OpSpecGroup
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/include")
@@ -204,7 +205,7 @@ def _inject_runtime_secdeps(
             patched_specs.append(replace(sp, secdeps=((*missing, *secdeps))))
             changed = True
         if changed:
-            by_alias[alias] = tuple(patched_specs)
+            by_alias[alias] = _OpSpecGroup(tuple(patched_specs))
 
 
 def _make_authorize_secdep(router: Any) -> Any | None:
