@@ -1,7 +1,9 @@
 # tigrbl/v3/router/tigrbl_api.py
 from __future__ import annotations
 
+import asyncio
 import copy
+import inspect
 from types import SimpleNamespace
 from typing import (
     Any,
@@ -355,7 +357,30 @@ class TigrblRouter(_Router):
                 tables.append(table)
         return tables
 
-    initialize = _ddl_initialize
+    def initialize(
+        self,
+        *,
+        schemas: Iterable[str] | None = None,
+        sqlite_attachments: Mapping[str, str] | None = None,
+        tables: Iterable[Any] | None = None,
+    ):
+        result = _ddl_initialize(
+            self,
+            schemas=schemas,
+            sqlite_attachments=sqlite_attachments,
+            tables=tables,
+        )
+        if inspect.isawaitable(result):
+            return result
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return None
+
+        async def _noop() -> None:
+            return None
+
+        return _noop()
 
     # ------------------------- repr -------------------------
 

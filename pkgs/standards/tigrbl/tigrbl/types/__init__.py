@@ -1,4 +1,5 @@
 # ── Standard Library ─────────────────────────────────────────────────────
+import warnings
 from types import MethodType, SimpleNamespace
 from uuid import uuid4, UUID
 

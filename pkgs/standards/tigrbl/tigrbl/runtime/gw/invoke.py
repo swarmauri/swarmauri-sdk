@@ -56,7 +56,8 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
     egress = ctx.temp.get("egress", {}) if isinstance(ctx.temp, dict) else {}
     response = egress.get("transport_response") if isinstance(egress, dict) else None
     if isinstance(response, dict):
-        response = _normalize_jsonrpc_transport_response(ctx, response)
+        if _is_jsonrpc_request(ctx):
+            response = _normalize_jsonrpc_transport_response(ctx, response)
         await _send_transport_response(env, response)
         return
 
@@ -168,6 +169,53 @@ async def _send_transport_response(
     await env.send(
         {"type": "http.response.body", "body": bytes(body), "more_body": False}
     )
+
+
+def _normalize_jsonrpc_transport_response(
+    ctx: _Ctx, response: Mapping[str, Any]
+) -> dict[str, Any]:
+    normalized = dict(response)
+    body = normalized.get("body")
+
+    if isinstance(body, (bytes, bytearray)):
+        try:
+            body = json.loads(bytes(body).decode("utf-8"))
+        except Exception:
+            return normalized
+
+    if isinstance(body, list) and len(body) == 1 and isinstance(body[0], Mapping):
+        body = dict(body[0])
+
+    if isinstance(body, Mapping) and body.get("jsonrpc") == "2.0":
+        normalized["body"] = body
+        normalized["status_code"] = 200
+        return normalized
+
+    rpc_id = None
+    gw_raw = getattr(ctx, "gw_raw", None)
+    rpc = getattr(gw_raw, "rpc", None)
+    if isinstance(rpc, Mapping):
+        rpc_id = rpc.get("id")
+    route = ctx.temp.get("route", {}) if isinstance(ctx.temp, dict) else {}
+    rpc_env = route.get("rpc_envelope") if isinstance(route, Mapping) else None
+    if rpc_id is None and isinstance(rpc_env, Mapping):
+        rpc_id = rpc_env.get("id")
+
+    normalized["body"] = {"jsonrpc": "2.0", "result": body, "id": rpc_id}
+    normalized["status_code"] = 200
+    return normalized
+
+
+def _is_jsonrpc_request(ctx: _Ctx) -> bool:
+    gw_raw = getattr(ctx, "gw_raw", None)
+    if getattr(gw_raw, "kind", None) == "jsonrpc":
+        return True
+    path = getattr(gw_raw, "path", None)
+    app = getattr(ctx, "app", None)
+    prefix = getattr(app, "jsonrpc_prefix", None)
+    if isinstance(path, str) and isinstance(prefix, str):
+        return (path.rstrip("/") or "/") == (prefix.rstrip("/") or "/")
+    return False
 
 
 async def _send_json(env: GwRawEnvelope, status: int, payload: Any) -> None:
