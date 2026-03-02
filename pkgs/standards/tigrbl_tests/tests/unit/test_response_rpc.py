@@ -39,7 +39,7 @@ async def test_response_rpc_alias_table(kind, tmp_path):
     elif kind == "file":
         assert result["path"] == str(file_path)
     elif kind == "stream":
-        content = b"".join(chunk async for chunk in result["body_iterator"])
+        content = b"".join([chunk async for chunk in result["body_iterator"]])
         assert content == b"pong"
     elif kind == "redirect":
         assert result["status_code"] == 307
@@ -67,7 +67,7 @@ async def test_response_rpc_non_alias_table(kind, tmp_path):
     elif kind == "file":
         assert result["path"] == str(file_path)
     elif kind == "stream":
-        content = b"".join(chunk async for chunk in result["body_iterator"])
+        content = b"".join([chunk async for chunk in result["body_iterator"]])
         assert content == b"pong"
     elif kind == "redirect":
         assert result["status_code"] == 307
