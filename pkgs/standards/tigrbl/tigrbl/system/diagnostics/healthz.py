@@ -10,6 +10,15 @@ from .utils import maybe_execute
 logger = logging.getLogger(__name__)
 
 
+def _resolve_db(candidate: Any) -> Any:
+    """Resolve a DB-like object from either a DB handle or a Request object."""
+    if hasattr(candidate, "execute"):
+        return candidate
+
+    state = getattr(candidate, "state", None)
+    return getattr(state, "db", candidate)
+
+
 def build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
     """
     Returns a ASGI endpoint function for /healthz.
@@ -19,6 +28,7 @@ def build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
     if dep is not None:
 
         async def _healthz(db: Any = Depends(dep)):
+            db = _resolve_db(db)
             try:
                 await maybe_execute(db, "SELECT 1")
                 return {"ok": True}
@@ -29,7 +39,7 @@ def build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
         return _healthz
 
     async def _healthz(request: Request):
-        db = getattr(request.state, "db", None)
+        db = _resolve_db(request)
         if db is None:
             return {"ok": True, "warning": "no-db"}
         try:
