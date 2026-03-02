@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Mapping, Tuple
+from typing import Any, Callable, Dict, Iterator, Mapping, Tuple
 
 
 @dataclass(frozen=True)
@@ -50,3 +50,59 @@ class KernelPlan:
         default_factory=dict
     )
     egress_chain: Mapping[str, list[Callable[..., Any]]] = field(default_factory=dict)
+    _appspec_mapping: Dict[str, Dict[str, list[str]]] = field(
+        default_factory=dict, init=False, repr=False, compare=False
+    )
+
+    def _normalize_mappings(self) -> Dict[str, Dict[str, list[str]]]:
+        if self._appspec_mapping:
+            return self._appspec_mapping
+
+        from ...runtime import events as _ev
+        from ...system.diagnostics.utils import label_hook as _label_hook
+
+        normalized: Dict[str, Dict[str, list[str]]] = {}
+        for meta_index, meta in enumerate(self.opmeta):
+            table_name = getattr(meta.model, "__name__", str(meta.model))
+            labels: list[str] = []
+            chains = self.phase_chains.get(meta_index, {})
+            for phase in _ev.PHASES:
+                phase_steps = chains.get(phase, ())
+                for step in phase_steps or ():
+                    labels.append(f"{phase}:{_label_hook(step, phase)}")
+
+            seen, deduped = set(), []
+            for label in labels:
+                if ":hook:wire:" in label:
+                    if label in seen:
+                        continue
+                    seen.add(label)
+                deduped.append(label)
+
+            normalized.setdefault(table_name, {})[meta.alias] = deduped
+
+        self._appspec_mapping.update(normalized)
+        return self._appspec_mapping
+
+    def __getitem__(self, key: str) -> Dict[str, list[str]]:
+        return self._normalize_mappings()[key]
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._normalize_mappings())
+
+    def __len__(self) -> int:
+        return len(self._normalize_mappings())
+
+    def get(
+        self, key: str, default: Dict[str, list[str]] | None = None
+    ) -> Dict[str, list[str]] | None:
+        return self._normalize_mappings().get(key, default)
+
+    def items(self):
+        return self._normalize_mappings().items()
+
+    def keys(self):
+        return self._normalize_mappings().keys()
+
+    def values(self):
+        return self._normalize_mappings().values()
