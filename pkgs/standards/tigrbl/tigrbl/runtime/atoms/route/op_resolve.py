@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any
 
 from ... import events as _ev
@@ -26,9 +27,24 @@ def run(obj: object | None, ctx: Any) -> None:
         if 0 <= maybe_index < len(opmeta):
             meta = opmeta[maybe_index]
             route["opmeta_index"] = maybe_index
-            route["op"] = getattr(meta, "alias", None)
-            setattr(ctx, "op", getattr(meta, "alias", None))
+            op_alias = getattr(meta, "alias", None)
+            route["op"] = op_alias
+            setattr(ctx, "op", op_alias)
             setattr(ctx, "model", getattr(meta, "model", None))
+            if getattr(ctx, "env", None) is None:
+                payload = route.get("payload") if isinstance(route, dict) else None
+                if payload is None:
+                    payload = getattr(ctx, "payload", None)
+                setattr(
+                    ctx,
+                    "env",
+                    SimpleNamespace(
+                        method=op_alias,
+                        params=payload,
+                        target=getattr(meta, "target", None),
+                        model=getattr(meta, "model", None),
+                    ),
+                )
             if getattr(ctx, "status_code", None) is None:
                 setattr(
                     ctx,
