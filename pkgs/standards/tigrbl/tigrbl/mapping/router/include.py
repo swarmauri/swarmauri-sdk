@@ -299,9 +299,14 @@ def _attach_to_router(router: RouterLike, table: type) -> None:
     )
 
     # Table metadata (introspection only)
-    columns = _coerce_model_columns(getattr(table, "columns", ()))
+    # ``model.columns`` can be a partially-populated namespace (for example, a
+    # synthetic namespace that only contains PK columns). For routing and IO
+    # filtering we need the complete merged column set, so prefer the MRO
+    # collector and only fall back to the ad-hoc ``model.columns`` container
+    # when collection returns empty.
+    columns = tuple(mro_collect_columns(table).keys())
     if not columns:
-        columns = tuple(mro_collect_columns(table).keys())
+        columns = _coerce_model_columns(getattr(table, "columns", ()))
     router.columns[tname] = columns
     router.table_config[tname] = dict(getattr(table, "table_config", {}) or {})
 
