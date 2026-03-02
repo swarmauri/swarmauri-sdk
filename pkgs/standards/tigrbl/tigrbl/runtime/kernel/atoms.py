@@ -68,11 +68,29 @@ def _make_label(anchor: str, run: _AtomRun) -> Optional[str]:
 
 
 def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
-    params = tuple(inspect.signature(run).parameters)
-    accepts_ctx_only = len(params) == 1
+    use_two_args = True
+    try:
+        params = tuple(inspect.signature(run).parameters.values())
+        positional = [
+            p
+            for p in params
+            if p.kind
+            in (
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            )
+        ]
+        # Kernel atoms default to ``run(obj, ctx)``. Support legacy
+        # ``run(ctx)`` atoms without masking TypeError raised inside the atom.
+        use_two_args = len(positional) != 1
+    except (TypeError, ValueError):
+        use_two_args = True
 
     async def _step(ctx: Any) -> Any:
-        rv = run(ctx) if accepts_ctx_only else run(None, ctx)  # type: ignore[misc]
+        if use_two_args:
+            rv = run(None, ctx)
+        else:
+            rv = run(ctx)  # type: ignore[misc]
         if hasattr(rv, "__await__"):
             return await cast(Any, rv)
         return rv

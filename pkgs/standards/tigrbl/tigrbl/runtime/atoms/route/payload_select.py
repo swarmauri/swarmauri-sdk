@@ -19,6 +19,13 @@ def run(obj: object | None, ctx: Any) -> None:
     rpc_envelope = route.get("rpc_envelope")
     if isinstance(rpc_envelope, dict):
         payload = rpc_envelope.get("params", {})
+        rpc_method = rpc_envelope.get("method")
+        if (
+            isinstance(rpc_method, str)
+            and rpc_method.endswith(".bulk_delete")
+            and not isinstance(payload, dict)
+        ):
+            payload = {"ids": payload}
         route["payload"] = payload
         setattr(ctx, "payload", payload)
         return
