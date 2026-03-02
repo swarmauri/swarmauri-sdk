@@ -14,7 +14,7 @@ from tigrbl.types import SimpleNamespace
 async def test_healthz_endpoint_comprehensive(app_client):
     """Test healthz endpoint attachment, behavior, and response format."""
     client, app, _ = app_client
-    app.attach_diagnostics(prefix="", app=client._transport.app)
+    app.attach_diagnostics(prefix="")
 
     # Check that healthz endpoint exists in routes
     routes = [route.path for route in app.router.routes]
@@ -40,7 +40,7 @@ async def test_healthz_endpoint_comprehensive(app_client):
 async def test_methodz_endpoint_comprehensive(app_client):
     """Test methodz endpoint attachment, behavior, and response format."""
     client, app, _ = app_client
-    app.attach_diagnostics(prefix="", app=client._transport.app)
+    app.attach_diagnostics(prefix="")
 
     # Check that methodz endpoint exists in routes
     routes = [route.path for route in app.router.routes]
@@ -97,7 +97,7 @@ async def test_hookz_endpoint_comprehensive(app_client):
     Item.second_hook = second_hook
     Item.item_hook = item_hook
     app.rebind(Item)
-    app.attach_diagnostics(prefix="", app=client._transport.app)
+    app.attach_diagnostics(prefix="")
 
     response = await client.get("/hookz")
     assert response.status_code == 200
@@ -112,7 +112,7 @@ async def test_hookz_endpoint_comprehensive(app_client):
 async def test_methodz_basic_functionality(app_client):
     """Test that methodz endpoint provides basic method information."""
     client, app, _ = app_client
-    app.attach_diagnostics(prefix="", app=client._transport.app)
+    app.attach_diagnostics(prefix="")
 
     response = await client.get("/methodz")
     methods = {m["method"] for m in response.json()["methods"]}
@@ -132,7 +132,7 @@ async def test_methodz_basic_functionality(app_client):
 async def test_healthz_methodz_hookz_in_openapi_schema(app_client):
     """Test that healthz, methodz and hookz endpoints are included in OpenAPI schema."""
     client, app, _ = app_client
-    app.attach_diagnostics(prefix="", app=client._transport.app)
+    app.attach_diagnostics(prefix="")
 
     # Get OpenAPI schema
     spec_response = await client.get("/openapi.json")
@@ -150,7 +150,7 @@ async def test_healthz_methodz_hookz_in_openapi_schema(app_client):
 async def test_healthz_database_error_handling(app_client):
     """Test healthz endpoint behavior when database has issues."""
     client, app, _ = app_client
-    app.attach_diagnostics(prefix="", app=client._transport.app)
+    app.attach_diagnostics(prefix="")
 
     # Note: In a real test, we'd mock database connectivity issues
     # For now, we just verify the endpoint responds and has the right structure
@@ -169,7 +169,7 @@ async def test_healthz_database_error_handling(app_client):
 async def test_methodz_reflects_dynamic_models(app_client):
     """Test that methodz reflects dynamically registered models."""
     client, app, _ = app_client
-    app.attach_diagnostics(prefix="", app=client._transport.app)
+    app.attach_diagnostics(prefix="")
 
     # Get initial methods
     response = await client.get("/methodz")
@@ -185,7 +185,7 @@ async def test_methodz_reflects_dynamic_models(app_client):
 async def test_endpoints_are_synchronous(app_client):
     """Test that healthz, methodz and hookz endpoints work in sync mode."""
     client, app, _ = app_client
-    app.attach_diagnostics(prefix="", app=client._transport.app)
+    app.attach_diagnostics(prefix="")
 
     # These endpoints should work regardless of async/sync context
     healthz_response = await client.get("/healthz")
