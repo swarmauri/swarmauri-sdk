@@ -47,6 +47,8 @@ def run(obj: object | None, ctx: Any) -> None:
             "result": payload,
             "id": rpc_id,
         }
+        egress["status_code"] = 200
+        setattr(ctx, "status_code", 200)
         return
 
     envelope = egress.get("envelope")

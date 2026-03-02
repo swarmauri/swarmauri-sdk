@@ -20,6 +20,9 @@ def run(obj: object | None, ctx: Any) -> None:
     temp = _ensure_temp(ctx)
     egress = temp.setdefault("egress", {})
 
+    if isinstance(egress.get("transport_response"), dict):
+        return
+
     body = egress.get("enveloped")
     if body is None:
         body = egress.get("wire_payload")
