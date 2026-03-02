@@ -354,33 +354,17 @@ def initialize(
                     if pending is not None:
                         pending_closes.append(pending)
             setattr(obj, "_ddl_executed", True)
-
-            class _Completed:
-                def __init__(self, pending):
-                    self._pending = tuple(pending)
-
-                def __await__(self):  # pragma: no cover - trivial
-                    if not self._pending:
-                        if False:
-                            yield None
-                        return None
-
-                    async def _wait_pending():
-                        for task in self._pending:
-                            await task
-                        return None
-
-                    return _wait_pending().__await__()
-
-            return _Completed(pending_closes)
+            if pending_closes:
+                return asyncio.gather(*pending_closes)
+            return None
 
         async def _inner():
             for active_provider, active_tables in provider_tables:
                 if inspect.isasyncgenfunction(active_provider.get_db):
                     async for adb in active_provider.get_db():
                         await adb.run_sync(
-                            lambda bind: _create_all_on_bind(
-                                bind,
+                            lambda sync_session: _create_all_on_bind(
+                                sync_session.get_bind(),
                                 schemas=schemas,
                                 sqlite_attachments=sqlite_attachments,
                                 tables=active_tables,
@@ -393,8 +377,8 @@ def initialize(
                     try:
                         if hasattr(db, "run_sync"):
                             await db.run_sync(
-                                lambda bind: _create_all_on_bind(
-                                    bind,
+                                lambda sync_session: _create_all_on_bind(
+                                    sync_session.get_bind(),
                                     schemas=schemas,
                                     sqlite_attachments=sqlite_attachments,
                                     tables=active_tables,
