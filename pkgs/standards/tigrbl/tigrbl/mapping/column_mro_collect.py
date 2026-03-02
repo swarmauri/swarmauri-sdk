@@ -34,8 +34,8 @@ def _model_label(model: object) -> str:
 
 
 @lru_cache(maxsize=None)
-def mro_collect_columns(
-    model: object, *, _cache_bust: int | None = None
+def _mro_collect_columns_cached(
+    model: object, _cache_bust: int
 ) -> Dict[str, ColumnSpec]:
     """Collect ColumnSpecs declared on *model* and all mixins.
 
@@ -71,6 +71,32 @@ def mro_collect_columns(
 
     logger.info("Collected %d columns for %s", len(out), _model_label(model))
     return out
+
+
+def mro_collect_columns(
+    model: object, *, _cache_bust: int | None = None
+) -> Dict[str, ColumnSpec]:
+    """Collect ColumnSpecs for *model* while keeping cache entries topology-aware.
+
+    SQLAlchemy materialization and mixin colspec aggregation can happen after an
+    early probe of a model. If we cache that pre-materialized probe forever,
+    downstream schema generation may observe an empty column map. We therefore
+    derive a cache-busting token from model topology when one is not supplied.
+    """
+
+    if _cache_bust is None:
+        table = getattr(model, "__table__", None)
+        cols = getattr(table, "columns", None) if table is not None else None
+        col_count = len(cols) if cols is not None else 0
+        _cache_bust = hash(
+            (
+                id(getattr(model, "__tigrbl_colspecs__", None)),
+                id(getattr(model, "__tigrbl_cols__", None)),
+                id(table),
+                col_count,
+            )
+        )
+    return _mro_collect_columns_cached(model, _cache_bust)
 
 
 __all__ = ["mro_collect_columns"]

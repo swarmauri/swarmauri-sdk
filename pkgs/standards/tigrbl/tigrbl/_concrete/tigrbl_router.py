@@ -218,8 +218,10 @@ class TigrblRouter(_Router):
     def mount_jsonrpc(
         self, *, prefix: str | None = None, tags: Sequence[str] | None = ("rpc",)
     ) -> Any:
-        del prefix, tags
-        raise RuntimeError("JSON-RPC transport mounting has been removed from ingress.")
+        del tags
+        if prefix is not None:
+            self.jsonrpc_prefix = prefix
+        return None
 
     def mount_openrpc(
         self,

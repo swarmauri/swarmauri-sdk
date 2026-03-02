@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import re
 import threading
 from types import SimpleNamespace
 from typing import Any, ClassVar, Dict, List, Mapping, Optional, Sequence, Tuple
@@ -21,6 +20,7 @@ from .atoms import (
 )
 from .cache import _SpecsOnceCache, _WeakMaybeDict
 from .models import KernelPlan, OpKey, OpMeta, OpView
+from ..labels import label_hook
 from .opview_compiler import compile_opview_from_specs
 
 logger = logging.getLogger(__name__)
@@ -266,12 +266,31 @@ class Kernel:
 
     def plan_labels(self, model: type, alias: str) -> list[str]:
         labels: list[str] = []
-        chains = self.build_op(model, alias)
+        chains = self.build(model, alias)
+
+        tx_begin = "START_TX:hook:sys:txn:begin@START_TX"
+        tx_end = "END_TX:hook:sys:txn:commit@END_TX"
+        if chains.get("HANDLER"):
+            labels.append(tx_begin)
 
         for phase in _ev.PHASES:
-            phase_steps = chains.get(phase, [])
-            for step in phase_steps or ():
-                labels.append(f"{phase}:{_label_step(step, phase)}")
+            if phase in {
+                "INGRESS_BEGIN",
+                "INGRESS_PARSE",
+                "INGRESS_ROUTE",
+                "EGRESS_SHAPE",
+                "EGRESS_FINALIZE",
+                "POST_RESPONSE",
+                "START_TX",
+                "END_TX",
+            }:
+                continue
+            for step in chains.get(phase, ()) or ():
+                labels.append(f"{phase}:{label_hook(step, phase)}")
+
+        if chains.get("HANDLER"):
+            labels.append(tx_end)
+
         return labels
 
     async def invoke(
@@ -353,10 +372,7 @@ class Kernel:
             WsBindingSpec,
         )
 
-        proto_indices: dict[str, Any] = {
-            "http.rest": _RestMatcher(),
-            "https.rest": _RestMatcher(),
-        }
+        proto_indices: dict[str, Any] = {"http.rest": {}, "https.rest": {}}
         opmeta: list[OpMeta] = []
         opkey_to_meta: dict[OpKey, int] = {}
         phase_chains: dict[int, Mapping[str, list[StepFn]]] = {}
@@ -380,13 +396,9 @@ class Kernel:
                             selector = f"{method.upper()} {binding.path}"
                             opkey = OpKey(proto=binding.proto, selector=selector)
                             opkey_to_meta[opkey] = meta_index
-                            rest_matcher = proto_indices.setdefault(
-                                binding.proto, _RestMatcher()
+                            proto_indices.setdefault(binding.proto, {})[selector] = (
+                                meta_index
                             )
-                            if isinstance(rest_matcher, _RestMatcher):
-                                rest_matcher.add(method, binding.path, meta_index)
-                            else:
-                                rest_matcher[selector] = meta_index
                     elif isinstance(binding, HttpJsonRpcBindingSpec):
                         opkey = OpKey(proto=binding.proto, selector=binding.rpc_method)
                         opkey_to_meta[opkey] = meta_index

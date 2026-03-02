@@ -156,7 +156,7 @@ async def _run_chain(
             temp = getattr(ctx, "temp", None)
             route = temp.get("route") if isinstance(temp, dict) else None
             rpc_env = route.get("rpc_envelope") if isinstance(route, dict) else None
-            if isinstance(rpc_env, dict) and rpc_env.get("jsonrpc") == "2.0":
+            if isinstance(rpc_env, dict):
                 std_exc = create_standardized_error(exc)
                 ctx.status_code = 200
                 ctx.result = None

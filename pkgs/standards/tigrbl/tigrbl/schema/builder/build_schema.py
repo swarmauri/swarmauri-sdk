@@ -34,8 +34,23 @@ def _build_schema(
     )
     cached = _SchemaCache.get(cache_key)
     if cached is not None:
-        logger.debug("schema: cache hit %s verb=%s", orm_cls.__name__, verb)
-        return cached
+        # A schema can be requested while SQLAlchemy metadata is still being
+        # constructed. In that transient state we may cache an empty model and
+        # later serve it even after columns are available. Guard against that
+        # by invalidating empty cache entries once the model exposes colspecs.
+        if cached.model_fields:
+            logger.debug("schema: cache hit %s verb=%s", orm_cls.__name__, verb)
+            return cached
+        cached_specs = mro_collect_columns(orm_cls)
+        if not cached_specs:
+            logger.debug("schema: cache hit %s verb=%s", orm_cls.__name__, verb)
+            return cached
+        logger.debug(
+            "schema: invalidating empty cache entry for %s verb=%s",
+            orm_cls.__name__,
+            verb,
+        )
+        _SchemaCache.pop(cache_key, None)
 
     logger.debug(
         "schema: building %s verb=%s include=%s exclude=%s",
