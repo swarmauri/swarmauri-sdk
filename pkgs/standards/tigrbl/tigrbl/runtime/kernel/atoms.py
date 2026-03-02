@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import inspect
 import logging
 import pkgutil
 from types import SimpleNamespace
@@ -67,11 +68,11 @@ def _make_label(anchor: str, run: _AtomRun) -> Optional[str]:
 
 
 def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
+    params = tuple(inspect.signature(run).parameters)
+    accepts_ctx_only = len(params) == 1
+
     async def _step(ctx: Any) -> Any:
-        try:
-            rv = run(None, ctx)
-        except TypeError:
-            rv = run(ctx)  # type: ignore[misc]
+        rv = run(ctx) if accepts_ctx_only else run(None, ctx)  # type: ignore[misc]
         if hasattr(rv, "__await__"):
             return await cast(Any, rv)
         return rv
