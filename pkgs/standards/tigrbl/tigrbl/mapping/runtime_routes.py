@@ -157,7 +157,7 @@ def _merge_table_op_binding(route: Any) -> bool:
     if existing_spec is None:
         return False
 
-    path = getattr(route, "path_template", None)
+    path = getattr(route, "path", None) or getattr(route, "path_template", None)
     methods = tuple(getattr(route, "methods", ()) or ())
     if not (isinstance(path, str) and methods):
         return True
@@ -202,7 +202,7 @@ def register_runtime_route(app: Any, route: Any) -> None:
     if _merge_table_op_binding(route):
         return
 
-    path = getattr(route, "path_template", None)
+    path = getattr(route, "path", None) or getattr(route, "path_template", None)
     methods = tuple(getattr(route, "methods", ()) or ())
     handler = getattr(route, "handler", None)
     if not (isinstance(path, str) and methods and callable(handler)):

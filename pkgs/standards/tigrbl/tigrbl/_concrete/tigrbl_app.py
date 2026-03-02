@@ -40,6 +40,7 @@ from ..system.docs import build_openapi as _build_openapi
 from ..op import get_registry
 from ._table_registry import TableRegistry
 from .._spec.app_spec import AppSpec
+from .._spec.binding_spec import HttpRestBindingSpec
 from ..mapping.runtime_routes import register_runtime_route
 from ..mapping.spec_normalization import normalize_app_spec
 from ..system.favicon import FAVICON_PATH, mount_favicon
