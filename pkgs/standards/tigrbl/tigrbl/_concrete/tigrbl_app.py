@@ -462,6 +462,22 @@ class TigrblApp(_App):
                 for name, table in resolved_tables.items():
                     self._default_router.tables.setdefault(name, table)
 
+        route_models: Dict[str, type] = {}
+        for route in getattr(router, "routes", ()):
+            model = getattr(route, "tigrbl_model", None)
+            if not isinstance(model, type):
+                continue
+            model_name = getattr(model, "__name__", None)
+            if isinstance(model_name, str) and model_name:
+                route_models.setdefault(model_name, model)
+
+        if route_models:
+            for name, table in route_models.items():
+                self.tables.setdefault(name, table)
+            if self._default_router is not None and self._default_router is not router:
+                for name, table in route_models.items():
+                    self._default_router.tables.setdefault(name, table)
+
         if not mount_router:
             return router
         super().include_router(router, prefix=prefix)
