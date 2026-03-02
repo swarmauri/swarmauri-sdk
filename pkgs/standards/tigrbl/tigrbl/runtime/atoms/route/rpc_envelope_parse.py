@@ -10,6 +10,17 @@ from ...gw.raw import GwRouteEnvelope
 ANCHOR = _ev.ROUTE_RPC_ENVELOPE_PARSE
 
 
+def _is_rpc_envelope(payload: Mapping[str, Any]) -> bool:
+    method = payload.get("method")
+    if not isinstance(method, str) or not method.strip():
+        return False
+
+    marker = payload.get("jsonrpc")
+    if marker is None:
+        return True
+    return marker == "2.0"
+
+
 def _set_rpc_route(
     ctx: Any, route: dict[str, Any], env: GwRouteEnvelope, rpc: Mapping[str, Any]
 ) -> None:
@@ -28,22 +39,18 @@ def run(obj: object | None, ctx: Any) -> None:
     env = getattr(ctx, "gw_raw", None)
     if not isinstance(env, GwRouteEnvelope):
         payload = getattr(ctx, "payload", None)
-        if isinstance(payload, dict) and payload.get("jsonrpc") == "2.0":
+        if isinstance(payload, Mapping) and _is_rpc_envelope(payload):
             route["rpc_envelope"] = payload
-        return
-
-    if env.kind != "maybe-jsonrpc":
         return
 
     parsed_payload = getattr(ctx, "payload", None)
     if not isinstance(parsed_payload, Mapping):
         parsed_payload = getattr(ctx, "body", None)
-    if (
-        isinstance(parsed_payload, Mapping)
-        and parsed_payload.get("jsonrpc") == "2.0"
-        and "method" in parsed_payload
-    ):
+    if isinstance(parsed_payload, Mapping) and _is_rpc_envelope(parsed_payload):
         _set_rpc_route(ctx, route, env, parsed_payload)
+        return
+
+    if env.kind != "maybe-jsonrpc":
         return
 
     body = env.body
@@ -62,11 +69,7 @@ def run(obj: object | None, ctx: Any) -> None:
     except Exception:
         return
 
-    if (
-        isinstance(parsed, dict)
-        and parsed.get("jsonrpc") == "2.0"
-        and "method" in parsed
-    ):
+    if isinstance(parsed, Mapping) and _is_rpc_envelope(parsed):
         _set_rpc_route(ctx, route, env, parsed)
     else:
         setattr(ctx, "gw_raw", replace(env, kind="rest"))
