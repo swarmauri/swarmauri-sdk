@@ -221,7 +221,7 @@ def test_allow_anon_create_method():
             db.refresh(tenant)
             tid = str(tenant.id)
         payload = {"id": str(uuid4()), "tenant_id": tid, "name": "one"}
-        assert client.post("/item", json=[payload]).status_code == 201
+        assert client.post("/item", json=payload).status_code == 201
     finally:
         client.close()
 
@@ -236,7 +236,7 @@ def test_allow_anon_create_attr_noauth():
             db.refresh(tenant)
             tid = str(tenant.id)
         payload = {"id": str(uuid4()), "tenant_id": tid, "name": "one"}
-        assert client.post("/item", json=[payload]).status_code == 201
+        assert client.post("/item", json=payload).status_code == 201
     finally:
         client.close()
 

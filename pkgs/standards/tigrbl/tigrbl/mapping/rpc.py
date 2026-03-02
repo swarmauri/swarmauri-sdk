@@ -254,13 +254,26 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
         return _ensure_jsonable(result)
 
     try:
-        if target == "list" and isinstance(result, (list, tuple)):
-            return [
-                out_model.model_validate(x).model_dump(
-                    exclude_none=False, by_alias=True
-                )
-                for x in result
-            ]
+        if target == "list":
+            if isinstance(result, Mapping):
+                items = result.get("items")
+                if isinstance(items, (list, tuple)):
+                    serialized_items = [
+                        out_model.model_validate(x).model_dump(
+                            exclude_none=False, by_alias=True
+                        )
+                        for x in items
+                    ]
+                    out = dict(result)
+                    out["items"] = serialized_items
+                    return out
+            if isinstance(result, (list, tuple)):
+                return [
+                    out_model.model_validate(x).model_dump(
+                        exclude_none=False, by_alias=True
+                    )
+                    for x in result
+                ]
         if target in {
             "bulk_create",
             "bulk_update",

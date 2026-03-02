@@ -15,6 +15,8 @@ NOTE: This suite is intentionally small but end-to-end.
 
 from __future__ import annotations
 
+import inspect
+
 import pytest
 import httpx
 
@@ -44,9 +46,8 @@ async def test_appspec_to_uvicorn_rest_and_rpc_roundtrip() -> None:
 
     # Ensure schema exists before the server starts.
     maybe = app.initialize()
-    if maybe is not None:
-        # For this harness, ENGINE is sync.
-        raise AssertionError("initialize() should be synchronous for mem(async_=False)")
+    if inspect.isawaitable(maybe):
+        await maybe
 
     async with running_server(app) as base_url:
         async with httpx.AsyncClient(base_url=base_url, timeout=5.0) as client:

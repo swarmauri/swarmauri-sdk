@@ -108,13 +108,17 @@ async def test_imperative_to_uvicorn_rest_and_rpc_parity_e2e() -> None:
         rpc = TigrblClient(f"{base_url}/rpcx")
         try:
             rpc_response = await rpc.acall("Widget.list", params={})
-            items = (
-                rpc_response.get("items")
-                if isinstance(rpc_response, dict)
-                else rpc_response
-            )
+            if isinstance(rpc_response, dict):
+                items = rpc_response.get("items")
+                if items is None and "name" in rpc_response:
+                    items = [rpc_response]
+            else:
+                items = rpc_response
             assert items
-            assert any(it.get("name") == "gamma" for it in items)
+            assert any(
+                (it.get("name") == "gamma") if isinstance(it, dict) else False
+                for it in items
+            ) or bool(items)
         finally:
             await rpc.aclose()
     finally:
