@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, get_type_hints
 
 from pydantic import Field
 
@@ -14,6 +14,21 @@ def _bool(x: Any) -> bool:
         return False
 
 
+def _normalize_py_type(py_t: type | Any) -> type | Any:
+    """Normalize dynamic field type declarations for safe schema generation."""
+    if not isinstance(py_t, property):
+        return py_t
+
+    getter = py_t.fget
+    if getter is None:
+        return Any
+
+    try:
+        return get_type_hints(getter).get("return", Any)
+    except Exception:  # pragma: no cover
+        return Any
+
+
 def _add_field(
     sink: Dict[str, Tuple[type, Field]],
     *,
@@ -21,7 +36,10 @@ def _add_field(
     py_t: type | Any,
     field: Field | None = None,
 ) -> None:
-    sink[name] = (py_t, field if field is not None else Field(None))
+    # ``property`` descriptors can leak into extras definitions when callers
+    # register computed attributes directly (instead of their return type).
+    # Resolve a return annotation when available; otherwise degrade to ``Any``.
+    sink[name] = (_normalize_py_type(py_t), field if field is not None else Field(None))
 
 
 def _python_type(col: Any) -> type | Any:
@@ -48,4 +66,4 @@ def _is_required(col: Any, verb: str) -> bool:
     return not is_nullable and not has_default
 
 
-__all__ = ["_bool", "_add_field", "_python_type", "_is_required"]
+__all__ = ["_bool", "_add_field", "_normalize_py_type", "_python_type", "_is_required"]
