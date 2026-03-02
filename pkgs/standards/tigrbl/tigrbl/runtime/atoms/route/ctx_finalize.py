@@ -6,6 +6,7 @@ from ... import events as _ev
 from ....mapping import engine_resolver as _resolver
 
 ANCHOR = _ev.ROUTE_CTX_FINALIZE
+_METADATA_OP_ALIASES = {"__openapi__", "__docs__"}
 
 
 def run(obj: object | None, ctx: Any) -> None:
@@ -24,6 +25,8 @@ def run(obj: object | None, ctx: Any) -> None:
     op_alias = getattr(ctx, "op", None)
     router = getattr(ctx, "router", None) or getattr(ctx, "app", None)
     if model is None or op_alias is None:
+        return
+    if op_alias in _METADATA_OP_ALIASES:
         return
 
     db, release = _resolver.acquire(router=router, model=model, op_alias=op_alias)
