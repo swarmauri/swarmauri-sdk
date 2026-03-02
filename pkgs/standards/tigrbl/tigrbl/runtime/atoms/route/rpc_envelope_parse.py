@@ -54,6 +54,14 @@ def _is_jsonrpc_endpoint(ctx: Any, env: GwRouteEnvelope) -> bool:
     return _normalize_path(env.path) == _normalize_path(prefix)
 
 
+def _is_rpc_payload(payload: Mapping[str, Any]) -> bool:
+    if "method" not in payload:
+        return False
+    # Accept both strict JSON-RPC 2.0 envelopes and shorthand method/params
+    # payloads used by compatibility clients.
+    return payload.get("jsonrpc") == "2.0" or "params" in payload
+
+
 def run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = getattr(ctx, "temp", None)
@@ -98,7 +106,7 @@ def run(obj: object | None, ctx: Any) -> None:
     parsed_payload = getattr(ctx, "payload", None)
     if not isinstance(parsed_payload, Mapping):
         parsed_payload = getattr(ctx, "body", None)
-    if _is_rpc_envelope(parsed_payload):
+    if isinstance(parsed_payload, Mapping) and _is_rpc_payload(parsed_payload):
         _set_rpc_route(ctx, route, env, parsed_payload)
         return
 
@@ -124,7 +132,7 @@ def run(obj: object | None, ctx: Any) -> None:
     except Exception:
         return
 
-    if _is_rpc_envelope(parsed):
+    if isinstance(parsed, dict) and _is_rpc_payload(parsed):
         _set_rpc_route(ctx, route, env, parsed)
     else:
         setattr(ctx, "gw_raw", replace(env, kind="rest"))
