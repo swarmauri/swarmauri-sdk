@@ -12,7 +12,7 @@ from collections.abc import Iterable, Mapping
 from urllib.parse import parse_qs
 
 from tigrbl._concrete._headers import HeaderCookies, Headers
-from .._spec.request_spec import RequestSpec
+from .._base._request_base import RequestBase
 
 
 @dataclass(frozen=True)
@@ -78,7 +78,7 @@ def _b64url_decode(data: str) -> bytes:
 
 
 @dataclass(init=False)
-class Request(RequestSpec):
+class Request(RequestBase):
     method: str
     path: str
     headers: Mapping[str, str] | Iterable[tuple[str, str]]
