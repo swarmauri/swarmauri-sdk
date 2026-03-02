@@ -116,7 +116,10 @@ async def _run_chain(
             if _trace is not None:
                 _trace.end(ctx, seq, status=_trace.OK)
 
-            if phase == "POST_RESPONSE" and getattr(step, "__tigrbl_label", None) is None:
+            if (
+                phase == "POST_RESPONSE"
+                and getattr(step, "__tigrbl_label", None) is None
+            ):
                 temp_ns = getattr(ctx, "temp", None)
                 if not isinstance(temp_ns, dict):
                     continue
