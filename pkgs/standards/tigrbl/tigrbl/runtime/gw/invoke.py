@@ -4,6 +4,7 @@ import json
 from typing import Any, Mapping
 
 from ..executor import _Ctx, _invoke
+from ..status import StatusDetailError
 from ..kernel.core import Kernel
 from .raw import GwRawEnvelope
 
@@ -41,7 +42,16 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
     ctx.opview = kernel.get_opview(app, opmeta.model, opmeta.alias)
 
     phases = _without_ingress_phases(plan.phase_chains.get(opmeta_index, {}))
-    await _invoke(request=None, db=None, phases=phases, ctx=ctx)
+    try:
+        await _invoke(request=None, db=None, phases=phases, ctx=ctx)
+    except StatusDetailError as exc:
+        detail = (
+            exc.detail if getattr(exc, "detail", None) not in (None, "") else str(exc)
+        )
+        await _send_json(
+            env, int(getattr(exc, "status_code", 500) or 500), {"detail": detail}
+        )
+        return
 
     egress = ctx.temp.get("egress", {}) if isinstance(ctx.temp, dict) else {}
     response = egress.get("transport_response") if isinstance(egress, dict) else None
@@ -49,8 +59,43 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
         await _send_transport_response(env, response)
         return
 
-    status = int(getattr(ctx, "status_code", 200) or 200)
-    await _send_json(env, status, getattr(ctx, "result", None))
+    status = int(
+        getattr(ctx, "status_code", _default_status_for_alias(getattr(ctx, "op", None)))
+        or 200
+    )
+    await _send_json(env, status, _normalize_payload(getattr(ctx, "result", None)))
+
+
+def _default_status_for_alias(alias: Any) -> int:
+    return 201 if alias in {"create", "bulk_create"} else 200
+
+
+def _normalize_payload(payload: Any) -> Any:
+    if isinstance(payload, (str, int, float, bool)) or payload is None:
+        return payload
+    if isinstance(payload, Mapping):
+        return {str(k): _normalize_payload(v) for k, v in payload.items()}
+    if isinstance(payload, (list, tuple, set)):
+        return [_normalize_payload(v) for v in payload]
+
+    model_dump = getattr(payload, "model_dump", None)
+    if callable(model_dump):
+        try:
+            return _normalize_payload(model_dump())
+        except Exception:
+            pass
+
+    obj_dict = getattr(payload, "__dict__", None)
+    if isinstance(obj_dict, dict):
+        data = {
+            k: v
+            for k, v in obj_dict.items()
+            if not k.startswith("_") and not callable(v)
+        }
+        if data:
+            return _normalize_payload(data)
+
+    return str(payload)
 
 
 def _resolve_app(env: GwRawEnvelope) -> Any | None:

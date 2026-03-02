@@ -60,6 +60,18 @@ def _ctx_path_params(ctx: Mapping[str, Any]) -> Mapping[str, Any]:
     if isinstance(v, Mapping):
         logger.debug("Path params found: %s", list(v.keys()))
         return v
+
+    temp = _ctx_get(ctx, "temp", None)
+    if isinstance(temp, Mapping):
+        route = temp.get("route")
+        if isinstance(route, Mapping):
+            route_params = route.get("path_params")
+            if isinstance(route_params, Mapping):
+                logger.debug(
+                    "Path params found in temp.route: %s", list(route_params.keys())
+                )
+                return route_params
+
     logger.debug("No path params found; returning empty mapping")
     return {}
 

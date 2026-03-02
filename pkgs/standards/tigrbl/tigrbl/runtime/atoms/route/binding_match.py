@@ -70,6 +70,15 @@ def run(obj: object | None, ctx: Any) -> None:
         env = getattr(ctx, "gw_raw", None)
         method = getattr(env, "method", None)
         path = getattr(env, "path", None)
+        scope = getattr(env, "scope", None)
+        if not isinstance(method, str) and isinstance(scope, Mapping):
+            scope_method = scope.get("method")
+            if isinstance(scope_method, str):
+                method = scope_method
+        if not isinstance(path, str) and isinstance(scope, Mapping):
+            scope_path = scope.get("path")
+            if isinstance(scope_path, str):
+                path = scope_path
         if isinstance(method, str) and isinstance(path, str):
             candidates = [proto]
             if proto == "http.rest":
