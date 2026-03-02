@@ -5,11 +5,15 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
 from ... import events as _ev
+from ...status.exceptions import HTTPException
+from ...status.mappings import status as _status
 
 # Runs in PRE_HANDLER just before validation.
 ANCHOR = _ev.IN_VALIDATE  # "in:validate"
 
 logger = logging.getLogger("uvicorn")
+
+_WRAPPER_KEYS = frozenset({"data", "payload", "body", "item"})
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
@@ -49,6 +53,8 @@ def run(obj: Optional[object], ctx: Any) -> None:
         logger.debug("Payload is not a mapping; skipping normalization")
         # Non-mapping payloads are ignored here; adapters can pre-normalize.
         return
+
+    _reject_disallowed_wrapper_keys(ctx, payload, schema_in)
 
     by_field: Mapping[str, Mapping[str, Any]] = schema_in.get("by_field", {})  # type: ignore[assignment]
     # Build alias→field and ingress whitelist (field and alias forms)
@@ -161,6 +167,33 @@ def _coerce_payload(ctx: Any) -> Mapping[str, Any] | Any:
 
 def _safe_str(v: Any) -> Optional[str]:
     return v if isinstance(v, str) and v else None
+
+
+def _reject_disallowed_wrapper_keys(
+    ctx: Any,
+    payload: Mapping[str, Any],
+    schema_in: Mapping[str, Any],
+) -> None:
+    by_field = schema_in.get("by_field", {})
+    if not isinstance(by_field, Mapping):
+        return
+
+    allowed = {str(name) for name in by_field.keys() if str(name) in _WRAPPER_KEYS}
+    disallowed = sorted(
+        k for k in payload.keys() if k in _WRAPPER_KEYS and k not in allowed
+    )
+    if not disallowed:
+        return
+
+    detail = {
+        "reason": "Wrapper keys are not allowed; params must match the operation schema.",
+        "disallowed_keys": disallowed,
+    }
+    temp = _ensure_temp(ctx)
+    temp["in_errors"] = [detail]
+    raise HTTPException(
+        status_code=_status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail
+    )
 
 
 __all__ = ["ANCHOR", "run"]
