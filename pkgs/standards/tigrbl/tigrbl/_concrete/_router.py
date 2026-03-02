@@ -8,6 +8,7 @@ from types import SimpleNamespace
 
 from .._spec.router_spec import RouterSpec
 from ..mapping import engine_resolver as _resolver
+from ..mapping.spec_normalization import _seqify
 from .._spec.engine_spec import EngineCfg
 from ._table_registry import TableRegistry
 
@@ -85,8 +86,8 @@ class Router(RouterSpec):
         self.swagger_ui_version = swagger_ui_version
         class_prefix = getattr(self, "PREFIX", "")
         self.prefix = normalize_prefix(prefix or class_prefix)
-        self.tags = list(tags or [])
-        self.dependencies = list(dependencies or [])
+        self.tags = list(_seqify(tags))
+        self.dependencies = list(_seqify(dependencies))
         # Allow dependencies to be replaced at runtime, typically for testing
         # and environment-specific wiring.
         self.dependency_overrides: dict[Callable[..., Any], Callable[..., Any]] = {}
@@ -101,12 +102,14 @@ class Router(RouterSpec):
         self.name = getattr(self, "NAME", "router")
         self.prefix = normalize_prefix(prefix or getattr(self, "PREFIX", ""))
         self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
-        self.tags = list(tags or getattr(self, "TAGS", []))
-        self.ops = tuple(getattr(self, "OPS", ()))
+        self.tags = list(
+            _seqify(tags if tags is not None else getattr(self, "TAGS", ()))
+        )
+        self.ops = _seqify(getattr(self, "OPS", ()))
         self.schemas = SimpleNamespace()
         self.hooks = SimpleNamespace()
-        self.security_deps = tuple(getattr(self, "SECURITY_DEPS", ()))
-        self.deps = tuple(getattr(self, "DEPS", ()))
+        self.security_deps = _seqify(getattr(self, "SECURITY_DEPS", ()))
+        self.deps = _seqify(getattr(self, "DEPS", ()))
         self.response = getattr(self, "RESPONSE", None)
         self.rest_prefix = getattr(self, "REST_PREFIX", "/router")
         self.rpc_prefix = getattr(self, "RPC_PREFIX", "/rpc")
@@ -114,7 +117,9 @@ class Router(RouterSpec):
         self.tables = TableRegistry(tables=getattr(self, "TABLES", ()))
 
         default_dependencies = list(self.security_deps) + list(self.deps)
-        self.dependencies = list(dependencies or default_dependencies)
+        self.dependencies = list(
+            _seqify(dependencies if dependencies is not None else default_dependencies)
+        )
 
         _engine_ctx = engine if engine is not None else getattr(self, "ENGINE", None)
         if _engine_ctx is not None:
