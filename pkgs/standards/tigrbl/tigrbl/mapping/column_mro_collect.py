@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from functools import lru_cache
+from types import SimpleNamespace
 from typing import Dict
 
 from .._spec.column_spec import ColumnSpec
@@ -31,6 +32,25 @@ def _model_label(model: object) -> str:
         or getattr(model, "name", None)
         or type(model).__name__
     )
+
+
+def _coerce_columns_iterable(columns: object) -> tuple[object, ...]:
+    """Normalize model/table column containers to an iterable tuple.
+
+    Some table classes expose ``columns`` as a ``SimpleNamespace`` of
+    ``ColumnSpec`` objects for convenience. Runtime collectors should treat that
+    namespace as a mapping and iterate over its values rather than trying to
+    iterate the namespace object directly.
+    """
+
+    if isinstance(columns, SimpleNamespace):
+        return tuple(columns.__dict__.values())
+    if isinstance(columns, dict):
+        return tuple(columns.values())
+    try:
+        return tuple(columns)  # type: ignore[arg-type]
+    except TypeError:
+        return ()
 
 
 @lru_cache(maxsize=None)
@@ -63,7 +83,7 @@ def _mro_collect_columns_cached(
         cols = getattr(model, "columns", None)
 
     if cols is not None:
-        for col in cols:
+        for col in _coerce_columns_iterable(cols):
             name = getattr(col, "key", None) or getattr(col, "name", None)
             if not isinstance(name, str):
                 continue
@@ -87,7 +107,7 @@ def mro_collect_columns(
     if _cache_bust is None:
         table = getattr(model, "__table__", None)
         cols = getattr(table, "columns", None) if table is not None else None
-        col_count = len(cols) if cols is not None else 0
+        col_count = len(_coerce_columns_iterable(cols)) if cols is not None else 0
         _cache_bust = hash(
             (
                 id(getattr(model, "__tigrbl_colspecs__", None)),
