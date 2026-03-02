@@ -50,3 +50,30 @@ class KernelPlan:
         default_factory=dict
     )
     egress_chain: Mapping[str, list[Callable[..., Any]]] = field(default_factory=dict)
+
+    def _legacy_payload(self) -> dict[str, dict[str, list[str]]]:
+        payload: dict[str, dict[str, list[str]]] = {}
+        for index, meta in enumerate(self.opmeta):
+            chains = self.phase_chains.get(index, {})
+            sequence: list[str] = []
+            for phase, steps in chains.items():
+                for step in steps or ():
+                    label = getattr(step, "__tigrbl_label", None)
+                    if isinstance(label, str):
+                        entry = label
+                    else:
+                        name = getattr(
+                            step, "__qualname__", getattr(step, "__name__", repr(step))
+                        )
+                        module = getattr(step, "__module__", None)
+                        subject = f"{module}.{name}" if module else name
+                        entry = f"hook:wire:{subject.replace('.', ':')}@{phase}"
+                    sequence.append(f"{phase}:{entry}")
+            model_name = getattr(meta.model, "__name__", "Model")
+            payload.setdefault(model_name, {})[meta.alias] = sequence
+        return payload
+
+    def __getitem__(self, key: Any) -> Any:
+        if isinstance(key, str) and hasattr(self, key):
+            return getattr(self, key)
+        return self._legacy_payload()[key]
