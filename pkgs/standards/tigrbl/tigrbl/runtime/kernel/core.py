@@ -36,6 +36,34 @@ def deepmerge_phase_chains(
     return {phase: list(steps) for phase, steps in merged.items()}
 
 
+def _table_iter(app: Any) -> Sequence[type]:
+    tables = getattr(app, "tables", None)
+    if isinstance(tables, dict):
+        return tuple(v for v in tables.values() if isinstance(v, type))
+    return ()
+
+
+def _opspecs(model: type) -> Sequence[Any]:
+    return getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ()) or ()
+
+
+def _label_callable(fn: Any) -> str:
+    name = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
+    module = getattr(fn, "__module__", None)
+    return f"{module}.{name}" if module else name
+
+
+def _label_step(step: Any, phase: str) -> str:
+    label = getattr(step, "__tigrbl_label", None)
+    if isinstance(label, str) and "@" in label:
+        return label
+    module = getattr(step, "__module__", "") or ""
+    name = getattr(step, "__name__", "") or ""
+    if module.startswith("tigrbl.core.crud") and name:
+        return f"hook:wire:tigrbl:core:crud:ops:{name}@{phase}"
+    return f"hook:wire:{_label_callable(step).replace('.', ':')}@{phase}"
+
+
 class Kernel:
     """
     SSoT for runtime scheduling. One Kernel per App (not per API).
@@ -161,24 +189,11 @@ class Kernel:
     def plan_labels(self, model: type, alias: str) -> list[str]:
         labels: list[str] = []
         chains = self.build_op(model, alias)
-        ordered_anchors = _ev.all_events_ordered()
-        ranked: list[tuple[int, int, str]] = []
-        anchor_idx = {anchor: i for i, anchor in enumerate(ordered_anchors)}
-        order = 0
-        for phase_steps in chains.values():
-            for step in phase_steps or ():
-                label = getattr(step, "__tigrbl_label", None)
-                if not isinstance(label, str) or "@" not in label:
-                    order += 1
-                    continue
-                anchor = label.rsplit("@", 1)[-1]
-                idx = anchor_idx.get(anchor)
-                if idx is not None:
-                    ranked.append((idx, order, label))
-                order += 1
 
-        ranked.sort(key=lambda item: (item[0], item[1]))
-        labels.extend(label for _, _, label in ranked)
+        for phase in _ev.PHASES:
+            phase_steps = chains.get(phase, [])
+            for step in phase_steps or ():
+                labels.append(f"{phase}:{_label_step(step, phase)}")
         return labels
 
     async def invoke(
@@ -204,11 +219,6 @@ class Kernel:
         with self._lock:
             if self._primed.get(app):
                 return
-            from ...system.diagnostics.utils import (
-                table_iter as _table_iter,
-                opspecs as _opspecs,
-            )
-
             models = list(_table_iter(app))
             for model in models:
                 self._specs_cache.get(model)
@@ -240,8 +250,6 @@ class Kernel:
 
         try:
             specs = self._specs_cache.get(model)
-            from ...system.diagnostics.utils import opspecs as _opspecs
-
             found = False
             for sp in _opspecs(model):
                 ov_map.setdefault(
@@ -265,10 +273,6 @@ class Kernel:
             HttpJsonRpcBindingSpec,
             HttpRestBindingSpec,
             WsBindingSpec,
-        )
-        from ...system.diagnostics.utils import (
-            opspecs as _opspecs,
-            table_iter as _table_iter,
         )
 
         proto_indices: dict[str, Any] = {}
@@ -340,11 +344,6 @@ class Kernel:
 
         compiled = self.compile_plan(app)
         self._kernel_plans[app] = compiled
-
-        from ...system.diagnostics.utils import (
-            table_iter as _table_iter,
-            opspecs as _opspecs,
-        )
 
         payload: dict[str, dict[str, list[str]]] = {}
         for model in _table_iter(app):
