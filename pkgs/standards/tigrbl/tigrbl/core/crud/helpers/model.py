@@ -6,6 +6,7 @@ from typing import Any, Dict, Mapping, Tuple
 import logging
 
 from ....mapping.column_mro_collect import mro_collect_columns
+from ....runtime.status import HTTPException
 
 logger = logging.getLogger("uvicorn")
 
@@ -87,6 +88,29 @@ def _filter_in_values(
         result = dict(data)
         logger.debug("_filter_in_values returning %s", result)
         return result
+
+    paired_aliases_for_verb: dict[str, str] = {}
+    for field_name, field_spec in specs.items():
+        io = getattr(field_spec, "io", None)
+        paired_cfg = getattr(io, "_paired", None) if io is not None else None
+        if paired_cfg is None:
+            continue
+        paired_verbs = getattr(paired_cfg, "verbs", ()) or ()
+        if verb in paired_verbs:
+            alias_name = getattr(paired_cfg, "alias", None)
+            if isinstance(alias_name, str) and alias_name:
+                paired_aliases_for_verb[alias_name] = field_name
+
+    disallowed_aliases = sorted(k for k in data if k in paired_aliases_for_verb)
+    if disallowed_aliases:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "reason": "Paired alias fields are generated server-side and may not be provided in requests.",
+                "disallowed_keys": disallowed_aliases,
+            },
+        )
+
     out: Dict[str, Any] = {}
     for k, v in data.items():
         sp = specs.get(k)
