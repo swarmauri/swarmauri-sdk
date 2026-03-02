@@ -61,6 +61,8 @@ async def run(obj: object | None, ctx: Any) -> None:
         temp = {}
         setattr(ctx, "temp", temp)
     egress = temp.setdefault("egress", {})
+    if egress.get("response_sent"):
+        return
 
     if resp is None:
         tr = egress.get("transport_response") if isinstance(egress, dict) else None
@@ -91,6 +93,7 @@ async def run(obj: object | None, ctx: Any) -> None:
             }
         )
         await send({"type": "http.response.body", "body": body, "more_body": False})
+        egress["response_sent"] = True
         return
 
     egress["transport_response"] = {
@@ -114,6 +117,7 @@ async def run(obj: object | None, ctx: Any) -> None:
             "more_body": False,
         }
     )
+    egress["response_sent"] = True
 
 
 __all__ = ["ANCHOR", "run"]
