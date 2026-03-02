@@ -165,6 +165,24 @@ class Request(RequestSpec):
         self.scope = scope
         self.__post_init__()
 
+    @classmethod
+    def from_scope(
+        cls,
+        scope: dict[str, Any],
+        receive: Any | None = None,
+        *,
+        app: Any | None = None,
+        state: SimpleNamespace | None = None,
+    ) -> "Request":
+        """Construct a request from an ASGI scope.
+
+        ``receive`` is accepted for compatibility with middleware/tests that
+        follow Starlette-style request factories; this transport model keeps
+        the body external to the scope lifecycle.
+        """
+
+        return cls(scope, app=app, state=state, receive=receive)
+
     def __post_init__(self) -> None:
         self.headers = Headers(self.headers)
 
