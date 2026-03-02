@@ -222,9 +222,7 @@ async def _invoke(
     if ctx.get("result") is not None and getattr(ctx, "response", None) is not None:
         setattr(ctx.response, "result", ctx.get("result"))
 
-    if getattr(ctx, "response", None) is not None:
-        return getattr(ctx.response, "result", ctx.get("result"))
-    return ctx.get("result")
+    return getattr(ctx, "response", None)
 
 
 __all__ = ["_invoke"]
