@@ -14,9 +14,18 @@ class TableRegistryBase(dict[str, Any]):
 
     def __getattr__(self, name: str) -> Any:
         try:
-            return self[name]
+            value = self[name]
         except KeyError as exc:
             raise AttributeError(name) from exc
+
+        # Preserve historic table-registry attribute behavior where
+        # ``registry.Widget`` surfaced SQLAlchemy table metadata while key-based
+        # lookup remains model-centric for runtime mapping.
+        if isinstance(value, type):
+            table = getattr(value, "__table__", None)
+            if table is not None:
+                return table
+        return value
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name == "tables" or name.startswith("_"):

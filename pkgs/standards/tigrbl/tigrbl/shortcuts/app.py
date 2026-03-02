@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any, Sequence, Type
 
 from .._spec.app_spec import AppSpec
-from .._concrete._app import App
+from .._concrete.tigrbl_app import TigrblApp
 
 
 def defineAppSpec(
@@ -56,10 +56,10 @@ def defineAppSpec(
     return type("AppSpec", (AppSpec,), attrs)
 
 
-def deriveApp(**kw: Any) -> Type[App]:
-    """Produce a concrete :class:`App` subclass that inherits the spec."""
+def deriveApp(**kw: Any) -> Type[TigrblApp]:
+    """Produce a concrete :class:`TigrblApp` subclass that inherits the spec."""
     Spec = defineAppSpec(**kw)
-    return type("AppWithSpec", (Spec, App), {})
+    return type("AppWithSpec", (Spec, TigrblApp), {})
 
 
 __all__ = ["defineAppSpec", "deriveApp"]

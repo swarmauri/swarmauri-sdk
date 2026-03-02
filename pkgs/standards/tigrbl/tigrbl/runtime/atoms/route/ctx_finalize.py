@@ -10,6 +10,7 @@ from ....mapping import engine_resolver as _resolver
 
 ANCHOR = _ev.ROUTE_CTX_FINALIZE
 _METADATA_OP_ALIASES = {"__openapi__", "__docs__"}
+_RUNTIME_ROUTE_ALIAS_PREFIX = "__route__:"
 
 
 def _requires_db(model: type, alias: str) -> bool:
@@ -79,7 +80,9 @@ def run(obj: object | None, ctx: Any) -> None:
     if callable(serializer):
         setattr(ctx, "response_serializer", serializer)
 
-    if op_alias in _METADATA_OP_ALIASES:
+    if op_alias in _METADATA_OP_ALIASES or str(op_alias).startswith(
+        _RUNTIME_ROUTE_ALIAS_PREFIX
+    ):
         return
 
     if not _requires_db(model, op_alias):

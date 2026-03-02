@@ -1,6 +1,7 @@
 # tigrbl/v3/runtime/atoms/wire/build_in.py
 from __future__ import annotations
 
+import uuid as _uuid
 from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
@@ -42,6 +43,10 @@ def run(obj: Optional[object], ctx: Any) -> None:
     """
     payload = _coerce_payload(ctx)
     schema_in = _schema_in(ctx)
+    payload = _inject_path_params_for_bulk(payload, ctx)
+    if payload is not getattr(ctx, "payload", None):
+        setattr(ctx, "payload", payload)
+
     _reject_disallowed_wrapper_keys(payload, schema_in=schema_in or {})
     if not schema_in:
         logger.debug("No schema_in available; skipping wire:build_in")
@@ -169,6 +174,36 @@ def _safe_str(v: Any) -> Optional[str]:
     return v if isinstance(v, str) and v else None
 
 
+def _inject_path_params_for_bulk(payload: Any, ctx: Any) -> Any:
+    if not isinstance(payload, list):
+        return payload
+
+    temp = getattr(ctx, "temp", None)
+    route = temp.get("route") if isinstance(temp, Mapping) else None
+    path_params = route.get("path_params") if isinstance(route, Mapping) else None
+    if not isinstance(path_params, Mapping) or not path_params:
+        return payload
+
+    merged: list[Any] = []
+    changed = False
+    for item in payload:
+        if not isinstance(item, Mapping):
+            merged.append(item)
+            continue
+        merged_item = {
+            key: _coerce_model_field_value(ctx, key, value)
+            for key, value in path_params.items()
+        }
+        merged_item.update(item)
+        changed = changed or merged_item != item
+        merged.append(merged_item)
+
+    if changed:
+        logger.debug("Injected path params into bulk payload items")
+        return merged
+    return payload
+
+
 def _reject_disallowed_wrapper_keys(
     payload: Any, *, schema_in: Mapping[str, Any]
 ) -> None:
@@ -199,6 +234,22 @@ def _reject_disallowed_wrapper_keys(
         for item in payload:
             if isinstance(item, Mapping):
                 _check_mapping(item)
+
+
+def _coerce_model_field_value(ctx: Any, field: str, value: Any) -> Any:
+    model = getattr(ctx, "model", None)
+    table = getattr(model, "__table__", None) if model is not None else None
+    columns = getattr(table, "columns", None) if table is not None else None
+    column = columns.get(field) if columns is not None else None
+    col_type = getattr(column, "type", None)
+    py_type = getattr(col_type, "python_type", None)
+
+    if py_type is _uuid.UUID and isinstance(value, str):
+        try:
+            return _uuid.UUID(value)
+        except Exception:
+            return value
+    return value
 
 
 __all__ = ["ANCHOR", "run"]
