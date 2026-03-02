@@ -31,7 +31,8 @@ def run(obj: object | None, ctx: Any) -> None:
             route["op"] = op_alias
             setattr(ctx, "op", op_alias)
             setattr(ctx, "model", getattr(meta, "model", None))
-            if getattr(ctx, "env", None) is None:
+            env = getattr(ctx, "env", None)
+            if env is None:
                 payload = route.get("payload") if isinstance(route, dict) else None
                 if payload is None:
                     payload = getattr(ctx, "payload", None)
@@ -45,6 +46,15 @@ def run(obj: object | None, ctx: Any) -> None:
                         model=getattr(meta, "model", None),
                     ),
                 )
+            else:
+                # Keep pre-seeded environment objects but ensure routing metadata
+                # is always available to downstream hooks.
+                if getattr(env, "method", None) is None:
+                    setattr(env, "method", op_alias)
+                if getattr(env, "target", None) is None:
+                    setattr(env, "target", getattr(meta, "target", None))
+                if getattr(env, "model", None) is None:
+                    setattr(env, "model", getattr(meta, "model", None))
             if getattr(ctx, "status_code", None) is None:
                 setattr(
                     ctx,
