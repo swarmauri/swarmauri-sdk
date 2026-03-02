@@ -25,10 +25,22 @@ def run(obj: object | None, ctx: Any) -> None:
         headers_obj = egress.get("headers")
 
     headers: dict[str, str] = {}
+
+    def _to_mapping(obj: Any) -> dict[str, Any]:
+        if isinstance(obj, dict):
+            return obj
+        data = getattr(obj, "__dict__", None)
+        if isinstance(data, dict):
+            return data
+        try:
+            return dict(obj)
+        except Exception:
+            return {}
+
     if isinstance(headers_obj, dict):
         headers = {str(k): str(v) for k, v in headers_obj.items()}
     elif headers_obj is not None:
-        headers = {str(k): str(v) for k, v in dict(headers_obj).items()}
+        headers = {str(k): str(v) for k, v in _to_mapping(headers_obj).items()}
 
     body = egress.get("enveloped", egress.get("wire_payload"))
     if "content-type" not in {k.lower() for k in headers}:

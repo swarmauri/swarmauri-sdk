@@ -19,6 +19,39 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 
+class _ResponseState:
+    """Context-bound response namespace.
+
+    Keeps ``ctx['result']`` synchronized with ``ctx.response.result`` updates so
+    POST_RESPONSE hooks can safely shape egress payloads.
+    """
+
+    __slots__ = ("_ctx", "_data")
+
+    def __init__(self, ctx: "_Ctx", value: Any = None) -> None:
+        object.__setattr__(self, "_ctx", ctx)
+        object.__setattr__(self, "_data", {})
+
+        source = getattr(value, "__dict__", None)
+        if isinstance(source, dict):
+            for key, item in source.items():
+                setattr(self, key, item)
+        elif value is not None:
+            result = getattr(value, "result", None)
+            setattr(self, "result", result)
+
+    def __getattr__(self, name: str) -> Any:
+        data = object.__getattribute__(self, "_data")
+        return data.get(name)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        data = object.__getattribute__(self, "_data")
+        data[name] = value
+        if name == "result":
+            ctx = object.__getattribute__(self, "_ctx")
+            dict.__setitem__(ctx, "result", value)
+
+
 @runtime_checkable
 class _Step(Protocol):
     def __call__(self, ctx: "_Ctx") -> Union[Any, Awaitable[Any]]: ...
@@ -47,7 +80,22 @@ class _Ctx(dict):
 
     __slots__ = ()
     __getattr__ = dict.get  # type: ignore[assignment]
-    __setattr__ = dict.__setitem__  # type: ignore[assignment]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        if (
+            key == "response"
+            and value is not None
+            and not isinstance(value, _ResponseState)
+        ):
+            value = _ResponseState(self, value)
+        if key == "result":
+            response = dict.get(self, "response")
+            if isinstance(response, _ResponseState):
+                data = object.__getattribute__(response, "_data")
+                data["result"] = value
+        dict.__setitem__(self, key, value)
+
+    __setattr__ = __setitem__  # type: ignore[assignment]
 
     @classmethod
     def ensure(

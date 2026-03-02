@@ -13,9 +13,20 @@ class AttrDict(dict):
 
     def __getattr__(self, item: str) -> Any:  # pragma: no cover - trivial
         try:
-            return self[item]
+            value = self[item]
         except KeyError as e:  # pragma: no cover - debug aid
             raise AttributeError(item) from e
+
+        # Compatibility: table registries are model-centric (key access returns
+        # the model class), but some call sites historically accessed
+        # ``router.tables.ModelName.name`` expecting SQLAlchemy table metadata.
+        # Attribute access preserves that by projecting mapped model classes to
+        # their ``__table__`` object when available.
+        if isinstance(value, type):
+            table = getattr(value, "__table__", None)
+            if table is not None:
+                return table
+        return value
 
     def __setattr__(self, key: str, value: Any) -> None:  # pragma: no cover - trivial
         self[key] = value
