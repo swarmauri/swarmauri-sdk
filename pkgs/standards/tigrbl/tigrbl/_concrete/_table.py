@@ -48,7 +48,10 @@ class Table(TableBase):
             return False
         if mode == "some":
             return op in inc
-        allowed = (cls.DEFAULT_CANON_VERBS | inc) - exc
+        default_verbs = set(
+            getattr(cls, "DEFAULT_CANON_VERBS", Table.DEFAULT_CANON_VERBS)
+        )
+        allowed = (default_verbs | inc) - exc
         return op in allowed
 
     @classmethod
