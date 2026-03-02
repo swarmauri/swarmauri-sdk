@@ -41,23 +41,25 @@ def _wrap_ctx_hook(
         _ = await _maybe_await(bound(ctx))
         if phase == "POST_RESPONSE":
             response = ctx.get("response")
-            response_result = (
-                getattr(response, "result", None) if response is not None else None
-            )
-            if response_result is not None:
-                ctx["result"] = response_result
+            result_payload = ctx.get("result")
+            if result_payload is None and response is not None:
+                result_payload = getattr(response, "result", None)
+            if result_payload is not None:
+                ctx["result"] = result_payload
+                if response is not None:
+                    setattr(response, "result", result_payload)
                 temp = ctx.get("temp")
                 if isinstance(temp, dict):
                     egress = temp.get("egress")
                     if isinstance(egress, dict):
                         enveloped = egress.get("enveloped")
                         if isinstance(enveloped, dict) and "result" in enveloped:
-                            enveloped["result"] = response_result
+                            enveloped["result"] = result_payload
                         transport = egress.get("transport_response")
                         if isinstance(transport, dict):
                             body = transport.get("body")
                             if isinstance(body, dict) and "result" in body:
-                                body["result"] = response_result
+                                body["result"] = result_payload
         if io_key is None:
             return None
         return ctx.get(io_key, value)

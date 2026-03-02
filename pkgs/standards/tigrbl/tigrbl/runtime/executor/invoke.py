@@ -207,17 +207,17 @@ async def _invoke(
 
     await _run_phase("POST_COMMIT", allow_flush=True, allow_commit=False, in_tx=False)
 
-    await _run_phase("EGRESS_SHAPE", allow_flush=False, allow_commit=False, in_tx=False)
-    await _run_phase(
-        "EGRESS_FINALIZE", allow_flush=False, allow_commit=False, in_tx=False
-    )
-
     await _run_phase(
         "POST_RESPONSE",
         allow_flush=False,
         allow_commit=False,
         in_tx=False,
         nonfatal=True,
+    )
+
+    await _run_phase("EGRESS_SHAPE", allow_flush=False, allow_commit=False, in_tx=False)
+    await _run_phase(
+        "EGRESS_FINALIZE", allow_flush=False, allow_commit=False, in_tx=False
     )
     if ctx.get("result") is not None and getattr(ctx, "response", None) is not None:
         setattr(ctx.response, "result", ctx.get("result"))
