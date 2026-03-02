@@ -54,28 +54,21 @@ def _build_response_serializer(model: type, alias: str):
         return None
 
     def _serialize(value: Any) -> Any:
+        def _dump(item: Any) -> Any:
+            return out_model.model_validate(item, from_attributes=True).model_dump(
+                exclude_none=False, by_alias=True
+            )
+
         target = alias.split(".")[-1]
         if target == "list" and isinstance(value, dict):
             items = value.get("items")
             if isinstance(items, (list, tuple)):
                 payload = dict(value)
-                payload["items"] = [
-                    out_model.model_validate(item).model_dump(
-                        exclude_none=False, by_alias=True
-                    )
-                    for item in items
-                ]
+                payload["items"] = [_dump(item) for item in items]
                 return payload
         if isinstance(value, (list, tuple)):
-            return [
-                out_model.model_validate(item).model_dump(
-                    exclude_none=False, by_alias=True
-                )
-                for item in value
-            ]
-        return out_model.model_validate(value).model_dump(
-            exclude_none=False, by_alias=True
-        )
+            return [_dump(item) for item in value]
+        return _dump(value)
 
     return _serialize
 

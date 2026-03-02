@@ -1,5 +1,8 @@
 import pytest
 import pytest_asyncio
+import contextlib
+import os
+import tempfile
 from tigrbl import TigrblApp, TableBase
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
 from tigrbl._spec import F, IO, S
@@ -286,8 +289,11 @@ async def router_client(db_mode):
 
     app = TigrblApp()
 
+    db_file: tempfile.NamedTemporaryFile | None = None
     if db_mode == "async":
-        app = TigrblApp(engine=mem())
+        db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        db_file.close()
+        app = TigrblApp(engine=sqlitef(db_file.name, async_=True))
         app.include_tables([Tenant, Item])
         await app.initialize()
 
@@ -300,7 +306,13 @@ async def router_client(db_mode):
     transport = ASGITransport(app=app)
 
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, app, Item
+    try:
+        yield client, app, Item
+    finally:
+        await client.aclose()
+        if db_file is not None:
+            with contextlib.suppress(OSError):
+                os.unlink(db_file.name)
 
 
 @pytest_asyncio.fixture()

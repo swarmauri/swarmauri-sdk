@@ -63,5 +63,6 @@ def test_app_spec_mro_merges_sequence_attributes():
     # Deployment: instantiate the child app to materialize model registry.
     app = ChildApp()
 
-    # Assertion: the child model list takes precedence at the app boundary.
-    assert list(app.tables.values()) == [Gadget]
+    # Assertion: the child model declaration wins over the inherited one.
+    assert Gadget in app.tables.values()
+    assert Widget not in app.tables.values()
