@@ -268,10 +268,15 @@ class Kernel:
     def plan_labels(self, model: type, alias: str) -> list[str]:
         labels: list[str] = []
         chains = self.build(model, alias)
+        opspec = next(
+            (sp for sp in _opspecs(model) if getattr(sp, "alias", None) == alias),
+            None,
+        )
+        persist = getattr(opspec, "persist", "default") != "skip"
 
         tx_begin = "START_TX:hook:sys:txn:begin@START_TX"
         tx_end = "END_TX:hook:sys:txn:commit@END_TX"
-        if chains.get("HANDLER"):
+        if persist:
             labels.append(tx_begin)
 
         for phase in _ev.PHASES:
@@ -286,9 +291,9 @@ class Kernel:
             }:
                 continue
             for step in chains.get(phase, ()) or ():
-                labels.append(label_hook(step, phase))
+                labels.append(f"{phase}:{label_hook(step, phase)}")
 
-        if chains.get("HANDLER"):
+        if persist:
             labels.append(tx_end)
 
         return labels
