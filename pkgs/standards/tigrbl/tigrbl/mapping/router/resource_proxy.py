@@ -3,6 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Awaitable, Callable, Dict, Mapping, Optional
 
+from ...runtime.executor import _Ctx, _invoke
+from ...runtime.kernel.core import Kernel
 from ..rpc import _coerce_payload, _validate_input
 from ...mapping import engine_resolver as _resolver
 
@@ -61,15 +63,34 @@ class _ResourceProxy:
                     router=self._router, model=self._model, op_alias=alias
                 )
 
-            return {
-                "model": self._model,
-                "alias": alias,
-                "target": alias,
-                "payload": norm_payload,
-                "db": db,
-                "request": request,
-                "ctx": seed_ctx,
-            }
+            app_or_router = self._router
+            kernel = Kernel()
+            plan = kernel.kernel_plan(app_or_router)
+            op_index = None
+            for idx, meta in enumerate(getattr(plan, "opmeta", ())):
+                if (
+                    getattr(meta, "model", None) is self._model
+                    and getattr(meta, "alias", None) == alias
+                ):
+                    op_index = idx
+                    break
+            if op_index is None:
+                raise AttributeError(
+                    f"No runtime operation found for {self._model.__name__}.{alias}"
+                )
+
+            opmeta = plan.opmeta[op_index]
+            phases = plan.phase_chains.get(op_index, {})
+
+            ctx = _Ctx.ensure(request=request, db=db, seed=seed_ctx)
+            ctx.app = app_or_router
+            ctx.router = app_or_router
+            ctx.model = opmeta.model
+            ctx.op = opmeta.alias
+            ctx.payload = norm_payload
+            ctx.opview = kernel.get_opview(app_or_router, opmeta.model, opmeta.alias)
+
+            return await _invoke(request=request, db=db, phases=phases, ctx=ctx)
 
         _call.__name__ = f"{self._model.__name__}.{alias}"
         _call.__qualname__ = _call.__name__
