@@ -17,6 +17,12 @@ class RequestLike(Protocol):
     def json_sync(self) -> Any: ...
 
 
+def _request_field(req: RequestLike | dict[str, Any], name: str) -> Any:
+    if isinstance(req, dict):
+        return req.get(name)
+    return getattr(req, name, None)
+
+
 def split_annotated(annotation: Any) -> tuple[Any, tuple[Any, ...]]:
     if get_origin(annotation) is Annotated:
         args = get_args(annotation)
@@ -42,6 +48,10 @@ def is_request_annotation(annotation: Any) -> bool:
 
 
 def load_body(req: RequestLike) -> Any:
+    if isinstance(req, dict):
+        body = req.get("body", req.get("payload"))
+        if body is not None:
+            return body
     try:
         return req.json_sync()
     except Exception as exc:
@@ -58,18 +68,22 @@ def extract_param_value(
     body_cache: Any | None,
 ) -> tuple[Any, bool]:
     alias = marker.alias or param_name
+    query_params = _request_field(req, "query_params") or {}
+    path_params = _request_field(req, "path_params") or {}
+    headers = _request_field(req, "headers") or {}
+
     if marker.location == "query":
-        if alias in req.query_params:
-            return req.query_params[alias], True
+        if alias in query_params:
+            return query_params[alias], True
         return None, False
     if marker.location == "path":
-        if alias in req.path_params:
-            return req.path_params[alias], True
+        if alias in path_params:
+            return path_params[alias], True
         return None, False
     if marker.location == "header":
         key = alias.lower()
-        if key in req.headers:
-            return req.headers[key], True
+        if key in headers:
+            return headers[key], True
         return None, False
     if marker.location == "body":
         if body_cache is None:
