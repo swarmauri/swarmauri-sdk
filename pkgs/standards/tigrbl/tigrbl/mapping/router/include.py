@@ -298,7 +298,13 @@ def _attach_to_router(router: RouterLike, table: type) -> None:
     )
 
     # Table metadata (introspection only)
-    router.columns[tname] = _coerce_model_columns(getattr(table, "columns", ()))
+    colnames = _coerce_model_columns(getattr(table, "columns", ()))
+    if not colnames:
+        try:
+            colnames = tuple(getattr(table.__table__.columns, "keys")())
+        except Exception:
+            colnames = ()
+    router.columns[tname] = colnames
     router.table_config[tname] = dict(getattr(table, "table_config", {}) or {})
 
     # Core helper proxies (now aware of API for DB resolution precedence)

@@ -449,29 +449,24 @@ async def rpc_call(
     request: Any = None,
     ctx: Optional[Dict[str, Any]] = None,
 ) -> Any:
-    """Compatibility RPC dispatcher that returns operation envelopes.
+    """Compatibility RPC dispatcher that executes the RPC method.
 
-    Historically, ``tigrbl.mapping.rpc.rpc_call`` resolved and invoked
-    ``model.rpc.<method>`` directly, yielding an operation envelope consumed by
-    integration tests and low-level runtime callers. Keep that behavior here
-    even though router-level execution now lives in ``mapping.router.rpc``.
+    Historically callers imported ``tigrbl.mapping.rpc.rpc_call`` and expected a
+    fully executed result payload (including transport-style response objects),
+    not the intermediate operation envelope produced by ``model.rpc.<method>``.
+    Delegate to router-level execution to preserve that behavior.
     """
-    if isinstance(model_or_name, type):
-        model = model_or_name
-    else:
-        tables = getattr(router, "tables", {}) or {}
-        model = tables.get(model_or_name)
+    from .router.rpc import rpc_call as _router_rpc_call
 
-    if model is None:
-        raise AttributeError(f"Unknown model '{model_or_name}'")
-
-    fn = getattr(getattr(model, "rpc", SimpleNamespace()), method, None)
-    if fn is None:
-        raise AttributeError(
-            f"{getattr(model, '__name__', model)} has no RPC method '{method}'"
-        )
-
-    return await fn(payload, db=db, request=request, ctx=dict(ctx or {}))
+    return await _router_rpc_call(
+        router,
+        model_or_name,
+        method,
+        payload,
+        db=db,
+        request=request,
+        ctx=ctx,
+    )
 
 
 __all__ = ["register_and_attach", "rpc_call"]
