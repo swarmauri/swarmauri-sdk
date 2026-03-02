@@ -201,6 +201,14 @@ def _create_all_on_bind(
     sqlite_attachments: Mapping[str, str] | None = None,
     tables: Iterable[Any] | None = None,
 ) -> None:
+    if hasattr(bind, "get_bind"):
+        try:
+            resolved = bind.get_bind()
+            if resolved is not None:
+                bind = resolved
+        except Exception:
+            pass
+
     engine = getattr(bind, "engine", bind)
     tables = list(tables or [])
 

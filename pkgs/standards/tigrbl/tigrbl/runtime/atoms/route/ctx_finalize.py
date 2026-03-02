@@ -49,12 +49,12 @@ def _build_response_serializer(model: type, alias: str):
     def _serialize(value: Any) -> Any:
         if isinstance(value, (list, tuple)):
             return [
-                out_model.model_validate(item).model_dump(
+                out_model.model_validate(item, from_attributes=True).model_dump(
                     exclude_none=False, by_alias=True
                 )
                 for item in value
             ]
-        return out_model.model_validate(value).model_dump(
+        return out_model.model_validate(value, from_attributes=True).model_dump(
             exclude_none=False, by_alias=True
         )
 

@@ -16,6 +16,13 @@ def run(obj: Optional[object], ctx: Any) -> Any:
     req = getattr(ctx, "request", None)
     if resp_ns is None or req is None:
         return None
+    temp = getattr(ctx, "temp", None)
+    if isinstance(temp, dict):
+        route = temp.get("route") if isinstance(temp.get("route"), dict) else None
+        rpc_env = route.get("rpc_envelope") if isinstance(route, dict) else None
+        if isinstance(rpc_env, dict) and rpc_env.get("jsonrpc") == "2.0":
+            return None
+
     result = getattr(resp_ns, "result", None)
     if result is None:
         return None

@@ -165,7 +165,7 @@ class Kernel:
             self._singleton_initialized = True
 
     def _reset(self, atoms: Optional[Sequence[_DiscoveredAtom]] = None) -> None:
-        self._atoms_cache = list(atoms) if atoms else None
+        self._atoms_cache = list(atoms) if atoms is not None else None
         self._specs_cache = _SpecsOnceCache()
         self._opviews = _WeakMaybeDict()
         self._kernel_plans = _WeakMaybeDict()
@@ -269,11 +269,6 @@ class Kernel:
         labels: list[str] = []
         chains = self.build(model, alias)
 
-        tx_begin = "START_TX:hook:sys:txn:begin@START_TX"
-        tx_end = "END_TX:hook:sys:txn:commit@END_TX"
-        if chains.get("HANDLER"):
-            labels.append(tx_begin)
-
         for phase in _ev.PHASES:
             if phase in {
                 "INGRESS_BEGIN",
@@ -286,10 +281,7 @@ class Kernel:
             }:
                 continue
             for step in chains.get(phase, ()) or ():
-                labels.append(f"{phase}:{label_hook(step, phase)}")
-
-        if chains.get("HANDLER"):
-            labels.append(tx_end)
+                labels.append(label_hook(step, phase))
 
         return labels
 
@@ -386,7 +378,7 @@ class Kernel:
                 opmeta.append(OpMeta(model=model, alias=sp.alias, target=target))
                 phase_chains[meta_index] = deepmerge_phase_chains(
                     ingress_chain,
-                    self.build_op(model, sp.alias),
+                    self.build(model, sp.alias),
                     egress_chain,
                 )
 

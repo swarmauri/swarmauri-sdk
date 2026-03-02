@@ -274,7 +274,18 @@ def _attach_to_router(router: RouterLike, table: type) -> None:
     )
 
     # Table metadata (introspection only)
-    router.columns[tname] = _coerce_model_columns(getattr(table, "columns", ()))
+    table_columns = getattr(table, "columns", ())
+    if isinstance(table_columns, SimpleNamespace) and not vars(table_columns):
+        table_columns = ()
+    if not table_columns:
+        table_columns = getattr(table, "__tigrbl_cols__", ())
+    if isinstance(table_columns, dict) and not table_columns:
+        table_columns = ()
+    if not table_columns:
+        table_obj = getattr(table, "__table__", None)
+        if table_obj is not None:
+            table_columns = tuple(getattr(table_obj, "c", {}).keys())
+    router.columns[tname] = _coerce_model_columns(table_columns)
     router.table_config[tname] = dict(getattr(table, "table_config", {}) or {})
 
     # Core helper proxies (now aware of API for DB resolution precedence)
