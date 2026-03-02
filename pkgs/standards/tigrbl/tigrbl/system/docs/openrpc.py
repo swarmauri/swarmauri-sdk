@@ -132,6 +132,19 @@ def _iter_ops(model: type) -> Sequence[OpSpec]:
     return ()
 
 
+def _is_docs_only_op(op: OpSpec) -> bool:
+    alias = str(getattr(op, "alias", "")).lower()
+    if "openapi" in alias or "openrpc" in alias:
+        return True
+
+    for binding in tuple(getattr(op, "bindings", ()) or ()):
+        path = str(getattr(binding, "path", "") or "").lower()
+        if path in {"/openapi.json", "/openrpc.json"}:
+            return True
+
+    return False
+
+
 def _schema_with_defs(schema: type[BaseModel]) -> tuple[JsonObject, JsonObject]:
     raw = schema.model_json_schema(ref_template="#/components/schemas/{model}")
     defs = raw.pop("$defs", {})
@@ -175,6 +188,8 @@ def build_openrpc_spec(router: Any, request: Any | None = None) -> JsonObject:
     for model in _iter_models(router):
         for op in _iter_ops(model):
             if not getattr(op, "expose_rpc", True):
+                continue
+            if _is_docs_only_op(op):
                 continue
 
             method: JsonObject = {"name": f"{model.__name__}.{op.alias}"}
