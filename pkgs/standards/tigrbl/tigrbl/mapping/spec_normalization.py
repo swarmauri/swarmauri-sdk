@@ -1,6 +1,25 @@
 from __future__ import annotations
 
-from typing import Any, Mapping
+from dataclasses import replace
+from typing import Any, Iterable, Mapping
+
+from .._spec.app_spec import AppSpec
+
+
+def _seqify(value: Any) -> tuple[Any, ...]:
+    """Normalize sequence-like inputs while treating scalars as a single item."""
+
+    if value is None:
+        return ()
+    if isinstance(value, tuple):
+        return value
+    if isinstance(value, (str, bytes, bytearray)):
+        return (value,)
+    if isinstance(value, Mapping):
+        return (value,)
+    if isinstance(value, Iterable):
+        return tuple(value)
+    return (value,)
 
 
 def merge_seq_attr(
@@ -21,11 +40,26 @@ def merge_seq_attr(
             seq = getattr(base, attr) or ()
         else:
             seq = base.__dict__.get(attr, ()) or ()
-        try:
-            values.extend(seq)
-        except TypeError:  # pragma: no cover - non-iterable
-            values.append(seq)
+        values.extend(_seqify(seq))
     return tuple(values)
+
+
+def normalize_app_spec(spec: AppSpec) -> AppSpec:
+    """Return a mapping-normalized AppSpec snapshot with stable sequence fields."""
+
+    return replace(
+        spec,
+        routers=_seqify(spec.routers),
+        ops=_seqify(spec.ops),
+        tables=_seqify(spec.tables),
+        schemas=_seqify(spec.schemas),
+        hooks=_seqify(spec.hooks),
+        security_deps=_seqify(spec.security_deps),
+        deps=_seqify(spec.deps),
+        middlewares=_seqify(spec.middlewares),
+        jsonrpc_prefix=str(spec.jsonrpc_prefix or "/rpc"),
+        system_prefix=str(spec.system_prefix or "/system"),
+    )
 
 
 def resolve_table_engine(model: type) -> Any | None:
@@ -63,4 +97,4 @@ def resolve_table_engine(model: type) -> Any | None:
     return inherited_engine if inherited_engine is not None else direct_engine
 
 
-__all__ = ["merge_seq_attr", "resolve_table_engine"]
+__all__ = ["merge_seq_attr", "normalize_app_spec", "resolve_table_engine"]
