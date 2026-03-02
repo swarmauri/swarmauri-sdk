@@ -4,6 +4,23 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Iterator, Mapping, Tuple
 
 
+def _label_callable(fn: Any) -> str:
+    name = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
+    module = getattr(fn, "__module__", None)
+    return f"{module}.{name}" if module else name
+
+
+def _label_step(step: Any, phase: str) -> str:
+    label = getattr(step, "__tigrbl_label", None)
+    if isinstance(label, str) and "@" in label:
+        return label
+    module = getattr(step, "__module__", "") or ""
+    name = getattr(step, "__name__", "") or ""
+    if module.startswith("tigrbl.core.crud") and name:
+        return f"hook:wire:tigrbl:core:crud:ops:{name}@{phase}"
+    return f"hook:wire:{_label_callable(step).replace('.', ':')}@{phase}"
+
+
 @dataclass(frozen=True)
 class SchemaIn:
     fields: Tuple[str, ...]
@@ -59,7 +76,6 @@ class KernelPlan:
             return self._appspec_mapping
 
         from ...runtime import events as _ev
-        from ...system.diagnostics.utils import label_hook as _label_hook
 
         normalized: Dict[str, Dict[str, list[str]]] = {}
         for meta_index, meta in enumerate(self.opmeta):
@@ -69,7 +85,7 @@ class KernelPlan:
             for phase in _ev.PHASES:
                 phase_steps = chains.get(phase, ())
                 for step in phase_steps or ():
-                    labels.append(f"{phase}:{_label_hook(step, phase)}")
+                    labels.append(f"{phase}:{_label_step(step, phase)}")
 
             seen, deduped = set(), []
             for label in labels:

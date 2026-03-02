@@ -3,10 +3,9 @@ from __future__ import annotations
 import logging
 from typing import Any, Awaitable, Callable, Dict, Mapping, Optional
 
-from ...runtime.executor import _Ctx, _invoke
-from ...runtime.kernel.core import Kernel
-from ..rpc import _coerce_payload, _validate_input
+from ..rpc import _coerce_payload, _get_phase_chains, _serialize_output, _validate_input
 from ...mapping import engine_resolver as _resolver
+from ...runtime.executor.invoke import _invoke
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/resource_proxy")
@@ -58,39 +57,46 @@ class _ResourceProxy:
 
             seed_ctx: Dict[str, Any] = dict(ctx or {})
 
+            release_db = None
             if db is None:
-                db, _ = _resolver.acquire(
+                db, release_db = _resolver.acquire(
                     router=self._router, model=self._model, op_alias=alias
                 )
 
-            app_or_router = self._router
-            kernel = Kernel()
-            plan = kernel.kernel_plan(app_or_router)
-            op_index = None
-            for idx, meta in enumerate(getattr(plan, "opmeta", ())):
-                if (
-                    getattr(meta, "model", None) is self._model
-                    and getattr(meta, "alias", None) == alias
-                ):
-                    op_index = idx
-                    break
-            if op_index is None:
-                raise AttributeError(
-                    f"No runtime operation found for {self._model.__name__}.{alias}"
+            seed_ctx.setdefault("payload", norm_payload)
+            seed_ctx.setdefault("db", db)
+            if request is not None:
+                seed_ctx.setdefault("request", request)
+            app_ref = (
+                getattr(request, "app", None)
+                or seed_ctx.get("app")
+                or self._router
+                or self._model
+            )
+            seed_ctx.setdefault("app", app_ref)
+            seed_ctx.setdefault("router", seed_ctx.get("router") or app_ref)
+            seed_ctx.setdefault("model", self._model)
+            seed_ctx.setdefault("op", alias)
+            seed_ctx.setdefault("method", alias)
+            seed_ctx.setdefault("target", alias)
+
+            try:
+                if self._serialize:
+                    seed_ctx["response_serializer"] = lambda result: _serialize_output(
+                        self._model, alias, alias, result
+                    )
+                return await _invoke(
+                    request=request,
+                    db=db,
+                    phases=_get_phase_chains(self._model, alias),
+                    ctx=seed_ctx,
                 )
-
-            opmeta = plan.opmeta[op_index]
-            phases = plan.phase_chains.get(op_index, {})
-
-            ctx = _Ctx.ensure(request=request, db=db, seed=seed_ctx)
-            ctx.app = app_or_router
-            ctx.router = app_or_router
-            ctx.model = opmeta.model
-            ctx.op = opmeta.alias
-            ctx.payload = norm_payload
-            ctx.opview = kernel.get_opview(app_or_router, opmeta.model, opmeta.alias)
-
-            return await _invoke(request=request, db=db, phases=phases, ctx=ctx)
+            finally:
+                if release_db is not None:
+                    try:
+                        release_db()
+                    except Exception:
+                        logger.debug("Error releasing core proxy DB", exc_info=True)
 
         _call.__name__ = f"{self._model.__name__}.{alias}"
         _call.__qualname__ = _call.__name__
