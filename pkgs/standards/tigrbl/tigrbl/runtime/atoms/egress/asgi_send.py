@@ -24,6 +24,18 @@ def _json_bytes(obj: Any) -> bytes:
     ).encode("utf-8")
 
 
+def _to_headers_mapping(headers: Any) -> dict[str, Any]:
+    if isinstance(headers, dict):
+        return dict(headers)
+    data = getattr(headers, "__dict__", None)
+    if isinstance(data, dict):
+        return dict(data)
+    try:
+        return dict(headers)
+    except Exception:
+        return {}
+
+
 async def run(obj: object | None, ctx: Any) -> None:
     del obj
     raw = getattr(ctx, "raw", None)
@@ -63,12 +75,12 @@ async def run(obj: object | None, ctx: Any) -> None:
             body = b""
         else:
             body = _json_bytes(body_obj)
-            headers = dict(headers)
+            headers = _to_headers_mapping(headers)
             headers.setdefault("content-type", "application/json; charset=utf-8")
 
         egress["transport_response"] = {
             "status_code": status,
-            "headers": dict(headers),
+            "headers": _to_headers_mapping(headers),
             "body": body,
         }
         if getattr(ctx, "kernel_plan", None) is not None:
