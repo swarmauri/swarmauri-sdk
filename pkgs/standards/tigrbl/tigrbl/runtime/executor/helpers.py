@@ -21,6 +21,34 @@ from ..status import create_standardized_error, to_rpc_error_payload
 logger = logging.getLogger(__name__)
 
 
+def _normalize_payload(payload: Any) -> Any:
+    if isinstance(payload, (str, int, float, bool)) or payload is None:
+        return payload
+    if isinstance(payload, dict):
+        return {str(k): _normalize_payload(v) for k, v in payload.items()}
+    if isinstance(payload, (list, tuple, set)):
+        return [_normalize_payload(v) for v in payload]
+
+    model_dump = getattr(payload, "model_dump", None)
+    if callable(model_dump):
+        try:
+            return _normalize_payload(model_dump())
+        except Exception:
+            pass
+
+    obj_dict = getattr(payload, "__dict__", None)
+    if isinstance(obj_dict, dict):
+        data = {
+            k: v
+            for k, v in obj_dict.items()
+            if not k.startswith("_") and not callable(v)
+        }
+        if data:
+            return _normalize_payload(data)
+
+    return str(payload)
+
+
 def _is_async_db(db: Any) -> bool:
     """Detect DB interfaces that require `await` for transactional methods."""
     if isinstance(db, AsyncSession) or hasattr(db, "run_sync"):
@@ -72,6 +100,14 @@ async def _run_chain(
             label = f"phase:{phase}:step:{idx}"
 
         seq = _trace.start(ctx, label) if _trace is not None else None
+        before_post_response = None
+        if phase == "POST_RESPONSE":
+            response = getattr(ctx, "response", None)
+            before_value = getattr(response, "result", None)
+            if before_value is None:
+                before_value = ctx.get("result")
+            before_post_response = _normalize_payload(before_value)
+
         try:
             rv = step(ctx)
             rv = await _maybe_await(rv)
@@ -79,6 +115,40 @@ async def _run_chain(
                 ctx.result = rv
             if _trace is not None:
                 _trace.end(ctx, seq, status=_trace.OK)
+
+            if phase == "POST_RESPONSE" and getattr(step, "__tigrbl_label", None) is None:
+                temp_ns = getattr(ctx, "temp", None)
+                if not isinstance(temp_ns, dict):
+                    continue
+
+                egress = temp_ns.get("egress")
+                if not isinstance(egress, dict):
+                    continue
+
+                response = getattr(ctx, "response", None)
+                result = getattr(response, "result", None)
+                if result is None:
+                    result = ctx.get("result")
+                else:
+                    ctx.result = result
+
+                if result is None:
+                    continue
+
+                safe_result = _normalize_payload(result)
+                if safe_result == before_post_response:
+                    continue
+
+                egress["wire_payload"] = safe_result
+                enveloped = egress.get("enveloped")
+                if isinstance(enveloped, dict) and "result" in enveloped:
+                    enveloped["result"] = safe_result
+                elif enveloped is not None and not isinstance(enveloped, dict):
+                    egress["enveloped"] = safe_result
+
+                transport_response = egress.get("transport_response")
+                if isinstance(transport_response, dict):
+                    transport_response["body"] = egress.get("enveloped", safe_result)
         except Exception as exc:
             temp = getattr(ctx, "temp", None)
             route = temp.get("route") if isinstance(temp, dict) else None
