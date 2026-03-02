@@ -86,27 +86,32 @@ class AppSpec:
         if lifespan is sentinel:
             lifespan = None
 
+        description = getattr(app, "DESCRIPTION", None)
         include_inherited_routers = "ROUTERS" not in app.__dict__
         spec = cls(
             title=title,
+            description=description,
             version=version,
             engine=engine,
-            routers=merge_seq_attr(
-                app,
-                "ROUTERS",
-                include_inherited=include_inherited_routers,
-                reverse=include_inherited_routers,
+            routers=tuple(
+                merge_seq_attr(
+                    app,
+                    "ROUTERS",
+                    include_inherited=include_inherited_routers,
+                    reverse=include_inherited_routers,
+                )
+                or ()
             ),
-            ops=merge_seq_attr(app, "OPS"),
-            tables=merge_seq_attr(app, "TABLES"),
-            schemas=merge_seq_attr(app, "SCHEMAS"),
-            hooks=merge_seq_attr(app, "HOOKS"),
-            security_deps=merge_seq_attr(app, "SECURITY_DEPS"),
-            deps=merge_seq_attr(app, "DEPS"),
+            ops=tuple(merge_seq_attr(app, "OPS") or ()),
+            tables=tuple(merge_seq_attr(app, "TABLES") or ()),
+            schemas=tuple(merge_seq_attr(app, "SCHEMAS") or ()),
+            hooks=tuple(merge_seq_attr(app, "HOOKS") or ()),
+            security_deps=tuple(merge_seq_attr(app, "SECURITY_DEPS") or ()),
+            deps=tuple(merge_seq_attr(app, "DEPS") or ()),
             response=response,
-            jsonrpc_prefix=jsonrpc_prefix,
-            system_prefix=system_prefix,
-            middlewares=merge_seq_attr(app, "MIDDLEWARES"),
+            jsonrpc_prefix=(jsonrpc_prefix or "/rpc"),
+            system_prefix=(system_prefix or "/system"),
+            middlewares=tuple(merge_seq_attr(app, "MIDDLEWARES") or ()),
             lifespan=lifespan,
         )
         return cls(
