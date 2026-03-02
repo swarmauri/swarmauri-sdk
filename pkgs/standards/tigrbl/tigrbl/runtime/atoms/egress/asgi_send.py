@@ -36,6 +36,50 @@ def _to_headers_mapping(headers: Any) -> dict[str, Any]:
         return {}
 
 
+def normalize_transport_response(ctx: Any, response: dict[str, Any]) -> dict[str, Any]:
+    """Normalize transport responses prior to ASGI emission."""
+    proto = getattr(ctx, "proto", None)
+    if proto != "jsonrpc":
+        return response
+
+    normalized = dict(response)
+    normalized.setdefault("status_code", 200)
+    headers = normalized.get("headers")
+    if not isinstance(headers, dict):
+        headers = {}
+        normalized["headers"] = headers
+    headers.setdefault("content-type", "application/json")
+    return normalized
+
+
+async def send_transport_response(env: Any, response: dict[str, Any]) -> None:
+    """Emit a normalized transport response through the ASGI send callable."""
+    send = getattr(env, "send", None)
+    if not callable(send):
+        return
+
+    status = int(response.get("status_code", 200) or 200)
+    headers = _to_headers_mapping(response.get("headers", {}))
+    body_obj = response.get("body", b"")
+
+    if isinstance(body_obj, (bytes, bytearray)):
+        body = bytes(body_obj)
+    elif body_obj is None:
+        body = b""
+    else:
+        body = _json_bytes(body_obj)
+        headers.setdefault("content-type", "application/json; charset=utf-8")
+
+    await send(
+        {
+            "type": "http.response.start",
+            "status": status,
+            "headers": _headers_to_asgi(headers),
+        }
+    )
+    await send({"type": "http.response.body", "body": body, "more_body": False})
+
+
 async def run(obj: object | None, ctx: Any) -> None:
     del obj
     raw = getattr(ctx, "raw", None)
@@ -46,7 +90,9 @@ async def run(obj: object | None, ctx: Any) -> None:
 
     temp = getattr(ctx, "temp", None)
     egress = temp.get("egress") if isinstance(temp, dict) else None
-    if isinstance(egress, dict) and egress.get("suppress_asgi_send"):
+    if isinstance(egress, dict) and (
+        egress.get("suppress_asgi_send") or egress.get("asgi_sent")
+    ):
         return
 
     resp = None
@@ -64,36 +110,20 @@ async def run(obj: object | None, ctx: Any) -> None:
 
     if resp is None:
         tr = egress.get("transport_response") if isinstance(egress, dict) else None
-
-        status = int(tr.get("status_code", 200)) if isinstance(tr, dict) else 200
-        headers = tr.get("headers", {}) if isinstance(tr, dict) else {}
-        body_obj = tr.get("body", None) if isinstance(tr, dict) else None
-
-        if isinstance(body_obj, (bytes, bytearray)):
-            body = bytes(body_obj)
-        elif body_obj is None:
-            body = b""
+        if isinstance(tr, dict):
+            response = normalize_transport_response(ctx, tr)
         else:
-            body = _json_bytes(body_obj)
-            headers = _to_headers_mapping(headers)
-            headers.setdefault("content-type", "application/json; charset=utf-8")
-
-        egress["transport_response"] = {
-            "status_code": status,
-            "headers": _to_headers_mapping(headers),
-            "body": body,
-        }
-        if getattr(ctx, "kernel_plan", None) is not None:
-            return
-
-        await send(
-            {
-                "type": "http.response.start",
-                "status": status,
-                "headers": _headers_to_asgi(headers),
+            status = int(getattr(ctx, "status_code", 200) or 200)
+            response = {
+                "status_code": status,
+                "headers": _to_headers_mapping(getattr(ctx, "response_headers", {})),
+                "body": getattr(ctx, "result", None),
             }
-        )
-        await send({"type": "http.response.body", "body": body, "more_body": False})
+            response = normalize_transport_response(ctx, response)
+
+        egress["transport_response"] = response
+        await send_transport_response(raw, response)
+        egress["asgi_sent"] = True
         return
 
     egress["transport_response"] = {
@@ -103,9 +133,6 @@ async def run(obj: object | None, ctx: Any) -> None:
         },
         "body": resp.body or b"",
     }
-    if getattr(ctx, "kernel_plan", None) is not None:
-        return
-
     await send(
         {
             "type": "http.response.start",
@@ -120,6 +147,12 @@ async def run(obj: object | None, ctx: Any) -> None:
             "more_body": False,
         }
     )
+    egress["asgi_sent"] = True
 
 
-__all__ = ["ANCHOR", "run"]
+__all__ = [
+    "ANCHOR",
+    "normalize_transport_response",
+    "send_transport_response",
+    "run",
+]

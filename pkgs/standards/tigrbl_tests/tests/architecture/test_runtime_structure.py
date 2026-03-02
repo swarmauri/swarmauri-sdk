@@ -15,7 +15,7 @@ def test_runtime_gateway_owns_runtime_entrypoint_and_send():
     invoke_source = (PKG / "runtime" / "gw" / "invoke.py").read_text()
     assert "kernel.kernel_plan(app)" in invoke_source
     assert "await _invoke(" in invoke_source
-    assert "_send_transport_response" in invoke_source
+    assert "_send_transport_response" not in invoke_source
 
 
 def test_docs_generation_reads_secdeps_metadata():

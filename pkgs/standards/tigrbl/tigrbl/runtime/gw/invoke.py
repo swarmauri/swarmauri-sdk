@@ -53,19 +53,7 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
         )
         return
 
-    egress = ctx.temp.get("egress", {}) if isinstance(ctx.temp, dict) else {}
-    response = egress.get("transport_response") if isinstance(egress, dict) else None
-    if isinstance(response, dict):
-        response = _normalize_jsonrpc_transport_response(ctx, response)
-        await _send_transport_response(env, response)
-        return
-
-    status = int(
-        getattr(ctx, "status_code", _default_status_for_alias(getattr(ctx, "op", None)))
-        or 200
-    )
-    payload = _normalize_payload(getattr(ctx, "result", None))
-    await _send_json(env, status, payload)
+    return
 
 
 def _default_status_for_alias(alias: Any) -> int:
@@ -141,33 +129,6 @@ def _without_ingress_phases(phases: Mapping[str, Any] | None) -> dict[str, Any]:
         return {}
     ingress = {"INGRESS_BEGIN", "INGRESS_PARSE", "INGRESS_ROUTE"}
     return {phase: steps for phase, steps in phases.items() if phase not in ingress}
-
-
-async def _send_transport_response(
-    env: GwRawEnvelope, response: dict[str, Any]
-) -> None:
-    status = int(response.get("status_code", 200) or 200)
-    headers_obj = response.get("headers")
-    headers: list[tuple[bytes, bytes]] = []
-    if isinstance(headers_obj, dict):
-        headers = [
-            (str(k).encode("latin-1"), str(v).encode("latin-1"))
-            for k, v in headers_obj.items()
-        ]
-    body = response.get("body", b"")
-    if isinstance(body, str):
-        body = body.encode("utf-8")
-    elif body is None:
-        body = b""
-    elif not isinstance(body, (bytes, bytearray)):
-        body = json.dumps(body).encode("utf-8")
-
-    await env.send(
-        {"type": "http.response.start", "status": status, "headers": headers}
-    )
-    await env.send(
-        {"type": "http.response.body", "body": bytes(body), "more_body": False}
-    )
 
 
 async def _send_json(env: GwRawEnvelope, status: int, payload: Any) -> None:

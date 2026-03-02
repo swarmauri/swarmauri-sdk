@@ -18,7 +18,24 @@ def _requires_db(model: type, alias: str) -> bool:
     for spec in opspecs:
         if getattr(spec, "alias", None) != alias:
             continue
-        return getattr(spec, "persist", "default") != "skip"
+
+        persist = getattr(spec, "persist", "default")
+        if persist == "skip":
+            return False
+        if persist == "default" and getattr(spec, "target", None) in {
+            "read",
+            "list",
+            "custom",
+        }:
+            return False
+        return True
+
+    columns = getattr(model, "__tigrbl_columns__", None)
+    if columns is None:
+        columns = getattr(getattr(model, "columns", None), "all", None)
+
+    if not columns:
+        return False
     return True
 
 
