@@ -9,7 +9,7 @@ from ..status import StatusDetailError
 from .raw import GwRawEnvelope
 
 
-async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> Any | None:
+async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
     app = app if app is not None else _resolve_app(env)
     if app is None:
         return
@@ -43,7 +43,7 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> Any | None:
 
     phases = _without_ingress_phases(plan.phase_chains.get(opmeta_index, {}))
     try:
-        response = await _invoke(request=None, db=None, phases=phases, ctx=ctx)
+        await _invoke(request=None, db=None, phases=phases, ctx=ctx)
     except StatusDetailError as exc:
         detail = (
             exc.detail if getattr(exc, "detail", None) not in (None, "") else str(exc)
@@ -53,10 +53,7 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> Any | None:
         )
         return
 
-    if response is not None:
-        ctx.response = response
     await _send_transport_response(env, ctx)
-    return response
 
 
 def _resolve_app(env: GwRawEnvelope) -> Any | None:
