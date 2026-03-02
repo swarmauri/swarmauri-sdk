@@ -14,7 +14,7 @@ from __future__ import annotations
 
 
 from typing import Any, Dict, List
-from tigrbl_auth.deps import TigrblRouter, HTTPException, status
+from tigrbl_auth.vendor import TigrblRouter, HTTPException, status
 
 from ..runtime_cfg import settings
 from .rfc8414_metadata import ISSUER, JWKS_PATH

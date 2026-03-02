@@ -227,6 +227,8 @@ def _dump_scalar(v: Any) -> Any:
     """
     if v is None:
         return None
+    if isinstance(v, (str, int, float, bool)):
+        return v
     if isinstance(v, (_dt.datetime, _dt.date, _dt.time)):
         # ISO 8601
         try:

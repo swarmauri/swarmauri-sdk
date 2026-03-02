@@ -5,7 +5,7 @@ import time
 from typing import Final
 
 import httpx
-from tigrbl_auth.deps import (
+from tigrbl_auth.vendor import (
     HTTPException,
     Request,
     Security,

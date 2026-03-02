@@ -3,7 +3,7 @@
 import os
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from tigrbl_auth.deps import Field
+from tigrbl_auth.vendor import Field
 from typing import Optional
 
 # ─── Load environment variables from a .env file (if present) ─────────────────────

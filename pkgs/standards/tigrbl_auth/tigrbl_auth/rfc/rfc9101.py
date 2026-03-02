@@ -13,7 +13,7 @@ from typing import Any, Dict, Final, Iterable
 import json
 import warnings
 
-from ..deps import JWAAlg, JwsSignerVerifier
+from ..vendor import JWAAlg, JwsSignerVerifier
 
 from .. import runtime_cfg
 

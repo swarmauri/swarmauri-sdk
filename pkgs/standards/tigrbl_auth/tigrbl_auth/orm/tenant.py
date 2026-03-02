@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 
-from tigrbl_auth.deps import (
+from tigrbl_auth.vendor import (
     TenantBase,
     Bootstrappable,
     F,

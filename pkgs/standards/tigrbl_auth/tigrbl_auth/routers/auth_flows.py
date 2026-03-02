@@ -4,7 +4,7 @@ from __future__ import annotations
 import secrets
 
 from tigrbl.security.dependencies import Depends as TigrblDepends
-from tigrbl_auth.deps import AsyncSession, HTTPException, JSONResponse, Request
+from tigrbl_auth.vendor import AsyncSession, HTTPException, JSONResponse, Request
 from ..db import get_db
 from ..orm import AuthSession, User
 from ..routers.schemas import CredsIn, TokenPair

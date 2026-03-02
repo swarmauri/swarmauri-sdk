@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from tigrbl_auth.deps import TigrblRouter, TigrblApp, HTTPException, status
+from tigrbl_auth.vendor import TigrblRouter, TigrblApp, HTTPException, status
 
 from ..runtime_cfg import settings
 from ..oidc_discovery import (

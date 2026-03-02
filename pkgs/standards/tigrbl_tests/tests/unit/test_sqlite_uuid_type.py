@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 from sqlalchemy.dialects import postgresql, sqlite
 
 from tigrbl.types import SqliteUUID
-from tigrbl.deps.sqlalchemy import String, _PgUUID
+from tigrbl.vendor.sqlalchemy import String, _PgUUID
 
 
 def test_sqlite_uuid_python_type_flags() -> None:
