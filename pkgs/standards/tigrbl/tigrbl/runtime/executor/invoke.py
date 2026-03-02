@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, MutableMapping, Optional, Union
+from typing import Any, Mapping, MutableMapping, Optional, Union
 
 from .types import _Ctx, PhaseChains, Request, Session, AsyncSession
 from .helpers import _in_tx, _run_chain, _g
@@ -11,6 +11,38 @@ from ..status import create_standardized_error
 from ...config.constants import CTX_SKIP_PERSIST_FLAG
 
 logger = logging.getLogger(__name__)
+
+
+def _default_status_for_alias(alias: Any) -> int:
+    return 201 if alias in {"create", "bulk_create"} else 200
+
+
+def _normalize_result_payload(payload: Any) -> Any:
+    if isinstance(payload, (str, int, float, bool)) or payload is None:
+        return payload
+    if isinstance(payload, Mapping):
+        return {str(k): _normalize_result_payload(v) for k, v in payload.items()}
+    if isinstance(payload, (list, tuple, set)):
+        return [_normalize_result_payload(v) for v in payload]
+
+    model_dump = getattr(payload, "model_dump", None)
+    if callable(model_dump):
+        try:
+            return _normalize_result_payload(model_dump())
+        except Exception:
+            pass
+
+    obj_dict = getattr(payload, "__dict__", None)
+    if isinstance(obj_dict, dict):
+        data = {
+            k: v
+            for k, v in obj_dict.items()
+            if not k.startswith("_") and not callable(v)
+        }
+        if data:
+            return _normalize_result_payload(data)
+
+    return str(payload)
 
 
 async def _invoke(
@@ -140,6 +172,11 @@ async def _invoke(
             ctx["result"] = serializer(ctx.get("result"))
         except Exception:
             logger.exception("response serialization failed", exc_info=True)
+    else:
+        ctx["result"] = _normalize_result_payload(ctx.get("result"))
+
+    if getattr(ctx, "status_code", None) is None:
+        ctx.status_code = _default_status_for_alias(getattr(ctx, "op", None))
     ctx.response = _NS(result=ctx.get("result"))
 
     await _run_phase("POST_COMMIT", allow_flush=True, allow_commit=False, in_tx=False)
