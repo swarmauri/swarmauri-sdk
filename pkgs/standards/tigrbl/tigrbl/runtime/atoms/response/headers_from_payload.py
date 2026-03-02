@@ -21,7 +21,7 @@ def run(_, ctx) -> None:
 
     hints = getattr(resp, "hints", None)
     if hints is None:
-        hints = ResponseHints()
+        hints = ResponseHints(status_code=int(getattr(ctx, "status_code", 200) or 200))
         resp.hints = hints
 
     payload = getattr(resp, "result", None)
