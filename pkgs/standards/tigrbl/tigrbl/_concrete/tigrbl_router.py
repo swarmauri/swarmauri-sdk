@@ -29,7 +29,6 @@ from ..mapping.rest import build_router_and_attach as _build_router_and_attach
 from ..op import get_registry
 from .._spec import OpSpec
 from ._table_registry import TableRegistry
-from ..system.favicon import mount_favicon
 from ._routing import include_router as _include_router_impl
 from ..system import mount_openrpc as _mount_openrpc
 from ..system import mount_diagnostics as _mount_diagnostics
@@ -61,8 +60,6 @@ class TigrblRouter(_Router):
     _authorize: Any = None
     _optional_authn_dep: Any = None
     _allow_anon_ops: set[str] = set()
-
-    mount_favicon = mount_favicon
 
     def __init__(
         self,
@@ -221,6 +218,16 @@ class TigrblRouter(_Router):
         del tags
         if prefix is not None:
             self.jsonrpc_prefix = prefix
+        existing_paths = {getattr(route, "path", None) for route in self.routes}
+        if (
+            self.jsonrpc_prefix not in existing_paths
+            and f"{self.jsonrpc_prefix}/" not in existing_paths
+        ):
+            self.add_route(
+                self.jsonrpc_prefix,
+                lambda *_args, **_kwargs: None,
+                methods=["POST"],
+            )
         return None
 
     def mount_openrpc(
