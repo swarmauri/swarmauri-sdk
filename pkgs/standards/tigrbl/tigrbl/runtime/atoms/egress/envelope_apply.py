@@ -42,11 +42,18 @@ def run(obj: object | None, ctx: Any) -> None:
     if _is_jsonrpc(ctx, egress):
         request_rpc = getattr(getattr(ctx, "gw_raw", None), "rpc", None)
         rpc_id = request_rpc.get("id") if isinstance(request_rpc, dict) else None
-        egress["enveloped"] = {
-            "jsonrpc": "2.0",
-            "result": payload,
-            "id": rpc_id,
-        }
+        if isinstance(payload, dict) and isinstance(payload.get("__rpc_error__"), dict):
+            egress["enveloped"] = {
+                "jsonrpc": "2.0",
+                "error": payload["__rpc_error__"],
+                "id": payload.get("__rpc_id__", rpc_id),
+            }
+        else:
+            egress["enveloped"] = {
+                "jsonrpc": "2.0",
+                "result": payload,
+                "id": rpc_id,
+            }
         return
 
     envelope = egress.get("envelope")

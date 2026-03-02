@@ -10,11 +10,48 @@ from ... import core as _core
 from ..._spec import OpSpec
 from ...hook.types import StepFn
 from ...runtime.executor import _Ctx
+from ...runtime.status.converters import create_standardized_error, to_rpc_error_payload
 from .ctx import _ctx_db, _ctx_payload, _ctx_request
 from .identifiers import _resolve_ident
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/handlers/steps")
+
+
+def _rpc_envelope_id(ctx: Any) -> Any | None:
+    temp = getattr(ctx, "temp", None)
+    route = temp.get("route") if isinstance(temp, Mapping) else None
+    rpc = route.get("rpc_envelope") if isinstance(route, Mapping) else None
+    if isinstance(rpc, Mapping):
+        return rpc.get("id")
+    return None
+
+
+def _is_jsonrpc_ctx(ctx: Any) -> bool:
+    return _rpc_envelope_id(ctx) is not None
+
+
+def _return_rpc_error_if_present(ctx: Any) -> Any | None:
+    err = getattr(ctx, "_rpc_error", None)
+    if isinstance(err, Mapping):
+        return {"__rpc_error__": dict(err), "__rpc_id__": _rpc_envelope_id(ctx)}
+    return None
+
+
+async def _core_call_with_rpc_errors(ctx: Any, call: Callable[[], Any]) -> Any:
+    pre = _return_rpc_error_if_present(ctx)
+    if pre is not None:
+        return pre
+    try:
+        return await call()
+    except Exception as exc:
+        if not _is_jsonrpc_ctx(ctx):
+            raise
+        http_exc = create_standardized_error(exc)
+        return {
+            "__rpc_error__": to_rpc_error_payload(http_exc),
+            "__rpc_id__": _rpc_envelope_id(ctx),
+        }
 
 
 async def _call_list_core(
@@ -156,50 +193,66 @@ def _wrap_core(model: type, target: str) -> StepFn:
         db = _ctx_db(ctx)
         payload = _ctx_payload(ctx)
         logger.debug("Dispatching to core.create")
-        return await _core.create(model, payload, db=db)
+        return await _core_call_with_rpc_errors(
+            ctx, lambda: _core.create(model, payload, db=db)
+        )
 
     async def read_step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
         ident = _resolve_ident(model, ctx)
         logger.debug("Dispatching to core.read with ident=%r", ident)
-        return await _core.read(model, ident, db=db)
+        return await _core_call_with_rpc_errors(
+            ctx, lambda: _core.read(model, ident, db=db)
+        )
 
     async def update_step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
         ident = _resolve_ident(model, ctx)
         payload = _ctx_payload(ctx)
         logger.debug("Dispatching to core.update with ident=%r", ident)
-        return await _core.update(model, ident, payload, db=db)
+        return await _core_call_with_rpc_errors(
+            ctx, lambda: _core.update(model, ident, payload, db=db)
+        )
 
     async def replace_step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
         ident = _resolve_ident(model, ctx)
         payload = _ctx_payload(ctx)
         logger.debug("Dispatching to core.replace with ident=%r", ident)
-        return await _core.replace(model, ident, payload, db=db)
+        return await _core_call_with_rpc_errors(
+            ctx, lambda: _core.replace(model, ident, payload, db=db)
+        )
 
     async def merge_step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
         ident = _resolve_ident(model, ctx)
         payload = _ctx_payload(ctx)
         logger.debug("Dispatching to core.merge with ident=%r", ident)
-        return await _core.merge(model, ident, payload, db=db)
+        return await _core_call_with_rpc_errors(
+            ctx, lambda: _core.merge(model, ident, payload, db=db)
+        )
 
     async def delete_step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
         ident = _resolve_ident(model, ctx)
         logger.debug("Dispatching to core.delete with ident=%r", ident)
-        return await _core.delete(model, ident, db=db)
+        return await _core_call_with_rpc_errors(
+            ctx, lambda: _core.delete(model, ident, db=db)
+        )
 
     async def list_step(ctx: Any) -> Any:
         payload = _ctx_payload(ctx)
         logger.debug("Dispatching to core.list")
-        return await _call_list_core(_core.list, model, payload, ctx)
+        return await _core_call_with_rpc_errors(
+            ctx, lambda: _call_list_core(_core.list, model, payload, ctx)
+        )
 
     async def clear_step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
         logger.debug("Dispatching to core.clear")
-        return await _core.clear(model, {}, db=db)
+        return await _core_call_with_rpc_errors(
+            ctx, lambda: _core.clear(model, {}, db=db)
+        )
 
     async def bulk_create_step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
@@ -207,7 +260,9 @@ def _wrap_core(model: type, target: str) -> StepFn:
         logger.debug("Dispatching to core.bulk_create")
         if not isinstance(payload, list):
             raise TypeError("bulk_create expects a list payload")
-        return await _core.bulk_create(model, payload, db=db)
+        return await _core_call_with_rpc_errors(
+            ctx, lambda: _core.bulk_create(model, payload, db=db)
+        )
 
     async def bulk_update_step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
@@ -215,7 +270,9 @@ def _wrap_core(model: type, target: str) -> StepFn:
         logger.debug("Dispatching to core.bulk_update")
         if not isinstance(payload, list):
             raise TypeError("bulk_update expects a list payload")
-        return await _core.bulk_update(model, payload, db=db)
+        return await _core_call_with_rpc_errors(
+            ctx, lambda: _core.bulk_update(model, payload, db=db)
+        )
 
     async def bulk_replace_step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
@@ -223,7 +280,9 @@ def _wrap_core(model: type, target: str) -> StepFn:
         logger.debug("Dispatching to core.bulk_replace")
         if not isinstance(payload, list):
             raise TypeError("bulk_replace expects a list payload")
-        return await _core.bulk_replace(model, payload, db=db)
+        return await _core_call_with_rpc_errors(
+            ctx, lambda: _core.bulk_replace(model, payload, db=db)
+        )
 
     async def bulk_merge_step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
@@ -231,14 +290,23 @@ def _wrap_core(model: type, target: str) -> StepFn:
         logger.debug("Dispatching to core.bulk_merge")
         if not isinstance(payload, list):
             raise TypeError("bulk_merge expects a list payload")
-        return await _core.bulk_merge(model, payload, db=db)
+        return await _core_call_with_rpc_errors(
+            ctx, lambda: _core.bulk_merge(model, payload, db=db)
+        )
 
     async def bulk_delete_step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
         payload = _ctx_payload(ctx)
         logger.debug("Dispatching to core.bulk_delete")
-        ids = payload.get("ids") if isinstance(payload, Mapping) else []
-        return await _core.bulk_delete(model, ids, db=db)
+        if isinstance(payload, Mapping):
+            ids = payload.get("ids", [])
+        elif isinstance(payload, list):
+            ids = payload
+        else:
+            ids = []
+        return await _core_call_with_rpc_errors(
+            ctx, lambda: _core.bulk_delete(model, ids, db=db)
+        )
 
     async def default_step(ctx: Any) -> Any:
         logger.debug("No core operation matched; returning payload")

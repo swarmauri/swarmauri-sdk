@@ -16,6 +16,31 @@ logger = logging.getLogger("uvicorn")
 _WRAPPER_KEYS = frozenset({"data", "payload", "body", "item"})
 
 
+def _is_jsonrpc_ctx(ctx: Any) -> bool:
+    proto = getattr(ctx, "proto", None)
+    if isinstance(proto, str) and proto.endswith(".jsonrpc"):
+        return True
+    temp = getattr(ctx, "temp", None)
+    route = temp.get("route") if isinstance(temp, Mapping) else None
+    rpc_env = route.get("rpc_envelope") if isinstance(route, Mapping) else None
+    return isinstance(rpc_env, Mapping) and rpc_env.get("jsonrpc") == "2.0"
+
+
+def _set_rpc_invalid_params(ctx: Any, *, disallowed: list[str]) -> None:
+    setattr(
+        ctx,
+        "_rpc_error",
+        {
+            "code": -32602,
+            "message": "Invalid params",
+            "data": {
+                "reason": "Wrapper keys are not allowed; params must match the operation schema.",
+                "disallowed_keys": disallowed,
+            },
+        },
+    )
+
+
 def run(obj: Optional[object], ctx: Any) -> None:
     """
     wire:build_in@in:validate
@@ -42,7 +67,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
     """
     payload = _coerce_payload(ctx)
     schema_in = _schema_in(ctx)
-    _reject_disallowed_wrapper_keys(payload, schema_in=schema_in or {})
+    _reject_disallowed_wrapper_keys(payload, schema_in=schema_in or {}, ctx_ref=ctx)
+    if getattr(ctx, "_rpc_error", None) is not None:
+        return
     if not schema_in:
         logger.debug("No schema_in available; skipping wire:build_in")
         return  # nothing to do
@@ -53,8 +80,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
         logger.debug("Payload is not a mapping; skipping normalization")
         # Non-mapping payloads are ignored here; adapters can pre-normalize.
         return
-
-    _reject_disallowed_wrapper_keys(ctx, payload, schema_in)
 
     by_field: Mapping[str, Mapping[str, Any]] = schema_in.get("by_field", {})  # type: ignore[assignment]
     # Build alias→field and ingress whitelist (field and alias forms)
@@ -170,7 +195,7 @@ def _safe_str(v: Any) -> Optional[str]:
 
 
 def _reject_disallowed_wrapper_keys(
-    payload: Any, *, schema_in: Mapping[str, Any]
+    payload: Any, *, schema_in: Mapping[str, Any], ctx_ref: Any
 ) -> None:
     by_field = schema_in.get("by_field", {})
     field_names = set(by_field.keys()) if isinstance(by_field, Mapping) else set()
@@ -178,9 +203,14 @@ def _reject_disallowed_wrapper_keys(
 
     def _check_mapping(item: Mapping[str, Any]) -> None:
         disallowed = sorted(
-            key for key in item if key in _WRAPPER_KEYS and key not in allowed_wrapper_keys
+            key
+            for key in item
+            if key in _WRAPPER_KEYS and key not in allowed_wrapper_keys
         )
         if disallowed:
+            if _is_jsonrpc_ctx(ctx_ref):
+                _set_rpc_invalid_params(ctx_ref, disallowed=disallowed)
+                return
             raise HTTPException(
                 status_code=_status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail={

@@ -574,7 +574,9 @@ class TigrblApp(_App):
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
         if prefix is not None:
             self.jsonrpc_prefix = prefix
-        return None
+            if self._default_router is not None:
+                self._default_router.jsonrpc_prefix = prefix
+        return self._ensure_default_router()
 
     def mount_openapi(
         self,

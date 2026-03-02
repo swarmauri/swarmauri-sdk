@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib
 import logging
 import pkgutil
+import inspect
 from types import SimpleNamespace
 from typing import (
     Any,
@@ -67,10 +68,23 @@ def _make_label(anchor: str, run: _AtomRun) -> Optional[str]:
 
 
 def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
+    signature = inspect.signature(run)
+    positional = [
+        p
+        for p in signature.parameters.values()
+        if p.kind
+        in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+    ]
+    has_varargs = any(
+        p.kind == inspect.Parameter.VAR_POSITIONAL
+        for p in signature.parameters.values()
+    )
+    accepts_obj = has_varargs or len(positional) >= 2
+
     async def _step(ctx: Any) -> Any:
-        try:
+        if accepts_obj:
             rv = run(None, ctx)
-        except TypeError:
+        else:
             rv = run(ctx)  # type: ignore[misc]
         if hasattr(rv, "__await__"):
             return await cast(Any, rv)
