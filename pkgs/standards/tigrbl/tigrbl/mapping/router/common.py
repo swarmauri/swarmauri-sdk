@@ -11,6 +11,27 @@ logger.debug("Loaded module v3/mapping/router/common")
 class AttrDict(dict):
     """Dictionary providing attribute-style access."""
 
+    @staticmethod
+    def _is_internal_key(key: Any) -> bool:
+        return isinstance(key, str) and key.startswith("__tigrbl_system_")
+
+    def __iter__(self):  # pragma: no cover - container behavior
+        for key in dict.__iter__(self):
+            if not self._is_internal_key(key):
+                yield key
+
+    def keys(self):  # pragma: no cover - container behavior
+        return tuple(iter(self))
+
+    def items(self):  # pragma: no cover - container behavior
+        return tuple((key, dict.__getitem__(self, key)) for key in self)
+
+    def values(self):  # pragma: no cover - container behavior
+        return tuple(dict.__getitem__(self, key) for key in self)
+
+    def __len__(self) -> int:  # pragma: no cover - container behavior
+        return sum(1 for _ in self.__iter__())
+
     def __getattr__(self, item: str) -> Any:  # pragma: no cover - trivial
         try:
             value = self[item]
