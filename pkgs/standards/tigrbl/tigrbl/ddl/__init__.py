@@ -356,7 +356,11 @@ def initialize(
             setattr(obj, "_ddl_executed", True)
             if pending_closes:
                 return asyncio.gather(*pending_closes)
-            return None
+
+            async def _noop() -> None:
+                return None
+
+            return _noop()
 
         async def _inner():
             for active_provider, active_tables in provider_tables:

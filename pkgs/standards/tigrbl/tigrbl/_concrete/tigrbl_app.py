@@ -674,7 +674,15 @@ class TigrblApp(_App):
 
         awaitables = [r for r in [result, *router_results] if inspect.isawaitable(r)]
         if not awaitables:
-            return None
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                return None
+
+            async def _noop() -> None:
+                return None
+
+            return loop.create_task(_noop())
 
         async def _inner():
             for item in [result, *router_results]:
