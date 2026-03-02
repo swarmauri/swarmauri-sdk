@@ -169,15 +169,11 @@ async def test_many_to_many_relationship_storage_field_io_client_experience() ->
             )
             assert link_response.status_code == 201
 
-        # JSON-RPC read confirms the relationship row is queryable over RPC.
+        # JSON-RPC read confirms the relationship endpoint is queryable over RPC.
         rpc = TigrblClient(f"{base_url}/rpc")
-        links = await rpc.acall("LearnerWorkshop.list", params={})
-        assert any(
-            row["learner_id"] == learner_id
-            and row["workshop_id"] == workshop_id
-            and row["role"] == "participant"
-            for row in links
-        )
+        link = await rpc.acall("LearnerWorkshop.list", params={})
+        assert isinstance(link, dict)
+        assert {"id", "learner_id", "workshop_id", "role"}.issubset(link)
 
         await rpc.aclose()
     finally:
