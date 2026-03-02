@@ -14,6 +14,7 @@ from .common import (
 )
 from .resource_proxy import _ResourceProxy
 from .. import model as _binder
+from ..column_mro_collect import mro_collect_columns
 from ...config.constants import (
     TIGRBL_AUTH_DEP_ATTR,
     TIGRBL_GET_DB_ATTR,
@@ -298,7 +299,10 @@ def _attach_to_router(router: RouterLike, table: type) -> None:
     )
 
     # Table metadata (introspection only)
-    router.columns[tname] = _coerce_model_columns(getattr(table, "columns", ()))
+    columns = _coerce_model_columns(getattr(table, "columns", ()))
+    if not columns:
+        columns = tuple(mro_collect_columns(table).keys())
+    router.columns[tname] = columns
     router.table_config[tname] = dict(getattr(table, "table_config", {}) or {})
 
     # Core helper proxies (now aware of API for DB resolution precedence)
