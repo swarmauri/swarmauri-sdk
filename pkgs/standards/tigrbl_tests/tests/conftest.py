@@ -7,6 +7,14 @@ from tigrbl.shortcuts import acol
 from tigrbl._spec import StorageTransform
 from tigrbl.schema import builder as v3_builder
 from tigrbl.runtime import kernel as runtime_kernel
+from tigrbl.mapping.column_mro_collect import mro_collect_columns
+from tigrbl.mapping.app_mro_collect import mro_collect_app_spec
+from tigrbl.mapping.router_mro_collect import mro_collect_router_hooks
+from tigrbl.mapping.collect_decorated_schemas import collect_decorated_schemas
+from tigrbl.mapping.hook_mro_collect import _mro_collect_decorated_hooks_cached
+from tigrbl.mapping.table_mro_collect import mro_collect_table_spec
+from tigrbl.mapping.op_mro_collect import mro_alias_map_for, mro_collect_decorated_ops
+from tigrbl.mapping.handlers.steps import _wrap_core
 from tigrbl.shortcuts.engine import mem
 from tigrbl import resolver as _resolver
 from httpx import ASGITransport, AsyncClient
@@ -84,6 +92,15 @@ def _reset_tigrbl_state() -> None:
     TableBase.metadata.clear()
     v3_builder._SchemaCache.clear()
     runtime_kernel._default_kernel = runtime_kernel.Kernel()
+    mro_collect_columns.cache_clear()
+    mro_collect_app_spec.cache_clear()
+    mro_collect_router_hooks.cache_clear()
+    collect_decorated_schemas.cache_clear()
+    _mro_collect_decorated_hooks_cached.cache_clear()
+    mro_collect_table_spec.cache_clear()
+    mro_alias_map_for.cache_clear()
+    mro_collect_decorated_ops.cache_clear()
+    _wrap_core.cache_clear()
     _resolver.reset(dispose=True)
 
 
