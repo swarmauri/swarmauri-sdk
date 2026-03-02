@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import json
 from typing import Any, Mapping
 
+from ..atoms.egress.asgi_send import _send_json, _send_transport_response
 from ..executor import _Ctx, _invoke
-from ..status import StatusDetailError
 from ..kernel.core import Kernel
+from ..status import StatusDetailError
 from .raw import GwRawEnvelope
 
 
@@ -53,24 +53,7 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
         )
         return
 
-    return
-
-
-async def _send_json(env: GwRawEnvelope, status: int, payload: Any) -> None:
-    await env.send(
-        {
-            "type": "http.response.start",
-            "status": status,
-            "headers": [(b"content-type", b"application/json")],
-        }
-    )
-    await env.send(
-        {
-            "type": "http.response.body",
-            "body": json.dumps(payload).encode("utf-8"),
-            "more_body": False,
-        }
-    )
+    await _send_transport_response(env, ctx)
 
 
 def _resolve_app(env: GwRawEnvelope) -> Any | None:
