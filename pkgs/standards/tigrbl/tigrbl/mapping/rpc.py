@@ -18,6 +18,7 @@ from typing import (
 from pydantic import BaseModel
 
 from .._spec import OpSpec
+from ..runtime.executor.invoke import _invoke
 from ..runtime.hook_types import PHASES
 from ..runtime.status import HTTPException
 
@@ -449,12 +450,11 @@ async def rpc_call(
     request: Any = None,
     ctx: Optional[Dict[str, Any]] = None,
 ) -> Any:
-    """Compatibility RPC dispatcher that returns operation envelopes.
+    """Compatibility RPC dispatcher for direct mapping-level calls.
 
-    Historically, ``tigrbl.mapping.rpc.rpc_call`` resolved and invoked
-    ``model.rpc.<method>`` directly, yielding an operation envelope consumed by
-    integration tests and low-level runtime callers. Keep that behavior here
-    even though router-level execution now lives in ``mapping.router.rpc``.
+    Historically, callers expected this helper to execute the runtime phases
+    and return the operation result (for example a response-like dict), not the
+    raw operation envelope.
     """
     if isinstance(model_or_name, type):
         model = model_or_name
@@ -471,7 +471,25 @@ async def rpc_call(
             f"{getattr(model, '__name__', model)} has no RPC method '{method}'"
         )
 
-    return await fn(payload, db=db, request=request, ctx=dict(ctx or {}))
+    result = await fn(payload, db=db, request=request, ctx=dict(ctx or {}))
+
+    if isinstance(result, Mapping) and {
+        "phases",
+        "ctx",
+        "serialize",
+        "request",
+        "db",
+    }.issubset(result.keys()):
+        invoke_ctx: Dict[str, Any] = dict(result["ctx"])
+        invoke_ctx["response_serializer"] = result["serialize"]
+        return await _invoke(
+            request=result["request"],
+            db=result["db"],
+            phases=result["phases"],
+            ctx=invoke_ctx,
+        )
+
+    return result
 
 
 __all__ = ["register_and_attach", "rpc_call"]
