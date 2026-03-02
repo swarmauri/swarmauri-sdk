@@ -188,6 +188,8 @@ def _inject_atoms(
             continue
         if not persistent and persist_tied:
             continue
+        if anchor == _ev.SYS_HANDLER_PERSISTENCE and chains.get("HANDLER"):
+            continue
         domain, _subject = _infer_domain_subject(run)
         if domain in {"dep", "deps_inject"}:
             continue
