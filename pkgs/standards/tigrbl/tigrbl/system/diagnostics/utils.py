@@ -39,6 +39,10 @@ def label_hook(fn: Any, phase: str) -> str:
     label = getattr(fn, "__tigrbl_label", None)
     if isinstance(label, str):
         return label
+    module = getattr(fn, "__module__", "") or ""
+    name = getattr(fn, "__name__", "") or ""
+    if module.startswith("tigrbl.core.crud") and name:
+        return f"hook:wire:tigrbl:core:crud:ops:{name}@{phase}"
     subj = label_callable(fn).replace(".", ":")
     return f"hook:wire:{subj}@{phase}"
 
