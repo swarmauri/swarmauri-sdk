@@ -228,7 +228,9 @@ async def _sys_tx_commit(_obj: Optional[object], ctx: Any) -> None:
         release = ctx.temp.pop("__sys_db_release__", None)
         if callable(release):
             try:
-                release()
+                rv = release()
+                if inspect.isawaitable(rv):
+                    await rv
             except Exception:
                 log.debug(
                     "system: db release failed during commit cleanup", exc_info=True

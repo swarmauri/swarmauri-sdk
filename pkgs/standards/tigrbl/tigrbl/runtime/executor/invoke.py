@@ -61,6 +61,14 @@ async def _invoke(
         ctx.app = ctx.router
     if getattr(ctx, "op", None) is None and getattr(ctx, "method", None) is not None:
         ctx.op = ctx.method
+    env = getattr(ctx, "env", None)
+    if env is None:
+        from types import SimpleNamespace as _NS
+
+        env = _NS()
+        ctx.env = env
+    if getattr(env, "method", None) is None and getattr(ctx, "op", None) is not None:
+        env.method = ctx.op
     if getattr(ctx, "model", None) is None:
         obj = getattr(ctx, "obj", None)
         if obj is not None:
@@ -119,112 +127,125 @@ async def _invoke(
         finally:
             guard.restore()
 
-    await _run_phase(
-        "INGRESS_BEGIN", allow_flush=False, allow_commit=False, in_tx=False
-    )
-    await _run_phase(
-        "INGRESS_PARSE", allow_flush=False, allow_commit=False, in_tx=False
-    )
-    await _run_phase(
-        "INGRESS_ROUTE", allow_flush=False, allow_commit=False, in_tx=False
-    )
-    await _run_phase("PRE_TX_BEGIN", allow_flush=False, allow_commit=False, in_tx=False)
-
-    if not skip_persist:
+    try:
         await _run_phase(
-            "START_TX",
+            "INGRESS_BEGIN", allow_flush=False, allow_commit=False, in_tx=False
+        )
+        await _run_phase(
+            "INGRESS_PARSE", allow_flush=False, allow_commit=False, in_tx=False
+        )
+        await _run_phase(
+            "INGRESS_ROUTE", allow_flush=False, allow_commit=False, in_tx=False
+        )
+        await _run_phase(
+            "PRE_TX_BEGIN", allow_flush=False, allow_commit=False, in_tx=False
+        )
+
+        if not skip_persist:
+            await _run_phase(
+                "START_TX",
+                allow_flush=False,
+                allow_commit=False,
+                in_tx=False,
+                require_owned_for_commit=True,
+            )
+
+        await _run_phase(
+            "PRE_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
+        )
+        await _run_phase(
+            "HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
+        )
+        await _run_phase(
+            "POST_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
+        )
+        await _run_phase(
+            "PRE_COMMIT", allow_flush=False, allow_commit=False, in_tx=not skip_persist
+        )
+
+        if not skip_persist:
+            owns_tx_for_commit = (not existed_tx_before) and (
+                db is not None and _in_tx(db)
+            )
+            await _run_phase(
+                "END_TX",
+                allow_flush=True,
+                allow_commit=True,
+                in_tx=True,
+                require_owned_for_commit=True,
+                owns_tx_for_phase=owns_tx_for_commit,
+            )
+
+        from types import SimpleNamespace as _NS
+
+        if ctx.get("result") is None:
+            fallback = (
+                ctx.get("obj")
+                or ctx.get("objs")
+                or (
+                    ctx.get("temp", {}).get("egress", {}).get("result")
+                    if isinstance(ctx.get("temp"), Mapping)
+                    else None
+                )
+            )
+            if fallback is not None:
+                ctx["result"] = fallback
+
+        serializer = ctx.get("response_serializer")
+        current_result = ctx.get("result")
+        response_state = getattr(ctx, "response", None)
+        if current_result is None and response_state is not None:
+            current_result = getattr(response_state, "result", None)
+        if current_result is None:
+            current_result = getattr(ctx, "obj", None)
+        if callable(serializer):
+            try:
+                ctx["result"] = serializer(current_result)
+            except Exception:
+                logger.exception("response serialization failed", exc_info=True)
+        else:
+            ctx["result"] = _normalize_result_payload(current_result)
+
+        if getattr(ctx, "status_code", None) is None:
+            ctx.status_code = _default_status_for_alias(getattr(ctx, "op", None))
+
+        response_obj = getattr(ctx, "response", None)
+        if response_obj is None:
+            ctx.response = _NS(result=ctx.get("result"))
+        else:
+            setattr(response_obj, "result", ctx.get("result"))
+
+        await _run_phase(
+            "POST_COMMIT", allow_flush=True, allow_commit=False, in_tx=False
+        )
+        await _run_phase(
+            "POST_RESPONSE",
             allow_flush=False,
             allow_commit=False,
             in_tx=False,
-            require_owned_for_commit=True,
+            nonfatal=True,
         )
-
-    await _run_phase(
-        "PRE_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
-    )
-
-    await _run_phase(
-        "HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
-    )
-
-    await _run_phase(
-        "POST_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
-    )
-
-    await _run_phase(
-        "PRE_COMMIT", allow_flush=False, allow_commit=False, in_tx=not skip_persist
-    )
-
-    if not skip_persist:
-        owns_tx_for_commit = (not existed_tx_before) and (db is not None and _in_tx(db))
         await _run_phase(
-            "END_TX",
-            allow_flush=True,
-            allow_commit=True,
-            in_tx=True,
-            require_owned_for_commit=True,
-            owns_tx_for_phase=owns_tx_for_commit,
+            "EGRESS_SHAPE", allow_flush=False, allow_commit=False, in_tx=False
         )
-
-    from types import SimpleNamespace as _NS
-
-    if ctx.get("result") is None:
-        fallback = (
-            ctx.get("obj")
-            or ctx.get("objs")
-            or (
-                ctx.get("temp", {}).get("egress", {}).get("result")
-                if isinstance(ctx.get("temp"), Mapping)
-                else None
-            )
+        await _run_phase(
+            "EGRESS_FINALIZE", allow_flush=False, allow_commit=False, in_tx=False
         )
-        if fallback is not None:
-            ctx["result"] = fallback
+        if ctx.get("result") is not None and getattr(ctx, "response", None) is not None:
+            setattr(ctx.response, "result", ctx.get("result"))
 
-    serializer = ctx.get("response_serializer")
-    current_result = ctx.get("result")
-    response_state = getattr(ctx, "response", None)
-    if current_result is None and response_state is not None:
-        current_result = getattr(response_state, "result", None)
-    if current_result is None:
-        current_result = getattr(ctx, "obj", None)
-    if callable(serializer):
-        try:
-            ctx["result"] = serializer(current_result)
-        except Exception:
-            logger.exception("response serialization failed", exc_info=True)
-    else:
-        ctx["result"] = _normalize_result_payload(current_result)
-
-    if getattr(ctx, "status_code", None) is None:
-        ctx.status_code = _default_status_for_alias(getattr(ctx, "op", None))
-
-    response_obj = getattr(ctx, "response", None)
-    if response_obj is None:
-        ctx.response = _NS(result=ctx.get("result"))
-    else:
-        setattr(response_obj, "result", ctx.get("result"))
-
-    await _run_phase("POST_COMMIT", allow_flush=True, allow_commit=False, in_tx=False)
-
-    await _run_phase(
-        "POST_RESPONSE",
-        allow_flush=False,
-        allow_commit=False,
-        in_tx=False,
-        nonfatal=True,
-    )
-
-    await _run_phase("EGRESS_SHAPE", allow_flush=False, allow_commit=False, in_tx=False)
-    await _run_phase(
-        "EGRESS_FINALIZE", allow_flush=False, allow_commit=False, in_tx=False
-    )
-    if ctx.get("result") is not None and getattr(ctx, "response", None) is not None:
-        setattr(ctx.response, "result", ctx.get("result"))
-
-    if getattr(ctx, "response", None) is not None:
-        return getattr(ctx.response, "result", ctx.get("result"))
-    return ctx.get("result")
+        if getattr(ctx, "response", None) is not None:
+            return getattr(ctx.response, "result", ctx.get("result"))
+        return ctx.get("result")
+    finally:
+        release = getattr(ctx, "temp", {}).pop("__sys_db_release__", None)
+        if callable(release):
+            try:
+                rv = release()
+                if hasattr(rv, "__await__"):
+                    await rv
+            except Exception:
+                logger.debug("invoke: db release failed", exc_info=True)
 
 
 __all__ = ["_invoke"]

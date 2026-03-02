@@ -254,20 +254,16 @@ def acquire(
         if callable(get_db):
             db = get_db()
 
-            def _release() -> None:
+            def _release() -> Any:
                 close = getattr(db, "close", None)
                 if callable(close):
                     try:
                         rv = close()
                         if inspect.isawaitable(rv):
-                            try:
-                                loop = asyncio.get_running_loop()
-                            except RuntimeError:
-                                asyncio.run(rv)
-                            else:
-                                loop.create_task(rv)
+                            return rv
                     except Exception:
                         pass
+                return None
 
             return db, _release
     if p is None:
@@ -280,7 +276,7 @@ def acquire(
     db: SessionT = p.session()
     logger.debug("acquire: session %r acquired from provider %r", db, p)
 
-    def _release() -> None:
+    def _release() -> Any:
         logger.debug("_release: attempting to release session %r", db)
         close = getattr(db, "close", None)
         if callable(close):
@@ -288,21 +284,15 @@ def acquire(
                 rv = close()
                 logger.debug("_release: close returned %r", rv)
                 if inspect.isawaitable(rv):
-                    logger.debug("_release: awaiting asynchronous close")
-                    try:
-                        loop = asyncio.get_running_loop()
-                    except RuntimeError:
-                        logger.debug("_release: no running loop; using asyncio.run")
-                        asyncio.run(rv)
-                    else:
-                        logger.debug("_release: scheduling close on running loop")
-                        loop.create_task(rv)
+                    logger.debug("_release: returning asynchronous close awaitable")
+                    return rv
                 # If close is sync, it has already executed
             except Exception:
                 logger.debug("_release: error during close", exc_info=True)
                 # best-effort close; swallow to avoid masking handler errors
                 pass
         logger.debug("_release: release complete for session %r", db)
+        return None
 
     return db, _release
 

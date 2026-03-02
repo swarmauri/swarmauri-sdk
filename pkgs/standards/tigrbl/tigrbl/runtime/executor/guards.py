@@ -9,6 +9,7 @@ rollback when the runtime owns the transaction.
 from __future__ import annotations
 
 import logging
+import inspect
 from typing import Any, Optional, Union
 
 try:
@@ -127,6 +128,14 @@ async def _rollback_if_owned(
         await _run_chain(ctx, _g(phases, "ON_ROLLBACK"), phase="ON_ROLLBACK")
     except Exception:  # pragma: no cover
         pass
+    release = getattr(ctx, "temp", {}).pop("__sys_db_release__", None)
+    if callable(release):
+        try:
+            rv = release()
+            if inspect.isawaitable(rv):
+                await rv
+        except Exception:  # pragma: no cover
+            logger.debug("rollback release failed", exc_info=True)
 
 
 __all__ = ["_GuardHandle", "_install_db_guards", "_rollback_if_owned"]
