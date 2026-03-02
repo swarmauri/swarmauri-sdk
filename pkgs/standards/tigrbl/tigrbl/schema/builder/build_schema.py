@@ -47,9 +47,84 @@ def _build_schema(
     fields: Dict[str, Tuple[type, Field]] = {}
 
     # ── PASS 1: table-backed columns only (avoid mapper relationships)
+    #
+    # Some call sites build schemas before SQLAlchemy has fully materialized
+    # ``__table__`` (e.g. tests that only rely on ColumnSpec declarations).
+    # In that case, we still need to expose storage-backed fields from
+    # ``mro_collect_columns`` or request/read schemas end up empty.
     table = getattr(orm_cls, "__table__", None)
     table_cols: Iterable[Any] = tuple(table.columns) if table is not None else ()
     specs: Dict[str, Any] = mro_collect_columns(orm_cls)
+
+    if not table_cols:
+        for attr_name, spec in specs.items():
+            storage = getattr(spec, "storage", None)
+            if storage is None:
+                continue
+            if include and attr_name not in include:
+                continue
+            if exclude and attr_name in exclude:
+                continue
+
+            io = getattr(spec, "io", None)
+            if verb in {"create", "update", "replace"}:
+                in_verbs = set(getattr(io, "in_verbs", ()) or ())
+                out_verbs = set(getattr(io, "out_verbs", ()) or ())
+                is_primary_key = bool(getattr(storage, "primary_key", False))
+                if not (is_primary_key and verb in {"update", "replace", "delete"}):
+                    if not in_verbs:
+                        if out_verbs:
+                            continue
+                    elif verb not in in_verbs:
+                        continue
+
+            fs = getattr(spec, "field", None)
+            py_t = getattr(fs, "py_type", Any) if fs is not None else Any
+            if py_t is Any:
+                storage_type = getattr(storage, "type_", None)
+                try:
+                    py_t = storage_type.python_type
+                except Exception:
+                    py_t = Any
+
+            is_nullable = bool(getattr(storage, "nullable", True))
+            has_default = (getattr(storage, "default", None) is not None) or (
+                getattr(storage, "server_default", None) is not None
+            )
+            required = not is_nullable and not has_default and verb != "update"
+            if bool(getattr(storage, "primary_key", False)):
+                if verb in {"update", "replace", "delete"}:
+                    required = True
+                else:
+                    auto = getattr(storage, "autoincrement", False)
+                    if auto not in (False, None):
+                        required = False
+
+            field_kwargs: Dict[str, Any] = dict(getattr(fs, "constraints", {}) or {})
+            description = getattr(fs, "description", None)
+            if description and "description" not in field_kwargs:
+                field_kwargs["description"] = description
+
+            default_factory = getattr(spec, "default_factory", None)
+            if default_factory and verb in set(getattr(io, "in_verbs", []) or []):
+                field_kwargs["default_factory"] = default_factory
+                required = False
+            else:
+                field_kwargs["default"] = None if not required else ...
+
+            alias_in = getattr(io, "alias_in", None) if io is not None else None
+            alias_out = getattr(io, "alias_out", None) if io is not None else None
+            if alias_in:
+                field_kwargs["validation_alias"] = AliasChoices(alias_in, attr_name)
+            if alias_out:
+                field_kwargs["serialization_alias"] = alias_out
+
+            fld = Field(**field_kwargs)
+
+            if is_nullable and py_t is not Any:
+                py_t = Union[py_t, None]
+
+            _add_field(fields, name=attr_name, py_t=py_t, field=fld)
 
     for col in table_cols:
         attr_name = col.key or col.name
