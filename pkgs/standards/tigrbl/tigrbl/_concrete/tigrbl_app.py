@@ -42,6 +42,7 @@ from ._table_registry import TableRegistry
 from .._spec.app_spec import AppSpec
 from ..mapping.runtime_routes import register_runtime_route
 from ..mapping.spec_normalization import normalize_app_spec
+from ..mapping.spec_normalization import _seqify
 from ..system.favicon import FAVICON_PATH, mount_favicon
 from ..mapping.model_helpers import _OpSpecGroup
 
@@ -85,6 +86,7 @@ class TigrblApp(_App):
     def from_spec(cls, spec: AppSpec) -> "TigrblApp":
         """Materialize an app instance from an :class:`~tigrbl.AppSpec`."""
         spec = normalize_app_spec(spec)
+        spec_tables = tuple(spec.tables or ())
         app = cls(
             engine=spec.engine,
             routers=tuple(spec.routers or ()),
@@ -94,9 +96,16 @@ class TigrblApp(_App):
             version=spec.version,
             lifespan=spec.lifespan,
         )
-        table_registry = TableRegistry(tables=tuple(spec.tables or ()))
+        table_registry = TableRegistry(tables=spec_tables)
         app._table_registry = table_registry
         app.tables = AttrDict(table_registry)
+
+        async def _initialize_from_spec() -> None:
+            initialized = app.initialize(tables=spec_tables)
+            if inspect.isawaitable(initialized):
+                await initialized
+
+        app.add_event_handler("startup", _initialize_from_spec)
 
         has_jsonrpc_binding = any(
             getattr(binding, "proto", "") == "http.jsonrpc"
@@ -147,7 +156,7 @@ class TigrblApp(_App):
             asgi_kwargs["lifespan"] = lifespan
         super().__init__(engine=engine, **asgi_kwargs)
         self._middlewares: list[tuple[Any, dict[str, Any]]] = []
-        self.middlewares = tuple(getattr(self, "MIDDLEWARES", ()))
+        self.middlewares = _seqify(getattr(self, "MIDDLEWARES", ()))
         declared_tables = getattr(self, "TABLES", ())
         self._table_registry = TableRegistry(tables=declared_tables)
         self._favicon_path = favicon_path
@@ -172,7 +181,7 @@ class TigrblApp(_App):
         # public containers (mirrors used by bindings.router)
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
-        self.hooks = tuple(getattr(self, "HOOKS", ()))
+        self.hooks = _seqify(getattr(self, "HOOKS", ()))
         self.state = SimpleNamespace()
         self.rpc = SimpleNamespace()
         self.rest = SimpleNamespace()
@@ -182,7 +191,7 @@ class TigrblApp(_App):
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
         self.core_raw = SimpleNamespace()
-        initial_routers = list(getattr(self, "ROUTERS", ()))
+        initial_routers = list(_seqify(getattr(self, "ROUTERS", ())))
         self._event_handlers = {
             "startup": [],
             "shutdown": [],

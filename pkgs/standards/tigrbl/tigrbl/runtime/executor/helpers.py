@@ -137,6 +137,12 @@ async def _run_chain(
 
                 if result is None:
                     continue
+                if hasattr(result, "status_code") and hasattr(result, "body"):
+                    continue
+                if isinstance(result, dict) and any(
+                    key in result for key in ("status_code", "headers", "body")
+                ):
+                    continue
 
                 safe_result = _normalize_payload(result)
                 if safe_result == before_post_response:
