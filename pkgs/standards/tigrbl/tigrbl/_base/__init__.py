@@ -3,6 +3,7 @@
 from ._hook_base import HookBase
 from ._storage import ForeignKeyBase
 from ._op_base import OpBase
+from ._request_base import RequestBase
 from ._schema_base import SchemaBase
 from ._session_abc import SessionABC
 from ._session_base import TigrblSessionBase
@@ -14,6 +15,7 @@ __all__ = [
     "HookBase",
     "ForeignKeyBase",
     "OpBase",
+    "RequestBase",
     "SchemaBase",
     "SessionABC",
     "TigrblSessionBase",
