@@ -25,6 +25,13 @@ def run(obj: Optional[object], ctx: Any) -> Any:
         hints.status_code = int(status_code)
     default_media = getattr(resp_ns, "default_media", "application/json")
     envelope_default = getattr(resp_ns, "envelope_default", False)
+    temp = getattr(ctx, "temp", None)
+    route_ns = temp.get("route") if isinstance(temp, dict) else None
+    rpc_env = route_ns.get("rpc_envelope") if isinstance(route_ns, dict) else None
+    if getattr(getattr(ctx, "gw_raw", None), "kind", None) == "jsonrpc" or (
+        isinstance(rpc_env, dict) and rpc_env.get("jsonrpc") == "2.0"
+    ):
+        return None
     resp = render(
         req,
         result,

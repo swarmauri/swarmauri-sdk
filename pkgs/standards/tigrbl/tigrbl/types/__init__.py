@@ -168,15 +168,18 @@ _DEPRECATED_EXPORTS: dict[str, tuple[str, str]] = {
 
 def __getattr__(name: str):
     if name in _DEPRECATED_EXPORTS:
-        module, attr = _DEPRECATED_EXPORTS[name]
+        module, _attr = _DEPRECATED_EXPORTS[name]
         warnings.warn(
             (
-                f"tigrbl.types.{name} is deprecated and will be removed in a future "
-                f"release; import '{attr}' from '{module}' instead."
+                f"tigrbl.types.{name} is deprecated and no longer exports from "
+                "tigrbl.types. "
+                f"Import it from '{module}' instead."
             ),
             DeprecationWarning,
             stacklevel=2,
         )
-        imported_module = __import__(module, fromlist=[attr])
-        return getattr(imported_module, attr)
+        raise AttributeError(
+            f"tigrbl.types.{name} no longer exports from tigrbl.types. "
+            f"Import it from '{module}' instead."
+        )
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

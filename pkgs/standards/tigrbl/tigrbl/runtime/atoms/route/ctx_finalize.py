@@ -91,7 +91,21 @@ def run(obj: object | None, ctx: Any) -> None:
     if not _requires_db(model, op_alias):
         return
 
-    db, release = _resolver.acquire(router=router, model=model, op_alias=op_alias)
+    try:
+        db, release = _resolver.acquire(router=router, model=model, op_alias=op_alias)
+    except RuntimeError:
+        model_get_db = getattr(model, "__tigrbl_get_db__", None)
+        router_get_db = getattr(router, "get_db", None)
+        get_db = model_get_db if callable(model_get_db) else router_get_db
+        if not callable(get_db):
+            raise
+        db = get_db()
+
+        def release() -> None:
+            close = getattr(db, "close", None)
+            if callable(close):
+                close()
+
     setattr(ctx, "db", db)
     temp["__sys_db_release__"] = release
 
