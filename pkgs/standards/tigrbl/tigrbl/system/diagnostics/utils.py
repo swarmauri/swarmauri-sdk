@@ -7,6 +7,11 @@ from typing import Any, Iterable
 
 from sqlalchemy import text
 
+from ...runtime.labels import (
+    label_callable as _kernel_label_callable,
+    label_hook as _kernel_label_hook,
+)
+
 
 def table_iter(router: Any) -> Iterable[type]:
     tables = getattr(router, "tables", None)
@@ -29,24 +34,6 @@ def opspecs(model: type):
     return getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ()) or ()
 
 
-def label_callable(fn: Any) -> str:
-    n = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
-    m = getattr(fn, "__module__", None)
-    return f"{m}.{n}" if m else n
-
-
-def label_hook(fn: Any, phase: str) -> str:
-    label = getattr(fn, "__tigrbl_label", None)
-    if isinstance(label, str):
-        return label
-    module = getattr(fn, "__module__", "") or ""
-    name = getattr(fn, "__name__", "") or ""
-    if module.startswith("tigrbl.core.crud") and name:
-        return f"hook:wire:tigrbl:core:crud:ops:{name}@{phase}"
-    subj = label_callable(fn).replace(".", ":")
-    return f"hook:wire:{subj}@{phase}"
-
-
 async def maybe_execute(db: Any, stmt: str):
     try:
         rv = db.execute(text(stmt))  # type: ignore[attr-defined]
@@ -58,3 +45,11 @@ async def maybe_execute(db: Any, stmt: str):
         if inspect.isawaitable(rv):
             return await rv
         return rv
+
+
+def label_callable(fn: Any) -> str:
+    return _kernel_label_callable(fn)
+
+
+def label_hook(fn: Any, phase: str) -> str:
+    return _kernel_label_hook(fn, phase)

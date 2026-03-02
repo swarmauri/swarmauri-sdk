@@ -21,6 +21,7 @@ from .atoms import (
 )
 from .cache import _SpecsOnceCache, _WeakMaybeDict
 from .models import KernelPlan, OpKey, OpMeta, OpView
+from ..labels import label_hook
 from .opview_compiler import compile_opview_from_specs
 
 logger = logging.getLogger(__name__)
@@ -239,12 +240,31 @@ class Kernel:
 
     def plan_labels(self, model: type, alias: str) -> list[str]:
         labels: list[str] = []
-        chains = self.build_op(model, alias)
+        chains = self.build(model, alias)
+
+        tx_begin = "START_TX:hook:sys:txn:begin@START_TX"
+        tx_end = "END_TX:hook:sys:txn:commit@END_TX"
+        if chains.get("HANDLER"):
+            labels.append(tx_begin)
 
         for phase in _ev.PHASES:
-            phase_steps = chains.get(phase, [])
-            for step in phase_steps or ():
-                labels.append(f"{phase}:{_label_step(step, phase)}")
+            if phase in {
+                "INGRESS_BEGIN",
+                "INGRESS_PARSE",
+                "INGRESS_ROUTE",
+                "EGRESS_SHAPE",
+                "EGRESS_FINALIZE",
+                "POST_RESPONSE",
+                "START_TX",
+                "END_TX",
+            }:
+                continue
+            for step in chains.get(phase, ()) or ():
+                labels.append(f"{phase}:{label_hook(step, phase)}")
+
+        if chains.get("HANDLER"):
+            labels.append(tx_end)
+
         return labels
 
     async def invoke(
