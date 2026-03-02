@@ -1,12 +1,51 @@
 from __future__ import annotations
 
+import inspect
 from typing import Any
+
+from pydantic import BaseModel
 
 from ... import events as _ev
 from ....mapping import engine_resolver as _resolver
 
 ANCHOR = _ev.ROUTE_CTX_FINALIZE
 _METADATA_OP_ALIASES = {"__openapi__", "__docs__"}
+
+
+def _select_out_model(model: type, alias: str):
+    schemas_root = getattr(model, "schemas", None)
+    alias_ns = getattr(schemas_root, alias, None) if schemas_root else None
+    if not alias_ns:
+        return None
+
+    target = alias.split(".")[-1]
+    if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_merge"}:
+        return getattr(alias_ns, "out_item", None)
+    return getattr(alias_ns, "out", None)
+
+
+def _build_response_serializer(model: type, alias: str):
+    out_model = _select_out_model(model, alias)
+    if (
+        not out_model
+        or not inspect.isclass(out_model)
+        or not issubclass(out_model, BaseModel)
+    ):
+        return None
+
+    def _serialize(value: Any) -> Any:
+        if isinstance(value, (list, tuple)):
+            return [
+                out_model.model_validate(item).model_dump(
+                    exclude_none=False, by_alias=True
+                )
+                for item in value
+            ]
+        return out_model.model_validate(value).model_dump(
+            exclude_none=False, by_alias=True
+        )
+
+    return _serialize
 
 
 def run(obj: object | None, ctx: Any) -> None:
@@ -26,6 +65,11 @@ def run(obj: object | None, ctx: Any) -> None:
     router = getattr(ctx, "router", None) or getattr(ctx, "app", None)
     if model is None or op_alias is None:
         return
+
+    serializer = _build_response_serializer(model, op_alias)
+    if callable(serializer):
+        setattr(ctx, "response_serializer", serializer)
+
     if op_alias in _METADATA_OP_ALIASES:
         return
 

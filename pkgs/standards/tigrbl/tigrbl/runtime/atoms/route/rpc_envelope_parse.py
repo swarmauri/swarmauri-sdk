@@ -29,6 +29,8 @@ def run(obj: object | None, ctx: Any) -> None:
         return
 
     body = env.body
+    if body is None:
+        body = getattr(ctx, "body", None)
     if not isinstance(body, (bytes, bytearray)):
         body = getattr(ctx, "body", None)
     if not isinstance(body, (bytes, bytearray)):
