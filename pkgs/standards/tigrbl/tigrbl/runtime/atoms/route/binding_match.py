@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import json
 from typing import Any, Mapping
 
 from ... import events as _ev
@@ -88,6 +89,54 @@ def run(obj: object | None, ctx: Any) -> None:
                 if path_params:
                     route["path_params"] = path_params
                 return
+
+            # JSON-RPC requests enter as HTTP REST until the envelope atom
+            # classifies them. Binding resolution must still happen first, so
+            # opportunistically extract just the RPC method selector here.
+            if isinstance(method, str) and method.upper() == "POST":
+                rpc_selector = None
+                rpc_payload = getattr(env, "rpc", None)
+                if isinstance(rpc_payload, Mapping):
+                    maybe_method = rpc_payload.get("method")
+                    if isinstance(maybe_method, str):
+                        rpc_selector = maybe_method
+
+                if rpc_selector is None:
+                    body = getattr(ctx, "body", None)
+                    if not isinstance(body, (bytes, bytearray)):
+                        body = getattr(env, "body", None)
+                    if isinstance(body, (bytes, bytearray)):
+                        try:
+                            parsed = json.loads(bytes(body).decode("utf-8"))
+                        except Exception:
+                            parsed = None
+                        if isinstance(parsed, Mapping):
+                            maybe_method = parsed.get("method")
+                            if isinstance(maybe_method, str):
+                                rpc_selector = maybe_method
+
+                if rpc_selector is None:
+                    payload = getattr(ctx, "payload", None)
+                    if isinstance(payload, Mapping):
+                        maybe_method = payload.get("method")
+                        if isinstance(maybe_method, str):
+                            rpc_selector = maybe_method
+
+                if isinstance(rpc_selector, str):
+                    for rpc_proto in (
+                        proto.replace(".rest", ".jsonrpc"),
+                        ("https.jsonrpc" if proto == "http.rest" else "http.jsonrpc"),
+                    ):
+                        rpc_index = proto_indices.get(rpc_proto)
+                        if not isinstance(rpc_index, dict):
+                            continue
+                        rpc_binding = rpc_index.get(rpc_selector)
+                        if isinstance(rpc_binding, int):
+                            route["rpc_method"] = rpc_selector
+                            route["protocol"] = rpc_proto
+                            route["binding"] = rpc_binding
+                            setattr(ctx, "proto", rpc_proto)
+                            return
     elif proto.endswith(".jsonrpc"):
         selector = route.get("rpc_method")
 

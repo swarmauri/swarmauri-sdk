@@ -30,6 +30,11 @@ def run(obj: object | None, ctx: Any) -> None:
 
     body = env.body
     if not isinstance(body, (bytes, bytearray)):
+        body = getattr(ctx, "body", None)
+    if not isinstance(body, (bytes, bytearray)):
+        ingress = temp.get("ingress") if isinstance(temp.get("ingress"), dict) else {}
+        body = ingress.get("body") if isinstance(ingress, dict) else None
+    if not isinstance(body, (bytes, bytearray)):
         return
 
     try:
