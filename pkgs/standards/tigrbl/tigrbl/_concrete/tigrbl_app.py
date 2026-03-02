@@ -43,6 +43,7 @@ from .._spec.app_spec import AppSpec
 from ..mapping.runtime_routes import register_runtime_route
 from ..mapping.spec_normalization import normalize_app_spec
 from ..system.favicon import FAVICON_PATH, mount_favicon
+from ..mapping.model_helpers import _OpSpecGroup
 
 
 # optional compat: legacy transactional decorator
@@ -503,12 +504,15 @@ class TigrblApp(_App):
                 return
 
             updated_all = tuple(updated_specs)
-            by_alias: dict[str, tuple[Any, ...]] = {}
+            by_alias: dict[str, _OpSpecGroup] = {}
+            grouped_specs: dict[str, list[Any]] = {}
             by_key: dict[tuple[str, str], Any] = {}
             for spec in updated_all:
-                by_alias.setdefault(spec.alias, tuple())
-                by_alias[spec.alias] = by_alias[spec.alias] + (spec,)
+                grouped_specs.setdefault(spec.alias, []).append(spec)
                 by_key[(spec.alias, spec.target)] = spec
+
+            for alias, specs_for_alias in grouped_specs.items():
+                by_alias[alias] = _OpSpecGroup(tuple(specs_for_alias))
 
             updated_ops_ns = SimpleNamespace(
                 all=updated_all, by_alias=by_alias, by_key=by_key

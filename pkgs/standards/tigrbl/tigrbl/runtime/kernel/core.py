@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import threading
 from types import SimpleNamespace
 from typing import Any, ClassVar, Dict, List, Mapping, Optional, Sequence, Tuple
@@ -23,6 +24,56 @@ from .models import KernelPlan, OpKey, OpMeta, OpView
 from .opview_compiler import compile_opview_from_specs
 
 logger = logging.getLogger(__name__)
+
+
+class _RestMatcher:
+    """REST selector matcher supporting exact and templated paths."""
+
+    def __init__(self) -> None:
+        self._exact: dict[tuple[str, str], int] = {}
+        self._templated: list[tuple[str, re.Pattern[str], tuple[str, ...], int]] = []
+
+    @staticmethod
+    def _normalize_path(path: str) -> str:
+        p = path if path.startswith("/") else f"/{path}"
+        return p.rstrip("/") or "/"
+
+    def add(self, method: str, path: str, meta_index: int) -> None:
+        m = method.upper()
+        normalized = self._normalize_path(path)
+        if "{" not in normalized:
+            self._exact[(m, normalized)] = meta_index
+            return
+
+        names = tuple(re.findall(r"\{([^{}]+)\}", normalized))
+        pattern = "^" + re.sub(r"\{([^{}]+)\}", r"(?P<\1>[^/]+)", normalized) + "$"
+        self._templated.append((m, re.compile(pattern), names, meta_index))
+
+    def match(self, method: str, path: str) -> tuple[int, dict[str, str]]:
+        m = method.upper()
+        normalized = self._normalize_path(path)
+
+        exact = self._exact.get((m, normalized))
+        if exact is not None:
+            return exact, {}
+
+        for templ_method, pattern, names, meta_index in self._templated:
+            if templ_method != m:
+                continue
+            matched = pattern.match(normalized)
+            if matched is None:
+                continue
+            params = {
+                name: matched.group(name)
+                for name in names
+                if matched.group(name) is not None
+            }
+            return meta_index, params
+
+        raise KeyError((m, normalized))
+
+    def __call__(self, method: str, path: str) -> tuple[int, dict[str, str]]:
+        return self.match(method, path)
 
 
 def deepmerge_phase_chains(
@@ -271,7 +322,10 @@ class Kernel:
             table_iter as _table_iter,
         )
 
-        proto_indices: dict[str, Any] = {}
+        proto_indices: dict[str, Any] = {
+            "http.rest": _RestMatcher(),
+            "https.rest": _RestMatcher(),
+        }
         opmeta: list[OpMeta] = []
         opkey_to_meta: dict[OpKey, int] = {}
         phase_chains: dict[int, Mapping[str, list[StepFn]]] = {}
@@ -295,9 +349,13 @@ class Kernel:
                             selector = f"{method.upper()} {binding.path}"
                             opkey = OpKey(proto=binding.proto, selector=selector)
                             opkey_to_meta[opkey] = meta_index
-                            proto_indices.setdefault(binding.proto, {})[selector] = (
-                                meta_index
+                            rest_matcher = proto_indices.setdefault(
+                                binding.proto, _RestMatcher()
                             )
+                            if isinstance(rest_matcher, _RestMatcher):
+                                rest_matcher.add(method, binding.path, meta_index)
+                            else:
+                                rest_matcher[selector] = meta_index
                     elif isinstance(binding, HttpJsonRpcBindingSpec):
                         opkey = OpKey(proto=binding.proto, selector=binding.rpc_method)
                         opkey_to_meta[opkey] = meta_index
@@ -331,6 +389,10 @@ class Kernel:
             phase_chains=phase_chains,
             egress_chain=egress_chain,
         )
+
+    def compile_bootstrap_plan(self, app: Any) -> Dict[str, List[StepFn]]:
+        """Compatibility entrypoint for ingress-only bootstrap diagnostics."""
+        return self.build_ingress(app)
 
     def kernel_plan(self, app: Any) -> KernelPlan:
         self.ensure_primed(app)
