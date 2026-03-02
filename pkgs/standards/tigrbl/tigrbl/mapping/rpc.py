@@ -254,19 +254,22 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
         return _ensure_jsonable(result)
 
     try:
+        if isinstance(result, Mapping):
+            if "item" in result and isinstance(result.get("item"), Mapping):
+                result = result.get("item")
+            elif "result" in result and isinstance(result.get("result"), Mapping):
+                result = result.get("result")
+
         if target == "list":
             if isinstance(result, Mapping):
                 items = result.get("items")
                 if isinstance(items, (list, tuple)):
-                    serialized_items = [
+                    return [
                         out_model.model_validate(x).model_dump(
                             exclude_none=False, by_alias=True
                         )
                         for x in items
                     ]
-                    out = dict(result)
-                    out["items"] = serialized_items
-                    return out
             if isinstance(result, (list, tuple)):
                 return [
                     out_model.model_validate(x).model_dump(

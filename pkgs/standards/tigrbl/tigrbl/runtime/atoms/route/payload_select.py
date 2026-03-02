@@ -5,6 +5,7 @@ from typing import Any, Mapping, Sequence
 
 from ... import events as _ev
 from ...opview import ensure_schema_in, opview_from_ctx
+from ....core.crud.helpers.model import _single_pk_name
 
 ANCHOR = _ev.ROUTE_PAYLOAD_SELECT
 
@@ -158,6 +159,15 @@ def run(obj: object | None, ctx: Any) -> None:
         ):
             payload = {"ids": payload}
         payload = _apply_route_params(payload, route_params)
+        if isinstance(payload, Mapping):
+            try:
+                pk_name = _single_pk_name(getattr(ctx, "model", None))
+            except Exception:
+                pk_name = None
+            if pk_name and pk_name in payload:
+                params = dict(route.get("params") or {})
+                params.setdefault(pk_name, payload[pk_name])
+                route["params"] = params
         route["payload"] = payload
         setattr(ctx, "payload", payload)
         return
