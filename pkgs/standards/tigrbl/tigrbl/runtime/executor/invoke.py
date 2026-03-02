@@ -198,7 +198,12 @@ async def _invoke(
 
     if getattr(ctx, "status_code", None) is None:
         ctx.status_code = _default_status_for_alias(getattr(ctx, "op", None))
-    ctx.response = _NS(result=ctx.get("result"))
+
+    response_obj = getattr(ctx, "response", None)
+    if response_obj is None:
+        ctx.response = _NS(result=ctx.get("result"))
+    else:
+        setattr(response_obj, "result", ctx.get("result"))
 
     await _run_phase("POST_COMMIT", allow_flush=True, allow_commit=False, in_tx=False)
 
@@ -214,9 +219,12 @@ async def _invoke(
         in_tx=False,
         nonfatal=True,
     )
-    if ctx.get("result") is not None:
-        ctx.response.result = ctx.get("result")
-    return ctx.response.result
+    if ctx.get("result") is not None and getattr(ctx, "response", None) is not None:
+        setattr(ctx.response, "result", ctx.get("result"))
+
+    if getattr(ctx, "response", None) is not None:
+        return getattr(ctx.response, "result", ctx.get("result"))
+    return ctx.get("result")
 
 
 __all__ = ["_invoke"]

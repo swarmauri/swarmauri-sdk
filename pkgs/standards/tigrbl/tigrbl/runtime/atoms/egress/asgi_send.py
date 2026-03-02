@@ -47,7 +47,9 @@ async def run(obj: object | None, ctx: Any) -> None:
     temp = getattr(ctx, "temp", None)
     egress = temp.get("egress") if isinstance(temp, dict) else None
     if isinstance(egress, dict) and egress.get("suppress_asgi_send"):
-        return
+        has_transport_response = "transport_response" in egress
+        if not has_transport_response:
+            return
 
     resp = None
     resp_ns = getattr(ctx, "response", None)
