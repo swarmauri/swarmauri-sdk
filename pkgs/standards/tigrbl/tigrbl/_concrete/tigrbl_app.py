@@ -204,7 +204,7 @@ class TigrblApp(_App):
         self.mount_openrpc(path="/openrpc.json")
         self.mount_lens(path="/rdocs", spec_path="/openrpc.json")
         if routers:
-            initial_routers.extend(list(routers))
+            initial_routers.extend(_seqify(routers))
         if initial_routers:
             self.include_routers(initial_routers)
 
@@ -609,9 +609,9 @@ class TigrblApp(_App):
         if self.routes:
             register_runtime_route(self, self.routes[-1])
 
-    def include_routers(self, routers: Sequence[Any]) -> None:
+    def include_routers(self, routers: Sequence[Any] | Any) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""
-        for entry in routers:
+        for entry in _seqify(routers):
             prefix = None
             router = entry
             if isinstance(entry, tuple) and entry:
