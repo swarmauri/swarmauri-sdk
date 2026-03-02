@@ -14,7 +14,7 @@ Usage
 
 from __future__ import annotations
 
-from tigrbl_auth.deps import AuthNProvider, Request
+from tigrbl_auth.vendor import AuthNProvider, Request
 from ..fastapi_deps import get_principal
 from ..principal_ctx import principal_var  # noqa: F401  # ensure ContextVar is initialised
 from .auth_context import set_auth_context

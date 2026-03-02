@@ -207,14 +207,6 @@ def _inject_atoms(
 
         if phase in ("START_TX", "END_TX"):
             continue
-        if not anchor_is_phase and phase in {
-            "INGRESS_BEGIN",
-            "INGRESS_PARSE",
-            "INGRESS_ROUTE",
-            "EGRESS_SHAPE",
-            "EGRESS_FINALIZE",
-        }:
-            continue
         if not persistent and persist_tied:
             continue
         if anchor == _ev.SYS_HANDLER_PERSISTENCE and chains.get("HANDLER"):

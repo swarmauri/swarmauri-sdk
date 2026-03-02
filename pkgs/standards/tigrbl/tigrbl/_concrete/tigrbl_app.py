@@ -708,7 +708,19 @@ class TigrblApp(_App):
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
         if prefix is not None:
             self.jsonrpc_prefix = prefix
-        return None
+
+        router = self._ensure_default_router()
+        existing_paths = {getattr(route, "path", None) for route in self.routes}
+        if (
+            self.jsonrpc_prefix not in existing_paths
+            and f"{self.jsonrpc_prefix}/" not in existing_paths
+        ):
+            self.add_route(
+                self.jsonrpc_prefix,
+                lambda *_args, **_kwargs: None,
+                methods=["POST"],
+            )
+        return router
 
     def mount_openapi(
         self,

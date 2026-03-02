@@ -7,7 +7,7 @@ import uuid
 from typing import Final
 from urllib.parse import urlparse
 
-from tigrbl_auth.deps import (
+from tigrbl_auth.vendor import (
     hook_ctx,
     op_ctx,
     ClientBase,

@@ -27,7 +27,7 @@ def should_wire_canonical(table: Type, op: str) -> bool:
     if mode == "some":
         return op in inc
 
-    fallback_verbs = set(v for v in ALL_VERBS if v != "custom")
-    default_verbs = set(getattr(table, "DEFAULT_CANON_VERBS", fallback_verbs))
+    default_verbs = set(getattr(table, "DEFAULT_CANON_VERBS", DEFAULT_CANON_VERBS))
+    default_verbs &= set(v for v in ALL_VERBS if v != "custom")
     allowed = (default_verbs | inc) - exc
     return op in allowed

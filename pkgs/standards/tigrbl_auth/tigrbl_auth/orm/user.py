@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from tigrbl_auth.deps import (
+from tigrbl_auth.vendor import (
     UserBase,
     hook_ctx,
     op_ctx,
@@ -111,7 +111,7 @@ class User(UserBase):
         from ..routers.shared import _require_tls
         from .auth_session import AuthSession
         from .tenant import Tenant
-        from tigrbl_auth.deps import IntegrityError
+        from tigrbl_auth.vendor import IntegrityError
 
         request = ctx.get("request")
         _require_tls(request)

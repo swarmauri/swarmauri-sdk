@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from ... import events as _ev
+from .renderer import ResponseHints
 from .renderer import render
 
 ANCHOR = _ev.OUT_DUMP  # "out:dump"
@@ -20,9 +21,8 @@ def run(obj: Optional[object], ctx: Any) -> Any:
     if result is None:
         return None
     hints = getattr(resp_ns, "hints", None)
-    status_code = getattr(ctx, "status_code", None)
-    if hints is not None and status_code is not None:
-        hints.status_code = int(status_code)
+    if hints is None:
+        hints = ResponseHints(status_code=int(getattr(ctx, "status_code", 200) or 200))
     default_media = getattr(resp_ns, "default_media", "application/json")
     envelope_default = getattr(resp_ns, "envelope_default", False)
     temp = getattr(ctx, "temp", None)

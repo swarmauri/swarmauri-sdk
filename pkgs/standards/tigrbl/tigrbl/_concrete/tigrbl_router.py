@@ -218,7 +218,18 @@ class TigrblRouter(_Router):
         del tags
         if prefix is not None:
             self.jsonrpc_prefix = prefix
-        return None
+
+        existing_paths = {getattr(route, "path", None) for route in self.routes}
+        if (
+            self.jsonrpc_prefix not in existing_paths
+            and f"{self.jsonrpc_prefix}/" not in existing_paths
+        ):
+            self.add_route(
+                self.jsonrpc_prefix,
+                lambda *_args, **_kwargs: None,
+                methods=["POST"],
+            )
+        return self
 
     def mount_openrpc(
         self,

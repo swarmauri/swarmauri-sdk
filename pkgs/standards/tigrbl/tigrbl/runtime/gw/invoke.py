@@ -56,6 +56,7 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
     egress = ctx.temp.get("egress", {}) if isinstance(ctx.temp, dict) else {}
     response = egress.get("transport_response") if isinstance(egress, dict) else None
     if isinstance(response, dict):
+        response = _normalize_jsonrpc_transport_response(ctx, response)
         await _send_transport_response(env, response)
         return
 
@@ -63,7 +64,8 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
         getattr(ctx, "status_code", _default_status_for_alias(getattr(ctx, "op", None)))
         or 200
     )
-    await _send_json(env, status, _normalize_payload(getattr(ctx, "result", None)))
+    payload = _normalize_payload(getattr(ctx, "result", None))
+    await _send_json(env, status, payload)
 
 
 def _default_status_for_alias(alias: Any) -> int:

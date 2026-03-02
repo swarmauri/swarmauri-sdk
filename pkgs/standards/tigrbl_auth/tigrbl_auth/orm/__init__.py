@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from tigrbl_auth.deps import Base
+from tigrbl_auth.vendor import Base
 
 from ..runtime_cfg import settings
 from .api_key import ApiKey

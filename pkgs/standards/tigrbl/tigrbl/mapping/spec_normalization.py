@@ -32,6 +32,7 @@ def merge_seq_attr(
     """Merge sequence-like class attributes over the MRO."""
 
     values: list[Any] = []
+    seen_hashable: set[Any] = set()
     mro = reversed(owner.__mro__) if reverse else owner.__mro__
     for base in mro:
         if include_inherited:
@@ -40,7 +41,17 @@ def merge_seq_attr(
             seq = getattr(base, attr) or ()
         else:
             seq = base.__dict__.get(attr, ()) or ()
-        values.extend(_seqify(seq))
+        for item in _seqify(seq):
+            try:
+                if item in seen_hashable:
+                    continue
+                seen_hashable.add(item)
+            except TypeError:
+                # Unhashable items (dict/list objects) keep insertion order and
+                # are deduped by equality fallback.
+                if any(item == existing for existing in values):
+                    continue
+            values.append(item)
     return tuple(values)
 
 

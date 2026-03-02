@@ -20,6 +20,13 @@ def _is_jsonrpc(ctx: Any, egress: MutableMapping[str, Any]) -> bool:
     if getattr(route, "kind", None) == "jsonrpc":
         return True
 
+    path = getattr(route, "path", None)
+    app = getattr(ctx, "app", None)
+    prefix = getattr(app, "jsonrpc_prefix", None)
+    if isinstance(path, str) and isinstance(prefix, str):
+        if (path.rstrip("/") or "/") == (prefix.rstrip("/") or "/"):
+            return True
+
     explicit = egress.get("response_kind")
     if explicit == "jsonrpc":
         return True
@@ -27,7 +34,21 @@ def _is_jsonrpc(ctx: Any, egress: MutableMapping[str, Any]) -> bool:
     route_temp = getattr(ctx, "temp", None)
     route_ns = route_temp.get("route") if isinstance(route_temp, dict) else None
     rpc_env = route_ns.get("rpc_envelope") if isinstance(route_ns, dict) else None
-    return isinstance(rpc_env, dict) and rpc_env.get("jsonrpc") == "2.0"
+    if isinstance(rpc_env, dict) and rpc_env.get("jsonrpc") == "2.0":
+        return True
+
+    app = getattr(ctx, "app", None)
+    prefix = getattr(app, "jsonrpc_prefix", None)
+    raw = getattr(ctx, "raw", None)
+    scope = getattr(raw, "scope", None)
+    path = scope.get("path") if isinstance(scope, dict) else None
+    if isinstance(prefix, str) and isinstance(path, str):
+        norm_prefix = prefix.rstrip("/") or "/"
+        norm_path = path.rstrip("/") or "/"
+        if norm_path == norm_prefix:
+            return True
+
+    return False
 
 
 def run(obj: object | None, ctx: Any) -> None:
@@ -36,6 +57,10 @@ def run(obj: object | None, ctx: Any) -> None:
     egress = temp.setdefault("egress", {})
 
     payload = egress.get("wire_payload")
+    if payload is None and "result" in egress:
+        payload = egress.get("result")
+    if payload is None and hasattr(ctx, "result"):
+        payload = getattr(ctx, "result", None)
     temp = getattr(ctx, "temp", None)
     rpc_error = temp.get("rpc_error") if isinstance(temp, dict) else None
     if payload is None and not isinstance(rpc_error, dict):

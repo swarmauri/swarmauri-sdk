@@ -244,7 +244,9 @@ def _attach_to_router(router: RouterLike, table: type) -> None:
     _ensure_router_ns(router)
 
     tname = table.__name__
-    rname = table.resource_name
+    rname = getattr(table, "resource_name", None) or getattr(
+        table, "__tablename__", tname.lower()
+    )
     rtitle = rname[:1].upper() + rname[1:]
     logger.debug("Attaching table %s as resource '%s'", tname, rname)
 

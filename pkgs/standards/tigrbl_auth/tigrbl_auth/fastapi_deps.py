@@ -17,7 +17,7 @@ Both helpers are **framework-thin**: they translate `AuthError` raised by
 
 from __future__ import annotations
 
-from tigrbl_auth.deps import (
+from tigrbl_auth.vendor import (
     Depends,
     Header,
     HTTPException,
