@@ -39,9 +39,13 @@ async def run(obj: object | None, ctx: Any) -> None:
         if isinstance(candidate, Response):
             resp = candidate
 
+    temp = getattr(ctx, "temp", None)
+    if not isinstance(temp, dict):
+        temp = {}
+        setattr(ctx, "temp", temp)
+    egress = temp.setdefault("egress", {})
+
     if resp is None:
-        temp = getattr(ctx, "temp", None)
-        egress = temp.get("egress") if isinstance(temp, dict) else None
         tr = egress.get("transport_response") if isinstance(egress, dict) else None
 
         status = int(tr.get("status_code", 200)) if isinstance(tr, dict) else 200
@@ -57,6 +61,14 @@ async def run(obj: object | None, ctx: Any) -> None:
             headers = dict(headers)
             headers.setdefault("content-type", "application/json; charset=utf-8")
 
+        egress["transport_response"] = {
+            "status_code": status,
+            "headers": dict(headers),
+            "body": body,
+        }
+        if getattr(ctx, "kernel_plan", None) is not None:
+            return
+
         await send(
             {
                 "type": "http.response.start",
@@ -65,6 +77,16 @@ async def run(obj: object | None, ctx: Any) -> None:
             }
         )
         await send({"type": "http.response.body", "body": body, "more_body": False})
+        return
+
+    egress["transport_response"] = {
+        "status_code": int(resp.status_code),
+        "headers": {
+            k.decode("latin-1"): v.decode("latin-1") for k, v in resp.raw_headers
+        },
+        "body": resp.body or b"",
+    }
+    if getattr(ctx, "kernel_plan", None) is not None:
         return
 
     await send(
