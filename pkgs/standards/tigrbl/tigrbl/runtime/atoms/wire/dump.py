@@ -111,6 +111,15 @@ def _sync_transport_response_from_ctx(ctx: Any, temp: MutableMapping[str, Any]) 
 
     route = temp.get("route") if isinstance(temp, Mapping) else None
     rpc_env = route.get("rpc_envelope") if isinstance(route, Mapping) else None
+    gw_raw = getattr(ctx, "gw_raw", None)
+    if getattr(gw_raw, "kind", None) == "jsonrpc":
+        return
+    path = getattr(gw_raw, "path", None)
+    app = getattr(ctx, "app", None)
+    prefix = getattr(app, "jsonrpc_prefix", None)
+    if isinstance(path, str) and isinstance(prefix, str):
+        if (path.rstrip("/") or "/") == (prefix.rstrip("/") or "/"):
+            return
     if isinstance(rpc_env, Mapping) and rpc_env.get("jsonrpc") == "2.0":
         return
 
@@ -243,7 +252,7 @@ def _dump_scalar(v: Any) -> Any:
         return [_dump_scalar(x) for x in v]
     if isinstance(v, tuple):
         return tuple(_dump_scalar(x) for x in v)
-    return str(v)
+    return v
 
 
 __all__ = ["ANCHOR", "run"]
