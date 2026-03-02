@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import threading
 from types import SimpleNamespace
 from typing import Any, ClassVar, Dict, List, Mapping, Optional, Sequence, Tuple
@@ -25,6 +26,56 @@ from .opview_compiler import compile_opview_from_specs
 logger = logging.getLogger(__name__)
 
 
+class _RestMatcher:
+    """REST selector matcher supporting exact and templated paths."""
+
+    def __init__(self) -> None:
+        self._exact: dict[tuple[str, str], int] = {}
+        self._templated: list[tuple[str, re.Pattern[str], tuple[str, ...], int]] = []
+
+    @staticmethod
+    def _normalize_path(path: str) -> str:
+        p = path if path.startswith("/") else f"/{path}"
+        return p.rstrip("/") or "/"
+
+    def add(self, method: str, path: str, meta_index: int) -> None:
+        m = method.upper()
+        normalized = self._normalize_path(path)
+        if "{" not in normalized:
+            self._exact[(m, normalized)] = meta_index
+            return
+
+        names = tuple(re.findall(r"\{([^{}]+)\}", normalized))
+        pattern = "^" + re.sub(r"\{([^{}]+)\}", r"(?P<\1>[^/]+)", normalized) + "$"
+        self._templated.append((m, re.compile(pattern), names, meta_index))
+
+    def match(self, method: str, path: str) -> tuple[int, dict[str, str]]:
+        m = method.upper()
+        normalized = self._normalize_path(path)
+
+        exact = self._exact.get((m, normalized))
+        if exact is not None:
+            return exact, {}
+
+        for templ_method, pattern, names, meta_index in self._templated:
+            if templ_method != m:
+                continue
+            matched = pattern.match(normalized)
+            if matched is None:
+                continue
+            params = {
+                name: matched.group(name)
+                for name in names
+                if matched.group(name) is not None
+            }
+            return meta_index, params
+
+        raise KeyError((m, normalized))
+
+    def __call__(self, method: str, path: str) -> tuple[int, dict[str, str]]:
+        return self.match(method, path)
+
+
 def deepmerge_phase_chains(
     *phase_maps: Mapping[str, Sequence[StepFn]],
 ) -> Dict[str, List[StepFn]]:
@@ -34,6 +85,34 @@ def deepmerge_phase_chains(
         for phase, steps in (phase_map or {}).items():
             merged.setdefault(phase, []).extend(list(steps or ()))
     return {phase: list(steps) for phase, steps in merged.items()}
+
+
+def _table_iter(app: Any) -> Sequence[type]:
+    tables = getattr(app, "tables", None)
+    if isinstance(tables, dict):
+        return tuple(v for v in tables.values() if isinstance(v, type))
+    return ()
+
+
+def _opspecs(model: type) -> Sequence[Any]:
+    return getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ()) or ()
+
+
+def _label_callable(fn: Any) -> str:
+    name = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
+    module = getattr(fn, "__module__", None)
+    return f"{module}.{name}" if module else name
+
+
+def _label_step(step: Any, phase: str) -> str:
+    label = getattr(step, "__tigrbl_label", None)
+    if isinstance(label, str) and "@" in label:
+        return label
+    module = getattr(step, "__module__", "") or ""
+    name = getattr(step, "__name__", "") or ""
+    if module.startswith("tigrbl.core.crud") and name:
+        return f"hook:wire:tigrbl:core:crud:ops:{name}@{phase}"
+    return f"hook:wire:{_label_callable(step).replace('.', ':')}@{phase}"
 
 
 class Kernel:
@@ -161,24 +240,11 @@ class Kernel:
     def plan_labels(self, model: type, alias: str) -> list[str]:
         labels: list[str] = []
         chains = self.build_op(model, alias)
-        ordered_anchors = _ev.all_events_ordered()
-        ranked: list[tuple[int, int, str]] = []
-        anchor_idx = {anchor: i for i, anchor in enumerate(ordered_anchors)}
-        order = 0
-        for phase_steps in chains.values():
-            for step in phase_steps or ():
-                label = getattr(step, "__tigrbl_label", None)
-                if not isinstance(label, str) or "@" not in label:
-                    order += 1
-                    continue
-                anchor = label.rsplit("@", 1)[-1]
-                idx = anchor_idx.get(anchor)
-                if idx is not None:
-                    ranked.append((idx, order, label))
-                order += 1
 
-        ranked.sort(key=lambda item: (item[0], item[1]))
-        labels.extend(label for _, _, label in ranked)
+        for phase in _ev.PHASES:
+            phase_steps = chains.get(phase, [])
+            for step in phase_steps or ():
+                labels.append(f"{phase}:{_label_step(step, phase)}")
         return labels
 
     async def invoke(
@@ -204,11 +270,6 @@ class Kernel:
         with self._lock:
             if self._primed.get(app):
                 return
-            from ...system.diagnostics.utils import (
-                table_iter as _table_iter,
-                opspecs as _opspecs,
-            )
-
             models = list(_table_iter(app))
             for model in models:
                 self._specs_cache.get(model)
@@ -240,8 +301,6 @@ class Kernel:
 
         try:
             specs = self._specs_cache.get(model)
-            from ...system.diagnostics.utils import opspecs as _opspecs
-
             found = False
             for sp in _opspecs(model):
                 ov_map.setdefault(
@@ -266,12 +325,11 @@ class Kernel:
             HttpRestBindingSpec,
             WsBindingSpec,
         )
-        from ...system.diagnostics.utils import (
-            opspecs as _opspecs,
-            table_iter as _table_iter,
-        )
 
-        proto_indices: dict[str, Any] = {}
+        proto_indices: dict[str, Any] = {
+            "http.rest": _RestMatcher(),
+            "https.rest": _RestMatcher(),
+        }
         opmeta: list[OpMeta] = []
         opkey_to_meta: dict[OpKey, int] = {}
         phase_chains: dict[int, Mapping[str, list[StepFn]]] = {}
@@ -295,9 +353,13 @@ class Kernel:
                             selector = f"{method.upper()} {binding.path}"
                             opkey = OpKey(proto=binding.proto, selector=selector)
                             opkey_to_meta[opkey] = meta_index
-                            proto_indices.setdefault(binding.proto, {})[selector] = (
-                                meta_index
+                            rest_matcher = proto_indices.setdefault(
+                                binding.proto, _RestMatcher()
                             )
+                            if isinstance(rest_matcher, _RestMatcher):
+                                rest_matcher.add(method, binding.path, meta_index)
+                            else:
+                                rest_matcher[selector] = meta_index
                     elif isinstance(binding, HttpJsonRpcBindingSpec):
                         opkey = OpKey(proto=binding.proto, selector=binding.rpc_method)
                         opkey_to_meta[opkey] = meta_index
@@ -332,6 +394,10 @@ class Kernel:
             egress_chain=egress_chain,
         )
 
+    def compile_bootstrap_plan(self, app: Any) -> Dict[str, List[StepFn]]:
+        """Compatibility entrypoint for ingress-only bootstrap diagnostics."""
+        return self.build_ingress(app)
+
     def kernel_plan(self, app: Any) -> KernelPlan:
         self.ensure_primed(app)
         plan = self._kernel_plans.get(app)
@@ -340,11 +406,6 @@ class Kernel:
 
         compiled = self.compile_plan(app)
         self._kernel_plans[app] = compiled
-
-        from ...system.diagnostics.utils import (
-            table_iter as _table_iter,
-            opspecs as _opspecs,
-        )
 
         payload: dict[str, dict[str, list[str]]] = {}
         for model in _table_iter(app):

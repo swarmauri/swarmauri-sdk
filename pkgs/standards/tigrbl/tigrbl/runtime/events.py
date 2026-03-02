@@ -72,6 +72,11 @@ PHASES: Tuple[Phase, ...] = (
 # Keep these names stable; labels use them directly: step_kind:domain:subject@ANCHOR
 # ──────────────────────────────────────────────────────────────────────────────
 
+# Canonical phase name exports (used by harness tests and diagnostics).
+INGRESS_BEGIN: Phase = "INGRESS_BEGIN"
+INGRESS_PARSE: Phase = "INGRESS_PARSE"
+INGRESS_ROUTE: Phase = "INGRESS_ROUTE"
+
 # INGRESS_BEGIN
 INGRESS_CTX_INIT = "ingress.ctx.init"
 INGRESS_CTX_ATTACH_COMPILED = "ingress.ctx.attach_compiled"

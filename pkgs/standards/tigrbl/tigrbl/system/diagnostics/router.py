@@ -6,6 +6,7 @@ from typing import Any, Callable, Optional
 
 from ..._spec.binding_spec import HttpRestBindingSpec
 from ..._spec.op_spec import OpSpec
+from ...mapping.model_helpers import _OpSpecGroup
 from ...types import Router
 from .healthz import build_healthz_endpoint
 from .hookz import build_hookz_endpoint
@@ -55,7 +56,7 @@ def _register_runtime_diagnostics_op(
             bindings=(binding,),
         )
 
-    model.ops.by_alias[alias] = (op,)
+    model.ops.by_alias[alias] = _OpSpecGroup((op,))
     model.opspecs.all = tuple(
         spec for spec in model.opspecs.all if getattr(spec, "alias", None) != alias
     ) + (op,)

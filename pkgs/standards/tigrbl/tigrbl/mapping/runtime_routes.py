@@ -7,6 +7,7 @@ from typing import Any, Callable
 
 from .._spec.binding_spec import HttpRestBindingSpec
 from .._spec.op_spec import OpSpec
+from .model_helpers import _OpSpecGroup
 from ..core.crud.params import Param
 from ..mapping.core_resolver import (
     annotation_marker,
@@ -189,7 +190,7 @@ def _merge_table_op_binding(route: Any) -> bool:
         deps=merged_deps,
         secdeps=merged_secdeps,
     )
-    model.ops.by_alias[alias] = (updated_spec,)
+    model.ops.by_alias[alias] = _OpSpecGroup((updated_spec,))
     model.opspecs.all = tuple(
         spec
         for spec in tuple(getattr(getattr(model, "opspecs", None), "all", ()) or ())
@@ -228,7 +229,7 @@ def register_runtime_route(app: Any, route: Any) -> None:
         deps=_planned_route_deps(route, handler),
         secdeps=_planned_route_secdeps(route),
     )
-    model.ops.by_alias[alias] = (op,)
+    model.ops.by_alias[alias] = _OpSpecGroup((op,))
     model.opspecs.all = tuple(
         spec for spec in model.opspecs.all if getattr(spec, "alias", None) != alias
     ) + (op,)

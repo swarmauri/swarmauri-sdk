@@ -32,6 +32,34 @@ from ..mapping.column_mro_collect import mro_collect_columns
 logger = logging.getLogger(__name__)
 
 
+def _table_iter(app: Any) -> Sequence[type]:
+    tables = getattr(app, "tables", None)
+    if isinstance(tables, dict):
+        return tuple(v for v in tables.values() if isinstance(v, type))
+    return ()
+
+
+def _opspecs(model: type) -> Sequence[Any]:
+    return getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ()) or ()
+
+
+def _label_callable(fn: Any) -> str:
+    name = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
+    module = getattr(fn, "__module__", None)
+    return f"{module}.{name}" if module else name
+
+
+def _label_step(step: Any, phase: str) -> str:
+    label = getattr(step, "__tigrbl_label", None)
+    if isinstance(label, str) and "@" in label:
+        return label
+    module = getattr(step, "__module__", "") or ""
+    name = getattr(step, "__name__", "") or ""
+    if module.startswith("tigrbl.core.crud") and name:
+        return f"hook:wire:tigrbl:core:crud:ops:{name}@{phase}"
+    return f"hook:wire:{_label_callable(step).replace('.', ':')}@{phase}"
+
+
 K = TypeVar("K")
 V = TypeVar("V")
 
@@ -389,11 +417,6 @@ class Kernel:
         with self._lock:
             if self._primed.get(app):
                 return
-            from ..system.diagnostics.utils import (
-                table_iter as _table_iter,
-                opspecs as _opspecs,
-            )
-
             models = list(_table_iter(app))
 
             # 1) per-model specs once
@@ -431,7 +454,6 @@ class Kernel:
         try:
             specs = self._specs_cache.get(model)
             from types import SimpleNamespace
-            from ..system.diagnostics.utils import opspecs as _opspecs
 
             found = False
             for sp in _opspecs(model):
@@ -558,12 +580,6 @@ class Kernel:
     def _build_kernelz_payload_internal(
         self, app: Any
     ) -> Dict[str, Dict[str, List[str]]]:
-        from ..system.diagnostics.utils import (
-            table_iter as _table_iter,
-            opspecs as _opspecs,
-            label_hook as _label_hook,
-        )
-
         start = time.monotonic()
         out: Dict[str, Dict[str, List[str]]] = {}
         for model in _table_iter(app):
@@ -586,7 +602,7 @@ class Kernel:
                         seq.append(
                             f"{out_phase}:{lbl}"
                             if isinstance(lbl, str)
-                            else f"{out_phase}:{_label_hook(step, ph)}"
+                            else f"{out_phase}:{_label_step(step, ph)}"
                         )
 
                     if ph == "END_TX" and persist:
