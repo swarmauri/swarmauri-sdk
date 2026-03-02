@@ -111,7 +111,9 @@ def run(obj: object | None, ctx: Any) -> None:
         setattr(ctx, "payload", payload)
         return
 
-    payload = getattr(ctx, "payload", None)
+    payload = route.get("payload")
+    if payload is None:
+        payload = getattr(ctx, "payload", None)
     if payload is None:
         ingress = temp.get("ingress") if isinstance(temp.get("ingress"), dict) else {}
         payload = ingress.get("body") if isinstance(ingress, dict) else None
