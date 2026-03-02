@@ -28,6 +28,7 @@ _EXPORTS = {
     "FileResponse": "_file_response",
     "RedirectResponse": "_redirect_response",
     "Request": "_request",
+    "Body": "_body",
 }
 
 __all__ = list(_EXPORTS)
