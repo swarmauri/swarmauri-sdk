@@ -38,6 +38,22 @@ def _parse_query(raw_query: object) -> dict[str, list[str]]:
     return {}
 
 
+def _normalize_path(path: str) -> str:
+    if not path:
+        return "/"
+    if path == "/":
+        return path
+    return path.rstrip("/") or "/"
+
+
+def _is_jsonrpc_endpoint(ctx: object, path: str) -> bool:
+    app = getattr(ctx, "app", None)
+    prefix = getattr(app, "jsonrpc_prefix", None)
+    if not isinstance(prefix, str):
+        return False
+    return _normalize_path(path) == _normalize_path(prefix)
+
+
 def run(obj: object | None, ctx: object) -> None:
     del obj
     raw = getattr(ctx, "raw", None)
@@ -54,12 +70,16 @@ def run(obj: object | None, ctx: object) -> None:
     route_envelope: GwRouteEnvelope | None = None
     if scope_type == "http":
         method = str(scope.get("method", "GET")).upper()
+        content_type = headers.get("content-type", "")
+        maybe_jsonrpc = (
+            method == "POST"
+            and "application/json" in content_type
+            and _is_jsonrpc_endpoint(ctx, path)
+        )
         route_envelope = GwRouteEnvelope(
             transport="http",
             scheme="https" if scheme == "https" else "http",
-            kind="maybe-jsonrpc"
-            if "application/json" in headers.get("content-type", "")
-            else "rest",
+            kind="maybe-jsonrpc" if maybe_jsonrpc else "rest",
             method=method,
             path=path,
             headers=headers,
