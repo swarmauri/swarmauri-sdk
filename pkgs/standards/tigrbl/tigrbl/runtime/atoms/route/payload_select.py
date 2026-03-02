@@ -4,11 +4,56 @@ import json
 from typing import Any, Mapping, Sequence
 
 from ... import events as _ev
+from ...opview import ensure_schema_in, opview_from_ctx
 
 ANCHOR = _ev.ROUTE_PAYLOAD_SELECT
 
 
 _BULKABLE_ALIASES = frozenset({"create", "update", "replace", "merge"})
+
+
+def _header_name_to_lookup(header_name: str) -> tuple[str, str]:
+    raw = str(header_name)
+    return raw, raw.lower()
+
+
+def _merge_header_in_payload(ctx: Any, payload: Any) -> Any:
+    if not isinstance(payload, Mapping):
+        return payload
+
+    temp = getattr(ctx, "temp", None)
+    ingress = temp.get("ingress") if isinstance(temp, dict) else None
+    headers = ingress.get("headers") if isinstance(ingress, dict) else None
+    if not isinstance(headers, Mapping):
+        return payload
+
+    schema_in = temp.get("schema_in") if isinstance(temp, dict) else None
+    if not isinstance(schema_in, Mapping):
+        try:
+            schema_in = ensure_schema_in(ctx, opview_from_ctx(ctx))
+        except Exception:
+            schema_in = None
+    by_field = schema_in.get("by_field") if isinstance(schema_in, Mapping) else {}
+    if not isinstance(by_field, Mapping):
+        return payload
+
+    merged = dict(payload)
+    for field, meta in by_field.items():
+        if not isinstance(meta, Mapping):
+            continue
+        header_name = meta.get("header_in")
+        if not isinstance(header_name, str) or not header_name:
+            continue
+        exact, lowered = _header_name_to_lookup(header_name)
+        value = headers.get(exact)
+        if value is None:
+            value = headers.get(lowered)
+        if value is None:
+            if bool(meta.get("header_required_in", False)) and field not in merged:
+                merged[field] = None
+            continue
+        merged[field] = value
+    return merged
 
 
 def _coerce_route_params(ctx: Any, params: Mapping[str, Any]) -> dict[str, Any]:
@@ -124,6 +169,7 @@ def run(obj: object | None, ctx: Any) -> None:
 
     if payload is not None:
         payload = _apply_route_params(payload, route_params)
+        payload = _merge_header_in_payload(ctx, payload)
         _promote_bulk_alias(ctx, route, payload)
         route["payload"] = payload
         setattr(ctx, "payload", payload)
