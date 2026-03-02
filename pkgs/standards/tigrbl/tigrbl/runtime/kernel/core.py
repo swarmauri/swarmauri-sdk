@@ -286,7 +286,7 @@ class Kernel:
             }:
                 continue
             for step in chains.get(phase, ()) or ():
-                labels.append(f"{phase}:{label_hook(step, phase)}")
+                labels.append(label_hook(step, phase))
 
         if chains.get("HANDLER"):
             labels.append(tx_end)

@@ -20,6 +20,13 @@ def _is_jsonrpc(ctx: Any, egress: MutableMapping[str, Any]) -> bool:
     if getattr(route, "kind", None) == "jsonrpc":
         return True
 
+    path = getattr(route, "path", None)
+    app = getattr(ctx, "app", None)
+    prefix = getattr(app, "jsonrpc_prefix", None)
+    if isinstance(path, str) and isinstance(prefix, str):
+        if (path.rstrip("/") or "/") == (prefix.rstrip("/") or "/"):
+            return True
+
     explicit = egress.get("response_kind")
     if explicit == "jsonrpc":
         return True

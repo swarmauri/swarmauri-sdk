@@ -85,7 +85,7 @@ class KernelPlan:
             for phase in _ev.PHASES:
                 phase_steps = chains.get(phase, ())
                 for step in phase_steps or ():
-                    labels.append(f"{phase}:{_label_step(step, phase)}")
+                    labels.append(_label_step(step, phase))
 
             seen, deduped = set(), []
             for label in labels:
