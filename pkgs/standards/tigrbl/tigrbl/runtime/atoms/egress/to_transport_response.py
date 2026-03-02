@@ -17,43 +17,58 @@ def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
 
 
 def _jsonrpc_request_id(ctx: Any) -> Any:
-    gw_raw = getattr(ctx, "gw_raw", None)
-    rpc = getattr(gw_raw, "rpc", None)
-    if isinstance(rpc, Mapping):
-        return rpc.get("id")
     temp = getattr(ctx, "temp", None)
     route = temp.get("route", {}) if isinstance(temp, dict) else {}
     rpc_env = route.get("rpc_envelope") if isinstance(route, dict) else None
     if isinstance(rpc_env, Mapping):
         return rpc_env.get("id")
+
+    raw = getattr(ctx, "gw_raw", None) or getattr(ctx, "raw", None)
+    rpc = getattr(raw, "rpc", None)
+    if isinstance(rpc, Mapping):
+        return rpc.get("id")
     return None
 
 
 def _is_jsonrpc_request(ctx: Any) -> bool:
-    gw_raw = getattr(ctx, "gw_raw", None)
-    if getattr(gw_raw, "kind", None) == "jsonrpc":
+    raw = getattr(ctx, "gw_raw", None) or getattr(ctx, "raw", None)
+    if getattr(raw, "kind", None) == "jsonrpc":
         return True
-    path = getattr(gw_raw, "path", None)
+
+    temp = getattr(ctx, "temp", None)
+    route = temp.get("route", {}) if isinstance(temp, dict) else {}
+    rpc_env = route.get("rpc_envelope") if isinstance(route, dict) else None
+    if isinstance(rpc_env, Mapping) and rpc_env.get("jsonrpc") == "2.0":
+        return True
+
+    path = getattr(raw, "path", None)
     app = getattr(ctx, "app", None)
     prefix = getattr(app, "jsonrpc_prefix", None)
     if isinstance(path, str) and isinstance(prefix, str):
         return (path.rstrip("/") or "/") == (prefix.rstrip("/") or "/")
+
     return False
 
 
-def _jsonrpc_envelope(ctx: Any, body: Any) -> Mapping[str, Any]:
-    if isinstance(body, Mapping) and body.get("jsonrpc") == "2.0":
-        return body
-    return {"jsonrpc": "2.0", "result": body, "id": _jsonrpc_request_id(ctx)}
-
-
-def _normalize_body_for_jsonrpc(ctx: Any, body: Any) -> Mapping[str, Any]:
+def _normalize_jsonrpc_transport_response(
+    ctx: Any, response: dict[str, Any]
+) -> dict[str, Any]:
+    normalized = dict(response)
+    body = normalized.get("body")
+    if body is None:
+        body = getattr(ctx, "result", None)
     if isinstance(body, (bytes, bytearray)):
         try:
             body = json.loads(bytes(body).decode("utf-8"))
         except Exception:
             body = bytes(body).decode("utf-8", errors="replace")
-    return _jsonrpc_envelope(ctx, body)
+
+    if not (isinstance(body, Mapping) and body.get("jsonrpc") == "2.0"):
+        body = {"jsonrpc": "2.0", "result": body, "id": _jsonrpc_request_id(ctx)}
+
+    normalized["status_code"] = 200
+    normalized["body"] = body
+    return normalized
 
 
 def run(obj: object | None, ctx: Any) -> None:
@@ -64,9 +79,7 @@ def run(obj: object | None, ctx: Any) -> None:
     existing = egress.get("transport_response")
     if isinstance(existing, dict):
         if _is_jsonrpc_request(ctx):
-            normalized = dict(existing)
-            normalized["status_code"] = 200
-            normalized["body"] = _normalize_body_for_jsonrpc(ctx, existing.get("body"))
+            normalized = _normalize_jsonrpc_transport_response(ctx, existing)
             egress["transport_response"] = normalized
             setattr(ctx, "transport_response", normalized)
         return
@@ -91,15 +104,14 @@ def run(obj: object | None, ctx: Any) -> None:
     status_code = int(
         egress.get("status_code", getattr(ctx, "status_code", 200)) or 200
     )
-    if _is_jsonrpc_request(ctx):
-        status_code = 200
-        body = _normalize_body_for_jsonrpc(ctx, body)
-
     response = {
         "status_code": status_code,
         "headers": headers,
         "body": body,
     }
+    if _is_jsonrpc_request(ctx):
+        response = _normalize_jsonrpc_transport_response(ctx, response)
+
     egress["transport_response"] = response
     setattr(ctx, "transport_response", response)
 
