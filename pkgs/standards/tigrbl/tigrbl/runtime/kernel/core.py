@@ -20,6 +20,7 @@ from .atoms import (
 )
 from .cache import _SpecsOnceCache, _WeakMaybeDict
 from .models import KernelPlan, OpKey, OpMeta, OpView
+from ..labels import label_hook
 from .opview_compiler import compile_opview_from_specs
 
 logger = logging.getLogger(__name__)
@@ -160,25 +161,31 @@ class Kernel:
 
     def plan_labels(self, model: type, alias: str) -> list[str]:
         labels: list[str] = []
-        chains = self.build_op(model, alias)
-        ordered_anchors = _ev.all_events_ordered()
-        ranked: list[tuple[int, int, str]] = []
-        anchor_idx = {anchor: i for i, anchor in enumerate(ordered_anchors)}
-        order = 0
-        for phase_steps in chains.values():
-            for step in phase_steps or ():
-                label = getattr(step, "__tigrbl_label", None)
-                if not isinstance(label, str) or "@" not in label:
-                    order += 1
-                    continue
-                anchor = label.rsplit("@", 1)[-1]
-                idx = anchor_idx.get(anchor)
-                if idx is not None:
-                    ranked.append((idx, order, label))
-                order += 1
+        chains = self.build(model, alias)
 
-        ranked.sort(key=lambda item: (item[0], item[1]))
-        labels.extend(label for _, _, label in ranked)
+        tx_begin = "START_TX:hook:sys:txn:begin@START_TX"
+        tx_end = "END_TX:hook:sys:txn:commit@END_TX"
+        if chains.get("HANDLER"):
+            labels.append(tx_begin)
+
+        for phase in _ev.PHASES:
+            if phase in {
+                "INGRESS_BEGIN",
+                "INGRESS_PARSE",
+                "INGRESS_ROUTE",
+                "EGRESS_SHAPE",
+                "EGRESS_FINALIZE",
+                "POST_RESPONSE",
+                "START_TX",
+                "END_TX",
+            }:
+                continue
+            for step in chains.get(phase, ()) or ():
+                labels.append(f"{phase}:{label_hook(step, phase)}")
+
+        if chains.get("HANDLER"):
+            labels.append(tx_end)
+
         return labels
 
     async def invoke(

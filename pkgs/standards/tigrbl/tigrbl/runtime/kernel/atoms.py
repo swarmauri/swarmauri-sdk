@@ -203,7 +203,16 @@ def _inject_atoms(
         else:
             continue
 
-        if phase in ("START_TX", "END_TX"):
+        if phase in (
+            "INGRESS_BEGIN",
+            "INGRESS_PARSE",
+            "INGRESS_ROUTE",
+            "EGRESS_SHAPE",
+            "EGRESS_FINALIZE",
+            "POST_RESPONSE",
+            "START_TX",
+            "END_TX",
+        ):
             continue
         if not persistent and persist_tied:
             continue

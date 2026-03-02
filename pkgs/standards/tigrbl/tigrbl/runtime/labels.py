@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import Dict, Optional, Tuple, Literal, Iterable, Set
+from typing import Any, Dict, Optional, Tuple, Literal, Iterable, Set
 import re as _re
 
 from . import events as _ev
@@ -311,6 +311,20 @@ def legend() -> Dict[str, object]:
     }
 
 
+def label_callable(fn: Any) -> str:
+    n = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
+    m = getattr(fn, "__module__", None)
+    return f"{m}.{n}" if m else n
+
+
+def label_hook(fn: Any, phase: str) -> str:
+    label = getattr(fn, "__tigrbl_label", None)
+    if isinstance(label, str):
+        return label
+    subj = label_callable(fn).replace(".", ":")
+    return f"hook:wire:{subj}@{phase}"
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Bulk utilities (nice-to-haves for planner/trace)
 # ──────────────────────────────────────────────────────────────────────────────
@@ -350,4 +364,6 @@ __all__ = [
     "only_atoms",
     "only_hooks",
     "fields_used",
+    "label_callable",
+    "label_hook",
 ]
