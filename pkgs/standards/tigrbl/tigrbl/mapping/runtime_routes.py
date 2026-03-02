@@ -125,9 +125,22 @@ async def invoke_runtime_route_handler(
 ) -> None:
     request = getattr(ctx, "request", None)
     kwargs = _resolve_handler_kwargs(handler, request)
-    result = handler(**kwargs)
-    if inspect.isawaitable(result):
-        result = await result
+    try:
+        result = handler(**kwargs)
+        if inspect.isawaitable(result):
+            result = await result
+    except Exception as exc:
+        status_code = getattr(exc, "status_code", None)
+        detail = getattr(exc, "detail", None)
+        if isinstance(status_code, int):
+            from ..runtime.status.exceptions import HTTPException
+
+            raise HTTPException(
+                status_code=status_code,
+                detail=detail if detail is not None else str(exc),
+                headers=getattr(exc, "headers", None),
+            ) from exc
+        raise
 
     temp = _ensure_temp(ctx)
     egress = temp.setdefault("egress", {}) if isinstance(temp, dict) else {}

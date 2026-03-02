@@ -227,6 +227,10 @@ class TigrblApp(_App):
         ):
             self.include_table(self.__class__)
 
+        # Re-assert favicon runtime routes after router/table initialization
+        # because namespace synchronization may replace route registries.
+        self._install_favicon()
+
     def _has_local_op_declarations(self) -> bool:
         """Return True when the app subclass declares op_alias/op_ctx operations."""
         app_cls = self.__class__

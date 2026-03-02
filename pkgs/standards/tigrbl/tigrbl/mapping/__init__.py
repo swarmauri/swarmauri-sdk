@@ -43,9 +43,10 @@ def __getattr__(name: str):
     if name in {"include_table", "include_tables"}:
         return getattr(import_module(".router.include", __name__), name)
     if name == "rpc_call":
-        # ``tigrbl.mapping.rpc_call`` should execute an RPC op end-to-end and
-        # return the serialized operation result.
-        return getattr(import_module(".router.rpc", __name__), name)
+        # ``tigrbl.mapping.rpc_call`` is the compatibility dispatcher used by
+        # direct mapping-level tests/callers. It returns an operation envelope;
+        # transport/runtime layers execute envelopes end-to-end.
+        return getattr(import_module(".rpc", __name__), name)
     if name in {
         "INSTALLS",
         "MRO_COLLECTORS",

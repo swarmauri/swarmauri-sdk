@@ -150,9 +150,9 @@ class App(AppSpec):
         tables = tables if tables is not None else self.TABLES
         if routers:
             for a in routers:
-                Engine.install_from_objects(app=self, router=a, tables=tuple(tables))
+                Engine.install_from_objects(app=None, router=a, tables=tuple(tables))
         else:
-            Engine.install_from_objects(app=self, router=None, tables=tuple(tables))
+            Engine.install_from_objects(app=None, router=None, tables=tuple(tables))
 
     async def invoke(self, env: GwRawEnvelope) -> None:
         await invoke(env, app=self)

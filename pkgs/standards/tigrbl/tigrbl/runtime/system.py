@@ -214,7 +214,15 @@ async def _sys_tx_commit(_obj: Optional[object], ctx: Any) -> None:
                             commit()
                         log.debug("system: commit_tx fallback commit succeeded.")
                     except Exception as e:  # pragma: no cover - defensive safeguard
-                        log.exception("system: commit_tx fallback commit failed: %s", e)
+                        msg = str(e)
+                        if "not allowed during END_TX phase" in msg:
+                            log.debug(
+                                "system: commit_tx fallback commit skipped due to phase guard."
+                            )
+                        else:
+                            log.exception(
+                                "system: commit_tx fallback commit failed: %s", e
+                            )
                 else:
                     log.debug(
                         "system: commit_tx fallback commit not possible (no commit attr)."
