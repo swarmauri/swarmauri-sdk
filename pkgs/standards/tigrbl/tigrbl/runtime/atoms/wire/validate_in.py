@@ -45,6 +45,8 @@ def run(obj: Optional[object], ctx: Any) -> None:
     """
     logger.debug("Running wire:validate_in")
     temp = _ensure_temp(ctx)
+    if isinstance(temp.get("rpc_error"), dict):
+        return
     ov = opview_from_ctx(ctx)
     schema_in = ensure_schema_in(ctx, ov)
 

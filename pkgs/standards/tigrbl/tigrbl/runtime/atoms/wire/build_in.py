@@ -17,6 +17,23 @@ logger = logging.getLogger("uvicorn")
 _WRAPPER_KEYS = frozenset({"data", "payload", "body", "item"})
 
 
+def _is_jsonrpc(ctx: Any) -> bool:
+    route = getattr(ctx, "gw_raw", None)
+    if getattr(route, "kind", None) == "jsonrpc":
+        return True
+    temp = getattr(ctx, "temp", None)
+    route_ns = temp.get("route") if isinstance(temp, dict) else None
+    rpc_env = route_ns.get("rpc_envelope") if isinstance(route_ns, dict) else None
+    return isinstance(rpc_env, Mapping) and rpc_env.get("jsonrpc") == "2.0"
+
+
+def _stage_rpc_error(
+    ctx: Any, *, code: int, message: str, data: Mapping[str, Any]
+) -> None:
+    temp = _ensure_temp(ctx)
+    temp["rpc_error"] = {"code": code, "message": message, "data": dict(data)}
+
+
 def run(obj: Optional[object], ctx: Any) -> None:
     """
     wire:build_in@in:validate
@@ -59,7 +76,22 @@ def run(obj: Optional[object], ctx: Any) -> None:
         # Non-mapping payloads are ignored here; adapters can pre-normalize.
         return
 
-    _reject_disallowed_wrapper_keys(payload, schema_in=schema_in)
+    try:
+        _reject_disallowed_wrapper_keys(payload, schema_in=schema_in)
+    except HTTPException as exc:
+        if _is_jsonrpc(ctx):
+            detail = exc.detail if isinstance(exc.detail, Mapping) else {}
+            _stage_rpc_error(
+                ctx,
+                code=-32602,
+                message="Invalid params",
+                data={
+                    "reason": detail.get("reason", "Invalid params"),
+                    "disallowed_keys": list(detail.get("disallowed_keys", [])),
+                },
+            )
+            return
+        raise
 
     by_field: Mapping[str, Mapping[str, Any]] = schema_in.get("by_field", {})  # type: ignore[assignment]
     # Build alias→field and ingress whitelist (field and alias forms)
