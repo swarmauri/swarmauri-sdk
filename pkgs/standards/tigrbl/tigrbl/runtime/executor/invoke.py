@@ -166,8 +166,21 @@ async def _invoke(
 
     from types import SimpleNamespace as _NS
 
+    if ctx.get("result") is None:
+        fallback = (
+            ctx.get("obj")
+            or ctx.get("objs")
+            or (
+                ctx.get("temp", {}).get("egress", {}).get("result")
+                if isinstance(ctx.get("temp"), Mapping)
+                else None
+            )
+        )
+        if fallback is not None:
+            ctx["result"] = fallback
+
     serializer = ctx.get("response_serializer")
-    if callable(serializer):
+    if callable(serializer) and ctx.get("result") is not None:
         try:
             ctx["result"] = serializer(ctx.get("result"))
         except Exception:
