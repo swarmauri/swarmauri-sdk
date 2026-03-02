@@ -96,7 +96,7 @@ def run(obj: object | None, ctx: Any) -> None:
     if env.kind == "rest" and not rest_jsonrpc_endpoint and not binding_preselected_rpc:
         return
 
-    def _is_rpc_envelope(payload: Mapping[str, Any] | Any) -> bool:
+    def _has_rpc_method(payload: Mapping[str, Any] | Any) -> bool:
         if isinstance(payload, Mapping):
             method = payload.get("method")
         else:
@@ -110,9 +110,6 @@ def run(obj: object | None, ctx: Any) -> None:
         _set_rpc_route(ctx, route, env, parsed_payload)
         return
 
-    if env.kind != "maybe-jsonrpc":
-        return
-
     body = env.body
     if body is None:
         body = getattr(ctx, "body", None)
@@ -121,7 +118,7 @@ def run(obj: object | None, ctx: Any) -> None:
     if not isinstance(body, (bytes, bytearray)):
         ingress = temp.get("ingress") if isinstance(temp.get("ingress"), dict) else {}
         body = ingress.get("body") if isinstance(ingress, dict) else None
-    if _is_rpc_envelope(body):
+    if _has_rpc_method(body):
         _set_rpc_route(ctx, route, env, body)
         return
     if not isinstance(body, (bytes, bytearray)):
