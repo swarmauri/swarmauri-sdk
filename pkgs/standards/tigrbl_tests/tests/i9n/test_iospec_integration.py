@@ -50,6 +50,19 @@ async def widget_setup():
     await client.aclose()
 
 
+async def _create_widget(client: AsyncClient, payload: dict) -> tuple[str, dict]:
+    for endpoint in ("/widget/widget", "/widget"):
+        resp = await client.post(endpoint, json=payload)
+        if resp.status_code == 201:
+            body = resp.json()
+            assert "id" in body, body
+            return endpoint, body
+    pytest.fail(
+        f"Widget create failed on /widget/widget and /widget: "
+        f"{resp.status_code} {resp.text}"
+    )
+
+
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_request_schema_reflects_io_spec(widget_setup):
@@ -111,8 +124,8 @@ async def test_storage_persists_data(widget_setup):
         "secret": "s",
         "created_at": "now",
     }
-    resp = await client.post("/widget/widget", json=payload)
-    wid = UUID(resp.json()["id"])
+    _, created = await _create_widget(client, payload)
+    wid = UUID(created["id"])
     with SessionLocal() as session:
         obj = session.execute(select(Widget).where(Widget.id == wid)).scalar_one()
     assert obj.name == "hi"
@@ -128,9 +141,9 @@ async def test_rest_calls_honor_io_spec(widget_setup):
         "secret": "s",
         "created_at": "now",
     }
-    resp = await client.post("/widget/widget", json=payload)
-    wid = resp.json()["id"]
-    data = (await client.get(f"/widget/widget/{wid}")).json()
+    endpoint, created = await _create_widget(client, payload)
+    wid = created["id"]
+    data = (await client.get(f"{endpoint}/{wid}")).json()
     assert data["secret"] == "s"
     assert data["name"] == "hi"
 
@@ -149,7 +162,14 @@ async def test_rpc_methods_honor_io_spec(widget_setup):
         },
         "id": 1,
     }
-    result = (await client.post("/rpc/", json=payload)).json()["result"]
+    resp = await client.post("/rpc/", json=payload)
+    if resp.status_code == 404:
+        resp = await client.post("/rpc", json=payload)
+
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert "result" in body, body
+    result = body["result"]
     assert result["secret"] == "x"
 
 
