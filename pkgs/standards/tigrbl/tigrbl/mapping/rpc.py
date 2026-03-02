@@ -18,7 +18,6 @@ from typing import (
 from pydantic import BaseModel
 
 from .._spec import OpSpec
-from ..runtime.executor.invoke import _invoke
 from ..runtime.hook_types import PHASES
 from ..runtime.status import HTTPException
 
@@ -452,9 +451,8 @@ async def rpc_call(
 ) -> Any:
     """Compatibility RPC dispatcher for direct mapping-level calls.
 
-    Historically, callers expected this helper to execute the runtime phases
-    and return the operation result (for example a response-like dict), not the
-    raw operation envelope.
+    This helper resolves a model RPC callable and returns the generated
+    operation envelope. Runtime execution is handled by the gateway layer.
     """
     if isinstance(model_or_name, type):
         model = model_or_name
@@ -471,25 +469,7 @@ async def rpc_call(
             f"{getattr(model, '__name__', model)} has no RPC method '{method}'"
         )
 
-    result = await fn(payload, db=db, request=request, ctx=dict(ctx or {}))
-
-    if isinstance(result, Mapping) and {
-        "phases",
-        "ctx",
-        "serialize",
-        "request",
-        "db",
-    }.issubset(result.keys()):
-        invoke_ctx: Dict[str, Any] = dict(result["ctx"])
-        invoke_ctx["response_serializer"] = result["serialize"]
-        return await _invoke(
-            request=result["request"],
-            db=result["db"],
-            phases=result["phases"],
-            ctx=invoke_ctx,
-        )
-
-    return result
+    return await fn(payload, db=db, request=request, ctx=dict(ctx or {}))
 
 
 __all__ = ["register_and_attach", "rpc_call"]
