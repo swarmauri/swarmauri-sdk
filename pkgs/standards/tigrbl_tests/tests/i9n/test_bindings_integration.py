@@ -85,12 +85,12 @@ def test_include_table_and_rpc_call():
         rpc_call(router, Widget, "create", {"id": uuid4(), "name": "w"}, db=db)
     )
     listed = asyncio.run(rpc_call(router, Widget, "list", {}, db=db))
-    assert created["model"] is Widget
-    assert created["alias"] == "create"
-    assert created["payload"]["name"] == "w"
-    assert listed["model"] is Widget
-    assert listed["alias"] == "list"
-    assert listed["payload"] == {}
+    assert created["name"] == "w"
+    assert created["id"]
+    assert isinstance(listed, list)
+    assert len(listed) == 1
+    assert listed[0]["name"] == "w"
+    assert listed[0]["id"] == created["id"]
 
 
 def test_include_tables():
