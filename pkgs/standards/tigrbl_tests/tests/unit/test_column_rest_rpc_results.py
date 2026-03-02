@@ -18,7 +18,7 @@ def _setup_router(table):
     router.initialize()
 
     app = TigrblApp()
-    app.include_router(router)
+    app.include_router(router, prefix="/api")
     transport = ASGITransport(app=app)
     client = Client(transport=transport, base_url="http://test")
     return router, client, eng
