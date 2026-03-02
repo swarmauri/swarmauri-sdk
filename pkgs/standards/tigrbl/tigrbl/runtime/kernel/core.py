@@ -32,6 +32,7 @@ class _RestMatcher:
     def __init__(self) -> None:
         self._exact: dict[tuple[str, str], int] = {}
         self._templated: list[tuple[str, re.Pattern[str], tuple[str, ...], int]] = []
+        self._selectors: dict[str, int] = {}
 
     @staticmethod
     def _normalize_path(path: str) -> str:
@@ -41,6 +42,7 @@ class _RestMatcher:
     def add(self, method: str, path: str, meta_index: int) -> None:
         m = method.upper()
         normalized = self._normalize_path(path)
+        self._selectors[f"{m} {normalized}"] = meta_index
         if "{" not in normalized:
             self._exact[(m, normalized)] = meta_index
             return
@@ -74,6 +76,31 @@ class _RestMatcher:
 
     def __call__(self, method: str, path: str) -> tuple[int, dict[str, str]]:
         return self.match(method, path)
+
+    # Compatibility mapping surface used by older tests and adapters.
+    def __contains__(self, selector: object) -> bool:
+        return isinstance(selector, str) and selector in self._selectors
+
+    def __getitem__(self, selector: str) -> int:
+        return self._selectors[selector]
+
+    def get(self, selector: str, default: Any = None) -> Any:
+        return self._selectors.get(selector, default)
+
+    def keys(self):
+        return self._selectors.keys()
+
+    def items(self):
+        return self._selectors.items()
+
+    def values(self):
+        return self._selectors.values()
+
+    def __iter__(self):
+        return iter(self._selectors)
+
+    def __len__(self) -> int:
+        return len(self._selectors)
 
 
 def deepmerge_phase_chains(
