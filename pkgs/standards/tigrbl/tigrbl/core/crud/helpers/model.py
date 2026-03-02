@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime as dt
 from typing import Any, Dict, Mapping, Tuple
 
 import logging
@@ -106,7 +107,11 @@ def _filter_in_values(
                 col = getattr(getattr(model, "__table__", None), "columns", {}).get(k)
                 py_t = getattr(getattr(col, "type", None), "python_type", None)
                 if py_t is not None and v is not None and not isinstance(v, py_t):
-                    out[k] = py_t(v)
+                    if py_t in (dt.datetime, dt.date) and isinstance(v, str):
+                        parsed = py_t.fromisoformat(v)
+                        out[k] = parsed
+                    else:
+                        out[k] = py_t(v)
                 else:
                     out[k] = v
             except Exception:
