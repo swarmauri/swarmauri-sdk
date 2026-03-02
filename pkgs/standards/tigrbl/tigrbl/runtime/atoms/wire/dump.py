@@ -6,7 +6,8 @@ import datetime as _dt
 import decimal as _dc
 import uuid as _uuid
 import logging
-from typing import Any, Dict, Mapping, MutableMapping, Optional
+from collections.abc import Mapping, MutableMapping
+from typing import Any, Dict, Optional
 
 from ... import events as _ev
 
@@ -45,7 +46,8 @@ def run(obj: Optional[object], ctx: Any) -> None:
     out_values = temp.get("out_values")
 
     if not out_values:
-        logger.debug("No out_values available; skipping dump")
+        logger.debug("No out_values available; syncing transport from ctx.result")
+        _sync_transport_response_from_ctx(ctx, temp)
         return  # nothing to dump
 
     schema_out = _schema_out(ctx)
@@ -74,6 +76,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
                 temp["dump_conflicts"] = tuple(sorted(set(conflicts)))
         temp["response_payload"] = payload
         logger.debug("Response payload built: %s", payload)
+        _sync_transport_response_from_ctx(ctx, temp)
         return None
 
     # List/tuple of objects (already expanded by executor)
@@ -86,12 +89,59 @@ def run(obj: Optional[object], ctx: Any) -> None:
             for item in out_values  # type: ignore[arg-type]
         ]
         temp["response_payload"] = payload_list
+        _sync_transport_response_from_ctx(ctx, temp)
         return None
 
     # Unknown shape — stash as-is to avoid surprises (transport may serialize).
     temp["response_payload"] = out_values
     logger.debug("Stored opaque response payload: %s", type(out_values).__name__)
+    _sync_transport_response_from_ctx(ctx, temp)
     return None
+
+
+def _sync_transport_response_from_ctx(ctx: Any, temp: MutableMapping[str, Any]) -> None:
+    """Keep finalized transport payload aligned with POST_RESPONSE ctx.result updates."""
+    egress = temp.get("egress")
+    if not isinstance(egress, MutableMapping):
+        return
+
+    response = egress.get("transport_response")
+    if not isinstance(response, MutableMapping):
+        return
+
+    route = temp.get("route") if isinstance(temp, Mapping) else None
+    rpc_env = route.get("rpc_envelope") if isinstance(route, Mapping) else None
+    gw_raw = getattr(ctx, "gw_raw", None)
+    if getattr(gw_raw, "kind", None) == "jsonrpc":
+        return
+    path = getattr(gw_raw, "path", None)
+    app = getattr(ctx, "app", None)
+    prefix = getattr(app, "jsonrpc_prefix", None)
+    if isinstance(path, str) and isinstance(prefix, str):
+        if (path.rstrip("/") or "/") == (prefix.rstrip("/") or "/"):
+            return
+    if isinstance(rpc_env, Mapping) and rpc_env.get("jsonrpc") == "2.0":
+        return
+
+    result = getattr(ctx, "result", None)
+    if hasattr(result, "status_code") and hasattr(result, "body"):
+        return
+    if not isinstance(result, Mapping):
+        return
+    if any(key in result for key in ("status_code", "headers", "body")):
+        return
+
+    response["body"] = _normalize_transport_body(result)
+
+
+def _normalize_transport_body(value: Any) -> Any:
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, Mapping):
+        return {str(k): _normalize_transport_body(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_normalize_transport_body(v) for v in value]
+    return _dump_scalar(value)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -177,6 +227,8 @@ def _dump_scalar(v: Any) -> Any:
     """
     if v is None:
         return None
+    if isinstance(v, (str, int, float, bool)):
+        return v
     if isinstance(v, (_dt.datetime, _dt.date, _dt.time)):
         # ISO 8601
         try:

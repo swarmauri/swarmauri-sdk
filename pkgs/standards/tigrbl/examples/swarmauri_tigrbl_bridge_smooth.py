@@ -16,7 +16,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 from tigrbl import Base, TigrblApp, engine_ctx, hook_ctx, op_ctx
 from tigrbl.column import F, IO, S, acol
-from tigrbl.column.storage_spec import ForeignKeySpec
+from tigrbl.specs.storage_spec import ForeignKeySpec
 from tigrbl.types import JSON, Mapped, String, relationship
 
 from swarmauri_standard.messages.HumanMessage import HumanMessage

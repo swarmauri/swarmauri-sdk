@@ -15,8 +15,7 @@ import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
-from tigrbl.engine import Engine, HybridSession
-from tigrbl.engine.engine_spec import EngineSpec
+from tigrbl.engine import Engine, EngineSpec, HybridSession
 
 from tigrbl_auth.app import app
 from tigrbl_auth.crypto import hash_pw

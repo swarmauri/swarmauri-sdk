@@ -1,8 +1,7 @@
 """Tests for Tigrbl verb alias configuration (currently ignored)."""
 
 import pytest
-
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 
 
@@ -10,7 +9,7 @@ from tigrbl.orm.mixins import GUIDPk
 def test_verb_alias_policy_both_routes_same_handler(create_test_app) -> None:
     """Verb aliases are ignored; only canonical verbs are exposed."""
 
-    class AliasModelBoth(Base, GUIDPk):
+    class AliasModelBoth(TableBase, GUIDPk):
         __tablename__ = "alias_model"
         __tigrbl_verb_aliases__ = {"create": "register"}
         __tigrbl_verb_alias_policy__ = "both"
@@ -28,7 +27,7 @@ def test_verb_alias_policy_both_routes_same_handler(create_test_app) -> None:
 def test_verb_alias_policy_canonical_only_blocks_alias(create_test_app) -> None:
     """Alias policy has no effect; aliases remain hidden."""
 
-    class AliasModelBlocked(Base, GUIDPk):
+    class AliasModelBlocked(TableBase, GUIDPk):
         __tablename__ = "alias_model_blocked"
         __tigrbl_verb_aliases__ = {"create": "register"}
         __tigrbl_verb_alias_policy__ = "canonical_only"
@@ -45,7 +44,7 @@ def test_verb_alias_policy_canonical_only_blocks_alias(create_test_app) -> None:
 def test_invalid_alias_is_ignored(create_test_app) -> None:
     """Invalid alias names are ignored without raising errors."""
 
-    class BadAliasModel(Base, GUIDPk):
+    class BadAliasModel(TableBase, GUIDPk):
         __tablename__ = "bad_alias_model"
         __tigrbl_verb_aliases__ = {"create": "Bad-Name"}
 

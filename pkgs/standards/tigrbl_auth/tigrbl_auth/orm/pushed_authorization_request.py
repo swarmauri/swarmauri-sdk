@@ -6,7 +6,7 @@ import datetime as dt
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from tigrbl_auth.deps import (
+from tigrbl_auth.vendor import (
     Base,
     Timestamped,
     S,

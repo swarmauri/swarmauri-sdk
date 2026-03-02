@@ -3,17 +3,18 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from tigrbl import Base, TigrblApp, hook_ctx, TigrblRouter
-from tigrbl.engine.shortcuts import mem
-from tigrbl.specs import F, IO, S, acol
+from tigrbl import TableBase, TigrblApp, hook_ctx, TigrblRouter
+from tigrbl.shortcuts.engine import mem
+from tigrbl._spec import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.types import Integer, Mapped, String
 
-from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
+from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 
 
 @pytest.mark.asyncio
 async def test_hook_modifies_response() -> None:
-    class Item(Base):
+    class Item(TableBase):
         __tablename__ = "hook_items"
         __resource__ = "item"
 

@@ -3,8 +3,8 @@ from types import SimpleNamespace
 from sqlalchemy import Integer, String
 
 from tigrbl.mapping import include_table
-from tigrbl.column import ColumnSpec, S
-from tigrbl.table import Table
+from tigrbl._spec import ColumnSpec, StorageSpec as S
+from tigrbl import Table
 
 
 class Widget(Table):

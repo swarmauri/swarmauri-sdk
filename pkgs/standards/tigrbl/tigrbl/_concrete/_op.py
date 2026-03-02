@@ -4,10 +4,10 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Any
 
-from ..op.types import OpSpec
+from .._base._op_base import OpBase
 
 
-class Op(OpSpec):
+class Op(OpBase):
     """Declarative operation descriptor with optional engine binding."""
 
     __slots__ = ()
@@ -24,8 +24,8 @@ class Op(OpSpec):
     def install_engines(
         self, *, router: Any | None = None, model: type | None = None
     ) -> None:
-        from ..engine import install_from_objects
+        from .._concrete._engine import Engine
 
         m = model if model is not None else self.table
         if m is not None:
-            install_from_objects(router=router, tables=[m])
+            Engine.install_from_objects(router=router, tables=(m,))

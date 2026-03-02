@@ -1,8 +1,9 @@
-from tigrbl.app.mro_collect import mro_collect_app_spec
-from tigrbl.app.shortcuts import defineAppSpec, deriveApp
+from tigrbl._spec.app_spec import AppSpec
+from tigrbl._concrete._app import App
+from tigrbl.shortcuts.app import defineAppSpec, deriveApp
 
 
-class BaseAppSpec(defineAppSpec(title="Base", version="1.0", routers=("base",))):
+class BaseAppSpec(defineAppSpec(title="TableBase", version="1.0", routers=("base",))):
     pass
 
 
@@ -12,8 +13,8 @@ class ChildApp(BaseAppSpec):
 
 
 def test_app_spec_defaults_and_merge():
-    spec = mro_collect_app_spec(ChildApp)
-    assert spec.title == "Base"
+    spec = AppSpec.collect(ChildApp)
+    assert spec.title == "TableBase"
     assert spec.version == "1.0"
     assert spec.routers == ("child", "base")
     assert spec.ops == ("read",)
@@ -26,3 +27,46 @@ def test_app_spec_shortcut_derivation():
     Derived = deriveApp(title="Svc", version="2.0")
     assert Derived.TITLE == "Svc"
     assert Derived.VERSION == "2.0"
+
+
+class BaseConcreteApp(App):
+    ROUTERS = ("base_router",)
+    OPS = ("base_op",)
+    TABLES = ("base_table",)
+
+
+class ChildConcreteApp(BaseConcreteApp):
+    ROUTERS = ("child_router",)
+    OPS = ("child_op",)
+
+
+def test_concrete_app_initializes_from_mro_collect_spec():
+    app = ChildConcreteApp()
+
+    assert app.routers == ("child_router", "base_router")
+    assert app.ops == ("child_op", "base_op")
+    assert tuple(app.tables.values()) == ("base_table",)
+
+
+class ScalarAttrsApp(App):
+    ROUTERS = "router"
+    OPS = "read"
+    TABLES = "widgets"
+    SCHEMAS = "WidgetSchema"
+    HOOKS = "hook"
+    SECURITY_DEPS = "security"
+    DEPS = "dep"
+    MIDDLEWARES = "mw"
+
+
+def test_app_spec_normalizes_scalar_sequence_fields():
+    spec = AppSpec.collect(ScalarAttrsApp)
+
+    assert spec.routers == ("router",)
+    assert spec.ops == ("read",)
+    assert spec.tables == ("widgets",)
+    assert spec.schemas == ("WidgetSchema",)
+    assert spec.hooks == ("hook",)
+    assert spec.security_deps == ("security",)
+    assert spec.deps == ("dep",)
+    assert spec.middlewares == ("mw",)

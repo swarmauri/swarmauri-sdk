@@ -2,15 +2,16 @@ from types import SimpleNamespace
 
 
 from tigrbl.mapping.model import bind
-from tigrbl.runtime.atoms.schema import collect_in, collect_out
-from tigrbl.specs import F, IO, S, acol, vcol
-from tigrbl.orm.tables import Base
+from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
+from tigrbl.runtime.atoms.schema.collect_out import run as collect_out_run
+from tigrbl._spec import F, IO, S, acol, vcol
+from tigrbl.orm.tables import TableBase
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped
 
 
 def test_field_spec_py_type_overrides_annotation():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "things_py_type"
         __allow_unmapped__ = True
 
@@ -26,13 +27,13 @@ def test_field_spec_py_type_overrides_annotation():
     bind(Thing)
     specs = Thing.__tigrbl_cols__
     ctx = SimpleNamespace(specs=specs, op="read", temp={})
-    collect_out.run(None, ctx)
+    collect_out_run(None, ctx)
     schema_out = ctx.temp["schema_out"]
     assert schema_out["by_field"]["nickname"]["py_type"] == "str"
 
 
 def test_field_spec_constraints_affect_sqla_column():
-    class Item(Base):
+    class Item(TableBase):
         __tablename__ = "items_constraints"
         __allow_unmapped__ = True
 
@@ -49,7 +50,7 @@ def test_field_spec_constraints_affect_sqla_column():
 
 
 def test_field_spec_required_in_marks_field_required():
-    class Product(Base):
+    class Product(TableBase):
         __tablename__ = "products_required_in"
         __allow_unmapped__ = True
 
@@ -65,13 +66,13 @@ def test_field_spec_required_in_marks_field_required():
     bind(Product)
     specs = Product.__tigrbl_cols__
     ctx = SimpleNamespace(specs=specs, op="create", temp={})
-    collect_in.run(None, ctx)
+    collect_in_run(None, ctx)
     schema_in = ctx.temp["schema_in"]
     assert schema_in["by_field"]["name"]["required"] is True
 
 
 def test_field_spec_allow_null_in_overrides_nullable():
-    class Profile(Base):
+    class Profile(TableBase):
         __tablename__ = "profiles_allow_null"
         __allow_unmapped__ = True
 
@@ -87,7 +88,7 @@ def test_field_spec_allow_null_in_overrides_nullable():
     bind(Profile)
     specs = Profile.__tigrbl_cols__
     ctx = SimpleNamespace(specs=specs, op="update", temp={})
-    collect_in.run(None, ctx)
+    collect_in_run(None, ctx)
     schema_in = ctx.temp["schema_in"]
     # The storage layer marks ``bio`` as non-nullable; ``allow_null_in`` only
     # relaxes nullability when the storage layer permits it. Expect the field to

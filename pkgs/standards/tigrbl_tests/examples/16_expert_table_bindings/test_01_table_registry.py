@@ -7,8 +7,8 @@ tables aligned and makes it easy to reference the SQLAlchemy table object
 directly from the API layer.
 """
 
-from tigrbl import Base, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblRouter
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -16,7 +16,7 @@ from tigrbl.types import Column, String
 def test_table_binding_registers_table_on_router():
     """The API table registry should map model names to registered table classes."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_table_registry"
         __allow_unmroutered__ = True
 
@@ -32,7 +32,7 @@ def test_table_binding_registers_table_on_router():
 def test_table_registry_respects_model_identity():
     """The table registry keeps a stable reference for each registered class."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_table_registry_identity"
         __allow_unmroutered__ = True
 

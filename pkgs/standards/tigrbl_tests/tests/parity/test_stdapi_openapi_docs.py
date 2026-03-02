@@ -2,8 +2,8 @@ import pytest
 from pydantic import BaseModel
 
 
-from tigrbl.router import Router
-from tigrbl.requests import Request
+from tigrbl import Router
+from tigrbl import Request
 
 
 class CreateWidget(BaseModel):

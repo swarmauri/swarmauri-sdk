@@ -7,8 +7,8 @@ from functools import lru_cache
 from typing import Any, Callable, Mapping, Optional
 
 from ... import core as _core
-from ...op import OpSpec
-from ...op.types import StepFn
+from ..._spec import OpSpec
+from ...hook.types import StepFn
 from ...runtime.executor import _Ctx
 from .ctx import _ctx_db, _ctx_payload, _ctx_request
 from .identifiers import _resolve_ident
@@ -266,6 +266,7 @@ def _wrap_core(model: type, target: str) -> StepFn:
     step.__name__ = getattr(fn, "__name__", step.__name__)
     step.__qualname__ = getattr(fn, "__qualname__", step.__name__)
     step.__module__ = getattr(fn, "__module__", step.__module__)
+    step.__tigrbl_label = f"hook:wire:tigrbl:core:crud:ops:{target}@HANDLER"
     return step
 
 

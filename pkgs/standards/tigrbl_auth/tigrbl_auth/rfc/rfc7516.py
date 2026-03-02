@@ -5,7 +5,7 @@ from __future__ import annotations
 import base64
 from typing import Any, Final, Mapping
 
-from ..deps import JWAAlg, JweCrypto
+from ..vendor import JWAAlg, JweCrypto
 
 from ..runtime_cfg import settings
 

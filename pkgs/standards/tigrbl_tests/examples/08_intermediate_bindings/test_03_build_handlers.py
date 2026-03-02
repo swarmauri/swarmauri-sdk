@@ -1,6 +1,6 @@
 """Lesson 08.3: Building handler pipelines."""
 
-from tigrbl import Base, bind, build_handlers
+from tigrbl import TableBase, bind, build_handlers
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -13,7 +13,7 @@ def test_build_handlers_returns_handlers():
     """
 
     # Setup: define a model with a required column.
-    class LessonHandlers(Base, GUIDPk):
+    class LessonHandlers(TableBase, GUIDPk):
         __tablename__ = "lesson_handlers"
         __allow_unmapped__ = True
 
@@ -36,7 +36,7 @@ def test_build_handlers_creates_list_handler():
     """
 
     # Setup: define another model for handler inspection.
-    class LessonHandlersList(Base, GUIDPk):
+    class LessonHandlersList(TableBase, GUIDPk):
         __tablename__ = "lesson_handlers_list"
         __allow_unmapped__ = True
 

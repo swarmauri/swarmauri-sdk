@@ -7,13 +7,22 @@ import logging
 from types import SimpleNamespace
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
-from ..op import OpSpec
+from .._spec import OpSpec
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/model_helpers")
 
 
 _Key = Tuple[str, str]  # (alias, target)
+
+
+class _OpSpecGroup(tuple[OpSpec, ...]):
+    """Tuple container that preserves legacy single-op attribute access."""
+
+    def __getattr__(self, name: str):
+        if len(self) == 1:
+            return getattr(self[0], name)
+        raise AttributeError(name)
 
 
 def _key(sp: OpSpec) -> _Key:
@@ -63,14 +72,17 @@ def _ensure_model_namespaces(model: type) -> None:
 
 def _index_specs(
     specs: Sequence[OpSpec],
-) -> Tuple[Tuple[OpSpec, ...], Dict[_Key, OpSpec], Dict[str, List[OpSpec]]]:
+) -> Tuple[Tuple[OpSpec, ...], Dict[_Key, OpSpec], Dict[str, _OpSpecGroup]]:
     all_specs: Tuple[OpSpec, ...] = tuple(specs)
     by_key: Dict[_Key, OpSpec] = {}
-    by_alias: Dict[str, List[OpSpec]] = {}
+    grouped: Dict[str, list[OpSpec]] = {}
     for sp in specs:
         k = _key(sp)
         by_key[k] = sp
-        by_alias.setdefault(sp.alias, []).append(sp)
+        grouped.setdefault(sp.alias, []).append(sp)
+    by_alias: Dict[str, _OpSpecGroup] = {
+        alias: _OpSpecGroup(tuple(group)) for alias, group in grouped.items()
+    }
     return all_specs, by_key, by_alias
 
 

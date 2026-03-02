@@ -107,6 +107,22 @@ def _sys_handler_crud(obj: Optional[object], ctx: Any) -> None:
     On total miss, raises SystemStepError.
     """
     try:
+        acquired_here = False
+        if getattr(ctx, "db", None) is None:
+            try:
+                from ..mapping import engine_resolver as _resolver
+
+                db, release = _resolver.acquire(
+                    router=getattr(ctx, "router", None) or getattr(ctx, "app", None),
+                    model=getattr(ctx, "model", None),
+                    op_alias=getattr(ctx, "op", None),
+                )
+                setattr(ctx, "db", db)
+                _ensure_temp(ctx)["__sys_db_release__"] = release
+                acquired_here = True
+            except Exception:
+                log.debug("system: handler could not auto-acquire db", exc_info=True)
+
         # 1) Adapter-installed
         if callable(INSTALLED.handler):
             return INSTALLED.handler(obj, ctx)
@@ -141,6 +157,31 @@ def _sys_handler_crud(obj: Optional[object], ctx: Any) -> None:
         raise
     except Exception as e:
         raise _err.SystemStepError("Handler execution failed.", cause=e)
+    finally:
+        if acquired_here and getattr(ctx, "db", None) is None:
+            release = _ensure_temp(ctx).pop("__sys_db_release__", None)
+            if callable(release):
+                try:
+                    release()
+                except Exception:
+                    log.debug(
+                        "system: db release failed during handler cleanup",
+                        exc_info=True,
+                    )
+
+
+def can_resolve_handler(model: Any | None = None) -> bool:
+    """Return True when a CRUD handler can be resolved without request-local context."""
+    if callable(INSTALLED.handler):
+        return True
+    mdl = model
+    if mdl is not None:
+        runtime_handler = getattr(getattr(mdl, "runtime", None), "handler", None)
+        if callable(runtime_handler):
+            return True
+        if callable(getattr(mdl, "handler", None)):
+            return True
+    return False
 
 
 async def _sys_tx_commit(_obj: Optional[object], ctx: Any) -> None:
@@ -184,6 +225,14 @@ async def _sys_tx_commit(_obj: Optional[object], ctx: Any) -> None:
         raise _err.SystemStepError("Failed to commit transaction.", cause=e)
     finally:
         ctx.temp["__sys_tx_open__"] = False
+        release = ctx.temp.pop("__sys_db_release__", None)
+        if callable(release):
+            try:
+                release()
+            except Exception:
+                log.debug(
+                    "system: db release failed during commit cleanup", exc_info=True
+                )
         log.debug("system: commit_tx exit")
 
 
@@ -205,6 +254,16 @@ def run_rollback(ctx: Any, err: BaseException | None = None) -> None:
                 log.debug("system: rollback via ctx.session.rollback().")
     except Exception as e:  # Never mask the original error; log only.
         log.exception("system: rollback failed: %s", e)
+    finally:
+        tmp = _ensure_temp(ctx)
+        release = tmp.pop("__sys_db_release__", None)
+        if callable(release):
+            try:
+                release()
+            except Exception:
+                log.debug(
+                    "system: db release failed during rollback cleanup", exc_info=True
+                )
 
 
 # ──────────────────────────────────────────────────────────────────────────────

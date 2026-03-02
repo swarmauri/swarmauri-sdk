@@ -2,10 +2,10 @@ import inspect
 
 import httpx
 import pytest
-from tigrbl import Base, TigrblApp, hook_ctx, TigrblRouter
+from tigrbl import TableBase, TigrblApp, hook_ctx, TigrblRouter
 
-from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl.engine.shortcuts import mem
+from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -14,7 +14,7 @@ from tigrbl.types import Column, String
 async def test_diagnostics_hookz_reports_hooks():
     """Test diagnostics hookz reports hooks."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_hookz"
         __allow_unmapped__ = True
 

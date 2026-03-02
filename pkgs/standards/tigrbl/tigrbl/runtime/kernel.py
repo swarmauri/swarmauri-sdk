@@ -26,10 +26,38 @@ from typing import (
 
 from .executor import _invoke, _Ctx
 from . import events as _ev, ordering as _ordering, system as _sys
-from ..op.types import PHASES, StepFn
-from ..column.mro_collect import mro_collect_columns
+from ..runtime.hook_types import PHASES, StepFn
+from ..mapping.column_mro_collect import mro_collect_columns
 
 logger = logging.getLogger(__name__)
+
+
+def _table_iter(app: Any) -> Sequence[type]:
+    tables = getattr(app, "tables", None)
+    if isinstance(tables, dict):
+        return tuple(v for v in tables.values() if isinstance(v, type))
+    return ()
+
+
+def _opspecs(model: type) -> Sequence[Any]:
+    return getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ()) or ()
+
+
+def _label_callable(fn: Any) -> str:
+    name = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
+    module = getattr(fn, "__module__", None)
+    return f"{module}.{name}" if module else name
+
+
+def _label_step(step: Any, phase: str) -> str:
+    label = getattr(step, "__tigrbl_label", None)
+    if isinstance(label, str) and "@" in label:
+        return label
+    module = getattr(step, "__module__", "") or ""
+    name = getattr(step, "__name__", "") or ""
+    if module.startswith("tigrbl.core.crud") and name:
+        return f"hook:wire:tigrbl:core:crud:ops:{name}@{phase}"
+    return f"hook:wire:{_label_callable(step).replace('.', ':')}@{phase}"
 
 
 K = TypeVar("K")
@@ -230,6 +258,7 @@ def _inject_atoms(
     atoms: Iterable[_DiscoveredAtom],
     *,
     persistent: bool,
+    model: type | None = None,
 ) -> None:
     order = {name: i for i, name in enumerate(_ev.all_events_ordered())}
 
@@ -249,9 +278,13 @@ def _inject_atoms(
             info = _ev.get_anchor_info(anchor)
         except Exception:
             continue
-        if info.phase in ("START_TX", "END_TX"):
-            continue
         if not persistent and info.persist_tied:
+            continue
+        if (
+            info.name == _ev.SYS_HANDLER_PERSISTENCE
+            and chains.get("HANDLER")
+            and not _sys.can_resolve_handler(model)
+        ):
             continue
         phase_atoms.setdefault(info.phase, []).append(_wrap_atom(run, anchor=anchor))
 
@@ -323,29 +356,18 @@ class Kernel:
             persist_policy != "skip" and target not in {"read", "list"}
         ) or _is_persistent(chains)
         try:
-            _inject_atoms(chains, self._atoms() or (), persistent=persistent)
+            _inject_atoms(
+                chains,
+                self._atoms() or (),
+                persistent=persistent,
+                model=model,
+            )
         except Exception:
             logger.exception(
                 "kernel: atom injection failed for %s.%s",
                 getattr(model, "__name__", model),
                 alias,
             )
-        if persistent:
-            try:
-                start_anchor, start_run = _sys.get("txn", "begin")
-                end_anchor, end_run = _sys.get("txn", "commit")
-                chains.setdefault(start_anchor, []).append(
-                    _wrap_atom(start_run, anchor=start_anchor)
-                )
-                chains.setdefault(end_anchor, []).append(
-                    _wrap_atom(end_run, anchor=end_anchor)
-                )
-            except Exception:
-                logger.exception(
-                    "kernel: failed to inject txn system steps for %s.%s",
-                    getattr(model, "__name__", model),
-                    alias,
-                )
         for ph in PHASES:
             chains.setdefault(ph, [])
         return chains
@@ -395,11 +417,6 @@ class Kernel:
         with self._lock:
             if self._primed.get(app):
                 return
-            from ..system.diagnostics.utils import (
-                table_iter as _table_iter,
-                opspecs as _opspecs,
-            )
-
             models = list(_table_iter(app))
 
             # 1) per-model specs once
@@ -437,7 +454,6 @@ class Kernel:
         try:
             specs = self._specs_cache.get(model)
             from types import SimpleNamespace
-            from ..system.diagnostics.utils import opspecs as _opspecs
 
             found = False
             for sp in _opspecs(model):
@@ -564,12 +580,6 @@ class Kernel:
     def _build_kernelz_payload_internal(
         self, app: Any
     ) -> Dict[str, Dict[str, List[str]]]:
-        from ..system.diagnostics.utils import (
-            table_iter as _table_iter,
-            opspecs as _opspecs,
-            label_hook as _label_hook,
-        )
-
         start = time.monotonic()
         out: Dict[str, Dict[str, List[str]]] = {}
         for model in _table_iter(app):
@@ -592,7 +602,7 @@ class Kernel:
                         seq.append(
                             f"{out_phase}:{lbl}"
                             if isinstance(lbl, str)
-                            else f"{out_phase}:{_label_hook(step, ph)}"
+                            else f"{out_phase}:{_label_step(step, ph)}"
                         )
 
                     if ph == "END_TX" and persist:

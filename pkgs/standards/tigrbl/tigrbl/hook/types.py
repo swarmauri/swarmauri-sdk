@@ -1,13 +1,9 @@
-"""Hook type definitions for Tigrbl v3."""
+"""Hook type definitions exposed without importing runtime package internals."""
 
 from __future__ import annotations
 
 from enum import Enum
 from typing import Any, Awaitable, Callable, Literal, Tuple
-
-# ---------------------------------------------------------------------------
-# Runtime phases (align with runtime/executor.py)
-# ---------------------------------------------------------------------------
 
 
 class PHASE(str, Enum):
@@ -57,20 +53,8 @@ HookPhase = Literal[
 ]
 
 PHASES: Tuple[HookPhase, ...] = tuple(p.value for p in PHASE)
-
-# ---------------------------------------------------------------------------
-# Hook function types
-# ---------------------------------------------------------------------------
-
 Ctx = Any
 StepFn = Callable[[Ctx], Awaitable[Any] | Any]
 HookPredicate = Callable[[Any], bool]
 
-__all__ = [
-    "PHASE",
-    "HookPhase",
-    "PHASES",
-    "Ctx",
-    "StepFn",
-    "HookPredicate",
-]
+__all__ = ["PHASE", "HookPhase", "PHASES", "Ctx", "StepFn", "HookPredicate"]

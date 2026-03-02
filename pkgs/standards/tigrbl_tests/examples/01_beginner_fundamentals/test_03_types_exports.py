@@ -2,7 +2,7 @@ import logging
 import re
 
 import pytest
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, Integer, JSON, String, Text
 
@@ -18,7 +18,7 @@ def test_types_exports_cover_column_basics():
     """
 
     # Setup: define a minimal gallery model using exported types.
-    class Gallery(Base, GUIDPk):
+    class Gallery(TableBase, GUIDPk):
         __tablename__ = "type_gallery_basic"
         __allow_unmapped__ = True
         text = Column(Text)
@@ -42,7 +42,7 @@ def test_types_exports_support_json_columns():
     """
 
     # Setup: declare a model that includes a JSON column.
-    class Gallery(Base, GUIDPk):
+    class Gallery(TableBase, GUIDPk):
         __tablename__ = "type_gallery_json"
         __allow_unmapped__ = True
         payload = Column(JSON)
@@ -62,7 +62,7 @@ def test_types_exports_allow_json_column_name_without_shadowing_json_type():
     when names could collide with framework attributes.
     """
 
-    class Gallery(Base, GUIDPk):
+    class Gallery(TableBase, GUIDPk):
         __tablename__ = "type_gallery_json_shadow"
         __allow_unmapped__ = True
         json_data = Column("json", JSON)
@@ -81,7 +81,7 @@ def test_types_exports_warn_when_json_attribute_shadows_basemodel_json():
 
     with pytest.warns(UserWarning) as captured_warnings:
 
-        class Gallery(Base, GUIDPk):
+        class Gallery(TableBase, GUIDPk):
             __tablename__ = "type_gallery_json_warning"
             __allow_unmapped__ = True
             json = Column(JSON)

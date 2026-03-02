@@ -1,5 +1,5 @@
-from tigrbl import Base, TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblApp
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -15,7 +15,7 @@ def test_app_includes_model_and_registry():
     """
 
     # Setup: define a model and a Tigrbl API instance.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonapp"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
@@ -41,7 +41,7 @@ def test_app_model_map_tracks_the_model_class():
     """
 
     # Setup: declare a model and API instance.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonappregistry"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)

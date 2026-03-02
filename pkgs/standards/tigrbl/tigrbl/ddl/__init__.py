@@ -5,7 +5,7 @@ import inspect
 from pathlib import Path
 from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
 
-from ..engine import resolver as _resolver
+from ..mapping import engine_resolver as _resolver
 
 try:  # pragma: no cover
     from sqlalchemy import event, text
@@ -16,6 +16,14 @@ except Exception:  # pragma: no cover
     Engine = object  # type: ignore
 
 from ..config.constants import __SAFE_IDENT__
+
+
+class _NoopAwaitable:
+    def __await__(self):
+        if False:
+            yield None
+        return None
+
 
 __all__ = [
     "register_sqlite_attach",
@@ -205,7 +213,7 @@ def _create_all_on_bind(
     tables = list(tables or [])
 
     if not hasattr(engine, "dialect"):
-        return
+        return _NoopAwaitable()
 
     schema_names = set(schemas or [])
     for t in tables:
@@ -256,6 +264,30 @@ def initialize(
         elif hasattr(obj, "__table__"):
             ts = [obj.__table__]  # type: ignore[attr-defined]
 
+    provider_tables: list[tuple[Any, list[Any]]] = []
+    model_registry = getattr(obj, "tables", None)
+    model_values = (
+        tuple(model_registry.values())
+        if isinstance(model_registry, Mapping)
+        else tuple(model_registry or ())
+    )
+    if model_values:
+        grouped: dict[int, tuple[Any, list[Any]]] = {}
+        for model in model_values:
+            table = getattr(model, "__table__", None)
+            if table is None:
+                continue
+            prov_for_model = _resolver.resolve_provider(router=obj, model=model)
+            if prov_for_model is None:
+                continue
+            key = id(prov_for_model)
+            entry = grouped.get(key)
+            if entry is None:
+                grouped[key] = (prov_for_model, [table])
+            else:
+                entry[1].append(table)
+        provider_tables = list(grouped.values())
+
     kwargs: Dict[str, Any] = {}
     if hasattr(obj, "_collect_tables"):
         kwargs["router"] = obj
@@ -263,21 +295,11 @@ def initialize(
         kwargs["model"] = obj
 
     prov = _resolver.resolve_provider(**kwargs)
-    if prov is None:
+    if prov is None and not provider_tables:
         raise ValueError("Engine provider is not configured")
 
-    def _bootstrap(db):
-        bind = db.get_bind() if hasattr(db, "get_bind") else db
-        _create_all_on_bind(
-            bind,
-            schemas=schemas,
-            sqlite_attachments=sqlite_attachments,
-            tables=ts,
-        )
-
-        # Keep ``obj.tables`` as a model registry. Runtime routing, docs generation,
-        # and diagnostics all read that mapping expecting model classes, not
-        # SQLAlchemy ``Table`` objects.
+    if not provider_tables and prov is not None:
+        provider_tables = [(prov, ts)]
 
     def _close_without_loop(db):
         close = getattr(db, "close", None)
@@ -290,7 +312,7 @@ def initialize(
     def _close_with_loop(db):
         close = getattr(db, "close", None)
         if not callable(close):
-            return None
+            return _NoopAwaitable()
         out = close()
         if inspect.isawaitable(out):
             loop = asyncio.get_running_loop()
@@ -301,13 +323,20 @@ def initialize(
         asyncio.get_running_loop()
     except RuntimeError:
         # No running event loop; fall back to fully synchronous bootstrap
-        db = next(prov.get_db())
-        try:
-            _bootstrap(db)
-        finally:
-            _close_without_loop(db)
+        for active_provider, active_tables in provider_tables:
+            db = next(active_provider.get_db())
+            try:
+                bind = db.get_bind() if hasattr(db, "get_bind") else db
+                _create_all_on_bind(
+                    bind,
+                    schemas=schemas,
+                    sqlite_attachments=sqlite_attachments,
+                    tables=active_tables,
+                )
+            finally:
+                _close_without_loop(db)
         setattr(obj, "_ddl_executed", True)
-        return
+        return _NoopAwaitable()
     else:
         # If we're already inside an event loop but the provider is synchronous
         # (i.e. ``get_db`` is neither coroutine nor async generator), we can
@@ -317,57 +346,66 @@ def initialize(
         if not inspect.iscoroutinefunction(
             prov.get_db
         ) and not inspect.isasyncgenfunction(prov.get_db):
-            db = next(prov.get_db())
-            pending_close = None
-            try:
-                _bootstrap(db)
-            finally:
-                pending_close = _close_with_loop(db)
+            pending_closes = []
+            for active_provider, active_tables in provider_tables:
+                db = next(active_provider.get_db())
+                try:
+                    bind = db.get_bind() if hasattr(db, "get_bind") else db
+                    _create_all_on_bind(
+                        bind,
+                        schemas=schemas,
+                        sqlite_attachments=sqlite_attachments,
+                        tables=active_tables,
+                    )
+                finally:
+                    pending = _close_with_loop(db)
+                    if pending is not None:
+                        pending_closes.append(pending)
             setattr(obj, "_ddl_executed", True)
-
-            class _Completed:
-                def __init__(self, pending):
-                    self._pending = pending
-
-                def __await__(self):  # pragma: no cover - trivial
-                    if self._pending is None:
-                        if False:
-                            yield None
-                        return None
-
-                    async def _wait_pending():
-                        await self._pending
-                        return None
-
-                    return _wait_pending().__await__()
-
-            return _Completed(pending_close)
+            if pending_closes:
+                return asyncio.gather(*pending_closes)
+            return _NoopAwaitable()
 
         async def _inner():
-            if inspect.isasyncgenfunction(prov.get_db):
-                async for adb in prov.get_db():
-                    await adb.run_sync(_bootstrap)
-                    break
-            else:
-                gen = prov.get_db()
-                db = next(gen)
-                try:
-                    if hasattr(db, "run_sync"):
-                        await db.run_sync(_bootstrap)
-                    else:
-                        bind = db.get_bind()
-                        await asyncio.to_thread(
-                            _create_all_on_bind,
-                            bind,
-                            schemas=schemas,
-                            sqlite_attachments=sqlite_attachments,
-                            tables=ts,
+            for active_provider, active_tables in provider_tables:
+                if inspect.isasyncgenfunction(active_provider.get_db):
+                    async for adb in active_provider.get_db():
+                        await adb.run_sync(
+                            lambda sync_session: _create_all_on_bind(
+                                sync_session.get_bind(),
+                                schemas=schemas,
+                                sqlite_attachments=sqlite_attachments,
+                                tables=active_tables,
+                            )
                         )
-                finally:
+                        break
+                else:
+                    gen = active_provider.get_db()
+                    db = next(gen)
                     try:
-                        next(gen)
-                    except StopIteration:
-                        pass
+                        if hasattr(db, "run_sync"):
+                            await db.run_sync(
+                                lambda sync_session: _create_all_on_bind(
+                                    sync_session.get_bind(),
+                                    schemas=schemas,
+                                    sqlite_attachments=sqlite_attachments,
+                                    tables=active_tables,
+                                )
+                            )
+                        else:
+                            bind = db.get_bind()
+                            await asyncio.to_thread(
+                                _create_all_on_bind,
+                                bind,
+                                schemas=schemas,
+                                sqlite_attachments=sqlite_attachments,
+                                tables=active_tables,
+                            )
+                    finally:
+                        try:
+                            next(gen)
+                        except StopIteration:
+                            pass
             setattr(obj, "_ddl_executed", True)
 
         return _inner()

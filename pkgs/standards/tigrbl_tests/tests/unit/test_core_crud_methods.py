@@ -5,17 +5,18 @@ from typing import Any, Mapping
 import pytest
 from tigrbl.core import crud
 from tigrbl.core.crud import helpers
-from tigrbl.engine.shortcuts import engine, mem
-from tigrbl.specs import IO, S, F, acol
+from tigrbl.shortcuts.engine import engine
+from tigrbl.shortcuts.engine import mem
+from tigrbl._spec import IO, S, F, acol
 from tigrbl.types import Column, Integer, SAEnum, SimpleNamespace, String
 from sqlalchemy import select
 from sqlalchemy.orm import declarative_base
 
 
-Base = declarative_base()
+TableBase = declarative_base()
 
 
-class Widget(Base):
+class Widget(TableBase):
     __tablename__ = "widgets"
     id = acol(
         storage=S(type_=Integer, primary_key=True, autoincrement=True),
@@ -60,7 +61,7 @@ class Status(enum.Enum):
     TWO = "two"
 
 
-class EnumModel(Base):
+class EnumModel(TableBase):
     __tablename__ = "enummodel"
     id = Column(Integer, primary_key=True)
     status = Column(SAEnum(Status))
@@ -70,7 +71,7 @@ class EnumModel(Base):
 def session():
     eng = engine(mem(async_=False))
     raw_engine, maker = eng.raw()
-    Base.metadata.create_all(raw_engine)
+    TableBase.metadata.create_all(raw_engine)
     with maker() as s:
         yield s
 

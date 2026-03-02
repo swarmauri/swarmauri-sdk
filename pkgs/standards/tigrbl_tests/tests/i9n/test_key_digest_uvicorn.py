@@ -3,27 +3,26 @@ from uuid import uuid4
 import httpx
 import pytest
 import pytest_asyncio
-
+from sqlalchemy import inspect
 from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.orm.mixins import (
-    GUIDPk,
     Created,
+    GUIDPk,
+    KeyDigest,
     LastUsed,
     ValidityWindow,
-    KeyDigest,
     tzutcnow,
     tzutcnow_plus_day,
 )
 from tigrbl.orm.mixins.utils import CRUD_IO
-from tigrbl.orm.tables._base import Base
-from tigrbl.specs import F, S, acol
+from tigrbl._spec import F, S, acol
+from tigrbl.orm.tables import TableBase
 from tigrbl.types import Mapped, String
-from sqlalchemy import inspect
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
 
-class ApiKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):
+class ApiKey(TableBase, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):
     __abstract__ = False
     __tablename__ = "apikeys_uvicorn"
     __resource__ = "apikey"

@@ -8,7 +8,7 @@ import uuid
 from sqlalchemy.types import TypeDecorator
 
 # ── Local Package ───────────────────────────────────────────────────────
-from ..deps.sqlalchemy import String, _PgUUID
+from ..vendor.sqlalchemy import String, _PgUUID
 
 
 class PgUUID(_PgUUID):

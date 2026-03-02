@@ -5,13 +5,12 @@ Tests all hook phases and their behavior across CRUD, nested CRUD, and RPC opera
 """
 
 import pytest
-
-from tigrbl import Base, TigrblApp
-from tigrbl.hook import hook_ctx
-from tigrbl.engine.shortcuts import mem
-from tigrbl.orm.mixins import GUIDPk
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String
+from tigrbl import TableBase, TigrblApp
+from tigrbl.shortcuts.engine import mem
+from tigrbl.decorators.hook import hook_ctx
+from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import PgUUID
 
 
@@ -38,13 +37,13 @@ async def test_hook_phases_execution_order(db_mode):
     """Test that all hook phases execute in the correct order."""
 
     execution_order: list[str] = []
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
@@ -123,13 +122,13 @@ async def test_hook_parity_crud_vs_rpc(db_mode):
 
     crud_hooks: list[str] = []
     rpc_hooks: list[str] = []
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
@@ -177,13 +176,13 @@ async def test_hook_error_handling(db_mode):
     """Test hook behavior during error conditions."""
 
     error_hooks: list[str] = []
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
@@ -223,13 +222,13 @@ async def test_hook_early_termination_and_cleanup(db_mode):
     """Test early termination when a hook raises and ensure cleanup."""
 
     execution_order: list[str] = []
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
@@ -296,13 +295,13 @@ async def test_hook_context_modification(db_mode):
     """Test that hooks can modify context and affect subsequent hooks."""
 
     hook_executions: list[str] = []
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
@@ -346,7 +345,7 @@ async def test_catch_all_hooks(db_mode):
     """Test that catch-all hooks (no model/op specified) work correctly."""
 
     catch_all_executions: list[str] = []
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
     class CatchAllMixin:
         @hook_ctx(ops="*", phase="POST_COMMIT")
@@ -360,11 +359,11 @@ async def test_catch_all_hooks(db_mode):
             if method.endswith(".delete") and method not in catch_all_executions:
                 catch_all_executions.append(method)
 
-    class Tenant(CatchAllMixin, Base, GUIDPk):
+    class Tenant(CatchAllMixin, TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(CatchAllMixin, Base, GUIDPk):
+    class Item(CatchAllMixin, TableBase, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
@@ -412,13 +411,13 @@ async def test_multiple_hooks_same_phase(db_mode):
     """Test that multiple hooks for the same phase execute correctly."""
 
     executions: list[str] = []
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False

@@ -2,7 +2,8 @@ from enum import Enum
 
 import pytest
 
-from tigrbl.hook import InvalidHookPhaseError, hook_ctx
+from tigrbl.decorators.hook import hook_ctx
+from tigrbl.hook.exceptions import InvalidHookPhaseError
 from tigrbl.hook.types import PHASE
 
 

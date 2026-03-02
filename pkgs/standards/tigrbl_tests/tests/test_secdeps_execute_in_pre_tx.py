@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from tigrbl.op import OpSpec
+from tigrbl._spec import OpSpec
 from tigrbl.runtime import events as _ev
 from tigrbl.runtime import system as _sys
 from tigrbl.runtime.kernel import Kernel
@@ -87,9 +87,9 @@ async def test_secdeps_execute_before_txn_begin_and_handler(
 
         k = _kernel()
         labels = k.plan_labels(Model, alias)
-        assert labels.count(f"hook:dep:security:0@{_ev.DEP_SECURITY}") == 1
-        assert labels.count(f"hook:dep:security:1@{_ev.DEP_SECURITY}") == 1
-        assert labels.count(f"hook:dep:extra:0@{_ev.DEP_EXTRA}") == 1
+        assert labels.count(f"PRE_TX_BEGIN:hook:dep:security:0@{_ev.DEP_SECURITY}") == 1
+        assert labels.count(f"PRE_TX_BEGIN:hook:dep:security:1@{_ev.DEP_SECURITY}") == 1
+        assert labels.count(f"PRE_TX_BEGIN:hook:dep:extra:0@{_ev.DEP_EXTRA}") == 1
 
         result = await k.invoke(
             model=Model, alias=alias, db=_FakeDB(), request=None, ctx={}
@@ -102,9 +102,9 @@ async def test_secdeps_execute_before_txn_begin_and_handler(
     assert events[:3] == ["secdep_1", "secdep_2", "dep_1"]
     if target == "create":
         assert events[3] == "txn_begin"
-        assert events[-1] == "handler"
     else:
         assert "txn_begin" not in events
+    assert events[-1] == "handler"
 
 
 @pytest.mark.asyncio

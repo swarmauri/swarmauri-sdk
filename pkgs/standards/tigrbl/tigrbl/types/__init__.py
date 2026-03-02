@@ -1,10 +1,10 @@
 # ── Standard Library ─────────────────────────────────────────────────────
-from types import MethodType, SimpleNamespace
 import warnings
+from types import MethodType, SimpleNamespace
 from uuid import uuid4, UUID
 
 # ── Third-party Dependencies (via deps module) ───────────────────────────
-from ..deps.sqlalchemy import (
+from ..vendor.sqlalchemy import (
     # Core SQLAlchemy
     Boolean,
     Column,
@@ -47,7 +47,7 @@ from ..deps.sqlalchemy import (
 )
 
 
-from ..deps.pydantic import (
+from ..vendor.pydantic import (
     BaseModel,
     Field,
     ValidationError,
@@ -157,26 +157,29 @@ __all__: list[str] = [
 
 
 _DEPRECATED_EXPORTS: dict[str, tuple[str, str]] = {
-    "Router": ("tigrbl.router", "Router"),
-    "Request": ("tigrbl.requests", "Request"),
+    "Router": ("tigrbl", "Router"),
+    "Request": ("tigrbl", "Request"),
     "Body": ("tigrbl.core.crud", "Body"),
     "Depends": ("tigrbl.security", "Depends"),
     "HTTPException": ("tigrbl.runtime.status", "HTTPException"),
-    "Response": ("tigrbl.responses", "Response"),
+    "Response": ("tigrbl", "Response"),
 }
 
 
 def __getattr__(name: str):
     if name in _DEPRECATED_EXPORTS:
-        module, attr = _DEPRECATED_EXPORTS[name]
+        module, _attr = _DEPRECATED_EXPORTS[name]
         warnings.warn(
             (
-                f"tigrbl.types.{name} is deprecated and will be removed in a future "
-                f"release; import '{attr}' from '{module}' instead."
+                f"tigrbl.types.{name} is deprecated and no longer exports from "
+                "tigrbl.types. "
+                f"Import it from '{module}' instead."
             ),
             DeprecationWarning,
             stacklevel=2,
         )
-        imported_module = __import__(module, fromlist=[attr])
-        return getattr(imported_module, attr)
+        raise AttributeError(
+            f"tigrbl.types.{name} no longer exports from tigrbl.types. "
+            f"Import it from '{module}' instead."
+        )
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

@@ -9,13 +9,14 @@ import httpx
 import pytest
 from tigrbl_client import TigrblClient
 
-from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, TigrblRouter, hook_ctx
-from tigrbl.engine import resolver
-from tigrbl.engine.shortcuts import mem
+from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
+from tigrbl import TableBase, TigrblApp, TigrblRouter, hook_ctx
+from tigrbl import resolver
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
-from tigrbl.specs.storage_spec import ForeignKeySpec
+from tigrbl._spec import F, IO, S
+from tigrbl.shortcuts import acol
+from tigrbl._spec import ForeignKeySpec
 from tigrbl.types import (
     Integer,
     Mapped,
@@ -31,7 +32,7 @@ from tigrbl.types import (
 async def test_document_versions_one_to_one_current_pointer() -> None:
     """Maintain a one-to-one current_version alongside a history list."""
 
-    class Document(Base, GUIDPk):
+    class Document(TableBase, GUIDPk):
         """Document model with a one-to-one pointer to the latest version."""
 
         __tablename__ = "lesson_doc_oto_documents"
@@ -115,7 +116,7 @@ async def test_document_versions_one_to_one_current_pointer() -> None:
             db.add(version_row)
             db.flush()
 
-    class DocumentVersion(Base, GUIDPk):
+    class DocumentVersion(TableBase, GUIDPk):
         """Version snapshots that also serve as the current pointer."""
 
         __tablename__ = "lesson_doc_oto_versions"

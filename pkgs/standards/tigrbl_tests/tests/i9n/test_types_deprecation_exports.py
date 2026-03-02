@@ -4,17 +4,15 @@ from importlib.metadata import version
 from pathlib import Path
 
 import pytest
-
 import tigrbl.types as types_module
 
-
 _DEPRECATED_NAMES = {
-    "Router": "tigrbl.router",
-    "Request": "tigrbl.requests",
+    "Router": "tigrbl",
+    "Request": "tigrbl",
     "Body": "tigrbl.core.crud",
     "Depends": "tigrbl.security",
     "HTTPException": "tigrbl.runtime.status",
-    "Response": "tigrbl.responses",
+    "Response": "tigrbl",
 }
 
 

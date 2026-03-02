@@ -17,10 +17,9 @@ from typing import (
 
 from pydantic import BaseModel
 
-from ..op import OpSpec
-from ..op.types import PHASES
+from .._spec import OpSpec
+from ..runtime.hook_types import PHASES
 from ..runtime.status import HTTPException
-from ..transport.dispatcher import dispatch_operation
 
 
 logger = logging.getLogger("uvicorn")
@@ -115,11 +114,12 @@ def _get_phase_chains(
 ) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
     """Backward-compatible phase chain accessor used by other mapping modules."""
     try:
-        from ..transport.dispatcher import (
-            _get_phase_chains as _transport_get_phase_chains,
-        )
+        from ..runtime.kernel.core import Kernel
 
-        return _transport_get_phase_chains(model, alias)
+        return {
+            phase: list(steps)
+            for phase, steps in (Kernel().build_op(model, alias) or {}).items()
+        }
     except Exception:
         hooks_root = _ns(model, "hooks")
         alias_ns = getattr(hooks_root, alias, None)
@@ -254,13 +254,26 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
         return _ensure_jsonable(result)
 
     try:
-        if target == "list" and isinstance(result, (list, tuple)):
-            return [
-                out_model.model_validate(x).model_dump(
-                    exclude_none=False, by_alias=True
-                )
-                for x in result
-            ]
+        if target == "list":
+            if isinstance(result, Mapping):
+                items = result.get("items")
+                if isinstance(items, (list, tuple)):
+                    serialized_items = [
+                        out_model.model_validate(x).model_dump(
+                            exclude_none=False, by_alias=True
+                        )
+                        for x in items
+                    ]
+                    out = dict(result)
+                    out["items"] = serialized_items
+                    return out
+            if isinstance(result, (list, tuple)):
+                return [
+                    out_model.model_validate(x).model_dump(
+                        exclude_none=False, by_alias=True
+                    )
+                    for x in result
+                ]
         if target in {
             "bulk_create",
             "bulk_update",
@@ -296,10 +309,8 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
 
 def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]]:
     """
-    Create an async callable that:
-      1) validates payload (if schema present),
-      2) runs the executor with the model's phase chains (Kernel-preferred),
-      3) serializes the result to the expected return form.
+    Create an async callable that validates payload and returns an operation
+    envelope for the runtime gateway/executor.
 
     Signature:
         async def rpc_method(payload: Mapping | BaseModel | None = None, *, db, request=None, ctx=None) -> Any
@@ -318,10 +329,14 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         schemas_root = getattr(model, "schemas", None)
         alias_ns = getattr(schemas_root, alias, None)
         item_in_model = getattr(alias_ns, "in_item", None)
-        allowed_wrapper_keys = _allowed_wrapper_keys(model, alias, target)
-
         raw_payload = _coerce_payload(payload)
-        _reject_wrapper_keys(raw_payload, allowed_keys=allowed_wrapper_keys)
+        if (
+            isinstance(raw_payload, Mapping)
+            and set(raw_payload.keys()) == {"params"}
+            and isinstance(raw_payload.get("params"), Mapping)
+        ):
+            raw_payload = dict(raw_payload["params"])
+
         if target == "bulk_delete" and not isinstance(raw_payload, Mapping):
             raw_payload = {"ids": raw_payload}
         if (
@@ -349,7 +364,7 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
             for key, value in norm_payload.items():
                 merged_payload[key] = value
 
-        # 2) build executor context & phases
+        # 2) build execution context seed for downstream runtime execution
         base_ctx: Dict[str, Any] = dict(ctx or {})
         base_ctx.setdefault("payload", merged_payload)
         base_ctx.setdefault("db", db)
@@ -376,19 +391,18 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
             ),
         )
 
-        result = await dispatch_operation(
-            router=getattr(model, "router", None),
-            model_or_name=model,
-            alias=alias,
-            payload=base_ctx.get("payload"),
-            db=db,
-            request=request,
-            ctx=base_ctx,
-            response_serializer=lambda r: _serialize_output(model, alias, target, r),
-            rpc_mode=True,
-        )
-
-        return result
+        phases = _get_phase_chains(model, alias)
+        return {
+            "model": model,
+            "alias": alias,
+            "target": target,
+            "payload": merged_payload,
+            "db": db,
+            "request": request,
+            "ctx": base_ctx,
+            "phases": phases,
+            "serialize": lambda result: _serialize_output(model, alias, target, result),
+        }
 
     # Give the callable a nice name for introspection/logging
     _rpc_method.__name__ = f"rpc_{model.__name__}_{alias}"
@@ -425,4 +439,37 @@ def register_and_attach(
         _attach_one(model, sp)
 
 
-__all__ = ["register_and_attach"]
+async def rpc_call(
+    router: Any,
+    model_or_name: type | str,
+    method: str,
+    payload: Any = None,
+    *,
+    db: Any | None = None,
+    request: Any = None,
+    ctx: Optional[Dict[str, Any]] = None,
+) -> Any:
+    """Compatibility RPC dispatcher for direct mapping-level calls.
+
+    This helper resolves a model RPC callable and returns the generated
+    operation envelope. Runtime execution is handled by the gateway layer.
+    """
+    if isinstance(model_or_name, type):
+        model = model_or_name
+    else:
+        tables = getattr(router, "tables", {}) or {}
+        model = tables.get(model_or_name)
+
+    if model is None:
+        raise AttributeError(f"Unknown model '{model_or_name}'")
+
+    fn = getattr(getattr(model, "rpc", SimpleNamespace()), method, None)
+    if fn is None:
+        raise AttributeError(
+            f"{getattr(model, '__name__', model)} has no RPC method '{method}'"
+        )
+
+    return await fn(payload, db=db, request=request, ctx=dict(ctx or {}))
+
+
+__all__ = ["register_and_attach", "rpc_call"]

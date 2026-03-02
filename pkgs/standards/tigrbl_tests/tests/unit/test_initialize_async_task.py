@@ -3,11 +3,11 @@ import asyncio
 import pytest
 from sqlalchemy import Column, Integer
 
-from tigrbl import Base, TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblApp
+from tigrbl.shortcuts.engine import mem
 
 
-class Widget(Base):
+class Widget(TableBase):
     __tablename__ = "widgets_async_task"
 
     id = Column(Integer, primary_key=True)

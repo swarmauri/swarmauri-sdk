@@ -4,9 +4,9 @@ import pytest
 from sqlalchemy import Column, Integer
 
 from tigrbl import TigrblApp, TigrblRouter
-from tigrbl.engine import resolver as _resolver
-from tigrbl.engine.shortcuts import mem
-from tigrbl.table import Base
+from tigrbl import resolver as _resolver
+from tigrbl.shortcuts.engine import mem
+from tigrbl.orm.tables import TableBase
 
 
 class SimpleApp(TigrblApp):
@@ -24,7 +24,7 @@ class SimpleRouter(TigrblRouter):
 
 
 def test_base_app_supports_initialize():
-    class Widget(Base):
+    class Widget(TableBase):
         __tablename__ = "widgets"
 
         id = Column(Integer, primary_key=True)
@@ -44,7 +44,7 @@ def test_base_app_supports_initialize():
 
 
 def test_base_router_supports_initialize_sync():
-    class Widget(Base):
+    class Widget(TableBase):
         __tablename__ = "widgets_sync"
 
         id = Column(Integer, primary_key=True)
@@ -60,7 +60,7 @@ def test_base_router_supports_initialize_sync():
 
 @pytest.mark.asyncio
 async def test_base_router_supports_initialize_async():
-    class Gadget(Base):
+    class Gadget(TableBase):
         __tablename__ = "gadgets"
 
         id = Column(Integer, primary_key=True)

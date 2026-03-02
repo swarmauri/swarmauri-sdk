@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import uuid
 
-from tigrbl_auth.deps import (
+from tigrbl_auth.vendor import (
     Base,
     Timestamped,
     S,

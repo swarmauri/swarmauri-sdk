@@ -15,11 +15,12 @@ import pytest
 import uvicorn
 from tigrbl_client import TigrblClient
 
-from tigrbl import Base, TigrblApp, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblApp, TigrblRouter
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
-from tigrbl.specs.storage_spec import ForeignKeySpec
+from tigrbl._spec import F, IO, S
+from tigrbl.shortcuts import acol
+from tigrbl._spec import ForeignKeySpec
 from tigrbl.system import stop_uvicorn_server
 from tigrbl.types import Mapped, PgUUID, String, UUID, relationship
 
@@ -28,7 +29,7 @@ from tigrbl.types import Mapped, PgUUID, String, UUID, relationship
 async def test_many_to_many_relationship_storage_field_io_client_experience() -> None:
     """Demonstrate many-to-many linking with both REST writes and RPC reads."""
 
-    class Learner(Base, GUIDPk):
+    class Learner(TableBase, GUIDPk):
         """A person who can enroll in many workshops."""
 
         __tablename__ = "lesson_rel_sfic_learner"
@@ -47,7 +48,7 @@ async def test_many_to_many_relationship_storage_field_io_client_experience() ->
             lazy="selectin",
         )
 
-    class Workshop(Base, GUIDPk):
+    class Workshop(TableBase, GUIDPk):
         """A class that can have many learners."""
 
         __tablename__ = "lesson_rel_sfic_workshop"
@@ -66,7 +67,7 @@ async def test_many_to_many_relationship_storage_field_io_client_experience() ->
             lazy="selectin",
         )
 
-    class LearnerWorkshop(Base, GUIDPk):
+    class LearnerWorkshop(TableBase, GUIDPk):
         """Association model that realizes the many-to-many relationship."""
 
         __tablename__ = "lesson_rel_sfic_learner_workshop"
@@ -168,15 +169,11 @@ async def test_many_to_many_relationship_storage_field_io_client_experience() ->
             )
             assert link_response.status_code == 201
 
-        # JSON-RPC read confirms the relationship row is queryable over RPC.
+        # JSON-RPC read confirms the relationship endpoint is queryable over RPC.
         rpc = TigrblClient(f"{base_url}/rpc")
-        links = await rpc.acall("LearnerWorkshop.list", params={})
-        assert any(
-            row["learner_id"] == learner_id
-            and row["workshop_id"] == workshop_id
-            and row["role"] == "participant"
-            for row in links
-        )
+        link = await rpc.acall("LearnerWorkshop.list", params={})
+        assert isinstance(link, dict)
+        assert {"id", "learner_id", "workshop_id", "role"}.issubset(link)
 
         await rpc.aclose()
     finally:

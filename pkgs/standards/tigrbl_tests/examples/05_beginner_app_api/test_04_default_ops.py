@@ -1,5 +1,5 @@
-from tigrbl import Base, TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblApp
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -15,7 +15,7 @@ def test_default_ops_register_core_verbs():
     """
 
     # Setup: define a model and initialize a Tigrbl API.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonops"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
@@ -40,7 +40,7 @@ def test_default_ops_are_exposed_as_aliases():
     """
 
     # Setup: define a model and API for alias inspection.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonopsaliases"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)

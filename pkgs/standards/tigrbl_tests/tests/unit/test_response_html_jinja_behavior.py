@@ -9,7 +9,7 @@ from tigrbl import TigrblApp
 from tigrbl.mapping import rpc_call
 from tigrbl.system.diagnostics import _build_kernelz_endpoint
 from tigrbl.runtime.kernel import _default_kernel as K
-from tigrbl.responses import render_template
+from tigrbl.runtime.atoms.response.templates import render_template
 
 from .response_utils import build_model_for_response, build_model_for_jinja_response
 
@@ -78,9 +78,11 @@ async def test_diagnostics_kernelz_active_for_jinja_response(tmp_path):
     app = SimpleNamespace(tables={"Widget": Widget})
     kernelz = _build_kernelz_endpoint(app)
     data = await kernelz()
-    assert "atom:response:template@out:dump" in data["Widget"]["download"]
-    assert "atom:response:negotiate@out:dump" in data["Widget"]["download"]
-    assert "atom:response:render@out:dump" in data["Widget"]["download"]
+    assert "POST_RESPONSE:atom:response:template@out:dump" in data["Widget"]["download"]
+    assert (
+        "POST_RESPONSE:atom:response:negotiate@out:dump" in data["Widget"]["download"]
+    )
+    assert "POST_RESPONSE:atom:response:render@out:dump" in data["Widget"]["download"]
 
 
 # 5. Kernel state

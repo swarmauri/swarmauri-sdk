@@ -7,9 +7,9 @@ from tigrbl.runtime.kernel import (
     OpView,
     _default_kernel as K,
 )
-from tigrbl.specs import S, acol
-from tigrbl.column.storage_spec import ForeignKeySpec, StorageTransform
-from tigrbl.orm.tables import Base
+from tigrbl._spec import S, acol
+from tigrbl._spec import ForeignKeySpec, StorageTransform
+from tigrbl.orm.tables import TableBase
 from sqlalchemy import Integer, String, text
 from sqlalchemy.orm import Mapped
 
@@ -18,7 +18,7 @@ from sqlalchemy.orm import Mapped
 
 
 def test_type_spec_sets_column_type():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "type_spec"
         __allow_unmapped__ = True
 
@@ -32,7 +32,7 @@ def test_type_spec_sets_column_type():
 
 
 def test_nullable_false_sets_column_non_nullable():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "nullable_spec"
         __allow_unmapped__ = True
 
@@ -46,7 +46,7 @@ def test_nullable_false_sets_column_non_nullable():
 
 
 def test_unique_sets_column_unique():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "unique_spec"
         __allow_unmapped__ = True
 
@@ -60,7 +60,7 @@ def test_unique_sets_column_unique():
 
 
 def test_index_creates_index_on_column():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "index_spec"
         __allow_unmapped__ = True
 
@@ -76,7 +76,7 @@ def test_index_creates_index_on_column():
 
 
 def test_primary_key_flag_sets_pk():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "pk_spec"
         __allow_unmapped__ = True
 
@@ -89,7 +89,7 @@ def test_primary_key_flag_sets_pk():
 
 
 def test_autoincrement_flag_propagates():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "ai_spec"
         __allow_unmapped__ = True
 
@@ -104,7 +104,7 @@ def test_autoincrement_flag_propagates():
 
 
 def test_default_value_is_assigned():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "default_spec"
         __allow_unmapped__ = True
 
@@ -121,7 +121,7 @@ def test_onupdate_callable_is_set():
     def bump():
         return 1
 
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "onupdate_spec"
         __allow_unmapped__ = True
 
@@ -135,7 +135,7 @@ def test_onupdate_callable_is_set():
 
 
 def test_server_default_clause_attached():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "server_default_spec"
         __allow_unmapped__ = True
 
@@ -150,7 +150,7 @@ def test_server_default_clause_attached():
 
 
 def test_refresh_on_return_preserved_in_spec():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "refresh_spec"
         __allow_unmapped__ = True
 
@@ -167,7 +167,7 @@ def test_refresh_on_return_preserved_in_spec():
 def test_transform_applied_during_persist():
     transform = StorageTransform(to_stored=lambda v, ctx: v.upper())
 
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "transform_spec"
         __allow_unmapped__ = True
 
@@ -201,13 +201,13 @@ def test_transform_applied_during_persist():
 
 
 def test_foreign_key_spec_creates_fk():
-    class Parent(Base):
+    class Parent(TableBase):
         __tablename__ = "parent_spec"
         __allow_unmapped__ = True
 
         id: Mapped[int] = acol(storage=S(type_=Integer, primary_key=True))
 
-    class Child(Base):
+    class Child(TableBase):
         __tablename__ = "child_spec"
         __allow_unmapped__ = True
 
@@ -224,7 +224,7 @@ def test_foreign_key_spec_creates_fk():
 
 
 def test_check_constraint_attached():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "check_spec"
         __allow_unmapped__ = True
 
@@ -239,7 +239,7 @@ def test_check_constraint_attached():
 
 
 def test_comment_is_set_on_column():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "comment_spec"
         __allow_unmapped__ = True
 

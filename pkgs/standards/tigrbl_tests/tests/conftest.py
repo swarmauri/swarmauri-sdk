@@ -1,13 +1,17 @@
 import pytest
 import pytest_asyncio
-from tigrbl import TigrblApp, Base
+import contextlib
+import os
+import tempfile
+from tigrbl import TigrblApp, TableBase
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
-from tigrbl.specs import F, IO, S, acol
-from tigrbl.column.storage_spec import StorageTransform
+from tigrbl._spec import F, IO, S
+from tigrbl.shortcuts import acol
+from tigrbl._spec import StorageTransform
 from tigrbl.schema import builder as v3_builder
 from tigrbl.runtime import kernel as runtime_kernel
-from tigrbl.engine.shortcuts import mem
-from tigrbl.engine import resolver as _resolver
+from tigrbl.shortcuts.engine import mem, sqlitef
+from tigrbl import resolver as _resolver
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
@@ -80,7 +84,7 @@ _patch_httpx_asgi_transport_sync_router()
 
 def _reset_tigrbl_state() -> None:
     """Reset shared tigrbl state between test modules and tests."""
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     v3_builder._SchemaCache.clear()
     runtime_kernel._default_kernel = runtime_kernel.Kernel()
     _resolver.reset(dispose=True)
@@ -178,7 +182,7 @@ def create_test_app():
     """Factory fixture to create initialized app instances for single-model tests."""
 
     def _create_app(model_class):
-        Base.metadata.clear()
+        TableBase.metadata.clear()
         app = TigrblApp(engine=mem(async_=False))
         app.include_table(model_class)
         app.initialize()
@@ -193,7 +197,7 @@ def create_test_router():
 
     def _create_router(model_class):
         """Create Tigrbl instance with a single model for testing."""
-        Base.metadata.clear()
+        TableBase.metadata.clear()
         app = TigrblApp(engine=mem(async_=False))
         app.include_table(model_class)
         app.initialize()
@@ -207,7 +211,7 @@ async def create_test_router_async():
     """Factory fixture to create async Tigrbl instances for testing individual models."""
 
     def _create_app_async(model_class):
-        Base.metadata.clear()
+        TableBase.metadata.clear()
         app = TigrblApp(engine=mem())
         app.include_table(model_class)
         return app
@@ -233,7 +237,7 @@ def test_models():
             attrs.update(extra_fields)
 
         # Create the model class dynamically
-        model_class = type(f"Test{name}", (Base,) + mixins, attrs)
+        model_class = type(f"Test{name}", (TableBase,) + mixins, attrs)
         return model_class
 
     return _create_model
@@ -242,9 +246,9 @@ def test_models():
 @pytest_asyncio.fixture()
 async def router_client(db_mode):
     """Main fixture for integration tests with Tenant and Item models."""
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = acol(
             storage=S(type_=String, nullable=False),
@@ -257,7 +261,7 @@ async def router_client(db_mode):
             ),
         )
 
-    class Item(Base, GUIDPk, BulkCapable):
+    class Item(TableBase, GUIDPk, BulkCapable):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
@@ -268,8 +272,11 @@ async def router_client(db_mode):
 
     app = TigrblApp()
 
+    db_file: tempfile.NamedTemporaryFile | None = None
     if db_mode == "async":
-        app = TigrblApp(engine=mem())
+        db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        db_file.close()
+        app = TigrblApp(engine=sqlitef(db_file.name, async_=True))
         app.include_tables([Tenant, Item])
         await app.initialize()
 
@@ -282,7 +289,13 @@ async def router_client(db_mode):
     transport = ASGITransport(app=app)
 
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, app, Item
+    try:
+        yield client, app, Item
+    finally:
+        await client.aclose()
+        if db_file is not None:
+            with contextlib.suppress(OSError):
+                os.unlink(db_file.name)
 
 
 @pytest_asyncio.fixture()
@@ -309,9 +322,9 @@ def sample_item_data():
 
 @pytest_asyncio.fixture()
 async def router_client_v3():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Widget(Base):
+    class Widget(TableBase):
         __tablename__ = "widgets"
         __allow_unmapped__ = True
 

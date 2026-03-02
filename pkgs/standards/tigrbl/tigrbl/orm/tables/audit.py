@@ -2,13 +2,13 @@
 import datetime as dt
 from uuid import UUID
 
-from . import Base
+from . import TableBase
 from ..mixins import GUIDPk, Timestamped
 from ...specs import IO, F, acol, S
 from ...types import DateTime, Integer, String, PgUUID, Mapped
 
 
-class Change(Base, GUIDPk, Timestamped):
+class Change(TableBase, GUIDPk, Timestamped):
     __tablename__ = "changes"
 
     seq: Mapped[int] = acol(

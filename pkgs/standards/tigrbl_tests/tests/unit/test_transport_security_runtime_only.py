@@ -8,7 +8,6 @@ import tigrbl
 def test_transport_modules_do_not_execute_security_dependencies() -> None:
     root = Path(tigrbl.__file__).resolve().parent
     targets = [
-        root / "transport" / "dispatcher.py",
         root / "mapping" / "rest" / "router.py",
         root / "mapping" / "rest" / "routing.py",
     ]

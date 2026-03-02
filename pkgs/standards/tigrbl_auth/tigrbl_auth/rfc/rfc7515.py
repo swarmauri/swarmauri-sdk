@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Final, Mapping
 
-from ..deps import JWAAlg, JwsSignerVerifier
+from ..vendor import JWAAlg, JwsSignerVerifier
 
 from ..runtime_cfg import settings
 

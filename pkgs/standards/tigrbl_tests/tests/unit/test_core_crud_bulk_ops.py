@@ -3,13 +3,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
 
 from tigrbl.core import crud
-from tigrbl.specs import F, IO, S, acol
+from tigrbl._spec import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.types import Integer, Session, String
 
-Base = declarative_base()
+TableBase = declarative_base()
 
 
-class Widget(Base):
+class Widget(TableBase):
     __tablename__ = "widgets"
     id = acol(
         storage=S(type_=Integer, primary_key=True, autoincrement=True),
@@ -52,7 +53,7 @@ class Widget(Base):
 @pytest.fixture()
 def session():
     engine = create_engine("sqlite:///:memory:")
-    Base.metadata.create_all(engine)
+    TableBase.metadata.create_all(engine)
     with Session(engine) as s:
         yield s
 

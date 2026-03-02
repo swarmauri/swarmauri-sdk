@@ -27,8 +27,8 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Sequence
 
-from ...router import Router
-from ...security import Depends
+from ..._concrete._router import Router
+from ... import Depends
 
 
 def _norm_prefix(p: Optional[str]) -> str:

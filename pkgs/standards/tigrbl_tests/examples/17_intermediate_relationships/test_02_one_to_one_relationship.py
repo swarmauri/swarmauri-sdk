@@ -7,9 +7,9 @@ import inspect
 import httpx
 import pytest
 
-from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
+from tigrbl import TableBase, TigrblApp, TigrblRouter
+from tigrbl.shortcuts.engine import mem
 from tigrbl.types import Column, ForeignKey, Integer, String, relationship
 
 
@@ -18,7 +18,7 @@ async def test_one_to_one_relationship_via_rest() -> None:
     """Show a one-to-one relationship using REST endpoints."""
 
     # Step 1: Define the user with a single profile relationship.
-    class User(Base):
+    class User(TableBase):
         __tablename__ = "lesson_rel_user"
         __allow_unmapped__ = True
 
@@ -28,7 +28,7 @@ async def test_one_to_one_relationship_via_rest() -> None:
         profile = relationship("Profile", back_populates="user", uselist=False)
 
     # Step 2: Define the profile with a unique foreign key.
-    class Profile(Base):
+    class Profile(TableBase):
         __tablename__ = "lesson_rel_profile"
         __allow_unmapped__ = True
 

@@ -1,16 +1,16 @@
 from __future__ import annotations
 from types import SimpleNamespace
-import json
 import pytest
 
+from tigrbl._concrete import Body
 from tigrbl.mapping import rpc_call
 
 from .response_utils import (
     RESPONSE_KINDS,
+    build_model_for_jinja_response,
     build_model_for_response,
     build_model_for_response_non_alias,
     build_ping_model,
-    build_model_for_jinja_response,
 )
 
 
@@ -29,9 +29,9 @@ async def test_response_rpc_alias_table(kind, tmp_path):
     app = SimpleNamespace(tables={"Widget": Widget})
     result = await rpc_call(app, Widget, "download", {}, db=SimpleNamespace())
     if kind == "auto":
-        assert json.loads(result["body"]) == {"data": {"pong": True}, "ok": True}
+        assert Body(result["body"]).json() == {"data": {"pong": True}, "ok": True}
     elif kind == "json":
-        assert json.loads(result["body"]) == {"pong": True}
+        assert Body(result["body"]).json() == {"pong": True}
     elif kind == "html":
         assert result["body"] == b"<h1>pong</h1>"
     elif kind == "text":
@@ -57,9 +57,9 @@ async def test_response_rpc_non_alias_table(kind, tmp_path):
     app = SimpleNamespace(tables={"Widget": Widget})
     result = await rpc_call(app, Widget, "download", {}, db=SimpleNamespace())
     if kind == "auto":
-        assert json.loads(result["body"]) == {"data": {"pong": True}, "ok": True}
+        assert Body(result["body"]).json() == {"data": {"pong": True}, "ok": True}
     elif kind == "json":
-        assert json.loads(result["body"]) == {"pong": True}
+        assert Body(result["body"]).json() == {"pong": True}
     elif kind == "html":
         assert result["body"] == b"<h1>pong</h1>"
     elif kind == "text":

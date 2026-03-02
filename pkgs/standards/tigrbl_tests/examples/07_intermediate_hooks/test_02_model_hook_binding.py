@@ -1,7 +1,7 @@
 """Lesson 07.2: Binding hooks onto models during API setup."""
 
-from tigrbl import Base, TigrblApp, hook_ctx
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblApp, hook_ctx
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -15,7 +15,7 @@ def test_model_hooks_bind_on_rebind():
     """
 
     # Setup: declare a model with an inline hook for the create operation.
-    class LessonHook(Base, GUIDPk):
+    class LessonHook(TableBase, GUIDPk):
         __tablename__ = "lesson_hooks"
         __allow_unmapped__ = True
 
@@ -47,7 +47,7 @@ def test_model_hook_scopes_do_not_leak_to_other_ops():
     """
 
     # Setup: define the model with a hook scoped only to create.
-    class LessonHookScopeIsolation(Base, GUIDPk):
+    class LessonHookScopeIsolation(TableBase, GUIDPk):
         __tablename__ = "lesson_hook_scope_isolation"
         __allow_unmapped__ = True
 

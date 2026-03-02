@@ -41,5 +41,5 @@ await s.close()
   clickhouse = "tigrbl_engine_clickhouse:register"
   ```
 - `register()` (in `__init__.py`) calls `tigrbl.engine.registry.register_engine("clickhouse", clickhouse_engine)`.
-- `ClickHouseEngine` subclasses `tigrbl.engine._engine.Engine`.
+- `ClickHouseEngine` subclasses `tigrbl._concrete._engine.Engine`.
 - `ClickHouseSession` subclasses `tigrbl.session.base.TigrblSessionBase` and uses `clickhouse_connect`.

@@ -1,7 +1,7 @@
 import pytest
-from tigrbl.specs import F, S, acol, vcol
-from tigrbl.op import alias_ctx
-from tigrbl.orm.tables import Base
+from tigrbl._spec import F, S, acol, vcol
+from tigrbl.decorators.op import alias_ctx
+from tigrbl.orm.tables import TableBase
 from tigrbl.types import (
     Column,
     Integer,
@@ -18,8 +18,8 @@ from tigrbl.types import (
 @pytest.mark.parametrize("aliasing", [False, True])
 @pytest.mark.parametrize("use_mapped", [False, True])
 def test_relationship_acol_vcol_alias(col_variant, aliasing, use_mapped):
-    Base.metadata.clear()
-    Base.registry.dispose()
+    TableBase.metadata.clear()
+    TableBase.registry.dispose()
     engine = create_engine("sqlite:///:memory:")
 
     decorator = alias_ctx(read="fetch") if aliasing else (lambda cls: cls)
@@ -27,7 +27,7 @@ def test_relationship_acol_vcol_alias(col_variant, aliasing, use_mapped):
     if use_mapped:
 
         @decorator
-        class Parent(Base):
+        class Parent(TableBase):
             __tablename__ = f"p_{col_variant}_{aliasing}_{use_mapped}"
             id: Mapped[int] = Column(Integer, primary_key=True)
             if col_variant in ("acol", "both"):
@@ -41,7 +41,7 @@ def test_relationship_acol_vcol_alias(col_variant, aliasing, use_mapped):
             children: Mapped[list["Child"]] = relationship(back_populates="parent")
 
         @decorator
-        class Child(Base):
+        class Child(TableBase):
             __tablename__ = f"c_{col_variant}_{aliasing}_{use_mapped}"
             id: Mapped[int] = Column(Integer, primary_key=True)
             parent_id: Mapped[int] = Column(
@@ -59,7 +59,7 @@ def test_relationship_acol_vcol_alias(col_variant, aliasing, use_mapped):
     else:
 
         @decorator
-        class Parent(Base):
+        class Parent(TableBase):
             __tablename__ = f"p_{col_variant}_{aliasing}_{use_mapped}"
             id = Column(Integer, primary_key=True)
             if col_variant in ("acol", "both"):
@@ -73,7 +73,7 @@ def test_relationship_acol_vcol_alias(col_variant, aliasing, use_mapped):
             children = relationship("Child", back_populates="parent")
 
         @decorator
-        class Child(Base):
+        class Child(TableBase):
             __tablename__ = f"c_{col_variant}_{aliasing}_{use_mapped}"
             id = Column(Integer, primary_key=True)
             parent_id = Column(Integer, ForeignKey(f"{Parent.__tablename__}.id"))
@@ -87,7 +87,7 @@ def test_relationship_acol_vcol_alias(col_variant, aliasing, use_mapped):
                 )
             parent = relationship("Parent", back_populates="children")
 
-    Base.metadata.create_all(engine)
+    TableBase.metadata.create_all(engine)
     with Session(engine) as session:
         p = Parent()
         c = Child(parent=p)

@@ -1,18 +1,16 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
-from tigrbl.types import BaseModel, Column, String, UUID
-
-from tigrbl import TigrblApp, TigrblRouter, op_ctx, schema_ctx, hook_ctx
-from tigrbl.orm.tables import Base
+from tigrbl import TigrblApp, TigrblRouter, hook_ctx, op_ctx, schema_ctx
 from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.tables import TableBase
 from tigrbl.runtime.kernel import build_phase_chains
-
+from tigrbl.types import UUID, BaseModel, Column, String
 
 # helper to set up Tigrbl with sync DB from fixture
 
 
 def setup_router(model_cls, get_db):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     app = TigrblApp()
     router = TigrblRouter(get_db=get_db)
     app.include_table(model_cls, prefix="")
@@ -26,7 +24,7 @@ def setup_router(model_cls, get_db):
 async def test_op_ctx_request_response_schemas(sync_db_session):
     _, get_sync_db = sync_db_session
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets"
         __resource__ = "widget"
         name = Column(String)
@@ -64,7 +62,7 @@ async def test_op_ctx_request_response_schemas(sync_db_session):
 def test_op_ctx_columns(sync_db_session):
     _, get_sync_db = sync_db_session
 
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "gadgets"
         __resource__ = "gadget"
         name = Column(String)
@@ -83,7 +81,7 @@ def test_op_ctx_columns(sync_db_session):
 async def test_op_ctx_defaults_value_resolution(sync_db_session):
     _, get_sync_db = sync_db_session
 
-    class Thing(Base, GUIDPk):
+    class Thing(TableBase, GUIDPk):
         __tablename__ = "things"
         __resource__ = "thing"
         name = Column(String)
@@ -118,7 +116,7 @@ async def test_op_ctx_defaults_value_resolution(sync_db_session):
 async def test_op_ctx_internal_orm_models(sync_db_session):
     _, get_sync_db = sync_db_session
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         __resource__ = "item"
         name = Column(String)
@@ -150,7 +148,7 @@ async def test_op_ctx_internal_orm_models(sync_db_session):
 def test_op_ctx_openrouter_json(sync_db_session):
     _, get_sync_db = sync_db_session
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets"
         __resource__ = "widget"
         name = Column(String)
@@ -176,7 +174,7 @@ async def test_op_ctx_preserves_canon_schemas(sync_db_session):
     class TokenPair(BaseModel):
         access: str
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets"
         __resource__ = "widget"
         name = Column(String)
@@ -205,7 +203,7 @@ async def test_op_ctx_preserves_canon_schemas(sync_db_session):
 async def test_op_ctx_storage_sqlalchemy(sync_db_session):
     _, get_sync_db = sync_db_session
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets"
         __resource__ = "widget"
         name = Column(String)
@@ -238,7 +236,7 @@ async def test_op_ctx_storage_sqlalchemy(sync_db_session):
 async def test_op_ctx_rest_call(sync_db_session):
     _, get_sync_db = sync_db_session
 
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "gadgets"
         __resource__ = "gadget"
         name = Column(String)
@@ -271,7 +269,7 @@ async def test_op_ctx_rest_call(sync_db_session):
 async def test_op_ctx_rpc_method(sync_db_session):
     _, get_sync_db = sync_db_session
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets"
         __resource__ = "widget"
         name = Column(String)
@@ -297,7 +295,7 @@ async def test_op_ctx_rpc_method(sync_db_session):
 async def test_op_ctx_core_crud(sync_db_session):
     _, get_sync_db = sync_db_session
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets"
         __resource__ = "widget"
         name = Column(String)
@@ -324,7 +322,7 @@ async def test_op_ctx_hookz(sync_db_session):
     _, get_sync_db = sync_db_session
     calls = []
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets"
         __resource__ = "widget"
         name = Column(String)
@@ -359,7 +357,7 @@ async def test_op_ctx_hookz(sync_db_session):
 def test_op_ctx_atom_plan(sync_db_session):
     _, get_sync_db = sync_db_session
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets"
         __resource__ = "widget"
         name = Column(String)
@@ -378,7 +376,7 @@ def test_op_ctx_atom_plan(sync_db_session):
 def test_op_ctx_system_steps(sync_db_session):
     _, get_sync_db = sync_db_session
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets"
         __resource__ = "widget"
         name = Column(String)

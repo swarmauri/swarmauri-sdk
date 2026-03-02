@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 
-from tigrbl_auth.deps import HTTPException, Request, status
+from tigrbl_auth.vendor import HTTPException, Request, status
 
 from ..jwtoken import JWTCoder
 from ..backends import PasswordBackend

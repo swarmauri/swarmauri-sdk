@@ -1,19 +1,18 @@
 import pytest
-from httpx import AsyncClient, ASGITransport
-
-from tigrbl.mapping.rest.router import _build_router
-from tigrbl.op import OpSpec
-from tigrbl.orm.tables import Base
-from tigrbl.orm.mixins import GUIDPk, BulkCapable
+from httpx import ASGITransport, AsyncClient
 from tigrbl import TigrblApp
+from tigrbl.mapping.rest.router import _build_router
+from tigrbl._spec import OpSpec
+from tigrbl.orm.mixins import BulkCapable, GUIDPk
+from tigrbl.orm.tables import TableBase
 from tigrbl.types import Column, String
 
 
 @pytest.mark.asyncio()
 async def test_openapi_client_create_request_schema_contains_object() -> None:
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Widget(Base, GUIDPk, BulkCapable):
+    class Widget(TableBase, GUIDPk, BulkCapable):
         __tablename__ = "widgets_client_create"
         name = Column(String, nullable=False)
 
@@ -52,9 +51,9 @@ async def test_openapi_client_create_request_schema_contains_object() -> None:
 
 @pytest.mark.asyncio()
 async def test_openapi_client_bulk_create_response_schema() -> None:
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Widget(Base, GUIDPk, BulkCapable):
+    class Widget(TableBase, GUIDPk, BulkCapable):
         __tablename__ = "widgets_client_bulk_create"
         name = Column(String, nullable=False)
 
@@ -77,9 +76,9 @@ async def test_openapi_client_bulk_create_response_schema() -> None:
 
 @pytest.mark.asyncio()
 async def test_openapi_client_bulk_delete_response_schema() -> None:
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Widget(Base, GUIDPk, BulkCapable):
+    class Widget(TableBase, GUIDPk, BulkCapable):
         __tablename__ = "widgets_client_bulk_delete"
         name = Column(String, nullable=False)
 

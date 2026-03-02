@@ -1,14 +1,14 @@
-from tigrbl.hook import hook_ctx
+from tigrbl.decorators.hook import hook_ctx
 from tigrbl.mapping.model import bind
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
 
-Base.metadata.clear()
+TableBase.metadata.clear()
 
 
-class Widget(Base, GUIDPk):
+class Widget(TableBase, GUIDPk):
     __tablename__ = "widgets"
     name = Column(String, nullable=False)
 
@@ -23,7 +23,7 @@ def test_hook_ctx_binds_to_create_pre_handler():
     assert any(callable(h) for h in hooks)
 
 
-class Gadget(Base, GUIDPk):
+class Gadget(TableBase, GUIDPk):
     __tablename__ = "gadgets"
     name = Column(String, nullable=False)
 
@@ -39,7 +39,7 @@ def test_hook_ctx_binds_hook_to_multiple_ops():
         assert any(callable(h) for h in hooks)
 
 
-class Gizmo(Base, GUIDPk):
+class Gizmo(TableBase, GUIDPk):
     __tablename__ = "gizmos"
     name = Column(String, nullable=False)
 

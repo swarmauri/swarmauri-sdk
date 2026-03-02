@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Union
 from enum import Enum
 import warnings
-from tigrbl_auth.deps import (
+from tigrbl_auth.vendor import (
     TigrblRouter,
     TigrblApp,
     Form,

@@ -1,6 +1,6 @@
-from tigrbl.op.decorators import alias_ctx, op_alias, op_ctx
-from tigrbl.op.mro_collect import mro_collect_decorated_ops
-from tigrbl.op.types import OpSpec
+from tigrbl.decorators.op import alias_ctx, op_alias, op_ctx
+from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
+from tigrbl._spec import OpSpec
 
 
 def test_op_spec_decorators_and_collection():

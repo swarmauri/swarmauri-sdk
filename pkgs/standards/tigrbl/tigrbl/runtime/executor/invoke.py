@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, MutableMapping, Optional, Union
+from typing import Any, Mapping, MutableMapping, Optional, Union
 
 from .types import _Ctx, PhaseChains, Request, Session, AsyncSession
 from .helpers import _in_tx, _run_chain, _g
@@ -11,6 +11,40 @@ from ..status import create_standardized_error
 from ...config.constants import CTX_SKIP_PERSIST_FLAG
 
 logger = logging.getLogger(__name__)
+
+
+def _default_status_for_alias(alias: Any) -> int:
+    return 201 if alias in {"create", "bulk_create"} else 200
+
+
+def _normalize_result_payload(payload: Any) -> Any:
+    if isinstance(payload, (str, int, float, bool)) or payload is None:
+        return payload
+    if hasattr(payload, "status_code") and hasattr(payload, "body"):
+        return payload
+    if isinstance(payload, Mapping):
+        return {str(k): _normalize_result_payload(v) for k, v in payload.items()}
+    if isinstance(payload, (list, tuple, set)):
+        return [_normalize_result_payload(v) for v in payload]
+
+    model_dump = getattr(payload, "model_dump", None)
+    if callable(model_dump):
+        try:
+            return _normalize_result_payload(model_dump())
+        except Exception:
+            pass
+
+    obj_dict = getattr(payload, "__dict__", None)
+    if isinstance(obj_dict, dict):
+        data = {
+            k: v
+            for k, v in obj_dict.items()
+            if not k.startswith("_") and not callable(v)
+        }
+        if data:
+            return _normalize_result_payload(data)
+
+    return str(payload)
 
 
 async def _invoke(
@@ -134,20 +168,48 @@ async def _invoke(
 
     from types import SimpleNamespace as _NS
 
+    if ctx.get("result") is None:
+        fallback = (
+            ctx.get("obj")
+            or ctx.get("objs")
+            or (
+                ctx.get("temp", {}).get("egress", {}).get("result")
+                if isinstance(ctx.get("temp"), Mapping)
+                else None
+            )
+        )
+        if fallback is not None:
+            ctx["result"] = fallback
+
     serializer = ctx.get("response_serializer")
-    if callable(serializer):
+    current_result = ctx.get("result")
+    temp = ctx.get("temp") if isinstance(ctx, Mapping) else None
+    rpc_error = temp.get("rpc_error") if isinstance(temp, Mapping) else None
+    response_state = getattr(ctx, "response", None)
+    if current_result is None and response_state is not None:
+        current_result = getattr(response_state, "result", None)
+    if current_result is None:
+        current_result = getattr(ctx, "obj", None)
+    if isinstance(rpc_error, Mapping):
+        ctx["result"] = None
+    elif callable(serializer):
         try:
-            ctx["result"] = serializer(ctx.get("result"))
+            ctx["result"] = serializer(current_result)
         except Exception:
             logger.exception("response serialization failed", exc_info=True)
-    ctx.response = _NS(result=ctx.get("result"))
+    else:
+        ctx["result"] = _normalize_result_payload(current_result)
+
+    if getattr(ctx, "status_code", None) is None:
+        ctx.status_code = _default_status_for_alias(getattr(ctx, "op", None))
+
+    response_obj = getattr(ctx, "response", None)
+    if response_obj is None:
+        ctx.response = _NS(result=ctx.get("result"))
+    else:
+        setattr(response_obj, "result", ctx.get("result"))
 
     await _run_phase("POST_COMMIT", allow_flush=True, allow_commit=False, in_tx=False)
-
-    await _run_phase("EGRESS_SHAPE", allow_flush=False, allow_commit=False, in_tx=False)
-    await _run_phase(
-        "EGRESS_FINALIZE", allow_flush=False, allow_commit=False, in_tx=False
-    )
 
     await _run_phase(
         "POST_RESPONSE",
@@ -156,9 +218,23 @@ async def _invoke(
         in_tx=False,
         nonfatal=True,
     )
-    if ctx.get("result") is not None:
-        ctx.response.result = ctx.get("result")
-    return ctx.response.result
+
+    await _run_phase("EGRESS_SHAPE", allow_flush=False, allow_commit=False, in_tx=False)
+    await _run_phase(
+        "EGRESS_FINALIZE", allow_flush=False, allow_commit=False, in_tx=False
+    )
+    if ctx.get("result") is not None and getattr(ctx, "response", None) is not None:
+        setattr(ctx.response, "result", ctx.get("result"))
+
+    release = None
+    if isinstance(temp, Mapping):
+        release = temp.pop("__sys_db_release__", None)
+    if callable(release):
+        release()
+
+    if getattr(ctx, "response", None) is not None:
+        return getattr(ctx.response, "result", ctx.get("result"))
+    return ctx.get("result")
 
 
 __all__ = ["_invoke"]

@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any
 
 from ... import events as _ev
 
 ANCHOR = _ev.ROUTE_OP_RESOLVE
+
+
+def _default_status_for_target(target: Any) -> int:
+    return 201 if target == "create" else 200
 
 
 def run(obj: object | None, ctx: Any) -> None:
@@ -22,9 +27,40 @@ def run(obj: object | None, ctx: Any) -> None:
         if 0 <= maybe_index < len(opmeta):
             meta = opmeta[maybe_index]
             route["opmeta_index"] = maybe_index
-            route["op"] = getattr(meta, "alias", None)
-            setattr(ctx, "op", getattr(meta, "alias", None))
+            op_alias = getattr(meta, "alias", None)
+            route["op"] = op_alias
+            setattr(ctx, "op", op_alias)
             setattr(ctx, "model", getattr(meta, "model", None))
+            env = getattr(ctx, "env", None)
+            if env is None:
+                payload = route.get("payload") if isinstance(route, dict) else None
+                if payload is None:
+                    payload = getattr(ctx, "payload", None)
+                setattr(
+                    ctx,
+                    "env",
+                    SimpleNamespace(
+                        method=op_alias,
+                        params=payload,
+                        target=getattr(meta, "target", None),
+                        model=getattr(meta, "model", None),
+                    ),
+                )
+            else:
+                # Keep pre-seeded environment objects but ensure routing metadata
+                # is always available to downstream hooks.
+                if getattr(env, "method", None) is None:
+                    setattr(env, "method", op_alias)
+                if getattr(env, "target", None) is None:
+                    setattr(env, "target", getattr(meta, "target", None))
+                if getattr(env, "model", None) is None:
+                    setattr(env, "model", getattr(meta, "model", None))
+            if getattr(ctx, "status_code", None) is None:
+                setattr(
+                    ctx,
+                    "status_code",
+                    _default_status_for_target(getattr(meta, "target", None)),
+                )
             return
 
     if "op" not in route:

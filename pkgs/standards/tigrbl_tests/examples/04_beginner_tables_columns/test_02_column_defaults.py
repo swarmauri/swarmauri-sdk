@@ -1,4 +1,4 @@
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, Integer, String
 
@@ -14,7 +14,7 @@ def test_column_defaults_apply_on_instantiation():
     """
 
     # Setup: define a model with a defaulted column.
-    class DefaultWidget(Base, GUIDPk):
+    class DefaultWidget(TableBase, GUIDPk):
         __tablename__ = "default_widgets"
         __allow_unmapped__ = True
 
@@ -38,7 +38,7 @@ def test_required_columns_remain_non_nullable():
     """
 
     # Setup: declare another model with a required column.
-    class DefaultWidget(Base, GUIDPk):
+    class DefaultWidget(TableBase, GUIDPk):
         __tablename__ = "default_widgets_required"
         __allow_unmapped__ = True
 

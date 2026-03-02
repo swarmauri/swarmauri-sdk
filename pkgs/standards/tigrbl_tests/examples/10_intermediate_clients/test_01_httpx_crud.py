@@ -1,14 +1,14 @@
 """Lesson 10.1: Using httpx for REST CRUD workflows."""
 
-import httpx
 import inspect
-import pytest
 
-from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+import httpx
+import pytest
+from tigrbl import TableBase, TigrblApp, TigrblRouter
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
+from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 
 
 @pytest.mark.asyncio
@@ -20,7 +20,7 @@ async def test_httpx_crud_roundtrip():
     """
 
     # Setup: define a model inline for the REST endpoint.
-    class LessonHttpx(Base, GUIDPk):
+    class LessonHttpx(TableBase, GUIDPk):
         __tablename__ = "lesson_httpx"
         __allow_unmapped__ = True
 
@@ -62,7 +62,7 @@ async def test_httpx_list_returns_collection():
     """
 
     # Setup: define a model for list/collection behavior.
-    class LessonHttpxList(Base, GUIDPk):
+    class LessonHttpxList(TableBase, GUIDPk):
         __tablename__ = "lesson_httpx_list"
         __allow_unmapped__ = True
 

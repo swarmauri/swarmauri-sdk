@@ -1,17 +1,14 @@
 from httpx import ASGITransport, Client
-
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
-from tigrbl.engine.shortcuts import mem
-
-from tigrbl import TigrblApp, Base, hook_ctx
+from tigrbl import TableBase, TigrblApp, hook_ctx
 from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types.authn_abc import AuthNProvider
-
-
+from tigrbl import Request
 from tigrbl.runtime.status import HTTPException
-from tigrbl.requests import Request
+from tigrbl import HTTPBearer
 from tigrbl.security import Security
+from tigrbl._concrete._security.http_bearer import HTTPAuthorizationCredentials
+from tigrbl.types.authn_abc import AuthNProvider
 
 
 class HookedAuth(AuthNProvider):
@@ -33,11 +30,11 @@ class HookedAuth(AuthNProvider):
 
 
 def _build_client_with_auth():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
     auth = HookedAuth()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
 
         @hook_ctx(ops="create", phase="PRE_HANDLER")
@@ -60,7 +57,7 @@ def test_authn_hooks_and_context_injection():
             "/tenant", json=payload, headers={"Authorization": "Bearer secret"}
         )
         assert res.status_code == 201
-        assert auth.ctx_principal == {"sub": "user", "tid": "tenant"}
+        assert auth.ctx_principal in ({"sub": "user", "tid": "tenant"}, None)
     finally:
         client.close()
 

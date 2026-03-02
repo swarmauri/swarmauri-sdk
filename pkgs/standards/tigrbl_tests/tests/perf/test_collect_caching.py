@@ -1,8 +1,8 @@
 import logging
 import time
 
-from tigrbl.column.mro_collect import mro_collect_columns
-from tigrbl.schema.collect import collect_decorated_schemas
+from tigrbl.mapping.column_mro_collect import mro_collect_columns
+from tigrbl.mapping.collect_decorated_schemas import collect_decorated_schemas
 
 
 logging.getLogger("uvicorn").setLevel(logging.WARNING)
@@ -24,10 +24,10 @@ def _measure(func, obj, iterations=100):
 
 
 def test_mro_collect_columns_cached():
-    class Base:
+    class TableBase:
         pass
 
-    class Model(Base):
+    class Model(TableBase):
         pass
 
     cold, cached = _measure(mro_collect_columns, Model, iterations=50)

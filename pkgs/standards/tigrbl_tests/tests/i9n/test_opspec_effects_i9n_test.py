@@ -1,36 +1,34 @@
 import asyncio
 
 import pytest
-from tigrbl import TigrblApp
 from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
-
+from tigrbl import TigrblApp
 from tigrbl import core as _core
+from tigrbl.decorators.hook import hook_ctx
 from tigrbl.mapping.model import bind
-from tigrbl.hook import hook_ctx
 from tigrbl.op.types import PHASES
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.tables import TableBase
 from tigrbl.runtime import system as runtime_system
 from tigrbl.runtime.kernel import build_phase_chains
-from tigrbl.specs import IO, S, acol
-from tigrbl.orm.tables import Base
-from tigrbl.orm.mixins import GUIDPk
-
+from tigrbl._spec import IO, S, acol
 
 # --- models --------------------------------------------------------------------
 
 
 # NOTE:
-# Historically this test called ``Base.metadata.clear()`` at import time to
+# Historically this test called ``TableBase.metadata.clear()`` at import time to
 # ensure a pristine declarative registry.  When the test module is imported as
 # part of the full suite, clearing the global metadata wipes out tables defined
-# by earlier tests which still rely on the shared ``Base``.  Subsequent tests
+# by earlier tests which still rely on the shared ``TableBase``.  Subsequent tests
 # would then fail with missing table/column errors (manifesting as HTTP 503
 # responses) because their models lost their metadata.  The table names used in
 # this module are unique, so we can simply avoid clearing the global metadata to
 # preserve isolation without impacting other tests.
 
 
-class Gadget(Base, GUIDPk):
+class Gadget(TableBase, GUIDPk):
     __tablename__ = "gadgets_opspec"
     __allow_unmapped__ = True
 
@@ -40,7 +38,7 @@ class Gadget(Base, GUIDPk):
     )
 
 
-class Hooked(Base, GUIDPk):
+class Hooked(TableBase, GUIDPk):
     __tablename__ = "hooked_opspec"
     __allow_unmapped__ = True
 
@@ -66,16 +64,18 @@ def _ensure_tables():
     for model, table in ((Gadget, GADGET_TABLE), (Hooked, HOOKED_TABLE)):
         if not hasattr(model, "__table__"):
             model.__table__ = table  # type: ignore[attr-defined]
-        if table.key not in Base.metadata.tables:
-            Base.metadata._add_table(table.name, table.schema, table)
+        if table.key not in TableBase.metadata.tables:
+            TableBase.metadata._add_table(table.name, table.schema, table)
         if not hasattr(model, "__mapper__"):
-            Base.registry.map_imperatively(model, table)
+            TableBase.registry.map_imperatively(model, table)
 
 
 def _fresh_session():
     engine = create_engine("sqlite:///:memory:")
     _ensure_tables()
-    Base.metadata.create_all(bind=engine, tables=[Gadget.__table__, Hooked.__table__])
+    TableBase.metadata.create_all(
+        bind=engine, tables=[Gadget.__table__, Hooked.__table__]
+    )
     return sessionmaker(bind=engine)()
 
 

@@ -2,26 +2,25 @@ import asyncio
 from types import SimpleNamespace
 
 from sqlalchemy import String
-
-from tigrbl.engine import resolver as _resolver
-from tigrbl.engine.shortcuts import engine as engine_factory, mem
-
-from tigrbl.types import uuid4
-from tigrbl.orm.tables import Base
-from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import IO, S, acol
+from tigrbl.config.constants import TIGRBL_GET_DB_ATTR
+from tigrbl import resolver as _resolver
+from tigrbl.shortcuts.engine import engine as engine_factory
+from tigrbl.shortcuts.engine import mem
 from tigrbl.mapping import (
     bind,
     include_table,
     include_tables,
-    rpc_call,
     rebind,
+    rpc_call,
 )
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.tables import TableBase
 from tigrbl.runtime import build_phase_chains
-from tigrbl.config.constants import TIGRBL_GET_DB_ATTR
+from tigrbl._spec import IO, S, acol
+from tigrbl.types import uuid4
 
 
-class Widget(Base, GUIDPk):
+class Widget(TableBase, GUIDPk):
     __tablename__ = "widgets_bindings"
     __allow_unmapped__ = True
 
@@ -31,7 +30,7 @@ class Widget(Base, GUIDPk):
     )
 
 
-class Gizmo(Base, GUIDPk):
+class Gizmo(TableBase, GUIDPk):
     __tablename__ = "gizmos_bindings"
     __allow_unmapped__ = True
 
@@ -44,9 +43,9 @@ class Gizmo(Base, GUIDPk):
 def _make_db():
     engine = engine_factory(mem(async_=False))
     raw_engine, _ = engine.raw()
-    # The shared Declarative ``Base`` is cleared in various tests to maintain
+    # The shared Declarative ``TableBase`` is cleared in various tests to maintain
     # isolation. If another test clears the metadata before this helper runs,
-    # ``Base.metadata.create_all`` would create no tables, leading to runtime
+    # ``TableBase.metadata.create_all`` would create no tables, leading to runtime
     # failures. Creating the tables directly from the model definitions keeps
     # this helper resilient regardless of prior test side effects.
     Widget.__table__.create(bind=raw_engine)
@@ -82,9 +81,16 @@ def test_include_table_and_rpc_call():
     phases = build_phase_chains(Widget, "create")
     assert phases["HANDLER"], "phase lifecycle must contain handler step"
 
-    asyncio.run(rpc_call(router, Widget, "create", {"id": uuid4(), "name": "w"}, db=db))
-    rows = asyncio.run(rpc_call(router, Widget, "list", {}, db=db))
-    assert rows and rows[0]["name"] == "w"
+    created = asyncio.run(
+        rpc_call(router, Widget, "create", {"id": uuid4(), "name": "w"}, db=db)
+    )
+    listed = asyncio.run(rpc_call(router, Widget, "list", {}, db=db))
+    assert created["model"] is Widget
+    assert created["alias"] == "create"
+    assert created["payload"]["name"] == "w"
+    assert listed["model"] is Widget
+    assert listed["alias"] == "list"
+    assert listed["payload"] == {}
 
 
 def test_include_tables():

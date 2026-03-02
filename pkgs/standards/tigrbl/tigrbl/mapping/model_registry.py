@@ -56,7 +56,7 @@ def _ensure_op_ctx_attach_hook(model: type) -> None:
 
     def _meta_setattr(cls, name, value):
         from .model import rebind
-        from ..op.mro_collect import mro_collect_decorated_ops
+        from .op_mro_collect import mro_collect_decorated_ops
 
         orig_meta_setattr(cls, name, value)
         fn = getattr(value, "__func__", value)

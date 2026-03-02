@@ -4,12 +4,12 @@ Mixins Tests for Tigrbl v3
 Tests all mixins and their expected behavior using individual DummyModel instances.
 """
 
-import pytest
 from datetime import datetime, timedelta, timezone
-from tigrbl.types import String, uuid4
-from tigrbl.column.shortcuts import acol, F, IO, S
 
-from tigrbl import Base
+import pytest
+from tigrbl import TableBase
+from tigrbl.shortcuts.column import IO, F, S, acol
+from tigrbl import resolver as _resolver
 from tigrbl.orm.mixins import (
     ActiveToggle,
     AsyncCapable,
@@ -34,8 +34,7 @@ from tigrbl.orm.mixins import (
     tzutcnow_plus_day,
 )
 from tigrbl.schema import _build_schema
-from tigrbl.engine import resolver as _resolver
-
+from tigrbl.types import String, uuid4
 
 NAME_FIELD = acol(
     storage=S(type_=String, nullable=False),
@@ -49,105 +48,105 @@ NAME_FIELD = acol(
 )
 
 
-class DummyModelTimestamped(Base, GUIDPk, Timestamped):
+class DummyModelTimestamped(TableBase, GUIDPk, Timestamped):
     """Test model for Timestamped mixin."""
 
     __tablename__ = "dummy_timestamped"
     name = NAME_FIELD
 
 
-class DummyModelCreated(Base, GUIDPk, Created):
+class DummyModelCreated(TableBase, GUIDPk, Created):
     """Test model for Created mixin."""
 
     __tablename__ = "dummy_created"
     name = NAME_FIELD
 
 
-class DummyModelLastUsed(Base, GUIDPk, LastUsed):
+class DummyModelLastUsed(TableBase, GUIDPk, LastUsed):
     """Test model for LastUsed mixin."""
 
     __tablename__ = "dummy_last_used"
     name = NAME_FIELD
 
 
-class DummyModelActiveToggle(Base, GUIDPk, ActiveToggle):
+class DummyModelActiveToggle(TableBase, GUIDPk, ActiveToggle):
     """Test model for ActiveToggle mixin."""
 
     __tablename__ = "dummy_active_toggle"
     name = NAME_FIELD
 
 
-class DummyModelSoftDelete(Base, GUIDPk, SoftDelete):
+class DummyModelSoftDelete(TableBase, GUIDPk, SoftDelete):
     """Test model for SoftDelete mixin."""
 
     __tablename__ = "dummy_soft_delete"
     name = NAME_FIELD
 
 
-class DummyModelVersioned(Base, GUIDPk, Versioned):
+class DummyModelVersioned(TableBase, GUIDPk, Versioned):
     """Test model for Versioned mixin."""
 
     __tablename__ = "dummy_versioned"
     name = NAME_FIELD
 
 
-class DummyModelBulkCapable(Base, GUIDPk, BulkCapable):
+class DummyModelBulkCapable(TableBase, GUIDPk, BulkCapable):
     """Test model for BulkCapable mixin."""
 
     __tablename__ = "dummy_bulk_capable"
     name = NAME_FIELD
 
 
-class DummyModelReplaceable(Base, GUIDPk, Replaceable):
+class DummyModelReplaceable(TableBase, GUIDPk, Replaceable):
     """Test model for Replaceable mixin."""
 
     __tablename__ = "dummy_replaceable"
     name = NAME_FIELD
 
 
-class DummyModelAsyncCapable(Base, GUIDPk, AsyncCapable):
+class DummyModelAsyncCapable(TableBase, GUIDPk, AsyncCapable):
     """Test model for AsyncCapable mixin."""
 
     __tablename__ = "dummy_async_capable"
     name = NAME_FIELD
 
 
-class DummyModelSlugged(Base, GUIDPk, Slugged):
+class DummyModelSlugged(TableBase, GUIDPk, Slugged):
     """Test model for Slugged mixin."""
 
     __tablename__ = "dummy_slugged"
     name = NAME_FIELD
 
 
-class DummyModelStatusColumn(Base, GUIDPk, StatusColumn):
+class DummyModelStatusColumn(TableBase, GUIDPk, StatusColumn):
     """Test model for StatusColumn."""
 
     __tablename__ = "dummy_status_column"
     name = NAME_FIELD
 
 
-class DummyModelValidityWindow(Base, GUIDPk, ValidityWindow):
+class DummyModelValidityWindow(TableBase, GUIDPk, ValidityWindow):
     """Test model for ValidityWindow mixin."""
 
     __tablename__ = "dummy_validity_window"
     name = NAME_FIELD
 
 
-class DummyModelMonetary(Base, GUIDPk, Monetary):
+class DummyModelMonetary(TableBase, GUIDPk, Monetary):
     """Test model for Monetary mixin."""
 
     __tablename__ = "dummy_monetary"
     name = NAME_FIELD
 
 
-class DummyModelExtRef(Base, GUIDPk, ExtRef):
+class DummyModelExtRef(TableBase, GUIDPk, ExtRef):
     """Test model for ExtRef mixin."""
 
     __tablename__ = "dummy_ext_ref"
     name = NAME_FIELD
 
 
-class DummyModelMetaJSON(Base, GUIDPk, MetaJSON):
+class DummyModelMetaJSON(TableBase, GUIDPk, MetaJSON):
     """Test model for MetaJSON mixin."""
 
     __tablename__ = "dummy_meta_json"
@@ -472,15 +471,15 @@ async def test_marker_mixins(create_test_app):
     """Test that marker mixins (Audited, Streamable, etc.) don't add fields."""
 
     # Create dummy models for other marker mixins
-    class DummyAudited(Base, GUIDPk, Audited):
+    class DummyAudited(TableBase, GUIDPk, Audited):
         __tablename__ = "dummy_audited"
         name = NAME_FIELD
 
-    class DummyStreamable(Base, GUIDPk, Streamable):
+    class DummyStreamable(TableBase, GUIDPk, Streamable):
         __tablename__ = "dummy_streamable"
         name = NAME_FIELD
 
-    class DummyRelationEdge(Base, GUIDPk, RelationEdge):
+    class DummyRelationEdge(TableBase, GUIDPk, RelationEdge):
         __tablename__ = "dummy_relation_edge"
         name = NAME_FIELD
 
@@ -503,7 +502,7 @@ async def test_multiple_mixins_combination(create_test_app):
     """Test that multiple mixins can be combined correctly."""
 
     class DummyMultipleMixins(
-        Base, GUIDPk, Timestamped, ActiveToggle, Slugged, StatusColumn
+        TableBase, GUIDPk, Timestamped, ActiveToggle, Slugged, StatusColumn
     ):
         __tablename__ = "dummy_multiple_mixins"
         name = NAME_FIELD

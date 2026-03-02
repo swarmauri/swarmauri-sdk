@@ -22,8 +22,10 @@ def test_plan_labels_reflect_kernel_injection():
 
     labels = k.plan_labels(Model, "create")
     assert labels == [
-        "atom:resolve:values@resolve:values",
-        "atom:pre:flush@pre:flush",
+        "START_TX:hook:sys:txn:begin@START_TX",
+        "PRE_HANDLER:atom:resolve:values@resolve:values",
+        "PRE_HANDLER:atom:pre:flush@pre:flush",
+        "END_TX:hook:sys:txn:commit@END_TX",
     ]
 
 
@@ -37,4 +39,7 @@ def test_plan_labels_prune_non_persistent():
         pass
 
     labels = k.plan_labels(Model, "read")
-    assert labels == []
+    assert labels == [
+        "START_TX:hook:sys:txn:begin@START_TX",
+        "END_TX:hook:sys:txn:commit@END_TX",
+    ]

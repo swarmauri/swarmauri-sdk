@@ -1,15 +1,37 @@
 # tigrbl/v3/runtime/atoms/wire/build_in.py
 from __future__ import annotations
 
+import uuid as _uuid
 from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
 from ... import events as _ev
+from ...status.exceptions import HTTPException
+from ...status.mappings import status as _status
 
 # Runs in PRE_HANDLER just before validation.
 ANCHOR = _ev.IN_VALIDATE  # "in:validate"
 
 logger = logging.getLogger("uvicorn")
+
+_WRAPPER_KEYS = frozenset({"data", "payload", "body", "item"})
+
+
+def _is_jsonrpc(ctx: Any) -> bool:
+    route = getattr(ctx, "gw_raw", None)
+    if getattr(route, "kind", None) == "jsonrpc":
+        return True
+    temp = getattr(ctx, "temp", None)
+    route_ns = temp.get("route") if isinstance(temp, dict) else None
+    rpc_env = route_ns.get("rpc_envelope") if isinstance(route_ns, dict) else None
+    return isinstance(rpc_env, Mapping) and rpc_env.get("jsonrpc") == "2.0"
+
+
+def _stage_rpc_error(
+    ctx: Any, *, code: int, message: str, data: Mapping[str, Any]
+) -> None:
+    temp = _ensure_temp(ctx)
+    temp["rpc_error"] = {"code": code, "message": message, "data": dict(data)}
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
@@ -36,19 +58,40 @@ def run(obj: Optional[object], ctx: Any) -> None:
     - This atom does *not* perform validation—that belongs to wire:validate_in.
     - For bulk inputs, adapters may pre-split and invoke the executor per-item.
     """
+    payload = _coerce_payload(ctx)
     schema_in = _schema_in(ctx)
+    payload = _inject_path_params_for_bulk(payload, ctx)
+    if payload is not getattr(ctx, "payload", None):
+        setattr(ctx, "payload", payload)
+
+    _reject_disallowed_wrapper_keys(payload, schema_in=schema_in or {})
     if not schema_in:
         logger.debug("No schema_in available; skipping wire:build_in")
         return  # nothing to do
 
     logger.debug("Running wire:build_in")
     temp = _ensure_temp(ctx)
-
-    payload = _coerce_payload(ctx)
     if not isinstance(payload, Mapping):
         logger.debug("Payload is not a mapping; skipping normalization")
         # Non-mapping payloads are ignored here; adapters can pre-normalize.
         return
+
+    try:
+        _reject_disallowed_wrapper_keys(payload, schema_in=schema_in)
+    except HTTPException as exc:
+        if _is_jsonrpc(ctx):
+            detail = exc.detail if isinstance(exc.detail, Mapping) else {}
+            _stage_rpc_error(
+                ctx,
+                code=-32602,
+                message="Invalid params",
+                data={
+                    "reason": detail.get("reason", "Invalid params"),
+                    "disallowed_keys": list(detail.get("disallowed_keys", [])),
+                },
+            )
+            return
+        raise
 
     by_field: Mapping[str, Mapping[str, Any]] = schema_in.get("by_field", {})  # type: ignore[assignment]
     # Build alias→field and ingress whitelist (field and alias forms)
@@ -161,6 +204,84 @@ def _coerce_payload(ctx: Any) -> Mapping[str, Any] | Any:
 
 def _safe_str(v: Any) -> Optional[str]:
     return v if isinstance(v, str) and v else None
+
+
+def _inject_path_params_for_bulk(payload: Any, ctx: Any) -> Any:
+    if not isinstance(payload, list):
+        return payload
+
+    temp = getattr(ctx, "temp", None)
+    route = temp.get("route") if isinstance(temp, Mapping) else None
+    path_params = route.get("path_params") if isinstance(route, Mapping) else None
+    if not isinstance(path_params, Mapping) or not path_params:
+        return payload
+
+    merged: list[Any] = []
+    changed = False
+    for item in payload:
+        if not isinstance(item, Mapping):
+            merged.append(item)
+            continue
+        merged_item = {
+            key: _coerce_model_field_value(ctx, key, value)
+            for key, value in path_params.items()
+        }
+        merged_item.update(item)
+        changed = changed or merged_item != item
+        merged.append(merged_item)
+
+    if changed:
+        logger.debug("Injected path params into bulk payload items")
+        return merged
+    return payload
+
+
+def _reject_disallowed_wrapper_keys(
+    payload: Any, *, schema_in: Mapping[str, Any]
+) -> None:
+    by_field = schema_in.get("by_field", {})
+    field_names = set(by_field.keys()) if isinstance(by_field, Mapping) else set()
+    allowed_wrapper_keys = field_names & _WRAPPER_KEYS
+
+    def _check_mapping(item: Mapping[str, Any]) -> None:
+        disallowed = sorted(
+            key
+            for key in item
+            if key in _WRAPPER_KEYS and key not in allowed_wrapper_keys
+        )
+        if disallowed:
+            raise HTTPException(
+                status_code=_status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail={
+                    "reason": "Wrapper keys are not allowed; params must match the operation schema.",
+                    "disallowed_keys": disallowed,
+                },
+            )
+
+    if isinstance(payload, Mapping):
+        _check_mapping(payload)
+        return
+
+    if isinstance(payload, list):
+        for item in payload:
+            if isinstance(item, Mapping):
+                _check_mapping(item)
+
+
+def _coerce_model_field_value(ctx: Any, field: str, value: Any) -> Any:
+    model = getattr(ctx, "model", None)
+    table = getattr(model, "__table__", None) if model is not None else None
+    columns = getattr(table, "columns", None) if table is not None else None
+    column = columns.get(field) if columns is not None else None
+    col_type = getattr(column, "type", None)
+    py_type = getattr(col_type, "python_type", None)
+
+    if py_type is _uuid.UUID and isinstance(value, str):
+        try:
+            return _uuid.UUID(value)
+        except Exception:
+            return value
+    return value
 
 
 __all__ = ["ANCHOR", "run"]

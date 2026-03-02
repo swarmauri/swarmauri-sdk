@@ -25,7 +25,7 @@ Notes
 
 from __future__ import annotations
 
-from tigrbl_auth.deps import TigrblRouter
+from tigrbl_auth.vendor import TigrblRouter
 from tigrbl_auth.orm import (
     Tenant,
     User,

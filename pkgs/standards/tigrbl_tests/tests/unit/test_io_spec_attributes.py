@@ -1,11 +1,12 @@
 from types import SimpleNamespace
 
-from tigrbl.specs import ColumnSpec, F, IO, S, acol
-from tigrbl.runtime.atoms.schema import collect_in, collect_out
+from tigrbl._spec import ColumnSpec, F, IO, S, acol
+from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
+from tigrbl.runtime.atoms.schema.collect_out import run as collect_out_run
 from tigrbl.runtime.atoms.out import masking
 from tigrbl.runtime.kernel import _default_kernel as K
 from tigrbl.core.crud import helpers
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from sqlalchemy import Integer
 from sqlalchemy.orm import Mapped
 
@@ -44,7 +45,7 @@ def test_out_verbs_filters_output():
     }
     ov = K._compile_opview_from_specs(specs, SimpleNamespace(alias="read"))
     ctx = SimpleNamespace(opview=ov, temp={})
-    collect_out.run(None, ctx)
+    collect_out_run(None, ctx)
     schema_out = ctx.temp["schema_out"]["by_field"]
     assert "visible" in schema_out
     assert "hidden" not in schema_out
@@ -70,7 +71,7 @@ def test_alias_in_reflected_in_schema():
     )
     ov = K._compile_opview_from_specs({"name": spec}, SimpleNamespace(alias="create"))
     ctx = SimpleNamespace(opview=ov, temp={})
-    collect_in.run(None, ctx)
+    collect_in_run(None, ctx)
     alias = ctx.temp["schema_in"]["by_field"]["name"]["alias_in"]
     assert alias == "nickname"
 
@@ -83,7 +84,7 @@ def test_alias_out_reflected_in_schema():
     )
     ov = K._compile_opview_from_specs({"name": spec}, SimpleNamespace(alias="read"))
     ctx = SimpleNamespace(opview=ov, temp={})
-    collect_out.run(None, ctx)
+    collect_out_run(None, ctx)
     alias = ctx.temp["schema_out"]["by_field"]["name"]["alias_out"]
     assert alias == "nickname"
 
@@ -130,7 +131,7 @@ def test_sortable_allows_sorting():
     )
     unsortable_spec = acol(storage=S(type_=Integer), io=IO(sortable=False))
 
-    class SortModel(Base):
+    class SortModel(TableBase):
         __tablename__ = "sortables"
         __allow_unmapped__ = True
 
@@ -156,7 +157,7 @@ def test_allow_in_disables_field():
     specs = {"name": spec}
     ov = K._compile_opview_from_specs(specs, SimpleNamespace(alias="create"))
     ctx = SimpleNamespace(opview=ov, temp={})
-    collect_in.run(None, ctx)
+    collect_in_run(None, ctx)
     assert "name" not in ctx.temp["schema_in"]["by_field"]
 
 
@@ -167,5 +168,5 @@ def test_allow_out_disables_field():
     specs = {"name": spec}
     ov = K._compile_opview_from_specs(specs, SimpleNamespace(alias="read"))
     ctx = SimpleNamespace(opview=ov, temp={})
-    collect_out.run(None, ctx)
+    collect_out_run(None, ctx)
     assert "name" not in ctx.temp["schema_out"]["by_field"]

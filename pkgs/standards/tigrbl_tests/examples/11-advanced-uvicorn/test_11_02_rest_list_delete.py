@@ -5,16 +5,18 @@ import inspect
 import httpx
 import pytest
 
-from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
+from tigrbl import TigrblApp
+from tigrbl import TigrblRouter
+from tigrbl import TableBase
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
 
 @pytest.mark.asyncio
 async def test_rest_list_and_delete() -> None:
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_list_delete_widget"
         __allow_unmapped__ = True
 

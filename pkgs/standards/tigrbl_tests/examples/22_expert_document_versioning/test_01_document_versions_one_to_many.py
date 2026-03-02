@@ -7,31 +7,31 @@ import inspect
 
 import httpx
 import pytest
-from tigrbl_client import TigrblClient
-
-from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, hook_ctx, TigrblRouter
-from tigrbl.engine import resolver
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblApp, TigrblRouter, hook_ctx
+from tigrbl import resolver
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
-from tigrbl.specs.storage_spec import ForeignKeySpec
+from tigrbl.shortcuts import acol
+from tigrbl._spec import IO, F, S
+from tigrbl._spec import ForeignKeySpec
 from tigrbl.types import (
+    UUID,
     Integer,
     Mapped,
     PgUUID,
     String,
     TZDateTime,
-    UUID,
     relationship,
 )
+from tigrbl_client import TigrblClient
+from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 
 
 @pytest.mark.asyncio
 async def test_document_versions_one_to_many() -> None:
     """Create and update a document while auto-creating version history."""
 
-    class Document(Base, GUIDPk):
+    class Document(TableBase, GUIDPk):
         """A document that owns a one-to-many version history."""
 
         __tablename__ = "lesson_doc_otm_documents"
@@ -99,7 +99,7 @@ async def test_document_versions_one_to_many() -> None:
             db.add(version_row)
             db.flush()
 
-    class DocumentVersion(Base, GUIDPk):
+    class DocumentVersion(TableBase, GUIDPk):
         """Stored snapshots that belong to a parent document."""
 
         __tablename__ = "lesson_doc_otm_versions"

@@ -1,17 +1,16 @@
 import httpx
 import pytest
 import pytest_asyncio
-
-from tigrbl import Base, TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblApp
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
+from tigrbl._spec import IO, F, S, acol
 from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
 
-class Widget(Base, GUIDPk):
+class Widget(TableBase, GUIDPk):
     __tablename__ = "widgets_app"
     __resource__ = "widget"
 

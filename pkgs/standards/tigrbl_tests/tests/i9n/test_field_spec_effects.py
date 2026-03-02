@@ -2,29 +2,28 @@ from types import SimpleNamespace
 
 import pytest
 import pytest_asyncio
-from tigrbl import TigrblApp, TigrblRouter
 from httpx import ASGITransport, AsyncClient
-from tigrbl.engine import resolver as _resolver
-from tigrbl.engine.shortcuts import mem
 from sqlalchemy.orm import sessionmaker
-
-from tigrbl.orm.tables import Base
+from tigrbl import TigrblApp, TigrblRouter
+from tigrbl import resolver as _resolver
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import acol, F, IO, S
+from tigrbl.orm.tables import TableBase
+from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
+from tigrbl._spec import IO, F, S, acol
 from tigrbl.types import String
-from tigrbl.runtime.atoms.schema import collect_in
 
 
 @pytest_asyncio.fixture
 async def fs_app():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     cfg = mem(async_=False)
     _resolver.set_default(cfg)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
-    class FSItem(Base, GUIDPk):
+    class FSItem(TableBase, GUIDPk):
         __tablename__ = "fs_items"
         name = acol(
             storage=S(type_=String, nullable=False),
@@ -36,7 +35,7 @@ async def fs_app():
             io=IO(in_verbs=("create", "update"), out_verbs=("read",)),
         )
 
-    Base.metadata.create_all(engine)
+    TableBase.metadata.create_all(engine)
     app = TigrblApp()
     router = TigrblRouter(engine=cfg)
     app.include_table(FSItem)
@@ -111,6 +110,6 @@ async def test_field_spec_collect_in_atom(fs_app):
     _, _, _, FSItem = fs_app
     specs = FSItem.__tigrbl_cols__
     ctx = SimpleNamespace(specs=specs, op="create", temp={})
-    collect_in.run(None, ctx)
+    collect_in_run(None, ctx)
     schema = ctx.temp["schema_in"]
     assert schema["by_field"]["name"]["required"] is True

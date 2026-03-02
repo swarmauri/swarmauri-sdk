@@ -5,10 +5,10 @@ from typing import Any, Callable, Optional
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import MappedColumn
 
-from ..column.column_spec import ColumnSpec
-from ..column.field_spec import FieldSpec as F
-from ..column.io_spec import IOSpec as IO
-from ..column.storage_spec import StorageSpec as S
+from .._spec.column_spec import ColumnSpec
+from .._spec.field_spec import FieldSpec as F
+from .._spec.io_spec import IOSpec as IO
+from .._spec.storage_spec import StorageSpec as S
 
 
 class Column(ColumnSpec, MappedColumn):

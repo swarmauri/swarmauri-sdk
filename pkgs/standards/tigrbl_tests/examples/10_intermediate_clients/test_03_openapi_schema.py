@@ -4,9 +4,9 @@ import httpx
 import inspect
 import pytest
 
-from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
+from tigrbl import TableBase, TigrblApp, TigrblRouter
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -20,7 +20,7 @@ async def test_openapi_schema_contains_widget_paths():
     """
 
     # Setup: define a model to ensure OpenAPI includes its paths.
-    class LessonOpenAPI(Base, GUIDPk):
+    class LessonOpenAPI(TableBase, GUIDPk):
         __tablename__ = "lesson_openapi"
         __allow_unmapped__ = True
 
@@ -60,7 +60,7 @@ async def test_openapi_schema_includes_get_and_post():
     """
 
     # Setup: declare a model to verify REST verbs are documented.
-    class LessonOpenAPIPaths(Base, GUIDPk):
+    class LessonOpenAPIPaths(TableBase, GUIDPk):
         __tablename__ = "lesson_openapi_paths"
         __allow_unmapped__ = True
 

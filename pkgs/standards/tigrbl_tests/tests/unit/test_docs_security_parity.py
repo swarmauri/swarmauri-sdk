@@ -2,11 +2,11 @@ from httpx import ASGITransport, Client
 from sqlalchemy import Column, String
 
 from tigrbl import TigrblApp
-from tigrbl.engine.shortcuts import mem
-from tigrbl.op import OpSpec
+from tigrbl.shortcuts.engine import mem
+from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables import Base
-from tigrbl.security import HTTPBearer
+from tigrbl.orm.tables import TableBase
+from tigrbl import HTTPBearer
 from tigrbl.types import Security
 
 
@@ -18,7 +18,7 @@ def _beta_dep(cred=Security(HTTPBearer(scheme_name="BetaToken"))):
     return cred
 
 
-class Widget(Base, GUIDPk):
+class Widget(TableBase, GUIDPk):
     __tablename__ = "widgets_docs_security_parity"
 
     name = Column(String, nullable=False)

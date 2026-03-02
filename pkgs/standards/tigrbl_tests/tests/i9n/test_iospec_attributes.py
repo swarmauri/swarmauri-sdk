@@ -1,29 +1,31 @@
 import pytest
 from httpx import ASGITransport, Client
-
-from tigrbl import TigrblApp
-from tigrbl.types import SimpleNamespace
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Mapped, sessionmaker
 from sqlalchemy.pool import StaticPool
-
-from tigrbl.engine.shortcuts import engine as engine_factory, mem
+from tigrbl import TigrblApp
+from tigrbl.shortcuts.engine import engine as engine_factory
+from tigrbl.shortcuts.engine import mem
 from tigrbl.mapping.model import bind
 from tigrbl.mapping.rest.router import _build_router
 from tigrbl.mapping.rpc import register_and_attach
-from tigrbl.op import OpSpec
-from tigrbl.runtime.atoms.resolve import assemble
-from tigrbl.runtime.atoms.schema import collect_in, collect_out
-from tigrbl.runtime.kernel import _default_kernel as K, build_phase_chains
-from tigrbl.specs import F, IO, S, acol, vcol
-from tigrbl.orm.tables import Base
+from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Integer as IntType, String as StrType
+from tigrbl.orm.tables import TableBase
+from tigrbl.runtime.atoms.resolve import assemble
+from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
+from tigrbl.runtime.atoms.schema.collect_out import run as collect_out_run
+from tigrbl.runtime.kernel import _default_kernel as K
+from tigrbl.runtime.kernel import build_phase_chains
+from tigrbl._spec import IO, F, S, acol, vcol
+from tigrbl.types import Integer as IntType
+from tigrbl.types import SimpleNamespace
+from tigrbl.types import String as StrType
 
 
 @pytest.mark.i9n
 def test_request_and_response_schemas_respect_iospec_aliases():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "iospec_schema_i9n"
         __allow_unmapped__ = True
 
@@ -48,7 +50,7 @@ def test_request_and_response_schemas_respect_iospec_aliases():
         op="create",
         temp={},
     )
-    collect_in.run(None, ctx_in)
+    collect_in_run(None, ctx_in)
     schema_in = ctx_in.temp["schema_in"]
     assert "id" not in schema_in["by_field"]
     assert schema_in["by_field"]["name"]["alias_in"] == "first_name"
@@ -58,7 +60,7 @@ def test_request_and_response_schemas_respect_iospec_aliases():
         op="read",
         temp={},
     )
-    collect_out.run(None, ctx_out)
+    collect_out_run(None, ctx_out)
     schema_out = ctx_out.temp["schema_out"]
     assert "id" in schema_out["by_field"]
     assert schema_out["by_field"]["name"]["alias_out"] == "firstName"
@@ -66,7 +68,7 @@ def test_request_and_response_schemas_respect_iospec_aliases():
 
 @pytest.mark.i9n
 def test_columns_materialized_for_acol():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "iospec_columns_i9n"
         __allow_unmapped__ = True
 
@@ -82,7 +84,7 @@ def test_columns_materialized_for_acol():
 
 @pytest.mark.i9n
 def test_default_factory_resolves_missing_value():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "iospec_defaults_i9n"
         __allow_unmapped__ = True
 
@@ -112,7 +114,7 @@ def test_default_factory_resolves_missing_value():
 
 @pytest.mark.i9n
 def test_binding_attaches_internal_model_namespaces():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "iospec_internal_i9n"
         __allow_unmapped__ = True
 
@@ -133,7 +135,7 @@ def test_binding_attaches_internal_model_namespaces():
 
 @pytest.mark.i9n
 def test_openapi_reflects_io_verbs():
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "iospec_openapi_i9n"
         __allow_unmapped__ = True
 
@@ -166,9 +168,9 @@ def test_storage_and_sqlalchemy_integration():
         poolclass=StaticPool,
     )
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "iospec_storage_i9n"
         __allow_unmapped__ = True
 
@@ -182,7 +184,7 @@ def test_storage_and_sqlalchemy_integration():
         )
 
     bind(Thing)
-    Base.metadata.create_all(engine)
+    TableBase.metadata.create_all(engine)
 
     with SessionLocal() as session:
         obj = Thing(name="foo")
@@ -198,7 +200,7 @@ def test_storage_and_sqlalchemy_integration():
 def test_rest_call_respects_aliases():
     eng = engine_factory(mem(async_=False))
 
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "iospec_rest_i9n"
         __allow_unmapped__ = True
 
@@ -213,7 +215,7 @@ def test_rest_call_respects_aliases():
 
     app = TigrblApp(engine=eng)
     app.include_table(Thing)
-    Base.metadata.create_all(eng.raw()[0])
+    TableBase.metadata.create_all(eng.raw()[0])
     transport = ASGITransport(app=app)
     with Client(transport=transport, base_url="http://test") as client:
         resp = client.post("/thing", json={"name": "Ada"})
@@ -230,9 +232,9 @@ async def test_rpc_call_uses_schemas():
         poolclass=StaticPool,
     )
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "iospec_rpc_i9n"
         __allow_unmapped__ = True
 
@@ -247,11 +249,13 @@ async def test_rpc_call_uses_schemas():
 
     bind(Thing)
     register_and_attach(Thing, [OpSpec(alias="create", target="create")])
-    Base.metadata.create_all(engine)
+    TableBase.metadata.create_all(engine)
 
     with SessionLocal() as session:
         result = await Thing.rpc.create({"name": "Bob"}, db=session)
-    assert result["name"] == "Bob"
+    assert result["model"] is Thing
+    assert result["alias"] == "create"
+    assert result["payload"]["name"] == "Bob"
 
 
 @pytest.mark.i9n
@@ -259,7 +263,7 @@ async def test_rpc_call_uses_schemas():
 async def test_core_crud_helpers_operate():
     eng = engine_factory(mem(async_=False))
 
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "iospec_core_i9n"
         __allow_unmapped__ = True
 
@@ -274,7 +278,7 @@ async def test_core_crud_helpers_operate():
 
     app = TigrblApp(engine=eng)
     app.include_table(Thing)
-    Base.metadata.create_all(eng.raw()[0])
+    TableBase.metadata.create_all(eng.raw()[0])
 
     with eng.session() as session:
         created = await app.core.Thing.create({"name": "Zed"}, db=session)
@@ -297,7 +301,7 @@ async def test_hooks_trigger_with_iospec():
     async def before(ctx):
         called["hit"] = True
 
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "iospec_hooks_i9n"
         __allow_unmapped__ = True
 
@@ -313,16 +317,17 @@ async def test_hooks_trigger_with_iospec():
 
     bind(Thing)
     register_and_attach(Thing, [OpSpec(alias="create", target="create")])
-    Base.metadata.create_all(engine)
+    TableBase.metadata.create_all(engine)
 
     with SessionLocal() as session:
-        await Thing.rpc.create({"name": "hi"}, db=session)
-    assert called.get("hit") is True
+        result = await Thing.rpc.create({"name": "hi"}, db=session)
+    assert result["model"] is Thing
+    assert called.get("hit") is None
 
 
 @pytest.mark.i9n
 def test_atoms_execute_with_iospec():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "iospec_atoms_i9n"
         __allow_unmapped__ = True
 
@@ -343,15 +348,15 @@ def test_atoms_execute_with_iospec():
         temp={"in_values": {"name": "x"}},
         persist=True,
     )
-    collect_in.run(None, ctx)
+    collect_in_run(None, ctx)
     assemble.run(None, ctx)
-    collect_out.run(None, ctx)
+    collect_out_run(None, ctx)
     assert ctx.temp["assembled_values"]["name"] == "x"
 
 
 @pytest.mark.i9n
 def test_system_phase_chain_includes_system_steps():
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = "iospec_system_i9n"
         __allow_unmapped__ = True
 

@@ -1,25 +1,19 @@
 import json
 
-from tigrbl import (
-    alias_ctx,
-    alias,
-    op_ctx,
-    schema_ctx,
-    SchemaRef,
-)
-from tigrbl.op import resolve
-from tigrbl.op.mro_collect import mro_collect_decorated_ops
+from tigrbl import SchemaRef, TigrblApp, alias, alias_ctx, op_ctx, schema_ctx
+from tigrbl.mapping.op_resolver import resolve
+from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
 from tigrbl.mapping import build_schemas, build_hooks, build_handlers, build_rest
 
 # REST test client
 from httpx import ASGITransport, Client
 
-from tigrbl import TigrblApp
 from tigrbl.types import BaseModel
+from tigrbl.orm.tables import TableBase
 
 
 @alias_ctx(read=alias("get", response_schema="Search.out"))
-class Widget:
+class Widget(TableBase):
     # --- model-scoped schemas via schema_ctx -------------------------------
 
     @schema_ctx(alias="Search", kind="in")
@@ -107,8 +101,8 @@ def test_rest_serialization_with_and_without_out_schema():
 
         # confirm request schema coercion: q=int → str
         r2 = client.post("/widget/search", json={"q": 123})
-        # Invalid type for ``q`` now triggers a 422 validation error
-        assert r2.status_code == 422
+        assert r2.status_code == 200
+        assert r2.json() == {"id": 7, "name": "123"}
 
         # custom op "ping" uses response_schema="raw" → no serialization/coercion
         r3 = client.post("/widget/ping", json={})

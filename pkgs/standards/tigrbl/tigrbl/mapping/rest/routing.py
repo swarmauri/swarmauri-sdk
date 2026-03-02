@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Sequence, Tuple
 
 from ...runtime.status.mappings import status as _status
 from ...security.dependencies import Depends
-from ...op import OpSpec
+from ..._spec import OpSpec
 from ...op.types import CANON
 
 logger = logging.getLogger("uvicorn")
@@ -16,10 +16,22 @@ logger.debug("Loaded module v3/mapping/rest/routing")
 
 def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:
     """Turn callables into Depends(...) unless already a dependency object."""
-    if not deps:
+    if deps is None:
         return []
+
+    if isinstance(deps, (str, bytes, bytearray)):
+        normalized: tuple[Any, ...] = (deps,)
+    else:
+        try:
+            normalized = tuple(deps)
+        except TypeError:
+            normalized = (deps,)
+
+    if not normalized:
+        return []
+
     out: list[Any] = []
-    for d in deps:
+    for d in normalized:
         is_dep_obj = getattr(d, "dependency", None) is not None
         out.append(d if is_dep_obj else Depends(d))
     return out

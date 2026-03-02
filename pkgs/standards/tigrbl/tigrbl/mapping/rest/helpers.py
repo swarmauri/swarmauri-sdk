@@ -4,8 +4,8 @@ import logging
 from types import SimpleNamespace
 from typing import Any, Awaitable, Callable, Dict, Mapping, Sequence, Tuple
 
-from ...requests import Request
-from ...op.types import PHASES
+from ..._concrete._request import Request
+from ...hook.types import PHASES
 
 try:
     from ...runtime.kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore
@@ -39,17 +39,6 @@ def _ensure_jsonable(obj: Any) -> Any:
 
 def _req_state_db(request: Request) -> Any:
     return getattr(request.state, "db", None)
-
-
-def _resource_name(model: type) -> str:
-    """
-    Resource segment for HTTP paths/tags.
-
-    IMPORTANT: Never use table name here. Only allow an explicit __resource__
-    override or fall back to the model class name in lowercase.
-    """
-    override = getattr(model, "__resource__", None)
-    return override or model.__name__.lower()
 
 
 def _pk_name(model: type) -> str:

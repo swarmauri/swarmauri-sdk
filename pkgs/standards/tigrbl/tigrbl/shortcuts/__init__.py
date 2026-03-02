@@ -7,10 +7,10 @@ _MODULES = (
     "column",
     "engine",
     "hook",
+    "op",
     "responses",
     "router",
     "schema",
-    "session",
     "table",
 )
 

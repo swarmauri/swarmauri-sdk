@@ -1,4 +1,4 @@
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import CheckConstraint, Column, String, UniqueConstraint
 
@@ -18,7 +18,7 @@ def test_table_constraints_are_in_metadata():
         CheckConstraint("length(name) > 0", name="ck_widget_name"),
     )
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessontableargs"
         __allow_unmapped__ = True
         __table_args__ = constraints
@@ -45,7 +45,7 @@ def test_table_constraints_include_unique_checks():
         CheckConstraint("length(name) > 0", name="ck_widget_name"),
     )
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessontableargsunique"
         __allow_unmapped__ = True
         __table_args__ = constraints

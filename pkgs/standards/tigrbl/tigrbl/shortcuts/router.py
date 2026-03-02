@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Sequence, Type
 
-from ..router.router_spec import RouterSpec
-from ..router._router import Router
+from .._spec.router_spec import RouterSpec
+from .._concrete._router import Router
 
 
 def defineRouterSpec(

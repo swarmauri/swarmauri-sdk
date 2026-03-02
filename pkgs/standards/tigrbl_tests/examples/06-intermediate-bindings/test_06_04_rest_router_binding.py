@@ -3,9 +3,9 @@ from __future__ import annotations
 import pytest
 
 from tigrbl import TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.engine import mem
 
-from examples.lesson_support import make_widget_model
+from tigrbl_tests.examples.lesson_support import make_widget_model
 
 
 @pytest.mark.asyncio

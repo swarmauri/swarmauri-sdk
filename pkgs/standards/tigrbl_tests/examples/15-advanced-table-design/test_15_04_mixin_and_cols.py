@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.orm.mixins import ActiveToggle
-from tigrbl.specs import F, IO, S, acol
+from tigrbl._spec import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.types import Integer, Mapped, String
 
 
 def test_mixin_and_custom_columns() -> None:
-    class Feature(Base, ActiveToggle):
+    class Feature(TableBase, ActiveToggle):
         __tablename__ = "features"
 
         id: Mapped[int] = acol(

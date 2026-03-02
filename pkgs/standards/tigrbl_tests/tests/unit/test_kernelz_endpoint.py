@@ -1,7 +1,7 @@
 import pytest
 from types import SimpleNamespace
 
-from tigrbl.op import OpSpec
+from tigrbl._spec import OpSpec
 from tigrbl.system import diagnostics as _diag
 from tigrbl.system.diagnostics import _build_kernelz_endpoint
 

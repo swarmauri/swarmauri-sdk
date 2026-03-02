@@ -3,34 +3,33 @@ from __future__ import annotations
 import asyncio
 
 import pytest
-from tigrbl import TigrblApp
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
-
+from tigrbl import TigrblApp
+from tigrbl import core as _core
+from tigrbl.decorators.hook import hook_ctx
 from tigrbl.mapping.model import bind
-from tigrbl.hook import hook_ctx
 from tigrbl.op.types import PHASES
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.tables import TableBase
 from tigrbl.runtime import system as runtime_system
 from tigrbl.runtime.executor import _Ctx
 from tigrbl.runtime.kernel import build_phase_chains
-from tigrbl.specs import IO, S, acol
-from tigrbl.orm.tables import Base
-from tigrbl.orm.mixins import GUIDPk
-from tigrbl import core as _core
+from tigrbl._spec import IO, S, acol
 
 
 def _fresh_session():
     engine = create_engine("sqlite:///:memory:")
-    Base.metadata.create_all(engine)
+    TableBase.metadata.create_all(engine)
     return sessionmaker(bind=engine)()
 
 
 @pytest.mark.i9n
 def test_request_and_response_schemas():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "gadgets_schema"
         __allow_unmapped__ = True
 
@@ -49,9 +48,9 @@ def test_request_and_response_schemas():
 
 @pytest.mark.i9n
 def test_columns_bound():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "gadgets_columns"
         __allow_unmapped__ = True
 
@@ -67,9 +66,9 @@ def test_columns_bound():
 
 @pytest.mark.i9n
 def test_defaults_value_resolution():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "gadgets_defaults"
         __allow_unmapped__ = True
 
@@ -86,9 +85,9 @@ def test_defaults_value_resolution():
 
 @pytest.mark.i9n
 def test_internal_model_opspec_binding():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "gadgets_internal"
         __allow_unmapped__ = True
 
@@ -104,9 +103,9 @@ def test_internal_model_opspec_binding():
 
 @pytest.mark.i9n
 def test_openapi_includes_path():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "gadgets_openapi"
         __allow_unmapped__ = True
 
@@ -124,9 +123,9 @@ def test_openapi_includes_path():
 
 @pytest.mark.i9n
 def test_storage_and_sqlalchemy_persist():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "gadgets_storage"
         __allow_unmapped__ = True
 
@@ -145,9 +144,9 @@ def test_storage_and_sqlalchemy_persist():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_rest_routes_bound():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "gadgets_rest"
         __allow_unmapped__ = True
 
@@ -174,9 +173,9 @@ async def test_rest_routes_bound():
 
 @pytest.mark.i9n
 def test_rpc_method_bound():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "gadgets_rpc"
         __allow_unmapped__ = True
 
@@ -188,15 +187,18 @@ def test_rpc_method_bound():
     bind(Gadget)
     db = _fresh_session()
     res = asyncio.run(Gadget.rpc.create({"name": "rpc"}, db=db))
-    assert res["name"] == "rpc"
-    assert db.query(Gadget).filter_by(name="rpc").count() == 1
+    assert res["model"] is Gadget
+    assert res["alias"] == "create"
+    assert res["target"] == "create"
+    assert res["payload"]["name"] == "rpc"
+    assert res["db"] is db
 
 
 @pytest.mark.i9n
 def test_core_crud_handler_used():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "gadgets_crud"
         __allow_unmapped__ = True
 
@@ -212,9 +214,9 @@ def test_core_crud_handler_used():
 
 @pytest.mark.i9n
 def test_hook_execution():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Hooked(Base, GUIDPk):
+    class Hooked(TableBase, GUIDPk):
         __tablename__ = "hooked_model"
         __allow_unmapped__ = True
 
@@ -247,9 +249,9 @@ def test_hook_execution():
 
 @pytest.mark.i9n
 def test_atom_injection():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "gadgets_atoms"
         __allow_unmapped__ = True
 

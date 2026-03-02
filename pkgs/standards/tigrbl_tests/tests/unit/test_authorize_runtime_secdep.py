@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from sqlalchemy import Column, String
 
-from tigrbl import Base, TigrblApp
-from tigrbl.op import OpSpec
+from tigrbl import TableBase, TigrblApp
+from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 
 
@@ -11,7 +11,7 @@ def test_authorize_is_injected_as_runtime_secdep() -> None:
     def authorize(request, model, alias, payload, user):
         return None
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "authorize_runtime_secdep_item"
         name = Column(String, nullable=False)
         __tigrbl_ops__ = (OpSpec(alias="create", target="create"),)

@@ -1,7 +1,7 @@
 """Lesson 06.4: Understanding the default operation set."""
 
-from tigrbl import Base, TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblApp
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -14,7 +14,7 @@ def test_default_ops_include_list():
     """
 
     # Setup: declare a baseline model that uses only defaults.
-    class LessonDefaultOps(Base, GUIDPk):
+    class LessonDefaultOps(TableBase, GUIDPk):
         __tablename__ = "lesson_default_ops"
         __allow_unmapped__ = True
 
@@ -41,7 +41,7 @@ def test_default_ops_include_read_and_create():
     """
 
     # Setup: define a model that relies on canonical defaults.
-    class LessonDefaultOpsCore(Base, GUIDPk):
+    class LessonDefaultOpsCore(TableBase, GUIDPk):
         __tablename__ = "lesson_default_ops_core"
         __allow_unmapped__ = True
 

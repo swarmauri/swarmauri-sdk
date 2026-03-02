@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import logging
+import re
 import threading
 from types import SimpleNamespace
 from typing import Any, ClassVar, Dict, List, Mapping, Optional, Sequence, Tuple
 
-from ...op.types import StepFn
+from ..hook_types import StepFn
 from ..executor import _Ctx, _invoke
 from .. import events as _ev
 from .atoms import (
@@ -16,12 +17,130 @@ from .atoms import (
     _inject_pre_tx_dep_atoms,
     _inject_txn_system_steps,
     _is_persistent,
+    _wrap_atom,
 )
 from .cache import _SpecsOnceCache, _WeakMaybeDict
 from .models import KernelPlan, OpKey, OpMeta, OpView
+from ..labels import label_hook
 from .opview_compiler import compile_opview_from_specs
 
 logger = logging.getLogger(__name__)
+
+
+class _RestMatcher:
+    """REST selector matcher supporting exact and templated paths."""
+
+    def __init__(self) -> None:
+        self._exact: dict[tuple[str, str], int] = {}
+        self._templated: list[tuple[str, re.Pattern[str], tuple[str, ...], int]] = []
+        self._selectors: dict[str, int] = {}
+
+    @staticmethod
+    def _normalize_path(path: str) -> str:
+        p = path if path.startswith("/") else f"/{path}"
+        return p.rstrip("/") or "/"
+
+    def add(self, method: str, path: str, meta_index: int) -> None:
+        m = method.upper()
+        normalized = self._normalize_path(path)
+        self._selectors[f"{m} {normalized}"] = meta_index
+        if "{" not in normalized:
+            self._exact[(m, normalized)] = meta_index
+            return
+
+        names = tuple(re.findall(r"\{([^{}]+)\}", normalized))
+        pattern = "^" + re.sub(r"\{([^{}]+)\}", r"(?P<\1>[^/]+)", normalized) + "$"
+        self._templated.append((m, re.compile(pattern), names, meta_index))
+
+    def match(self, method: str, path: str) -> tuple[int, dict[str, str]]:
+        m = method.upper()
+        normalized = self._normalize_path(path)
+
+        exact = self._exact.get((m, normalized))
+        if exact is not None:
+            return exact, {}
+
+        for templ_method, pattern, names, meta_index in self._templated:
+            if templ_method != m:
+                continue
+            matched = pattern.match(normalized)
+            if matched is None:
+                continue
+            params = {
+                name: matched.group(name)
+                for name in names
+                if matched.group(name) is not None
+            }
+            return meta_index, params
+
+        raise KeyError((m, normalized))
+
+    def __call__(self, method: str, path: str) -> tuple[int, dict[str, str]]:
+        return self.match(method, path)
+
+    # Compatibility mapping surface used by older tests and adapters.
+    def __contains__(self, selector: object) -> bool:
+        return isinstance(selector, str) and selector in self._selectors
+
+    def __getitem__(self, selector: str) -> int:
+        return self._selectors[selector]
+
+    def get(self, selector: str, default: Any = None) -> Any:
+        return self._selectors.get(selector, default)
+
+    def keys(self):
+        return self._selectors.keys()
+
+    def items(self):
+        return self._selectors.items()
+
+    def values(self):
+        return self._selectors.values()
+
+    def __iter__(self):
+        return iter(self._selectors)
+
+    def __len__(self) -> int:
+        return len(self._selectors)
+
+
+def deepmerge_phase_chains(
+    *phase_maps: Mapping[str, Sequence[StepFn]],
+) -> Dict[str, List[StepFn]]:
+    """Deterministically concatenate phase step lists into a new mapping."""
+    merged: Dict[str, List[StepFn]] = {}
+    for phase_map in phase_maps:
+        for phase, steps in (phase_map or {}).items():
+            merged.setdefault(phase, []).extend(list(steps or ()))
+    return {phase: list(steps) for phase, steps in merged.items()}
+
+
+def _table_iter(app: Any) -> Sequence[type]:
+    tables = getattr(app, "tables", None)
+    if isinstance(tables, dict):
+        return tuple(v for v in tables.values() if isinstance(v, type))
+    return ()
+
+
+def _opspecs(model: type) -> Sequence[Any]:
+    return getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ()) or ()
+
+
+def _label_callable(fn: Any) -> str:
+    name = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
+    module = getattr(fn, "__module__", None)
+    return f"{module}.{name}" if module else name
+
+
+def _label_step(step: Any, phase: str) -> str:
+    label = getattr(step, "__tigrbl_label", None)
+    if isinstance(label, str) and "@" in label:
+        return label
+    module = getattr(step, "__module__", "") or ""
+    name = getattr(step, "__name__", "") or ""
+    if module.startswith("tigrbl.core.crud") and name:
+        return f"hook:wire:tigrbl:core:crud:ops:{name}@{phase}"
+    return f"hook:wire:{_label_callable(step).replace('.', ':')}@{phase}"
 
 
 class Kernel:
@@ -49,6 +168,7 @@ class Kernel:
         self._atoms_cache = list(atoms) if atoms else None
         self._specs_cache = _SpecsOnceCache()
         self._opviews = _WeakMaybeDict()
+        self._kernel_plans = _WeakMaybeDict()
         self._kernelz_payload = _WeakMaybeDict()
         self._primed = _WeakMaybeDict()
         self._lock = threading.Lock()
@@ -71,7 +191,7 @@ class Kernel:
     def invalidate_specs(self, model: Optional[type] = None) -> None:
         self._specs_cache.invalidate(model)
 
-    def build(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
+    def build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
         chains = _hook_phase_chains(model, alias)
         specs = getattr(getattr(model, "ops", SimpleNamespace()), "by_alias", {})
         sp_list = specs.get(alias) or ()
@@ -95,7 +215,7 @@ class Kernel:
 
         if persistent:
             try:
-                _inject_txn_system_steps(chains)
+                _inject_txn_system_steps(chains, model=model)
             except Exception:
                 logger.exception(
                     "kernel: failed to inject txn system steps for %s.%s",
@@ -106,27 +226,76 @@ class Kernel:
             chains.setdefault(phase, [])
         return chains
 
+    def build(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
+        return self.build_op(model, alias)
+
+    def build_ingress(self, app: Any) -> Dict[str, List[StepFn]]:
+        del app
+        order = {name: idx for idx, name in enumerate(_ev.all_events_ordered())}
+        ingress_atoms: Dict[str, List[tuple[str, Any]]] = {}
+        for anchor, run in self._atoms() or ():
+            if not _ev.is_valid_event(anchor):
+                continue
+            phase = _ev.phase_for_event(anchor)
+            if phase not in {"INGRESS_BEGIN", "INGRESS_PARSE", "INGRESS_ROUTE"}:
+                continue
+            ingress_atoms.setdefault(phase, []).append((anchor, run))
+
+        out: Dict[str, List[StepFn]] = {}
+        for phase, atoms in ingress_atoms.items():
+            ordered = sorted(atoms, key=lambda item: order.get(item[0], 10_000))
+            out[phase] = [_wrap_atom(run, anchor=anchor) for anchor, run in ordered]
+        return out
+
+    def build_egress(self, app: Any) -> Dict[str, List[StepFn]]:
+        del app
+        order = {name: idx for idx, name in enumerate(_ev.all_events_ordered())}
+        egress_atoms: Dict[str, List[tuple[str, Any]]] = {}
+        for anchor, run in self._atoms() or ():
+            if not _ev.is_valid_event(anchor):
+                continue
+            phase = _ev.phase_for_event(anchor)
+            if phase not in {"EGRESS_SHAPE", "EGRESS_FINALIZE", "POST_RESPONSE"}:
+                continue
+            egress_atoms.setdefault(phase, []).append((anchor, run))
+
+        out: Dict[str, List[StepFn]] = {}
+        for phase, atoms in egress_atoms.items():
+            ordered = sorted(atoms, key=lambda item: order.get(item[0], 10_000))
+            out[phase] = [_wrap_atom(run, anchor=anchor) for anchor, run in ordered]
+        return out
+
     def plan_labels(self, model: type, alias: str) -> list[str]:
         labels: list[str] = []
         chains = self.build(model, alias)
-        ordered_anchors = _ev.all_events_ordered()
-        ranked: list[tuple[int, int, str]] = []
-        anchor_idx = {anchor: i for i, anchor in enumerate(ordered_anchors)}
-        order = 0
-        for phase_steps in chains.values():
-            for step in phase_steps or ():
-                label = getattr(step, "__tigrbl_label", None)
-                if not isinstance(label, str) or "@" not in label:
-                    order += 1
-                    continue
-                anchor = label.rsplit("@", 1)[-1]
-                idx = anchor_idx.get(anchor)
-                if idx is not None:
-                    ranked.append((idx, order, label))
-                order += 1
+        opspec = next(
+            (sp for sp in _opspecs(model) if getattr(sp, "alias", None) == alias),
+            None,
+        )
+        persist = getattr(opspec, "persist", "default") != "skip"
 
-        ranked.sort(key=lambda item: (item[0], item[1]))
-        labels.extend(label for _, _, label in ranked)
+        tx_begin = "START_TX:hook:sys:txn:begin@START_TX"
+        tx_end = "END_TX:hook:sys:txn:commit@END_TX"
+        if persist:
+            labels.append(tx_begin)
+
+        for phase in _ev.PHASES:
+            if phase in {
+                "INGRESS_BEGIN",
+                "INGRESS_PARSE",
+                "INGRESS_ROUTE",
+                "EGRESS_SHAPE",
+                "EGRESS_FINALIZE",
+                "START_TX",
+                "END_TX",
+            }:
+                continue
+            for step in chains.get(phase, ()) or ():
+                labels.append(f"{phase}:{label_hook(step, phase)}")
+
+        if persist:
+            labels.append(tx_end)
+
         return labels
 
     async def invoke(
@@ -139,7 +308,7 @@ class Kernel:
         ctx: Optional[Mapping[str, Any]] = None,
     ) -> Any:
         """Execute an operation for ``model.alias`` using the executor."""
-        phases = self.build(model, alias)
+        phases = self.build_op(model, alias)
         base_ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
         base_ctx.model = model
         base_ctx.op = alias
@@ -152,11 +321,6 @@ class Kernel:
         with self._lock:
             if self._primed.get(app):
                 return
-            from ...system.diagnostics.utils import (
-                table_iter as _table_iter,
-                opspecs as _opspecs,
-            )
-
             models = list(_table_iter(app))
             for model in models:
                 self._specs_cache.get(model)
@@ -188,8 +352,6 @@ class Kernel:
 
         try:
             specs = self._specs_cache.get(model)
-            from ...system.diagnostics.utils import opspecs as _opspecs
-
             found = False
             for sp in _opspecs(model):
                 ov_map.setdefault(
@@ -209,27 +371,29 @@ class Kernel:
             ) from exc
 
     def compile_plan(self, app: Any) -> KernelPlan:
-        from ...specs.binding_spec import (
+        from ..._spec.binding_spec import (
             HttpJsonRpcBindingSpec,
             HttpRestBindingSpec,
             WsBindingSpec,
         )
-        from ...system.diagnostics.utils import (
-            opspecs as _opspecs,
-            table_iter as _table_iter,
-        )
 
-        proto_indices: dict[str, Any] = {}
+        proto_indices: dict[str, Any] = {"http.rest": {}, "https.rest": {}}
         opmeta: list[OpMeta] = []
         opkey_to_meta: dict[OpKey, int] = {}
         phase_chains: dict[int, Mapping[str, list[StepFn]]] = {}
+        ingress_chain = self.build_ingress(app)
+        egress_chain = self.build_egress(app)
 
         for model in _table_iter(app):
             for sp in _opspecs(model):
                 meta_index = len(opmeta)
                 target = (getattr(sp, "target", sp.alias) or sp.alias).lower()
                 opmeta.append(OpMeta(model=model, alias=sp.alias, target=target))
-                phase_chains[meta_index] = self.build(model, sp.alias)
+                phase_chains[meta_index] = deepmerge_phase_chains(
+                    ingress_chain,
+                    self.build_op(model, sp.alias),
+                    egress_chain,
+                )
 
                 for binding in getattr(sp, "bindings", ()) or ():
                     if isinstance(binding, HttpRestBindingSpec):
@@ -269,30 +433,51 @@ class Kernel:
             proto_indices=proto_indices,
             opmeta=tuple(opmeta),
             opkey_to_meta=opkey_to_meta,
+            ingress_chain=ingress_chain,
             phase_chains=phase_chains,
+            egress_chain=egress_chain,
         )
+
+    def compile_bootstrap_plan(self, app: Any) -> Dict[str, List[StepFn]]:
+        """Compatibility entrypoint for ingress-only bootstrap diagnostics."""
+        return self.build_ingress(app)
 
     def kernel_plan(self, app: Any) -> KernelPlan:
         self.ensure_primed(app)
-        plan = self._kernelz_payload.get(app)
+        plan = self._kernel_plans.get(app)
         if isinstance(plan, KernelPlan):
             return plan
+
         compiled = self.compile_plan(app)
-        self._kernelz_payload[app] = compiled
+        self._kernel_plans[app] = compiled
+
+        payload: dict[str, dict[str, list[str]]] = {}
+        for model in _table_iter(app):
+            model_name = getattr(model, "__name__", str(model))
+            payload[model_name] = {}
+            for sp in _opspecs(model):
+                payload[model_name][sp.alias] = self.plan_labels(model, sp.alias)
+        self._kernelz_payload[app] = payload
+
         return compiled
 
-    def kernelz_payload(self, app: Any) -> KernelPlan:
-        """Thin accessor for endpoint: guarantees primed, returns compiled kernel plan."""
-        self.ensure_primed(app)
-        return self.kernel_plan(app)
+    def kernelz_payload(self, app: Any) -> dict[str, dict[str, list[str]]]:
+        """Thin accessor for endpoint: guarantees primed diagnostics payload."""
+        self.kernel_plan(app)
+        payload = self._kernelz_payload.get(app)
+        if isinstance(payload, dict):
+            return payload
+        return {}
 
     def invalidate_kernelz_payload(self, app: Optional[Any] = None) -> None:
         with self._lock:
             if app is None:
+                self._kernel_plans = _WeakMaybeDict()
                 self._kernelz_payload = _WeakMaybeDict()
                 self._opviews = _WeakMaybeDict()
                 self._primed = _WeakMaybeDict()
             else:
+                self._kernel_plans.pop(app, None)
                 self._kernelz_payload.pop(app, None)
                 self._opviews.pop(app, None)
                 self._primed.pop(app, None)

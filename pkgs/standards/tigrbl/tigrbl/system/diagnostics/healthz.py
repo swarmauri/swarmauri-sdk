@@ -3,11 +3,23 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable, Optional
 
-from ...responses import JSONResponse
-from ...types import Depends, Request
+from ... import Depends, Request
+from ..._concrete import JSONResponse
 from .utils import maybe_execute
 
 logger = logging.getLogger(__name__)
+
+
+def _resolve_db(candidate: Any) -> Any:
+    """Resolve a DB-like object from either a DB handle or a Request object."""
+    if hasattr(candidate, "execute"):
+        return candidate
+
+    state = getattr(candidate, "state", None)
+    db = getattr(state, "db", None)
+    if db is not None:
+        return db
+    return None
 
 
 def build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
@@ -19,24 +31,33 @@ def build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
     if dep is not None:
 
         async def _healthz(db: Any = Depends(dep)):
+            db = _resolve_db(db)
+            if db is None:
+                return {"ok": True, "warning": "no-db"}
             try:
                 await maybe_execute(db, "SELECT 1")
                 return {"ok": True}
             except Exception as e:  # pragma: no cover
-                logger.exception("/healthz failed")
-                return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+                logger.warning("/healthz degraded: %s", e)
+                return JSONResponse(
+                    {"ok": False, "warning": "db-unavailable", "error": str(e)},
+                    status_code=200,
+                )
 
         return _healthz
 
     async def _healthz(request: Request):
-        db = getattr(request.state, "db", None)
+        db = _resolve_db(request)
         if db is None:
             return {"ok": True, "warning": "no-db"}
         try:
             await maybe_execute(db, "SELECT 1")
             return {"ok": True}
         except Exception as e:  # pragma: no cover
-            logger.exception("/healthz failed")
-            return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+            logger.warning("/healthz degraded: %s", e)
+            return JSONResponse(
+                {"ok": False, "warning": "db-unavailable", "error": str(e)},
+                status_code=200,
+            )
 
     return _healthz

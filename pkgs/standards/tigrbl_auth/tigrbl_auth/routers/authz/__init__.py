@@ -1,4 +1,4 @@
-from tigrbl_auth.deps import TigrblRouter
+from tigrbl_auth.vendor import TigrblRouter
 from tigrbl_auth.rfc import rfc6749_token, rfc7662_introspection
 
 api = TigrblRouter()

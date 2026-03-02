@@ -1,12 +1,12 @@
 from tigrbl.mapping.rest.router import _build_router
-from tigrbl.op import OpSpec
-from tigrbl.orm.tables import Base
+from tigrbl._spec import OpSpec
+from tigrbl.orm.tables import TableBase
 from tigrbl.orm.mixins import GUIDPk, BulkCapable, Replaceable
 from tigrbl import TigrblApp
 from tigrbl.types import Column, String
 
 
-class Widget(Base, GUIDPk, BulkCapable, Replaceable):
+class Widget(TableBase, GUIDPk, BulkCapable, Replaceable):
     __tablename__ = "widgets_bulk_schema"
     name = Column(String, nullable=False)
 

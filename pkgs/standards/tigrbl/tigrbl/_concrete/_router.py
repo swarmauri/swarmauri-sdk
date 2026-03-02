@@ -1,4 +1,4 @@
-"""Router primitives backing ``tigrbl.router`` and ``tigrbl.app.App``."""
+"""Router primitives backing ``tigrbl.Router`` and ``tigrbl.App``."""
 
 from __future__ import annotations
 
@@ -6,19 +6,20 @@ from contextlib import asynccontextmanager
 from typing import Any, Callable
 from types import SimpleNamespace
 
-from ..router.router_spec import RouterSpec
-from ..engine import resolver as _resolver
-from ..engine.engine_spec import EngineCfg
-from ..app._model_registry import initialize_table_registry
+from .._spec.router_spec import RouterSpec
+from ..mapping import engine_resolver as _resolver
+from ..mapping.spec_normalization import _seqify
+from .._spec.engine_spec import EngineCfg
+from ._table_registry import TableRegistry
 
-from tigrbl.router._routing import (
+from ._routing import (
     add_route as _add_route_impl,
     include_router as _include_router_impl,
     merge_tags,
     normalize_prefix,
     route,
 )
-from tigrbl.transport.httpx import ensure_httpx_sync_transport
+from ._httpx import ensure_httpx_sync_transport
 
 from ._route import Route
 from ..system.docs.openapi.metadata import is_metadata_route as _is_metadata_route_impl
@@ -85,8 +86,8 @@ class Router(RouterSpec):
         self.swagger_ui_version = swagger_ui_version
         class_prefix = getattr(self, "PREFIX", "")
         self.prefix = normalize_prefix(prefix or class_prefix)
-        self.tags = list(tags or [])
-        self.dependencies = list(dependencies or [])
+        self.tags = list(_seqify(tags))
+        self.dependencies = list(_seqify(dependencies))
         # Allow dependencies to be replaced at runtime, typically for testing
         # and environment-specific wiring.
         self.dependency_overrides: dict[Callable[..., Any], Callable[..., Any]] = {}
@@ -101,20 +102,24 @@ class Router(RouterSpec):
         self.name = getattr(self, "NAME", "router")
         self.prefix = normalize_prefix(prefix or getattr(self, "PREFIX", ""))
         self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
-        self.tags = list(tags or getattr(self, "TAGS", []))
-        self.ops = tuple(getattr(self, "OPS", ()))
+        self.tags = list(
+            _seqify(tags if tags is not None else getattr(self, "TAGS", ()))
+        )
+        self.ops = _seqify(getattr(self, "OPS", ()))
         self.schemas = SimpleNamespace()
         self.hooks = SimpleNamespace()
-        self.security_deps = tuple(getattr(self, "SECURITY_DEPS", ()))
-        self.deps = tuple(getattr(self, "DEPS", ()))
+        self.security_deps = _seqify(getattr(self, "SECURITY_DEPS", ()))
+        self.deps = _seqify(getattr(self, "DEPS", ()))
         self.response = getattr(self, "RESPONSE", None)
         self.rest_prefix = getattr(self, "REST_PREFIX", "/router")
         self.rpc_prefix = getattr(self, "RPC_PREFIX", "/rpc")
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
-        self.tables = initialize_table_registry(getattr(self, "TABLES", ()))
+        self.tables = TableRegistry(tables=getattr(self, "TABLES", ()))
 
         default_dependencies = list(self.security_deps) + list(self.deps)
-        self.dependencies = list(dependencies or default_dependencies)
+        self.dependencies = list(
+            _seqify(dependencies if dependencies is not None else default_dependencies)
+        )
 
         _engine_ctx = engine if engine is not None else getattr(self, "ENGINE", None)
         if _engine_ctx is not None:

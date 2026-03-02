@@ -7,9 +7,9 @@ import inspect
 import httpx
 import pytest
 
-from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
+from tigrbl import TableBase, TigrblApp, TigrblRouter
+from tigrbl.shortcuts.engine import mem
 from tigrbl.types import Column, ForeignKey, Integer, String, relationship
 
 
@@ -18,7 +18,7 @@ async def test_many_to_many_relationship_via_rest() -> None:
     """Show a many-to-many relationship with an enrollment model."""
 
     # Step 1: Define the first "side" of the relationship.
-    class Student(Base):
+    class Student(TableBase):
         __tablename__ = "lesson_rel_student"
         __allow_unmapped__ = True
 
@@ -36,7 +36,7 @@ async def test_many_to_many_relationship_via_rest() -> None:
         )
 
     # Step 2: Define the other "side" of the many-to-many relationship.
-    class Course(Base):
+    class Course(TableBase):
         __tablename__ = "lesson_rel_course"
         __allow_unmapped__ = True
 
@@ -54,7 +54,7 @@ async def test_many_to_many_relationship_via_rest() -> None:
         )
 
     # Step 3: Define the join model that captures each enrollment.
-    class Enrollment(Base):
+    class Enrollment(TableBase):
         __tablename__ = "lesson_rel_enrollment"
         __allow_unmapped__ = True
 

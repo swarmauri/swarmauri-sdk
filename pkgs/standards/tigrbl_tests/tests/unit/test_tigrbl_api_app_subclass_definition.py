@@ -1,12 +1,13 @@
 import pytest
 
-from tigrbl import Base, TigrblRouter, TigrblApp
+from tigrbl import TableBase, TigrblRouter, TigrblApp
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
+from tigrbl._spec import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.types import Mapped, String
 
 
-class Zeta(Base, GUIDPk):
+class Zeta(TableBase, GUIDPk):
     __tablename__ = "zeta_router_app_decl"
     __allow_unmapped__ = True
 

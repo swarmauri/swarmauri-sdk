@@ -9,6 +9,8 @@ register RPC & REST, and (optionally) mount JSON-RPC and diagnostics.
 
 from __future__ import annotations
 
+from ._concrete import Router
+
 # ── OpSpec (source of truth) ───────────────────────────────────────────────────
 from .op import (
     OpSpec,
@@ -26,11 +28,10 @@ from .schema.types import SchemaRef, SchemaArg
 # ── Ctx-only decorators (new surface; replaces legacy ops.decorators) ─────────
 
 from .op import alias_ctx, op_ctx, alias, op_alias
-from .hook import hook_ctx
-from .engine.decorators import engine_ctx
-from .schema.decorators import schema_ctx
-from .responses.decorators import response_ctx
-from .specs.response_spec import ResponseSpec
+from .decorators.hook import hook_ctx
+from .decorators.engine import engine_ctx
+from .decorators.schema import schema_ctx
+from .decorators.response import response_ctx
 
 # ── Bindings (model + Router orchestration) ───────────────────────────────────────
 from .mapping import (
@@ -53,7 +54,10 @@ from .runtime.executor import _invoke
 from .schema import _build_schema, _build_list_params, get_schema
 
 # ── Transport & Diagnostics (optional) ─────────────────────────────────────────
-from .transport import Request, Response
+from ._concrete._request import Request
+from .security import Depends
+from ._concrete._json_response import JSONResponse
+from ._concrete._response import Response
 from .system import mount_diagnostics
 
 # ── DB/bootstrap helpers (infra; optional) ─────────────────────────────────────
@@ -61,11 +65,50 @@ from .ddl import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
 
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
-from .app.tigrbl_app import TigrblApp
-from .router import Router, TigrblRouter, route_ctx
-from .table import Base
+from ._concrete.tigrbl_app import TigrblApp
+from ._concrete.tigrbl_router import TigrblRouter
+from .decorators.router import route_ctx
+from .orm.tables import TableBase
 from .op import Op
-from .security import APIKey, HTTPBearer, MutualTLS, OAuth2, OpenIdConnect
+from .shortcuts.op import op
+from .engine import resolver
+from ._concrete._security.api_key import APIKey
+from ._concrete._security.http_bearer import HTTPBearer
+from ._concrete._security.mutual_tls import MutualTLS
+from ._concrete._security.oauth2 import OAuth2
+from ._concrete._security.openid_connect import OpenIdConnect
+from .runtime.status.exceptions import HTTPException
+from ._spec import (
+    AppSpec,
+    ColumnSpec,
+    EngineSpec,
+    FieldSpec,
+    ForeignKeySpec,
+    IOSpec,
+    RequestSpec,
+    ResponseSpec,
+    RouterSpec,
+    SchemaSpec,
+    SessionSpec,
+    StorageSpec,
+    StorageTransform,
+    TableRegistrySpec,
+    TableSpec,
+    TemplateSpec,
+)
+from ._base import ForeignKeyBase, HookBase, TableRegistryBase
+from ._concrete import (
+    App,
+    Column,
+    ForeignKey,
+    Hook,
+    Route,
+    Schema,
+    Table,
+    TableRegistry,
+)
+from .decorators import HOOK_DECLS_ATTR, middleware, middlewares
+
 
 __all__: list[str] = []
 
@@ -73,8 +116,11 @@ __all__ += [
     "TigrblApp",
     "TigrblRouter",
     "Router",
-    "Base",
+    "Depends",
+    "HTTPException",
+    "TableBase",
     "Op",
+    "op",
     "HTTPBearer",
     "APIKey",
     "OAuth2",
@@ -132,5 +178,39 @@ __all__ += [
     # Config
     "DEFAULT_HTTP_METHODS",
     "Request",
+    "Depends",
     "Response",
+    "JSONResponse",
+    "resolver",
+]
+__all__ += [
+    "AppSpec",
+    "RouterSpec",
+    "TableSpec",
+    "TableRegistrySpec",
+    "ColumnSpec",
+    "FieldSpec",
+    "IOSpec",
+    "StorageSpec",
+    "StorageTransform",
+    "ForeignKeySpec",
+    "RequestSpec",
+    "SchemaSpec",
+    "SessionSpec",
+    "EngineSpec",
+    "TemplateSpec",
+    "ForeignKeyBase",
+    "HookBase",
+    "TableRegistryBase",
+    "App",
+    "Table",
+    "Column",
+    "Route",
+    "Schema",
+    "Hook",
+    "ForeignKey",
+    "TableRegistry",
+    "HOOK_DECLS_ATTR",
+    "middleware",
+    "middlewares",
 ]

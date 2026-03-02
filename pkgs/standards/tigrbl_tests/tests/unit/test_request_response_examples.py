@@ -1,20 +1,20 @@
 from tigrbl.mapping.rest.router import _build_router
-from tigrbl.op import OpSpec
-from tigrbl.orm.tables import Base
+from tigrbl._spec import OpSpec
+from tigrbl.orm.tables import TableBase
 from tigrbl.orm.mixins import GUIDPk, BulkCapable, Mergeable
-from tigrbl.specs import F, S, acol
+from tigrbl._spec import F, S, acol
 from tigrbl import TigrblApp
 from tigrbl.types import Mapped, String
 
 
-class Widget(Base, GUIDPk, Mergeable):
+class Widget(TableBase, GUIDPk, Mergeable):
     __tablename__ = "widgets_example_schemas"
     name: Mapped[str] = acol(
         storage=S(String, nullable=False), field=F(constraints={"examples": ["foo"]})
     )
 
 
-class BulkWidget(Base, GUIDPk, BulkCapable, Mergeable):
+class BulkWidget(TableBase, GUIDPk, BulkCapable, Mergeable):
     __tablename__ = "widgets_example_schemas_bulk"
     name: Mapped[str] = acol(
         storage=S(String, nullable=False), field=F(constraints={"examples": ["foo"]})

@@ -16,8 +16,24 @@ def run(obj: object | None, ctx: Any) -> None:
     route = temp.setdefault("route", {})
     envelope = route.get("rpc_envelope")
     if isinstance(envelope, dict) and "method" in envelope:
-        route["rpc_method"] = envelope["method"]
+        rpc_method = envelope["method"]
+        route["rpc_method"] = rpc_method
+        # JSON-RPC transport always returns HTTP 200 with an enveloped payload.
+        setattr(ctx, "status_code", 200)
         proto = route.get("protocol")
         if isinstance(proto, str) and proto.endswith(".rest"):
             route["protocol"] = proto.replace(".rest", ".jsonrpc")
             setattr(ctx, "proto", route["protocol"])
+
+        # Binding selection is performed by ``binding_match`` before RPC parsing.
+        # Once the RPC method is known, resolve the selected JSON-RPC op index
+        # from the compiled protocol index without re-running binding_match.
+        plan = getattr(ctx, "kernel_plan", None) or getattr(ctx, "plan", None)
+        proto = route.get("protocol")
+        proto_indices = getattr(plan, "proto_indices", None)
+        if isinstance(proto, str) and isinstance(proto_indices, dict):
+            method_index = proto_indices.get(proto)
+            if isinstance(method_index, dict):
+                binding = method_index.get(rpc_method)
+                if isinstance(binding, int):
+                    route["binding"] = binding

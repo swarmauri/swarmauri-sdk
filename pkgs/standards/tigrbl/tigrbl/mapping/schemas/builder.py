@@ -8,8 +8,8 @@ from typing import Dict, Optional, Sequence, Type
 
 from pydantic import BaseModel
 
-from ...op import OpSpec
-from ...schema import collect_decorated_schemas
+from ..._base import SchemaBase
+from ..._spec import OpSpec
 from .defaults import _default_schemas_for_spec
 from .utils import _alias_schema, _ensure_alias_namespace, _resolve_schema_arg, _Key
 
@@ -51,7 +51,7 @@ def build_and_attach(
         logger.debug("Filtering overrides to keys: %s", wanted)
 
     # Pass 0: attach schemas declared via @schema_ctx
-    declared = collect_decorated_schemas(model)  # {alias: {"in": cls, "out": cls}}
+    declared = SchemaBase.collect(model)  # {alias: {"in": cls, "out": cls}}
     for alias, kinds in (declared or {}).items():
         logger.debug("Applying declared schemas for alias '%s'", alias)
         ns = _ensure_alias_namespace(model, alias)

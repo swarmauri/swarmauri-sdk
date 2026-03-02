@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl.column import (
+from tigrbl.shortcuts.column import (
     Column,
     ColumnSpec,
     F,

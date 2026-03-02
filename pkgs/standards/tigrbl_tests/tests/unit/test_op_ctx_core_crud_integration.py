@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import Column, Integer, String
 
-from tigrbl import Base, op_ctx
+from tigrbl import TableBase, op_ctx
 import tigrbl.core as core
 
 
@@ -11,7 +11,7 @@ import tigrbl.core as core
     [(None, "read"), ("read", "read"), ("fetch", "fetch")],
 )
 async def test_op_ctx_target_read_core_executes(monkeypatch, alias_kw, handler_alias):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     storage = {1: {"id": 1}}
     calls = []
 
@@ -25,7 +25,7 @@ async def test_op_ctx_target_read_core_executes(monkeypatch, alias_kw, handler_a
     if alias_kw is not None:
         deco["alias"] = alias_kw
 
-    class Widget(Base):
+    class Widget(TableBase):
         __tablename__ = f"widgets_{handler_alias}"
         id = Column(Integer, primary_key=True)
 
@@ -47,7 +47,7 @@ async def test_op_ctx_target_read_core_executes(monkeypatch, alias_kw, handler_a
 
 @pytest.mark.asyncio
 async def test_op_ctx_alias_read_overrides_core(monkeypatch):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     storage = {1: {"id": 1}}
     calls = []
 
@@ -57,7 +57,7 @@ async def test_op_ctx_alias_read_overrides_core(monkeypatch):
 
     monkeypatch.setattr(core, "read", fake_read)
 
-    class Gadget(Base):
+    class Gadget(TableBase):
         __tablename__ = "gadgets_custom_read"
         id = Column(Integer, primary_key=True)
 
@@ -82,7 +82,7 @@ async def test_op_ctx_alias_read_overrides_core(monkeypatch):
     [(None, "create"), ("create", "create"), ("make", "make")],
 )
 async def test_op_ctx_target_create_core_executes(monkeypatch, alias_kw, handler_alias):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     storage = {}
     calls = []
 
@@ -97,7 +97,7 @@ async def test_op_ctx_target_create_core_executes(monkeypatch, alias_kw, handler
     if alias_kw is not None:
         deco["alias"] = alias_kw
 
-    class Gadget(Base):
+    class Gadget(TableBase):
         __tablename__ = f"gadgets_create_{handler_alias}"
         id = Column(Integer, primary_key=True)
         value = Column(String)
@@ -120,7 +120,7 @@ async def test_op_ctx_target_create_core_executes(monkeypatch, alias_kw, handler
 
 @pytest.mark.asyncio
 async def test_op_ctx_alias_create_overrides_core(monkeypatch):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     storage = {}
     calls = []
 
@@ -131,7 +131,7 @@ async def test_op_ctx_alias_create_overrides_core(monkeypatch):
 
     monkeypatch.setattr(core, "create", fake_create)
 
-    class Widget(Base):
+    class Widget(TableBase):
         __tablename__ = "widgets_custom_create"
         id = Column(Integer, primary_key=True)
         value = Column(String)
@@ -157,7 +157,7 @@ async def test_op_ctx_alias_create_overrides_core(monkeypatch):
     [(None, "update"), ("update", "update"), ("modify", "modify")],
 )
 async def test_op_ctx_target_update_core_executes(monkeypatch, alias_kw, handler_alias):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     storage = {1: {"id": 1, "value": "a"}}
     calls = []
 
@@ -172,7 +172,7 @@ async def test_op_ctx_target_update_core_executes(monkeypatch, alias_kw, handler
     if alias_kw is not None:
         deco["alias"] = alias_kw
 
-    class Gizmo(Base):
+    class Gizmo(TableBase):
         __tablename__ = f"gizmos_update_{handler_alias}"
         id = Column(Integer, primary_key=True)
         value = Column(String)
@@ -195,7 +195,7 @@ async def test_op_ctx_target_update_core_executes(monkeypatch, alias_kw, handler
 
 @pytest.mark.asyncio
 async def test_op_ctx_alias_update_overrides_core(monkeypatch):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     storage = {1: {"id": 1, "value": "a"}}
     calls = []
 
@@ -206,7 +206,7 @@ async def test_op_ctx_alias_update_overrides_core(monkeypatch):
 
     monkeypatch.setattr(core, "update", fake_update)
 
-    class Device(Base):
+    class Device(TableBase):
         __tablename__ = "devices_custom_update"
         id = Column(Integer, primary_key=True)
         value = Column(String)
@@ -234,7 +234,7 @@ async def test_op_ctx_alias_update_overrides_core(monkeypatch):
 async def test_op_ctx_target_replace_core_executes(
     monkeypatch, alias_kw, handler_alias
 ):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     storage = {1: {"id": 1, "value": "a"}}
     calls = []
 
@@ -249,7 +249,7 @@ async def test_op_ctx_target_replace_core_executes(
     if alias_kw is not None:
         deco["alias"] = alias_kw
 
-    class Thing(Base):
+    class Thing(TableBase):
         __tablename__ = f"things_replace_{handler_alias}"
         id = Column(Integer, primary_key=True)
         value = Column(String)
@@ -272,7 +272,7 @@ async def test_op_ctx_target_replace_core_executes(
 
 @pytest.mark.asyncio
 async def test_op_ctx_alias_replace_overrides_core(monkeypatch):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     storage = {1: {"id": 1, "value": "a"}}
     calls = []
 
@@ -283,7 +283,7 @@ async def test_op_ctx_alias_replace_overrides_core(monkeypatch):
 
     monkeypatch.setattr(core, "replace", fake_replace)
 
-    class Part(Base):
+    class Part(TableBase):
         __tablename__ = "parts_custom_replace"
         id = Column(Integer, primary_key=True)
         value = Column(String)
@@ -309,7 +309,7 @@ async def test_op_ctx_alias_replace_overrides_core(monkeypatch):
     [(None, "delete"), ("delete", "delete"), ("remove", "remove")],
 )
 async def test_op_ctx_target_delete_core_executes(monkeypatch, alias_kw, handler_alias):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     storage = {1: {"id": 1}}
     calls = []
 
@@ -324,7 +324,7 @@ async def test_op_ctx_target_delete_core_executes(monkeypatch, alias_kw, handler
     if alias_kw is not None:
         deco["alias"] = alias_kw
 
-    class Piece(Base):
+    class Piece(TableBase):
         __tablename__ = f"pieces_delete_{handler_alias}"
         id = Column(Integer, primary_key=True)
 
@@ -346,7 +346,7 @@ async def test_op_ctx_target_delete_core_executes(monkeypatch, alias_kw, handler
 
 @pytest.mark.asyncio
 async def test_op_ctx_alias_delete_overrides_core(monkeypatch):
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     storage = {1: {"id": 1}}
     calls = []
 
@@ -357,7 +357,7 @@ async def test_op_ctx_alias_delete_overrides_core(monkeypatch):
 
     monkeypatch.setattr(core, "delete", fake_delete)
 
-    class Chip(Base):
+    class Chip(TableBase):
         __tablename__ = "chips_custom_delete"
         id = Column(Integer, primary_key=True)
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tigrbl.hook import hook_ctx
+from tigrbl.decorators.hook import hook_ctx
 from tigrbl_acme_ca.tables.certificates import Certificate
 
 from fastapi import HTTPException

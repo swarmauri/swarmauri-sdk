@@ -1,17 +1,16 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
-
 from tigrbl import TigrblApp, TigrblRouter
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 from tigrbl.types import Column, String
 
 
 @pytest.mark.asyncio()
 async def test_openapi_clear_response_schema() -> None:
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets_openapi_clear"
         name = Column(String, nullable=False)
 

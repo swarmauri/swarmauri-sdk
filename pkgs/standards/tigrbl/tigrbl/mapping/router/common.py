@@ -13,9 +13,20 @@ class AttrDict(dict):
 
     def __getattr__(self, item: str) -> Any:  # pragma: no cover - trivial
         try:
-            return self[item]
+            value = self[item]
         except KeyError as e:  # pragma: no cover - debug aid
             raise AttributeError(item) from e
+
+        # Compatibility: table registries are model-centric (key access returns
+        # the model class), but some call sites historically accessed
+        # ``router.tables.ModelName.name`` expecting SQLAlchemy table metadata.
+        # Attribute access preserves that by projecting mapped model classes to
+        # their ``__table__`` object when available.
+        if isinstance(value, type):
+            table = getattr(value, "__table__", None)
+            if table is not None:
+                return table
+        return value
 
     def __setattr__(self, key: str, value: Any) -> None:  # pragma: no cover - trivial
         self[key] = value
@@ -23,24 +34,6 @@ class AttrDict(dict):
 
 # Public type for the Router facade object users pass to include_table(...)
 RouterLike = Any
-
-
-def _resource_name(model: type) -> str:
-    """
-    Compute the Router resource segment.
-
-    Policy:
-      - Prefer explicit `__resource__` when present (caller-controlled).
-      - Otherwise, use the model *class name* in lowercase.
-      - DO NOT use `__tablename__` here (strictly DB-only per project policy).
-    """
-    if hasattr(model, "__resource__"):
-        resource = model.__resource__
-        logger.debug("Using explicit resource '%s' for %s", resource, model.__name__)
-    else:
-        resource = model.__name__.lower()
-        logger.debug("Derived resource '%s' for %s", resource, model.__name__)
-    return resource
 
 
 def _default_prefix(model: type) -> str:

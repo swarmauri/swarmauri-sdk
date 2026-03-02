@@ -5,12 +5,12 @@ import warnings
 from sqlalchemy import Integer, String
 from sqlalchemy.exc import SAWarning
 
-from tigrbl.column import ColumnSpec, S
-from tigrbl.table._base import Base
+from tigrbl._spec import ColumnSpec, StorageSpec as S
+from tigrbl.orm.tables import TableBase
 
 
 def test_columnspec_inheritance_does_not_warn() -> None:
-    class Parent(Base):
+    class Parent(TableBase):
         __tablename__ = "test_parent"
         __mapper_args__ = {
             "polymorphic_identity": "parent",

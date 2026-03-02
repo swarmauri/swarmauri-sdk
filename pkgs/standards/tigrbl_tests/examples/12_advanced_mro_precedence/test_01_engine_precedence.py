@@ -1,6 +1,6 @@
 from tigrbl import TigrblApp
-from tigrbl.app.shortcuts import defineAppSpec
-from tigrbl.engine.shortcuts import mem
+from tigrbl.shortcuts.app import defineAppSpec
+from tigrbl.shortcuts.engine import mem
 
 
 def test_engine_precedence_resolves_latest():

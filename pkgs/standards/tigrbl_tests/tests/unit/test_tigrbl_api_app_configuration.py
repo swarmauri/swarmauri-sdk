@@ -1,14 +1,14 @@
 import pytest
 
-from tigrbl import Base, TigrblRouter, TigrblApp
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblApp, TigrblRouter
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
-from tigrbl.types import Mapped, String
-
-
+from tigrbl import HTTPBearer
 from tigrbl.security import Security
+from tigrbl._concrete._security.http_bearer import HTTPAuthorizationCredentials
+from tigrbl._spec import F, IO, S
+from tigrbl.shortcuts import acol
+from tigrbl.types import Mapped, String
 
 
 def _auth_dependency(
@@ -17,7 +17,7 @@ def _auth_dependency(
     return credentials
 
 
-class Iota(Base, GUIDPk):
+class Iota(TableBase, GUIDPk):
     __tablename__ = "iota_router_app_cfg"
     __allow_unmapped__ = True
 

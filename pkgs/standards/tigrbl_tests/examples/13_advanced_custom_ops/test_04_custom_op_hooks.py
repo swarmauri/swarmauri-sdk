@@ -1,7 +1,7 @@
 import inspect
 
-from tigrbl import Base, TigrblApp, hook_ctx, op_ctx
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblApp, hook_ctx, op_ctx
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -9,7 +9,7 @@ from tigrbl.types import Column, String
 def test_custom_op_hooks_register():
     """Test custom op hooks register."""
 
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_custom_hook"
         __allow_unmapped__ = True
 

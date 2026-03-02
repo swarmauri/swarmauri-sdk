@@ -1,12 +1,13 @@
 import pytest
 
-from tigrbl import Base, TigrblApp
+from tigrbl import TableBase, TigrblApp
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
+from tigrbl._spec import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.types import Mapped, String
 
 
-class Widget(Base, GUIDPk):
+class Widget(TableBase, GUIDPk):
     __tablename__ = "widgets_app_decl"
     __allow_unmapped__ = True
 

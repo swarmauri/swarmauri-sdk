@@ -5,11 +5,11 @@ from __future__ import annotations
 from ...specs import acol, IO, S, F
 from ...types import LargeBinary, Mapped, String
 
-from ._base import Base
+from ._base import TableBase
 from ..mixins import ActiveToggle, GUIDPk, Timestamped, TenantBound
 
 
-class Client(Base, GUIDPk, Timestamped, TenantBound, ActiveToggle):
+class Client(TableBase, GUIDPk, Timestamped, TenantBound, ActiveToggle):
     __tablename__ = "clients"
     __abstract__ = True
     # ---------------------------------------------------------------- columns --

@@ -4,7 +4,7 @@ import inspect
 from typing import Any, Callable
 
 from ....core.crud.params import Param
-from ....core.resolver import (
+from ....mapping.core_resolver import (
     annotation_marker,
     extract_param_value,
     is_request_annotation,

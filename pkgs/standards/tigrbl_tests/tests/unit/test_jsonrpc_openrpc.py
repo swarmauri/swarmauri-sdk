@@ -1,12 +1,12 @@
 from httpx import ASGITransport, Client
 from sqlalchemy import Column, String
-from tigrbl import Base, TigrblRouter, TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblRouter, TigrblApp
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 
 
 def _build_app():
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets_openrpc"
         name = Column(String, nullable=False)
 
@@ -126,7 +126,7 @@ def test_mount_lens_uses_latest_openrpc_path_by_default() -> None:
 
 
 def test_openrpc_server_url_respects_router_mount_jsonrpc_prefix_argument():
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets_openrpc_router_mount_prefix"
         name = Column(String, nullable=False)
 

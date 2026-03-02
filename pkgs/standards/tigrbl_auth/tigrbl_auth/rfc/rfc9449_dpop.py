@@ -11,7 +11,7 @@ import warnings
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.hazmat.primitives import serialization
 from swarmauri_signing_dpop import DpopSigner
-from ..deps import JWAAlg
+from ..vendor import JWAAlg
 
 from ..runtime_cfg import settings
 
@@ -57,7 +57,7 @@ def makeProof(
     """Create a DPoP proof for *method* and *url* using *keyref*.
 
     ``keyref`` is the :class:`~swarmauri_core.crypto.types.KeyRef` returned by a
-    Swarmauri key provider such as :class:`~tigrbl_auth.deps.LocalKeyProvider` or
+    Swarmauri key provider such as :class:`~tigrbl_auth.vendor.LocalKeyProvider` or
     ``InMemoryKeyProvider``. The private key material from the provider is
     passed to :class:`~swarmauri_signing_dpop.DpopSigner` for signing, avoiding
     direct usage of ``cryptography`` within this module.

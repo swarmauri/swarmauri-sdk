@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from tigrbl import Base
-from tigrbl.engine.shortcuts import mem
-from tigrbl.table.mro_collect import mro_collect_table_spec
-from tigrbl.table.shortcuts import defineTableSpec
+from tigrbl import TableBase
+from tigrbl.shortcuts.engine import mem
+from tigrbl.mapping.table_mro_collect import mro_collect_table_spec
+from tigrbl.shortcuts.table import defineTableSpec
 
 
 def test_table_mro_engine_precedence() -> None:
@@ -13,7 +13,7 @@ def test_table_mro_engine_precedence() -> None:
     class OverrideSpec(defineTableSpec(engine=mem(async_=True))):
         pass
 
-    class Widget(OverrideSpec, BaseSpec, Base):
+    class Widget(OverrideSpec, BaseSpec, TableBase):
         __tablename__ = "mro_widgets"
 
     spec = mro_collect_table_spec(Widget)

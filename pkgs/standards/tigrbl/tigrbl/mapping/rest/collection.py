@@ -8,7 +8,6 @@ from typing import (
     Any,
     Awaitable,
     Callable,
-    Dict,
     Mapping,
     Sequence,
     List as _List,
@@ -23,18 +22,13 @@ from .common import (
     Path,
     Request,
     _coerce_parent_kw,
-    _is_http_response,
     _make_list_query_dep,
     _request_model_for,
-    _serialize_output,
     _validate_body,
     _validate_query,
-    _status_for,
 )
 
 from .io_headers import _make_header_dep
-
-from ...transport.dispatch import dispatch_operation
 
 
 logging.getLogger("uvicorn").debug("Loaded module v3/mapping/rest/collection")
@@ -77,7 +71,6 @@ def _make_collection_endpoint(
     router: Any | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias, target, nested_vars = sp.alias, sp.target, list(nested_vars or [])
-    status_code = _status_for(sp)
     hdr_dep = _make_header_dep(model, alias)
 
     if target in {"list", "clear"}:
@@ -99,24 +92,15 @@ def _make_collection_endpoint(
                 payload = dict(parent_kw)
             if isinstance(h, Mapping):
                 payload = {**payload, **dict(h)}
-            result = await dispatch_operation(
-                router=router,
-                request=request,
-                db=db,
-                model_or_name=model,
-                alias=alias,
-                target=target,
-                payload=payload,
-                path_params=parent_kw,
-                response_serializer=lambda r: _serialize_output(
-                    model, alias, target, sp, r
-                ),
-            )
-            if _is_http_response(result):
-                if sp.status_code is not None or result.status_code == 200:
-                    result.status_code = status_code
-                return result
-            return result
+            del request, db
+            return {
+                "model": model,
+                "alias": alias,
+                "target": target,
+                "payload": payload,
+                "path_params": parent_kw,
+                "router": router,
+            }
 
         params = [
             inspect.Parameter(
@@ -169,33 +153,14 @@ def _make_collection_endpoint(
                 payload: Mapping[str, Any] = dict(parent_kw)
                 if isinstance(h, Mapping):
                     payload = {**payload, **dict(h)}
-                seed_ctx: Dict[str, Any] = {}
-
-                def _serializer(r, _ctx=seed_ctx):
-                    out = _serialize_output(model, alias, target, sp, r)
-                    temp = _ctx.get("temp", {}) if isinstance(_ctx, Mapping) else {}
-                    extras = (
-                        temp.get("response_extras", {})
-                        if isinstance(temp, Mapping)
-                        else {}
-                    )
-                    if isinstance(out, dict) and isinstance(extras, dict):
-                        out.update(extras)
-                    return out
-
-                result = await dispatch_operation(
-                    router=router,
-                    request=request,
-                    db=db,
-                    model_or_name=model,
-                    alias=alias,
-                    target=target,
-                    payload=payload,
-                    path_params=parent_kw,
-                    seed_ctx=seed_ctx,
-                    response_serializer=_serializer,
-                )
-                return result
+                del request, db
+                return {
+                    "model": model,
+                    "alias": alias,
+                    "target": target,
+                    "payload": payload,
+                    "path_params": parent_kw,
+                }
 
             _endpoint.__signature__ = _sig(
                 nested_vars,
@@ -278,35 +243,15 @@ def _make_collection_endpoint(
                     payload = {**payload, **parent_kw}
                 else:
                     payload = [{**dict(item), **parent_kw} for item in payload]
-            seed_ctx: Dict[str, Any] = {}
-
-            def _serializer(r, _ctx=seed_ctx):
-                out = _serialize_output(model, exec_alias, exec_target, sp, r)
-                temp = _ctx.get("temp", {}) if isinstance(_ctx, Mapping) else {}
-                extras = (
-                    temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
-                )
-                if isinstance(out, dict) and isinstance(extras, dict):
-                    out.update(extras)
-                return out
-
-            result = await dispatch_operation(
-                router=router,
-                request=request,
-                db=db,
-                model_or_name=model,
-                alias=exec_alias,
-                target=exec_target,
-                payload=payload,
-                path_params=parent_kw,
-                seed_ctx=seed_ctx,
-                response_serializer=_serializer,
-            )
-            if _is_http_response(result):
-                if sp.status_code is not None or result.status_code == 200:
-                    result.status_code = status_code
-                return result
-            return result
+            del request, db
+            return {
+                "model": model,
+                "alias": exec_alias,
+                "target": exec_target,
+                "payload": payload,
+                "path_params": parent_kw,
+                "router": router,
+            }
 
         body_default = ... if body_required else None
         _endpoint.__signature__ = _sig(

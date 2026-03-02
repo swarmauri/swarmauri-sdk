@@ -1,13 +1,13 @@
 from tigrbl import TigrblApp
 
 from tigrbl.mapping.rest.router import _build_router
-from tigrbl.op import OpSpec
-from tigrbl.orm.tables import Base
+from tigrbl._spec import OpSpec
+from tigrbl.orm.tables import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
 
-class Widget(Base, GUIDPk):
+class Widget(TableBase, GUIDPk):
     __tablename__ = "widgets_req_schema"
     name = Column(String, nullable=False)
 
@@ -39,7 +39,7 @@ def test_request_body_uses_schema_model():
 
 
 def test_replace_request_body_excludes_pk():
-    class Gadget(Base, GUIDPk):
+    class Gadget(TableBase, GUIDPk):
         __tablename__ = "gadget_replace_schema"
         name = Column(String, nullable=False)
 

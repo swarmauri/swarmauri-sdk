@@ -3,16 +3,16 @@ from collections.abc import Iterator
 
 from tigrbl import TigrblApp
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
-from tigrbl.specs import IO, S, F, acol as spec_acol
-from tigrbl.orm.tables import Base
+from tigrbl._spec import IO, S, F, acol as spec_acol
+from tigrbl.orm.tables import TableBase
 from tigrbl.types import Session, String
-from tigrbl.engine.shortcuts import mem
-from tigrbl.engine import resolver as _resolver
+from tigrbl.shortcuts.engine import mem
+from tigrbl import resolver as _resolver
 
 
 @pytest.fixture()
-def app_and_session() -> Iterator[tuple[TigrblApp, Session, type[Base]]]:
-    class Widget(Base, GUIDPk, BulkCapable):
+def app_and_session() -> Iterator[tuple[TigrblApp, Session, type[TableBase]]]:
+    class Widget(TableBase, GUIDPk, BulkCapable):
         __tablename__ = "widgets_rpc_ops"
         __allow_unmapped__ = True
 

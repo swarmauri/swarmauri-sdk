@@ -1,17 +1,16 @@
 import httpx
 import pytest
 import pytest_asyncio
-
-from tigrbl import Base, TigrblRouter, TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblApp, TigrblRouter
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
+from tigrbl._spec import IO, F, S, acol
 from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
 
-class AlphaWidget(Base, GUIDPk):
+class AlphaWidget(TableBase, GUIDPk):
     __tablename__ = "alpha_widgets"
     __resource__ = "alpha-widget"
 
@@ -22,7 +21,7 @@ class AlphaWidget(Base, GUIDPk):
     )
 
 
-class BetaWidget(Base, GUIDPk):
+class BetaWidget(TableBase, GUIDPk):
     __tablename__ = "beta_widgets"
     __resource__ = "beta-widget"
 

@@ -3,8 +3,9 @@ import tigrbl.core as core
 from pydantic import BaseModel
 
 from tigrbl import alias_ctx, alias, schema_ctx
-from tigrbl.op import resolve
+from tigrbl.mapping.op_resolver import resolve
 from tigrbl.mapping import build_schemas, build_handlers
+from tigrbl.orm.tables import TableBase
 
 
 @pytest.mark.asyncio
@@ -18,7 +19,7 @@ async def test_alias_ctx_renames_canon_and_uses_core_handler(monkeypatch):
     monkeypatch.setattr(core, "read", fake_read)
 
     @alias_ctx(read="get")
-    class Widget:
+    class Widget(TableBase):
         pass
 
     specs = resolve(Widget)
@@ -36,7 +37,7 @@ async def test_alias_ctx_renames_canon_and_uses_core_handler(monkeypatch):
 
 def test_alias_ctx_request_schema_override():
     @alias_ctx(create=alias("add", request_schema="Payload.in"))
-    class Widget:
+    class Widget(TableBase):
         @schema_ctx(alias="Payload", kind="in")
         class Payload(BaseModel):
             x: int
@@ -48,7 +49,7 @@ def test_alias_ctx_request_schema_override():
 
 def test_alias_ctx_response_schema_override():
     @alias_ctx(read=alias("fetch", response_schema="Result.out"))
-    class Widget:
+    class Widget(TableBase):
         @schema_ctx(alias="Result", kind="out")
         class Result(BaseModel):
             id: int
@@ -60,7 +61,7 @@ def test_alias_ctx_response_schema_override():
 
 def test_alias_ctx_persist_override():
     @alias_ctx(update=alias("modify", persist="skip"))
-    class Widget:
+    class Widget(TableBase):
         pass
 
     specs = resolve(Widget)
@@ -70,7 +71,7 @@ def test_alias_ctx_persist_override():
 
 def test_alias_ctx_arity_override():
     @alias_ctx(list=alias("ls", arity="member"))
-    class Widget:
+    class Widget(TableBase):
         pass
 
     specs = resolve(Widget)
@@ -80,7 +81,7 @@ def test_alias_ctx_arity_override():
 
 def test_alias_ctx_rest_override():
     @alias_ctx(delete=alias("remove", rest=False))
-    class Widget:
+    class Widget(TableBase):
         pass
 
     specs = resolve(Widget)

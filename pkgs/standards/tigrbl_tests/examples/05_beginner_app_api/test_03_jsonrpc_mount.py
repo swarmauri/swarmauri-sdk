@@ -1,5 +1,5 @@
-from tigrbl import Base, TigrblApp
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblApp
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -14,7 +14,7 @@ def test_jsonrpc_mount_adds_rpc_prefix():
     """
 
     # Setup: define a widget model and API instance.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonrpc"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
@@ -41,7 +41,7 @@ def test_jsonrpc_mount_preserves_existing_routes():
     """
 
     # Setup: define a new widget model and API instance.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonrpcexisting"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)

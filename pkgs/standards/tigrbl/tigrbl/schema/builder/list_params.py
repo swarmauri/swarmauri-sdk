@@ -9,7 +9,7 @@ from typing import Any, Type
 from pydantic import BaseModel, ConfigDict, Field, create_model
 
 from ..utils import namely_model
-from ...column.mro_collect import mro_collect_columns
+from ...mapping.column_mro_collect import mro_collect_columns
 
 logger = logging.getLogger(__name__)
 

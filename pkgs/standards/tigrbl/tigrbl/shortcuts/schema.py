@@ -11,8 +11,8 @@ except Exception:  # pragma: no cover
         pass
 
 
-from ..schema._schema import Schema
-from ..schema.schema_spec import SchemaSpec
+from .._concrete._schema import Schema
+from .._spec.schema_spec import SchemaSpec
 from ..schema.types import SchemaArg, SchemaKind
 
 

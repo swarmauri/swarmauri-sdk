@@ -1,5 +1,5 @@
-from tigrbl import Base, TigrblApp, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblApp, TigrblRouter
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
@@ -15,7 +15,7 @@ def test_app_router_registers_routes():
     """
 
     # Setup: define a model and initialize a Tigrbl API.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonrouter"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)
@@ -44,7 +44,7 @@ def test_app_router_contains_model_route_once():
     """
 
     # Setup: declare another model and API for a clean route table.
-    class Widget(Base, GUIDPk):
+    class Widget(TableBase, GUIDPk):
         __tablename__ = "lessonroutersingle"
         __allow_unmapped__ = True
         name = Column(String, nullable=False)

@@ -1,4 +1,4 @@
-from .executor import RawEnvelopeExecutor
+from .invoke import invoke
 from .raw import GwRawEnvelope, GwRouteEnvelope
 
-__all__ = ["GwRawEnvelope", "GwRouteEnvelope", "RawEnvelopeExecutor"]
+__all__ = ["GwRawEnvelope", "GwRouteEnvelope", "invoke"]

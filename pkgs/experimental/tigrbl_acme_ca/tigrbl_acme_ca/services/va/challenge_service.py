@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from fastapi import HTTPException
-from tigrbl.op import op_ctx
-from tigrbl.hook import hook_ctx
+from tigrbl.decorators import op_ctx
+from tigrbl.decorators.hook import hook_ctx
 
 from tigrbl_acme_ca.tables.challenges import Challenge
 from tigrbl_acme_ca.tables.authorizations import Authorization

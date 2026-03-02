@@ -11,10 +11,10 @@ from .common import (
     _ensure_router_ns,
     _has_include_router,
     _mount_router,
-    _resource_name,
 )
 from .resource_proxy import _ResourceProxy
 from .. import model as _binder
+from ..column_mro_collect import mro_collect_columns
 from ...config.constants import (
     TIGRBL_AUTH_DEP_ATTR,
     TIGRBL_GET_DB_ATTR,
@@ -22,10 +22,51 @@ from ...config.constants import (
     TIGRBL_RPC_DEPENDENCIES_ATTR,
     TIGRBL_ALLOW_ANON_ATTR,
 )
-from ...engine import resolver as _resolver
+from ...mapping import engine_resolver as _resolver
+from ..model_helpers import _OpSpecGroup
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/include")
+
+
+def _build_router_rpc_namespace(router: RouterLike, model: type) -> SimpleNamespace:
+    """Return router-scoped RPC methods that execute and serialize results."""
+    from .rpc import rpc_call as _rpc_call
+
+    model_rpc_ns = getattr(model, "rpc", SimpleNamespace())
+    router_rpc_ns = SimpleNamespace()
+
+    for attr_name, attr_value in vars(model_rpc_ns).items():
+        if not callable(attr_value):
+            setattr(router_rpc_ns, attr_name, attr_value)
+            continue
+
+        async def _router_rpc_method(
+            payload: Any = None,
+            *,
+            db: Any | None = None,
+            request: Any = None,
+            ctx: Dict[str, Any] | None = None,
+            _alias: str = attr_name,
+        ) -> Any:
+            return await _rpc_call(
+                router,
+                model,
+                _alias,
+                payload,
+                db=db,
+                request=request,
+                ctx=ctx,
+            )
+
+        _router_rpc_method.__name__ = f"rpc_{model.__name__}_{attr_name}"
+        _router_rpc_method.__qualname__ = _router_rpc_method.__name__
+        _router_rpc_method.__doc__ = (
+            f"Router RPC method for {model.__name__}.{attr_name}"
+        )
+        setattr(router_rpc_ns, attr_name, _router_rpc_method)
+
+    return router_rpc_ns
 
 
 def _coerce_model_columns(columns: Any) -> Tuple[str, ...]:
@@ -42,6 +83,25 @@ def _coerce_model_columns(columns: Any) -> Tuple[str, ...]:
 
 
 # --- keep as helper, no behavior change to transports/kernel ---
+def _mark_required_auth_dependency(dep: Any) -> Any:
+    """Tag an auth dependency as required so runtime can reject missing auth."""
+    try:
+        setattr(dep, "__tigrbl_require_auth__", True)
+        return dep
+    except Exception:
+        pass
+
+    async def _required_auth_wrapper(*args: Any, **kwargs: Any) -> Any:
+        rv = dep(*args, **kwargs)
+        if hasattr(rv, "__await__"):
+            rv = await rv
+        return rv
+
+    setattr(_required_auth_wrapper, "__tigrbl_require_auth__", True)
+    setattr(_required_auth_wrapper, "__wrapped__", dep)
+    return _required_auth_wrapper
+
+
 def _seed_security_and_deps(router: Any, model: type) -> None:
     """
     Copy API-level dependency hooks onto the model so downstream binders can use them.
@@ -71,6 +131,9 @@ def _seed_security_and_deps(router: Any, model: type) -> None:
     elif getattr(router, "_authn", None):
         auth_dep = router._authn
         logger.debug("Using default auth dependency for %s", model.__name__)
+    if auth_dep is not None and getattr(router, "_allow_anon", True) is False:
+        auth_dep = _mark_required_auth_dependency(auth_dep)
+
     if auth_dep is not None:
         setattr(model, TIGRBL_AUTH_DEP_ATTR, auth_dep)
     else:
@@ -165,7 +228,7 @@ def _inject_runtime_secdeps(
             patched_specs.append(replace(sp, secdeps=((*missing, *secdeps))))
             changed = True
         if changed:
-            by_alias[alias] = tuple(patched_specs)
+            by_alias[alias] = _OpSpecGroup(tuple(patched_specs))
 
 
 def _make_authorize_secdep(router: Any) -> Any | None:
@@ -204,7 +267,9 @@ def _attach_to_router(router: RouterLike, table: type) -> None:
     _ensure_router_ns(router)
 
     tname = table.__name__
-    rname = _resource_name(table)
+    rname = getattr(table, "resource_name", None) or getattr(
+        table, "__tablename__", tname.lower()
+    )
     rtitle = rname[:1].upper() + rname[1:]
     logger.debug("Attaching table %s as resource '%s'", tname, rname)
 
@@ -214,7 +279,7 @@ def _attach_to_router(router: RouterLike, table: type) -> None:
     setattr(router.schemas, tname, getattr(table, "schemas", SimpleNamespace()))
     setattr(router.handlers, tname, getattr(table, "handlers", SimpleNamespace()))
     setattr(router.hooks, tname, getattr(table, "hooks", SimpleNamespace()))
-    rpc_ns = getattr(table, "rpc", SimpleNamespace())
+    rpc_ns = _build_router_rpc_namespace(router, table)
     setattr(router.rpc, tname, rpc_ns)
     if rtitle != tname:
         setattr(router.rpc, rtitle, rpc_ns)
@@ -234,7 +299,10 @@ def _attach_to_router(router: RouterLike, table: type) -> None:
     )
 
     # Table metadata (introspection only)
-    router.columns[tname] = _coerce_model_columns(getattr(table, "columns", ()))
+    columns = _coerce_model_columns(getattr(table, "columns", ()))
+    if not columns:
+        columns = tuple(mro_collect_columns(table).keys())
+    router.columns[tname] = columns
     router.table_config[tname] = dict(getattr(table, "table_config", {}) or {})
 
     # Core helper proxies (now aware of API for DB resolution precedence)

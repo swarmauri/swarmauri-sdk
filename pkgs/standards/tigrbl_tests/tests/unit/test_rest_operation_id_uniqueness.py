@@ -1,12 +1,12 @@
 import pytest
 
 from tigrbl.mapping.rest.router import _build_router
-from tigrbl.op import OpSpec
+from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables import Base
+from tigrbl.orm.tables import TableBase
 
 
-from tigrbl.router import Router
+from tigrbl import Router
 
 
 pytestmark = pytest.mark.xfail(
@@ -15,7 +15,7 @@ pytestmark = pytest.mark.xfail(
 )
 
 
-class Item(Base, GUIDPk):
+class Item(TableBase, GUIDPk):
     __tablename__ = "items_operation_id"
 
 
@@ -30,7 +30,7 @@ def _collect_operation_ids(schema: dict) -> list[str]:
 
 
 def test_operation_ids_are_unique():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     child_router = _build_router(
         Item,
         [

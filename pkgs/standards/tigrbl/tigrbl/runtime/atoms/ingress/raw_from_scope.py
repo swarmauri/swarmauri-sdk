@@ -1,11 +1,20 @@
 from __future__ import annotations
 
-from urllib.parse import parse_qsl
+from urllib.parse import parse_qs
+from typing import Any, MutableMapping
 
 from ... import events as _ev
 from ...gw.raw import GwRouteEnvelope
 
 ANCHOR = _ev.INGRESS_RAW_FROM_SCOPE
+
+
+def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
+    temp = getattr(ctx, "temp", None)
+    if not isinstance(temp, dict):
+        temp = {}
+        setattr(ctx, "temp", temp)
+    return temp
 
 
 def _decode_headers(headers: object) -> dict[str, str]:
@@ -16,20 +25,33 @@ def _decode_headers(headers: object) -> dict[str, str]:
         if not isinstance(pair, tuple) or len(pair) != 2:
             continue
         k, v = pair
-        if isinstance(k, bytes) and isinstance(v, bytes):
-            out[k.decode("latin-1").lower()] = v.decode("latin-1")
+        if isinstance(k, (bytes, bytearray)) and isinstance(v, (bytes, bytearray)):
+            out[bytes(k).decode("latin-1").lower()] = bytes(v).decode("latin-1")
     return out
 
 
-def _parse_query(raw_query: object) -> dict[str, str]:
-    if not isinstance(raw_query, (bytes, bytearray)):
-        return {}
-    return {
-        k: v
-        for k, v in parse_qsl(
-            bytes(raw_query).decode("latin-1"), keep_blank_values=True
-        )
-    }
+def _parse_query(raw_query: object) -> dict[str, list[str]]:
+    if isinstance(raw_query, (bytes, bytearray)):
+        return parse_qs(bytes(raw_query).decode("latin-1"), keep_blank_values=True)
+    if isinstance(raw_query, str):
+        return parse_qs(raw_query, keep_blank_values=True)
+    return {}
+
+
+def _normalize_path(path: str) -> str:
+    if not path:
+        return "/"
+    if path == "/":
+        return path
+    return path.rstrip("/") or "/"
+
+
+def _is_jsonrpc_endpoint(ctx: object, path: str) -> bool:
+    app = getattr(ctx, "app", None)
+    prefix = getattr(app, "jsonrpc_prefix", None)
+    if not isinstance(prefix, str):
+        return False
+    return _normalize_path(path) == _normalize_path(prefix)
 
 
 def run(obj: object | None, ctx: object) -> None:
@@ -42,17 +64,22 @@ def run(obj: object | None, ctx: object) -> None:
     scope_type = scope.get("type")
     headers = _decode_headers(scope.get("headers"))
     query = _parse_query(scope.get("query_string", b""))
-    path = scope.get("path", "/")
-    scheme = scope.get("scheme", "http")
+    path = str(scope.get("path", "/"))
+    scheme = str(scope.get("scheme", "http")).lower()
 
+    route_envelope: GwRouteEnvelope | None = None
     if scope_type == "http":
-        method = scope.get("method", "GET")
+        method = str(scope.get("method", "GET")).upper()
+        content_type = headers.get("content-type", "")
+        maybe_jsonrpc = (
+            method == "POST"
+            and "application/json" in content_type
+            and _is_jsonrpc_endpoint(ctx, path)
+        )
         route_envelope = GwRouteEnvelope(
             transport="http",
             scheme="https" if scheme == "https" else "http",
-            kind="maybe-jsonrpc"
-            if "application/json" in headers.get("content-type", "")
-            else "rest",
+            kind="maybe-jsonrpc" if maybe_jsonrpc else "rest",
             method=method,
             path=path,
             headers=headers,
@@ -74,12 +101,24 @@ def run(obj: object | None, ctx: object) -> None:
             ws_event=getattr(ctx, "raw_event", None),
             rpc=None,
         )
-    else:
+
+    if route_envelope is None:
         return
 
     setattr(ctx, "gw_raw", route_envelope)
-    temp = getattr(ctx, "temp", None)
-    if not isinstance(temp, dict):
-        temp = {}
-        setattr(ctx, "temp", temp)
+    temp = _ensure_temp(ctx)
+    ingress = temp.setdefault("ingress", {})
+    ingress.update(
+        {
+            "transport": route_envelope.transport,
+            "scheme": route_envelope.scheme,
+            "kind": route_envelope.kind,
+            "raw_headers": headers,
+            "raw_query": query,
+            "raw_path": path,
+        }
+    )
     temp.setdefault("route", {})["gw_raw"] = route_envelope
+
+
+__all__ = ["ANCHOR", "run"]

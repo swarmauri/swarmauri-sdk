@@ -72,6 +72,11 @@ PHASES: Tuple[Phase, ...] = (
 # Keep these names stable; labels use them directly: step_kind:domain:subject@ANCHOR
 # ──────────────────────────────────────────────────────────────────────────────
 
+# Canonical phase name exports (used by harness tests and diagnostics).
+INGRESS_BEGIN: Phase = "INGRESS_BEGIN"
+INGRESS_PARSE: Phase = "INGRESS_PARSE"
+INGRESS_ROUTE: Phase = "INGRESS_ROUTE"
+
 # INGRESS_BEGIN
 INGRESS_CTX_INIT = "ingress.ctx.init"
 INGRESS_CTX_ATTACH_COMPILED = "ingress.ctx.attach_compiled"
@@ -81,9 +86,11 @@ INGRESS_METRICS_START = "ingress.metrics.start"
 INGRESS_RAW_FROM_SCOPE = "ingress.raw.from_scope"
 INGRESS_METHOD_EXTRACT = "ingress.method.extract"
 INGRESS_PATH_EXTRACT = "ingress.path.extract"
+INGRESS_REQUEST_FROM_SCOPE = "ingress.request.from_scope"
 INGRESS_HEADERS_PARSE = "ingress.headers.parse"
 INGRESS_QUERY_PARSE = "ingress.query.parse"
 INGRESS_BODY_READ = "ingress.body.read"
+INGRESS_REQUEST_BODY_APPLY = "ingress.request.body.apply"
 INGRESS_BODY_PEEK = "ingress.body.peek"
 
 # INGRESS_ROUTE
@@ -107,10 +114,19 @@ DEP_EXTRA = "dep:extra"
 SCHEMA_COLLECT_IN = "schema:collect_in"
 IN_VALIDATE = "in:validate"
 
-# HANDLER
+# START_TX
+SYS_TX_BEGIN = "sys.tx.begin"
+
+# PRE_HANDLER
 RESOLVE_VALUES = "resolve:values"
 PRE_FLUSH = "pre:flush"
 EMIT_ALIASES_PRE = "emit:aliases:pre_flush"
+
+# HANDLER
+SYS_HANDLER_PERSISTENCE = "sys.handler.persistence"
+
+# END_TX
+SYS_TX_COMMIT = "sys.tx.commit"
 
 # POST_HANDLER
 POST_FLUSH = "post:flush"
@@ -131,6 +147,7 @@ EGRESS_HEADERS_APPLY = "egress.headers.apply"
 # EGRESS_FINALIZE
 EGRESS_HTTP_FINALIZE = "egress.http.finalize"
 EGRESS_TO_TRANSPORT_RESPONSE = "egress.to_transport_response"
+EGRESS_ASGI_SEND = "egress.asgi.send"
 
 # Canonical order of event anchors within the request lifecycle.
 # This ordering is global and stable; use it to produce deterministic plans/traces.
@@ -143,9 +160,11 @@ _EVENT_ORDER: Tuple[str, ...] = (
     INGRESS_RAW_FROM_SCOPE,
     INGRESS_METHOD_EXTRACT,
     INGRESS_PATH_EXTRACT,
+    INGRESS_REQUEST_FROM_SCOPE,
     INGRESS_HEADERS_PARSE,
     INGRESS_QUERY_PARSE,
     INGRESS_BODY_READ,
+    INGRESS_REQUEST_BODY_APPLY,
     INGRESS_BODY_PEEK,
     # INGRESS_ROUTE
     ROUTE_PROTOCOL_DETECT,
@@ -165,10 +184,14 @@ _EVENT_ORDER: Tuple[str, ...] = (
     # PRE_HANDLER
     SCHEMA_COLLECT_IN,
     IN_VALIDATE,
-    # HANDLER
     RESOLVE_VALUES,
     PRE_FLUSH,
     EMIT_ALIASES_PRE,
+    # START_TX / HANDLER / END_TX (persistence system steps)
+    SYS_TX_BEGIN,
+    "HANDLER",
+    SYS_HANDLER_PERSISTENCE,
+    SYS_TX_COMMIT,
     # POST_HANDLER
     POST_FLUSH,
     EMIT_ALIASES_POST,
@@ -182,6 +205,7 @@ _EVENT_ORDER: Tuple[str, ...] = (
     # EGRESS_FINALIZE
     EGRESS_HTTP_FINALIZE,
     EGRESS_TO_TRANSPORT_RESPONSE,
+    EGRESS_ASGI_SEND,
     # POST_RESPONSE
     EMIT_ALIASES_READ,
     OUT_DUMP,
@@ -206,9 +230,11 @@ _ANCHOR_PHASE: Dict[str, Phase] = {
     INGRESS_RAW_FROM_SCOPE: "INGRESS_PARSE",
     INGRESS_METHOD_EXTRACT: "INGRESS_PARSE",
     INGRESS_PATH_EXTRACT: "INGRESS_PARSE",
+    INGRESS_REQUEST_FROM_SCOPE: "INGRESS_PARSE",
     INGRESS_HEADERS_PARSE: "INGRESS_PARSE",
     INGRESS_QUERY_PARSE: "INGRESS_PARSE",
     INGRESS_BODY_READ: "INGRESS_PARSE",
+    INGRESS_REQUEST_BODY_APPLY: "INGRESS_PARSE",
     INGRESS_BODY_PEEK: "INGRESS_PARSE",
     ROUTE_PROTOCOL_DETECT: "INGRESS_ROUTE",
     ROUTE_BINDING_MATCH: "INGRESS_ROUTE",
@@ -226,8 +252,12 @@ _ANCHOR_PHASE: Dict[str, Phase] = {
     SCHEMA_COLLECT_IN: "PRE_HANDLER",
     IN_VALIDATE: "PRE_HANDLER",
     RESOLVE_VALUES: "PRE_HANDLER",
+    SYS_TX_BEGIN: "START_TX",
     PRE_FLUSH: "PRE_HANDLER",
     EMIT_ALIASES_PRE: "PRE_HANDLER",
+    "HANDLER": "HANDLER",
+    SYS_HANDLER_PERSISTENCE: "HANDLER",
+    SYS_TX_COMMIT: "END_TX",
     POST_FLUSH: "POST_HANDLER",
     EMIT_ALIASES_POST: "POST_HANDLER",
     SCHEMA_COLLECT_OUT: "POST_HANDLER",
@@ -238,14 +268,18 @@ _ANCHOR_PHASE: Dict[str, Phase] = {
     EGRESS_HEADERS_APPLY: "EGRESS_SHAPE",
     EGRESS_HTTP_FINALIZE: "EGRESS_FINALIZE",
     EGRESS_TO_TRANSPORT_RESPONSE: "EGRESS_FINALIZE",
+    EGRESS_ASGI_SEND: "EGRESS_FINALIZE",
     EMIT_ALIASES_READ: "POST_RESPONSE",
     OUT_DUMP: "POST_RESPONSE",
 }
 
 _PERSIST_TIED = {
+    SYS_TX_BEGIN,
     RESOLVE_VALUES,
     PRE_FLUSH,
     EMIT_ALIASES_PRE,
+    SYS_HANDLER_PERSISTENCE,
+    SYS_TX_COMMIT,
     POST_FLUSH,
     EMIT_ALIASES_POST,
 }
@@ -346,11 +380,14 @@ __all__ = [
     "INGRESS_CTX_INIT",
     "INGRESS_CTX_ATTACH_COMPILED",
     "INGRESS_METRICS_START",
+    "INGRESS_RAW_FROM_SCOPE",
     "INGRESS_METHOD_EXTRACT",
     "INGRESS_PATH_EXTRACT",
+    "INGRESS_REQUEST_FROM_SCOPE",
     "INGRESS_HEADERS_PARSE",
     "INGRESS_QUERY_PARSE",
     "INGRESS_BODY_READ",
+    "INGRESS_REQUEST_BODY_APPLY",
     "INGRESS_BODY_PEEK",
     "ROUTE_PROTOCOL_DETECT",
     "ROUTE_BINDING_MATCH",
@@ -364,9 +401,12 @@ __all__ = [
     "ROUTE_PLAN_SELECT",
     "ROUTE_CTX_FINALIZE",
     "IN_VALIDATE",
+    "SYS_TX_BEGIN",
     "RESOLVE_VALUES",
     "PRE_FLUSH",
     "EMIT_ALIASES_PRE",
+    "SYS_HANDLER_PERSISTENCE",
+    "SYS_TX_COMMIT",
     "POST_FLUSH",
     "EMIT_ALIASES_POST",
     "SCHEMA_COLLECT_OUT",
@@ -379,6 +419,7 @@ __all__ = [
     "EGRESS_HEADERS_APPLY",
     "EGRESS_HTTP_FINALIZE",
     "EGRESS_TO_TRANSPORT_RESPONSE",
+    "EGRESS_ASGI_SEND",
     # Types / helpers
     "AnchorInfo",
     "DEP_SECURITY",

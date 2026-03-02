@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tigrbl.hook import hook_ctx
+from tigrbl.decorators.hook import hook_ctx
 
 
 @hook_ctx(ops=("revoke_cert",), phase="POST_COMMIT")

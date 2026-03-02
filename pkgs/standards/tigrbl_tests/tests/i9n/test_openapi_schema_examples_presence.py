@@ -1,13 +1,13 @@
 import pytest
-from tigrbl import TigrblApp, Base, TigrblRouter
-from tigrbl.engine.shortcuts import mem
-from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, S, acol
-from tigrbl.types import Mapped, String
 from httpx import ASGITransport, AsyncClient
+from tigrbl import TableBase, TigrblApp, TigrblRouter
+from tigrbl.shortcuts.engine import mem
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl._spec import F, S, acol
+from tigrbl.types import Mapped, String
 
 
-class Widget(Base, GUIDPk):
+class Widget(TableBase, GUIDPk):
     __tablename__ = "widgets_example_presence"
     name: Mapped[str] = acol(
         storage=S(String, nullable=False), field=F(constraints={"examples": ["foo"]})

@@ -5,14 +5,12 @@ import inspect
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
-
-from tigrbl import Base, TigrblApp
-from tigrbl.engine.shortcuts import mem
-from tigrbl.hook import hook_ctx
-from tigrbl.op import OpSpec
+from tigrbl import TableBase, TigrblApp
+from tigrbl.shortcuts.engine import mem
+from tigrbl.decorators.hook import hook_ctx
+from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.runtime.status import HTTPException
-from tigrbl.runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP
+from tigrbl.runtime.status import _RPC_TO_HTTP, ERROR_MESSAGES, HTTPException
 
 
 async def _build_client(model: type, db_mode: str) -> tuple[AsyncClient, TigrblApp]:
@@ -22,12 +20,14 @@ async def _build_client(model: type, db_mode: str) -> tuple[AsyncClient, TigrblA
     if inspect.isawaitable(init_result):
         await init_result
 
-    host_app = TigrblApp(engine=app.engine)
-    host_app.include_router(app.router)
-    host_app.mount_jsonrpc()
-    host_app.attach_diagnostics()
+    router = app.router
+    engine = app.engine
+    app = TigrblApp(engine=engine)
+    app.include_router(router)
+    app.mount_jsonrpc()
+    app.attach_diagnostics()
     return (
-        AsyncClient(transport=ASGITransport(app=host_app), base_url="http://test"),
+        AsyncClient(transport=ASGITransport(app=app), base_url="http://test"),
         app,
     )
 
@@ -35,7 +35,7 @@ async def _build_client(model: type, db_mode: str) -> tuple[AsyncClient, TigrblA
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_opspec_deps_execute_in_pre_tx_for_rest_and_rpc(db_mode: str) -> None:
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     events: list[str] = []
 
     def sec_gate_one() -> None:
@@ -50,7 +50,7 @@ async def test_opspec_deps_execute_in_pre_tx_for_rest_and_rpc(db_mode: str) -> N
     def dep_gate_two() -> None:
         events.append("dep:two")
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "opspec_pre_tx_item"
 
         name = Column(String, nullable=False)
@@ -99,9 +99,17 @@ async def test_opspec_deps_execute_in_pre_tx_for_rest_and_rpc(db_mode: str) -> N
 
     kernelz = (await client.get("/system/kernelz")).json()
     steps = kernelz["Item"]["create"]
-    secdep_idx = next(i for i, step in enumerate(steps) if ":secdep" in step)
-    dep_idx = next(i for i, step in enumerate(steps) if step.endswith(":dep"))
-    handler_idx = next(i for i, step in enumerate(steps) if "HANDLER:" in step)
+    secdep_idx = next(
+        i
+        for i, step in enumerate(steps)
+        if step.startswith("PRE_TX_BEGIN:hook:dep:security:")
+    )
+    dep_idx = next(
+        i
+        for i, step in enumerate(steps)
+        if step.startswith("PRE_TX_BEGIN:hook:dep:extra:")
+    )
+    handler_idx = next(i for i, step in enumerate(steps) if step.startswith("HANDLER:"))
     assert secdep_idx < dep_idx < handler_idx
 
     events.clear()
@@ -135,7 +143,7 @@ async def test_opspec_deps_execute_in_pre_tx_for_rest_and_rpc(db_mode: str) -> N
 async def test_opspec_dep_failure_aborts_before_start_tx_for_rest_and_rpc(
     db_mode: str,
 ) -> None:
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     events: list[str] = []
 
     def sec_gate_one() -> None:
@@ -151,7 +159,7 @@ async def test_opspec_dep_failure_aborts_before_start_tx_for_rest_and_rpc(
         events.append("dep:two")
         raise RuntimeError("blocked")
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "opspec_pre_tx_abort_item"
 
         name = Column(String, nullable=False)
@@ -202,7 +210,7 @@ async def test_opspec_dep_failure_aborts_before_start_tx_for_rest_and_rpc(
 async def test_secdep_auth_failure_and_success_parity_for_rest_and_rpc(
     db_mode: str,
 ) -> None:
-    Base.metadata.clear()
+    TableBase.metadata.clear()
     events: list[str] = []
 
     auth_state = {"allow": False}
@@ -212,7 +220,7 @@ async def test_secdep_auth_failure_and_success_parity_for_rest_and_rpc(
         if not auth_state["allow"]:
             raise HTTPException(status_code=401, detail="Unauthorized")
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "opspec_pre_tx_auth_parity_item"
 
         name = Column(String, nullable=False)

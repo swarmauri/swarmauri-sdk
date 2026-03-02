@@ -1,6 +1,6 @@
 from tigrbl import hook_ctx, TigrblApp
 from tigrbl.config.constants import HOOK_DECLS_ATTR
-from tigrbl.hook._hook import Hook
+from tigrbl._concrete._hook import Hook
 
 
 def _get_hook(fn) -> Hook:

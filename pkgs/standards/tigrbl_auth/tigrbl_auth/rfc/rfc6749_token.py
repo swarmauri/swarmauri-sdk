@@ -8,7 +8,7 @@ from typing import Any
 from uuid import UUID
 
 from tigrbl.security.dependencies import Depends as TigrblDepends
-from tigrbl_auth.deps import (
+from tigrbl_auth.vendor import (
     TigrblRouter,
     AsyncSession,
     HTTPException,

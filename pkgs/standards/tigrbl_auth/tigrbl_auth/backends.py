@@ -26,7 +26,7 @@ from typing import Iterable, Optional
 
 from typing import TYPE_CHECKING
 
-from tigrbl_auth.deps import Select, or_, select, AsyncSession
+from tigrbl_auth.vendor import Select, or_, select, AsyncSession
 
 from .crypto import verify_pw
 from .typing import Principal

@@ -6,7 +6,7 @@ that the helper functions respect the ``enable_rfc9449`` feature flag.
 
 import asyncio
 import pytest
-from tigrbl_auth.deps import (
+from tigrbl_auth.vendor import (
     LocalKeyProvider,
     KeySpec,
     KeyAlg,

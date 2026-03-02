@@ -1,15 +1,16 @@
 from httpx import ASGITransport, Client
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
-from tigrbl.requests import Request
-from tigrbl.runtime.status import HTTPException
-from tigrbl.engine import resolver as _resolver
-from tigrbl.engine.shortcuts import mem
 from sqlalchemy.orm import sessionmaker
-
 from tigrbl import TigrblApp, TigrblRouter
-from tigrbl.orm.mixins import GUIDPk
-from tigrbl.orm.tables import Base
 from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from tigrbl import resolver as _resolver
+from tigrbl.shortcuts.engine import mem
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.tables import TableBase
+from tigrbl import Request
+from tigrbl.runtime.status import HTTPException
+from tigrbl import HTTPBearer
+from tigrbl.security import Security
+from tigrbl._concrete._security.http_bearer import HTTPAuthorizationCredentials
 from tigrbl.types import (
     AllowAnonProvider,
     AuthNProvider,
@@ -41,13 +42,13 @@ class DummyAuth(AuthNProvider):
 
 
 def _build_client():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
@@ -66,6 +67,7 @@ def _build_client():
     router.initialize()
     app = TigrblApp()
     app.include_router(router)
+    app.initialize()
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -75,13 +77,13 @@ def _build_client():
 
 
 def _build_client_attr():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk):
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
@@ -98,6 +100,7 @@ def _build_client_attr():
     router.initialize()
     app = TigrblApp()
     app.include_router(router)
+    app.initialize()
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -143,13 +146,13 @@ def test_openapi_marks_anon_and_protected_routes():
 
 
 def _build_client_create_noauth():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk, AllowAnonProvider):
+    class Item(TableBase, GUIDPk, AllowAnonProvider):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
@@ -167,6 +170,7 @@ def _build_client_create_noauth():
 
     app = TigrblApp()
     app.include_router(router)
+    app.initialize()
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -176,13 +180,13 @@ def _build_client_create_noauth():
 
 
 def _build_client_create_attr_noauth():
-    Base.metadata.clear()
+    TableBase.metadata.clear()
 
-    class Tenant(Base, GUIDPk):
+    class Tenant(TableBase, GUIDPk):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(Base, GUIDPk, AllowAnonProvider):
+    class Item(TableBase, GUIDPk, AllowAnonProvider):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
@@ -198,6 +202,7 @@ def _build_client_create_attr_noauth():
 
     app = TigrblApp()
     app.include_router(router)
+    app.initialize()
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
@@ -216,7 +221,7 @@ def test_allow_anon_create_method():
             db.refresh(tenant)
             tid = str(tenant.id)
         payload = {"id": str(uuid4()), "tenant_id": tid, "name": "one"}
-        assert client.post("/item", json=[payload]).status_code == 201
+        assert client.post("/item", json=payload).status_code == 201
     finally:
         client.close()
 
@@ -231,7 +236,7 @@ def test_allow_anon_create_attr_noauth():
             db.refresh(tenant)
             tid = str(tenant.id)
         payload = {"id": str(uuid4()), "tenant_id": tid, "name": "one"}
-        assert client.post("/item", json=[payload]).status_code == 201
+        assert client.post("/item", json=payload).status_code == 201
     finally:
         client.close()
 

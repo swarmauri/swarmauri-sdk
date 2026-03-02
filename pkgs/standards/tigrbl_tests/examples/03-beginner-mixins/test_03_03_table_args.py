@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from tigrbl import Base
+from tigrbl import TableBase
 from tigrbl.types import CheckConstraint, Index, Integer, String, UniqueConstraint
-from tigrbl.specs import F, IO, S, acol
+from tigrbl._spec import F, IO, S
+from tigrbl.shortcuts import acol
 from tigrbl.types import Mapped
 
 
 def test_table_args_constraints() -> None:
-    class Entry(Base):
+    class Entry(TableBase):
         __tablename__ = "entries"
         __table_args__ = (
             UniqueConstraint("code", name="uq_entries_code"),

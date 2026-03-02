@@ -19,7 +19,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         return
     hints = getattr(resp_ns, "hints", None)
     if hints is None:
-        hints = ResponseHints()
+        hints = ResponseHints(status_code=int(getattr(ctx, "status_code", 200) or 200))
         resp_ns.hints = hints
     if not hints.media_type:
         accept = getattr(req, "headers", {}).get("accept", "*/*")

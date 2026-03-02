@@ -1,18 +1,16 @@
 import httpx
 import pytest
 import pytest_asyncio
-
-from tigrbl import Base, TigrblApp
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblApp
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
+from tigrbl import HTTPBearer
+from tigrbl.security import Security
+from tigrbl._concrete._security.http_bearer import HTTPAuthorizationCredentials
+from tigrbl._spec import IO, F, S, acol
 from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
-
-
-from tigrbl.security import Security
 
 bearer = HTTPBearer()
 
@@ -23,7 +21,7 @@ def auth_dependency(
     return credentials
 
 
-class Gamma(Base, GUIDPk):
+class Gamma(TableBase, GUIDPk):
     __tablename__ = "gamma_app_usage"
     __allow_unmapped__ = True
 
@@ -36,7 +34,7 @@ class Gamma(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class Delta(Base, GUIDPk):
+class Delta(TableBase, GUIDPk):
     __tablename__ = "delta_app_usage"
     __allow_unmapped__ = True
 
@@ -54,7 +52,7 @@ async def running_app():
     app = TigrblApp(engine=mem(async_=False))
     app.set_auth(authn=auth_dependency, allow_anon=False)
     app.include_tables([Gamma, Delta])
-    app.initialize()
+    await app.initialize()
 
     base_url, server, task = await run_uvicorn_in_task(app)
     try:

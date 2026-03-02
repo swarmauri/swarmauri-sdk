@@ -1,18 +1,16 @@
 import httpx
 import pytest
 import pytest_asyncio
-
-from tigrbl import Base, TigrblRouter
-from tigrbl.engine.shortcuts import mem
+from tigrbl import TableBase, TigrblApp, TigrblRouter
+from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.specs import F, IO, S, acol
-from tigrbl import TigrblApp
+from tigrbl._spec import IO, F, S, acol
 from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
 
-class Gadget(Base, GUIDPk):
+class Gadget(TableBase, GUIDPk):
     __tablename__ = "gadgets_api"
     __resource__ = "gadget"
 
