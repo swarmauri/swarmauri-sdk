@@ -37,3 +37,4 @@ target/
 pkgs/experimental/swarmakit/libs/svelte/.vscode/extensions.json
 node_modules/
 *.zip
+pkgs/standards/tigrbl/.pymon
