@@ -85,6 +85,7 @@ class TigrblApp(_App):
     def from_spec(cls, spec: AppSpec) -> "TigrblApp":
         """Materialize an app instance from an :class:`~tigrbl.AppSpec`."""
         spec = normalize_app_spec(spec)
+        spec_tables = tuple(spec.tables or ())
         app = cls(
             engine=spec.engine,
             routers=tuple(spec.routers or ()),
@@ -94,9 +95,16 @@ class TigrblApp(_App):
             version=spec.version,
             lifespan=spec.lifespan,
         )
-        table_registry = TableRegistry(tables=tuple(spec.tables or ()))
+        table_registry = TableRegistry(tables=spec_tables)
         app._table_registry = table_registry
         app.tables = AttrDict(table_registry)
+
+        async def _initialize_from_spec() -> None:
+            initialized = app.initialize(tables=spec_tables)
+            if inspect.isawaitable(initialized):
+                await initialized
+
+        app.add_event_handler("startup", _initialize_from_spec)
 
         has_jsonrpc_binding = any(
             getattr(binding, "proto", "") == "http.jsonrpc"
