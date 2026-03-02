@@ -401,6 +401,7 @@ class TigrblApp(_App):
         """Mirror the auto-created Router registries onto the app facade."""
         if self._default_router is None:
             return
+        existing_tables = dict(getattr(self, "tables", {}) or {})
         self.schemas = self._default_router.schemas
         self.handlers = self._default_router.handlers
         self.hooks = self._default_router.hooks
@@ -413,6 +414,12 @@ class TigrblApp(_App):
         self.table_config = self._default_router.table_config
         self.core = self._default_router.core
         self.core_raw = self._default_router.core_raw
+
+        # Preserve app-level system models (for docs/metadata runtime ops) that
+        # may have been mounted before the default router existed.
+        for model_name, model in existing_tables.items():
+            self.tables.setdefault(model_name, model)
+            self._default_router.tables.setdefault(model_name, model)
 
     def include_router(
         self,
