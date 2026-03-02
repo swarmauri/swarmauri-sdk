@@ -249,6 +249,27 @@ def acquire(
         "acquire called with router=%r model=%r op_alias=%r", router, model, op_alias
     )
     p = resolve_provider(router=router, model=model, op_alias=op_alias)
+    if p is None and model is not None:
+        get_db = getattr(model, "__tigrbl_get_db__", None)
+        if callable(get_db):
+            db = get_db()
+
+            def _release() -> None:
+                close = getattr(db, "close", None)
+                if callable(close):
+                    try:
+                        rv = close()
+                        if inspect.isawaitable(rv):
+                            try:
+                                loop = asyncio.get_running_loop()
+                            except RuntimeError:
+                                asyncio.run(rv)
+                            else:
+                                loop.create_task(rv)
+                    except Exception:
+                        pass
+
+            return db, _release
     if p is None:
         logger.debug("acquire: no provider resolved; raising error")
         raise RuntimeError(

@@ -1,6 +1,5 @@
 # ── Standard Library ─────────────────────────────────────────────────────
 from types import MethodType, SimpleNamespace
-import warnings
 from uuid import uuid4, UUID
 
 # ── Third-party Dependencies (via deps module) ───────────────────────────
@@ -169,14 +168,8 @@ _DEPRECATED_EXPORTS: dict[str, tuple[str, str]] = {
 def __getattr__(name: str):
     if name in _DEPRECATED_EXPORTS:
         module, attr = _DEPRECATED_EXPORTS[name]
-        warnings.warn(
-            (
-                f"tigrbl.types.{name} is deprecated and will be removed in a future "
-                f"release; import '{attr}' from '{module}' instead."
-            ),
-            DeprecationWarning,
-            stacklevel=2,
+        raise AttributeError(
+            f"tigrbl.types no longer exports '{name}'. "
+            f"Import it from '{module}' instead."
         )
-        imported_module = __import__(module, fromlist=[attr])
-        return getattr(imported_module, attr)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
