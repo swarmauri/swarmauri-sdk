@@ -38,6 +38,7 @@ from ..op import get_registry
 from .._spec import OpSpec
 from ._table_registry import TableRegistry
 from .._spec.app_spec import AppSpec
+from ..mapping.spec_normalization import normalize_app_spec
 from ..system.favicon import FAVICON_PATH, mount_favicon
 
 
@@ -79,6 +80,7 @@ class TigrblApp(_App):
     @classmethod
     def from_spec(cls, spec: AppSpec) -> "TigrblApp":
         """Materialize an app instance from an :class:`~tigrbl.AppSpec`."""
+        spec = normalize_app_spec(spec)
         app = cls(
             engine=spec.engine,
             routers=tuple(spec.routers or ()),
