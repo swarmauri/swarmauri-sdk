@@ -30,6 +30,18 @@ def run(obj: Optional[object], ctx: Any) -> Any:
         envelope_default=envelope_default,
     )
     resp_ns.result = resp
+    temp = getattr(ctx, "temp", None)
+    if isinstance(temp, dict):
+        egress = temp.setdefault("egress", {})
+        if isinstance(egress, dict):
+            egress["transport_response"] = {
+                "status_code": int(resp.status_code),
+                "headers": {
+                    k.decode("latin-1"): v.decode("latin-1")
+                    for k, v in getattr(resp, "raw_headers", ())
+                },
+                "body": resp.body or b"",
+            }
     return resp
 
 

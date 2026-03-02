@@ -115,7 +115,11 @@ def _sync_transport_response_from_ctx(ctx: Any, temp: MutableMapping[str, Any]) 
         return
 
     result = getattr(ctx, "result", None)
+    if hasattr(result, "status_code") and hasattr(result, "body"):
+        return
     if not isinstance(result, Mapping):
+        return
+    if any(key in result for key in ("status_code", "headers", "body")):
         return
 
     response["body"] = _normalize_transport_body(result)

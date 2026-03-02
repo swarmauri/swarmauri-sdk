@@ -203,7 +203,6 @@ class Kernel:
                 "INGRESS_ROUTE",
                 "EGRESS_SHAPE",
                 "EGRESS_FINALIZE",
-                "POST_RESPONSE",
                 "START_TX",
                 "END_TX",
             }:
