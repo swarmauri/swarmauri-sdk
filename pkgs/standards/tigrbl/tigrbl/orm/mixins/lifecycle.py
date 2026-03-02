@@ -31,7 +31,7 @@ class Created:
 class LastUsed:
     last_used_at: Mapped[dt.datetime | None] = acol(
         spec=ColumnSpec(
-            storage=S(type_=TZDateTime, nullable=True, onupdate=tzutcnow),
+            storage=S(type_=TZDateTime, default=None, nullable=True, onupdate=tzutcnow),
             field=F(py_type=dt.datetime),
             io=IO(out_verbs=("read", "list", "create")),
         )
