@@ -17,6 +17,9 @@ from typing import (
     Tuple,
 )
 
+from .._spec.binding_spec import HttpRestBindingSpec
+from .._spec.op_spec import OpSpec
+
 from .._concrete._app import App as _App
 from .._concrete.tigrbl_router import TigrblRouter
 from ._routing import add_route as _add_route_impl
@@ -35,7 +38,6 @@ from ..system import mount_openrpc as _mount_openrpc
 from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..system.docs import build_openapi as _build_openapi
 from ..op import get_registry
-from .._spec import OpSpec
 from ._table_registry import TableRegistry
 from .._spec.app_spec import AppSpec
 from ..mapping.spec_normalization import normalize_app_spec
@@ -397,6 +399,85 @@ class TigrblApp(_App):
         self._sync_default_router_namespaces()
         return result
 
+    def _ensure_system_route_model(self) -> type:
+        model_name = "__tigrbl_system_routes__"
+        model = self.tables.get(model_name)
+        if model is None:
+            model = type("TigrblSystemRoutes", (), {})
+            model.resource_name = "system_routes"
+            model.hooks = SimpleNamespace()
+            model.ops = SimpleNamespace(by_alias={})
+            model.opspecs = SimpleNamespace(all=())
+            self.tables[model_name] = model
+        return model
+
+    def _register_runtime_route(self, route: Any) -> None:
+        if getattr(route, "tigrbl_alias", None):
+            return
+        path = getattr(route, "path_template", None)
+        methods = tuple(getattr(route, "methods", ()) or ())
+        handler = getattr(route, "handler", None)
+        if not (isinstance(path, str) and methods and callable(handler)):
+            return
+
+        method_tokens = "_".join(sorted(str(m).lower() for m in methods))
+        alias = f"__route__:{method_tokens}:{path}"
+        model = self._ensure_system_route_model()
+
+        op = OpSpec(
+            alias=alias,
+            target="read",
+            arity="collection",
+            persist="skip",
+            expose_routes=False,
+            bindings=(
+                HttpRestBindingSpec(
+                    proto="http.rest",
+                    path=path,
+                    methods=tuple(str(method).upper() for method in methods),
+                ),
+            ),
+        )
+        model.ops.by_alias[alias] = (op,)
+        model.opspecs.all = tuple(
+            spec for spec in model.opspecs.all if getattr(spec, "alias", None) != alias
+        ) + (op,)
+
+        async def _runtime_route_step(ctx: Any, _handler: Any = handler) -> None:
+            request = getattr(ctx, "request", None)
+            try:
+                result = _handler(request)
+            except TypeError:
+                result = _handler()
+            if inspect.isawaitable(result):
+                result = await result
+
+            temp = getattr(ctx, "temp", None)
+            egress = temp.setdefault("egress", {}) if isinstance(temp, dict) else {}
+            if hasattr(result, "status_code") and hasattr(result, "body"):
+                headers_obj = getattr(result, "headers", None)
+                if hasattr(headers_obj, "items"):
+                    headers_obj = dict(headers_obj.items())
+                response = {
+                    "status_code": int(getattr(result, "status_code", 200) or 200),
+                    "headers": dict(headers_obj or {}),
+                    "body": getattr(result, "body", b""),
+                }
+                if isinstance(temp, dict):
+                    egress["transport_response"] = response
+                    egress["suppress_asgi_send"] = True
+                return
+
+            setattr(ctx, "result", result)
+            if isinstance(temp, dict):
+                egress["result"] = result
+
+        hooks_ns = getattr(model.hooks, alias, None)
+        if hooks_ns is None:
+            hooks_ns = SimpleNamespace()
+            setattr(model.hooks, alias, hooks_ns)
+        hooks_ns.HANDLER = [_runtime_route_step]
+
     def _sync_default_router_namespaces(self) -> None:
         """Mirror the auto-created Router registries onto the app facade."""
         if self._default_router is None:
@@ -487,7 +568,10 @@ class TigrblApp(_App):
 
         if not mount_router:
             return router
+        initial_route_count = len(self.routes)
         super().include_router(router, prefix=prefix)
+        for mounted_route in self.routes[initial_route_count:]:
+            self._register_runtime_route(mounted_route)
         return router
 
     def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
@@ -497,6 +581,8 @@ class TigrblApp(_App):
     def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
         """Register a route directly on this app instance."""
         _add_route_impl(self, path, endpoint, **kwargs)
+        if self.routes:
+            self._register_runtime_route(self.routes[-1])
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""
