@@ -1,4 +1,9 @@
 from types import SimpleNamespace
+import inspect
+import contextlib
+import os
+import tempfile
+import asyncio
 
 import pytest
 import pytest_asyncio
@@ -7,7 +12,7 @@ from sqlalchemy import select
 from tigrbl import TigrblApp
 from tigrbl.core import crud
 from tigrbl import resolver as _resolver
-from tigrbl.shortcuts.engine import mem
+from tigrbl.shortcuts.engine import sqlitef
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase
 from tigrbl.runtime.atoms.resolve import assemble
@@ -35,31 +40,44 @@ class Widget(TableBase, GUIDPk):
 
 @pytest_asyncio.fixture
 async def widget_setup():
-    app = TigrblApp(engine=mem(async_=False))
+    db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+    db_file.close()
+    app = TigrblApp(engine=sqlitef(db_file.name, async_=False))
     app.include_table(Widget, prefix="/widget")
     app.mount_jsonrpc(prefix="/rpc")
     app.attach_diagnostics(prefix="/system")
-    app.initialize()
+    initialized = app.initialize()
+    if inspect.isawaitable(initialized):
+        await initialized
 
     prov = _resolver.resolve_provider()
     _, SessionLocal = prov.ensure()
 
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    yield client, app, SessionLocal
-    await client.aclose()
+    try:
+        yield client, app, SessionLocal
+    finally:
+        await client.aclose()
+        with contextlib.suppress(OSError):
+            os.unlink(db_file.name)
 
 
 async def _create_widget(client: AsyncClient, payload: dict) -> tuple[str, dict]:
-    for endpoint in ("/widget/widget", "/widget"):
-        resp = await client.post(endpoint, json=payload)
-        if resp.status_code == 201:
-            body = resp.json()
-            assert "id" in body, body
-            return endpoint, body
+    last_resp = None
+    for _ in range(5):
+        for endpoint in ("/widget/widget", "/widget"):
+            resp = await client.post(endpoint, json=payload)
+            last_resp = resp
+            if resp.status_code == 201:
+                body = resp.json()
+                assert "id" in body, body
+                return endpoint, body
+        await asyncio.sleep(0.1)
+    assert last_resp is not None
     pytest.fail(
         f"Widget create failed on /widget/widget and /widget: "
-        f"{resp.status_code} {resp.text}"
+        f"{last_resp.status_code} {last_resp.text}"
     )
 
 

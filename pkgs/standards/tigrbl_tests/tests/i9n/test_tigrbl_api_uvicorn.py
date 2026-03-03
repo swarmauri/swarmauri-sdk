@@ -1,8 +1,11 @@
 import httpx
 import pytest
 import pytest_asyncio
+import tempfile
+import os
+import contextlib
 from tigrbl import TableBase, TigrblApp, TigrblRouter
-from tigrbl.shortcuts.engine import mem
+from tigrbl.shortcuts.engine import sqlitef
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import IO, F, S, acol
 from tigrbl.types import Mapped, String
@@ -23,8 +26,10 @@ class Gadget(TableBase, GUIDPk):
 
 @pytest_asyncio.fixture()
 async def running_router_app():
+    db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+    db_file.close()
     router = TigrblRouter(
-        engine=mem(async_=False),
+        engine=sqlitef(db_file.name, async_=False),
         tables=[Gadget],
         prefix="/gadgets",
         system_prefix="/diagnostics",
@@ -40,6 +45,8 @@ async def running_router_app():
         yield base_url
     finally:
         await stop_uvicorn_server(server, task)
+        with contextlib.suppress(OSError):
+            os.unlink(db_file.name)
 
 
 @pytest.mark.i9n

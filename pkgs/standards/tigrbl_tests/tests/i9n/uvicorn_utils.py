@@ -31,6 +31,7 @@ async def run_uvicorn_in_task(
 
     try:
         await asyncio.wait_for(_wait_until_started(), timeout=startup_timeout)
+        await asyncio.sleep(0.2)
     except Exception:
         await stop_uvicorn_server_impl(server, task)
         raise

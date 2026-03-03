@@ -1,8 +1,11 @@
 import httpx
 import pytest
 import pytest_asyncio
+import tempfile
+import os
+import contextlib
 from tigrbl import TableBase, TigrblApp, TigrblRouter
-from tigrbl.shortcuts.engine import mem
+from tigrbl.shortcuts.engine import sqlitef
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl._spec import IO, F, S, acol
 from tigrbl.types import Mapped, String
@@ -45,7 +48,9 @@ class ZetaWidget(TableBase, GUIDPk):
 
 @pytest_asyncio.fixture()
 async def running_app_with_routers():
-    engine = mem(async_=False)
+    db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+    db_file.close()
+    engine = sqlitef(db_file.name, async_=False)
     router = TigrblRouter(engine=engine, tables=[AlphaWidget], prefix="/alpha")
 
     app = TigrblApp(engine=engine, routers=[router])
@@ -64,11 +69,15 @@ async def running_app_with_routers():
         yield base_url
     finally:
         await stop_uvicorn_server(server, task)
+        with contextlib.suppress(OSError):
+            os.unlink(db_file.name)
 
 
 @pytest_asyncio.fixture()
 async def running_app_with_router():
-    engine = mem(async_=False)
+    db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+    db_file.close()
+    engine = sqlitef(db_file.name, async_=False)
     router = TigrblRouter(engine=engine)
     router.include_table(AlphaWidget)
     alpha_router = router.router
@@ -86,6 +95,8 @@ async def running_app_with_router():
         yield base_url
     finally:
         await stop_uvicorn_server(server, task)
+        with contextlib.suppress(OSError):
+            os.unlink(db_file.name)
 
 
 @pytest.mark.i9n

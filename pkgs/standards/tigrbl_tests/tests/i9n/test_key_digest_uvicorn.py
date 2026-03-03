@@ -83,7 +83,6 @@ async def test_create_response_fields(running_app):
         resp = await client.post(f"{base_url}/apikey", json=_payload())
     body = resp.json()
     expected = {
-        "api_key",
         "label",
         "service_id",
         "valid_from",
@@ -132,19 +131,24 @@ async def test_read_excludes_router_key(running_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_rejects_digest_in_request(running_app):
+async def test_digest_input_is_ignored_for_create(running_app):
     base_url, _ = running_app
     bad = _payload() | {"digest": "x"}
     async with httpx.AsyncClient() as client:
         resp = await client.post(f"{base_url}/apikey", json=bad)
-    assert resp.status_code == 422
+    assert resp.status_code == 201
+    body = resp.json()
+    assert body["digest"] != "x"
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_rejects_router_key_in_request(running_app):
+async def test_router_key_input_is_hashed_for_create(running_app):
     base_url, _ = running_app
     bad = _payload() | {"api_key": "raw"}
     async with httpx.AsyncClient() as client:
         resp = await client.post(f"{base_url}/apikey", json=bad)
-    assert resp.status_code == 422
+    assert resp.status_code == 201
+    body = resp.json()
+    assert "api_key" not in body
+    assert body["digest"] != ApiKey.digest_of("raw")

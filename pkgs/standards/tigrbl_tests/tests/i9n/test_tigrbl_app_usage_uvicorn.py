@@ -1,8 +1,11 @@
 import httpx
 import pytest
 import pytest_asyncio
+import tempfile
+import os
+import contextlib
 from tigrbl import TableBase, TigrblApp
-from tigrbl.shortcuts.engine import mem
+from tigrbl.shortcuts.engine import sqlitef
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl import HTTPBearer
 from tigrbl.security import Security
@@ -49,7 +52,9 @@ class Delta(TableBase, GUIDPk):
 
 @pytest_asyncio.fixture()
 async def running_app():
-    app = TigrblApp(engine=mem(async_=False))
+    db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+    db_file.close()
+    app = TigrblApp(engine=sqlitef(db_file.name, async_=False))
     app.set_auth(authn=auth_dependency, allow_anon=False)
     app.include_tables([Gamma, Delta])
     await app.initialize()
@@ -59,6 +64,8 @@ async def running_app():
         yield base_url
     finally:
         await stop_uvicorn_server(server, task)
+        with contextlib.suppress(OSError):
+            os.unlink(db_file.name)
 
 
 @pytest.mark.i9n
