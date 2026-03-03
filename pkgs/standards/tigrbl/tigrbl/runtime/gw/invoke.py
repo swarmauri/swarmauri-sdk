@@ -9,6 +9,7 @@ from ..atoms.egress.asgi_send import _send_json, _send_transport_response
 from ..executor import _Ctx, _invoke
 from ..kernel.core import Kernel
 from ..status import StatusDetailError
+from ...mapping.runtime_routes import invoke_runtime_route_handler
 from .raw import GwRawEnvelope
 
 
@@ -208,6 +209,8 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
 
     opmeta_index = _resolve_op_index(ctx, plan)
     if opmeta_index is None:
+        if await _fallback_runtime_route(ctx, env):
+            return
         await _send_json(env, 404, {"detail": "No runtime operation matched request."})
         return
 
@@ -240,6 +243,43 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
         return
 
     await _send_transport_response(env, ctx)
+
+
+async def _fallback_runtime_route(ctx: _Ctx, env: GwRawEnvelope) -> bool:
+    route = (
+        ctx.temp.get("route") if isinstance(getattr(ctx, "temp", None), dict) else None
+    )
+    handler = route.get("handler") if isinstance(route, dict) else None
+
+    if not callable(handler):
+        request = getattr(ctx, "request", None)
+        app = getattr(ctx, "app", None)
+        method = str(getattr(request, "method", "")).upper()
+        path = getattr(request, "path", None) or getattr(
+            getattr(request, "url", None), "path", None
+        )
+        if method and isinstance(path, str) and app is not None:
+            for candidate in getattr(app, "routes", ()) or ():
+                if method not in (getattr(candidate, "methods", ()) or ()):
+                    continue
+                pattern = getattr(candidate, "pattern", None)
+                if pattern is None:
+                    continue
+                matched = pattern.match(path)
+                if matched is None:
+                    continue
+                handler = getattr(candidate, "handler", None)
+                if not callable(handler):
+                    continue
+                request.path_params = dict(matched.groupdict())
+                break
+
+    if not callable(handler):
+        return False
+
+    await invoke_runtime_route_handler(ctx, handler=handler)
+    await _send_transport_response(env, ctx)
+    return True
 
 
 def _resolve_app(env: GwRawEnvelope) -> Any | None:

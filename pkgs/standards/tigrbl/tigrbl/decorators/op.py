@@ -118,11 +118,15 @@ def op_alias(
 
     def deco(table_cls: type):
         ops = list(getattr(table_cls, "__tigrbl_ops__", ()))
+        inferred_arity = arity or _infer_arity(target)
+        if arity is None and target == "custom" and table_cls.__name__.endswith("App"):
+            inferred_arity = "collection"
+
         spec = OpSpec(
             alias=alias,
             target=target,
             table=table_cls,
-            arity=arity or _infer_arity(target),
+            arity=inferred_arity,
             persist=_normalize_persist(persist),
             request_model=request_model,
             response_model=response_model,
@@ -161,10 +165,27 @@ def op_ctx(
         cm = _ensure_cm(fn)
         f = _unwrap(cm)
         f.__tigrbl_ctx_only__ = True
+        resolved_target = target or "custom"
+        inferred_arity = arity or _infer_arity(resolved_target)
+        if (
+            arity is None
+            and resolved_target == "custom"
+            and bind is not None
+            and any(
+                isinstance(obj, type) and obj.__name__.endswith("App")
+                for obj in (
+                    bind
+                    if isinstance(bind, Iterable) and not isinstance(bind, (str, bytes))
+                    else [bind]
+                )
+            )
+        ):
+            inferred_arity = "collection"
+
         spec = OpSpec(
             alias=alias or "",
-            target=target or "custom",
-            arity=arity or _infer_arity(target or "custom"),
+            target=resolved_target,
+            arity=inferred_arity,
             http_methods=tuple(http_methods) if http_methods else None,
             expose_routes=True if rest is None else bool(rest),
             request_model=request_schema,
