@@ -15,6 +15,18 @@ logger = logging.getLogger("uvicorn")
 def run(obj: Optional[object], ctx: Any) -> None:
     """Build canonical outbound values keyed by field name."""
     logger.debug("Running wire:build_out")
+    # When ``ctx.result`` is already populated by handler/serializer stages,
+    # prefer that canonical payload and avoid reconstructing per-field output
+    # from ``obj``. Rebuilding from ``obj`` can produce null-filled payloads
+    # for RPC routes where ``obj`` is absent or list-shaped.
+    if getattr(ctx, "result", None) is not None:
+        temp = _ensure_temp(ctx)
+        temp.pop("out_values", None)
+        temp.pop("out_missing", None)
+        temp.pop("out_virtual_produced", None)
+        logger.debug("Skipping wire:build_out because ctx.result is already set")
+        return
+
     ov = opview_from_ctx(ctx)
     schema_out = ensure_schema_out(ctx, ov)
     by_field = schema_out["by_field"]
