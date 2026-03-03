@@ -241,7 +241,9 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
     if not alias_ns:
         return _ensure_jsonable(result)
 
-    if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_merge"}:
+    op_name = alias.split(".")[-1]
+
+    if op_name in {"bulk_create", "bulk_update", "bulk_replace", "bulk_merge"}:
         out_model = getattr(alias_ns, "out_item", None)
     else:
         out_model = getattr(alias_ns, "out", None)
@@ -260,7 +262,7 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
             elif "result" in result and isinstance(result.get("result"), Mapping):
                 result = result.get("result")
 
-        if target == "list":
+        if op_name == "list":
             if isinstance(result, Mapping):
                 items = result.get("items")
                 if isinstance(items, (list, tuple)):
@@ -277,7 +279,7 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
                     )
                     for x in result
                 ]
-        if target in {
+        if op_name in {
             "bulk_create",
             "bulk_update",
             "bulk_replace",
