@@ -81,15 +81,21 @@ def add_route(
 def include_router(owner: Any, router: Any, *, prefix: str = "") -> None:
     nested_prefix = normalize_prefix(prefix)
     router_dependencies = list(getattr(router, "dependencies", ()) or ())
+    is_metadata_route = getattr(router, "_is_metadata_route", None)
     for route in getattr(router, "routes", ()):
         path = route.path_template
         if nested_prefix:
             path = f"{nested_prefix}{path}" if path != "/" else nested_prefix
 
         route_dependencies = list(getattr(route, "dependencies", ()) or ())
-        merged_dependencies = [
-            dep for dep in router_dependencies if dep not in route_dependencies
-        ] + route_dependencies
+        merged_dependencies = list(route_dependencies)
+
+        # Keep docs/OpenAPI metadata routes publicly readable even when the
+        # router is configured with constructor-level security dependencies.
+        if not (callable(is_metadata_route) and is_metadata_route(route)):
+            merged_dependencies = [
+                dep for dep in router_dependencies if dep not in route_dependencies
+            ] + route_dependencies
 
         add_route(
             owner,
