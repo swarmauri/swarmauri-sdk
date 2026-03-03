@@ -31,7 +31,10 @@ def _requires_db(model: type, alias: str) -> bool:
             return False
 
         return True
-    return True
+
+    # Kernel-only invocations without bound opspec metadata should remain
+    # transport-agnostic and not force DB acquisition.
+    return False
 
 
 def _select_out_model(model: type, alias: str):

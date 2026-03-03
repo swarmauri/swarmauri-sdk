@@ -227,6 +227,17 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
             env, int(getattr(exc, "status_code", 500) or 500), {"detail": detail}
         )
         return
+    except Exception as exc:  # pragma: no cover - defensive runtime fallback
+        from ..status import create_standardized_error
+
+        std = create_standardized_error(exc)
+        detail = (
+            std.detail if getattr(std, "detail", None) not in (None, "") else str(std)
+        )
+        await _send_json(
+            env, int(getattr(std, "status_code", 500) or 500), {"detail": detail}
+        )
+        return
 
     await _send_transport_response(env, ctx)
 
