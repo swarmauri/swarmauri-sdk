@@ -4,6 +4,58 @@
 
 The runtime executor coordinates Tigrbl operations through a fixed set of **phase chains**. Each phase has a list of steps built by the kernel and is executed under strict database guards.
 
+## Kernel Architecture Form
+
+Tigrbl's runtime kernel follows a **compiled spec form with predicate-gated
+phase-chain execution**. It is not imperative request handling and not purely
+declarative configuration.
+
+The kernel form is:
+
+`Spec → Normalization → Compilation → KernelPlan → PhaseChain execution over GwRawEnvelope`
+
+1. `AppSpec` is normalized into `NormalizedSpec`.
+2. `NormalizedSpec` is compiled once into a deterministic `KernelPlan`.
+3. `Executor(plan).invoke(env)` executes ordered phase chains over a raw
+   transport envelope.
+
+At runtime, the executor behaves like a compiled plan engine:
+
+- compile once and cache the plan,
+- run ingress chain,
+- resolve an operation key by indexed protocol lookup,
+- run operation chain,
+- run egress chain.
+
+Dispatch is index-based (`proto_indices[proto][route_key] -> opkey`), not
+router traversal. Operation metadata (`opmeta[opkey]`) drives deterministic
+execution.
+
+### Canonical KernelPlan Shape
+
+Conceptually, the compiled plan contains:
+
+- `proto_indices` – protocol-to-route hash maps for O(1) dispatch,
+- `opmeta` – operation metadata keyed by operation key,
+- `ingress_chain` – ordered atoms before operation execution,
+- `op_chains` – per-operation ordered atoms,
+- `egress_chain` – ordered atoms after operation execution.
+
+Atoms are small execution units with optional predicates. Predicate checks gate
+execution without introducing heuristic branching in the executor.
+
+### Classification
+
+In systems terms, the runtime kernel is a deterministic, compiled,
+phase-oriented dispatch engine derived from normalized application
+specification. This gives:
+
+- compile-once / execute-many behavior,
+- deterministic and inspectable plans,
+- protocol abstraction over a raw envelope,
+- phase-level security and diagnostics injection,
+- consistent phase ordering.
+
 ## Phase Chains
 
 Phase chains map phase names to ordered handler lists. The executor runs the phases in the sequence below:
@@ -126,4 +178,3 @@ If a phase fails, the guard restores the original methods and the executor rolls
 ---
 
 This runtime layer is maintained by the core team. Downstream packages should treat it as read‑only and interact only through the public Tigrbl interfaces.
-
