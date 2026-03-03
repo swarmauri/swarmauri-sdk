@@ -125,8 +125,16 @@ def run(obj: Optional[object], ctx: Any) -> None:
                 )
                 continue
 
-    # 3) Unknown keys policy (handled after build_in captured samples)
+    # 3) Unknown/reserved key policy (handled after build_in captured samples)
     unknown = tuple(temp.get("in_unknown") or ())
+    if unknown:
+        reserved = _reserved_input_keys(ctx, by_field=by_field)
+        for k in unknown:
+            if k in reserved:
+                errors.append(
+                    _err(k, "reserved_input", "Field is not accepted on input.")
+                )
+
     if unknown and _reject_unknown(ctx):
         logger.debug("Rejecting unknown fields: %s", unknown)
         for k in unknown:
@@ -225,6 +233,27 @@ def _coerce(value: Any, target: type) -> Any:
         return _dt.time.fromisoformat(str(value).strip())
     # Fallback: try direct construction
     return target(value)
+
+
+def _reserved_input_keys(
+    ctx: Any, *, by_field: Mapping[str, Mapping[str, Any]]
+) -> set[str]:
+    """Return keys that are reserved by paired-field IO plumbing."""
+    reserved: set[str] = set()
+
+    try:
+        ov = opview_from_ctx(ctx)
+    except Exception:
+        return reserved
+
+    for field, desc in (getattr(ov, "paired_index", {}) or {}).items():
+        if isinstance(field, str) and field and field not in by_field:
+            reserved.add(field)
+        alias = desc.get("alias") if isinstance(desc, Mapping) else None
+        if isinstance(alias, str) and alias:
+            reserved.add(alias)
+
+    return reserved
 
 
 __all__ = ["ANCHOR", "run"]

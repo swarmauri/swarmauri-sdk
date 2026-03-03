@@ -57,6 +57,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     virtual_in = _ensure_dict(temp, "virtual_in")
     paired_values = _ensure_dict(temp, "paired_values")
     persist_from_paired = _ensure_dict(temp, "persist_from_paired")
+    response_extras = _ensure_dict(temp, "response_extras")
 
     generated: list[str] = []
 
@@ -96,6 +97,10 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
         paired_values[field] = {"raw": raw, "alias": alias_name, "meta": meta}
         logger.debug("Recorded paired raw for field %s", field)
+
+        # Make create-time paired aliases available on the outbound payload even
+        # when post-refresh emission is skipped by an adapter/runtime path.
+        response_extras.setdefault(alias_name, raw)
 
         persist_from_paired[field] = {"source": ("paired_values", field, "raw")}
 

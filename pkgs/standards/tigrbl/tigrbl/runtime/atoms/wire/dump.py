@@ -47,6 +47,18 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
     if not out_values:
         logger.debug("No out_values available; syncing transport from ctx.result")
+        extras = temp.get("response_extras")
+        result = getattr(ctx, "result", None)
+        if (
+            isinstance(result, MutableMapping)
+            and isinstance(extras, Mapping)
+            and extras
+        ):
+            allow_overwrite = _allow_extras_overwrite(ctx)
+            for k, v in extras.items():
+                if (k in result) and not allow_overwrite:
+                    continue
+                result[k] = _dump_scalar(v)
         _sync_transport_response_from_ctx(ctx, temp)
         return  # nothing to dump
 

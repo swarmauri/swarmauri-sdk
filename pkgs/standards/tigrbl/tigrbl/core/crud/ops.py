@@ -7,7 +7,7 @@ import logging
 
 from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlalchemy import inspect as _sa_inspect
-from sqlalchemy.exc import NoInspectionAvailable
+from sqlalchemy.exc import NoInspectionAvailable, OperationalError
 
 from .helpers import (
     AsyncSession,
@@ -48,6 +48,25 @@ def _ensure_model_mapped(model: type) -> None:
     TableBase.registry.map_declaratively(model)
 
 
+def _ensure_model_table(model: type, db: Union[Session, AsyncSession]) -> None:
+    """Best-effort table creation for in-memory sqlite race conditions."""
+    table = getattr(model, "__table__", None)
+    if table is None:
+        return
+    bind = getattr(db, "bind", None)
+    if bind is None and hasattr(db, "get_bind"):
+        try:
+            bind = db.get_bind()
+        except Exception:
+            bind = None
+    if bind is None:
+        return
+    try:
+        table.create(bind=bind, checkfirst=True)
+    except Exception:
+        return
+
+
 async def create(
     model: type, data: Mapping[str, Any], db: Union[Session, AsyncSession]
 ) -> Any:
@@ -73,7 +92,15 @@ async def create(
             TableBase.registry.map_declaratively(model)
             obj = model(**data)
             db.add(obj)
-    await _maybe_flush(db)
+    try:
+        await _maybe_flush(db)
+    except OperationalError as exc:
+        if "no such table" not in str(exc).lower():
+            raise
+        _ensure_model_table(model, db)
+        obj = model(**data)
+        db.add(obj)
+        await _maybe_flush(db)
     logger.debug("create persisted obj=%s", obj)
     return obj
 
