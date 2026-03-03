@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import inspect
+import json
 import logging
 from types import SimpleNamespace
 from typing import (
@@ -230,79 +231,27 @@ def _validate_input(
 
 
 def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
-    """Serialize result(s) if an OUT schema is available for the op.
+    """Normalize RPC results into JSON-serializable payloads."""
 
-    For 'list', the OUT schema represents the element shape.
-    """
-    schemas_root = getattr(model, "schemas", None)
-    if not schemas_root:
-        return _ensure_jsonable(result)
-    alias_ns = getattr(schemas_root, alias, None)
-    if not alias_ns:
-        return _ensure_jsonable(result)
+    if isinstance(result, Mapping) and {"status_code", "body"}.issubset(result.keys()):
+        body = result.get("body")
+        if isinstance(body, (bytes, bytearray)):
+            try:
+                body = json.loads(bytes(body).decode("utf-8"))
+            except Exception:
+                body = result.get("body")
+        if isinstance(body, Mapping) and body.get("jsonrpc") == "2.0":
+            body = body.get("result")
+        if body is not None:
+            result = body
 
-    if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_merge"}:
-        out_model = getattr(alias_ns, "out_item", None)
-    else:
-        out_model = getattr(alias_ns, "out", None)
+    if isinstance(result, Mapping):
+        if "item" in result and isinstance(result.get("item"), Mapping):
+            result = result.get("item")
+        elif "result" in result and isinstance(result.get("result"), Mapping):
+            result = result.get("result")
 
-    if (
-        not out_model
-        or not inspect.isclass(out_model)
-        or not issubclass(out_model, BaseModel)
-    ):
-        return _ensure_jsonable(result)
-
-    try:
-        if isinstance(result, Mapping):
-            if "item" in result and isinstance(result.get("item"), Mapping):
-                result = result.get("item")
-            elif "result" in result and isinstance(result.get("result"), Mapping):
-                result = result.get("result")
-
-        if target == "list":
-            if isinstance(result, Mapping):
-                items = result.get("items")
-                if isinstance(items, (list, tuple)):
-                    return [
-                        out_model.model_validate(x).model_dump(
-                            exclude_none=False, by_alias=True
-                        )
-                        for x in items
-                    ]
-            if isinstance(result, (list, tuple)):
-                return [
-                    out_model.model_validate(x).model_dump(
-                        exclude_none=False, by_alias=True
-                    )
-                    for x in result
-                ]
-        if target in {
-            "bulk_create",
-            "bulk_update",
-            "bulk_replace",
-            "bulk_merge",
-        } and isinstance(result, (list, tuple)):
-            return [
-                out_model.model_validate(x).model_dump(
-                    exclude_none=False, by_alias=True
-                )
-                for x in result
-            ]
-        # Single object case
-        return out_model.model_validate(result).model_dump(
-            exclude_none=False, by_alias=True
-        )
-    except Exception as e:
-        # If serialization fails, let raw result through rather than failing the call
-        logger.debug(
-            "rpc output serialization failed for %s.%s: %s",
-            model.__name__,
-            alias,
-            e,
-            exc_info=True,
-        )
-        return _ensure_jsonable(result)
+    return _ensure_jsonable(result)
 
 
 # ───────────────────────────────────────────────────────────────────────────────
