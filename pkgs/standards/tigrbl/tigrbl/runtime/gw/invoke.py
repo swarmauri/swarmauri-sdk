@@ -250,10 +250,40 @@ async def _fallback_runtime_route(ctx: _Ctx, env: GwRawEnvelope) -> bool:
         ctx.temp.get("route") if isinstance(getattr(ctx, "temp", None), dict) else None
     )
     handler = route.get("handler") if isinstance(route, dict) else None
+    request = getattr(ctx, "request", None)
+
+    app = getattr(ctx, "app", None)
+    # Route atoms may resolve a handler ahead of this fallback path, but not all
+    # call paths populate request.path_params. Ensure handler kwargs can be
+    # injected from a matched route.
+    if request is not None and not getattr(request, "path_params", None):
+        if isinstance(route, Mapping) and isinstance(route.get("path_params"), Mapping):
+            request.path_params = dict(route.get("path_params") or {})
+
+        if not request.path_params and app is not None:
+            method = str(getattr(request, "method", "")).upper()
+            path = getattr(request, "path", None) or getattr(
+                getattr(request, "url", None), "path", None
+            )
+            if method and isinstance(path, str):
+                for candidate in getattr(app, "routes", ()) or ():
+                    if method not in (getattr(candidate, "methods", ()) or ()):
+                        continue
+                    pattern = getattr(candidate, "pattern", None)
+                    if pattern is None:
+                        continue
+                    matched = pattern.match(path)
+                    if matched is None:
+                        continue
+                    candidate_handler = getattr(candidate, "handler", None)
+                    if handler is None:
+                        handler = candidate_handler
+                    if callable(candidate_handler):
+                        request.path_params = dict(matched.groupdict())
+                    if callable(handler):
+                        break
 
     if not callable(handler):
-        request = getattr(ctx, "request", None)
-        app = getattr(ctx, "app", None)
         method = str(getattr(request, "method", "")).upper()
         path = getattr(request, "path", None) or getattr(
             getattr(request, "url", None), "path", None

@@ -12,6 +12,7 @@ from .builders import (
 )
 from .collect import collect_engine_config
 from .plugins import load_engine_plugins as _bootstrap_load_engine_plugins
+from ..shortcuts import engine as shortcuts
 
 
 __all__ = [
@@ -27,6 +28,7 @@ __all__ = [
     "async_postgres_engine",
     "HybridSession",
     "Engine",
+    "shortcuts",
     "EngineSpec",
     "engine",
     "load_engine_plugins",

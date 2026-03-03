@@ -1,5 +1,6 @@
 # ── Standard Library ─────────────────────────────────────────────────────
 import warnings
+from importlib import import_module
 from types import MethodType, SimpleNamespace
 from uuid import uuid4, UUID
 
@@ -158,6 +159,7 @@ __all__: list[str] = [
 
 _DEPRECATED_EXPORTS: dict[str, tuple[str, str]] = {
     "Router": ("tigrbl", "Router"),
+    "APIRouter": ("tigrbl", "Router"),
     "Request": ("tigrbl", "Request"),
     "Body": ("tigrbl.core.crud", "Body"),
     "Depends": ("tigrbl.security", "Depends"),
@@ -168,7 +170,7 @@ _DEPRECATED_EXPORTS: dict[str, tuple[str, str]] = {
 
 def __getattr__(name: str):
     if name in _DEPRECATED_EXPORTS:
-        module, _attr = _DEPRECATED_EXPORTS[name]
+        module, attr = _DEPRECATED_EXPORTS[name]
         warnings.warn(
             (
                 f"tigrbl.types.{name} is deprecated and no longer exports from "
@@ -178,8 +180,7 @@ def __getattr__(name: str):
             DeprecationWarning,
             stacklevel=2,
         )
-        raise AttributeError(
-            f"tigrbl.types.{name} no longer exports from tigrbl.types. "
-            f"Import it from '{module}' instead."
-        )
+        value = getattr(import_module(module), attr)
+        globals()[name] = value
+        return value
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

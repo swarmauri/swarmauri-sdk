@@ -75,6 +75,7 @@ def _resolve_handler_kwargs(
     kwargs: dict[str, Any] = {}
     injected = _runtime_route_kwargs_store(request)
     body_cache: Any | None = None
+    path_params = getattr(request, "path_params", {}) or {}
 
     for name, param in inspect.signature(handler).parameters.items():
         if name in injected:
@@ -108,12 +109,16 @@ def _resolve_handler_kwargs(
                 kwargs[name] = marker.default
             continue
 
-        if name in request.path_params:
-            kwargs[name] = request.path_params[name]
+        if name in path_params:
+            kwargs[name] = path_params[name]
         elif name in request.query_params:
             kwargs[name] = request.query_params[name]
         elif param.default is not inspect._empty:
             kwargs[name] = param.default
+        elif len(path_params) == 1:
+            # Back-compat: older route builders used resource-specific path
+            # parameter names while dynamic handlers used ``item_id``.
+            kwargs[name] = next(iter(path_params.values()))
 
     return kwargs
 
@@ -124,6 +129,15 @@ async def invoke_runtime_route_handler(
     handler: Callable[..., Any],
 ) -> None:
     request = getattr(ctx, "request", None)
+    if request is not None and not getattr(request, "path_params", None):
+        temp = getattr(ctx, "temp", None)
+        route = temp.get("route") if isinstance(temp, dict) else None
+        route_path_params = (
+            route.get("path_params") if isinstance(route, dict) else None
+        )
+        if isinstance(route_path_params, dict) and route_path_params:
+            request.path_params = dict(route_path_params)
+
     kwargs = _resolve_handler_kwargs(handler, request)
     result = handler(**kwargs)
     if inspect.isawaitable(result):
