@@ -129,6 +129,48 @@ async def invoke_runtime_route_handler(
     if inspect.isawaitable(result):
         result = await result
 
+    if isinstance(result, dict):
+        route_model = result.get("model")
+        route_alias = result.get("alias")
+        route_payload = result.get("payload")
+        if (
+            isinstance(route_model, type)
+            and isinstance(route_alias, str)
+            and route_alias
+        ):
+            handlers_ns = getattr(route_model, "handlers", None)
+            alias_ns = getattr(handlers_ns, route_alias, None) if handlers_ns else None
+            route_handler = getattr(alias_ns, "handler", None)
+            if callable(route_handler):
+                seed_ctx = {
+                    "path_params": dict(result.get("path_params") or {}),
+                    "payload": route_payload,
+                }
+                candidates: list[tuple[tuple[Any, ...], dict[str, Any]]] = [
+                    ((seed_ctx,), {}),
+                    ((route_payload,), {"ctx": seed_ctx}),
+                    (
+                        (route_payload,),
+                        {
+                            "db": getattr(ctx, "db", None),
+                            "request": request,
+                            "ctx": seed_ctx,
+                        },
+                    ),
+                ]
+                executed = None
+                for args, call_kwargs in candidates:
+                    try:
+                        executed = route_handler(*args, **call_kwargs)
+                        if inspect.isawaitable(executed):
+                            executed = await executed
+                        break
+                    except TypeError:
+                        executed = None
+                        continue
+                if executed is not None:
+                    result = executed
+
     temp = _ensure_temp(ctx)
     egress = temp.setdefault("egress", {}) if isinstance(temp, dict) else {}
     if hasattr(result, "status_code") and hasattr(result, "body"):

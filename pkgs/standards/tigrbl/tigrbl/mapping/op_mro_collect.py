@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import inspect
 from functools import lru_cache
 from typing import Any, Callable, Dict
 
@@ -32,7 +33,43 @@ def _wrap_ctx_core(table: type, func: Callable[..., Any]) -> Callable[..., Any]:
         if p is not None:
             ctx["payload"] = p
         bound = func.__get__(table, table)
-        res = await _maybe_await(bound(ctx))
+        sig = inspect.signature(bound)
+        kwargs: Dict[str, Any] = {}
+        args: list[Any] = []
+        if "ctx" in sig.parameters:
+            kwargs["ctx"] = ctx
+        elif "_ctx" in sig.parameters:
+            kwargs["_ctx"] = ctx
+        if "obj" in sig.parameters:
+            kwargs["obj"] = getattr(ctx, "obj", None)
+        elif "_obj" in sig.parameters:
+            kwargs["_obj"] = getattr(ctx, "obj", None)
+        if "objs" in sig.parameters:
+            kwargs["objs"] = getattr(ctx, "objs", None)
+        elif "_objs" in sig.parameters:
+            kwargs["_objs"] = getattr(ctx, "objs", None)
+        if "id" in sig.parameters:
+            kwargs["id"] = getattr(ctx, "ident", None)
+        elif "_id" in sig.parameters:
+            kwargs["_id"] = getattr(ctx, "ident", None)
+
+        # Backward compatibility for handlers declared as ``def op(cls, _ctx)``
+        # or with a single unnamed positional parameter after class binding.
+        if not kwargs:
+            positional = [
+                p
+                for p in sig.parameters.values()
+                if p.kind
+                in {
+                    inspect.Parameter.POSITIONAL_ONLY,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                }
+                and p.default is inspect._empty
+            ]
+            if len(positional) == 1:
+                args.append(ctx)
+
+        res = await _maybe_await(bound(*args, **kwargs))
         return res if res is not None else ctx.get("result")
 
     core.__name__ = getattr(func, "__name__", "core")

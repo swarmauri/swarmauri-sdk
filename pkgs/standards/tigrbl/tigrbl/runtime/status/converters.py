@@ -88,6 +88,15 @@ def _classify_exception(
     if isinstance(exc, HTTPException):
         return exc.status_code, exc.detail, getattr(exc, "rpc_data", None)
 
+    # 1b) Compatibility shim for framework-style exceptions that expose
+    # ``status_code`` and ``detail`` but are not our HTTPException type.
+    status_code = getattr(exc, "status_code", None)
+    if isinstance(status_code, int):
+        detail = getattr(exc, "detail", None)
+        if detail in (None, ""):
+            detail = _stringify_exc(exc)
+        return int(status_code), detail, None
+
     # 2) Validation errors → 422 with structured data
     if (PydanticValidationError is not None) and isinstance(
         exc, PydanticValidationError
