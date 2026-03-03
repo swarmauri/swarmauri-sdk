@@ -283,7 +283,11 @@ class Key(Base, BulkCapable, Replaceable):
                 db, _release_db = cls.acquire(op_alias="read")
                 # Keep acquired session available for downstream ops in this request.
                 ctx["db"] = db
-                ctx.setdefault("_release_db", _release_db)
+                temp = ctx.get("temp")
+                if not isinstance(temp, dict):
+                    temp = {}
+                    ctx["temp"] = temp
+                temp.setdefault("__sys_db_release__", _release_db)
             except Exception as exc:
                 raise HTTPException(
                     status_code=500, detail="DB session missing"
