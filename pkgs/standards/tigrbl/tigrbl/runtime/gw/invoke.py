@@ -87,6 +87,14 @@ async def _invoke_jsonrpc_batch(ctx: _Ctx, env: GwRawEnvelope) -> bool:
     if not isinstance(payload, list):
         return False
 
+    # Distinguish true JSON-RPC batches (list of envelopes with "method")
+    # from single bulk-operation params (list of record payloads).
+    if not payload or not all(
+        isinstance(item, Mapping) and isinstance(item.get("method"), str)
+        for item in payload
+    ):
+        return False
+
     responses: list[dict[str, Any]] = []
     app = getattr(ctx, "app", None)
     for item in payload:
