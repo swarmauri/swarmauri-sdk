@@ -240,6 +240,7 @@ async def test_set_auth_header_gate_for_rpc_methods() -> None:
             headers={"Authorization": f"Bearer {PUBLIC_SESSION_TOKEN}"},
         )
         assert public_create.status_code == 200
+        assert public_create.json()["error"]["code"] == -32002
 
         admin_create = await client.post(
             "/rpc",
@@ -252,6 +253,7 @@ async def test_set_auth_header_gate_for_rpc_methods() -> None:
             headers={"X-Admin-Key": ADMIN_KEY},
         )
         assert admin_create.status_code == 200
-        assert admin_create.json()["error"]["code"] == -32001
+        assert "result" in admin_create.json()
+        assert admin_create.json()["result"]["name"] == "admin-rpc-create"
 
     await stop_uvicorn(server, task)

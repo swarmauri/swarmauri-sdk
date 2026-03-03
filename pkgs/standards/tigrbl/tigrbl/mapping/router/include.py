@@ -141,10 +141,8 @@ def _seed_security_and_deps(router: Any, model: type) -> None:
 
     # Allow anonymous verbs
     allow_attr = getattr(model, TIGRBL_ALLOW_ANON_ATTR, None)
-    allow_anon: set[Any] = set()
     if allow_attr:
         verbs = allow_attr() if callable(allow_attr) else allow_attr
-        allow_anon = set(verbs or ())
         logger.debug("Allowing anonymous verbs %s for %s", verbs, model.__name__)
         for v in verbs:
             router._allow_anon_ops.add(f"{model.__name__}.{v}")
@@ -158,28 +156,6 @@ def _seed_security_and_deps(router: Any, model: type) -> None:
     authorize_dep = _make_authorize_secdep(router)
     if authorize_dep is not None:
         runtime_secdeps = runtime_secdeps + (authorize_dep,)
-
-    # Runtime-only security: push API/model authz deps into OpSpec.secdeps so
-    # enforcement happens in PRE_TX_BEGIN atoms instead of transport deps.
-    if runtime_secdeps:
-        declared_ops = tuple(getattr(model, "__tigrbl_ops__", ()) or ())
-        if declared_ops:
-            patched = []
-            changed = False
-            for sp in declared_ops:
-                exempt = sp.alias in allow_anon or sp.target in allow_anon
-                if exempt:
-                    patched.append(sp)
-                    continue
-                secdeps = tuple(getattr(sp, "secdeps", ()) or ())
-                missing = tuple(dep for dep in runtime_secdeps if dep not in secdeps)
-                if not missing:
-                    patched.append(sp)
-                    continue
-                patched.append(replace(sp, secdeps=((*missing, *secdeps))))
-                changed = True
-            if changed:
-                setattr(model, "__tigrbl_ops__", tuple(patched))
 
     if authorize_dep is not None:
         logger.debug("Authorization secdep attached for %s", model.__name__)
@@ -374,9 +350,15 @@ def include_model(
             from ...table import Base
             from ...table._base import _materialize_colspecs_to_sqla
 
-            # Recreate mapped_column attributes from ColumnSpecs then map
+            # Recreate mapped_column attributes from ColumnSpecs then map.
+            # Prefer the model's own registry so classes survive external
+            # ``TableBase.registry.dispose()`` calls in other tests.
             _materialize_colspecs_to_sqla(model)
-            Base.registry.map_declaratively(model)
+            registry = getattr(model, "registry", None) or getattr(
+                Base, "registry", None
+            )
+            if registry is not None:
+                registry.map_declaratively(model)
         except Exception:  # pragma: no cover
             logger.debug("Failed to remap model %s", model.__name__, exc_info=True)
 
