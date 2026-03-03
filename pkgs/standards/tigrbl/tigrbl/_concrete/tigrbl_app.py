@@ -439,6 +439,9 @@ class TigrblApp(_App):
         self.table_config = self._default_router.table_config
         self.core = self._default_router.core
         self.core_raw = self._default_router.core_raw
+        self._allow_anon_ops = set(
+            getattr(self._default_router, "_allow_anon_ops", set())
+        )
 
         # Preserve app-level system models (for docs/metadata runtime ops) that
         # may have been mounted before the default router existed.

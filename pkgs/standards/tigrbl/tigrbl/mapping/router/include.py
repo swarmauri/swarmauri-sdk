@@ -137,6 +137,8 @@ def _seed_security_and_deps(router: Any, model: type) -> None:
     if auth_dep is not None:
         setattr(model, TIGRBL_AUTH_DEP_ATTR, auth_dep)
     else:
+        if hasattr(model, TIGRBL_AUTH_DEP_ATTR):
+            delattr(model, TIGRBL_AUTH_DEP_ATTR)
         logger.debug("No auth dependency configured for %s", model.__name__)
 
     # Allow anonymous verbs
@@ -194,11 +196,15 @@ def _seed_security_and_deps(router: Any, model: type) -> None:
         setattr(model, TIGRBL_REST_DEPENDENCIES_ATTR, rest_deps)
         logger.debug("REST dependencies seeded for %s", model.__name__)
     else:
+        if hasattr(model, TIGRBL_REST_DEPENDENCIES_ATTR):
+            delattr(model, TIGRBL_REST_DEPENDENCIES_ATTR)
         logger.debug("No REST dependencies for %s", model.__name__)
     if getattr(router, "rpc_dependencies", None):
         setattr(model, TIGRBL_RPC_DEPENDENCIES_ATTR, list(router.rpc_dependencies))
         logger.debug("RPC dependencies seeded for %s", model.__name__)
     else:
+        if hasattr(model, TIGRBL_RPC_DEPENDENCIES_ATTR):
+            delattr(model, TIGRBL_RPC_DEPENDENCIES_ATTR)
         logger.debug("No RPC dependencies for %s", model.__name__)
 
 

@@ -86,10 +86,14 @@ def include_router(owner: Any, router: Any, *, prefix: str = "") -> None:
         if nested_prefix:
             path = f"{nested_prefix}{path}" if path != "/" else nested_prefix
 
-        route_dependencies = list(getattr(route, "dependencies", ()) or ())
-        merged_dependencies = [
-            dep for dep in router_dependencies if dep not in route_dependencies
-        ] + route_dependencies
+        route_dependencies_raw = getattr(route, "dependencies", None)
+        if route_dependencies_raw is None:
+            merged_dependencies = None
+        else:
+            route_dependencies = list(route_dependencies_raw or ())
+            merged_dependencies = [
+                dep for dep in router_dependencies if dep not in route_dependencies
+            ] + route_dependencies
 
         add_route(
             owner,
