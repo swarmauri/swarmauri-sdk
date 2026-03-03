@@ -65,9 +65,15 @@ def _build_response_serializer(model: type, alias: str):
 
     def _serialize(value: Any) -> Any:
         def _dump(item: Any) -> Any:
-            return out_model.model_validate(item, from_attributes=True).model_dump(
+            payload = out_model.model_validate(item, from_attributes=True).model_dump(
                 exclude_none=False, by_alias=True
             )
+            if "id" not in payload:
+                if isinstance(item, dict) and "id" in item:
+                    payload["id"] = item.get("id")
+                elif hasattr(item, "id"):
+                    payload["id"] = getattr(item, "id", None)
+            return payload
 
         target = alias.split(".")[-1]
         if target == "list" and isinstance(value, dict):

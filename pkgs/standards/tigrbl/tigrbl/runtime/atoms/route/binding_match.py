@@ -47,6 +47,43 @@ def _match_rest_index(index: Any, method: str, path: str) -> tuple[int, dict[str
     raise KeyError(selector)
 
 
+def _extract_rpc_selector(ctx: Any, env: Any) -> str | None:
+    rpc_payload = getattr(env, "rpc", None)
+    if isinstance(rpc_payload, Mapping):
+        maybe_method = rpc_payload.get("method")
+        if isinstance(maybe_method, str):
+            return maybe_method
+
+    body = getattr(ctx, "body", None)
+    if not isinstance(body, (bytes, bytearray)):
+        body = getattr(env, "body", None)
+    if isinstance(body, (bytes, bytearray)):
+        try:
+            parsed = json.loads(bytes(body).decode("utf-8"))
+        except Exception:
+            parsed = None
+        if isinstance(parsed, Mapping):
+            maybe_method = parsed.get("method")
+            if isinstance(maybe_method, str):
+                return maybe_method
+
+    payload = getattr(ctx, "payload", None)
+    if isinstance(payload, Mapping):
+        maybe_method = payload.get("method")
+        if isinstance(maybe_method, str):
+            return maybe_method
+
+    temp = getattr(ctx, "temp", None)
+    ingress = temp.get("ingress") if isinstance(temp, Mapping) else None
+    ingress_body = ingress.get("body") if isinstance(ingress, Mapping) else None
+    if isinstance(ingress_body, Mapping):
+        maybe_method = ingress_body.get("method")
+        if isinstance(maybe_method, str):
+            return maybe_method
+
+    return None
+
+
 def run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = getattr(ctx, "temp", None)
@@ -80,6 +117,24 @@ def run(obj: object | None, ctx: Any) -> None:
             if isinstance(scope_path, str):
                 path = scope_path
         if isinstance(method, str) and isinstance(path, str):
+            if method.upper() == "POST":
+                rpc_selector = _extract_rpc_selector(ctx, env)
+                if isinstance(rpc_selector, str):
+                    for rpc_proto in (
+                        proto.replace(".rest", ".jsonrpc"),
+                        ("https.jsonrpc" if proto == "http.rest" else "http.jsonrpc"),
+                    ):
+                        rpc_index = proto_indices.get(rpc_proto)
+                        if not isinstance(rpc_index, dict):
+                            continue
+                        rpc_binding = rpc_index.get(rpc_selector)
+                        if isinstance(rpc_binding, int):
+                            route["rpc_method"] = rpc_selector
+                            route["protocol"] = rpc_proto
+                            route["binding"] = rpc_binding
+                            setattr(ctx, "proto", rpc_proto)
+                            return
+
             candidates = [proto]
             if proto == "http.rest":
                 candidates.append("https.rest")
@@ -98,54 +153,6 @@ def run(obj: object | None, ctx: Any) -> None:
                 if path_params:
                     route["path_params"] = path_params
                 return
-
-            # JSON-RPC requests enter as HTTP REST until the envelope atom
-            # classifies them. Binding resolution must still happen first, so
-            # opportunistically extract just the RPC method selector here.
-            if isinstance(method, str) and method.upper() == "POST":
-                rpc_selector = None
-                rpc_payload = getattr(env, "rpc", None)
-                if isinstance(rpc_payload, Mapping):
-                    maybe_method = rpc_payload.get("method")
-                    if isinstance(maybe_method, str):
-                        rpc_selector = maybe_method
-
-                if rpc_selector is None:
-                    body = getattr(ctx, "body", None)
-                    if not isinstance(body, (bytes, bytearray)):
-                        body = getattr(env, "body", None)
-                    if isinstance(body, (bytes, bytearray)):
-                        try:
-                            parsed = json.loads(bytes(body).decode("utf-8"))
-                        except Exception:
-                            parsed = None
-                        if isinstance(parsed, Mapping):
-                            maybe_method = parsed.get("method")
-                            if isinstance(maybe_method, str):
-                                rpc_selector = maybe_method
-
-                if rpc_selector is None:
-                    payload = getattr(ctx, "payload", None)
-                    if isinstance(payload, Mapping):
-                        maybe_method = payload.get("method")
-                        if isinstance(maybe_method, str):
-                            rpc_selector = maybe_method
-
-                if isinstance(rpc_selector, str):
-                    for rpc_proto in (
-                        proto.replace(".rest", ".jsonrpc"),
-                        ("https.jsonrpc" if proto == "http.rest" else "http.jsonrpc"),
-                    ):
-                        rpc_index = proto_indices.get(rpc_proto)
-                        if not isinstance(rpc_index, dict):
-                            continue
-                        rpc_binding = rpc_index.get(rpc_selector)
-                        if isinstance(rpc_binding, int):
-                            route["rpc_method"] = rpc_selector
-                            route["protocol"] = rpc_proto
-                            route["binding"] = rpc_binding
-                            setattr(ctx, "proto", rpc_proto)
-                            return
     elif proto.endswith(".jsonrpc"):
         selector = route.get("rpc_method")
 

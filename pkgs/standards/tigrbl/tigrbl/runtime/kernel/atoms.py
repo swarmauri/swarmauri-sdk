@@ -88,7 +88,12 @@ def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
 
     async def _step(ctx: Any) -> Any:
         if use_two_args:
-            rv = run(None, ctx)
+            current = (
+                getattr(ctx, "obj", None)
+                if getattr(ctx, "obj", None) is not None
+                else getattr(ctx, "result", None)
+            )
+            rv = run(current, ctx)
         else:
             rv = run(ctx)  # type: ignore[misc]
         if hasattr(rv, "__await__"):

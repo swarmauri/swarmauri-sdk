@@ -254,7 +254,10 @@ class TableBase(DeclarativeBase):
             reg = TableBase.registry._class_registry
             name = cls.__name__
             existing = reg.get(name)
-            if existing is not None:
+            if (
+                isinstance(existing, type)
+                and getattr(existing, "__module__", None) == cls.__module__
+            ):
                 try:
                     TableBase.registry._dispose_cls(existing)
                 except Exception:

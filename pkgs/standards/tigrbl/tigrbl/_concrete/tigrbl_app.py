@@ -178,6 +178,10 @@ class TigrblApp(_App):
             else getattr(self, "SYSTEM_PREFIX", "/system")
         )
 
+        # Preserve runtime system models registered during early app bootstrap
+        # (for example, favicon routes mounted before container re-initialization).
+        existing_tables = dict(getattr(self, "tables", {}) or {})
+
         # public containers (mirrors used by bindings.router)
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
@@ -187,6 +191,8 @@ class TigrblApp(_App):
         self.rest = SimpleNamespace()
         self.routers: Dict[str, Any] = {}
         self.tables = AttrDict(self._table_registry)
+        for model_name, model in existing_tables.items():
+            self.tables.setdefault(model_name, model)
         self.columns: Dict[str, Tuple[str, ...]] = {}
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
