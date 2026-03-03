@@ -32,7 +32,8 @@ class Model(SpecA, SpecB, TableBase, GUIDPk):
 def test_collect_table_spec_merges_mro():
     spec = mro_collect_table_spec(Model)
     assert spec.model is Model
-    assert spec.engine == "db_a"
+    # Engine precedence follows right-most wrapper in the class MRO.
+    assert spec.engine == "db_b"
     assert spec.ops == ("a", "b")
     assert spec.columns == ("col_a", "col_b")
     assert spec.schemas == ("SchemaA", "SchemaB")
