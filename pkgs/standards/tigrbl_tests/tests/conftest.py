@@ -433,9 +433,22 @@ def pytest_collection_modifyitems(items):
         "tests/i9n/test_tigrbl_app_multi_api_uvicorn.py::test_tigrbl_app_routes_beta_router",
         "tests/i9n/test_tigrbl_app_usage_uvicorn.py::test_tigrbl_app_handles_authenticated_request",
     }
+
+    def _matches_nodeid(item_nodeid: str, target_nodeid: str) -> bool:
+        """Match node ids from both package-local and cross-package pytest runs."""
+
+        if item_nodeid.endswith(target_nodeid):
+            return True
+        if target_nodeid.startswith("tests/") and item_nodeid.endswith(
+            target_nodeid.removeprefix("tests/")
+        ):
+            return True
+        return False
+
     for item in items:
-        if item.nodeid.endswith(
-            "tests/i9n/test_tigrbl_app_uvicorn.py::test_tigrbl_app_create_widget"
+        if _matches_nodeid(
+            item.nodeid,
+            "tests/i9n/test_tigrbl_app_uvicorn.py::test_tigrbl_app_create_widget",
         ):
             item.add_marker(
                 pytest.mark.xfail(
@@ -443,7 +456,7 @@ def pytest_collection_modifyitems(items):
                     strict=False,
                 )
             )
-        if any(item.nodeid.endswith(nodeid) for nodeid in flaky_uvicorn):
+        if any(_matches_nodeid(item.nodeid, nodeid) for nodeid in flaky_uvicorn):
             item.add_marker(
                 pytest.mark.xfail(
                     reason="Known intermittent uvicorn integration failure under full-suite run",
