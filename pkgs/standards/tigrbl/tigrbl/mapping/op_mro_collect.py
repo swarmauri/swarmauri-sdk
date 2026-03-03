@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import inspect
 from functools import lru_cache
 from typing import Any, Callable, Dict
 
@@ -32,7 +33,17 @@ def _wrap_ctx_core(table: type, func: Callable[..., Any]) -> Callable[..., Any]:
         if p is not None:
             ctx["payload"] = p
         bound = func.__get__(table, table)
-        res = await _maybe_await(bound(ctx))
+        sig = inspect.signature(bound)
+        kwargs: Dict[str, Any] = {}
+        if "ctx" in sig.parameters:
+            kwargs["ctx"] = ctx
+        if "obj" in sig.parameters:
+            kwargs["obj"] = getattr(ctx, "obj", None)
+        if "objs" in sig.parameters:
+            kwargs["objs"] = getattr(ctx, "objs", None)
+        if "id" in sig.parameters:
+            kwargs["id"] = getattr(ctx, "ident", None)
+        res = await _maybe_await(bound(**kwargs))
         return res if res is not None else ctx.get("result")
 
     core.__name__ = getattr(func, "__name__", "core")
