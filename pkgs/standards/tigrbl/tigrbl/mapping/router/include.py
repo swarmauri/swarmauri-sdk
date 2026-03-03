@@ -102,6 +102,25 @@ def _mark_required_auth_dependency(dep: Any) -> Any:
     return _required_auth_wrapper
 
 
+def _mark_auth_dependency(dep: Any) -> Any:
+    """Tag an auth dependency so stale runtime secdeps can be removed safely."""
+    try:
+        setattr(dep, "__tigrbl_dep_name__", "security.authn")
+        return dep
+    except Exception:
+        pass
+
+    async def _auth_wrapper(*args: Any, **kwargs: Any) -> Any:
+        rv = dep(*args, **kwargs)
+        if hasattr(rv, "__await__"):
+            rv = await rv
+        return rv
+
+    setattr(_auth_wrapper, "__tigrbl_dep_name__", "security.authn")
+    setattr(_auth_wrapper, "__wrapped__", dep)
+    return _auth_wrapper
+
+
 def _seed_security_and_deps(router: Any, model: type) -> None:
     """
     Copy API-level dependency hooks onto the model so downstream binders can use them.
@@ -131,12 +150,16 @@ def _seed_security_and_deps(router: Any, model: type) -> None:
     elif getattr(router, "_authn", None):
         auth_dep = router._authn
         logger.debug("Using default auth dependency for %s", model.__name__)
-    if auth_dep is not None and getattr(router, "_allow_anon", True) is False:
-        auth_dep = _mark_required_auth_dependency(auth_dep)
+    if auth_dep is not None:
+        auth_dep = _mark_auth_dependency(auth_dep)
+        if getattr(router, "_allow_anon", True) is False:
+            auth_dep = _mark_required_auth_dependency(auth_dep)
 
     if auth_dep is not None:
         setattr(model, TIGRBL_AUTH_DEP_ATTR, auth_dep)
     else:
+        if hasattr(model, TIGRBL_AUTH_DEP_ATTR):
+            delattr(model, TIGRBL_AUTH_DEP_ATTR)
         logger.debug("No auth dependency configured for %s", model.__name__)
 
     # Allow anonymous verbs
@@ -161,25 +184,45 @@ def _seed_security_and_deps(router: Any, model: type) -> None:
 
     # Runtime-only security: push API/model authz deps into OpSpec.secdeps so
     # enforcement happens in PRE_TX_BEGIN atoms instead of transport deps.
-    if runtime_secdeps:
-        declared_ops = tuple(getattr(model, "__tigrbl_ops__", ()) or ())
-        if declared_ops:
-            patched = []
-            changed = False
-            for sp in declared_ops:
-                exempt = sp.alias in allow_anon or sp.target in allow_anon
-                if exempt:
-                    patched.append(sp)
-                    continue
-                secdeps = tuple(getattr(sp, "secdeps", ()) or ())
-                missing = tuple(dep for dep in runtime_secdeps if dep not in secdeps)
-                if not missing:
-                    patched.append(sp)
-                    continue
-                patched.append(replace(sp, secdeps=((*missing, *secdeps))))
+    declared_ops = tuple(getattr(model, "__tigrbl_ops__", ()) or ())
+    if declared_ops:
+        patched = []
+        changed = False
+        for sp in declared_ops:
+            secdeps = tuple(getattr(sp, "secdeps", ()) or ())
+            # Strip previously injected runtime security dependencies so
+            # model classes can be safely reused across app/router instances.
+            base_secdeps = tuple(
+                dep
+                for dep in secdeps
+                if not getattr(dep, "__tigrbl_require_auth__", False)
+                and not str(getattr(dep, "__tigrbl_dep_name__", "")).startswith(
+                    "security."
+                )
+            )
+            if base_secdeps != secdeps:
                 changed = True
-            if changed:
-                setattr(model, "__tigrbl_ops__", tuple(patched))
+
+            exempt = sp.alias in allow_anon or sp.target in allow_anon
+            if exempt or not runtime_secdeps:
+                if base_secdeps != secdeps:
+                    patched.append(replace(sp, secdeps=base_secdeps))
+                else:
+                    patched.append(sp)
+                continue
+
+            missing = tuple(dep for dep in runtime_secdeps if dep not in base_secdeps)
+            if not missing:
+                if base_secdeps != secdeps:
+                    patched.append(replace(sp, secdeps=base_secdeps))
+                else:
+                    patched.append(sp)
+                continue
+
+            patched.append(replace(sp, secdeps=((*missing, *base_secdeps))))
+            changed = True
+        if changed:
+            setattr(model, "__tigrbl_ops__", tuple(patched))
 
     if authorize_dep is not None:
         logger.debug("Authorization secdep attached for %s", model.__name__)
@@ -194,11 +237,15 @@ def _seed_security_and_deps(router: Any, model: type) -> None:
         setattr(model, TIGRBL_REST_DEPENDENCIES_ATTR, rest_deps)
         logger.debug("REST dependencies seeded for %s", model.__name__)
     else:
+        if hasattr(model, TIGRBL_REST_DEPENDENCIES_ATTR):
+            delattr(model, TIGRBL_REST_DEPENDENCIES_ATTR)
         logger.debug("No REST dependencies for %s", model.__name__)
     if getattr(router, "rpc_dependencies", None):
         setattr(model, TIGRBL_RPC_DEPENDENCIES_ATTR, list(router.rpc_dependencies))
         logger.debug("RPC dependencies seeded for %s", model.__name__)
     else:
+        if hasattr(model, TIGRBL_RPC_DEPENDENCIES_ATTR):
+            delattr(model, TIGRBL_RPC_DEPENDENCIES_ATTR)
         logger.debug("No RPC dependencies for %s", model.__name__)
 
 

@@ -80,6 +80,12 @@ class TigrblRouter(_Router):
         if prefix is not None:
             self.PREFIX = prefix
         _Router.__init__(self, engine=engine, **router_kwargs)
+        # Instance-level auth state must not leak across router instances.
+        self._authn = None
+        self._allow_anon = True
+        self._authorize = None
+        self._optional_authn_dep = None
+        self._allow_anon_ops = set()
         self.jsonrpc_prefix = (
             jsonrpc_prefix
             if jsonrpc_prefix is not None

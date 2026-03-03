@@ -155,6 +155,12 @@ class TigrblApp(_App):
             self.LIFESPAN = lifespan
             asgi_kwargs["lifespan"] = lifespan
         super().__init__(engine=engine, **asgi_kwargs)
+        # Instance-level auth state must not leak across app instances.
+        self._authn = None
+        self._allow_anon = True
+        self._authorize = None
+        self._optional_authn_dep = None
+        self._allow_anon_ops = set()
         self._middlewares: list[tuple[Any, dict[str, Any]]] = []
         self.middlewares = _seqify(getattr(self, "MIDDLEWARES", ()))
         declared_tables = getattr(self, "TABLES", ())
