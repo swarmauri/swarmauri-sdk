@@ -46,6 +46,8 @@ def _select_out_model(model: type, alias: str):
         return None
 
     target = alias_name
+    if target == "list":
+        return getattr(alias_ns, "out_item", None) or getattr(alias_ns, "out", None)
     if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_merge"}:
         return getattr(alias_ns, "out_item", None)
     return getattr(alias_ns, "out", None)
@@ -73,9 +75,12 @@ def _build_response_serializer(model: type, alias: str):
         if target == "list" and isinstance(value, dict):
             items = value.get("items")
             if isinstance(items, (list, tuple)):
-                payload = dict(value)
-                payload["items"] = [_dump(item) for item in items]
-                return payload
+                return [_dump(item) for item in items]
+            # ``core.list`` returns list rows, but some handler paths may wrap
+            # results in dict-shaped containers. If no explicit ``items`` key is
+            # present, preserve list semantics by validating the dict itself as
+            # one row and returning a single-item list.
+            return [_dump(value)]
         if isinstance(value, (list, tuple)):
             return [_dump(item) for item in value]
         return _dump(value)

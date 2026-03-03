@@ -270,6 +270,14 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
                         )
                         for x in items
                     ]
+                wrapped = result.get("result")
+                if isinstance(wrapped, (list, tuple)):
+                    return [
+                        out_model.model_validate(x).model_dump(
+                            exclude_none=False, by_alias=True
+                        )
+                        for x in wrapped
+                    ]
             if isinstance(result, (list, tuple)):
                 return [
                     out_model.model_validate(x).model_dump(

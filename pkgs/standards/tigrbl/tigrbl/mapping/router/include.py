@@ -354,9 +354,22 @@ def include_model(
     logger.debug("Including model %s", model.__name__)
 
     # If another test or call disposed the SQLAlchemy registry, previously
-    # imported models lose their table mapping.  Re-map on demand so tests that
-    # run after a registry dispose still have working models.
-    if not hasattr(model, "__table__"):
+    # imported models can retain ``__table__`` while losing mapper state.
+    # Re-map on demand so later requests still operate on mapped ORM classes.
+    needs_remap = not hasattr(model, "__table__")
+    if not needs_remap:
+        try:
+            from sqlalchemy import inspect as _sa_inspect
+            from sqlalchemy.exc import NoInspectionAvailable
+
+            try:
+                _sa_inspect(model)
+            except NoInspectionAvailable:
+                needs_remap = True
+        except Exception:  # pragma: no cover - defensive import guard
+            needs_remap = False
+
+    if needs_remap:
         try:  # pragma: no cover - defensive path exercised in tests
             from ...table import Base
             from ...table._base import _materialize_colspecs_to_sqla
