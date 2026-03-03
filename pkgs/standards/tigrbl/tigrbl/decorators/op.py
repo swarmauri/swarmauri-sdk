@@ -208,6 +208,8 @@ _COLLECTION_VERBS = {
 
 
 def _infer_arity(target: str) -> str:
+    if target == "custom":
+        return "collection"
     return "collection" if target in _COLLECTION_VERBS else "member"
 
 

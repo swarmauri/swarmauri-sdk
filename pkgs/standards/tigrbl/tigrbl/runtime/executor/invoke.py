@@ -136,7 +136,7 @@ async def _invoke(
             allow_flush=False,
             allow_commit=False,
             in_tx=False,
-            require_owned_for_commit=True,
+            require_owned_for_commit=False,
         )
 
     await _run_phase(
@@ -156,13 +156,15 @@ async def _invoke(
     )
 
     if not skip_persist:
-        owns_tx_for_commit = (not existed_tx_before) and (db is not None and _in_tx(db))
+        # If this invocation started outside a transaction, the runtime owns the
+        # commit decision even when the backend uses implicit/autobegin semantics.
+        owns_tx_for_commit = not existed_tx_before
         await _run_phase(
             "END_TX",
             allow_flush=True,
             allow_commit=True,
             in_tx=True,
-            require_owned_for_commit=True,
+            require_owned_for_commit=False,
             owns_tx_for_phase=owns_tx_for_commit,
         )
 
