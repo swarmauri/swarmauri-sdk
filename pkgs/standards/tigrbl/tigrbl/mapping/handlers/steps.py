@@ -114,8 +114,6 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
         request = _ctx_request(ctx)
         isolated = _Ctx.ensure(request=request, db=db, seed=ctx)
         bound = user_handler
-        if not getattr(user_handler, "__tigrbl_ctx_wrapper__", False):
-            bound = getattr(model, getattr(user_handler, "__name__", ""), user_handler)
         wanted = _accepted_kw(bound)
 
         kw = {}
