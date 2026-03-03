@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 # tigrbl/__init__.py
 """
 Tigrbl – public API
@@ -9,7 +10,34 @@ register RPC & REST, and (optionally) mount JSON-RPC and diagnostics.
 
 from __future__ import annotations
 
+import sys
+from importlib import import_module
+
 from ._concrete import Router
+
+
+def _install_compat_module_aliases() -> None:
+    """Register legacy import paths without duplicating compatibility modules."""
+
+    aliases = {
+        "tigrbl.column.io_spec": "tigrbl._spec.io_spec",
+        "tigrbl.column.storage_spec": "tigrbl._spec.storage_spec",
+        "tigrbl.bindings.rest": "tigrbl.mapping.rest",
+    }
+    for legacy, target in aliases.items():
+        sys.modules.setdefault(legacy, import_module(target))
+
+    # Keep ``from tigrbl.bindings import bind`` working while preserving the
+    # real ``tigrbl.bindings`` package (and its submodules like ``rest``).
+    bindings_pkg = import_module("tigrbl.bindings")
+    model_mod = import_module("tigrbl.mapping.model")
+    if not hasattr(bindings_pkg, "bind"):
+        setattr(bindings_pkg, "bind", model_mod.bind)
+    if not hasattr(bindings_pkg, "rebind"):
+        setattr(bindings_pkg, "rebind", model_mod.rebind)
+
+
+_install_compat_module_aliases()
 
 # ── OpSpec (source of truth) ───────────────────────────────────────────────────
 from .op import (

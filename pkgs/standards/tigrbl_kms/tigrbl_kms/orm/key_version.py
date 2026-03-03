@@ -5,10 +5,8 @@ from uuid import UUID, uuid4
 from tigrbl.runtime.status.exceptions import HTTPException
 
 from tigrbl.decorators.hook import hook_ctx
-from tigrbl.specs import IO, F, S, acol
+from tigrbl.specs import IO, F, S, Pair, ForeignKeySpec, acol
 from tigrbl.orm.mixins import BulkCapable, Replaceable
-from tigrbl.column.io_spec import Pair
-from tigrbl.column.storage_spec import ForeignKeySpec
 from tigrbl.orm.tables import Base
 from tigrbl.types import (
     Integer,
@@ -97,6 +95,35 @@ class KeyVersion(Base, BulkCapable, Replaceable):
     )
 
     key = relationship("Key", back_populates="versions", lazy="joined")
+
+    @hook_ctx(ops=("create", "bulk_create"), phase="PRE_HANDLER")
+    async def _coerce_key_id_uuid(cls, ctx):
+        payload = ctx.get("payload")
+        if payload is None:
+            return
+
+        def _coerce_item(item):
+            if not isinstance(item, dict):
+                return
+            key_id = item.get("key_id")
+            if key_id is None or isinstance(key_id, UUID):
+                return
+            try:
+                item["key_id"] = UUID(str(key_id))
+            except Exception as exc:
+                raise HTTPException(status_code=400, detail="Invalid key_id") from exc
+
+        if isinstance(payload, list):
+            for item in payload:
+                _coerce_item(item)
+            return
+
+        if isinstance(payload, dict):
+            _coerce_item(payload)
+            items = payload.get("items")
+            if isinstance(items, list):
+                for item in items:
+                    _coerce_item(item)
 
     @hook_ctx(ops="create", phase="POST_HANDLER")
     async def _generate_material(cls, ctx):
