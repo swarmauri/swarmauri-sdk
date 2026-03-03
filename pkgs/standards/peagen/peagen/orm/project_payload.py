@@ -12,7 +12,7 @@ from tigrbl.types import (
 )
 from tigrbl.orm.mixins import GUIDPk, Timestamped, TenantBound, Ownable
 from tigrbl.specs import S, acol
-from tigrbl.column.storage_spec import ForeignKeySpec
+from tigrbl.specs import ForeignKeySpec
 from typing import TYPE_CHECKING
 
 from .users import User

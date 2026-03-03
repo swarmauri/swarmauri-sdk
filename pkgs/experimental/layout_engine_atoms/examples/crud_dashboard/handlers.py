@@ -36,7 +36,19 @@ def get_stats_for_badges(stats: dict) -> dict:
 
 
 @ui_event
-@returns_update("users_table", "total_users_badge", "users_count_badge", "admin_count_badge", "stat_total_badge", "stat_active_badge", "stat_inactive_badge", "stat_admin_badge", "stat_user_badge", "stat_guest_badge", "activity_log")
+@returns_update(
+    "users_table",
+    "total_users_badge",
+    "users_count_badge",
+    "admin_count_badge",
+    "stat_total_badge",
+    "stat_active_badge",
+    "stat_inactive_badge",
+    "stat_admin_badge",
+    "stat_user_badge",
+    "stat_guest_badge",
+    "activity_log",
+)
 async def create_user(request: Request, payload: dict):
     """Create a new user."""
     import random
@@ -77,7 +89,7 @@ async def create_user(request: Request, payload: dict):
     stats = db.get_stats()
 
     return {
-        "users": [u.model_dump(mode='json') for u in db.get_all_users()],
+        "users": [u.model_dump(mode="json") for u in db.get_all_users()],
         "total_count": str(stats["total"]),
         "user_count": str(stats["by_role"]["user"]),
         "admin_count": str(stats["by_role"]["admin"]),
@@ -90,7 +102,19 @@ async def create_user(request: Request, payload: dict):
 
 
 @ui_event
-@returns_update("users_table", "total_users_badge", "users_count_badge", "admin_count_badge", "stat_total_badge", "stat_active_badge", "stat_inactive_badge", "stat_admin_badge", "stat_user_badge", "stat_guest_badge", "activity_log")
+@returns_update(
+    "users_table",
+    "total_users_badge",
+    "users_count_badge",
+    "admin_count_badge",
+    "stat_total_badge",
+    "stat_active_badge",
+    "stat_inactive_badge",
+    "stat_admin_badge",
+    "stat_user_badge",
+    "stat_guest_badge",
+    "activity_log",
+)
 async def update_user(request: Request, payload: UpdateUserPayload):
     """Update an existing user."""
     user = db.update_user(
@@ -114,7 +138,7 @@ async def update_user(request: Request, payload: UpdateUserPayload):
     stats = db.get_stats()
 
     return {
-        "users": [u.model_dump(mode='json') for u in db.get_all_users()],
+        "users": [u.model_dump(mode="json") for u in db.get_all_users()],
         "total_count": str(stats["total"]),
         "user_count": str(stats["by_role"]["user"]),
         "admin_count": str(stats["by_role"]["admin"]),
@@ -127,7 +151,19 @@ async def update_user(request: Request, payload: UpdateUserPayload):
 
 
 @ui_event
-@returns_update("users_table", "total_users_badge", "users_count_badge", "admin_count_badge", "stat_total_badge", "stat_active_badge", "stat_inactive_badge", "stat_admin_badge", "stat_user_badge", "stat_guest_badge", "activity_log")
+@returns_update(
+    "users_table",
+    "total_users_badge",
+    "users_count_badge",
+    "admin_count_badge",
+    "stat_total_badge",
+    "stat_active_badge",
+    "stat_inactive_badge",
+    "stat_admin_badge",
+    "stat_user_badge",
+    "stat_guest_badge",
+    "activity_log",
+)
 async def delete_user(request: Request, payload: DeleteUserPayload):
     """Delete a user."""
     # Get user info before deletion for message
@@ -149,7 +185,7 @@ async def delete_user(request: Request, payload: DeleteUserPayload):
     stats = db.get_stats()
 
     return {
-        "users": [u.model_dump(mode='json') for u in db.get_all_users()],
+        "users": [u.model_dump(mode="json") for u in db.get_all_users()],
         "total_count": str(stats["total"]),
         "user_count": str(stats["by_role"]["user"]),
         "admin_count": str(stats["by_role"]["admin"]),
@@ -162,7 +198,16 @@ async def delete_user(request: Request, payload: DeleteUserPayload):
 
 
 @ui_event
-@returns_update("users_table", "users_count_badge", "stat_total_badge", "stat_active_badge", "stat_inactive_badge", "stat_admin_badge", "stat_user_badge", "stat_guest_badge")
+@returns_update(
+    "users_table",
+    "users_count_badge",
+    "stat_total_badge",
+    "stat_active_badge",
+    "stat_inactive_badge",
+    "stat_admin_badge",
+    "stat_user_badge",
+    "stat_guest_badge",
+)
 async def toggle_user_active(request: Request, payload: ToggleUserPayload):
     """Toggle user active status."""
     user = db.get_user(payload.user_id)
@@ -178,7 +223,7 @@ async def toggle_user_active(request: Request, payload: ToggleUserPayload):
     stats = db.get_stats()
 
     return {
-        "users": [u.model_dump(mode='json') for u in db.get_all_users()],
+        "users": [u.model_dump(mode="json") for u in db.get_all_users()],
         "total_count": str(stats["total"]),
         "user_count": str(stats["by_role"]["user"]),
         "admin_count": str(stats["by_role"]["admin"]),
@@ -194,9 +239,12 @@ async def toggle_user_active(request: Request, payload: ToggleUserPayload):
 async def filter_users(request: Request, payload: FilterUsersPayload):
     """Filter users by criteria."""
     import logging
+
     logger = logging.getLogger(__name__)
 
-    logger.info(f"filter_users called with role={payload.role}, active={payload.active}, search={payload.search}")
+    logger.info(
+        f"filter_users called with role={payload.role}, active={payload.active}, search={payload.search}"
+    )
 
     # Handle special filter values
     if payload.role == "active":
@@ -234,7 +282,7 @@ async def filter_users(request: Request, payload: FilterUsersPayload):
     filter_desc = ", ".join(filters_applied) if filters_applied else "none"
 
     return {
-        "users": [u.model_dump(mode='json') for u in users],
+        "users": [u.model_dump(mode="json") for u in users],
         "total_count": str(len(db.users)),
         "message": f"Showing {len(users)} users (filters: {filter_desc})",
         "message_type": "info",
@@ -242,14 +290,26 @@ async def filter_users(request: Request, payload: FilterUsersPayload):
 
 
 @ui_event
-@returns_update("users_table", "total_users_badge", "users_count_badge", "admin_count_badge", "guest_count_badge", "stat_total_badge", "stat_active_badge", "stat_inactive_badge", "stat_admin_badge", "stat_user_badge", "stat_guest_badge")
+@returns_update(
+    "users_table",
+    "total_users_badge",
+    "users_count_badge",
+    "admin_count_badge",
+    "guest_count_badge",
+    "stat_total_badge",
+    "stat_active_badge",
+    "stat_inactive_badge",
+    "stat_admin_badge",
+    "stat_user_badge",
+    "stat_guest_badge",
+)
 async def clear_filters(request: Request, payload: dict | None = None):
     """Clear all filters and show all users."""
     users = db.get_all_users()
     stats = db.get_stats()
 
     return {
-        "users": [u.model_dump(mode='json') for u in users],
+        "users": [u.model_dump(mode="json") for u in users],
         "total_count": str(stats["total"]),
         "user_count": str(stats["by_role"]["user"]),
         "admin_count": str(stats["by_role"]["admin"]),
@@ -261,7 +321,20 @@ async def clear_filters(request: Request, payload: dict | None = None):
 
 
 @ui_event
-@returns_update("users_table", "total_users_badge", "users_count_badge", "admin_count_badge", "guest_count_badge", "stat_total_badge", "stat_active_badge", "stat_inactive_badge", "stat_admin_badge", "stat_user_badge", "stat_guest_badge", "activity_log")
+@returns_update(
+    "users_table",
+    "total_users_badge",
+    "users_count_badge",
+    "admin_count_badge",
+    "guest_count_badge",
+    "stat_total_badge",
+    "stat_active_badge",
+    "stat_inactive_badge",
+    "stat_admin_badge",
+    "stat_user_badge",
+    "stat_guest_badge",
+    "activity_log",
+)
 async def load_initial_data(request: Request, payload: dict | None = None):
     """Load initial data for the dashboard."""
     users = db.get_all_users()
@@ -271,7 +344,7 @@ async def load_initial_data(request: Request, payload: dict | None = None):
     db.log_activity("Loaded", f"Dashboard initialized with {len(users)} users")
 
     return {
-        "users": [u.model_dump(mode='json') for u in users],
+        "users": [u.model_dump(mode="json") for u in users],
         "total_count": str(stats["total"]),
         "user_count": str(stats["by_role"]["user"]),
         "admin_count": str(stats["by_role"]["admin"]),
@@ -297,7 +370,19 @@ async def clear_activity_log(request: Request, payload: dict | None = None):
 
 
 @ui_event
-@returns_update("users_table", "total_users_badge", "users_count_badge", "admin_count_badge", "stat_total_badge", "stat_active_badge", "stat_inactive_badge", "stat_admin_badge", "stat_user_badge", "stat_guest_badge", "activity_log")
+@returns_update(
+    "users_table",
+    "total_users_badge",
+    "users_count_badge",
+    "admin_count_badge",
+    "stat_total_badge",
+    "stat_active_badge",
+    "stat_inactive_badge",
+    "stat_admin_badge",
+    "stat_user_badge",
+    "stat_guest_badge",
+    "activity_log",
+)
 async def create_admin(request: Request, payload: dict | None = None):
     """Create a new admin user."""
     import random
@@ -313,7 +398,7 @@ async def create_admin(request: Request, payload: dict | None = None):
     stats = db.get_stats()
 
     return {
-        "users": [u.model_dump(mode='json') for u in db.get_all_users()],
+        "users": [u.model_dump(mode="json") for u in db.get_all_users()],
         "total_count": str(stats["total"]),
         "user_count": str(stats["by_role"]["user"]),
         "admin_count": str(stats["by_role"]["admin"]),
@@ -326,7 +411,19 @@ async def create_admin(request: Request, payload: dict | None = None):
 
 
 @ui_event
-@returns_update("users_table", "total_users_badge", "users_count_badge", "admin_count_badge", "stat_total_badge", "stat_active_badge", "stat_inactive_badge", "stat_admin_badge", "stat_user_badge", "stat_guest_badge", "activity_log")
+@returns_update(
+    "users_table",
+    "total_users_badge",
+    "users_count_badge",
+    "admin_count_badge",
+    "stat_total_badge",
+    "stat_active_badge",
+    "stat_inactive_badge",
+    "stat_admin_badge",
+    "stat_user_badge",
+    "stat_guest_badge",
+    "activity_log",
+)
 async def create_guest(request: Request, payload: dict | None = None):
     """Create a new guest user."""
     import random
@@ -342,7 +439,7 @@ async def create_guest(request: Request, payload: dict | None = None):
     stats = db.get_stats()
 
     return {
-        "users": [u.model_dump(mode='json') for u in db.get_all_users()],
+        "users": [u.model_dump(mode="json") for u in db.get_all_users()],
         "total_count": str(stats["total"]),
         "user_count": str(stats["by_role"]["user"]),
         "admin_count": str(stats["by_role"]["admin"]),

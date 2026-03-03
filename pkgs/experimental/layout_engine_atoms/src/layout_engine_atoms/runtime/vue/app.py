@@ -101,9 +101,7 @@ def mount_layout_app(
             validate_client_setup_code(ui_hooks.client_setup)
         except ValueError as e:
             logger.error(f"Client setup validation failed: {e}")
-            raise ValueError(
-                f"Security validation failed for client_setup: {e}"
-            ) from e
+            raise ValueError(f"Security validation failed for client_setup: {e}") from e
 
     resolved_title = layout_options.title or title
     router_options = layout_options.router or RouterOptions()
@@ -300,12 +298,9 @@ def _create_layout_router(
                 try:
                     payload = await request.json()
                 except (json.JSONDecodeError, ValueError) as e:
-                    logger.warning(
-                        f"Invalid JSON payload for event '{event_id}': {e}"
-                    )
+                    logger.warning(f"Invalid JSON payload for event '{event_id}': {e}")
                     raise HTTPException(
-                        status_code=400,
-                        detail="Invalid JSON payload"
+                        status_code=400, detail="Invalid JSON payload"
                     ) from e
             elif request.method == "GET":
                 payload = dict(request.query_params)
@@ -335,7 +330,7 @@ def _create_layout_router(
                     )
                     raise HTTPException(
                         status_code=500,
-                        detail="Event handler returned invalid response type"
+                        detail="Event handler returned invalid response type",
                     )
 
             except HTTPException:
@@ -352,11 +347,11 @@ def _create_layout_router(
                         "error_type": type(e).__name__,
                         "error": str(e),
                     },
-                    exc_info=True
+                    exc_info=True,
                 )
                 raise HTTPException(
                     status_code=500,
-                    detail="Internal server error while processing event"
+                    detail="Internal server error while processing event",
                 )
 
             # Broadcast to WebSocket if configured
@@ -369,7 +364,7 @@ def _create_layout_router(
                     logger.error(
                         f"Failed to broadcast event '{event_id}' to channel "
                         f"'{result.channel}': {e}",
-                        exc_info=True
+                        exc_info=True,
                     )
 
             return JSONResponse(

@@ -18,6 +18,7 @@ from swarmauri_standard.distances.CosineDistance import CosineDistance
 from swarmauri_standard.documents.Document import Document
 from swarmauri_standard.vectors.Vector import Vector
 
+
 @ComponentBase.register_type(VectorStoreBase, "SqliteVectorStore")
 class SqliteVectorStore(
     VectorStoreSaveLoadMixin, VectorStoreRetrieveMixin, VectorStoreBase
@@ -25,7 +26,6 @@ class SqliteVectorStore(
     type: Literal["SqliteVectorStore"] = "SqliteVectorStore"
     db_path: str = tempfile.NamedTemporaryFile(suffix=".db", delete=False).name
 
-    
     def __init__(self, db_path: Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
         self._distance = CosineDistance()

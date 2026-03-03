@@ -4,7 +4,8 @@ utils.py
 Provides common utility functions for the HTTP client package.
 """
 
-def to_bytes(data, encoding='utf-8'):
+
+def to_bytes(data, encoding="utf-8"):
     """
     Convert the input data to bytes.
 
@@ -21,7 +22,7 @@ def to_bytes(data, encoding='utf-8'):
         raise TypeError("Data must be of type str or bytes")
 
 
-def to_str(data, encoding='utf-8'):
+def to_str(data, encoding="utf-8"):
     """
     Convert the input data to a string.
 
@@ -58,10 +59,10 @@ if __name__ == "__main__":
     # Example usage:
     sample_str = "Hello, World!"
     sample_bytes = b"Hello, Bytes!"
-    
+
     print("to_bytes:", to_bytes(sample_str))
     print("to_str:", to_str(sample_bytes))
-    
+
     default_headers = {"Content-Type": "application/json"}
     extra_headers = {"Authorization": "Bearer token", "Content-Type": "text/plain"}
     merged = merge_headers(default_headers, extra_headers)

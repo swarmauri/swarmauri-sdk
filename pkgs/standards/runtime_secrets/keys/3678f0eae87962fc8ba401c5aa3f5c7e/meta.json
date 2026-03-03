@@ -1,0 +1,13 @@
+{
+  "kid": "3678f0eae87962fc8ba401c5aa3f5c7e",
+  "klass": "asym",
+  "alg": "ED25519",
+  "uses": [
+    "sign",
+    "verify"
+  ],
+  "export_policy": "secret_when_allowed",
+  "label": "jwt_ed25519",
+  "tags": {},
+  "created_at": 1772557767
+}

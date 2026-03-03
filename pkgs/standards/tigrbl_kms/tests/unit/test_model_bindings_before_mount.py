@@ -4,7 +4,7 @@ import pytest
 @pytest.mark.asyncio
 async def test_bindings_before_mount(monkeypatch):
     from tigrbl import TigrblApp
-    from tigrbl.bindings import rest as rest_binding
+    from tigrbl.mapping import rest as rest_binding
 
     monkeypatch.setattr(
         rest_binding,

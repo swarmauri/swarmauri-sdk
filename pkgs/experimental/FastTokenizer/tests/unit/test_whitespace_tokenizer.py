@@ -6,6 +6,7 @@ from FastTokenizer.whitespace_tokenizer import whitespace_tokenizer
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 @pytest.fixture
 def sample_text():
     """Fixtures for sample text inputs."""
@@ -14,8 +15,9 @@ def sample_text():
         "with_whitespace": "This\tis\na sample\textended\tover\nmultiple\nlines.",
         "empty": "",
         "whitespace_only": "    \t\n  ",
-        "mixed": "Hello, World! This is a test.\nWith multiple lines and\ttabs."
+        "mixed": "Hello, World! This is a test.\nWith multiple lines and\ttabs.",
     }
+
 
 @pytest.mark.unit
 def test_whitespace_tokenizer_simple(sample_text):
@@ -33,6 +35,7 @@ def test_whitespace_tokenizer_simple(sample_text):
     result = whitespace_tokenizer(text)
     assert result == expected, f"Expected {expected}, got {result}"
 
+
 @pytest.mark.unit
 def test_whitespace_tokenizer_with_whitespace(sample_text):
     """
@@ -45,11 +48,10 @@ def test_whitespace_tokenizer_with_whitespace(sample_text):
         None
     """
     text = sample_text["with_whitespace"]
-    expected = [
-        "This", "is", "a", "sample", "extended", "over", "multiple", "lines."
-    ]
+    expected = ["This", "is", "a", "sample", "extended", "over", "multiple", "lines."]
     result = whitespace_tokenizer(text)
     assert result == expected, f"Expected {expected}, got {result}"
+
 
 @pytest.mark.unit
 def test_whitespace_tokenizer_empty(sample_text):
@@ -67,6 +69,7 @@ def test_whitespace_tokenizer_empty(sample_text):
     result = whitespace_tokenizer(text)
     assert result == expected, f"Expected {expected}, got {result}"
 
+
 @pytest.mark.unit
 def test_whitespace_tokenizer_whitespace_only(sample_text):
     """
@@ -83,6 +86,7 @@ def test_whitespace_tokenizer_whitespace_only(sample_text):
     result = whitespace_tokenizer(text)
     assert result == expected, f"Expected {expected}, got {result}"
 
+
 @pytest.mark.unit
 def test_whitespace_tokenizer_mixed(sample_text):
     """
@@ -96,18 +100,31 @@ def test_whitespace_tokenizer_mixed(sample_text):
     """
     text = sample_text["mixed"]
     expected = [
-        "Hello,", "World!", "This", "is", "a", "test.",
-        "With", "multiple", "lines", "and", "tabs."
+        "Hello,",
+        "World!",
+        "This",
+        "is",
+        "a",
+        "test.",
+        "With",
+        "multiple",
+        "lines",
+        "and",
+        "tabs.",
     ]
     result = whitespace_tokenizer(text)
     assert result == expected, f"Expected {expected}, got {result}"
 
+
 @pytest.mark.unit
-@pytest.mark.parametrize("text,expected", [
-    ("SingleWord", ["SingleWord"]),
-    ("Multiple   Words", ["Multiple", "Words"]),
-    ("Tabs\tand\nNewlines", ["Tabs", "and", "Newlines"]),
-])
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("SingleWord", ["SingleWord"]),
+        ("Multiple   Words", ["Multiple", "Words"]),
+        ("Tabs\tand\nNewlines", ["Tabs", "and", "Newlines"]),
+    ],
+)
 def test_whitespace_tokenizer_varied(text, expected):
     """
     Test whitespace_tokenizer with varied inputs.

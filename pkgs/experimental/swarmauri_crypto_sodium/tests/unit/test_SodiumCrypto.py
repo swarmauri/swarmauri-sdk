@@ -298,7 +298,9 @@ async def test_encrypt_for_many_sealed_variant(sodium_crypto, x25519_keys):
             public=pk,
         ),
     ]
-    env = await sodium_crypto.encrypt_for_many(recipients, b"sealed", enc_alg="X25519-SEALEDBOX")
+    env = await sodium_crypto.encrypt_for_many(
+        recipients, b"sealed", enc_alg="X25519-SEALEDBOX"
+    )
     assert isinstance(env, MultiRecipientEnvelope)
     assert env.enc_alg == "X25519-SEALEDBOX"
     assert all(info.wrap_alg == "X25519-SEALEDBOX" for info in env.recipients)
@@ -505,7 +507,9 @@ async def test_encrypt_for_many_requires_wrap_key_material(sodium_crypto, x25519
         export_policy=ExportPolicy.PUBLIC_ONLY,
         public=pk,
     )
-    env = await sodium_crypto.encrypt_for_many([recipient], b"no-secret", enc_alg="X25519-SEALEDBOX")
+    env = await sodium_crypto.encrypt_for_many(
+        [recipient], b"no-secret", enc_alg="X25519-SEALEDBOX"
+    )
     assert env.recipients[0].wrapped_key != b""
 
 

@@ -10,18 +10,29 @@ try:
     from swarmauri_core.tools import ToolBase
     from swarmauri_base import ComponentBase
 except Exception:
+
     class ToolBase: ...
+
     class ComponentBase:
         @staticmethod
         def register_type(base, name):
-            def deco(cls): return cls
+            def deco(cls):
+                return cls
+
             return deco
+
 
 GRAMMAR_PACKAGE = "swarmauri_asn1.grammar"
 GRAMMAR_FILE = "asn1.lark"
 
+
 def _load_grammar_text() -> str:
-    return resources.files(GRAMMAR_PACKAGE).joinpath(GRAMMAR_FILE).read_text(encoding="utf-8")
+    return (
+        resources.files(GRAMMAR_PACKAGE)
+        .joinpath(GRAMMAR_FILE)
+        .read_text(encoding="utf-8")
+    )
+
 
 @ComponentBase.register_type(ToolBase, "ASN1EncodeTool")
 class ASN1EncodeTool(ToolBase):
@@ -34,7 +45,7 @@ class ASN1EncodeTool(ToolBase):
             lexer="dynamic",
             ambiguity="resolve",
             maybe_placeholders=True,
-            cache=True
+            cache=True,
         )
         self._schema: Schema = self._compile_modules(asn1_files)
 
@@ -44,4 +55,6 @@ class ASN1EncodeTool(ToolBase):
         return Asn1ToIR().transform(tree)
 
     def __call__(self, *, type_name: str, data: dict, out: str | None = None) -> bytes:
-        raise NotImplementedError("Encoder stub: implement encode_value analogously to decode_value")
+        raise NotImplementedError(
+            "Encoder stub: implement encode_value analogously to decode_value"
+        )
