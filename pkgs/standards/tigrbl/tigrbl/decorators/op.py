@@ -196,6 +196,7 @@ def op_ctx(
 
 _COLLECTION_VERBS = {
     "create",
+    "custom",
     "list",
     "bulk_create",
     "bulk_update",

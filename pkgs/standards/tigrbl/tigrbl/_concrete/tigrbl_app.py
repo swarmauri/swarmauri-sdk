@@ -179,6 +179,7 @@ class TigrblApp(_App):
         )
 
         # public containers (mirrors used by bindings.router)
+        existing_tables = dict(getattr(self, "tables", {}) or {})
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
         self.hooks = _seqify(getattr(self, "HOOKS", ()))
@@ -187,6 +188,8 @@ class TigrblApp(_App):
         self.rest = SimpleNamespace()
         self.routers: Dict[str, Any] = {}
         self.tables = AttrDict(self._table_registry)
+        for model_name, model in existing_tables.items():
+            self.tables.setdefault(model_name, model)
         self.columns: Dict[str, Tuple[str, ...]] = {}
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
@@ -203,6 +206,8 @@ class TigrblApp(_App):
         self.attach_diagnostics(prefix=self.system_prefix)
         self.mount_openrpc(path="/openrpc.json")
         self.mount_lens(path="/rdocs", spec_path="/openrpc.json")
+        # capture base routes after built-in mounts so security refresh keeps them
+        self._base_routes = list(self._routes)
         if routers:
             initial_routers.extend(list(routers))
         if initial_routers:

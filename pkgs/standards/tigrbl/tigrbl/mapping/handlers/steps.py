@@ -117,24 +117,32 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
         wanted = _accepted_kw(bound)
 
         kw = {}
-        if "ctx" in wanted:
-            kw["ctx"] = isolated
-        if "db" in wanted:
-            kw["db"] = db
-        if "payload" in wanted:
-            kw["payload"] = payload
-        if "request" in wanted:
-            kw["request"] = request
-        if "model" in wanted:
-            kw["model"] = model
-        if "op" in wanted:
-            kw["op"] = sp
-        if "spec" in wanted:
-            kw["spec"] = sp
-        if "alias" in wanted:
-            kw["alias"] = sp.alias
+        if "ctx" in wanted or "_ctx" in wanted:
+            kw["ctx" if "ctx" in wanted else "_ctx"] = isolated
+        if "db" in wanted or "_db" in wanted:
+            kw["db" if "db" in wanted else "_db"] = db
+        if "payload" in wanted or "_payload" in wanted:
+            kw["payload" if "payload" in wanted else "_payload"] = payload
+        if "request" in wanted or "_request" in wanted:
+            kw["request" if "request" in wanted else "_request"] = request
+        if "model" in wanted or "_model" in wanted:
+            kw["model" if "model" in wanted else "_model"] = model
+        if "op" in wanted or "_op" in wanted:
+            kw["op" if "op" in wanted else "_op"] = sp
+        if "spec" in wanted or "_spec" in wanted:
+            kw["spec" if "spec" in wanted else "_spec"] = sp
+        if "alias" in wanted or "_alias" in wanted:
+            kw["alias" if "alias" in wanted else "_alias"] = sp.alias
         logger.debug("Calling custom handler %r with kw=%s", bound, kw)
-        rv = bound(**kw)  # type: ignore[misc]
+        try:
+            rv = bound(**kw)  # type: ignore[misc]
+        except TypeError:
+            # Backward compatibility for handlers declared as ``def op(cls, _ctx)``
+            # where keyword introspection cannot safely infer accepted names.
+            try:
+                rv = bound(isolated)
+            except TypeError:
+                rv = bound(model, isolated)
         if inspect.isawaitable(rv):
             logger.debug("Awaiting async custom handler")
             return await rv
