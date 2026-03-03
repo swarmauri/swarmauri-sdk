@@ -95,6 +95,8 @@ def run(obj: object | None, ctx: Any) -> None:
                 except KeyError:
                     continue
                 route["binding"] = binding
+                route["protocol"] = candidate
+                setattr(ctx, "proto", candidate)
                 if path_params:
                     route["path_params"] = path_params
                 return

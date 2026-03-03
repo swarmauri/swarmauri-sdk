@@ -151,6 +151,16 @@ async def _invoke(
         "POST_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
     )
 
+    # Ensure outbound shaping atoms have canonical object handles even when
+    # handlers only staged ``result``.
+    staged_result = ctx.get("result")
+    if staged_result is not None:
+        if isinstance(staged_result, (list, tuple)):
+            if ctx.get("objs") is None:
+                ctx["objs"] = staged_result
+        elif ctx.get("obj") is None:
+            ctx["obj"] = staged_result
+
     await _run_phase(
         "PRE_COMMIT", allow_flush=False, allow_commit=False, in_tx=not skip_persist
     )

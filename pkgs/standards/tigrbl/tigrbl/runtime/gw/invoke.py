@@ -72,6 +72,17 @@ async def _request_db_session(app: Any):
 
 
 async def _invoke_jsonrpc_batch(ctx: _Ctx, env: GwRawEnvelope) -> bool:
+    temp = getattr(ctx, "temp", None)
+    route = temp.get("route", {}) if isinstance(temp, dict) else {}
+    rpc_envelope = route.get("rpc_envelope") if isinstance(route, dict) else None
+
+    # Treat JSON-RPC as a batch only when the *request envelope* itself is an
+    # array. Single JSON-RPC calls can legitimately carry list params for bulk
+    # operations (e.g. ``Model.bulk_create``), which must not be mistaken for
+    # batch envelopes.
+    if isinstance(rpc_envelope, Mapping):
+        return False
+
     payload = getattr(ctx, "payload", None)
     if not isinstance(payload, list):
         return False
@@ -236,6 +247,15 @@ def _resolve_op_index(ctx: _Ctx, plan: Any) -> int | None:
         if 0 <= idx < len(plan.opmeta):
             return idx
 
+    route = ctx.temp.get("route", {}) if isinstance(ctx.temp, dict) else {}
+    binding = route.get("binding") if isinstance(route, dict) else None
+    if isinstance(binding, int) and 0 <= binding < len(plan.opmeta):
+        return binding
+
+    idx = route.get("opmeta_index") if isinstance(route, dict) else None
+    if isinstance(idx, int) and 0 <= idx < len(plan.opmeta):
+        return idx
+
     proto = getattr(ctx, "proto", None)
     selector = getattr(ctx, "selector", None)
     if isinstance(proto, str) and isinstance(selector, str):
@@ -244,10 +264,6 @@ def _resolve_op_index(ctx: _Ctx, plan: Any) -> int | None:
             if (opkey.proto, opkey.selector) == key:
                 return idx
 
-    route = ctx.temp.get("route", {}) if isinstance(ctx.temp, dict) else {}
-    idx = route.get("opmeta_index") if isinstance(route, dict) else None
-    if isinstance(idx, int) and 0 <= idx < len(plan.opmeta):
-        return idx
     return None
 
 

@@ -21,6 +21,42 @@ def run(obj: Optional[object], ctx: Any) -> None:
     expose = schema_out["expose"]
 
     temp = _ensure_temp(ctx)
+    source_obj = getattr(ctx, "obj", None)
+    source_many = getattr(ctx, "objs", None)
+    staged = getattr(ctx, "result", None)
+
+    if source_many is None and isinstance(staged, (list, tuple)):
+        source_many = staged
+
+    if isinstance(source_many, (list, tuple)):
+        out_many: list[Dict[str, Any]] = []
+        for item in source_many:
+            row: Dict[str, Any] = {}
+            for field in expose:
+                desc = by_field.get(field, {})
+                if desc.get("virtual"):
+                    producer = ov.virtual_producers.get(field)
+                    if callable(producer):
+                        try:
+                            row[field] = producer(item, ctx)
+                        except Exception:
+                            row[field] = None
+                    else:
+                        row[field] = None
+                    continue
+                row[field] = _read_current_value(item, ctx, field)
+            if "id" not in row:
+                ident = _read_current_value(item, ctx, "id")
+                if ident is not None:
+                    row["id"] = ident
+            out_many.append(row)
+        temp["out_values"] = out_many
+        logger.debug("Built outbound values for %d items", len(out_many))
+        return
+
+    if source_obj is None and staged is not None and not isinstance(staged, Mapping):
+        source_obj = staged
+
     out_values: Dict[str, Any] = {}
     produced_virtuals: list[str] = []
     missing: list[str] = []
@@ -42,11 +78,16 @@ def run(obj: Optional[object], ctx: Any) -> None:
                 logger.debug("No producer for virtual field %s", field)
             continue
 
-        value = _read_current_value(obj, ctx, field)
+        value = _read_current_value(source_obj, ctx, field)
         if value is None:
             missing.append(field)
             logger.debug("No value available for field %s", field)
         out_values[field] = value
+
+    if "id" not in out_values:
+        ident = _read_current_value(source_obj, ctx, "id")
+        if ident is not None:
+            out_values["id"] = ident
 
     temp["out_values"] = out_values
     if produced_virtuals:
