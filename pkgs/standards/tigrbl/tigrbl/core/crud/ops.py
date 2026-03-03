@@ -5,6 +5,10 @@ from typing import Any, Dict, List, Mapping, Optional, Union
 import builtins as _builtins
 import logging
 
+from sqlalchemy.orm.exc import UnmappedInstanceError
+from sqlalchemy import inspect as _sa_inspect
+from sqlalchemy.exc import NoInspectionAvailable
+
 from .helpers import (
     AsyncSession,
     Session,
@@ -30,6 +34,20 @@ from .helpers import (
 logger = logging.getLogger("uvicorn")
 
 
+def _ensure_model_mapped(model: type) -> None:
+    try:
+        _sa_inspect(model)
+        return
+    except NoInspectionAvailable:
+        pass
+
+    from ...orm.tables import TableBase
+    from ..._base._table_base import _materialize_colspecs_to_sqla
+
+    _materialize_colspecs_to_sqla(model)
+    TableBase.registry.map_declaratively(model)
+
+
 async def create(
     model: type, data: Mapping[str, Any], db: Union[Session, AsyncSession]
 ) -> Any:
@@ -38,11 +56,23 @@ async def create(
     Flush-only (commit happens later in END_TX).
     """
     logger.debug("create called with model=%s data=%s", model, data)
+    _ensure_model_mapped(model)
     data = _filter_in_values(model, data or {}, "create")
     _validate_enum_values(model, data)
     obj = model(**data)
     if hasattr(db, "add"):
-        db.add(obj)
+        try:
+            db.add(obj)
+        except UnmappedInstanceError:
+            # Test suites may dispose the declarative registry between app
+            # instances. Re-materialize and re-map before retrying create.
+            from ...orm.tables import TableBase
+            from ..._base._table_base import _materialize_colspecs_to_sqla
+
+            _materialize_colspecs_to_sqla(model)
+            TableBase.registry.map_declaratively(model)
+            obj = model(**data)
+            db.add(obj)
     await _maybe_flush(db)
     logger.debug("create persisted obj=%s", obj)
     return obj
@@ -53,6 +83,7 @@ async def read(model: type, ident: Any, db: Union[Session, AsyncSession]) -> Any
     Load a single row by primary key. Raises NoResultFound if not found.
     """
     logger.debug("read called with model=%s ident=%s", model, ident)
+    _ensure_model_mapped(model)
     obj = await _maybe_get(db, model, ident)
     if obj is None:
         logger.debug("read did not find model=%s ident=%s", model, ident)
@@ -69,6 +100,7 @@ async def update(
     Returns the updated model instance. Flush-only.
     """
     logger.debug("update called with model=%s ident=%s data=%s", model, ident, data)
+    _ensure_model_mapped(model)
     data = _filter_in_values(model, data or {}, "update")
     _validate_enum_values(model, data)
     obj = await read(model, ident, db)
@@ -90,6 +122,7 @@ async def replace(
     Flush-only.
     """
     logger.debug("replace called with model=%s ident=%s data=%s", model, ident, data)
+    _ensure_model_mapped(model)
     data = _filter_in_values(model, data or {}, "replace")
     _validate_enum_values(model, data)
     pk = _single_pk_name(model)
@@ -111,6 +144,7 @@ async def merge(
 ) -> Any:
     """PATCH semantics with upsert behaviour."""
     logger.debug("merge called with model=%s ident=%s data=%s", model, ident, data)
+    _ensure_model_mapped(model)
     pk = _single_pk_name(model)
     ident = _coerce_pk_value(model, ident)
     obj = await _maybe_get(db, model, ident)
@@ -139,6 +173,7 @@ async def delete(
     Flush-only.
     """
     logger.debug("delete called with model=%s ident=%s", model, ident)
+    _ensure_model_mapped(model)
     obj = await read(model, ident, db)
     await _maybe_delete(db, obj)
     await _maybe_flush(db)
@@ -158,6 +193,7 @@ async def list(*_args: Any, **_kwargs: Any) -> List[Any]:  # noqa: A001  (shadow
     """
     logger.debug("list called with args=%s kwargs=%s", _args, _kwargs)
     model, params = _normalize_list_call(_args, _kwargs)
+    _ensure_model_mapped(model)
 
     filters: Mapping[str, Any] = _coerce_filters(model, params["filters"])
     skip: Optional[int] = params["skip"]
@@ -208,6 +244,7 @@ async def clear(
     # Reuse normalizer to accept the same shapes
     logger.debug("clear called with args=%s kwargs=%s", args, kwargs)
     model, params = _normalize_list_call(args, kwargs)
+    _ensure_model_mapped(model)
     raw_filters: Mapping[str, Any] = params["filters"]
     db: Union[Session, AsyncSession] = params["db"]
 

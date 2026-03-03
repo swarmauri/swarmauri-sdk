@@ -123,12 +123,19 @@ async def rpc_call(
         }.issubset(result.keys()):
             invoke_ctx: Dict[str, Any] = dict(result["ctx"])
             invoke_ctx["response_serializer"] = result["serialize"]
-            return await _invoke(
+            final = await _invoke(
                 request=result["request"],
                 db=result["db"],
                 phases=result["phases"],
                 ctx=invoke_ctx,
             )
+            if getattr(resolution, "target", None) == "list" and isinstance(
+                final, Mapping
+            ):
+                items = final.get("items")
+                if isinstance(items, list):
+                    return items
+            return final
         return result
     finally:
         if _release_db is not None:
