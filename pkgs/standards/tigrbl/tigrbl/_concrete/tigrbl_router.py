@@ -112,6 +112,11 @@ class TigrblRouter(_Router):
 
         # Router-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
+        self._authn = None
+        self._allow_anon = True
+        self._authorize = None
+        self._optional_authn_dep = None
+        self._allow_anon_ops = set()
         if tables:
             self.include_tables(list(tables))
 

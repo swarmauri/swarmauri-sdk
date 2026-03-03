@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Callable, Sequence
 
 from ._route import Route, compile_path
+from ..system.docs.openapi.metadata import is_metadata_route
 
 Handler = Callable[..., Any]
 
@@ -87,9 +88,12 @@ def include_router(owner: Any, router: Any, *, prefix: str = "") -> None:
             path = f"{nested_prefix}{path}" if path != "/" else nested_prefix
 
         route_dependencies = list(getattr(route, "dependencies", ()) or ())
-        merged_dependencies = [
-            dep for dep in router_dependencies if dep not in route_dependencies
-        ] + route_dependencies
+        if is_metadata_route(router, route):
+            merged_dependencies = route_dependencies
+        else:
+            merged_dependencies = [
+                dep for dep in router_dependencies if dep not in route_dependencies
+            ] + route_dependencies
 
         add_route(
             owner,
