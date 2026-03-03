@@ -18,7 +18,6 @@ from typing import (
 from pydantic import BaseModel
 
 from .._spec import OpSpec
-from ..runtime import executor as _executor
 from ..runtime.hook_types import PHASES
 from ..runtime.status import HTTPException
 
@@ -404,20 +403,24 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         )
 
         phases = _get_phase_chains(model, alias)
-        base_ctx["response_serializer"] = lambda result: _serialize_output(
-            model, alias, target, result
+
+        def serialize(result: Any) -> Any:
+            return _serialize_output(model, alias, target, result)
+
+        base_ctx["response_serializer"] = serialize
+        return AttrDict(
+            {
+                "model": model,
+                "alias": alias,
+                "target": target,
+                "payload": merged_payload,
+                "ctx": base_ctx,
+                "phases": phases,
+                "serialize": serialize,
+                "request": request,
+                "db": db,
+            }
         )
-        result = await _executor._invoke(
-            request=request,
-            db=db,
-            phases=phases,
-            ctx=base_ctx,
-        )
-        if target == "list" and isinstance(result, Mapping):
-            items = result.get("items")
-            if isinstance(items, list):
-                return items
-        return result
 
     # Give the callable a nice name for introspection/logging
     _rpc_method.__name__ = f"rpc_{model.__name__}_{alias}"
