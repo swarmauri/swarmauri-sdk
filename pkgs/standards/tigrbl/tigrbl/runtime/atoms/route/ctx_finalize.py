@@ -21,7 +21,8 @@ def _requires_db(model: type, alias: str) -> bool:
         if spec_alias not in {alias, alias_name}:
             continue
         persist = getattr(spec, "persist", "default")
-        if persist == "skip":
+        persist_token = str(persist).lower() if persist is not None else ""
+        if persist_token in {"skip", "none", "false"}:
             return False
 
         # Custom handlers are often request/response adapters that do not touch
@@ -31,9 +32,7 @@ def _requires_db(model: type, alias: str) -> bool:
             return False
 
         return True
-
-    # Kernel-only invocations without bound opspec metadata should remain
-    # transport-agnostic and not force DB acquisition.
+    # If no opspec matches, treat the route as non-persistent.
     return False
 
 
