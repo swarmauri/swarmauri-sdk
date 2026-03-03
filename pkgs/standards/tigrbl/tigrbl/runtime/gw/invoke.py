@@ -73,12 +73,26 @@ async def _request_db_session(app: Any):
 
 async def _invoke_jsonrpc_batch(ctx: _Ctx, env: GwRawEnvelope) -> bool:
     payload = getattr(ctx, "payload", None)
-    if not isinstance(payload, list):
+    route_temp = None
+    temp = getattr(ctx, "temp", None)
+    if isinstance(temp, dict):
+        route_temp = temp.get("route") if isinstance(temp.get("route"), dict) else None
+    rpc_envelope = (
+        route_temp.get("rpc_envelope") if isinstance(route_temp, dict) else None
+    )
+
+    if isinstance(payload, Mapping) and "method" in payload:
+        payload_items = [payload]
+    elif isinstance(rpc_envelope, Mapping) and "method" in rpc_envelope:
+        payload_items = [rpc_envelope]
+    elif isinstance(payload, list):
+        payload_items = payload
+    else:
         return False
 
     responses: list[dict[str, Any]] = []
     app = getattr(ctx, "app", None)
-    for item in payload:
+    for item in payload_items:
         if not isinstance(item, Mapping):
             responses.append(
                 {
@@ -114,20 +128,22 @@ async def _invoke_jsonrpc_batch(ctx: _Ctx, env: GwRawEnvelope) -> bool:
             continue
 
         try:
-            async with _request_db_session(app) as db:
-                result = await app.rpc_call(
-                    model_name,
-                    op_alias,
-                    params if params is not None else {},
-                    db=db,
-                    request=SimpleNamespace(
-                        headers={},
-                        query_params={},
-                        path_params={},
-                        state=SimpleNamespace(),
-                    ),
-                    ctx={},
-                )
+            result = await app.rpc_call(
+                model_name,
+                op_alias,
+                params if params is not None else {},
+                # Let mapping/router RPC resolution acquire the most specific DB
+                # binding (op > model > router > app). Supplying an app-level
+                # session here can force RPC ops onto the wrong engine.
+                db=None,
+                request=SimpleNamespace(
+                    headers={},
+                    query_params={},
+                    path_params={},
+                    state=SimpleNamespace(),
+                ),
+                ctx={},
+            )
             normalized_result = result
             json_body = getattr(result, "json_body", None)
             if callable(json_body):
@@ -157,6 +173,7 @@ async def _invoke_jsonrpc_batch(ctx: _Ctx, env: GwRawEnvelope) -> bool:
                 }
             )
 
+    response_body: Any = responses[0] if isinstance(payload, Mapping) else responses
     transport_ctx = SimpleNamespace(
         status_code=200,
         temp={
@@ -164,7 +181,7 @@ async def _invoke_jsonrpc_batch(ctx: _Ctx, env: GwRawEnvelope) -> bool:
                 "transport_response": {
                     "status_code": 200,
                     "headers": {"content-type": "application/json"},
-                    "body": responses,
+                    "body": response_body,
                 }
             }
         },

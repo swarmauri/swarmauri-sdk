@@ -77,36 +77,24 @@ def normalize_app_spec(spec: AppSpec) -> AppSpec:
 def resolve_table_engine(model: type) -> Any | None:
     """Resolve a table engine with wrapper-precedence semantics."""
 
-    direct_engine: Any | None = None
-    inherited_engine: Any | None = None
+    resolved_engine: Any | None = None
     for base in model.__mro__:
-        if "table_config" in base.__dict__:
-            cfg = base.__dict__.get("table_config")
-            if isinstance(cfg, Mapping):
-                eng = (
-                    cfg.get("engine")
-                    or cfg.get("db")
-                    or cfg.get("database")
-                    or cfg.get("engine_provider")
-                    or cfg.get("db_provider")
-                )
-                if eng is not None and direct_engine is None:
-                    direct_engine = eng
+        cfg = base.__dict__.get("table_config")
+        if not isinstance(cfg, Mapping):
             continue
 
-        cfg = getattr(base, "table_config", None)
-        if isinstance(cfg, Mapping):
-            eng = (
-                cfg.get("engine")
-                or cfg.get("db")
-                or cfg.get("database")
-                or cfg.get("engine_provider")
-                or cfg.get("db_provider")
-            )
-            if eng is not None:
-                inherited_engine = eng
+        eng = (
+            cfg.get("engine")
+            or cfg.get("db")
+            or cfg.get("database")
+            or cfg.get("engine_provider")
+            or cfg.get("db_provider")
+        )
+        if eng is not None:
+            # Keep walking to allow later MRO wrappers to override earlier ones.
+            resolved_engine = eng
 
-    return inherited_engine if inherited_engine is not None else direct_engine
+    return resolved_engine
 
 
 __all__ = ["merge_seq_attr", "normalize_app_spec", "resolve_table_engine"]

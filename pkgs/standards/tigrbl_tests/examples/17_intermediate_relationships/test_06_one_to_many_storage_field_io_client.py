@@ -136,8 +136,9 @@ async def test_one_to_many_relationship_storage_field_io_client_experience() -> 
         rpc = TigrblClient(f"{base_url}/rpc")
         listed_tasks = await rpc.acall("Task.list", params={})
 
-        assert isinstance(listed_tasks, dict)
-        assert {"id", "project_id", "title"}.issubset(listed_tasks)
+        assert isinstance(listed_tasks, list)
+        assert listed_tasks
+        assert {"id", "project_id", "title"}.issubset(listed_tasks[0])
 
         await rpc.aclose()
     finally:
