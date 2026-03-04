@@ -103,7 +103,9 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
         try:
             source_files = program.get_source_files()
             if isinstance(source_files, dict):
-                return " \n".join(v for v in source_files.values() if isinstance(v, str))
+                return " \n".join(
+                    v for v in source_files.values() if isinstance(v, str)
+                )
         except Exception as exc:
             if self.logger:
                 self.logger.debug(f"Failed to obtain program text: {exc}")
