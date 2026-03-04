@@ -7,9 +7,7 @@ import ssl
 from typing import AsyncIterator, Optional, Tuple
 
 from swarmauri_base.transports import (
-    PeerTransportMixin,
     TransportBase,
-    UnicastTransportMixin,
 )
 from swarmauri_core.transports import (
     AddressScheme,
@@ -22,7 +20,7 @@ from swarmauri_core.transports import (
 )
 
 
-class TlsUnicastTransport(TransportBase, PeerTransportMixin, UnicastTransportMixin):
+class TlsUnicastTransport(TransportBase):
     """TLS-secured unicast transport built on top of asyncio streams."""
 
     def __init__(self, ssl_ctx: ssl.SSLContext, sni: Optional[str] = None):
