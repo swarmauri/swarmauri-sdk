@@ -128,11 +128,25 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
         try:
             source_files = program.get_source_files()
             if isinstance(source_files, dict):
-                return " \n".join(str(v) for v in source_files.values())
+                return " ".join(self._stringify_value(v) for v in source_files.values())
         except Exception as exc:
             if self.logger:
                 self.logger.debug(f"Failed to obtain program text: {exc}")
         return ""
+
+    @staticmethod
+    def _stringify_value(value: Any) -> str:
+        if isinstance(value, str):
+            return value
+        if isinstance(value, dict):
+            if isinstance(value.get("text"), str):
+                return value["text"]
+            if isinstance(value.get("content"), str):
+                return value["content"]
+            return " ".join(str(v) for v in value.values())
+        if isinstance(value, list):
+            return " ".join(str(v) for v in value)
+        return str(value)
 
     def _count_sentences(self, text: str) -> int:
         """
