@@ -7,7 +7,7 @@ import tempfile
 from typing import Any
 
 from tigrbl import TigrblApp
-from tigrbl.engine.shortcuts import engine as build_engine
+from tigrbl.shortcuts.engine import engine as build_engine
 
 from .tables import CronJob, CronJobResult
 
