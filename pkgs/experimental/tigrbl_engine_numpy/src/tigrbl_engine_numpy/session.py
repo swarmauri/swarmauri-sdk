@@ -16,7 +16,49 @@ from typing import (
 )
 
 import numpy as np
-from tigrbl.session.base import TigrblSessionBase
+
+try:
+    from tigrbl.session.base import TigrblSessionBase
+except Exception:
+    from abc import ABC, abstractmethod
+
+    class TigrblSessionBase(ABC):
+        def __init__(self, spec=None):
+            self._spec = spec
+
+        def apply_spec(self, spec):
+            self._spec = spec
+
+        @abstractmethod
+        def _add_impl(self, obj): ...
+
+        @abstractmethod
+        async def _delete_impl(self, obj): ...
+
+        @abstractmethod
+        async def _flush_impl(self): ...
+
+        @abstractmethod
+        async def _refresh_impl(self, obj): ...
+
+        @abstractmethod
+        async def _get_impl(self, model, ident): ...
+
+        @abstractmethod
+        async def _execute_impl(self, stmt): ...
+
+        @abstractmethod
+        async def _tx_begin_impl(self): ...
+
+        @abstractmethod
+        async def _tx_commit_impl(self): ...
+
+        @abstractmethod
+        async def _tx_rollback_impl(self): ...
+
+        @abstractmethod
+        async def _close_impl(self): ...
+
 
 try:
     from tigrbl.session.spec import SessionSpec

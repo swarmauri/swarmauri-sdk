@@ -3,8 +3,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Callable
 
 import pandas as pd
-from tigrbl.session.base import TigrblSessionBase
-from tigrbl.session.spec import SessionSpec
+
+try:
+    from tigrbl.session.base import TigrblSessionBase
+except Exception:
+    from tigrbl_engine_pandas.session import TigrblSessionBase
+
+try:
+    from tigrbl.session.spec import SessionSpec
+except Exception:
+    from tigrbl_engine_pandas.session import SessionSpec
+
 from tigrbl_engine_pandas.session import TransactionalDataFrameSession
 
 if TYPE_CHECKING:
