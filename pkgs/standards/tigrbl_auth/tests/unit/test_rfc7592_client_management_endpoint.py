@@ -21,15 +21,17 @@ async def _wait_for_app(base_url: str) -> None:
 
 
 @pytest.fixture()
-async def running_app(override_get_db):
+async def running_app(override_get_db, unused_tcp_port):
+    port = unused_tcp_port
+    base_url = f"http://127.0.0.1:{port}"
     cfg = uvicorn.Config(
-        "tigrbl_auth.app:app", host="127.0.0.1", port=8005, log_level="warning"
+        "tigrbl_auth.app:app", host="127.0.0.1", port=port, log_level="warning"
     )
     server = uvicorn.Server(cfg)
     task = asyncio.create_task(server.serve())
-    await _wait_for_app("http://127.0.0.1:8005")
+    await _wait_for_app(base_url)
     try:
-        yield "http://127.0.0.1:8005"
+        yield base_url
     finally:
         server.should_exit = True
         await task
@@ -43,4 +45,4 @@ async def test_client_management_unknown_client_returns_404(running_app):
             f"{base}/client/ffffffff-ffff-ffff-ffff-ffffffffffff",
             json={"redirect_uris": ["https://b.example/cb"]},
         )
-    assert resp.status_code == 422
+    assert resp.status_code == 404
