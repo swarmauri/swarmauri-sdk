@@ -1,5 +1,5 @@
-# .github/workflows/license-scan.yml
-name: License Scan
+# .github/workflows/v0.10.0_license-scan.yml
+name: v0.10.0-License-Scan
 
 on:
   pull_request:
@@ -47,3 +47,5 @@ jobs:
             exit 1
           fi
         shell: bash
+
+

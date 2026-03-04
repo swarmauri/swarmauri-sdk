@@ -1,11 +1,19 @@
-name: v0.9.0 - Mono (Prepare, Validate) [Dispatcher]
-run-name: v0.9.0 prepare/validate dispatcher
+name: v0.10.0-Mono-Prepare-Validate-Publish-Dispatcher
+run-name: v0.10.0-prepare-validate-publish-dispatcher
 
 on:
   workflow_dispatch:
+    inputs:
+      bump_type:
+        description: "Bump type {major,minor,patch,finalize}"
+        required: false
+        default: "patch"
+      set_version:
+        description: "Version (e.g. 0.2.0 or 0.2.0.dev1)"
+        required: false
 
 concurrency:
-  group: v0.9.0-mono-prepare-validate-dispatch
+  group: v0.10.0-mono-prepare-validate-publish-dispatch
   cancel-in-progress: false
 
 permissions:
@@ -144,13 +152,17 @@ jobs:
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: 'v0.9.0_mono_prepare_validate_batch.yaml',
+              workflow_id: 'v0.10.0_mono_prepare_validate_publish_batch.yaml',
               ref: context.ref,
               inputs: {
                 members_json: JSON.stringify(members),
                 batch_index: batchIndex,
                 batch_label: batchLabel,
+                bump_type: '${{ github.event.inputs.bump_type }}',
+                set_version: '${{ github.event.inputs.set_version }}',
               },
             });
 
             core.info(`Dispatched batch ${batchIndex} (${batchLabel}) with ${members.length} members.`);
+
+
