@@ -125,6 +125,54 @@ def test_mount_lens_uses_latest_openrpc_path_by_default() -> None:
     assert "/schema/openrpc.json" in html
 
 
+def test_default_system_docs_endpoints_are_present_and_gettable() -> None:
+    app, _ = _build_app()
+    transport = ASGITransport(app=app)
+
+    with Client(transport=transport, base_url="http://test") as client:
+        docs = client.get("/docs")
+        lens = client.get("/lens")
+        openapi = client.get("/openapi.json")
+        openrpc = client.get("/openrpc.json")
+
+    assert docs.status_code == 200
+    assert "text/html" in docs.headers.get("content-type", "")
+    assert "swagger-ui" in docs.text
+
+    assert lens.status_code == 200
+    assert "text/html" in lens.headers.get("content-type", "")
+    assert 'id="root"' in lens.text
+
+    assert openapi.status_code == 200
+    assert openapi.json()["openapi"] == "3.1.0"
+
+    assert openrpc.status_code == 200
+    assert openrpc.json()["openrpc"] == "1.2.6"
+
+
+def test_docs_lens_openapi_openrpc_are_rest_get_only_and_not_rpc_methods() -> None:
+    app, _ = _build_app()
+    transport = ASGITransport(app=app)
+
+    route_map = {route.path: route for route in app.routes}
+    for path in ("/docs", "/lens", "/openapi.json", "/openrpc.json"):
+        assert path in route_map
+        assert set(route_map[path].methods or []) == {"GET"}
+
+    with Client(transport=transport, base_url="http://test") as client:
+        assert client.post("/docs").status_code == 405
+        assert client.post("/lens").status_code == 405
+        assert client.post("/openapi.json").status_code == 405
+        assert client.post("/openrpc.json").status_code == 405
+
+        method_names = {
+            method["name"] for method in client.get("/openrpc.json").json()["methods"]
+        }
+
+    for forbidden in ("docs", "lens", "openapi", "openrpc"):
+        assert all(forbidden not in name.lower() for name in method_names)
+
+
 def test_openrpc_server_url_respects_router_mount_jsonrpc_prefix_argument():
     class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets_openrpc_router_mount_prefix"

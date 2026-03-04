@@ -35,6 +35,7 @@ from ..system import mount_diagnostics as _mount_diagnostics
 from ..system import mount_lens as _mount_lens
 from ..system import mount_openapi as _mount_openapi
 from ..system import mount_openrpc as _mount_openrpc
+from ..system import mount_swagger as _mount_swagger
 from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..system.docs import build_openapi as _build_openapi
 from ..op import get_registry
@@ -205,9 +206,10 @@ class TigrblApp(_App):
         # Router-level hooks map (merged into each table at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
         self.mount_openapi(path="/openapi.json")
+        _mount_swagger(self, path="/docs")
         self.attach_diagnostics(prefix=self.system_prefix)
         self.mount_openrpc(path="/openrpc.json")
-        self.mount_lens(path="/rdocs", spec_path="/openrpc.json")
+        self.mount_lens(path="/lens", spec_path="/openrpc.json")
         if routers:
             initial_routers.extend(list(routers))
         if initial_routers:
