@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from tigrbl.table import Base
+from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk, Timestamped
 from tigrbl.specs import F, IO, S
 from tigrbl.shortcuts import acol

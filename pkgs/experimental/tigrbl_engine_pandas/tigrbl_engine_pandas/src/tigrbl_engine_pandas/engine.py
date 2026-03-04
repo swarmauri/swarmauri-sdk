@@ -6,7 +6,16 @@ import threading
 
 import pandas as pd
 
-from tigrbl.session.spec import SessionSpec
+try:
+    from tigrbl.session.spec import SessionSpec
+except Exception:
+
+    class SessionSpec:
+        def __init__(self, isolation=None, read_only=None):
+            self.isolation = isolation
+            self.read_only = read_only
+
+
 from .session import TransactionalDataFrameSession
 
 # ---- Engine object: in-memory catalog of DataFrames + versions ----
