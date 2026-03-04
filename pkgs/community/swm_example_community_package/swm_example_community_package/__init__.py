@@ -1,5 +1,5 @@
 # swm_example_community_package/__init__.py
-__version__ = "0.6.0.dev26"
+__version__ = "0.6.3.dev2"
 __long_desc__ = """
 
 # Swarmauri Example Plugin
