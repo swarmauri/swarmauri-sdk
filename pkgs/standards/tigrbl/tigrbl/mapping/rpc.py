@@ -403,17 +403,24 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         )
 
         phases = _get_phase_chains(model, alias)
-        return {
-            "model": model,
-            "alias": alias,
-            "target": target,
-            "payload": merged_payload,
-            "db": db,
-            "request": request,
-            "ctx": base_ctx,
-            "phases": phases,
-            "serialize": lambda result: _serialize_output(model, alias, target, result),
-        }
+
+        def serialize(result: Any) -> Any:
+            return _serialize_output(model, alias, target, result)
+
+        base_ctx["response_serializer"] = serialize
+        return AttrDict(
+            {
+                "model": model,
+                "alias": alias,
+                "target": target,
+                "payload": merged_payload,
+                "ctx": base_ctx,
+                "phases": phases,
+                "serialize": serialize,
+                "request": request,
+                "db": db,
+            }
+        )
 
     # Give the callable a nice name for introspection/logging
     _rpc_method.__name__ = f"rpc_{model.__name__}_{alias}"

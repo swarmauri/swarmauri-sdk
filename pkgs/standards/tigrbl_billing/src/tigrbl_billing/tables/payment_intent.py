@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from enum import Enum
 
-from tigrbl.table import Base
+from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk, Timestamped
 from tigrbl.specs import F, IO, S
 from tigrbl.shortcuts import acol
-from tigrbl.specs.storage_spec import ForeignKeySpec
+from tigrbl.specs import ForeignKeySpec
 from tigrbl.types import (
     Mapped,
     String,

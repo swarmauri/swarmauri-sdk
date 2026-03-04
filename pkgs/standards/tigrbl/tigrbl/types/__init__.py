@@ -44,6 +44,7 @@ from ..vendor.sqlalchemy import (
     MutableList,
     hybrid_property,
     StaticPool,
+    TypeDecorator,
 )
 
 
@@ -145,6 +146,7 @@ __all__: list[str] = [
     "MutableDict",
     "MutableList",
     "StaticPool",
+    "TypeDecorator",
     # pydantic schema support (from deps.pydantic)
     "BaseModel",
     "Field",

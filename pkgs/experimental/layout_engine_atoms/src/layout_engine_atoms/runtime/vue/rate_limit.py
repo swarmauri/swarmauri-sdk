@@ -50,7 +50,10 @@ class InMemoryRateLimiter:
     """
 
     def __init__(
-        self, max_requests: int = 60, window_seconds: int = 60, cleanup_interval: int = 300
+        self,
+        max_requests: int = 60,
+        window_seconds: int = 60,
+        cleanup_interval: int = 300,
     ) -> None:
         """Initialize the rate limiter.
 
@@ -216,9 +219,7 @@ class WebSocketRateLimiter:
         >>> await limiter.check_message_rate(websocket.client.host, "subscribe")
     """
 
-    def __init__(
-        self, max_messages: int = 100, window_seconds: int = 60
-    ) -> None:
+    def __init__(self, max_messages: int = 100, window_seconds: int = 60) -> None:
         """Initialize WebSocket rate limiter.
 
         Args:
@@ -230,9 +231,7 @@ class WebSocketRateLimiter:
         self._messages: dict[str, deque[float]] = defaultdict(deque)
         self._lock = asyncio.Lock()
 
-    async def check_message_rate(
-        self, client_identifier: str, action: str
-    ) -> bool:
+    async def check_message_rate(self, client_identifier: str, action: str) -> bool:
         """Check if client is within message rate limit.
 
         Args:

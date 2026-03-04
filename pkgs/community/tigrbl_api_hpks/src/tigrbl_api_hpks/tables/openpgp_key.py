@@ -6,7 +6,7 @@ import datetime as dt
 
 from tigrbl.orm.mixins import Mergeable, Timestamped
 from tigrbl.specs import ColumnSpec, F, IO, S, acol
-from tigrbl.table import Base
+from tigrbl.orm.tables import Base
 from tigrbl.types import (
     Boolean,
     Integer,

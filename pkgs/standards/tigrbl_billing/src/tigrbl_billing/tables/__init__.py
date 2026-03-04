@@ -5,7 +5,7 @@ import importlib
 import pkgutil
 from typing import Iterator
 
-from tigrbl.table import Base as _Base  # Declarative base
+from tigrbl.orm.tables import Base as _Base  # Declarative base
 
 # Explicit re-exports (keep these stable for static analyzers / IDEs)
 from .product import Product

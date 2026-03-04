@@ -40,15 +40,17 @@ def validate_payload_against_schema(
     if "type" in schema:
         expected_type = schema["type"]
         if expected_type == "object" and not isinstance(payload, Mapping):
-            raise PayloadValidationError(f"Expected object, got {type(payload).__name__}")
+            raise PayloadValidationError(
+                f"Expected object, got {type(payload).__name__}"
+            )
         elif expected_type == "array" and not isinstance(payload, (list, tuple)):
-            raise PayloadValidationError(f"Expected array, got {type(payload).__name__}")
+            raise PayloadValidationError(
+                f"Expected array, got {type(payload).__name__}"
+            )
 
     # Check required fields
     if "required" in schema and isinstance(schema["required"], list):
-        missing_fields = [
-            field for field in schema["required"] if field not in payload
-        ]
+        missing_fields = [field for field in schema["required"] if field not in payload]
         if missing_fields:
             raise PayloadValidationError(
                 f"Missing required fields: {', '.join(missing_fields)}"
@@ -62,9 +64,7 @@ def validate_payload_against_schema(
                 _validate_property(key, value, prop_schema)
 
 
-def _validate_property(
-    key: str, value: Any, prop_schema: Mapping[str, Any]
-) -> None:
+def _validate_property(key: str, value: Any, prop_schema: Mapping[str, Any]) -> None:
     """Validate a single property against its schema."""
     if "type" in prop_schema:
         expected_type = prop_schema["type"]
@@ -177,8 +177,12 @@ def sanitize_string_for_logging(value: str, max_length: int = 100) -> str:
 
     # Remove potential secrets (tokens, passwords, etc.)
     # This is a basic implementation - extend as needed
-    value = re.sub(r'("password"|"token"|"secret"|"api_key")\s*:\s*"[^"]*"',
-                   r'\1: "[REDACTED]"', value, flags=re.IGNORECASE)
+    value = re.sub(
+        r'("password"|"token"|"secret"|"api_key")\s*:\s*"[^"]*"',
+        r'\1: "[REDACTED]"',
+        value,
+        flags=re.IGNORECASE,
+    )
 
     return value
 
@@ -202,9 +206,7 @@ def validate_event_payload(
     try:
         validate_payload_against_schema(payload, schema)
     except PayloadValidationError as e:
-        logger.warning(
-            f"Payload validation failed for event '{event_id}': {str(e)}"
-        )
+        logger.warning(f"Payload validation failed for event '{event_id}': {str(e)}")
         raise HTTPException(
             status_code=400,
             detail=f"Invalid payload: {str(e)}",

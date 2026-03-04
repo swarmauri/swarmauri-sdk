@@ -7,6 +7,8 @@ going forward.
 from __future__ import annotations
 
 from ._spec import ColumnSpec, F, IO, S, acol, makeColumn, makeVirtualColumn, vcol
+from ._spec.io_spec import Pair
+from ._spec.storage_spec import ForeignKeySpec
 
 __all__ = [
     "ColumnSpec",
@@ -15,6 +17,8 @@ __all__ = [
     "S",
     "acol",
     "vcol",
+    "Pair",
+    "ForeignKeySpec",
     "makeColumn",
     "makeVirtualColumn",
     "is_virtual",

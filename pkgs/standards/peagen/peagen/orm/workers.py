@@ -13,7 +13,7 @@ from tigrbl.types import (
 )
 from tigrbl.orm.mixins import GUIDPk, Timestamped
 from tigrbl.specs import IO, S, acol
-from tigrbl.column.storage_spec import ForeignKeySpec
+from tigrbl.specs import ForeignKeySpec
 from tigrbl import hook_ctx
 from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
 

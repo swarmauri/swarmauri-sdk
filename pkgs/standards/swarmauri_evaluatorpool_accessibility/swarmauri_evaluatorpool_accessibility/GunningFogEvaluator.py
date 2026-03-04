@@ -1,5 +1,6 @@
 import re
 import string
+import logging
 from typing import Any, Dict, Literal, Tuple
 
 from swarmauri_base.ComponentBase import ComponentBase
@@ -51,6 +52,7 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
         if not text or not isinstance(text, str):
             if self.logger:
                 self.logger.warning("Program text is empty or not a string")
+            logging.getLogger(__name__).warning("Program text is empty or not a string")
             return 0.0, {"error": "No valid text to analyze"}
 
         # Count sentences, words, and complex words
@@ -91,6 +93,9 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
 
         if self.logger:
             self.logger.debug(f"Computed Gunning Fog Index: {gunning_fog_index:.2f}")
+        logging.getLogger(__name__).debug(
+            "Computed Gunning Fog Index: %.2f", gunning_fog_index
+        )
         return normalized_score, metadata
 
     def _get_program_text(self, program: Program) -> str:
@@ -98,7 +103,7 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
         try:
             source_files = program.get_source_files()
             if isinstance(source_files, dict):
-                return " \n".join(str(v) for v in source_files.values())
+                return " \n".join(v for v in source_files.values() if isinstance(v, str))
         except Exception as exc:
             if self.logger:
                 self.logger.debug(f"Failed to obtain program text: {exc}")

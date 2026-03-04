@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_jws"
-version = "0.3.0.dev35"
+version = "0.3.0.dev40"
 description = "Composite JWS signer/verifier for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

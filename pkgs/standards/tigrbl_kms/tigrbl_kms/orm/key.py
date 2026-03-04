@@ -1,6 +1,7 @@
 # tigrbl_kms/orm/key.py
 from __future__ import annotations
 import base64
+import inspect
 from enum import Enum
 from uuid import UUID, uuid4
 from typing import List, Optional, TYPE_CHECKING
@@ -253,7 +254,22 @@ class Key(Base, BulkCapable, Replaceable):
     )
     async def _ensure_key_enabled(cls, ctx):
         pp = ctx.get("path_params") or {}
-        ident = pp.get("id") or pp.get("item_id")
+        temp = ctx.get("temp") or {}
+        route = temp.get("route") if isinstance(temp, dict) else {}
+        route_pp = route.get("path_params") if isinstance(route, dict) else {}
+        if not isinstance(route_pp, dict):
+            route_pp = {}
+
+        # Runtime route metadata may stage member identifiers in temp.route.
+        # Support both current and legacy parameter names.
+        ident = (
+            pp.get("id")
+            or pp.get("item_id")
+            or pp.get("key_id")
+            or route_pp.get("id")
+            or route_pp.get("item_id")
+            or route_pp.get("key_id")
+        )
         if not ident:
             raise HTTPException(status_code=400, detail="Missing key identifier")
         try:
@@ -263,16 +279,26 @@ class Key(Base, BulkCapable, Replaceable):
 
         db = ctx.get("db")
         if db is None:
-            raise HTTPException(status_code=500, detail="DB session missing")
-        # works with sync or async session
+            try:
+                db, _release_db = cls.acquire(op_alias="read")
+                # Keep acquired session available for downstream ops in this request.
+                ctx["db"] = db
+                temp = ctx.get("temp")
+                if not isinstance(temp, dict):
+                    temp = {}
+                    ctx["temp"] = temp
+                temp.setdefault("__sys_db_release__", _release_db)
+            except Exception as exc:
+                raise HTTPException(
+                    status_code=500, detail="DB session missing"
+                ) from exc
+
         getter = getattr(db, "get", None)
-        obj = (
-            await getter(cls, ident)
-            if callable(getter)
-            and getattr(getter, "__code__", None)
-            and getter.__code__.co_flags & 0x80
-            else db.get(cls, ident)
-        )
+        if not callable(getter):
+            raise HTTPException(status_code=500, detail="DB session missing get()")
+        obj = getter(cls, ident)
+        if inspect.isawaitable(obj):
+            obj = await obj
         if obj is None:
             raise HTTPException(status_code=404, detail="Key not found")
         if obj.status == KeyStatus.disabled:

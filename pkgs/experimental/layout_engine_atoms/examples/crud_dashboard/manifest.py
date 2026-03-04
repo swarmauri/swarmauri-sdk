@@ -9,7 +9,11 @@ if TYPE_CHECKING:
 
 from layout_engine.structure import block, col, row, table
 
-from layout_engine_atoms.manifest import create_registry, quick_manifest_from_table, tile
+from layout_engine_atoms.manifest import (
+    create_registry,
+    quick_manifest_from_table,
+    tile,
+)
 
 
 def build_manifest(_request: "Request"):
@@ -31,7 +35,6 @@ def build_manifest(_request: "Request"):
                 "subtitle": "Demonstrating decorator-based event handling at scale",
             },
         ),
-
         # === STATS BADGES SECTION (5 tiles: 1 header + 4 badges) ===
         tile(
             "stats_section_header",
@@ -78,7 +81,6 @@ def build_manifest(_request: "Request"):
                 "subtitle": "Guests",
             },
         ),
-
         # === ACTION BUTTONS SECTION (3 tiles: 1 header + 2 buttons) ===
         tile(
             "actions_section_header",
@@ -104,7 +106,6 @@ def build_manifest(_request: "Request"):
                 },
             },
         ),
-
         # === FILTER SECTION (6 tiles) ===
         tile(
             "filter_header",
@@ -241,7 +242,6 @@ def build_manifest(_request: "Request"):
                 },
             },
         ),
-
         # === MAIN DATA TABLE (2 tiles: 1 header + 1 table) ===
         tile(
             "table_section_header",
@@ -261,7 +261,12 @@ def build_manifest(_request: "Request"):
                 "columns": [
                     {"field": "id", "header": "ID", "width": 60, "sortable": True},
                     {"field": "name", "header": "Name", "width": 200, "sortable": True},
-                    {"field": "email", "header": "Email", "width": 250, "sortable": True},
+                    {
+                        "field": "email",
+                        "header": "Email",
+                        "width": 250,
+                        "sortable": True,
+                    },
                     {"field": "role", "header": "Role", "width": 100, "sortable": True},
                     {
                         "field": "active",
@@ -294,7 +299,6 @@ def build_manifest(_request: "Request"):
                 },
             },
         ),
-
         # === QUICK ACTION BUTTONS (4 tiles) ===
         tile(
             "quick_actions_header",
@@ -351,7 +355,6 @@ def build_manifest(_request: "Request"):
                 },
             },
         ),
-
         # === ACTIVITY LOG (3 tiles) ===
         tile(
             "activity_header",
@@ -368,8 +371,14 @@ def build_manifest(_request: "Request"):
             span="full",
             props={
                 "items": [
-                    {"label": "Welcome to the User Management Dashboard", "actionLabel": ""},
-                    {"label": "Click 'Refresh' to load initial data", "actionLabel": ""},
+                    {
+                        "label": "Welcome to the User Management Dashboard",
+                        "actionLabel": "",
+                    },
+                    {
+                        "label": "Click 'Refresh' to load initial data",
+                        "actionLabel": "",
+                    },
                 ],
             },
         ),
@@ -394,7 +403,6 @@ def build_manifest(_request: "Request"):
     layout = table(
         # Header (full width)
         row(col(block("page_header")), height_rows=1),
-
         # Stats section
         row(col(block("stats_section_header")), height_rows=1),
         row(
@@ -404,11 +412,9 @@ def build_manifest(_request: "Request"):
             col(block("guest_count_badge")),
             height_rows=1,
         ),
-
         # Action buttons section
         row(col(block("actions_section_header")), height_rows=1),
         row(col(block("refresh_btn")), height_rows=1),
-
         # Filter section
         row(col(block("filter_header")), height_rows=1),
         row(col(block("filter_all_btn")), height_rows=1),
@@ -425,11 +431,9 @@ def build_manifest(_request: "Request"):
         row(col(block("filter_inactive_btn")), height_rows=1),
         row(col(block("search_bar")), height_rows=1),
         row(col(block("filter_reset_btn")), height_rows=1),
-
         # User directory section
         row(col(block("table_section_header")), height_rows=1),
         row(col(block("users_table")), height_rows=6),
-
         # Quick actions section
         row(col(block("quick_actions_header")), height_rows=1),
         row(col(block("create_user_btn")), height_rows=1),
@@ -438,7 +442,6 @@ def build_manifest(_request: "Request"):
             col(block("create_guest_btn")),
             height_rows=1,
         ),
-
         # Activity log section
         row(col(block("activity_header")), height_rows=1),
         row(col(block("activity_log")), height_rows=2),

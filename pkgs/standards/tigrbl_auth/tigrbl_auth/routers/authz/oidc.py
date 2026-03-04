@@ -61,15 +61,20 @@ async def authorize(
     prompt = prompt or request.query_params.get("prompt")
     login_hint = login_hint or request.query_params.get("login_hint")
     claims = claims or request.query_params.get("claims")
-    if max_age is None:
+    max_age_raw = max_age
+    if max_age_raw is None:
         max_age_raw = request.query_params.get("max_age")
-        if max_age_raw is not None:
-            try:
-                max_age = int(max_age_raw)
-            except ValueError as exc:
-                raise HTTPException(
-                    status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"}
-                ) from exc
+    if max_age_raw is not None:
+        try:
+            max_age = int(max_age_raw)
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"}
+            ) from exc
+        if max_age < 0:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"}
+            )
     rts = set(response_type.split())
     allowed = {"code", "token", "id_token"}
     if not rts or not rts.issubset(allowed):
