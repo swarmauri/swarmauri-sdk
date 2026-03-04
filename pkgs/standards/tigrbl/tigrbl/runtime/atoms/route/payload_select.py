@@ -13,6 +13,29 @@ ANCHOR = _ev.ROUTE_PAYLOAD_SELECT
 _BULKABLE_ALIASES = frozenset({"create", "update", "replace", "merge"})
 
 
+def _is_valid_rpc_params(payload: Any) -> bool:
+    if payload is None:
+        return False
+    if isinstance(payload, Mapping):
+        return True
+    return isinstance(payload, Sequence) and not isinstance(
+        payload, (str, bytes, bytearray)
+    )
+
+
+def _set_invalid_rpc_params_error(temp: Any, payload: Any) -> None:
+    if not isinstance(temp, dict):
+        return
+    temp["rpc_error"] = {
+        "code": -32602,
+        "message": "Invalid params",
+        "data": {
+            "reason": "JSON-RPC params must be an object or array.",
+            "value_type": type(payload).__name__,
+        },
+    }
+
+
 def _header_name_to_lookup(header_name: str) -> tuple[str, str]:
     raw = str(header_name)
     return raw, raw.lower()
@@ -145,6 +168,9 @@ def run(obj: object | None, ctx: Any) -> None:
     rpc_envelope = route.get("rpc_envelope")
     if isinstance(rpc_envelope, dict):
         payload = rpc_envelope.get("params", {})
+        if not _is_valid_rpc_params(payload):
+            _set_invalid_rpc_params_error(temp, payload)
+            payload = {}
         if (
             isinstance(payload, Mapping)
             and set(payload.keys()) == {"params"}
