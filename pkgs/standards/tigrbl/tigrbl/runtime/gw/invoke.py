@@ -258,21 +258,27 @@ async def _fallback_runtime_route(ctx: _Ctx, env: GwRawEnvelope) -> bool:
         path = getattr(request, "path", None) or getattr(
             getattr(request, "url", None), "path", None
         )
+        method_not_allowed = False
         if method and isinstance(path, str) and app is not None:
             for candidate in getattr(app, "routes", ()) or ():
-                if method not in (getattr(candidate, "methods", ()) or ()):
-                    continue
                 pattern = getattr(candidate, "pattern", None)
                 if pattern is None:
                     continue
                 matched = pattern.match(path)
                 if matched is None:
                     continue
+                if method not in (getattr(candidate, "methods", ()) or ()):
+                    method_not_allowed = True
+                    continue
                 handler = getattr(candidate, "handler", None)
                 if not callable(handler):
                     continue
                 request.path_params = dict(matched.groupdict())
                 break
+
+        if not callable(handler) and method_not_allowed:
+            await _send_json(env, 405, {"detail": "Method Not Allowed"})
+            return True
 
     if not callable(handler):
         return False
