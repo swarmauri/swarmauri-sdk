@@ -43,6 +43,7 @@ from sqlalchemy.orm import (
 )
 
 from sqlalchemy.pool import StaticPool
+from sqlalchemy.types import TypeDecorator
 
 # ── SQLAlchemy Extensions ────────────────────────────────────────────────
 from sqlalchemy.ext.mutable import MutableDict, MutableList
@@ -69,6 +70,7 @@ __all__ = [
     "create_engine",
     "StaticPool",
     "event",
+    "TypeDecorator",
     # PostgreSQL dialect
     "ARRAY",
     "PgEnum",
