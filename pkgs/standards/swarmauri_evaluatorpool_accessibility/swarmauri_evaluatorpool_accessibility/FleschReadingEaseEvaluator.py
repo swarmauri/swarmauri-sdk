@@ -6,7 +6,6 @@ from pydantic import PrivateAttr
 
 import nltk
 from nltk.corpus import cmudict
-from nltk.tokenize import sent_tokenize, word_tokenize
 from swarmauri_base.evaluators.EvaluatorBase import EvaluatorBase
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_standard.programs.Program import Program
@@ -49,11 +48,12 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
         super().__init__(**kwargs)
         # Download necessary NLTK resources if not already present
         try:
-            nltk.data.find("tokenizers/punkt")
+            nltk.data.find("tokenizers/punkt_tab/english")
         except LookupError:
             if self.logger:
-                self.logger.info("Downloading NLTK punkt tokenizer")
+                self.logger.info("Downloading NLTK punkt tokenizer resources")
             nltk.download("punkt", quiet=True, download_dir=NLTK_DATA_DIR)
+            nltk.download("punkt_tab", quiet=True, download_dir=NLTK_DATA_DIR)
 
         try:
             nltk.data.find("corpora/cmudict")
@@ -98,12 +98,9 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
         # Clean the text (remove extra whitespace, etc.)
         text = self._clean_text(text)
 
-        # Tokenize the text into sentences and words
-        sentences = sent_tokenize(text)
-        words = word_tokenize(text)
-
-        # Filter out punctuation from words
-        words = [word for word in words if re.match(r"\w+", word)]
+        # Tokenize locally to avoid runtime dependence on punkt resources.
+        sentences = self._split_sentences(text)
+        words = self._split_words(text)
 
         # Count sentences, words, and syllables
         sentence_count = len(sentences)
@@ -151,11 +148,22 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
         try:
             source_files = program.get_source_files()
             if isinstance(source_files, dict):
-                return " \n".join(str(v) for v in source_files.values())
+                return " ".join(v for v in source_files.values() if isinstance(v, str))
         except Exception as exc:
             if self.logger:
                 self.logger.debug(f"Failed to obtain program text: {exc}")
         return ""
+
+    @staticmethod
+    def _split_sentences(text: str) -> list[str]:
+        if not text.strip():
+            return []
+        parts = re.split(r"(?<=[.!?])\s+", text)
+        return [p for p in parts if p.strip()] or [text.strip()]
+
+    @staticmethod
+    def _split_words(text: str) -> list[str]:
+        return re.findall(r"\b\w+\b", text)
 
     def _clean_text(self, text: str) -> str:
         """

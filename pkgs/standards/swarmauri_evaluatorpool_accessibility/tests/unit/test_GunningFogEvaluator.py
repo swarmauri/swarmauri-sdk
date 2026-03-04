@@ -2,7 +2,6 @@ import logging
 from unittest.mock import MagicMock, patch
 
 import pytest
-from swarmauri_core.programs.IProgram import IProgram as Program
 from swarmauri_evaluatorpool_accessibility.GunningFogEvaluator import (
     GunningFogEvaluator,
 )
@@ -27,7 +26,7 @@ def mock_program():
     Returns:
         MagicMock: A mock program object
     """
-    program = MagicMock(spec=Program)
+    program = MagicMock()
     program.get_source_files.return_value = {"main.txt": ""}
     return program
 
