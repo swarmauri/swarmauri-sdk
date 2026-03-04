@@ -148,18 +148,24 @@ def _request_schema_from_handler(
 def _security_from_dependencies(deps: Iterable[Any]) -> list[dict[str, list[str]]]:
     security: list[dict[str, list[str]]] = []
     for dependency in _extract_security_dependencies(deps):
-        if _is_http_bearer_dependency(dependency):
-            scheme_name = getattr(dependency, "scheme_name", None) or "HTTPBearer"
-            security.append({scheme_name: []})
+        security_dependency = _as_openapi_security_dependency(dependency)
+        if security_dependency is None:
+            continue
+        security.append(security_dependency.openapi_security_requirement())
     return security
 
 
 def _security_schemes_from_dependencies(deps: Iterable[Any]) -> dict[str, Any]:
     schemes: dict[str, Any] = {}
     for dependency in _extract_security_dependencies(deps):
-        if _is_http_bearer_dependency(dependency):
-            scheme_name = getattr(dependency, "scheme_name", None) or "HTTPBearer"
-            schemes[scheme_name] = {"type": "http", "scheme": "bearer"}
+        security_dependency = _as_openapi_security_dependency(dependency)
+        if security_dependency is None:
+            continue
+
+        scheme_name = getattr(security_dependency, "scheme_name", None)
+        if not isinstance(scheme_name, str) or not scheme_name:
+            continue
+        schemes[scheme_name] = security_dependency.openapi_security_scheme()
     return schemes
 
 
@@ -200,5 +206,18 @@ def _iter_security_dependencies(dep: Any, seen: set[int]) -> Iterable[Any]:
         yield from _iter_security_dependencies(default, seen)
 
 
+def _as_openapi_security_dependency(dep: Any) -> Any | None:
+    has_scheme = callable(getattr(dep, "openapi_security_scheme", None))
+    has_requirement = callable(getattr(dep, "openapi_security_requirement", None))
+    if has_scheme and has_requirement:
+        return dep
+    return None
+
+
 def _is_http_bearer_dependency(dep: Any) -> bool:
-    return dep.__class__.__name__ == "HTTPBearer"
+    security_dependency = _as_openapi_security_dependency(dep)
+    if security_dependency is None:
+        return False
+
+    scheme = security_dependency.openapi_security_scheme()
+    return scheme.get("type") == "http" and scheme.get("scheme") == "bearer"
