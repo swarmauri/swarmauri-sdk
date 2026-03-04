@@ -1,5 +1,5 @@
-name: v0.10.0 - Mono (Prepare, Validate) [Batch]
-run-name: v0.10.0 prepare/validate [batch ${{ github.event.inputs.batch_index || 'n/a' }}] <${{ github.event.inputs.batch_label || 'unknown group 0-0' }}>
+name: v0.10.0-Mono-Prepare-Validate-Batch
+run-name: v0.10.0-prepare-validate-batch-${{ github.event.inputs.batch_index||'na' }}-${{ github.event.inputs.batch_label||'unknown-group-0-0' }}
 
 on:
   workflow_dispatch:
@@ -211,4 +211,6 @@ jobs:
             echo "No changes to commit."
             echo "checkout_ref=$DEFAULT_REF" >> $GITHUB_OUTPUT
           fi
+
+
 

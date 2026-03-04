@@ -1,5 +1,5 @@
-name: v0.10.0 - Mono (Prepare, Validate, Publish) [Batch]
-run-name: v0.10.0 prepare/validate/publish [batch ${{ github.event.inputs.batch_index || 'n/a' }}]
+name: v0.10.0-Mono-Prepare-Validate-Publish-Batch
+run-name: v0.10.0-prepare-validate-publish-batch-${{ github.event.inputs.batch_index||'na' }}
 
 on:
   workflow_dispatch:
@@ -381,4 +381,6 @@ jobs:
           prerelease: ${{ steps.prepare_release.outputs.prerelease }}
           files: |
             pkgs/${{ matrix.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
+
+
 

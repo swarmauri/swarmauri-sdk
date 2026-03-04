@@ -1,5 +1,5 @@
 # .github/workflows/v0.10.0_package-metadata.yaml
-name: Verify Package Metadata
+name: v0.10.0-Verify-Package-Metadata
 
 on:
   pull_request:
@@ -28,4 +28,5 @@ jobs:
       - name: Fail if verification failed
         if: steps.verify.outcome == 'failure'
         run: exit 1
+
 

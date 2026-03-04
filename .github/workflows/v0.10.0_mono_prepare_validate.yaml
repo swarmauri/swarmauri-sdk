@@ -1,5 +1,5 @@
-name: v0.10.0 - Mono (Prepare, Validate) [Dispatcher]
-run-name: v0.10.0 prepare/validate dispatcher
+name: v0.10.0-Mono-Prepare-Validate-Dispatcher
+run-name: v0.10.0-prepare-validate-dispatcher
 
 on:
   workflow_dispatch:
@@ -154,4 +154,5 @@ jobs:
             });
 
             core.info(`Dispatched batch ${batchIndex} (${batchLabel}) with ${members.length} members.`);
+
 

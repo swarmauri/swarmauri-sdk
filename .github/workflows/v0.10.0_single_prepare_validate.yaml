@@ -1,4 +1,4 @@
-name: v0.10.0 - Single (Prepare, Validate)
+name: v0.10.0-Single-Prepare-Validate
 
 on:
   workflow_dispatch:
@@ -157,4 +157,5 @@ jobs:
           else
             echo "::notice::No changes to commit."
           fi
+
 

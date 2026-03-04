@@ -1,4 +1,4 @@
-name: v0.10.0 - Single (Prepare, Validate, Publish)
+name: v0.10.0-Single-Prepare-Validate-Publish
 
 on:
   workflow_dispatch:
@@ -328,4 +328,5 @@ jobs:
           prerelease: ${{ steps.prepare_release.outputs.prerelease }}
           files: |
             pkgs/${{ github.event.inputs.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
+
 
