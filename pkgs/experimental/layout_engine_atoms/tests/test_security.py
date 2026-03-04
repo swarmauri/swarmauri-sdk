@@ -58,7 +58,7 @@ def test_xss_protection_in_client_setup():
 
     # Event handlers should be rejected
     with pytest.raises(ValueError, match="potentially dangerous pattern"):
-        validate_client_setup_code('onload="alert(\'xss\')"')
+        validate_client_setup_code("onload=\"alert('xss')\"")
 
     # javascript: protocol should be rejected
     with pytest.raises(ValueError, match="potentially dangerous pattern"):
@@ -203,7 +203,7 @@ def test_rate_limiting_enabled():
     # First 5 requests should succeed
     for i in range(5):
         response = client.post("/dashboard/events/test.event", json={})
-        assert response.status_code == 200, f"Request {i+1} failed"
+        assert response.status_code == 200, f"Request {i + 1} failed"
 
     # 6th request should be rate limited
     response = client.post("/dashboard/events/test.event", json={})
@@ -240,7 +240,6 @@ def test_rate_limiting_disabled_by_default():
 async def test_websocket_subscription_limit():
     """Test that WebSocket subscriptions are limited."""
     from layout_engine_atoms.runtime.vue.realtime import (
-        RealtimeChannel,
         WebsocketMuxHub,
     )
 

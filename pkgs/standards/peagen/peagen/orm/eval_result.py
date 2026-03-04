@@ -4,7 +4,7 @@ from tigrbl.orm.tables import Base
 from tigrbl.types import JSON, PgUUID, String, Mapped, relationship
 from tigrbl.orm.mixins import GUIDPk, Timestamped, Ownable, TenantBound
 from tigrbl.specs import S, acol
-from tigrbl.column.storage_spec import ForeignKeySpec
+from tigrbl.specs import ForeignKeySpec
 from typing import TYPE_CHECKING
 
 from .users import User

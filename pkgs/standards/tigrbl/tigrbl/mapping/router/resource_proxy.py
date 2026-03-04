@@ -5,7 +5,7 @@ from typing import Any, Awaitable, Callable, Dict, Mapping, Optional
 
 from ..rpc import _coerce_payload, _get_phase_chains, _serialize_output, _validate_input
 from ...mapping import engine_resolver as _resolver
-from ...runtime.executor.invoke import _invoke
+from ...runtime import executor as _executor
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/resource_proxy")
@@ -85,7 +85,7 @@ class _ResourceProxy:
                     seed_ctx["response_serializer"] = lambda result: _serialize_output(
                         self._model, alias, alias, result
                     )
-                return await _invoke(
+                return await _executor._invoke(
                     request=request,
                     db=db,
                     phases=_get_phase_chains(self._model, alias),

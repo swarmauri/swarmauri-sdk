@@ -9,13 +9,17 @@ from __future__ import annotations
 import uvicorn
 from fastapi import FastAPI
 
-from layout_engine_atoms import LayoutOptions, RealtimeOptions, RealtimeChannel, RealtimeBinding
+from layout_engine_atoms import (
+    LayoutOptions,
+    RealtimeOptions,
+    RealtimeChannel,
+    RealtimeBinding,
+)
 from layout_engine_atoms.patterns import mount_with_auto_events
 
 from layout_engine_atoms.examples.crud_dashboard.manifest import build_manifest
 
 # Import handlers to trigger @ui_event decorator registration
-from  layout_engine_atoms.examples.crud_dashboard import handlers
 
 
 app = FastAPI(

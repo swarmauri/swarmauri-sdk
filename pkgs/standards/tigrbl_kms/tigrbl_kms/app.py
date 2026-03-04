@@ -41,6 +41,11 @@ app = TigrblApp(
 # Custom ops return raw dicts so no finalize hook needed
 app.include_tables([Key, KeyVersion], base_prefix="/kms")
 app.attach_diagnostics(prefix="/system")
+
+# Keep package-level contract focused on domain models only.
+for _system_model in ("__tigrbl_system_docs__", "__tigrbl_system_routes__"):
+    app.tables.pop(_system_model, None)
+
 # Backward-compatible alias used by tests and older integrations.
 app.routes = app.router.routes
 

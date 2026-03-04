@@ -9,7 +9,7 @@ from tigrbl.types import (
     relationship,
 )
 from tigrbl.specs import S, acol
-from tigrbl.column.storage_spec import ForeignKeySpec
+from tigrbl.specs import ForeignKeySpec
 
 
 @declarative_mixin
