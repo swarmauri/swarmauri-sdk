@@ -38,3 +38,4 @@ pkgs/experimental/swarmakit/libs/svelte/.vscode/extensions.json
 node_modules/
 *.zip
 .pymon
+/.tmp_pydeps
