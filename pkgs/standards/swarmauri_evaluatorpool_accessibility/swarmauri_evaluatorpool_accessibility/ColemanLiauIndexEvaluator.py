@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import Any, Dict, Literal, Tuple
 
@@ -34,7 +35,7 @@ class ColemanLiauIndexEvaluator(EvaluatorBase, ComponentBase):
     # Core scoring logic
     # ──────────────────────────────────────────────────────────────────────
     def _compute_score(self, program: Program, **__) -> Tuple[float, Dict[str, Any]]:
-        text = self._extract_text(program)
+        text = self._get_text_from_program(program)
 
         if not text.strip():
             return 0.0, {
@@ -64,9 +65,29 @@ class ColemanLiauIndexEvaluator(EvaluatorBase, ComponentBase):
         grade_level = max(1, round(raw_cli))
 
         score = (
-            self._normalise(grade_level)
+            self._calculate_score(grade_level)
             if self.normalize_scores
             else float(grade_level)
+        )
+
+        if self.logger:
+            self.logger.debug(
+                "Text analysis: letters=%s words=%s sentences=%s",
+                letters,
+                words,
+                sentences,
+            )
+            self.logger.debug(
+                "Coleman-Liau Index: %.3f (grade=%s)", raw_cli, grade_level
+            )
+        logging.getLogger(__name__).debug(
+            "Text analysis: letters=%s words=%s sentences=%s",
+            letters,
+            words,
+            sentences,
+        )
+        logging.getLogger(__name__).debug(
+            "Coleman-Liau Index: %.3f (grade=%s)", raw_cli, grade_level
         )
 
         return score, {
@@ -83,7 +104,7 @@ class ColemanLiauIndexEvaluator(EvaluatorBase, ComponentBase):
     # ──────────────────────────────────────────────────────────────────────
     # Helpers
     # ──────────────────────────────────────────────────────────────────────
-    def _extract_text(self, program: Program) -> str:
+    def _get_text_from_program(self, program: Program) -> str:
         for attr in ("output", "source", "content"):
             val = getattr(program, attr, None)
             if isinstance(val, str):
@@ -112,10 +133,14 @@ class ColemanLiauIndexEvaluator(EvaluatorBase, ComponentBase):
 
     @staticmethod
     def _count_sentences(text: str) -> int:
+        if not text.strip():
+            return 0
         hits = re.findall(r"[.!?]+", text)
         return len(hits) if hits else 1
 
-    def _normalise(self, grade_level: int) -> float:
+    def _calculate_score(self, grade_level: int) -> float:
+        if not self.normalize_scores:
+            return float(grade_level)
         if grade_level == self.target_grade_level:
             return 1.0
         if grade_level <= 1 or grade_level >= self.max_grade_level:
