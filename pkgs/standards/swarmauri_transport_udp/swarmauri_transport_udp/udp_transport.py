@@ -6,13 +6,7 @@ import asyncio
 import socket
 from typing import Optional, Sequence
 
-from swarmauri_base.transports import (
-    AnycastTransportMixin,
-    BroadcastTransportMixin,
-    MulticastTransportMixin,
-    TransportBase,
-    UnicastTransportMixin,
-)
+from swarmauri_base.transports import TransportBase
 from swarmauri_core.transports.capabilities import TransportCapabilities
 from swarmauri_core.transports.enums import (
     AddressScheme,
@@ -25,10 +19,6 @@ from swarmauri_core.transports.enums import (
 
 class UdpTransport(
     TransportBase,
-    UnicastTransportMixin,
-    MulticastTransportMixin,
-    BroadcastTransportMixin,
-    AnycastTransportMixin,
 ):
     """Datagram transport built on UDP sockets."""
 
