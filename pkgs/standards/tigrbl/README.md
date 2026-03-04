@@ -195,7 +195,7 @@ Operation Handler
 v
 JSON-RPC Response
 
-````
+```
 
 ## Hooks 🪝
 
@@ -212,7 +212,7 @@ class Item(Base):
     async def validate(cls, ctx):
         if ctx["request"].payload.get("name") == "bad":
             raise ValueError("invalid name")
-````
+```
 
 The function runs during the `PRE_HANDLER` phase of `create`. The
 `ctx` mapping provides request and response objects, a database session,
