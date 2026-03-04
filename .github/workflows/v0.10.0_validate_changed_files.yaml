@@ -1,7 +1,7 @@
 # File: .github/workflows/validate.yml
-# Workflow: v0.7.1 – Changes (Validate)
+# Workflow: v0.10.0 – Changes (Validate)
 
-name: v0.7.1 - Changes (Validate)
+name: v0.10.0 - Changes (Validate)
 
 on:
   pull_request:
@@ -199,3 +199,4 @@ jobs:
           print(f"::notice title=pytest summary ({pkg_name})::pkg_path={pkg_path} {summary}")
           PY
           exit $STATUS
+

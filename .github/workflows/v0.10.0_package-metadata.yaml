@@ -1,4 +1,4 @@
-# .github/workflows/package-metadata.yaml
+# .github/workflows/v0.10.0_package-metadata.yaml
 name: Verify Package Metadata
 
 on:
@@ -6,7 +6,7 @@ on:
     paths:
       - "pkgs/**"
       - "scripts/verify_package_metadata.py"
-      - ".github/workflows/package-metadata.yaml"
+      - ".github/workflows/v0.10.0_package-metadata.yaml"
   workflow_dispatch:
 
 jobs:
@@ -28,3 +28,4 @@ jobs:
       - name: Fail if verification failed
         if: steps.verify.outcome == 'failure'
         run: exit 1
+

@@ -1,11 +1,11 @@
-name: v0.9.0 - Mono (Prepare, Validate) [Dispatcher]
-run-name: v0.9.0 prepare/validate dispatcher
+name: v0.10.0 - Mono (Prepare, Validate) [Dispatcher]
+run-name: v0.10.0 prepare/validate dispatcher
 
 on:
   workflow_dispatch:
 
 concurrency:
-  group: v0.9.0-mono-prepare-validate-dispatch
+  group: v0.10.0-mono-prepare-validate-dispatch
   cancel-in-progress: false
 
 permissions:
@@ -144,7 +144,7 @@ jobs:
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: 'v0.9.0_mono_prepare_validate_batch.yaml',
+              workflow_id: 'v0.10.0_mono_prepare_validate_batch.yaml',
               ref: context.ref,
               inputs: {
                 members_json: JSON.stringify(members),
@@ -154,3 +154,4 @@ jobs:
             });
 
             core.info(`Dispatched batch ${batchIndex} (${batchLabel}) with ${members.length} members.`);
+
