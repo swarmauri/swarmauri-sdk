@@ -7,7 +7,7 @@ import datetime as dt
 from tigrbl.orm.mixins import GUIDPk, Timestamped, ValidityWindow
 from tigrbl.orm.mixins.utils import CRUD_IO
 from tigrbl.specs import ColumnSpec, F, IO, S, acol
-from tigrbl.table import Base
+from tigrbl.orm.tables import Base
 from tigrbl.types import JSON, Mapped, String, TZDateTime, UniqueConstraint
 
 

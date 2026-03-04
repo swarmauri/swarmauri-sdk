@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any, Dict, List
 
-from tigrbl.table import Base
+from tigrbl.orm.tables import Base
 from tigrbl.specs import ColumnSpec, F, IO, vcol
 from tigrbl.types import (
     Mapped,

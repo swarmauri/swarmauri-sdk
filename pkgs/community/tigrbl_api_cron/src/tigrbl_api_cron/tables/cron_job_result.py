@@ -6,8 +6,8 @@ import datetime as dt
 
 from tigrbl.orm.mixins import GUIDPk, Timestamped
 from tigrbl.specs import ColumnSpec, F, IO, S, acol
-from tigrbl.specs.storage_spec import ForeignKeySpec
-from tigrbl.table import Base
+from tigrbl.specs import ForeignKeySpec
+from tigrbl.orm.tables import Base
 from tigrbl.types import JSON, Mapped, PgUUID, String, TZDateTime, UUID
 
 
