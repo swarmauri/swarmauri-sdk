@@ -4,7 +4,7 @@ import pytest
 @pytest.mark.asyncio
 async def test_bindings_before_mount(monkeypatch):
     from tigrbl import TigrblApp
-    from tigrbl.bindings import rest as rest_binding
+    from tigrbl.mapping import rest as rest_binding
 
     monkeypatch.setattr(
         rest_binding,
@@ -31,5 +31,17 @@ async def test_bindings_before_mount(monkeypatch):
         {"name": "n", "algorithm": "AES256_GCM", "status": "enabled"}, db=object()
     )
 
-    assert result == "ok"
+    assert result["model"] is Key
+    assert result["alias"] == "create"
+    assert result["target"] == "create"
+    assert result["payload"]["name"] == "n"
+
+    final = await _executor._invoke(
+        request=result["request"],
+        db=result["db"],
+        phases=result["phases"],
+        ctx=result["ctx"],
+    )
+
+    assert final == "ok"
     assert "HANDLER" in called["phases"]

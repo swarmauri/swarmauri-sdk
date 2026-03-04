@@ -139,10 +139,12 @@ class WebsocketMuxHub:
                         f"({self.max_subscriptions_per_client})"
                     )
                     # Send error message to client
-                    await websocket.send_json({
-                        "error": "Subscription limit exceeded",
-                        "limit": self.max_subscriptions_per_client
-                    })
+                    await websocket.send_json(
+                        {
+                            "error": "Subscription limit exceeded",
+                            "limit": self.max_subscriptions_per_client,
+                        }
+                    )
                     return
                 current_subs.add(channel)
 
@@ -170,7 +172,9 @@ class WebsocketMuxHub:
             try:
                 await websocket.send_json(message)
             except WebSocketDisconnect:
-                logger.info(f"WebSocket disconnected during broadcast: {websocket.client}")
+                logger.info(
+                    f"WebSocket disconnected during broadcast: {websocket.client}"
+                )
                 stale.append(websocket)
             except Exception as e:
                 logger.error(

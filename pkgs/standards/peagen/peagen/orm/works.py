@@ -10,7 +10,7 @@ from tigrbl.types import (
 )
 from tigrbl.orm.mixins import GUIDPk, Timestamped, StatusColumn
 from tigrbl.specs import S, acol
-from tigrbl.column.storage_spec import ForeignKeySpec
+from tigrbl.specs import ForeignKeySpec
 from tigrbl import hook_ctx
 from typing import TYPE_CHECKING
 

@@ -5,7 +5,7 @@ import datetime as dt
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import acol, IO, F, S, ColumnSpec
-from tigrbl.column.storage_spec import ForeignKeySpec
+from tigrbl.specs import ForeignKeySpec
 from tigrbl.types import (
     PgUUID,
     UUID as UUIDType,

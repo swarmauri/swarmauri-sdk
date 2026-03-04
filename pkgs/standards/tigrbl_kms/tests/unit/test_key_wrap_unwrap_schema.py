@@ -1,6 +1,6 @@
 """Test wrap/unwrap endpoint schema validation."""
 
-from tigrbl.bindings import bind
+from tigrbl import bind
 from tigrbl_kms.orm import Key
 
 

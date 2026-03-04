@@ -21,9 +21,9 @@ from tigrbl.orm.mixins import (
     StatusColumn,
 )
 from tigrbl.specs import S, acol
-from tigrbl.column.storage_spec import ForeignKeySpec
+from tigrbl.specs import ForeignKeySpec
 from tigrbl import hook_ctx
-from tigrbl.bindings import build_schemas as _build_schemas
+from tigrbl import build_schemas as _build_schemas
 from typing import TYPE_CHECKING
 from peagen.orm.mixins import RepositoryRefMixin
 

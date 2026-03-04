@@ -6,6 +6,7 @@ from FastTokenizer.regex_tokenizer import RegexTokenizer
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 @pytest.mark.unit
 class TestRegexTokenizer:
     """Unit tests for the RegexTokenizer class."""
@@ -26,10 +27,13 @@ class TestRegexTokenizer:
         tokens = regex_tokenizer.tokenize(input_string)
         assert tokens == expected_tokens
 
-    @pytest.mark.parametrize("input_string, expected_tokens", [
-        ("Hello world!", ["Hello", "world"]),
-        ("This is another test.", ["This", "is", "another", "test"]),
-    ])
+    @pytest.mark.parametrize(
+        "input_string, expected_tokens",
+        [
+            ("Hello world!", ["Hello", "world"]),
+            ("This is another test.", ["This", "is", "another", "test"]),
+        ],
+    )
     def test_tokenize_multiple(self, regex_tokenizer, input_string, expected_tokens):
         """Test that the tokenize method returns the expected tokens for multiple inputs."""
         tokens = regex_tokenizer.tokenize(input_string)

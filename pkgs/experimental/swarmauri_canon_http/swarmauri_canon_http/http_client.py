@@ -10,6 +10,7 @@ from .utils import to_bytes
 # Import HTTP/2 components from our subpackage.
 from .h2 import frames, hpack, multiplex
 
+
 # A helper to send the HTTP/2 connection preface.
 async def send_connection_preface(writer):
     """
@@ -19,6 +20,7 @@ async def send_connection_preface(writer):
     preface = b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
     writer.write(preface)
     await writer.drain()
+
 
 class HttpClient:
     def __init__(self, base_url=None, timeout=None, version="1.1"):
@@ -45,7 +47,9 @@ class HttpClient:
             path = f"{path}?{query}"
         return parsed_url, path
 
-    def sync_request(self, method, url, headers=None, params=None, data=None, json_data=None):
+    def sync_request(
+        self, method, url, headers=None, params=None, data=None, json_data=None
+    ):
         """
         Synchronous HTTP request.
         :returns: A tuple (status, headers, body)
@@ -57,14 +61,18 @@ class HttpClient:
         # Process JSON payload.
         if json_data is not None:
             data = json.dumps(json_data)
-            headers['Content-Type'] = 'application/json'
+            headers["Content-Type"] = "application/json"
 
         if self.version == "1.1":
             # Use built-in http.client for HTTP/1.1.
             if parsed_url.scheme == "https":
-                conn = http.client.HTTPSConnection(parsed_url.netloc, timeout=self.timeout)
+                conn = http.client.HTTPSConnection(
+                    parsed_url.netloc, timeout=self.timeout
+                )
             else:
-                conn = http.client.HTTPConnection(parsed_url.netloc, timeout=self.timeout)
+                conn = http.client.HTTPConnection(
+                    parsed_url.netloc, timeout=self.timeout
+                )
             conn.request(method, path, body=data, headers=headers)
             response = conn.getresponse()
             body_response = response.read()
@@ -74,11 +82,17 @@ class HttpClient:
 
         elif self.version == "2":
             # For HTTP/2, run the async version in a blocking manner.
-            return asyncio.run(self._handle_http2_async_request(method, parsed_url, path, headers, data))
+            return asyncio.run(
+                self._handle_http2_async_request(
+                    method, parsed_url, path, headers, data
+                )
+            )
         else:
             raise HttpClientError(f"Unsupported HTTP version: {self.version}")
 
-    async def async_request(self, method, url, headers=None, params=None, data=None, json_data=None):
+    async def async_request(
+        self, method, url, headers=None, params=None, data=None, json_data=None
+    ):
         """
         Asynchronous HTTP request.
         :returns: Raw response data as a string.
@@ -90,7 +104,7 @@ class HttpClient:
         # Process JSON payload.
         if json_data is not None:
             data = json.dumps(json_data)
-            headers['Content-Type'] = 'application/json'
+            headers["Content-Type"] = "application/json"
 
         if self.version == "1.1":
             # Build a raw HTTP/1.1 request.
@@ -111,7 +125,7 @@ class HttpClient:
             try:
                 reader, writer = await asyncio.wait_for(
                     asyncio.open_connection(host, port, ssl=ssl_context),
-                    timeout=self.timeout
+                    timeout=self.timeout,
                 )
             except asyncio.TimeoutError:
                 raise TimeoutError("Connection timed out")
@@ -125,7 +139,9 @@ class HttpClient:
                 raise TimeoutError("Writing data timed out")
 
             try:
-                response_data = await asyncio.wait_for(reader.read(), timeout=self.timeout)
+                response_data = await asyncio.wait_for(
+                    reader.read(), timeout=self.timeout
+                )
             except asyncio.TimeoutError:
                 writer.close()
                 await writer.wait_closed()
@@ -136,11 +152,15 @@ class HttpClient:
             return response_data.decode("utf-8")
 
         elif self.version == "2":
-            return await self._handle_http2_async_request(method, parsed_url, path, headers, data)
+            return await self._handle_http2_async_request(
+                method, parsed_url, path, headers, data
+            )
         else:
             raise HttpClientError(f"Unsupported HTTP version: {self.version}")
 
-    async def _handle_http2_async_request(self, method, parsed_url, path, headers, data):
+    async def _handle_http2_async_request(
+        self, method, parsed_url, path, headers, data
+    ):
         """
         Handle HTTP/2 asynchronous requests using our h2 submodule.
         This method:
@@ -163,7 +183,7 @@ class HttpClient:
         try:
             reader, writer = await asyncio.wait_for(
                 asyncio.open_connection(host, port, ssl=ssl_context),
-                timeout=self.timeout
+                timeout=self.timeout,
             )
         except asyncio.TimeoutError:
             raise TimeoutError("HTTP/2 Connection timed out")
@@ -191,7 +211,7 @@ class HttpClient:
             frame_type=frames.HEADERS,
             flags=0x4,  # END_HEADERS flag.
             stream_id=stream_id,
-            payload=header_block
+            payload=header_block,
         )
         await multiplexer.send_frame(headers_frame)
 
@@ -201,7 +221,7 @@ class HttpClient:
                 frame_type=frames.DATA,
                 flags=0x1,  # END_STREAM flag.
                 stream_id=stream_id,
-                payload=to_bytes(data)
+                payload=to_bytes(data),
             )
             await multiplexer.send_frame(data_frame)
 
@@ -221,23 +241,33 @@ class HttpClient:
         Handle synchronous HTTP/2 requests by running the asynchronous implementation
         in an event loop.
         """
-        return asyncio.run(self._handle_http2_async_request(method, parsed_url, path, headers, data))
+        return asyncio.run(
+            self._handle_http2_async_request(method, parsed_url, path, headers, data)
+        )
 
     # --- Convenience methods for synchronous requests ---
     def get(self, url, headers=None, params=None):
         return self.sync_request("GET", url, headers=headers, params=params)
 
     def post(self, url, headers=None, data=None, json_data=None):
-        return self.sync_request("POST", url, headers=headers, data=data, json_data=json_data)
+        return self.sync_request(
+            "POST", url, headers=headers, data=data, json_data=json_data
+        )
 
     def put(self, url, headers=None, data=None, json_data=None):
-        return self.sync_request("PUT", url, headers=headers, data=data, json_data=json_data)
+        return self.sync_request(
+            "PUT", url, headers=headers, data=data, json_data=json_data
+        )
 
     def patch(self, url, headers=None, data=None, json_data=None):
-        return self.sync_request("PATCH", url, headers=headers, data=data, json_data=json_data)
+        return self.sync_request(
+            "PATCH", url, headers=headers, data=data, json_data=json_data
+        )
 
     def delete(self, url, headers=None, data=None, json_data=None):
-        return self.sync_request("DELETE", url, headers=headers, data=data, json_data=json_data)
+        return self.sync_request(
+            "DELETE", url, headers=headers, data=data, json_data=json_data
+        )
 
     def head(self, url, headers=None, params=None):
         return self.sync_request("HEAD", url, headers=headers, params=params)
@@ -250,16 +280,24 @@ class HttpClient:
         return await self.async_request("GET", url, headers=headers, params=params)
 
     async def apost(self, url, headers=None, data=None, json_data=None):
-        return await self.async_request("POST", url, headers=headers, data=data, json_data=json_data)
+        return await self.async_request(
+            "POST", url, headers=headers, data=data, json_data=json_data
+        )
 
     async def aput(self, url, headers=None, data=None, json_data=None):
-        return await self.async_request("PUT", url, headers=headers, data=data, json_data=json_data)
+        return await self.async_request(
+            "PUT", url, headers=headers, data=data, json_data=json_data
+        )
 
     async def apatch(self, url, headers=None, data=None, json_data=None):
-        return await self.async_request("PATCH", url, headers=headers, data=data, json_data=json_data)
+        return await self.async_request(
+            "PATCH", url, headers=headers, data=data, json_data=json_data
+        )
 
     async def adelete(self, url, headers=None, data=None, json_data=None):
-        return await self.async_request("DELETE", url, headers=headers, data=data, json_data=json_data)
+        return await self.async_request(
+            "DELETE", url, headers=headers, data=data, json_data=json_data
+        )
 
     async def ahead(self, url, headers=None, params=None):
         return await self.async_request("HEAD", url, headers=headers, params=params)

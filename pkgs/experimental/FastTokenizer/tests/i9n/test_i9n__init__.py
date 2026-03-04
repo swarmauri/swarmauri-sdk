@@ -6,6 +6,7 @@ from fasttokenizer import __init__
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 @pytest.mark.i9n
 def test_i9n_init():
     # Test that the Rust extension loads correctly
@@ -16,6 +17,7 @@ def test_i9n_init():
     except Exception as e:
         logger.error(f"Error loading Rust extension: {str(e)}")
         assert False
+
 
 @pytest.mark.i9n
 def test_i9n_teardown():
@@ -28,8 +30,9 @@ def test_i9n_teardown():
         logger.error(f"Error unloading Rust extension: {str(e)}")
         assert False
 
+
 @pytest.mark.i9n
 def test_i9n_version():
     # Test that the version number is correctly retrieved
     version = __init__.get_version()
-    assert isinstance(version, str) and version!= ""
+    assert isinstance(version, str) and version != ""
