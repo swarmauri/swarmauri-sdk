@@ -30,6 +30,7 @@ pkgs/standards/peagen/.pymon
 gateway.db
 kms.db
 *.asc
+*.kid
 *.so
 *.db
 target/
