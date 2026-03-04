@@ -57,6 +57,7 @@ from .schema import _build_schema, _build_list_params, get_schema
 from ._concrete._request import Request
 from .security import Depends
 from ._concrete._json_response import JSONResponse
+from ._concrete._background import BackgroundTask
 from ._concrete._response import Response
 from .system import mount_diagnostics
 
@@ -181,6 +182,7 @@ __all__ += [
     "Depends",
     "Response",
     "JSONResponse",
+    "BackgroundTask",
     "resolver",
 ]
 __all__ += [
