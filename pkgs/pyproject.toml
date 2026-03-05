@@ -336,6 +336,14 @@ members = [
     "standards/swarmauri_xmp_webp",
     "standards/swm_example_package",
     "standards/tigrbl",
+    "standards/tigrbl_atoms",
+    "standards/tigrbl_base",
+    "standards/tigrbl_canon",
+    "standards/tigrbl_concrete",
+    "standards/tigrbl_core",
+    "standards/tigrbl_kernel",
+    "standards/tigrbl_runtime",
+    "standards/tigrbl_typing",
     "standards/tigrbl_auth",
     "standards/tigrbl_billing",
     "standards/tigrbl_client",
@@ -635,6 +643,14 @@ swm_example_package = { workspace = true }
 swm_example_plugin = { workspace = true }
 swm_example_community_package = { workspace = true }
 tigrbl = { workspace = true }
+"tigrbl-atoms" = { workspace = true }
+"tigrbl-base" = { workspace = true }
+"tigrbl-canon" = { workspace = true }
+"tigrbl-concrete" = { workspace = true }
+"tigrbl-core" = { workspace = true }
+"tigrbl-kernel" = { workspace = true }
+"tigrbl-runtime" = { workspace = true }
+"tigrbl-typing" = { workspace = true }
 tigrbl_acme_ca = { workspace = true }
 tigrbl_auth = { workspace = true }
 tigrbl_billing = { workspace = true }
