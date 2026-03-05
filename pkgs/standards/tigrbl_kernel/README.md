@@ -26,4 +26,4 @@ pip install tigrbl-kernel
 
 ## Usage
 
-Import from the shared `tigrbl` namespace after installation in your environment.
+Import from the shared package-specific module namespaces after installation in your environment.

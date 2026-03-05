@@ -6,7 +6,7 @@
 
 ## Features
 
-- Provides the `tigrbl.orm` module as a standalone package.
+- Provides the `tigrbl_orm.orm` module as a standalone package.
 - Includes reusable ORM mixins and table models for Tigrbl services.
 - Supports Python 3.10 through 3.12.
 
@@ -27,7 +27,7 @@ pip install tigrbl-orm
 ## Usage
 
 ```python
-from tigrbl.orm.tables.user import User
+from tigrbl_orm.orm.tables.user import User
 
 print(User.__tablename__)
 ```
