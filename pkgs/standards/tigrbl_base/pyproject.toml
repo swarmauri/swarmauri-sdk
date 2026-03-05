@@ -1,0 +1,36 @@
+[project]
+name = "tigrbl_base"
+version = "0.1.0.dev1"
+description = "Tigrbl base package for modular framework composition."
+license = "Apache-2.0"
+readme = "README.md"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Development Status :: 1 - Planning",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["tigrbl", "sdk", "standards", "base"]
+dependencies = [
+    "tigrbl_typing",
+    "tigrbl_core",
+]
+
+[tool.uv.sources]
+tigrbl_typing = { workspace = true }
+tigrbl_core = { workspace = true }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [
+    { include = "tigrbl_base" },
+]
