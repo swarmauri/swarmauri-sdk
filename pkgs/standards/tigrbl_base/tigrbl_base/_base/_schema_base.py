@@ -6,11 +6,12 @@ class SchemaBase:
 
     @classmethod
     def collect(cls, model: type) -> dict[str, dict[str, type]]:
-        from tigrbl_canon.mapping.collect_decorated_schemas import (
-            collect_decorated_schemas,
-        )
+        """Collect schema declarations from model-local attributes only."""
 
-        return collect_decorated_schemas(model)
+        schemas = getattr(model, "schemas", None)
+        if isinstance(schemas, dict):
+            return dict(schemas)
+        return {}
 
 
 __all__ = ["SchemaBase"]
