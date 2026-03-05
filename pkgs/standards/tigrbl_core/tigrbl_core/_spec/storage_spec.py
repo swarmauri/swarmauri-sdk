@@ -4,9 +4,11 @@
 from dataclasses import KW_ONLY, dataclass
 from typing import Any, Literal, Union
 
+from .serde import SerdeMixin
+
 
 @dataclass(frozen=True)
-class StorageTransform:
+class StorageTransform(SerdeMixin):
     """Functions used to transform values on the way to and from the database."""
 
     to_stored: Union[callable, None] = (
@@ -18,7 +20,7 @@ class StorageTransform:
 
 
 @dataclass(frozen=True)
-class ForeignKeySpec:
+class ForeignKeySpec(SerdeMixin):
     """Lightweight description of a foreign key relationship."""
 
     target: str  # "tenant(id)" or fully-qualified
@@ -30,7 +32,7 @@ class ForeignKeySpec:
 
 
 @dataclass(frozen=True)
-class StorageSpec:
+class StorageSpec(SerdeMixin):
     """Describe the database-level shape and behaviour of a column.
 
     The spec maps closely to SQLAlchemy's :class:`~sqlalchemy.Column` keyword

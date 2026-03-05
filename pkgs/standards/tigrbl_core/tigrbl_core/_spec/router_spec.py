@@ -5,10 +5,11 @@ from typing import Any, Callable, Optional, Sequence
 
 from .._spec.engine_spec import EngineCfg
 from .._spec.response_spec import ResponseSpec
+from .serde import SerdeMixin
 
 
 @dataclass
-class RouterSpec:
+class RouterSpec(SerdeMixin):
     """Used to produce a router subclass via Router.from_spec()."""
 
     name: str = "router"

@@ -3,9 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Mapping, Optional
 
+from .serde import SerdeMixin
+
 
 @dataclass(slots=True)
-class RequestSpec:
+class RequestSpec(SerdeMixin):
     method: str = "GET"
     path: str = "/"
     headers: Mapping[str, str] = field(default_factory=dict)
