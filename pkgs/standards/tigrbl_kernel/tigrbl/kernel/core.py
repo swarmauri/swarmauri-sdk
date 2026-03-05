@@ -6,9 +6,9 @@ import threading
 from types import SimpleNamespace
 from typing import Any, ClassVar, Dict, List, Mapping, Optional, Sequence, Tuple
 
-from ..hook_types import StepFn
-from ..executor import _Ctx, _invoke
-from .. import events as _ev
+from tigrbl_runtime.hook_types import StepFn
+from tigrbl_runtime.executor import _Ctx, _invoke
+from tigrbl_runtime import events as _ev
 from .atoms import (
     _DiscoveredAtom,
     _discover_atoms,
@@ -21,7 +21,7 @@ from .atoms import (
 )
 from .cache import _SpecsOnceCache, _WeakMaybeDict
 from .models import KernelPlan, OpKey, OpMeta, OpView
-from ..labels import label_hook
+from tigrbl_runtime.labels import label_hook
 from .opview_compiler import compile_opview_from_specs
 
 logger = logging.getLogger(__name__)
@@ -138,7 +138,7 @@ def _label_step(step: Any, phase: str) -> str:
         return label
     module = getattr(step, "__module__", "") or ""
     name = getattr(step, "__name__", "") or ""
-    if module.startswith("tigrbl.core.crud") and name:
+    if module.startswith("tigrbl_core.core.crud") and name:
         return f"hook:wire:tigrbl:core:crud:ops:{name}@{phase}"
     return f"hook:wire:{_label_callable(step).replace('.', ':')}@{phase}"
 
@@ -385,9 +385,12 @@ class Kernel:
         return {phase: steps for phase, steps in phases.items() if phase not in ingress}
 
     async def handle_http(self, env: Any, app: Any) -> None:
-        from ...mapping.runtime_routes import invoke_runtime_route_handler
-        from ..atoms.egress.asgi_send import _send_json, _send_transport_response
-        from ..status import StatusDetailError
+        from tigrbl_canon.mapping.runtime_routes import invoke_runtime_route_handler
+        from tigrbl_concrete.atoms.egress.asgi_send import (
+            _send_json,
+            _send_transport_response,
+        )
+        from tigrbl_runtime.status import StatusDetailError
 
         plan = self.kernel_plan(app)
         ctx = _Ctx.ensure(request=None, db=None)
@@ -451,7 +454,7 @@ class Kernel:
             )
             return
         except Exception as exc:  # pragma: no cover - defensive runtime fallback
-            from ..status import create_standardized_error
+            from tigrbl_runtime.status import create_standardized_error
 
             std = create_standardized_error(exc)
             detail = (
@@ -467,7 +470,7 @@ class Kernel:
         await _send_transport_response(env, ctx)
 
     def compile_plan(self, app: Any) -> KernelPlan:
-        from ..._spec.binding_spec import (
+        from tigrbl_core._spec.binding_spec import (
             HttpJsonRpcBindingSpec,
             HttpRestBindingSpec,
             WsBindingSpec,

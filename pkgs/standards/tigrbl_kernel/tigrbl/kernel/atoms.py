@@ -17,9 +17,9 @@ from typing import (
     cast,
 )
 
-from ...hook.types import PHASES as HOOK_PHASES
-from ..hook_types import StepFn
-from .. import events as _ev, ordering as _ordering, system as _sys
+from tigrbl_runtime.hook_types import PHASES as HOOK_PHASES
+from tigrbl_runtime.hook_types import StepFn
+from tigrbl_runtime import events as _ev, ordering as _ordering, system as _sys
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ _DiscoveredAtom = tuple[str, _AtomRun]
 def _discover_atoms() -> list[_DiscoveredAtom]:
     out: list[_DiscoveredAtom] = []
     try:
-        import tigrbl.runtime.atoms as atoms_pkg  # type: ignore
+        import tigrbl_concrete.atoms as atoms_pkg  # type: ignore
     except Exception:
         return out
 
@@ -143,8 +143,8 @@ def _inject_pre_tx_dep_atoms(chains: Dict[str, List[StepFn]], sp: Any | None) ->
     if sp is None:
         return
     try:
-        from ..atoms.dep.security import run as sec_run
-        from ..atoms.dep.extra import run as dep_run
+        from tigrbl_concrete.atoms.dep.security import run as sec_run
+        from tigrbl_concrete.atoms.dep.extra import run as dep_run
     except Exception:
         return
 

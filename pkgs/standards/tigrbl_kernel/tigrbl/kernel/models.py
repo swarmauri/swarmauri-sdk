@@ -16,7 +16,7 @@ def _label_step(step: Any, phase: str) -> str:
         return label
     module = getattr(step, "__module__", "") or ""
     name = getattr(step, "__name__", "") or ""
-    if module.startswith("tigrbl.core.crud") and name:
+    if module.startswith("tigrbl_core.core.crud") and name:
         return f"hook:wire:tigrbl:core:crud:ops:{name}@{phase}"
     return f"hook:wire:{_label_callable(step).replace('.', ':')}@{phase}"
 
@@ -75,7 +75,7 @@ class KernelPlan:
         if self._appspec_mapping:
             return self._appspec_mapping
 
-        from ...runtime import events as _ev
+        from tigrbl_runtime import events as _ev
 
         normalized: Dict[str, Dict[str, list[str]]] = {}
         for meta_index, meta in enumerate(self.opmeta):
