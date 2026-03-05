@@ -1,15 +1,15 @@
-# tigrbl/tigrbl/v3/table/_table.py
+# tigrbl/_concrete/_table.py
 from __future__ import annotations
 
 from types import SimpleNamespace
 from typing import Any, Callable
 
-from .._concrete._engine import AsyncSession, Session
+from ._engine import AsyncSession, Session
 from ..ddl import initialize as _ddl_initialize
-from .._concrete._engine import Engine  # reuse the collector
-from ..mapping import engine_resolver as _resolver
-from .._spec.table_spec import TableSpec
-from .._base._table_base import TableBase
+from ._engine import Engine  # reuse the collector
+from tigrbl_canon.tigrbl.mapping import engine_resolver as _resolver
+from tigrbl_core.tigrbl._spec.table_spec import TableSpec
+from tigrbl_base.tigrbl._base._table_base import TableBase
 
 
 class Table(TableBase):

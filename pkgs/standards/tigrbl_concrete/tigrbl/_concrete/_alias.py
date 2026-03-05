@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
-from .._spec.alias_spec import AliasSpec
+from tigrbl_core.tigrbl._spec.alias_spec import AliasSpec
 from .types import Arity, PersistPolicy
 from ..schema.types import SchemaArg
 

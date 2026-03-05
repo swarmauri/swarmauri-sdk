@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .._base._hook_base import HookBase
+from tigrbl_base.tigrbl._base._hook_base import HookBase
 
 
 class Hook(HookBase):

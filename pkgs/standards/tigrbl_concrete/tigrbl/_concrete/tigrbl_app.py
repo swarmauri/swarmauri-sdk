@@ -1,4 +1,4 @@
-# tigrbl/v3/app/tigrbl_app.py
+# tigrbl/_concrete/tigrbl_app.py
 from __future__ import annotations
 
 import asyncio
@@ -18,19 +18,25 @@ from typing import (
     Tuple,
 )
 
-from .._concrete._app import App as _App
-from .._concrete.tigrbl_router import TigrblRouter
+from ._app import App as _App
+from .tigrbl_router import TigrblRouter
 from ._routing import add_route as _add_route_impl
-from .._spec.op_spec import OpSpec
-from .._spec.binding_spec import HttpRestBindingSpec
-from .._spec.engine_spec import EngineCfg
-from ..mapping import engine_resolver as _resolver
+from tigrbl_core.tigrbl._spec.op_spec import OpSpec
+from tigrbl_core.tigrbl._spec.binding_spec import HttpRestBindingSpec
+from tigrbl_core.tigrbl._spec.engine_spec import EngineCfg
+from tigrbl_canon.tigrbl.mapping import engine_resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
-from ..mapping.router.common import AttrDict, _default_prefix, _mount_router
-from ..mapping.router.include import _seed_security_and_deps
-from ..mapping.router.rpc import rpc_call as _rpc_call
-from ..mapping.table import rebind as _rebind, bind as _bind
-from ..mapping.rest import build_router_and_attach as _build_router_and_attach
+from tigrbl_canon.tigrbl.mapping.router.common import (
+    AttrDict,
+    _default_prefix,
+    _mount_router,
+)
+from tigrbl_canon.tigrbl.mapping.router.include import _seed_security_and_deps
+from tigrbl_canon.tigrbl.mapping.router.rpc import rpc_call as _rpc_call
+from tigrbl_canon.tigrbl.mapping.table import rebind as _rebind, bind as _bind
+from tigrbl_canon.tigrbl.mapping.rest import (
+    build_router_and_attach as _build_router_and_attach,
+)
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..system import mount_lens as _mount_lens
 from ..system import mount_openapi as _mount_openapi
@@ -40,12 +46,12 @@ from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..system.docs import build_openapi as _build_openapi
 from ..op import get_registry
 from ._table_registry import TableRegistry
-from .._spec.app_spec import AppSpec
-from ..mapping.runtime_routes import register_runtime_route
-from ..mapping.spec_normalization import normalize_app_spec
-from ..mapping.spec_normalization import _seqify
+from tigrbl_core.tigrbl._spec.app_spec import AppSpec
+from tigrbl_canon.tigrbl.mapping.runtime_routes import register_runtime_route
+from tigrbl_canon.tigrbl.mapping.spec_normalization import normalize_app_spec
+from tigrbl_canon.tigrbl.mapping.spec_normalization import _seqify
 from ..system.favicon import FAVICON_PATH, mount_favicon
-from ..mapping.model_helpers import _OpSpecGroup
+from tigrbl_canon.tigrbl.mapping.model_helpers import _OpSpecGroup
 
 
 # optional compat: legacy transactional decorator

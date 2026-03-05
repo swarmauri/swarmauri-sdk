@@ -1,4 +1,4 @@
-# tigrbl/v3/router/tigrbl_api.py
+# tigrbl/_concrete/tigrbl_router.py
 from __future__ import annotations
 
 import copy
@@ -16,27 +16,29 @@ from typing import (
     Tuple,
 )
 
-from .._concrete._router import Router as _Router
-from .._spec.engine_spec import EngineCfg
+from ._router import Router as _Router
+from tigrbl_core.tigrbl._spec.engine_spec import EngineCfg
 from ..ddl import initialize as _ddl_initialize
-from ..mapping.router.common import _default_prefix, _mount_router
-from ..mapping.router.include import (
+from tigrbl_canon.tigrbl.mapping.router.common import _default_prefix, _mount_router
+from tigrbl_canon.tigrbl.mapping.router.include import (
     _seed_security_and_deps,
     include_table as _include_table,
     include_tables as _include_tables,
 )
-from ..mapping.router.rpc import rpc_call as _rpc_call
-from ..mapping.model import rebind as _rebind, bind as _bind
-from ..mapping.rest import build_router_and_attach as _build_router_and_attach
+from tigrbl_canon.tigrbl.mapping.router.rpc import rpc_call as _rpc_call
+from tigrbl_canon.tigrbl.mapping.model import rebind as _rebind, bind as _bind
+from tigrbl_canon.tigrbl.mapping.rest import (
+    build_router_and_attach as _build_router_and_attach,
+)
 from ..op import get_registry
-from .._spec import OpSpec
+from tigrbl_core.tigrbl._spec import OpSpec
 from ._table_registry import TableRegistry
 from ._routing import include_router as _include_router_impl
 from ..system import mount_openrpc as _mount_openrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..system.docs import build_openapi as _build_openapi
-from ..mapping import engine_resolver as _resolver
-from .._concrete._engine import Engine
+from tigrbl_canon.tigrbl.mapping import engine_resolver as _resolver
+from ._engine import Engine
 
 
 class TigrblRouter(_Router):

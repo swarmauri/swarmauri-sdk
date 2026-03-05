@@ -3,8 +3,8 @@ from __future__ import annotations
 import inspect
 from typing import Any, Callable, Optional
 
-from .._base import TigrblSessionBase
-from .._spec.session_spec import SessionSpec
+from tigrbl_base.tigrbl._base import TigrblSessionBase
+from tigrbl_core.tigrbl._spec.session_spec import SessionSpec
 
 
 class DefaultSession(TigrblSessionBase):

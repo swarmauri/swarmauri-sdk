@@ -1,4 +1,4 @@
-# tigrbl/v3/schema/_schema.py
+# tigrbl/_concrete/_schema.py
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -12,7 +12,7 @@ except Exception:  # pragma: no cover
         pass
 
 
-from .._base import SchemaBase
+from tigrbl_base.tigrbl._base import SchemaBase
 from ..schema.types import SchemaKind
 
 

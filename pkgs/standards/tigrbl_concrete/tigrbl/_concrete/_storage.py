@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from .._base._storage import ForeignKeyBase
+from tigrbl_base.tigrbl._base._storage import ForeignKeyBase
 
 
 @dataclass(frozen=True)

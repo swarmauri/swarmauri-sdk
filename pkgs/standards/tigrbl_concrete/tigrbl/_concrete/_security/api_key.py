@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any, Sequence
 
-from ...runtime.status.exceptions import HTTPException
-from ...runtime.status.mappings import status
-from ..._base._security_base import OpenAPISecurityDependency
+from tigrbl_runtime.tigrbl.runtime.status.exceptions import HTTPException
+from tigrbl_runtime.tigrbl.runtime.status.mappings import status
+from tigrbl_base.tigrbl._base._security_base import OpenAPISecurityDependency
 
 
 class APIKey(OpenAPISecurityDependency):

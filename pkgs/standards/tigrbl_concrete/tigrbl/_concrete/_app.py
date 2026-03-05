@@ -3,18 +3,18 @@ from __future__ import annotations
 from typing import Any
 
 from ._table_registry import TableRegistry
-from .._spec.app_spec import AppSpec
+from tigrbl_core.tigrbl._spec.app_spec import AppSpec
 from ..ddl import initialize as _ddl_initialize
-from .._concrete._engine import Engine
-from ..mapping import engine_resolver as _resolver
-from .._spec.engine_spec import EngineCfg
+from ._engine import Engine
+from tigrbl_canon.tigrbl.mapping import engine_resolver as _resolver
+from tigrbl_core.tigrbl._spec.engine_spec import EngineCfg
 from ._routing import (
     include_router as _include_router_impl,
     merge_tags as _merge_tags_impl,
     normalize_prefix as _normalize_prefix_impl,
 )
-from ..runtime.gw.invoke import invoke
-from ..runtime.gw.raw import GwRawEnvelope
+from tigrbl_runtime.tigrbl.runtime.gw.invoke import invoke
+from tigrbl_runtime.tigrbl.runtime.gw.raw import GwRawEnvelope
 
 
 class App(AppSpec):

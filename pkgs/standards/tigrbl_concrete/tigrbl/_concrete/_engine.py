@@ -1,4 +1,4 @@
-# tigrbl/tigrbl/v3/engine/_engine.py
+# tigrbl/_concrete/_engine.py
 from __future__ import annotations
 
 from contextlib import contextmanager, asynccontextmanager
@@ -22,7 +22,7 @@ class SessionFactory(Protocol):
 Builder = Callable[[], Tuple[Any, SessionFactory]]  # returns (engine, sessionmaker)
 
 if TYPE_CHECKING:  # pragma: no cover - for type checkers only
-    from .._spec.engine_spec import EngineSpec
+    from tigrbl_core.tigrbl._spec.engine_spec import EngineSpec
 
 
 @dataclass(frozen=True)
@@ -123,13 +123,13 @@ class Engine:
         router: Any | None = None,
         tables: tuple[Any, ...] = (),
     ) -> dict[str, Any]:
-        from ..mapping.traversal import collect
+        from tigrbl_canon.tigrbl.mapping.traversal import collect
 
         return collect(app=app, router=router, tables=tables)
 
     @staticmethod
     def install(collected: dict[str, Any]) -> None:
-        from ..mapping.traversal import install
+        from tigrbl_canon.tigrbl.mapping.traversal import install
 
         install(collected)
 

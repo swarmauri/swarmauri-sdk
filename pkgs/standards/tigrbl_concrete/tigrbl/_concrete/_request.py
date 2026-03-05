@@ -11,8 +11,8 @@ from typing import Any
 from collections.abc import Iterable, Mapping
 from urllib.parse import parse_qs
 
-from tigrbl._concrete._headers import HeaderCookies, Headers
-from .._base._request_base import RequestBase
+from ._headers import HeaderCookies, Headers
+from tigrbl_base.tigrbl._base._request_base import RequestBase
 
 
 @dataclass(frozen=True)

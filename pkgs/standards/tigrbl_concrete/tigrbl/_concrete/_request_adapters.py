@@ -1,4 +1,4 @@
-"""ASGI/WSGI adapters for constructing :class:`tigrbl.requests.Request`."""
+"""ASGI/WSGI adapters for constructing :class:`tigrbl._concrete._request.Request`."""
 
 from __future__ import annotations
 

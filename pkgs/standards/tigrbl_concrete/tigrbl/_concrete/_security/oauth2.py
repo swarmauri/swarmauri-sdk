@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Sequence
 
-from ..._base._security_base import OpenAPISecurityDependency
+from tigrbl_base.tigrbl._base._security_base import OpenAPISecurityDependency
 
 
 class OAuth2(OpenAPISecurityDependency):

@@ -6,10 +6,10 @@ from contextlib import asynccontextmanager
 from typing import Any, Callable
 from types import SimpleNamespace
 
-from .._spec.router_spec import RouterSpec
-from ..mapping import engine_resolver as _resolver
-from ..mapping.spec_normalization import _seqify
-from .._spec.engine_spec import EngineCfg
+from tigrbl_core.tigrbl._spec.router_spec import RouterSpec
+from tigrbl_canon.tigrbl.mapping import engine_resolver as _resolver
+from tigrbl_canon.tigrbl.mapping.spec_normalization import _seqify
+from tigrbl_core.tigrbl._spec.engine_spec import EngineCfg
 from ._table_registry import TableRegistry
 
 from ._routing import (
