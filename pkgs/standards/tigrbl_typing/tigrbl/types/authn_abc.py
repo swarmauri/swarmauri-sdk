@@ -1,4 +1,4 @@
-# tigrbl/v3/types/authn_abc.py
+# tigrbl/types/authn_abc.py
 from __future__ import annotations
 from abc import ABC, abstractmethod
 
