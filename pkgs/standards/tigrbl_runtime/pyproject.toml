@@ -34,3 +34,9 @@ build-backend = "poetry.core.masonry.api"
 packages = [
     { include = "tigrbl_runtime" },
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.9",
+]
