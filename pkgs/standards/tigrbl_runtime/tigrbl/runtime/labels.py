@@ -1,4 +1,4 @@
-# tigrbl/v3/runtime/labels.py
+# tigrbl/runtime/labels.py
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
