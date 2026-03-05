@@ -336,6 +336,7 @@ members = [
     "standards/swarmauri_xmp_webp",
     "standards/swm_example_package",
     "standards/tigrbl",
+    "standards/tigrbl_orm",
     "standards/tigrbl_atoms",
     "standards/tigrbl_base",
     "standards/tigrbl_canon",
@@ -649,6 +650,7 @@ tigrbl = { workspace = true }
 "tigrbl-concrete" = { workspace = true }
 "tigrbl-core" = { workspace = true }
 "tigrbl-kernel" = { workspace = true }
+"tigrbl-orm" = { workspace = true }
 "tigrbl-runtime" = { workspace = true }
 "tigrbl-typing" = { workspace = true }
 tigrbl_acme_ca = { workspace = true }

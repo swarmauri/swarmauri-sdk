@@ -1,4 +1,4 @@
-# tigrbl/v3/core/__init__.py
+# pkgs/standards/tigrbl_core/tigrbl/core/__init__.py
 """
 Tigrbl v3 – Core operations.
 

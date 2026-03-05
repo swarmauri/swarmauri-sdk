@@ -21,6 +21,7 @@ dependencies = [
     "tigrbl-concrete",
     "tigrbl-canon",
     "tigrbl-runtime",
+    "tigrbl-orm",
     "pydantic>=2.0.0",
     "sqlalchemy>=2.0",
     "aiosqlite>=0.19.0",
@@ -46,6 +47,7 @@ tests = [
 "tigrbl-concrete" = { workspace = true }
 "tigrbl-canon" = { workspace = true }
 "tigrbl-runtime" = { workspace = true }
+"tigrbl-orm" = { workspace = true }
 tigrbl-tests = { workspace = true }
 tigrbl_client = { workspace = true }
 

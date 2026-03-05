@@ -9,6 +9,10 @@ register RPC & REST, and (optionally) mount JSON-RPC and diagnostics.
 
 from __future__ import annotations
 
+from pkgutil import extend_path
+
+__path__ = extend_path(__path__, __name__)
+
 from ._concrete import Router
 
 # ── OpSpec (source of truth) ───────────────────────────────────────────────────
