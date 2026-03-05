@@ -25,7 +25,8 @@ from typing import (
 )
 
 from .executor import _invoke, _Ctx
-from . import events as _ev, ordering as _ordering, system as _sys
+from tigrbl_kernel.kernel import events as _ev, ordering as _ordering
+from . import system as _sys
 from ..runtime.hook_types import PHASES, StepFn
 from ..mapping.column_mro_collect import mro_collect_columns
 

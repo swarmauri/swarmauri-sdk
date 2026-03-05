@@ -19,7 +19,8 @@ from typing import (
 
 from tigrbl_runtime.hook_types import PHASES as HOOK_PHASES
 from tigrbl_runtime.hook_types import StepFn
-from tigrbl_runtime import events as _ev, ordering as _ordering, system as _sys
+from . import events as _ev, ordering as _ordering
+from tigrbl_runtime import system as _sys
 
 logger = logging.getLogger(__name__)
 

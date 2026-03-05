@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from tigrbl_runtime import events as _ev
-from tigrbl_runtime.labels import label_hook
+from . import events as _ev
+from .labels import label_hook
 
 
 def _callable_label(fn: Any) -> str:
