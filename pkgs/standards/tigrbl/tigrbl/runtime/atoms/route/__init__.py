@@ -5,6 +5,7 @@ from typing import Any, Callable, Dict, Optional, Tuple
 from . import binding_match as _binding_match
 from . import binding_policy_apply as _binding_policy_apply
 from . import ctx_finalize as _ctx_finalize
+from . import jsonrpc_batch_intercept as _jsonrpc_batch_intercept
 from . import op_resolve as _op_resolve
 from . import params_normalize as _params_normalize
 from . import path_params_extract as _path_params_extract
@@ -37,6 +38,10 @@ REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
     ),
     ("route", "plan_select"): (_plan_select.ANCHOR, _plan_select.run),
     ("route", "ctx_finalize"): (_ctx_finalize.ANCHOR, _ctx_finalize.run),
+    ("route", "jsonrpc_batch_intercept"): (
+        _jsonrpc_batch_intercept.ANCHOR,
+        _jsonrpc_batch_intercept.run,
+    ),
 }
 
 __all__ = ["REGISTRY", "RunFn"]

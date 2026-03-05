@@ -370,6 +370,102 @@ class Kernel:
                 f"opview_missing: app={app!r} model={getattr(model, '__name__', model)!r} alias={alias!r}"
             ) from exc
 
+    async def _run_phase_chain(self, ctx: _Ctx, phases: Any) -> None:
+        for _phase, steps in (phases or {}).items():
+            for step in steps or ():
+                rv = step(ctx)
+                if hasattr(rv, "__await__"):
+                    await rv
+
+    @staticmethod
+    def _without_ingress_phases(phases: Mapping[str, Any] | None) -> dict[str, Any]:
+        if not phases:
+            return {}
+        ingress = {"INGRESS_BEGIN", "INGRESS_PARSE", "INGRESS_ROUTE"}
+        return {phase: steps for phase, steps in phases.items() if phase not in ingress}
+
+    async def handle_http(self, env: Any, app: Any) -> None:
+        from ...mapping.runtime_routes import invoke_runtime_route_handler
+        from ..atoms.egress.asgi_send import _send_json, _send_transport_response
+        from ..status import StatusDetailError
+
+        plan = self.kernel_plan(app)
+        ctx = _Ctx.ensure(request=None, db=None)
+        ctx.app = app
+        ctx.router = app
+        ctx.raw = env
+        ctx.kernel_plan = plan
+
+        await self._run_phase_chain(ctx, plan.ingress_chain)
+
+        route = (
+            ctx.temp.get("route", {})
+            if isinstance(getattr(ctx, "temp", None), dict)
+            else {}
+        )
+        egress = (
+            ctx.temp.get("egress", {})
+            if isinstance(getattr(ctx, "temp", None), dict)
+            else {}
+        )
+        if (
+            isinstance(route, dict)
+            and route.get("short_circuit") is True
+            and isinstance(egress, dict)
+            and egress.get("transport_response")
+        ):
+            await _send_transport_response(env, ctx)
+            return
+
+        opmeta_index = route.get("opmeta_index") if isinstance(route, dict) else None
+        if not isinstance(opmeta_index, int):
+            if isinstance(route, dict) and route.get("method_not_allowed") is True:
+                await _send_json(env, 405, {"detail": "Method Not Allowed"})
+                return
+            handler = route.get("handler") if isinstance(route, dict) else None
+            if callable(handler):
+                await invoke_runtime_route_handler(ctx, handler=handler)
+                await _send_transport_response(env, ctx)
+                return
+            await _send_json(
+                env, 404, {"detail": "No runtime operation matched request."}
+            )
+            return
+
+        opmeta = plan.opmeta[opmeta_index]
+        ctx.model = opmeta.model
+        ctx.op = opmeta.alias
+        ctx.opview = self.get_opview(app, opmeta.model, opmeta.alias)
+
+        phases = self._without_ingress_phases(plan.phase_chains.get(opmeta_index, {}))
+        try:
+            await _invoke(request=None, db=None, phases=phases, ctx=ctx)
+        except StatusDetailError as exc:
+            detail = (
+                exc.detail
+                if getattr(exc, "detail", None) not in (None, "")
+                else str(exc)
+            )
+            await _send_json(
+                env, int(getattr(exc, "status_code", 500) or 500), {"detail": detail}
+            )
+            return
+        except Exception as exc:  # pragma: no cover - defensive runtime fallback
+            from ..status import create_standardized_error
+
+            std = create_standardized_error(exc)
+            detail = (
+                std.detail
+                if getattr(std, "detail", None) not in (None, "")
+                else str(std)
+            )
+            await _send_json(
+                env, int(getattr(std, "status_code", 500) or 500), {"detail": detail}
+            )
+            return
+
+        await _send_transport_response(env, ctx)
+
     def compile_plan(self, app: Any) -> KernelPlan:
         from ..._spec.binding_spec import (
             HttpJsonRpcBindingSpec,

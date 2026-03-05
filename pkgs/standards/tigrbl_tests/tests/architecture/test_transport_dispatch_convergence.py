@@ -29,6 +29,13 @@ def test_gateway_invoke_invokes_runtime_kernel_plan_and_executor():
     assert "await _invoke(" in source
 
 
+def test_gateway_invoke_uses_runtime_atoms_for_fallback_and_errors():
+    source = _source("runtime/gw/invoke.py")
+    assert "_runtime_route_handler" in source
+    assert "_error_to_transport" in source
+    assert "except Exception" not in source
+
+
 def test_mapping_does_not_import_dispatch_modules():
     rest_collection = ROOT / "mapping" / "rest" / "collection.py"
     rest_member = ROOT / "mapping" / "rest" / "member.py"
