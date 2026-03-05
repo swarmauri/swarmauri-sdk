@@ -1,4 +1,4 @@
-# tigrbl/v3/runtime/atoms/resolve/assemble.py
+# pkgs/standards/tigrbl_atoms/tigrbl/atoms/resolve/assemble.py
 from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Dict, Tuple

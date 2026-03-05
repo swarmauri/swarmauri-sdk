@@ -1,4 +1,4 @@
-# tigrbl/v3/runtime/atoms/storage/to_stored.py
+# pkgs/standards/tigrbl_atoms/tigrbl/atoms/storage/to_stored.py
 from __future__ import annotations
 
 import logging

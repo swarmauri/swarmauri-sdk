@@ -1,4 +1,4 @@
-# tigrbl/v3/runtime/atoms/out/masking.py
+# pkgs/standards/tigrbl_atoms/tigrbl/atoms/out/masking.py
 from __future__ import annotations
 
 from typing import Any, Dict, Mapping, MutableMapping, Optional, Sequence

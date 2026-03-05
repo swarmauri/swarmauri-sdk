@@ -1,4 +1,4 @@
-# tigrbl/v3/runtime/atoms/out/__init__.py
+# pkgs/standards/tigrbl_atoms/tigrbl/atoms/out/__init__.py
 from __future__ import annotations
 
 from typing import Any, Callable, Dict, Optional, Tuple

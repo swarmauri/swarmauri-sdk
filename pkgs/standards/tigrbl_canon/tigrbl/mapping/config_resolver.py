@@ -5,30 +5,7 @@ from dataclasses import asdict, is_dataclass
 from types import MappingProxyType
 from typing import Any, Dict, Iterable, Mapping, Optional
 
-# Optional defaults module (kept tolerant if not present yet)
-try:
-    from .defaults import DEFAULTS  # expected: Mapping[str, Any]
-except Exception:  # pragma: no cover
-    DEFAULTS = {
-        # wire/out
-        "exclude_none": False,
-        "omit_nulls": False,  # alias; normalized below
-        "response_extras_overwrite": False,
-        "extras_overwrite": False,  # alias
-        # wire/in
-        "reject_unknown_fields": False,
-        # refresh
-        "refresh_policy": "auto",  # 'auto' | 'always' | 'never'
-        "refresh_after_write": None,  # Optional[bool] → normalized into refresh_policy
-        # validation/docs
-        "required_policy": {},  # dict[op][field] = bool
-        # misc buckets developers may use
-        "openapi": {},
-        "docs": {},
-        "openrpc": {},
-        "lens": {},
-        "trace": {"enabled": True},
-    }
+from .defaults import DEFAULTS
 
 
 # Keys that should be deep-merged (dict ← dict) instead of overridden.
