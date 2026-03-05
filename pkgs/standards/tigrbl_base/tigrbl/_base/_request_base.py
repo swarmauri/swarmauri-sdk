@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .._spec.request_spec import RequestSpec
+from tigrbl_core.tigrbl._spec.request_spec import RequestSpec
 
 
 class RequestBase(RequestSpec):
@@ -24,7 +24,7 @@ class RequestBase(RequestSpec):
         ``Request.from_scope(...)`` consistently available.
         """
 
-        from tigrbl._concrete._request import Request
+        from tigrbl_concrete.tigrbl._concrete._request import Request
 
         return Request.from_scope(scope, receive, app=app, state=state)
 

@@ -5,12 +5,17 @@ from __future__ import annotations
 from typing import Any
 from urllib.parse import urlencode
 
-from tigrbl._concrete._request import Request
-from tigrbl._concrete._request_adapters import request_from_asgi
-from tigrbl._concrete._response import Response
-from tigrbl.runtime.atoms.egress.asgi_send import finalize_transport_response
+from tigrbl_concrete.tigrbl._concrete._request import Request
+from tigrbl_concrete.tigrbl._concrete._request_adapters import request_from_asgi
+from tigrbl_concrete.tigrbl._concrete._response import Response
+from tigrbl_atoms.tigrbl.atoms.egress.asgi_send import finalize_transport_response
 
-from .._spec.middleware_spec import MiddlewareSpec, ASGIReceive, ASGISend, Message
+from tigrbl_core.tigrbl._spec.middleware_spec import (
+    ASGIReceive,
+    ASGISend,
+    Message,
+    MiddlewareSpec,
+)
 
 
 class MiddlewareBase(MiddlewareSpec):

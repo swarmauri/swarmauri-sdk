@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from .._spec.storage_spec import ForeignKeySpec
+from tigrbl_core.tigrbl._spec.storage_spec import ForeignKeySpec
 
 
 @dataclass(frozen=True)
