@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Mapping, Union, Any, Tuple
 from urllib.parse import urlsplit, urlunsplit
 
-from .._concrete._engine import Engine, Provider, SessionFactory
+from tigrbl_concrete._concrete._engine import Engine, Provider, SessionFactory
 
 # The value stored by @engine_ctx on App/API/Table/Op.
 EngineCfg = Union[str, Mapping[str, object], "EngineSpec", Provider, Engine]

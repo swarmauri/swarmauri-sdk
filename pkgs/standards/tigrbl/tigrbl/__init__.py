@@ -22,6 +22,7 @@ _ALIAS_MODULES = {
     "kernel": "tigrbl_kernel.kernel",
 }
 
+
 def _optional_import(path: str):
     try:
         return import_module(path)

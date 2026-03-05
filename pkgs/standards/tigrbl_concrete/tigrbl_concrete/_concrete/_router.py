@@ -22,7 +22,9 @@ from ._routing import (
 from ._httpx import ensure_httpx_sync_transport
 
 from ._route import Route
-from ..system.docs.openapi.metadata import is_metadata_route as _is_metadata_route_impl
+from tigrbl.system.docs.openapi.metadata import (
+    is_metadata_route as _is_metadata_route_impl,
+)
 
 Handler = Callable[..., Any]
 

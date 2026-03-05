@@ -25,7 +25,7 @@ from tigrbl_core._spec.op_spec import OpSpec
 from tigrbl_core._spec.binding_spec import HttpRestBindingSpec
 from tigrbl_core._spec.engine_spec import EngineCfg
 from tigrbl_canon.mapping import engine_resolver as _resolver
-from ..ddl import initialize as _ddl_initialize
+from tigrbl.ddl import initialize as _ddl_initialize
 from tigrbl_canon.mapping.router.common import (
     AttrDict,
     _default_prefix,
@@ -37,20 +37,20 @@ from tigrbl_canon.mapping.table import rebind as _rebind, bind as _bind
 from tigrbl_canon.mapping.rest import (
     build_router_and_attach as _build_router_and_attach,
 )
-from ..system import mount_diagnostics as _mount_diagnostics
-from ..system import mount_lens as _mount_lens
-from ..system import mount_openapi as _mount_openapi
-from ..system import mount_openrpc as _mount_openrpc
-from ..system import mount_swagger as _mount_swagger
-from ..system import build_openrpc_spec as _build_openrpc_spec
-from ..system.docs import build_openapi as _build_openapi
-from ..op import get_registry
+from tigrbl.system import mount_diagnostics as _mount_diagnostics
+from tigrbl.system import mount_lens as _mount_lens
+from tigrbl.system import mount_openapi as _mount_openapi
+from tigrbl.system import mount_openrpc as _mount_openrpc
+from tigrbl.system import mount_swagger as _mount_swagger
+from tigrbl.system import build_openrpc_spec as _build_openrpc_spec
+from tigrbl.system.docs import build_openapi as _build_openapi
+from tigrbl.op import get_registry
 from ._table_registry import TableRegistry
 from tigrbl_core._spec.app_spec import AppSpec
 from tigrbl_canon.mapping.runtime_routes import register_runtime_route
 from tigrbl_canon.mapping.spec_normalization import normalize_app_spec
 from tigrbl_canon.mapping.spec_normalization import _seqify
-from ..system.favicon import FAVICON_PATH, mount_favicon
+from tigrbl.system.favicon import FAVICON_PATH, mount_favicon
 from tigrbl_canon.mapping.model_helpers import _OpSpecGroup
 
 
