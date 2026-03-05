@@ -110,7 +110,7 @@ def _sys_handler_crud(obj: Optional[object], ctx: Any) -> None:
         acquired_here = False
         if getattr(ctx, "db", None) is None:
             try:
-                from ..mapping import engine_resolver as _resolver
+                from tigrbl_canon.mapping import engine_resolver as _resolver
 
                 db, release = _resolver.acquire(
                     router=getattr(ctx, "router", None) or getattr(ctx, "app", None),

@@ -33,7 +33,10 @@ class TableSpec(SerdeMixin):
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
-        from ..mapping.spec_normalization import merge_seq_attr, resolve_table_engine
+        from tigrbl_canon.mapping.spec_normalization import (
+            merge_seq_attr,
+            resolve_table_engine,
+        )
 
         cls.OPS = tuple(merge_seq_attr(cls, "OPS", include_inherited=True))
         cls.COLUMNS = tuple(merge_seq_attr(cls, "COLUMNS", include_inherited=True))
@@ -58,7 +61,10 @@ class TableSpec(SerdeMixin):
 
     @classmethod
     def collect(cls, model: type) -> "TableSpec":
-        from ..mapping.spec_normalization import merge_seq_attr, resolve_table_engine
+        from tigrbl_canon.mapping.spec_normalization import (
+            merge_seq_attr,
+            resolve_table_engine,
+        )
 
         return cls(
             model=model,

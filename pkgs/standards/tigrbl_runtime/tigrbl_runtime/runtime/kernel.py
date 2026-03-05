@@ -28,7 +28,7 @@ from .executor import _invoke, _Ctx
 from tigrbl_kernel.kernel import events as _ev, ordering as _ordering
 from . import system as _sys
 from ..runtime.hook_types import PHASES, StepFn
-from ..mapping.column_mro_collect import mro_collect_columns
+from tigrbl_canon.mapping.column_mro_collect import mro_collect_columns
 
 logger = logging.getLogger(__name__)
 

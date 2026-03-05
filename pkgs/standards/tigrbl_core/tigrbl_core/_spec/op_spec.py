@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, Any, Literal, Mapping, Optional, Tuple
 from .binding_spec import BindingSpec
 
 from .._spec.hook_spec import HookSpec as OpHook
-
 from .serde import SerdeMixin
+from tigrbl_typing.phases import PHASE as PHASE, PHASES as PHASES
 from tigrbl_runtime.runtime.hook_types import StepFn
 
 PersistPolicy = Literal["default", "prepend", "append", "override", "skip"]
@@ -29,11 +29,13 @@ TargetOp = Literal[
     "custom",
 ]
 
+_EXPORTED_PHASE_SYMBOLS = (PHASE, PHASES)
+
 
 if TYPE_CHECKING:  # pragma: no cover
     from .._spec.engine_spec import EngineCfg
     from .._spec.response_spec import ResponseSpec
-    from tigrbl.schema.types import SchemaArg
+    from .._spec.schema_spec import SchemaArg
 else:
     EngineCfg = Any
 

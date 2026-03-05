@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, MutableMapping
 
 from ... import events as _ev
-from ...._concrete._request import Request
+from tigrbl_concrete._concrete._request import Request
 
 ANCHOR = _ev.INGRESS_REQUEST_FROM_SCOPE
 

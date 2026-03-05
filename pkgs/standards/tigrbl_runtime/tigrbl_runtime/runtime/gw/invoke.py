@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
-from ..atoms.egress.asgi_send import _send_transport_response
-from ..atoms.response.error_to_transport import run as _error_to_transport
-from ..atoms.sys.runtime_route_handler import run as _runtime_route_handler
+from tigrbl_atoms.atoms.egress.asgi_send import _send_transport_response
+from tigrbl_atoms.atoms.response.error_to_transport import run as _error_to_transport
+from tigrbl_atoms.atoms.sys.runtime_route_handler import run as _runtime_route_handler
 from ..executor import _Ctx, _invoke
-from ..kernel.core import Kernel
+from ..kernel import Kernel
 from .raw import GwRawEnvelope
 
 

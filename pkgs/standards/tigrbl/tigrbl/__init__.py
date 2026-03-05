@@ -15,6 +15,7 @@ _ALIAS_MODULES = {
     "_spec": "tigrbl_core._spec",
     "_base": "tigrbl_base._base",
     "_concrete": "tigrbl_concrete._concrete",
+    "core": "tigrbl_core.core",
     "mapping": "tigrbl_canon.mapping",
     "orm": "tigrbl_orm.orm",
     "runtime": "tigrbl_runtime.runtime",
@@ -44,6 +45,9 @@ orm = import_module("tigrbl_orm.orm")
 runtime = _optional_import("tigrbl_runtime.runtime")
 atoms = _optional_import("tigrbl_atoms.atoms")
 kernel = _optional_import("tigrbl_kernel.kernel")
+
+if runtime is not None and kernel is not None:
+    sys.modules.setdefault(f"{__name__}.runtime.kernel", kernel)
 
 # Backward-compatible names requested for top-level facade access.
 specs = _spec

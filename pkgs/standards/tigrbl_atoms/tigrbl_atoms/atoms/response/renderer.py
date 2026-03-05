@@ -4,10 +4,10 @@ from pathlib import Path
 from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union, cast
 import logging
 
-from ...._concrete._response import Response
+from tigrbl_concrete._concrete._response import Response
 from typing import Callable
 
-from ....shortcuts.responses import (
+from tigrbl.shortcuts.responses import (
     as_file,
     as_html,
     as_json,

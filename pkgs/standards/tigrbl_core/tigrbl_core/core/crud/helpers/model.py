@@ -5,7 +5,7 @@ from typing import Any, Dict, Mapping, Tuple
 
 import logging
 
-from ....mapping.column_mro_collect import mro_collect_columns
+from tigrbl_canon.mapping.column_mro_collect import mro_collect_columns
 
 logger = logging.getLogger("uvicorn")
 

@@ -3,16 +3,16 @@ from __future__ import annotations
 import inspect
 from typing import Any, Callable
 
-from ....core.crud.params import Param
-from ....mapping.core_resolver import (
+from tigrbl_core.core.crud.params import Param
+from tigrbl_canon.mapping.core_resolver import (
     annotation_marker,
     extract_param_value,
     is_request_annotation,
     split_annotated,
 )
-from ....runtime.status.exceptions import HTTPException
-from ....runtime.status.mappings import status
-from ....security.dependencies import Dependency
+from tigrbl_runtime.runtime.status.exceptions import HTTPException
+from tigrbl_runtime.runtime.status.mappings import status
+from tigrbl.security.dependencies import Dependency
 from ... import events as _ev
 
 ANCHOR = _ev.DEP_SECURITY

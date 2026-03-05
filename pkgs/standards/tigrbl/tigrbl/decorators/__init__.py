@@ -20,6 +20,9 @@ _EXPORTS = {
     "schema_ctx": "tigrbl.decorators.schema",
     "session_ctx": "tigrbl.decorators.session",
     "read_only_session": "tigrbl.decorators.session",
+    # router
+    "route_ctx": "tigrbl.decorators.router",
+    "route": "tigrbl.decorators.router",
     # middleware
     "MiddlewareConfig": "tigrbl.decorators.middlewares",
     "middleware": "tigrbl.decorators.middlewares",

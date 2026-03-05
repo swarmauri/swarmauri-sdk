@@ -6,7 +6,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from ... import events as _ev
-from ....mapping import engine_resolver as _resolver
+from tigrbl_canon.mapping import engine_resolver as _resolver
 
 ANCHOR = _ev.ROUTE_CTX_FINALIZE
 _METADATA_OP_ALIASES = {"__openapi__", "__docs__"}

@@ -27,7 +27,7 @@ def _is_jsonrpc_path(app: Any, scope: Mapping[str, Any]) -> bool:
 
 @asynccontextmanager
 async def _request_db_session(app: Any):
-    from ....mapping import engine_resolver as _resolver
+    from tigrbl_canon.mapping import engine_resolver as _resolver
 
     provider = _resolver.resolve_provider(router=app)
     get_db = provider.get_db if provider is not None else None

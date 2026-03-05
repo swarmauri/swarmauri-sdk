@@ -4,7 +4,7 @@ import json
 from typing import Any, Mapping
 
 from ... import events as _ev
-from ...._concrete._response import Response
+from tigrbl_concrete._concrete._response import Response
 
 ANCHOR = _ev.EGRESS_ASGI_SEND
 

@@ -1,0 +1,23 @@
+"""Compatibility namespace for legacy ``tigrbl.mapping`` imports."""
+
+from __future__ import annotations
+
+from importlib import import_module
+from pkgutil import extend_path
+from typing import Any
+
+__path__ = extend_path(__path__, __name__)
+
+_CANON = import_module("tigrbl_canon.mapping")
+
+# Mirror canonical mapping modules into this namespace so imports like
+# ``tigrbl.mapping.engine_resolver`` continue to resolve.
+for _path in getattr(_CANON, "__path__", ()):
+    if _path not in __path__:
+        __path__.append(_path)
+
+__all__ = list(getattr(_CANON, "__all__", ()))
+
+
+def __getattr__(name: str) -> Any:
+    return getattr(_CANON, name)

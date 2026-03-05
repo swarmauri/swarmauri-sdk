@@ -5,7 +5,7 @@ from typing import Any, Mapping, Sequence
 
 from ... import events as _ev
 from ...opview import ensure_schema_in, opview_from_ctx
-from ....core.crud.helpers.model import _single_pk_name
+from tigrbl_core.core.crud.helpers.model import _single_pk_name
 
 ANCHOR = _ev.ROUTE_PAYLOAD_SELECT
 

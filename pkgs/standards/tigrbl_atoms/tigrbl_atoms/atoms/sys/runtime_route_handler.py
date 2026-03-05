@@ -6,14 +6,14 @@ from typing import Any, Callable
 from ... import events as _ev
 from ...gw.raw import GwRouteEnvelope
 from ...status import StatusDetailError
-from ....core.crud.params import Param
-from ....mapping.core_resolver import (
+from tigrbl_core.core.crud.params import Param
+from tigrbl_canon.mapping.core_resolver import (
     annotation_marker,
     extract_param_value,
     is_request_annotation,
     split_annotated,
 )
-from ....security.dependencies import Dependency
+from tigrbl.security.dependencies import Dependency
 from ..dep.extra import invoke_dependency as invoke_extra_dependency
 
 ANCHOR = _ev.SYS_HANDLER_PERSISTENCE
