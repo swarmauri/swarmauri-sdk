@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .._spec.op_spec import OpSpec
+from tigrbl_core.tigrbl._spec.op_spec import OpSpec
 
 
 class OpBase(OpSpec):

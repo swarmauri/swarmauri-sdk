@@ -5,9 +5,9 @@ from dataclasses import dataclass
 from http.cookies import SimpleCookie
 from typing import Any, Mapping
 
-from tigrbl._concrete._headers import HeaderCookies, Headers
+from tigrbl_concrete.tigrbl._concrete._headers import HeaderCookies, Headers
 
-from .._spec.response_spec import ResponseSpec, TemplateSpec
+from tigrbl_core.tigrbl._spec.response_spec import ResponseSpec, TemplateSpec
 
 
 class _JSONDualMethod:

@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, List, Optional
 
 from ._session_abc import SessionABC
-from .._spec.session_spec import SessionSpec
+from tigrbl_core.tigrbl._spec.session_spec import SessionSpec
 
 
 @dataclass
