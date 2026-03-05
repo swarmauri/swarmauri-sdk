@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from typing import Any, Callable
 
 from ._engine import AsyncSession, Session
-from ..ddl import initialize as _ddl_initialize
+from tigrbl.ddl import initialize as _ddl_initialize
 from ._engine import Engine  # reuse the collector
 from tigrbl_canon.mapping import engine_resolver as _resolver
 from tigrbl_core._spec.table_spec import TableSpec
@@ -35,7 +35,7 @@ class Table(TableBase):
 
     @classmethod
     def should_wire_canonical(cls, op: str) -> bool:
-        from ..config.constants import (
+        from tigrbl.config.constants import (
             TIGRBL_DEFAULTS_EXCLUDE_ATTR,
             TIGRBL_DEFAULTS_INCLUDE_ATTR,
             TIGRBL_DEFAULTS_MODE_ATTR,

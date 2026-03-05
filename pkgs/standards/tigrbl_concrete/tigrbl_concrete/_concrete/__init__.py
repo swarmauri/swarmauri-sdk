@@ -29,6 +29,15 @@ _EXPORTS = {
     "RedirectResponse": "_redirect_response",
     "Request": "_request",
     "Body": "_body",
+    "Depends": "dependencies",
+    "APIKey": "_security",
+    "HTTPBearer": "_security",
+    "OAuth2": "_security",
+    "OpenIdConnect": "_security",
+    "MutualTLS": "_security",
+    "TigrblApp": "tigrbl_app",
+    "TigrblRouter": "tigrbl_router",
+    "BackgroundTask": "_response",
 }
 
 __all__ = list(_EXPORTS)

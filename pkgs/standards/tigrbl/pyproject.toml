@@ -18,10 +18,14 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
+    "tigrbl-core",
+    "tigrbl-base",
     "tigrbl-concrete",
     "tigrbl-canon",
-    "tigrbl-runtime",
     "tigrbl-orm",
+    "tigrbl-runtime",
+    "tigrbl-atoms",
+    "tigrbl-kernel",
     "pydantic>=2.0.0",
     "sqlalchemy>=2.0",
     "aiosqlite>=0.19.0",
@@ -44,10 +48,14 @@ tests = [
 ]
 
 [tool.uv.sources]
+"tigrbl-core" = { workspace = true }
+"tigrbl-base" = { workspace = true }
 "tigrbl-concrete" = { workspace = true }
 "tigrbl-canon" = { workspace = true }
-"tigrbl-runtime" = { workspace = true }
 "tigrbl-orm" = { workspace = true }
+"tigrbl-runtime" = { workspace = true }
+"tigrbl-atoms" = { workspace = true }
+"tigrbl-kernel" = { workspace = true }
 tigrbl-tests = { workspace = true }
 tigrbl_client = { workspace = true }
 

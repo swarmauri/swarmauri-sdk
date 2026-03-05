@@ -18,7 +18,7 @@ from typing import (
 
 from ._router import Router as _Router
 from tigrbl_core._spec.engine_spec import EngineCfg
-from ..ddl import initialize as _ddl_initialize
+from tigrbl.ddl import initialize as _ddl_initialize
 from tigrbl_canon.mapping.router.common import _default_prefix, _mount_router
 from tigrbl_canon.mapping.router.include import (
     _seed_security_and_deps,
@@ -30,13 +30,13 @@ from tigrbl_canon.mapping.model import rebind as _rebind, bind as _bind
 from tigrbl_canon.mapping.rest import (
     build_router_and_attach as _build_router_and_attach,
 )
-from ..op import get_registry
+from tigrbl.op import get_registry
 from tigrbl_core._spec import OpSpec
 from ._table_registry import TableRegistry
 from ._routing import include_router as _include_router_impl
-from ..system import mount_openrpc as _mount_openrpc
-from ..system import mount_diagnostics as _mount_diagnostics
-from ..system.docs import build_openapi as _build_openapi
+from tigrbl.system import mount_openrpc as _mount_openrpc
+from tigrbl.system import mount_diagnostics as _mount_diagnostics
+from tigrbl.system.docs import build_openapi as _build_openapi
 from tigrbl_canon.mapping import engine_resolver as _resolver
 from ._engine import Engine
 

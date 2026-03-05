@@ -5,7 +5,7 @@ from typing import Optional
 
 from tigrbl_core._spec.alias_spec import AliasSpec
 from .types import Arity, PersistPolicy
-from ..schema.types import SchemaArg
+from tigrbl.schema.types import SchemaArg
 
 
 @dataclass(frozen=True)
