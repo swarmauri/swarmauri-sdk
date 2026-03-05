@@ -19,11 +19,13 @@ classifiers = [
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "tigrbl-kernel",
+    "tigrbl-concrete",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
 [tool.uv.sources]
 "tigrbl-kernel" = { workspace = true }
+"tigrbl-concrete" = { workspace = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
