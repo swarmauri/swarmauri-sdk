@@ -1,4 +1,4 @@
-# tigrbl/v3/runtime/atoms/wire/build_in.py
+# pkgs/standards/tigrbl_atoms/tigrbl/atoms/wire/build_in.py
 from __future__ import annotations
 
 import uuid as _uuid

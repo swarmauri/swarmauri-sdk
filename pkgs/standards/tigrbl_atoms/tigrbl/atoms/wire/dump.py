@@ -1,4 +1,4 @@
-# tigrbl/v3/runtime/atoms/wire/dump.py
+# pkgs/standards/tigrbl_atoms/tigrbl/atoms/wire/dump.py
 from __future__ import annotations
 
 import base64
