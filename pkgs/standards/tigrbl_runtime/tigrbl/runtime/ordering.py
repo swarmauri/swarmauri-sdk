@@ -1,4 +1,4 @@
-# tigrbl/v3/runtime/ordering.py
+# tigrbl/runtime/ordering.py
 from __future__ import annotations
 
 from collections import defaultdict
