@@ -5,14 +5,44 @@ from dataclasses import dataclass, field
 from typing import Optional, Mapping, Union, Any, Tuple
 from urllib.parse import urlsplit, urlunsplit
 
-from .._concrete._engine import Engine, Provider, SessionFactory
+from .serde import SerdeMixin
+
+SessionFactory = Any
+
+
+@dataclass(frozen=True)
+class EngineProviderSpec(SerdeMixin):
+    """Concrete-agnostic wrapper for provider-like engine bindings."""
+
+    spec: "EngineSpec"
+
+    @staticmethod
+    def from_any(x: Any | None) -> Optional["EngineProviderSpec"]:
+        if x is None:
+            return None
+        if isinstance(x, EngineProviderSpec):
+            return x
+        spec = getattr(x, "spec", None)
+        if isinstance(spec, EngineSpec):
+            return EngineProviderSpec(spec=spec)
+        spec = EngineSpec.from_any(x)
+        if spec is None:
+            return None
+        return EngineProviderSpec(spec=spec)
+
 
 # The value stored by @engine_ctx on App/API/Table/Op.
-EngineCfg = Union[str, Mapping[str, object], "EngineSpec", Provider, Engine]
+EngineCfg = Union[
+    str,
+    Mapping[str, object],
+    "EngineSpec",
+    EngineProviderSpec,
+    object,
+]
 
 
 @dataclass
-class EngineSpec:
+class EngineSpec(SerdeMixin):
     """
     Canonical, normalized engine spec → Provider factory.
 
@@ -62,11 +92,9 @@ class EngineSpec:
         if isinstance(x, EngineSpec):
             return x
 
-        if isinstance(x, Provider):
-            return x.spec
-
-        if isinstance(x, Engine):
-            return x.spec
+        spec = getattr(x, "spec", None)
+        if isinstance(spec, EngineSpec):
+            return spec
 
         # DSN string
         if isinstance(x, str):
@@ -303,10 +331,6 @@ class EngineSpec:
             "read_only_enforced": False,
             "engine": self.kind or "unknown",
         }
-
-    def to_provider(self) -> Provider:
-        """Materialize a lazy :class:`Provider` for this spec."""
-        return Provider(self)
 
     def __repr__(self) -> str:  # pragma: no cover - deterministic output
         def _redact_dsn(dsn: Optional[str]) -> Optional[str]:

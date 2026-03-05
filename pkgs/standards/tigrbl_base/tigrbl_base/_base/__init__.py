@@ -1,24 +1,32 @@
 """Base class implementations for tigrbl internals."""
 
-from ._hook_base import HookBase
-from ._storage import ForeignKeyBase
-from ._op_base import OpBase
-from ._request_base import RequestBase
-from ._schema_base import SchemaBase
-from ._session_abc import SessionABC
-from ._session_base import TigrblSessionBase
-from ._table_base import TableBase
-from ._table_registry_base import TableRegistryBase
+from __future__ import annotations
+
+from importlib import import_module
+from typing import Any
+
+_EXPORTS = {
+    "EngineBase": "_engine_base",
+    "EngineProviderBase": "_engine_provider_base",
+    "HookBase": "_hook_base",
+    "ForeignKeyBase": "_storage",
+    "OpBase": "_op_base",
+    "RequestBase": "_request_base",
+    "SchemaBase": "_schema_base",
+    "SessionABC": "_session_abc",
+    "TigrblSessionBase": "_session_base",
+    "TableBase": "_table_base",
+    "TableRegistryBase": "_table_registry_base",
+}
+
+__all__ = list(_EXPORTS)
 
 
-__all__ = [
-    "HookBase",
-    "ForeignKeyBase",
-    "OpBase",
-    "RequestBase",
-    "SchemaBase",
-    "SessionABC",
-    "TigrblSessionBase",
-    "TableBase",
-    "TableRegistryBase",
-]
+def __getattr__(name: str) -> Any:
+    module_name = _EXPORTS.get(name)
+    if module_name is None:
+        raise AttributeError(name)
+    module = import_module(f"{__name__}.{module_name}")
+    value = getattr(module, name)
+    globals()[name] = value
+    return value

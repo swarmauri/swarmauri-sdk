@@ -9,7 +9,13 @@ import logging
 import threading
 from typing import Any, Callable, Optional
 
-from .._concrete._engine import AsyncSession, Engine, Provider, Session
+from .._concrete._engine import (
+    AsyncSession,
+    Engine,
+    Provider,
+    Session,
+    provider_from_spec,
+)
 from .._spec.engine_spec import EngineSpec, EngineCfg
 
 logger = logging.getLogger("uvicorn")
@@ -76,7 +82,7 @@ def _intern_provider(spec: EngineSpec, *, provider: Provider | None = None) -> P
         existing = _PROV_BY_KEY.get(key)
         if existing is not None:
             return existing
-        new_provider = provider or spec.to_provider()
+        new_provider = provider or provider_from_spec(spec)
         _PROV_BY_KEY[key] = new_provider
         return new_provider
 
