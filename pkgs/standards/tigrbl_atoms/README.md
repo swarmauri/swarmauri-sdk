@@ -26,4 +26,4 @@ pip install tigrbl-atoms
 
 ## Usage
 
-Import from the shared `tigrbl` namespace after installation in your environment.
+Import from the package module namespace after installation in your environment.
