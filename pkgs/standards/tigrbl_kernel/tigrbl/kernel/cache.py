@@ -4,7 +4,7 @@ import threading
 import weakref
 from typing import Any, Dict, Generic, Mapping, Optional, Sequence, TypeVar
 
-from ...mapping.column_mro_collect import mro_collect_columns
+from tigrbl_canon.mapping.column_mro_collect import mro_collect_columns
 
 K = TypeVar("K")
 V = TypeVar("V")
