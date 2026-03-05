@@ -18,8 +18,10 @@ import pytest
 import uvicorn
 
 import tigrbl as tigrbl_module
-from tigrbl.engine import shortcuts as tigrbl_engine_shortcuts
-from tigrbl.types import APIRouter, Body, HTTPException
+import tigrbl.shortcuts.engine as tigrbl_engine_shortcuts
+from tigrbl import Router as APIRouter
+from tigrbl.core.crud import Body
+from tigrbl.runtime.status import HTTPException
 
 PACKAGE_DIR = Path(__file__).resolve().parents[1]
 SRC_DIR = PACKAGE_DIR / "src"
