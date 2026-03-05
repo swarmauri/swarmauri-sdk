@@ -7,6 +7,7 @@ from .binding_spec import BindingSpec
 
 from .._spec.hook_spec import HookSpec as OpHook
 from ..hook.types import StepFn
+from .serde import SerdeMixin
 
 PersistPolicy = Literal["default", "prepend", "append", "override", "skip"]
 Arity = Literal["collection", "member"]
@@ -37,7 +38,7 @@ else:
 
 
 @dataclass(frozen=True, slots=True)
-class OpSpec:
+class OpSpec(SerdeMixin):
     """
     Single source of truth for an operation.
 

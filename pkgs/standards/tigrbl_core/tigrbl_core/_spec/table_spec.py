@@ -5,10 +5,11 @@ from typing import Any, Callable, Mapping, Optional, Sequence
 
 from .._spec.engine_spec import EngineCfg
 from .._spec.response_spec import ResponseSpec
+from .serde import SerdeMixin
 
 
 @dataclass
-class TableSpec:
+class TableSpec(SerdeMixin):
     """
     Declarative enrichments for an ORM class (model == table).
     This does not construct an instance; it decorates/produces a class.

@@ -2,6 +2,7 @@
 from dataclasses import dataclass, replace
 from typing import Callable, Tuple, Literal
 from .._spec.field_spec import FieldSpec as F
+from .serde import SerdeMixin
 
 
 @dataclass(frozen=True)
@@ -34,13 +35,13 @@ EmitPoint = Literal["pre_flush", "post_refresh", "pre_response", "readtime"]
 
 
 @dataclass(frozen=True)
-class Pair:
+class Pair(SerdeMixin):
     raw: object
     stored: object
 
 
 @dataclass(frozen=True)
-class IOSpec:
+class IOSpec(SerdeMixin):
     """Control how a column participates in API input and output.
 
     ``in_verbs`` and ``out_verbs`` enumerate which operations may accept or

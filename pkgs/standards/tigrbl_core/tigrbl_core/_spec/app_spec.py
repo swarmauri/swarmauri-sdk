@@ -5,10 +5,11 @@ from typing import Any, Callable, Optional, Sequence
 
 from .._spec.engine_spec import EngineCfg
 from .._spec.response_spec import ResponseSpec
+from .serde import SerdeMixin
 
 
 @dataclass(eq=False)
-class AppSpec:
+class AppSpec(SerdeMixin):
     """
     Used to *produce an App subclass* via App.from_spec().
     """

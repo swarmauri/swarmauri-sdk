@@ -4,23 +4,24 @@ from dataclasses import dataclass
 from typing import Literal, Optional, Type, Union
 
 from ..config.constants import TIGRBL_NESTED_PATHS_ATTR
+from .serde import SerdeMixin
 
 
 @dataclass(frozen=True, slots=True)
-class HttpRestBindingSpec:
+class HttpRestBindingSpec(SerdeMixin):
     proto: Literal["http.rest", "https.rest"]
     methods: tuple[str, ...]
     path: str
 
 
 @dataclass(frozen=True, slots=True)
-class HttpJsonRpcBindingSpec:
+class HttpJsonRpcBindingSpec(SerdeMixin):
     proto: Literal["http.jsonrpc", "https.jsonrpc"]
     rpc_method: str
 
 
 @dataclass(frozen=True, slots=True)
-class WsBindingSpec:
+class WsBindingSpec(SerdeMixin):
     proto: Literal["ws", "wss"]
     path: str
     subprotocols: tuple[str, ...] = ()
@@ -30,7 +31,7 @@ BindingSpec = Union[HttpRestBindingSpec, HttpJsonRpcBindingSpec, WsBindingSpec]
 
 
 @dataclass(frozen=True, slots=True)
-class Binding:
+class Binding(SerdeMixin):
     """Named binding declaration used for registry composition."""
 
     """Named binding wrapper used by registries and planners."""

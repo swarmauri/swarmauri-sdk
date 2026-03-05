@@ -3,11 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Dict, List, Literal, Optional
 
+from .serde import SerdeMixin
+
 ResponseKind = Literal["auto", "json", "html", "text", "file", "stream", "redirect"]
 
 
 @dataclass(slots=True)
-class TemplateSpec:
+class TemplateSpec(SerdeMixin):
     name: str
     search_paths: List[str] = field(default_factory=list)
     package: Optional[str] = None
@@ -17,7 +19,7 @@ class TemplateSpec:
 
 
 @dataclass(slots=True)
-class ResponseSpec:
+class ResponseSpec(SerdeMixin):
     kind: ResponseKind = "auto"
     media_type: Optional[str] = None
     status_code: Optional[int] = None
