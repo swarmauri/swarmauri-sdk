@@ -5,11 +5,6 @@ from __future__ import annotations
 from typing import Any
 from urllib.parse import urlencode
 
-from tigrbl_concrete._concrete._request import Request
-from tigrbl_concrete._concrete._request_adapters import request_from_asgi
-from tigrbl_concrete._concrete._response import Response
-from tigrbl_atoms.atoms.egress.asgi_send import finalize_transport_response
-
 from tigrbl_core._spec.middleware_spec import (
     ASGIReceive,
     ASGISend,
@@ -17,21 +12,32 @@ from tigrbl_core._spec.middleware_spec import (
     MiddlewareSpec,
 )
 
+from ._request_base import RequestBase
+from ._response_base import ResponseBase
+
+
+def finalize_transport_response(
+    scope: dict[str, Any],
+    status_code: int,
+    raw_headers: list[tuple[bytes, bytes]],
+    body: bytes,
+) -> tuple[list[tuple[bytes, bytes]], bytes]:
+    """Base transport finalization hook with pass-through defaults."""
+
+    del scope, status_code
+    return raw_headers, body
+
 
 class MiddlewareBase(MiddlewareSpec):
     """Base middleware for intercepting HTTP requests in ASGI mode."""
 
-    async def dispatch(
-        self,
-        request: Request,
-        call_next: Any,
-    ) -> Response:
-        """Process the request and optionally delegate to downstream middleware/app."""
-
+    async def dispatch(self, request: RequestBase, call_next: Any) -> ResponseBase:
         return await call_next(request)
 
     @staticmethod
-    def _scope_from_request(scope: dict[str, Any], request: Request) -> dict[str, Any]:
+    def _scope_from_request(
+        scope: dict[str, Any], request: RequestBase
+    ) -> dict[str, Any]:
         query_string = urlencode(
             [
                 (name, value)
@@ -53,10 +59,7 @@ class MiddlewareBase(MiddlewareSpec):
         }
 
     async def asgi(
-        self,
-        scope: dict[str, Any],
-        receive: ASGIReceive,
-        send: ASGISend,
+        self, scope: dict[str, Any], receive: ASGIReceive, send: ASGISend
     ) -> None:
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
@@ -69,9 +72,10 @@ class MiddlewareBase(MiddlewareSpec):
             request_body += message.get("body", b"")
             more_body = message.get("more_body", False)
 
-        request = request_from_asgi(None, scope, request_body)
+        request = RequestBase.from_scope(scope)
+        request.body = request_body
 
-        async def call_next(forward_request: Request | None = None) -> Response:
+        async def call_next(forward_request: RequestBase | None = None) -> ResponseBase:
             target_request = forward_request or request
             target_scope = self._scope_from_request(scope, target_request)
 
@@ -94,16 +98,12 @@ class MiddlewareBase(MiddlewareSpec):
 
             await self.app(target_scope, receive_for_app, send_from_app)
 
-            start = next(
-                message
-                for message in messages
-                if message.get("type") == "http.response.start"
-            )
+            start = next(m for m in messages if m.get("type") == "http.response.start")
             raw_headers = list(start.get("headers", []))
             body = b"".join(
-                message.get("body", b"")
-                for message in messages
-                if message.get("type") == "http.response.body"
+                m.get("body", b"")
+                for m in messages
+                if m.get("type") == "http.response.body"
             )
             headers, finalized_body = finalize_transport_response(
                 target_scope,
@@ -111,7 +111,7 @@ class MiddlewareBase(MiddlewareSpec):
                 raw_headers,
                 body,
             )
-            return Response(
+            return ResponseBase(
                 status_code=int(start.get("status", 200)),
                 headers=[
                     (key.decode("latin-1"), value.decode("latin-1"))
@@ -122,11 +122,9 @@ class MiddlewareBase(MiddlewareSpec):
 
         response = await self.dispatch(request, call_next)
         headers, finalized_body = finalize_transport_response(
-            scope,
-            response.status_code,
-            response.raw_headers,
-            response.body,
+            scope, response.status_code, response.raw_headers, response.body
         )
+
         await send(
             {
                 "type": "http.response.start",
@@ -135,11 +133,7 @@ class MiddlewareBase(MiddlewareSpec):
             }
         )
         await send(
-            {
-                "type": "http.response.body",
-                "body": finalized_body,
-                "more_body": False,
-            }
+            {"type": "http.response.body", "body": finalized_body, "more_body": False}
         )
 
 

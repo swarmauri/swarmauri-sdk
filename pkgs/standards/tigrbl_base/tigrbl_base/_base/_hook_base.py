@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Iterable, Optional, Union
 
 from tigrbl_core._spec.hook_spec import HookSpec
-from tigrbl_runtime.runtime.hook_types import HookPhase, StepFn
+from tigrbl_typing.hook_types import HookPhase, StepFn
 
 
 @dataclass(frozen=True, slots=True)

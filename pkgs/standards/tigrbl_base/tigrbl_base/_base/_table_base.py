@@ -389,25 +389,8 @@ class TableBase(DeclarativeBase):
             cls.responses = responses
             cls.response = next(iter(responses.values()))
 
-        # 3) Seed model namespaces / index specs (ops/hooks/etc.) – idempotent
-        try:
-            from tigrbl_canon.mapping import model as _model_bind
-
-            _model_bind.bind(cls)
-        except Exception:
-            pass
-
-        # 3) AUTO-BUILD CRUD schemas from ColumnSpecs so /docs has them
-        try:
-            from tigrbl_canon.mapping import build_schemas as _build_schemas
-
-            _build_schemas(
-                cls
-            )  # attaches request/response models to the model/registry
-        except Exception:
-            # Surface during development if needed:
-            # raise
-            pass
+        # 3) Base package must remain canon/runtime-agnostic. Canon bindings and
+        # schema synthesis are intentionally delegated to higher-level packages.
 
     metadata = MetaData(
         naming_convention={
