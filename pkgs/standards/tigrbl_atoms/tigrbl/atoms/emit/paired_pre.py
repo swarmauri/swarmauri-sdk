@@ -1,4 +1,4 @@
-# tigrbl/v3/runtime/atoms/emit/paired_pre.py
+# pkgs/standards/tigrbl_atoms/tigrbl/atoms/emit/paired_pre.py
 from __future__ import annotations
 
 from typing import Any, Dict, Mapping, MutableMapping, Optional

@@ -1,4 +1,4 @@
-# tigrbl/v3/runtime/atoms/resolve/paired_gen.py
+# pkgs/standards/tigrbl_atoms/tigrbl/atoms/resolve/paired_gen.py
 from __future__ import annotations
 
 import secrets
