@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any, Mapping, Optional, Union
 
 from .._spec.engine_spec import EngineSpec
-from .._concrete._engine import Provider, Engine
+from .._concrete._engine import Provider, Engine, provider_from_spec
 
 EngineCfg = Union[str, Mapping[str, object]]  # DSN string or structured mapping
 
@@ -83,8 +83,8 @@ def prov(
     Accepts EngineSpec, EngineCfg (mapping/DSN), or kw fields (collapsed former ctxS).
     """
     if isinstance(spec, EngineSpec):
-        return spec.to_provider()
-    return engine_spec(spec, **kw).to_provider()
+        return provider_from_spec(spec)
+    return provider_from_spec(engine_spec(spec, **kw))
 
 
 def engine(
@@ -180,11 +180,11 @@ def pgs(**kw: Any) -> EngineCfg:
 
 
 def provider_sqlite_memory(async_: bool = True) -> Provider:
-    return engine_spec(kind="sqlite", mode="memory", async_=async_).to_provider()
+    return provider_from_spec(engine_spec(kind="sqlite", mode="memory", async_=async_))
 
 
 def provider_sqlite_file(path: str, async_: bool = False) -> Provider:
-    return engine_spec(kind="sqlite", path=path, async_=async_).to_provider()
+    return provider_from_spec(engine_spec(kind="sqlite", path=path, async_=async_))
 
 
 def provider_postgres(
@@ -198,17 +198,19 @@ def provider_postgres(
     pool_size: int = 10,
     max: int = 20,
 ) -> Provider:
-    return engine_spec(
-        kind="postgres",
-        async_=async_,
-        user=user,
-        pwd=pwd,
-        host=host,
-        port=port,
-        name=name,
-        pool_size=pool_size,
-        max=max,
-    ).to_provider()
+    return provider_from_spec(
+        engine_spec(
+            kind="postgres",
+            async_=async_,
+            user=user,
+            pwd=pwd,
+            host=host,
+            port=port,
+            name=name,
+            pool_size=pool_size,
+            max=max,
+        )
+    )
 
 
 __all__ = [

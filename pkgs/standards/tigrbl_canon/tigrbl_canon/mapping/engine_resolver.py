@@ -76,7 +76,7 @@ def _intern_provider(spec: EngineSpec, *, provider: Provider | None = None) -> P
         existing = _PROV_BY_KEY.get(key)
         if existing is not None:
             return existing
-        new_provider = provider or spec.to_provider()
+        new_provider = provider or provider_from_spec(spec)
         _PROV_BY_KEY[key] = new_provider
         return new_provider
 

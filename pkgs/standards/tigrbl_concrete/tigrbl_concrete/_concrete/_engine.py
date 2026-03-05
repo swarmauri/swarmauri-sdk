@@ -7,6 +7,9 @@ import asyncio
 import inspect
 from typing import Any, Callable, Optional, Tuple, Union, Protocol, TYPE_CHECKING
 
+from tigrbl_base._base._engine_base import EngineBase
+from tigrbl_base._base._engine_provider_base import EngineProviderBase
+
 try:
     from sqlalchemy.orm import Session
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,11 +25,11 @@ class SessionFactory(Protocol):
 Builder = Callable[[], Tuple[Any, SessionFactory]]  # returns (engine, sessionmaker)
 
 if TYPE_CHECKING:  # pragma: no cover - for type checkers only
-    from tigrbl_core._spec.engine_spec import EngineSpec
+    from tigrbl_core._spec.engine_spec import EngineProviderSpec, EngineSpec
 
 
 @dataclass(frozen=True)
-class Provider:
+class EngineProvider(EngineProviderBase):
     # supports() exposes engine capabilities for compatibility checks
     def supports(self) -> dict:
         try:
@@ -44,6 +47,9 @@ class Provider:
     @property
     def kind(self) -> str:
         return "async" if self.spec.async_ else "sync"
+
+    def to_provider(self) -> "EngineProviderBase":
+        return self
 
     def ensure(self) -> Tuple[Any, SessionFactory]:
         if self._maker is None:
@@ -93,7 +99,7 @@ class Provider:
 
 
 @dataclass
-class Engine:
+class Engine(EngineBase):
     # Delegate to provider/spec for capability reporting
     def supports(self) -> dict:
         try:
@@ -104,14 +110,17 @@ class Engine:
     """Thin façade over an :class:`EngineSpec` with convenient (a)context managers."""
 
     spec: "EngineSpec"
-    provider: Provider = field(init=False)
+    provider: EngineProvider = field(init=False)
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "provider", Provider(self.spec))
+        object.__setattr__(self, "provider", EngineProvider(self.spec))
 
     @property
     def is_async(self) -> bool:
         return self.provider.kind == "async"
+
+    def to_provider(self) -> "EngineProviderBase":
+        return self.provider
 
     def raw(self) -> Tuple[Any, SessionFactory]:
         return self.provider.ensure()
@@ -185,3 +194,13 @@ class Engine:
                 res = close()
                 if hasattr(res, "__await__"):
                     await res
+
+
+def provider_from_spec(spec: "EngineSpec | EngineProviderSpec") -> "EngineProvider":
+    """Materialize a concrete :class:`EngineProvider` from a core provider/spec value."""
+    if hasattr(spec, "spec"):
+        return EngineProvider(spec.spec)  # type: ignore[arg-type]
+    return EngineProvider(spec)
+
+
+Provider = EngineProvider

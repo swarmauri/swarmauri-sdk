@@ -20,6 +20,7 @@ _EXPORTS = {
     "resolve_rest_nested_prefix": "binding_spec",
     "ColumnSpec": "column_spec",
     "EngineSpec": "engine_spec",
+    "EngineProviderSpec": "engine_spec",
     "FieldSpec": "field_spec",
     "HookSpec": "hook_spec",
     "IOSpec": "io_spec",
