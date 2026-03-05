@@ -1,10 +1,10 @@
-# tigrbl/tigrbl/v3/op/_op.py
+# tigrbl/_concrete/_op.py
 from __future__ import annotations
 
 from dataclasses import replace
 from typing import Any
 
-from .._base._op_base import OpBase
+from tigrbl_base.tigrbl._base._op_base import OpBase
 
 
 class Op(OpBase):
@@ -24,7 +24,7 @@ class Op(OpBase):
     def install_engines(
         self, *, router: Any | None = None, model: type | None = None
     ) -> None:
-        from .._concrete._engine import Engine
+        from ._engine import Engine
 
         m = model if model is not None else self.table
         if m is not None:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .._base._table_registry_base import TableRegistryBase
+from tigrbl_base.tigrbl._base._table_registry_base import TableRegistryBase
 
 
 class TableRegistry(TableRegistryBase):

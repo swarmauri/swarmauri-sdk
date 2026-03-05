@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from .._base._middleware_base import MiddlewareBase
-from .._spec.middleware_spec import (
+from tigrbl_base.tigrbl._base._middleware_base import MiddlewareBase
+from tigrbl_core.tigrbl._spec.middleware_spec import (
     ASGIApp,
     ASGIReceive,
     ASGISend,

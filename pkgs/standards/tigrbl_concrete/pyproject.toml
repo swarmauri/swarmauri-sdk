@@ -19,11 +19,17 @@ classifiers = [
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "tigrbl-base",
+    "tigrbl-canon",
+    "tigrbl-core",
+    "tigrbl-runtime",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
 [tool.uv.sources]
 "tigrbl-base" = { workspace = true }
+"tigrbl-canon" = { workspace = true }
+"tigrbl-core" = { workspace = true }
+"tigrbl-runtime" = { workspace = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

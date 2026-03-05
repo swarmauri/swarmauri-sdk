@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
-from .._base._response_base import ResponseBase, TemplateBase
+from tigrbl_base.tigrbl._base._response_base import ResponseBase, TemplateBase
 
 
 class _JSONDualMethod:

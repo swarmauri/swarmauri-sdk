@@ -1,4 +1,4 @@
-# tigrbl/v3/ops/model_registry.py
+# tigrbl/_concrete/_op_registry.py
 from __future__ import annotations
 
 from dataclasses import replace

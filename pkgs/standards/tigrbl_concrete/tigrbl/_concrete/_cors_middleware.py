@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from tigrbl._concrete._headers import Headers
+from ._headers import Headers
 
 from .base import BaseHTTPMiddleware
 
