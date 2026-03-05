@@ -1,8 +1,13 @@
 # tigrbl/types/authn_abc.py
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any
 
-from tigrbl import Request
+
+if TYPE_CHECKING:
+    from tigrbl_concrete._concrete._request import Request
+else:
+    Request = Any
 
 
 class AuthNProvider(ABC):
