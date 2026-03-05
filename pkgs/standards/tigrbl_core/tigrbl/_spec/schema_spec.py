@@ -1,4 +1,4 @@
-# tigrbl/v3/schema/schema_spec.py
+# pkgs/standards/tigrbl_core/tigrbl/_spec/schema_spec.py
 from __future__ import annotations
 
 from dataclasses import dataclass

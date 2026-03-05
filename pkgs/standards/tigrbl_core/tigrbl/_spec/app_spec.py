@@ -1,4 +1,4 @@
-# tigrbl/tigrbl/v3/app/app_spec.py
+# pkgs/standards/tigrbl_core/tigrbl/_spec/app_spec.py
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Sequence
