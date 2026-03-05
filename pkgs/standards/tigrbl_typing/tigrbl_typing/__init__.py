@@ -1,0 +1,187 @@
+# ── Standard Library ─────────────────────────────────────────────────────
+import warnings
+from types import MethodType, SimpleNamespace
+from uuid import uuid4, UUID
+
+# ── Third-party Dependencies (via deps module) ───────────────────────────
+from ..vendor.sqlalchemy import (
+    # Core SQLAlchemy
+    Boolean,
+    Column,
+    _DateTime,
+    SAEnum,
+    Text,
+    ForeignKey,
+    Index,
+    Integer,
+    JSON,
+    Numeric,
+    String,
+    LargeBinary,
+    UniqueConstraint,
+    CheckConstraint,
+    create_engine,
+    event,
+    # PostgreSQL dialect
+    ARRAY,
+    PgEnum,
+    JSONB,
+    TSVECTOR,
+    # ORM
+    Mapped,
+    declarative_mixin,
+    declared_attr,
+    foreign,
+    mapped_column,
+    relationship,
+    remote,
+    column_property,
+    Session,
+    sessionmaker,
+    InstrumentedAttribute,
+    # Extensions
+    MutableDict,
+    MutableList,
+    hybrid_property,
+    StaticPool,
+    TypeDecorator,
+)
+
+
+from ..vendor.pydantic import (
+    BaseModel,
+    Field,
+    ValidationError,
+)
+
+from ..core.crud.params import Path
+from ..runtime.status.exceptions import StatusDetailError
+from ..security.dependencies import Security
+
+# ── Local Package ─────────────────────────────────────────────────────────
+from .op import _Op, _SchemaVerb
+from .uuid import PgUUID, SqliteUUID
+from .authn_abc import AuthNProvider
+from .table_config_provider import TableConfigProvider
+from .nested_path_provider import NestedPathProvider
+from .allow_anon_provider import AllowAnonProvider
+from .request_extras_provider import (
+    RequestExtrasProvider,
+    list_request_extras_providers,
+)
+from .response_extras_provider import (
+    ResponseExtrasProvider,
+    list_response_extras_providers,
+)
+
+from .op_verb_alias_provider import OpVerbAliasProvider, list_verb_alias_providers
+from .op_config_provider import OpConfigProvider
+
+# ── Generics / Extensions ─────────────────────────────────────────────────
+DateTime = _DateTime(timezone=False)
+TZDateTime = _DateTime(timezone=True)
+
+
+# ── Public Re-exports (Backwards Compatibility) ──────────────────────────
+__all__: list[str] = [
+    # local
+    "_Op",
+    "_SchemaVerb",
+    "AuthNProvider",
+    "TableConfigProvider",
+    "NestedPathProvider",
+    "AllowAnonProvider",
+    "RequestExtrasProvider",
+    "ResponseExtrasProvider",
+    "OpVerbAliasProvider",
+    "list_verb_alias_providers",
+    "list_request_extras_providers",
+    "list_response_extras_providers",
+    "OpConfigProvider",
+    # add ons
+    "SqliteUUID",
+    # builtin types
+    "MethodType",
+    "SimpleNamespace",
+    "uuid4",
+    "UUID",
+    # sqlalchemy core (from deps.sqlalchemy)
+    "Boolean",
+    "Column",
+    "DateTime",
+    "TZDateTime",
+    "Text",
+    "SAEnum",
+    "ForeignKey",
+    "Index",
+    "Integer",
+    "JSON",
+    "Numeric",
+    "String",
+    "LargeBinary",
+    "UniqueConstraint",
+    "CheckConstraint",
+    "create_engine",
+    "event",
+    # sqlalchemy.dialects.postgresql (from deps.sqlalchemy)
+    "ARRAY",
+    "PgEnum",
+    "JSONB",
+    "PgUUID",
+    "TSVECTOR",
+    # sqlalchemy.orm (from deps.sqlalchemy)
+    "Mapped",
+    "declarative_mixin",
+    "declared_attr",
+    "foreign",
+    "mapped_column",
+    "column_property",
+    "hybrid_property",
+    "relationship",
+    "remote",
+    "Session",
+    "sessionmaker",
+    "InstrumentedAttribute",
+    # sqlalchemy.ext.mutable (from deps.sqlalchemy)
+    "MutableDict",
+    "MutableList",
+    "StaticPool",
+    "TypeDecorator",
+    # pydantic schema support (from deps.pydantic)
+    "BaseModel",
+    "Field",
+    "ValidationError",
+    # routing/dependency support (from deps)
+    "Security",
+    "Path",
+    "StatusDetailError",
+]
+
+
+_DEPRECATED_EXPORTS: dict[str, tuple[str, str]] = {
+    "Router": ("tigrbl", "Router"),
+    "Request": ("tigrbl", "Request"),
+    "Body": ("tigrbl.core.crud", "Body"),
+    "Depends": ("tigrbl.security", "Depends"),
+    "HTTPException": ("tigrbl.runtime.status", "HTTPException"),
+    "Response": ("tigrbl", "Response"),
+}
+
+
+def __getattr__(name: str):
+    if name in _DEPRECATED_EXPORTS:
+        module, _attr = _DEPRECATED_EXPORTS[name]
+        warnings.warn(
+            (
+                f"tigrbl.types.{name} is deprecated and no longer exports from "
+                "tigrbl.types. "
+                f"Import it from '{module}' instead."
+            ),
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        raise AttributeError(
+            f"tigrbl.types.{name} no longer exports from tigrbl.types. "
+            f"Import it from '{module}' instead."
+        )
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

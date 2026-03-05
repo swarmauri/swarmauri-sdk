@@ -1,0 +1,45 @@
+[project]
+name = "tigrbl-base"
+version = "0.1.0.dev0"
+description = "Planning-stage Tigrbl package for the layered framework split in swarmauri-sdk."
+license = "Apache-2.0"
+readme = "README.md"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Development Status :: 1 - Planning",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["tigrbl", "sdk", "standards", "framework", "layered-architecture"]
+dependencies = [
+    "tigrbl-typing",
+    "tigrbl-core",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "timeout: mark test to timeout after X seconds",
+    "xpass: Expected passes",
+    "xfail: Expected failures",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [
+    { include = "tigrbl_base" },
+]
