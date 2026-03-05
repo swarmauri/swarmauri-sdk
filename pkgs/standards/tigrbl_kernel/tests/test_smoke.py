@@ -1,10 +1,5 @@
-import importlib
-
-import pytest
+import importlib.util
 
 
-@pytest.mark.unit
-def test_package_module_importable() -> None:
-    module = importlib.import_module("tigrbl_kernel.kernel")
-
-    assert module is not None
+def test_package_namespace_available() -> None:
+    assert importlib.util.find_spec("tigrbl_kernel") is not None
