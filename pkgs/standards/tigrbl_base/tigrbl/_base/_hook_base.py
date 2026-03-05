@@ -5,8 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, Optional, Union
 
-from ..hook.types import HookPhase, StepFn
-from .._spec.hook_spec import HookSpec
+from tigrbl_core.tigrbl._spec.hook_spec import HookSpec
+from tigrbl_runtime.tigrbl.runtime.hook_types import HookPhase, StepFn
 
 
 @dataclass(frozen=True, slots=True)

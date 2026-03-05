@@ -37,7 +37,7 @@ def _infer_py_type(cls, name: str, spec: Any) -> Optional[type]:
 
     # Mapped[T] → T (then unwrap Optional)
     try:
-        from ..types import Mapped
+        from sqlalchemy.orm import Mapped
 
         if get_origin(ann) is Mapped:
             inner = get_args(ann)[0]
@@ -96,7 +96,7 @@ def _materialize_colspecs_to_sqla(cls, *, map_columns: bool = True) -> None:
     Keep the original specs in __tigrbl_cols__ for downstream builders.
     """
     try:
-        from tigrbl._spec.column_spec import ColumnSpec
+        from tigrbl_core.tigrbl._spec.column_spec import ColumnSpec
     except Exception:
         return
     try:
@@ -377,29 +377,21 @@ class TableBase(DeclarativeBase):
                     cls.__tigrbl_ops__ = tuple()
                     break
 
-        # 2.6) Collect response specs declared via @response_ctx
-        try:
-            from tigrbl.decorators.response import (
-                get_attached_response_spec,
-                get_attached_response_alias,
-            )
-
-            responses = {}
-            for name, obj in cls.__dict__.items():
-                spec = get_attached_response_spec(obj)
-                if spec is None:
-                    continue
-                alias = get_attached_response_alias(obj) or name
-                responses[alias] = spec
-            if responses:
-                cls.responses = responses
-                cls.response = next(iter(responses.values()))
-        except Exception:
-            pass
+        # 2.6) Collect response specs declared via @response_ctx.
+        responses = {}
+        for name, obj in cls.__dict__.items():
+            spec = getattr(obj, "__tigrbl_response_spec__", None)
+            if spec is None:
+                continue
+            alias = getattr(obj, "__tigrbl_response_alias__", None) or name
+            responses[alias] = spec
+        if responses:
+            cls.responses = responses
+            cls.response = next(iter(responses.values()))
 
         # 3) Seed model namespaces / index specs (ops/hooks/etc.) – idempotent
         try:
-            from tigrbl.mapping import model as _model_bind
+            from tigrbl_canon.tigrbl.mapping import model as _model_bind
 
             _model_bind.bind(cls)
         except Exception:
@@ -407,7 +399,7 @@ class TableBase(DeclarativeBase):
 
         # 3) AUTO-BUILD CRUD schemas from ColumnSpecs so /docs has them
         try:
-            from tigrbl.schema.build import build_for_model as _build_schemas
+            from tigrbl_canon.tigrbl.mapping import build_schemas as _build_schemas
 
             _build_schemas(
                 cls
