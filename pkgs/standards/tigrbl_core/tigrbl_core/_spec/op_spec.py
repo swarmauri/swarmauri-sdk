@@ -6,8 +6,9 @@ from typing import TYPE_CHECKING, Any, Literal, Mapping, Optional, Tuple
 from .binding_spec import BindingSpec
 
 from .._spec.hook_spec import HookSpec as OpHook
-from ..hook.types import StepFn
+
 from .serde import SerdeMixin
+from tigrbl_runtime.runtime.hook_types import StepFn
 
 PersistPolicy = Literal["default", "prepend", "append", "override", "skip"]
 Arity = Literal["collection", "member"]
@@ -32,7 +33,7 @@ TargetOp = Literal[
 if TYPE_CHECKING:  # pragma: no cover
     from .._spec.engine_spec import EngineCfg
     from .._spec.response_spec import ResponseSpec
-    from ..schema.types import SchemaArg
+    from tigrbl.schema.types import SchemaArg
 else:
     EngineCfg = Any
 
@@ -106,6 +107,6 @@ class OpSpec(SerdeMixin):
     def collect(cls, table: type) -> tuple["OpSpec", ...]:
         """Collect decorated operations declared across ``table`` MRO."""
 
-        from ..mapping.op_mro_collect import mro_collect_decorated_ops
+        from tigrbl_canon.mapping.op_mro_collect import mro_collect_decorated_ops
 
         return tuple(mro_collect_decorated_ops(table))
