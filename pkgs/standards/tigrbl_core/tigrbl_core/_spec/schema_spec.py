@@ -5,10 +5,11 @@ from dataclasses import dataclass
 from typing import Optional
 
 from ..schema.types import SchemaArg, SchemaKind, SchemaRef
+from .serde import SerdeMixin
 
 
 @dataclass(frozen=True, slots=True)
-class SchemaSpec:
+class SchemaSpec(SerdeMixin):
     """Declarative description of a schema for a model."""
 
     alias: str

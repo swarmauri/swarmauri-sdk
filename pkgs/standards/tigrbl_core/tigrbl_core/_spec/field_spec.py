@@ -4,12 +4,14 @@ from dataclasses import dataclass, field as dc_field
 from typing import Any, Dict, Tuple, Callable
 from pydantic import ValidationInfo  # v2
 
+from .serde import SerdeMixin
+
 PreFn = Callable[[Any, ValidationInfo], Any]  # BeforeValidator
 PostFn = Callable[[Any, ValidationInfo], Any]  # AfterValidator
 
 
 @dataclass(frozen=True)
-class FieldSpec:
+class FieldSpec(SerdeMixin):
     """Describe Python-side metadata for a column or virtual field.
 
     ``py_type`` denotes the expected Python type and may be omitted when the

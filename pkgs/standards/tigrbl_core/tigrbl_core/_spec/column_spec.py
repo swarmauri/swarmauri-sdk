@@ -5,9 +5,10 @@ from typing import Any, Callable, Optional
 from .._spec.field_spec import FieldSpec as F
 from .._spec.io_spec import IOSpec as IO
 from .._spec.storage_spec import StorageSpec as S
+from .serde import SerdeMixin
 
 
-class ColumnSpec:
+class ColumnSpec(SerdeMixin):
     """Aggregate configuration for a model attribute.
 
     A :class:`ColumnSpec` brings together the three lower-level specs used by

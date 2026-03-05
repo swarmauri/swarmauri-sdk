@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Any, Literal, Mapping, Optional, Tuple
 from .binding_spec import BindingSpec
 
 from .._spec.hook_spec import HookSpec as OpHook
+
+from .serde import SerdeMixin
 from tigrbl_runtime.runtime.hook_types import StepFn
 
 PersistPolicy = Literal["default", "prepend", "append", "override", "skip"]
@@ -37,7 +39,7 @@ else:
 
 
 @dataclass(frozen=True, slots=True)
-class OpSpec:
+class OpSpec(SerdeMixin):
     """
     Single source of truth for an operation.
 
