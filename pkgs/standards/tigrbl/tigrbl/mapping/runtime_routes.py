@@ -123,71 +123,12 @@ async def invoke_runtime_route_handler(
     *,
     handler: Callable[..., Any],
 ) -> None:
-    request = getattr(ctx, "request", None)
-    kwargs = _resolve_handler_kwargs(handler, request)
-    result = handler(**kwargs)
-    if inspect.isawaitable(result):
-        result = await result
-
-    if isinstance(result, dict):
-        route_model = result.get("model")
-        route_alias = result.get("alias")
-        route_payload = result.get("payload")
-        if (
-            isinstance(route_model, type)
-            and isinstance(route_alias, str)
-            and route_alias
-        ):
-            handlers_ns = getattr(route_model, "handlers", None)
-            alias_ns = getattr(handlers_ns, route_alias, None) if handlers_ns else None
-            route_handler = getattr(alias_ns, "handler", None)
-            if callable(route_handler):
-                seed_ctx = {
-                    "path_params": dict(result.get("path_params") or {}),
-                    "payload": route_payload,
-                }
-                candidates: list[tuple[tuple[Any, ...], dict[str, Any]]] = [
-                    ((seed_ctx,), {}),
-                    ((route_payload,), {"ctx": seed_ctx}),
-                    (
-                        (route_payload,),
-                        {
-                            "db": getattr(ctx, "db", None),
-                            "request": request,
-                            "ctx": seed_ctx,
-                        },
-                    ),
-                ]
-                executed = None
-                for args, call_kwargs in candidates:
-                    try:
-                        executed = route_handler(*args, **call_kwargs)
-                        if inspect.isawaitable(executed):
-                            executed = await executed
-                        break
-                    except TypeError:
-                        executed = None
-                        continue
-                if executed is not None:
-                    result = executed
+    from ..runtime.atoms.sys.runtime_route_handler import run as _runtime_route_handler
 
     temp = _ensure_temp(ctx)
-    egress = temp.setdefault("egress", {}) if isinstance(temp, dict) else {}
-    if hasattr(result, "status_code") and hasattr(result, "body"):
-        headers_obj = getattr(result, "headers", None)
-        if hasattr(headers_obj, "items"):
-            headers_obj = dict(headers_obj.items())
-        response = {
-            "status_code": int(getattr(result, "status_code", 200) or 200),
-            "headers": dict(headers_obj or {}),
-            "body": getattr(result, "body", b""),
-        }
-        egress["transport_response"] = response
-        egress["suppress_asgi_send"] = True
-        return
-
-    setattr(ctx, "result", result)
-    egress["result"] = result
+    route = temp.setdefault("route", {})
+    route["handler"] = handler
+    await _runtime_route_handler(None, ctx)
 
 
 def _merge_table_op_binding(route: Any) -> bool:
