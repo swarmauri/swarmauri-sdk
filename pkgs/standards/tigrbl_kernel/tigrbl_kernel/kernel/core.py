@@ -8,7 +8,7 @@ from typing import Any, ClassVar, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from tigrbl_runtime.hook_types import StepFn
 from tigrbl_runtime.executor import _Ctx, _invoke
-from tigrbl_runtime import events as _ev
+from . import events as _ev
 from .atoms import (
     _DiscoveredAtom,
     _discover_atoms,
@@ -21,7 +21,7 @@ from .atoms import (
 )
 from .cache import _SpecsOnceCache, _WeakMaybeDict
 from .models import KernelPlan, OpKey, OpMeta, OpView
-from tigrbl_runtime.labels import label_hook
+from .labels import label_hook
 from .opview_compiler import compile_opview_from_specs
 
 logger = logging.getLogger(__name__)

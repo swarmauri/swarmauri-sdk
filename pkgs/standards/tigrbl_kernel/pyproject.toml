@@ -18,12 +18,14 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
+    "tigrbl-typing",
     "tigrbl-atoms",
     "tigrbl-canon",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
 [tool.uv.sources]
+"tigrbl-typing" = { workspace = true }
 "tigrbl-atoms" = { workspace = true }
 "tigrbl-canon" = { workspace = true }
 
