@@ -75,7 +75,7 @@ class KernelPlan:
         if self._appspec_mapping:
             return self._appspec_mapping
 
-        from tigrbl_runtime import events as _ev
+        from . import events as _ev
 
         normalized: Dict[str, Dict[str, list[str]]] = {}
         for meta_index, meta in enumerate(self.opmeta):
