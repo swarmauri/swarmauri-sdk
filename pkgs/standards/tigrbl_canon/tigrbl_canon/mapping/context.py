@@ -13,7 +13,7 @@ from typing import (
     Tuple,
 )
 
-from .._spec import OpSpec
+from tigrbl_core._spec import OpSpec
 
 MappingKey = Tuple[str, str]
 

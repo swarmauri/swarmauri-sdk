@@ -16,10 +16,10 @@ from typing import (
     Tuple,
 )
 
-from .._spec import OpSpec
-from .._spec.hook_spec import HookSpec
+from tigrbl_core._spec import OpSpec
+from tigrbl_core._spec.hook_spec import HookSpec
 from ..hook.types import PHASES, StepFn
-from ..config.constants import (
+from tigrbl.config.constants import (
     TIGRBL_ROUTER_HOOKS_ATTR,
     TIGRBL_HOOKS_ATTR,
     CTX_SKIP_PERSIST_FLAG,

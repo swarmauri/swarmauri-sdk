@@ -7,9 +7,9 @@ from functools import lru_cache
 from typing import Any, Callable, Mapping, Optional
 
 import tigrbl_ops_oltp as _core
-from ..._spec import OpSpec
+from tigrbl_core._spec import OpSpec
 from ...hook.types import StepFn
-from ...runtime.executor import _Ctx
+from tigrbl_runtime.runtime.executor import _Ctx
 from .ctx import _ctx_db, _ctx_payload, _ctx_request
 from .identifiers import _resolve_ident
 

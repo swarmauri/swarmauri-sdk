@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict
 
 from .._concrete._op import Op as OpSpec
 from ..decorators.op import _maybe_await, _normalize_persist, _unwrap
-from ..runtime.executor import _Ctx
+from tigrbl_runtime.runtime.executor import _Ctx
 
 logger = logging.getLogger("uvicorn")
 

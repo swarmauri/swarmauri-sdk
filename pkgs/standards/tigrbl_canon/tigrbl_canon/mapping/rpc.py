@@ -17,9 +17,9 @@ from typing import (
 
 from pydantic import BaseModel
 
-from .._spec import OpSpec
-from ..runtime.hook_types import PHASES
-from ..runtime.status import HTTPException
+from tigrbl_core._spec import OpSpec
+from tigrbl_runtime.runtime.hook_types import PHASES
+from tigrbl_runtime.runtime.status import HTTPException
 
 
 logger = logging.getLogger("uvicorn")
@@ -114,7 +114,7 @@ def _get_phase_chains(
 ) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
     """Backward-compatible phase chain accessor used by other mapping modules."""
     try:
-        from ..runtime.kernel.core import Kernel
+        from tigrbl_kernel.core import Kernel
 
         return {
             phase: list(steps)

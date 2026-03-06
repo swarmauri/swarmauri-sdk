@@ -9,7 +9,7 @@ from typing import Dict, Optional, Sequence, Type
 from pydantic import BaseModel
 
 from ..._base import SchemaBase
-from ..._spec import OpSpec
+from tigrbl_core._spec import OpSpec
 from .defaults import _default_schemas_for_spec
 from .utils import _alias_schema, _ensure_alias_namespace, _resolve_schema_arg, _Key
 

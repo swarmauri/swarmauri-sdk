@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Any, Dict, Optional, Set
 
-from .._spec import OpSpec
+from tigrbl_core._spec import OpSpec
 from ..op import resolve as resolve_ops
 from .op_mro_collect import mro_alias_map_for, mro_collect_decorated_ops
 from .context import MappingContext, MappingKey

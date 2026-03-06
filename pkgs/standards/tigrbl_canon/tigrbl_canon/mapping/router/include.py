@@ -15,7 +15,7 @@ from .common import (
 from .resource_proxy import _ResourceProxy
 from .. import model as _binder
 from ..column_mro_collect import mro_collect_columns
-from ...config.constants import (
+from tigrbl.config.constants import (
     TIGRBL_AUTH_DEP_ATTR,
     TIGRBL_GET_DB_ATTR,
     TIGRBL_REST_DEPENDENCIES_ATTR,
