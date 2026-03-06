@@ -37,7 +37,7 @@ _EXPORTS = {
     "MutualTLS": "_security",
     "TigrblApp": "tigrbl_app",
     "TigrblRouter": "tigrbl_router",
-    "BackgroundTask": "_response",
+    "BackgroundTask": "_background",
 }
 
 __all__ = list(_EXPORTS)
