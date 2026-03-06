@@ -98,6 +98,20 @@ def _load_toml(toml_str: str) -> Any:
 
 
 def _dump_toml(value: Any) -> str:
+    def _toml_sanitize(obj: Any) -> Any:
+        if isinstance(obj, dict):
+            return {
+                key: _toml_sanitize(item)
+                for key, item in obj.items()
+                if item is not None
+            }
+        if isinstance(obj, list):
+            return [_toml_sanitize(item) for item in obj if item is not None]
+        if isinstance(obj, tuple):
+            return tuple(_toml_sanitize(item) for item in obj if item is not None)
+        return obj
+
+    value = _toml_sanitize(value)
     try:
         import tomli_w
 
