@@ -38,11 +38,10 @@ from .routing import (
     _response_model_for,
     _status_for,
 )
-from ..._concrete._request import Request
-from ..._concrete._response import Response
-
-from ..._concrete._router import Router
-from ...config.constants import (
+from tigrbl_concrete._concrete._request import Request
+from tigrbl_concrete._concrete._response import Response
+from tigrbl_concrete._concrete._router import Router
+from tigrbl.config.constants import (
     TIGRBL_ALLOW_ANON_ATTR,
     TIGRBL_AUTH_CONTEXT_ATTR,
     TIGRBL_AUTH_DEP_ATTR,
@@ -50,13 +49,13 @@ from ...config.constants import (
     TIGRBL_REST_DEPENDENCIES_ATTR,
 )
 from tigrbl_ops_oltp.crud.params import Body, Path
-from ..._spec import OpSpec
-from ...op.types import CANON
-from ...rest import _nested_prefix
-from ...runtime.status.exceptions import HTTPException
-from ...runtime.status.mappings import status as _status
-from ...schema.builder import _strip_parent_fields
-from ...security.dependencies import Depends
+from tigrbl_core._spec import OpSpec
+from tigrbl.op.types import CANON
+from tigrbl.rest import _nested_prefix
+from tigrbl_runtime.status import HTTPException
+from tigrbl_runtime.runtime.status.mappings import status as _status
+from tigrbl.schema.builder import _strip_parent_fields
+from tigrbl.security.dependencies import Depends
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/rest/common")

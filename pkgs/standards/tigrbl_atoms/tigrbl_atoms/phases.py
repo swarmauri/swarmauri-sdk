@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -7,15 +6,12 @@ from typing import Dict, Final, Generic, Literal, Tuple, TypeVar
 from .stages import (
     Boot,
     Ingress,
-    Routed,
-    Bound,
     Selected,
     Authorized,
     Executing,
     Ready,
     Operated,
     Encoded,
-    Emitting,
     Egressed,
     Failed,
     StageType,
@@ -93,15 +89,31 @@ POST_RESPONSE = PhaseStep("POST_RESPONSE", Egressed, Egressed)
 
 
 ON_ERROR = PhaseStep("ON_ERROR", Failed, Failed, is_error=True)
-ON_PRE_TX_BEGIN_ERROR = PhaseStep("ON_PRE_TX_BEGIN_ERROR", Failed, Failed, is_error=True)
-ON_START_TX_ERROR = PhaseStep("ON_START_TX_ERROR", Failed, Failed, in_tx=True, is_error=True)
-ON_PRE_HANDLER_ERROR = PhaseStep("ON_PRE_HANDLER_ERROR", Failed, Failed, in_tx=True, is_error=True)
-ON_HANDLER_ERROR = PhaseStep("ON_HANDLER_ERROR", Failed, Failed, in_tx=True, is_error=True)
-ON_POST_HANDLER_ERROR = PhaseStep("ON_POST_HANDLER_ERROR", Failed, Failed, in_tx=True, is_error=True)
-ON_PRE_COMMIT_ERROR = PhaseStep("ON_PRE_COMMIT_ERROR", Failed, Failed, in_tx=True, is_error=True)
-ON_END_TX_ERROR = PhaseStep("ON_END_TX_ERROR", Failed, Failed, in_tx=True, is_error=True)
+ON_PRE_TX_BEGIN_ERROR = PhaseStep(
+    "ON_PRE_TX_BEGIN_ERROR", Failed, Failed, is_error=True
+)
+ON_START_TX_ERROR = PhaseStep(
+    "ON_START_TX_ERROR", Failed, Failed, in_tx=True, is_error=True
+)
+ON_PRE_HANDLER_ERROR = PhaseStep(
+    "ON_PRE_HANDLER_ERROR", Failed, Failed, in_tx=True, is_error=True
+)
+ON_HANDLER_ERROR = PhaseStep(
+    "ON_HANDLER_ERROR", Failed, Failed, in_tx=True, is_error=True
+)
+ON_POST_HANDLER_ERROR = PhaseStep(
+    "ON_POST_HANDLER_ERROR", Failed, Failed, in_tx=True, is_error=True
+)
+ON_PRE_COMMIT_ERROR = PhaseStep(
+    "ON_PRE_COMMIT_ERROR", Failed, Failed, in_tx=True, is_error=True
+)
+ON_END_TX_ERROR = PhaseStep(
+    "ON_END_TX_ERROR", Failed, Failed, in_tx=True, is_error=True
+)
 ON_POST_COMMIT_ERROR = PhaseStep("ON_POST_COMMIT_ERROR", Failed, Failed, is_error=True)
-ON_POST_RESPONSE_ERROR = PhaseStep("ON_POST_RESPONSE_ERROR", Failed, Failed, is_error=True)
+ON_POST_RESPONSE_ERROR = PhaseStep(
+    "ON_POST_RESPONSE_ERROR", Failed, Failed, is_error=True
+)
 ON_ROLLBACK = PhaseStep("ON_ROLLBACK", Failed, Failed, in_tx=True, is_error=True)
 
 

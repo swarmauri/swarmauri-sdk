@@ -1,19 +1,19 @@
 from __future__ import annotations
-from functools import lru_cache
+
 import logging
+from functools import lru_cache
 from typing import Any, Dict, Iterable, Optional, Tuple
 
-from typing import Any
+from jinja2 import (
+    ChoiceLoader,
+    FileSystemLoader,
+    Environment,
+    PackageLoader,
+    TemplateNotFound,
+    select_autoescape,
+)
 
 Request = Any
-from jinja2 import (
-    Environment,
-    FileSystemLoader,
-    PackageLoader,
-    ChoiceLoader,
-    select_autoescape,
-    TemplateNotFound,
-)
 
 logger = logging.getLogger("uvicorn")
 if Environment is None:  # pragma: no cover - jinja2 not installed

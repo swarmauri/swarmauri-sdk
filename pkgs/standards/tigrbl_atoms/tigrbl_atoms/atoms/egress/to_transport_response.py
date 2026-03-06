@@ -125,8 +125,6 @@ def _run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "transport_response", response)
 
 
-
-
 class AtomImpl(Atom[Encoded, Emitting]):
     name = "egress.to_transport_response"
     anchor = ANCHOR
@@ -135,6 +133,9 @@ class AtomImpl(Atom[Encoded, Emitting]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

@@ -7,8 +7,8 @@ from typing import Dict, Optional, Type
 
 from pydantic import BaseModel
 
-from ..._spec import OpSpec
-from ...schema import (
+from tigrbl_core._spec import OpSpec
+from tigrbl.schema import (
     _build_schema,
     _build_list_params,
     _make_bulk_rows_model,

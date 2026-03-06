@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Authorized, Authorized
+from ...stages import Authorized
 
 import inspect
 from typing import Any
@@ -9,7 +9,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from ... import events as _ev
-from ....mapping import engine_resolver as _resolver
+from tigrbl.mapping import engine_resolver as _resolver
 
 ANCHOR = _ev.ROUTE_CTX_FINALIZE
 _METADATA_OP_ALIASES = {"__openapi__", "__docs__"}
@@ -142,16 +142,19 @@ def _run(obj: object | None, ctx: Any) -> None:
     temp["__sys_db_release__"] = release
 
 
-
-
 class AtomImpl(Atom[Authorized, Authorized]):
     name = "route.ctx_finalize"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Authorized]) -> Ctx[Authorized]:
+    async def __call__(
+        self, obj: object | None, ctx: Ctx[Authorized]
+    ) -> Ctx[Authorized]:
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

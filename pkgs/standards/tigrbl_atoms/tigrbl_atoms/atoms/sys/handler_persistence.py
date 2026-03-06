@@ -26,4 +26,6 @@ class AtomImpl(Atom[Executing, Operated]):
 
 INSTANCE = AtomImpl()
 
+run = _run
+
 __all__ = ["ANCHOR", "INSTANCE"]

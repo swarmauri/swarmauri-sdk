@@ -30,7 +30,7 @@ from .common import (
     _strip_parent_fields,
     _RESPONSES_META,
 )
-from ...schema import _make_bulk_rows_model
+from tigrbl.schema import _make_bulk_rows_model
 import typing as _typing
 
 logger = logging.getLogger("uvicorn")

@@ -82,8 +82,6 @@ def _run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "payload", merged)
 
 
-
-
 class AtomImpl(Atom[Prepared, Authorized]):
     name = "route.binding_policy_apply"
     anchor = ANCHOR
@@ -92,6 +90,9 @@ class AtomImpl(Atom[Prepared, Authorized]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

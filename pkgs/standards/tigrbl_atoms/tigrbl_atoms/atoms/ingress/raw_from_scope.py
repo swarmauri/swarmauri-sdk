@@ -124,8 +124,6 @@ def _run(obj: object | None, ctx: object) -> None:
     temp.setdefault("route", {})["gw_raw"] = route_envelope
 
 
-
-
 class AtomImpl(Atom[Boot, Ingress]):
     name = "ingress.raw_from_scope"
     anchor = ANCHOR
@@ -134,6 +132,9 @@ class AtomImpl(Atom[Boot, Ingress]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

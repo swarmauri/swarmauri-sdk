@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Prepared
+from ...stages import Prepared
 
 import json
 from typing import Any, Mapping, Sequence
@@ -222,8 +222,6 @@ def _run(obj: object | None, ctx: Any) -> None:
         setattr(ctx, "payload", payload)
 
 
-
-
 class AtomImpl(Atom[Prepared, Prepared]):
     name = "route.payload_select"
     anchor = ANCHOR
@@ -232,6 +230,9 @@ class AtomImpl(Atom[Prepared, Prepared]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

@@ -22,8 +22,6 @@ def _run(obj: object | None, ctx: Any) -> None:
     route["params"] = {**dict(query or {}), **dict(params or {})}
 
 
-
-
 class AtomImpl(Atom[Bound, Prepared]):
     name = "route.params_normalize"
     anchor = ANCHOR
@@ -32,6 +30,9 @@ class AtomImpl(Atom[Bound, Prepared]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

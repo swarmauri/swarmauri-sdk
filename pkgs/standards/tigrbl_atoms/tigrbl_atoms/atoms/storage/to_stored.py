@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Prepared
+from ...stages import Prepared
 
 import logging
 from typing import Any, Dict, Mapping, MutableMapping, Optional
@@ -167,8 +167,6 @@ def _resolve_from_pointer(
     return pv.get(field, {}).get("raw")
 
 
-
-
 class AtomImpl(Atom[Prepared, Prepared]):
     name = "storage.to_stored"
     anchor = ANCHOR
@@ -177,6 +175,9 @@ class AtomImpl(Atom[Prepared, Prepared]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

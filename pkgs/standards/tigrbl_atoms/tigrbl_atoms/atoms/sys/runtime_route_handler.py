@@ -10,13 +10,13 @@ from ... import events as _ev
 from ...gw.raw import GwRouteEnvelope
 from ...status import StatusDetailError
 from tigrbl_ops_oltp.crud.params import Param
-from ....mapping.core_resolver import (
+from tigrbl.mapping.core_resolver import (
     annotation_marker,
     extract_param_value,
     is_request_annotation,
     split_annotated,
 )
-from ....security.dependencies import Dependency
+from tigrbl.security.dependencies import Dependency
 from ..dep.extra import invoke_dependency as invoke_extra_dependency
 
 ANCHOR = _ev.SYS_HANDLER_PERSISTENCE
@@ -160,6 +160,10 @@ async def _run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "result", result)
 
 
+async def run(ctx: Any) -> None:
+    await _run(None, ctx)
+
+
 class AtomImpl(Atom[Executing, Operated]):
     name = "sys.runtime_route_handler"
     anchor = ANCHOR
@@ -168,6 +172,7 @@ class AtomImpl(Atom[Executing, Operated]):
         await _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
 
-__all__ = ["ANCHOR", "INSTANCE"]
+__all__ = ["ANCHOR", "INSTANCE", "run"]

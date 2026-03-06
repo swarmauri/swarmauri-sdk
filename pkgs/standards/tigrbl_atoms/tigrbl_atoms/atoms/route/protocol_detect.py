@@ -62,6 +62,9 @@ class AtomImpl(Atom[Prepared, Routed]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

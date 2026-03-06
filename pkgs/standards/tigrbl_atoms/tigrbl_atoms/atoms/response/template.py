@@ -44,8 +44,6 @@ async def _run(obj: Optional[object], ctx: Any) -> None:
         hints.media_type = "text/html"
 
 
-
-
 class AtomImpl(Atom[Operated, Encoded]):
     name = "response.template"
     anchor = ANCHOR
@@ -54,6 +52,9 @@ class AtomImpl(Atom[Operated, Encoded]):
         await _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

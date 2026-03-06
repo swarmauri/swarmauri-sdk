@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Encoded, Encoded
+from ...stages import Encoded
 
 from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
@@ -106,8 +106,6 @@ def _get_paired_values(temp: Mapping[str, Any]) -> Mapping[str, Dict[str, Any]]:
     return pv if isinstance(pv, dict) else {}
 
 
-
-
 class AtomImpl(Atom[Encoded, Encoded]):
     name = "emit.paired_pre"
     anchor = ANCHOR
@@ -116,6 +114,9 @@ class AtomImpl(Atom[Encoded, Encoded]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
 
-__all__ = ["ANCHOR", "INSTANCE"]
+run = _run
+
+__all__ = ["ANCHOR", "INSTANCE", "run"]

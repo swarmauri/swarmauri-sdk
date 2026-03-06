@@ -266,7 +266,6 @@ _ANCHOR_STAGE: Dict[str, Tuple[StageType, StageType]] = {
     INGRESS_CTX_INIT: (Boot, Boot),
     INGRESS_CTX_ATTACH_COMPILED: (Boot, Boot),
     INGRESS_METRICS_START: (Boot, Ingress),
-
     # INGRESS_PARSE
     INGRESS_RAW_FROM_SCOPE: (Ingress, Ingress),
     INGRESS_METHOD_EXTRACT: (Ingress, Ingress),
@@ -277,7 +276,6 @@ _ANCHOR_STAGE: Dict[str, Tuple[StageType, StageType]] = {
     INGRESS_BODY_READ: (Ingress, Ingress),
     INGRESS_REQUEST_BODY_APPLY: (Ingress, Ingress),
     INGRESS_BODY_PEEK: (Ingress, Ingress),
-
     # INGRESS_ROUTE
     ROUTE_PROTOCOL_DETECT: (Ingress, Routed),
     ROUTE_BINDING_MATCH: (Routed, Bound),
@@ -290,28 +288,22 @@ _ANCHOR_STAGE: Dict[str, Tuple[StageType, StageType]] = {
     ROUTE_PLAN_SELECT: (Bound, Bound),
     ROUTE_OP_RESOLVE: (Bound, Selected),
     ROUTE_CTX_FINALIZE: (Selected, Selected),
-
     # PRE_TX_BEGIN
     DEP_SECURITY: (Selected, Authorized),
     DEP_EXTRA: (Authorized, Authorized),
-
     # START_TX
     SYS_TX_BEGIN: (Authorized, Executing),
-
     # PRE_HANDLER
     SCHEMA_COLLECT_IN: (Executing, Executing),
     IN_VALIDATE: (Executing, Executing),
     RESOLVE_VALUES: (Executing, Ready),
     PRE_FLUSH: (Ready, Ready),
     EMIT_ALIASES_PRE: (Ready, Ready),
-
     # HANDLER
     HANDLER: (Ready, Operated),
     SYS_HANDLER_PERSISTENCE: (Ready, Operated),
-
     # END_TX
     SYS_TX_COMMIT: (Operated, Operated),
-
     # POST_COMMIT
     POST_FLUSH: (Operated, Operated),
     EMIT_ALIASES_POST: (Operated, Operated),
@@ -319,13 +311,11 @@ _ANCHOR_STAGE: Dict[str, Tuple[StageType, StageType]] = {
     OUT_BUILD: (Operated, Encoded),
     EMIT_ALIASES_READ: (Encoded, Encoded),
     OUT_DUMP: (Operated, Encoded),
-
     # EGRESS_SHAPE
     EGRESS_RESULT_NORMALIZE: (Encoded, Encoded),
     EGRESS_OUT_DUMP: (Encoded, Encoded),
     EGRESS_ENVELOPE_APPLY: (Encoded, Encoded),
     EGRESS_HEADERS_APPLY: (Encoded, Encoded),
-
     # EGRESS_FINALIZE
     EGRESS_HTTP_FINALIZE: (Encoded, Encoded),
     EGRESS_TO_TRANSPORT_RESPONSE: (Encoded, Emitting),
@@ -391,6 +381,7 @@ _ANCHORS: Dict[str, AnchorInfo] = {
 # ──────────────────────────────────────────────────────────────────────────────
 # Public helpers
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def is_valid_event(anchor: str) -> bool:
     """True if the given anchor is one of the canonical events."""

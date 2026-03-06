@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Encoded, Encoded
+from ...stages import Encoded
 
 from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
@@ -120,8 +120,6 @@ def _safe_readtime_value(value: Any, desc: Mapping[str, Any]) -> Any:
     return value
 
 
-
-
 class AtomImpl(Atom[Encoded, Encoded]):
     name = "emit.readtime_alias"
     anchor = ANCHOR
@@ -130,6 +128,9 @@ class AtomImpl(Atom[Encoded, Encoded]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
 
-__all__ = ["ANCHOR", "INSTANCE"]
+run = _run
+
+__all__ = ["ANCHOR", "INSTANCE", "run"]

@@ -6,11 +6,11 @@ import logging
 from functools import lru_cache
 from typing import Any, Callable, Dict, Iterable, Union
 
-from ..runtime.executor import _Ctx
-from .._concrete._op import Op as OpSpec
+from tigrbl_runtime.executor import _Ctx
+from tigrbl_core._spec import OpSpec
 from .op_mro_collect import mro_alias_map_for
-from ..decorators.op import _maybe_await, _unwrap
-from ..decorators.hook import HOOK_DECLS_ATTR, Hook
+from tigrbl.decorators.op import _maybe_await, _unwrap
+from tigrbl.decorators.hook import HOOK_DECLS_ATTR, Hook
 
 logger = logging.getLogger("uvicorn")
 

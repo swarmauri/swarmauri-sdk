@@ -7,7 +7,6 @@ import json
 from typing import Any, Mapping
 
 from ... import events as _ev
-from ...response import Response
 
 ANCHOR = _ev.EGRESS_ASGI_SEND
 
@@ -126,6 +125,10 @@ def _to_headers_mapping(headers: Any) -> dict[str, Any]:
         return {}
 
 
+def _is_response_like(value: Any) -> bool:
+    return all(hasattr(value, attr) for attr in ("status_code", "raw_headers", "body"))
+
+
 async def _run(obj: object | None, ctx: Any) -> None:
     del obj
     raw = getattr(ctx, "raw", None)
@@ -145,7 +148,7 @@ async def _run(obj: object | None, ctx: Any) -> None:
     resp_ns = getattr(ctx, "response", None)
     if resp_ns is not None:
         candidate = getattr(resp_ns, "result", None)
-        if isinstance(candidate, Response):
+        if _is_response_like(candidate):
             resp = candidate
 
     temp = getattr(ctx, "temp", None)
@@ -221,8 +224,6 @@ async def _run(obj: object | None, ctx: Any) -> None:
     egress["response_sent"] = True
 
 
-
-
 class AtomImpl(Atom[Emitting, Egressed]):
     name = "egress.asgi_send"
     anchor = ANCHOR
@@ -231,7 +232,10 @@ class AtomImpl(Atom[Emitting, Egressed]):
         await _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = [
     "ANCHOR",

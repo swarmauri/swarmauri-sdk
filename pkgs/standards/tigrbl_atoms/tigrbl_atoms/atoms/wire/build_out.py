@@ -99,8 +99,6 @@ def _read_current_value(obj: Optional[object], ctx: Any, field: str) -> Optional
     return None
 
 
-
-
 class AtomImpl(Atom[Operated, Encoded]):
     name = "wire.build_out"
     anchor = ANCHOR
@@ -109,6 +107,9 @@ class AtomImpl(Atom[Operated, Encoded]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]
