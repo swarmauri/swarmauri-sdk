@@ -6,7 +6,7 @@ import inspect
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Optional, Sequence, Union
 
-from .._spec.op_spec import OpSpec, Arity, TargetOp, PersistPolicy
+from tigrbl_core._spec.op_spec import OpSpec, Arity, TargetOp, PersistPolicy
 from ..schema.types import SchemaArg
 
 

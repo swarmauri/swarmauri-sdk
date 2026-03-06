@@ -43,7 +43,7 @@ def _alias_submodules(alias_pkg: str, target_pkg: str) -> None:
         alias_name = f"{alias_pkg}.{mod.name}"
         submodule = _optional_import(target_name)
         if submodule is not None:
-            sys.modules.setdefault(alias_name, submodule)
+            sys.modules[alias_name] = submodule
 
 
 for alias, target in _ALIAS_MODULES.items():
@@ -54,6 +54,8 @@ for alias, target in _ALIAS_MODULES.items():
 _alias_submodules("tigrbl.runtime", "tigrbl_runtime.runtime")
 _alias_submodules("tigrbl.runtime.status", "tigrbl_runtime.runtime.status")
 _alias_submodules("tigrbl._concrete", "tigrbl_concrete._concrete")
+_alias_submodules("tigrbl._spec", "tigrbl_core._spec")
+_alias_submodules("tigrbl._base", "tigrbl_base._base")
 
 # Kernel compatibility namespace (e.g. `tigrbl.runtime.kernel.atoms`).
 for _name in ("atoms", "models", "payload", "opview_compiler", "events", "ordering"):
