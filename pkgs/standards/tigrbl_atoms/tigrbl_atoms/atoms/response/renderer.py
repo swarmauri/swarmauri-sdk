@@ -4,16 +4,15 @@ from pathlib import Path
 from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union, cast
 import logging
 
-from ...response import Response
-from typing import Callable
-
-from ...shortcuts.responses import (
+from tigrbl_concrete._concrete._response import (
+    Response,
     as_file,
     as_html,
     as_json,
     as_stream,
     as_text,
 )
+from typing import Callable
 
 JSON = Mapping[str, Any]
 

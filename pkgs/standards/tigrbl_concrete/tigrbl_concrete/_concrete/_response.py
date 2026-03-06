@@ -1,7 +1,13 @@
 from __future__ import annotations
 
 from http.cookies import SimpleCookie
-from typing import Any, Mapping
+import base64
+import json
+import mimetypes
+import os
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, AsyncIterable, Iterable, Mapping
 
 from tigrbl_base._base._response_base import ResponseBase, TemplateBase
 
@@ -186,4 +192,168 @@ class Response(ResponseBase):
         )
 
 
-__all__ = ["Template", "Response"]
+def _json_default(value: Any) -> Any:
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        return base64.b64encode(bytes(value)).decode("ascii")
+    if isinstance(value, Path):
+        return str(value)
+    return str(value)
+
+
+try:
+    import orjson as _orjson
+
+    _ORJSON_OPTIONS = (
+        getattr(_orjson, "OPT_NON_STR_KEYS", 0)
+        | getattr(_orjson, "OPT_SERIALIZE_NUMPY", 0)
+        | getattr(_orjson, "OPT_SERIALIZE_BYTES", 0)
+    )
+
+    def _dumps(obj: Any) -> bytes:
+        try:
+            return _orjson.dumps(
+                obj,
+                option=_ORJSON_OPTIONS,
+                default=_json_default,
+            )
+        except TypeError:
+            return json.dumps(
+                obj,
+                separators=(",", ":"),
+                ensure_ascii=False,
+                default=_json_default,
+            ).encode("utf-8")
+except Exception:  # pragma: no cover - fallback
+
+    def _dumps(obj: Any) -> bytes:
+        return json.dumps(
+            obj,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            default=_json_default,
+        ).encode("utf-8")
+
+
+def _maybe_envelope(data: Any) -> Any:
+    if isinstance(data, Mapping) and ("data" in data or "error" in data):
+        return data
+    return {"data": data, "ok": True}
+
+
+ResponseHeaders = Mapping[str, str]
+
+
+def _with_headers(resp: Response, headers: ResponseHeaders | None) -> Response:
+    for key, value in (headers or {}).items():
+        resp.headers.append((key.lower(), value))
+    return resp
+
+
+def as_json(
+    data: Any,
+    *,
+    status: int = 200,
+    headers: ResponseHeaders | None = None,
+    envelope: bool = True,
+    dumps=_dumps,
+) -> Response:
+    payload = _maybe_envelope(data) if envelope else data
+    response = Response.from_json(payload, status_code=status)
+    response.body = dumps(payload)
+    return _with_headers(response, headers)
+
+
+def as_html(
+    html: str, *, status: int = 200, headers: ResponseHeaders | None = None
+) -> Response:
+    return _with_headers(Response.html(html, status_code=status), headers)
+
+
+def as_text(
+    text: str, *, status: int = 200, headers: ResponseHeaders | None = None
+) -> Response:
+    return _with_headers(Response.text(text, status_code=status), headers)
+
+
+def as_redirect(
+    url: str, *, status: int = 307, headers: ResponseHeaders | None = None
+) -> Response:
+    response = Response(
+        status_code=status,
+        headers=[("location", url)],
+        media_type="application/octet-stream",
+    )
+    return _with_headers(response, headers)
+
+
+def as_stream(
+    chunks: Iterable[bytes] | AsyncIterable[bytes],
+    *,
+    media_type: str = "application/octet-stream",
+    status: int = 200,
+    headers: ResponseHeaders | None = None,
+) -> Response:
+    if hasattr(chunks, "__aiter__"):
+        raise TypeError("AsyncIterable streaming is not supported in stdapi shortcuts")
+    body_chunks = [bytes(chunk) for chunk in chunks]
+    response = Response(
+        status_code=status,
+        headers=[("content-type", media_type)],
+        body=b"".join(body_chunks),
+        media_type=media_type,
+    )
+    return _with_headers(response, headers)
+
+
+def as_file(
+    path: str | Path,
+    *,
+    filename: str | None = None,
+    download: bool = False,
+    status: int = 200,
+    headers: ResponseHeaders | None = None,
+    stat_result: os.stat_result | None = None,
+    etag: str | None = None,
+    last_modified: datetime | None = None,
+) -> Response:
+    file_path = Path(path)
+    if not file_path.exists() or not file_path.is_file():
+        return Response.text("Not Found", status_code=404)
+
+    media_type, _ = mimetypes.guess_type(str(file_path))
+    media_type = media_type or "application/octet-stream"
+    stat_info = stat_result or os.stat(file_path)
+    if etag is None:
+        etag = f'W/"{stat_info.st_mtime_ns}-{stat_info.st_size}"'
+    modified = last_modified or datetime.fromtimestamp(
+        stat_info.st_mtime, tz=timezone.utc
+    )
+
+    response = Response(
+        status_code=status,
+        headers=[("content-type", media_type)],
+        body=file_path.read_bytes(),
+        media_type=media_type,
+    )
+    response.headers.append(("etag", etag))
+    response.headers.append(
+        ("last-modified", modified.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+    )
+    if download or filename:
+        resolved_filename = filename or file_path.name
+        response.headers.append(
+            ("content-disposition", f'attachment; filename="{resolved_filename}"')
+        )
+    return _with_headers(response, headers)
+
+
+__all__ = [
+    "Template",
+    "Response",
+    "as_json",
+    "as_html",
+    "as_text",
+    "as_redirect",
+    "as_stream",
+    "as_file",
+]
