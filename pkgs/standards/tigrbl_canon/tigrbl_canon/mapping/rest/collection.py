@@ -61,6 +61,23 @@ def _union(a, b):
         return _Union[a, b]
 
 
+def _ensure_op_schemas(model: type, sp: OpSpec) -> None:
+    """Build schema namespace lazily when endpoint builders are used standalone."""
+    schemas = getattr(model, "schemas", None)
+    alias_ns = getattr(schemas or SimpleNamespace(), sp.alias, None)
+    needs_build = alias_ns is None or (
+        getattr(alias_ns, "in_", None) is None
+        and getattr(alias_ns, "in_item", None) is None
+        and getattr(alias_ns, "out", None) is None
+        and getattr(alias_ns, "out_item", None) is None
+    )
+    if not needs_build:
+        return
+    from ..schemas.builder import build_and_attach as _build_schemas
+
+    _build_schemas(model, [sp])
+
+
 def _make_collection_endpoint(
     model: type,
     sp: OpSpec,
@@ -71,6 +88,7 @@ def _make_collection_endpoint(
     router: Any | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias, target, nested_vars = sp.alias, sp.target, list(nested_vars or [])
+    _ensure_op_schemas(model, sp)
     hdr_dep = _make_header_dep(model, alias)
 
     if target in {"list", "clear"}:
