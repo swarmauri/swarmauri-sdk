@@ -15,6 +15,8 @@ from tigrbl_core._spec.storage_spec import StorageSpec as S
 
 from .shortcuts.column import acol, makeColumn, makeVirtualColumn, vcol
 
+Fk = ForeignKeySpec
+
 __all__ = [
     "ColumnSpec",
     "F",
@@ -24,6 +26,7 @@ __all__ = [
     "vcol",
     "Pair",
     "ForeignKeySpec",
+    "Fk",
     "makeColumn",
     "makeVirtualColumn",
     "is_virtual",
