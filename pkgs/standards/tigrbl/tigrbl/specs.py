@@ -6,9 +6,14 @@ going forward.
 
 from __future__ import annotations
 
-from ._spec import ColumnSpec, F, IO, S, acol, makeColumn, makeVirtualColumn, vcol
-from ._spec.io_spec import Pair
-from ._spec.storage_spec import ForeignKeySpec
+from tigrbl_core._spec.column_spec import ColumnSpec
+from tigrbl_core._spec.field_spec import FieldSpec as F
+from tigrbl_core._spec.io_spec import IOSpec as IO
+from tigrbl_core._spec.io_spec import Pair
+from tigrbl_core._spec.storage_spec import ForeignKeySpec
+from tigrbl_core._spec.storage_spec import StorageSpec as S
+
+from .shortcuts.column import acol, makeColumn, makeVirtualColumn, vcol
 
 __all__ = [
     "ColumnSpec",
