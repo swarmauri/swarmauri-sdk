@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Prepared
+from ...stages import Prepared
 
 from typing import Any, MutableMapping
 
@@ -29,8 +29,6 @@ def _run(obj: object | None, ctx: Any) -> None:
         ingress["body_peek"] = str(body)[:256]
 
 
-
-
 class AtomImpl(Atom[Prepared, Prepared]):
     name = "ingress.body_peek"
     anchor = ANCHOR
@@ -39,6 +37,9 @@ class AtomImpl(Atom[Prepared, Prepared]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

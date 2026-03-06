@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Encoded, Encoded
+from ...stages import Encoded
 
 from typing import Any, Dict, Mapping, MutableMapping, Optional, Sequence
 import logging
@@ -135,8 +135,6 @@ def _mask_value(value: Any, keep_last: Optional[int]) -> str:
     return "•" * (len(s) - n) + s[-n:]
 
 
-
-
 class AtomImpl(Atom[Encoded, Encoded]):
     name = "out.masking"
     anchor = ANCHOR
@@ -145,6 +143,9 @@ class AtomImpl(Atom[Encoded, Encoded]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

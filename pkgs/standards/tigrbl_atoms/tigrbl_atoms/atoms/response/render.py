@@ -82,8 +82,6 @@ def _run(obj: Optional[object], ctx: Any) -> Any:
     return resp
 
 
-
-
 class AtomImpl(Atom[Operated, Encoded]):
     name = "response.render"
     anchor = ANCHOR
@@ -92,6 +90,9 @@ class AtomImpl(Atom[Operated, Encoded]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

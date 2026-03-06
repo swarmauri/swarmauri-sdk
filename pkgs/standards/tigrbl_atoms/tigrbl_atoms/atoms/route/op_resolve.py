@@ -150,6 +150,9 @@ class AtomImpl(Atom[Authorized, Resolved]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

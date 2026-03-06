@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Encoded, Encoded
+from ...stages import Encoded
 
 import base64
 import datetime as _dt
@@ -270,8 +270,6 @@ def _dump_scalar(v: Any) -> Any:
     return v
 
 
-
-
 class AtomImpl(Atom[Encoded, Encoded]):
     name = "wire.dump"
     anchor = ANCHOR
@@ -280,6 +278,9 @@ class AtomImpl(Atom[Encoded, Encoded]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

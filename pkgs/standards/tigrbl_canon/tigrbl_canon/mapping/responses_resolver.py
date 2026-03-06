@@ -2,8 +2,8 @@ from __future__ import annotations
 from typing import Dict, Optional
 
 from dataclasses import fields
-from .._spec.response_spec import ResponseSpec, TemplateSpec
-from ..runtime.atoms.response.renderer import ResponseHints
+from tigrbl_core._spec.response_spec import ResponseSpec, TemplateSpec
+from tigrbl_atoms.atoms.response.renderer import ResponseHints
 
 
 def _merge_template(

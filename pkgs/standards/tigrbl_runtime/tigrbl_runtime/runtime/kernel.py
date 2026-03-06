@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib
 import logging
 import pkgutil
+import sys
 import threading
 import weakref
 import time
@@ -31,6 +32,20 @@ from ..runtime.hook_types import PHASES, StepFn
 from ..mapping.column_mro_collect import mro_collect_columns
 
 logger = logging.getLogger(__name__)
+
+# Treat ``tigrbl.runtime.kernel`` as a package-style namespace for legacy
+# imports such as ``tigrbl.runtime.kernel.opview_compiler``.
+__path__ = []  # type: ignore[var-annotated]
+_LEGACY_KERNEL_MODULES = {
+    "atoms": "tigrbl_kernel.atoms",
+    "models": "tigrbl_kernel.models",
+    "payload": "tigrbl_kernel.payload",
+    "opview_compiler": "tigrbl_kernel.opview_compiler",
+    "events": "tigrbl_kernel.kernel.events",
+    "ordering": "tigrbl_kernel.kernel.ordering",
+}
+for _name, _target in _LEGACY_KERNEL_MODULES.items():
+    sys.modules.setdefault(f"{__name__}.{_name}", importlib.import_module(_target))
 
 
 def _table_iter(app: Any) -> Sequence[type]:

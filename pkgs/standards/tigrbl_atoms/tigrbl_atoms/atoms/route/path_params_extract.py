@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Bound, Bound
+from ...stages import Bound
 
 from typing import Any
 
@@ -21,8 +21,6 @@ def _run(obj: object | None, ctx: Any) -> None:
         temp.setdefault("route", {})["path_params"] = dict(path_params)
 
 
-
-
 class AtomImpl(Atom[Bound, Bound]):
     name = "route.path_params_extract"
     anchor = ANCHOR
@@ -31,6 +29,9 @@ class AtomImpl(Atom[Bound, Bound]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

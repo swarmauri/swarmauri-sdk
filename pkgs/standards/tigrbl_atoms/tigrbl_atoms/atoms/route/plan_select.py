@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Routed, Routed
+from ...stages import Routed
 
 from typing import Any
 
@@ -42,6 +42,9 @@ class AtomImpl(Atom[Routed, Routed]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Ingress, Ingress
+from ...stages import Ingress
 
 from collections import defaultdict
 from typing import Any, MutableMapping
@@ -67,8 +67,6 @@ def _run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "headers", parsed)
 
 
-
-
 class AtomImpl(Atom[Ingress, Ingress]):
     name = "ingress.headers_parse"
     anchor = ANCHOR
@@ -77,6 +75,9 @@ class AtomImpl(Atom[Ingress, Ingress]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

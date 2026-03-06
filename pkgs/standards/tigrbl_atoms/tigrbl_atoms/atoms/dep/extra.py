@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Prepared
+from ...stages import Prepared
 
 import inspect
 from typing import Any, Callable
 
 from tigrbl_ops_oltp.crud.params import Param
-from ....mapping.core_resolver import (
+from tigrbl.mapping.core_resolver import (
     annotation_marker,
     extract_param_value,
     is_request_annotation,
@@ -15,7 +15,7 @@ from ....mapping.core_resolver import (
 )
 from ...status.exceptions import HTTPException
 from ...status.mappings import status
-from ....security.dependencies import Dependency
+from tigrbl.security.dependencies import Dependency
 from ... import events as _ev
 
 ANCHOR = _ev.DEP_EXTRA
@@ -115,6 +115,9 @@ class AtomImpl(Atom[Prepared, Prepared]):
         await _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

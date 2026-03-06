@@ -22,6 +22,10 @@ __all__ = [
     "collect_engine_bindings",
     "install_engine_bindings",
     "install_from_objects",
+    "engine_resolver",
+    "core_resolver",
+    "config_resolver",
+    "op_resolver",
 ]
 
 
@@ -57,4 +61,6 @@ def __getattr__(name: str):
         "install_from_objects",
     }:
         return getattr(import_module(".traversal", __name__), name)
+    if name in {"engine_resolver", "core_resolver", "config_resolver", "op_resolver"}:
+        return import_module(f".{name}", __name__)
     raise AttributeError(name)

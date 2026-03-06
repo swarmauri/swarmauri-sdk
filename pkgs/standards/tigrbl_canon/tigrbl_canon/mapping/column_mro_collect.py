@@ -5,9 +5,9 @@ from functools import lru_cache
 from types import SimpleNamespace
 from typing import Dict
 
-from .._spec.column_spec import ColumnSpec
-from .._spec.io_spec import IOSpec as IO
-from .._spec.storage_spec import StorageSpec as S
+from tigrbl_core._spec.column_spec import ColumnSpec
+from tigrbl_core._spec.io_spec import IOSpec as IO
+from tigrbl_core._spec.storage_spec import StorageSpec as S
 
 logger = logging.getLogger("uvicorn")
 

@@ -185,6 +185,9 @@ class AtomImpl(Atom[Prepared, Egressed]):
         await _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]
