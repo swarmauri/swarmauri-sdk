@@ -26,6 +26,7 @@ dependencies = [
     "tigrbl-runtime",
     "tigrbl-atoms",
     "tigrbl-kernel",
+    "tigrbl-ops-oltp",
     "pydantic>=2.0.0",
     "sqlalchemy>=2.0",
     "aiosqlite>=0.19.0",
@@ -56,6 +57,7 @@ tests = [
 "tigrbl-runtime" = { workspace = true }
 "tigrbl-atoms" = { workspace = true }
 "tigrbl-kernel" = { workspace = true }
+"tigrbl-ops-oltp" = { workspace = true }
 tigrbl-tests = { workspace = true }
 tigrbl_client = { workspace = true }
 

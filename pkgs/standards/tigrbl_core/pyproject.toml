@@ -18,11 +18,13 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
+    "tigrbl-ops-oltp",
     "tigrbl-typing",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
 [tool.uv.sources]
+"tigrbl-ops-oltp" = { workspace = true }
 "tigrbl-typing" = { workspace = true }
 
 [build-system]

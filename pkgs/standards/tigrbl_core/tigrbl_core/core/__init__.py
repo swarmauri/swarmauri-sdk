@@ -1,34 +1,23 @@
-# pkgs/standards/tigrbl_core/tigrbl/core/__init__.py
-"""
-Tigrbl v3 – Core operations.
+"""Compatibility facade for OLTP operations.
 
-Re-exports the canonical CRUD bodies implemented in `.crud`.
-
-Notes:
-- These functions are **flush-only**. They never call `db.commit()`.
-- Final commits are driven by the runtime executor's `END_TX` phase.
+Operation implementations now live in ``tigrbl_ops_oltp``.
 """
 
-from __future__ import annotations
-
-from .crud import (
-    create,
-    read,
-    update,
-    replace,
-    merge,
-    delete,
-    list as _list,  # avoid shadowing built-in, then re-export as `list`
-    clear,
+from tigrbl_ops_oltp import (  # noqa: F401
     bulk_create,
-    bulk_update,
-    bulk_replace,
-    bulk_merge,
     bulk_delete,
+    bulk_merge,
+    bulk_replace,
+    bulk_update,
+    clear,
+    create,
+    delete,
+    list,
+    merge,
+    read,
+    replace,
+    update,
 )
-
-# Public alias named exactly `list` to preserve API surface
-list = _list  # noqa: A001 - intentional shadow of built-in for public API
 
 __all__ = [
     "create",

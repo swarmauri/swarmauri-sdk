@@ -1,7 +1,7 @@
 [project]
-name = "tigrbl-atoms"
+name = "tigrbl-ops-oltp"
 version = "0.1.0.dev0"
-description = "Runtime atom utilities and execution helpers for Tigrbl."
+description = "OLTP operation implementations for Tigrbl, including CRUD and bulk handlers."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -18,16 +18,16 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "tigrbl-ops-oltp",
+    "tigrbl-orm",
     "tigrbl-base",
-    "tigrbl-typing",
+    "tigrbl-core",
 ]
-keywords = ["tigrbl", "sdk", "standards", "framework"]
+keywords = ["tigrbl", "sdk", "standards", "framework", "oltp", "crud"]
 
 [tool.uv.sources]
-"tigrbl-ops-oltp" = { workspace = true }
+"tigrbl-orm" = { workspace = true }
 "tigrbl-base" = { workspace = true }
-"tigrbl-typing" = { workspace = true }
+"tigrbl-core" = { workspace = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -36,7 +36,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 packages = [
-    { include = "tigrbl_atoms" },
+    { include = "tigrbl_ops_oltp" },
 ]
 
 [dependency-groups]
