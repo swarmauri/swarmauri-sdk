@@ -6,16 +6,40 @@ from ...stages import Resolved, Executing
 from typing import Any
 
 from ... import events as _ev
-from ... import system as _sys
 
 ANCHOR = _ev.SYS_TX_BEGIN
-_delegate = _sys.get("txn", "begin")[1]
 
 
-def _run(obj: object | None, ctx: Any) -> None:
-    _run(obj, ctx)
+def _ensure_temp(ctx: Any) -> dict[str, Any]:
+    temp = getattr(ctx, "temp", None)
+    if isinstance(temp, dict):
+        return temp
+    temp = {}
+    setattr(ctx, "temp", temp)
+    return temp
 
 
+def _resolve_db_handle(ctx: Any) -> Any:
+    db = getattr(ctx, "db", None)
+    if db is not None:
+        return db
+    return getattr(ctx, "session", None)
+
+
+async def _run(obj: object | None, ctx: Any) -> None:
+    del obj
+    temp = _ensure_temp(ctx)
+    db = _resolve_db_handle(ctx)
+    temp["__sys_tx_open__"] = db is not None
+
+    if db is None:
+        return
+
+    begin = getattr(db, "begin", None)
+    if callable(begin):
+        rv = begin()
+        if hasattr(rv, "__await__"):
+            await rv
 
 
 class AtomImpl(Atom[Resolved, Executing]):
@@ -23,10 +47,9 @@ class AtomImpl(Atom[Resolved, Executing]):
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Resolved]) -> Ctx[Executing]:
-        rv = _delegate(obj, ctx)
-        if hasattr(rv, "__await__"):
-            await rv
+        await _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 
