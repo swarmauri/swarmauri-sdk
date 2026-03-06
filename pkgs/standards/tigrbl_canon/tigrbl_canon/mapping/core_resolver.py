@@ -2,19 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Any, Iterable, Protocol, get_args, get_origin
+from typing import Annotated, Any, Iterable, get_args, get_origin
 
 from tigrbl_ops_oltp.crud.params import Param
 from tigrbl_runtime.runtime.status.exceptions import HTTPException
 from tigrbl_runtime.runtime.status.mappings import status
-
-
-class RequestLike(Protocol):
-    query_params: dict[str, Any]
-    path_params: dict[str, Any]
-    headers: dict[str, Any]
-
-    def json_sync(self) -> Any: ...
+from tigrbl_typing.protocols import RequestLike
 
 
 def _request_field(req: RequestLike | dict[str, Any], name: str) -> Any:
