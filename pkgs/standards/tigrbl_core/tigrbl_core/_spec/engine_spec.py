@@ -219,12 +219,22 @@ class EngineSpec(SerdeMixin):
 
     def build(self) -> Tuple[Any, SessionFactory]:
         """Construct the engine and sessionmaker for this spec."""
-        from ..engine.builders import (
-            async_postgres_engine,
-            async_sqlite_engine,
-            blocking_postgres_engine,
-            blocking_sqlite_engine,
-        )
+        try:
+            # Split layout: engine builders live in the tigrbl facade package.
+            from tigrbl.engine.builders import (
+                async_postgres_engine,
+                async_sqlite_engine,
+                blocking_postgres_engine,
+                blocking_sqlite_engine,
+            )
+        except ModuleNotFoundError:
+            # Backward compatibility for pre-split layouts.
+            from ..engine.builders import (  # type: ignore[no-redef]
+                async_postgres_engine,
+                async_sqlite_engine,
+                blocking_postgres_engine,
+                blocking_sqlite_engine,
+            )
 
         if self.kind == "sqlite":
             if self.memory:
