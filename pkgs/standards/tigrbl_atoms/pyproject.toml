@@ -21,6 +21,7 @@ dependencies = [
     "tigrbl-ops-oltp",
     "tigrbl-base",
     "tigrbl-typing",
+    "tigrbl-concrete",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
@@ -28,6 +29,7 @@ keywords = ["tigrbl", "sdk", "standards", "framework"]
 "tigrbl-ops-oltp" = { workspace = true }
 "tigrbl-base" = { workspace = true }
 "tigrbl-typing" = { workspace = true }
+"tigrbl-concrete" = { workspace = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
