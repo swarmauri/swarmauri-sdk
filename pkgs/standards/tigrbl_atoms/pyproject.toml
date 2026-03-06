@@ -20,12 +20,14 @@ authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "tigrbl-ops-oltp",
     "tigrbl-base",
+    "tigrbl-typing",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
 [tool.uv.sources]
 "tigrbl-ops-oltp" = { workspace = true }
 "tigrbl-base" = { workspace = true }
+"tigrbl-typing" = { workspace = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

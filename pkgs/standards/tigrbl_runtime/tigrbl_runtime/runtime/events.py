@@ -1,6 +1,6 @@
 """Compatibility wrapper for runtime events.
 
-Canonical event anchors and ordering now live in ``tigrbl_kernel.kernel.events``.
+Canonical event anchors and ordering now live in ``tigrbl_atoms.events``.
 """
 
-from tigrbl_kernel.kernel.events import *  # noqa: F403
+from tigrbl_atoms.events import *  # noqa: F403
