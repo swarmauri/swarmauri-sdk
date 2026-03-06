@@ -10,6 +10,8 @@ from ._spec import ColumnSpec, F, IO, S, acol, makeColumn, makeVirtualColumn, vc
 from ._spec.io_spec import Pair
 from ._spec.storage_spec import ForeignKeySpec
 
+Fk = ForeignKeySpec
+
 __all__ = [
     "ColumnSpec",
     "F",
@@ -19,6 +21,7 @@ __all__ = [
     "vcol",
     "Pair",
     "ForeignKeySpec",
+    "Fk",
     "makeColumn",
     "makeVirtualColumn",
     "is_virtual",
