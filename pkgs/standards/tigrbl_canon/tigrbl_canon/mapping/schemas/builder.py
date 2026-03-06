@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from tigrbl_base._base import SchemaBase
 from tigrbl_core._spec import OpSpec
+from ..collect_decorated_schemas import collect_decorated_schemas
 from .defaults import _default_schemas_for_spec
 from .utils import _alias_schema, _ensure_alias_namespace, _resolve_schema_arg, _Key
 
@@ -51,7 +52,17 @@ def build_and_attach(
         logger.debug("Filtering overrides to keys: %s", wanted)
 
     # Pass 0: attach schemas declared via @schema_ctx
+    # Merge legacy explicit mappings with @schema_ctx declarations.
     declared = SchemaBase.collect(model)  # {alias: {"in": cls, "out": cls}}
+    decorated = collect_decorated_schemas(model)
+    if decorated:
+        declared = {
+            **(declared or {}),
+            **{
+                alias: {**(declared or {}).get(alias, {}), **kinds}
+                for alias, kinds in decorated.items()
+            },
+        }
     for alias, kinds in (declared or {}).items():
         logger.debug("Applying declared schemas for alias '%s'", alias)
         ns = _ensure_alias_namespace(model, alias)
