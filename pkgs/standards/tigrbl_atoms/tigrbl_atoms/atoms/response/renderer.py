@@ -5,13 +5,14 @@ from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union, cast
 import logging
 
 from tigrbl_concrete._concrete._response import (
-    Response,
     as_file,
     as_html,
     as_json,
     as_stream,
     as_text,
 )
+
+from ...types import ResponseLike
 from typing import Callable
 
 JSON = Mapping[str, Any]
@@ -40,8 +41,8 @@ class ResponseKind:
     REDIRECT = "application/redirect"
 
 
-ResponseLike = Union[
-    Response,
+RenderPayloadLike = Union[
+    ResponseLike,
     bytes,
     bytearray,
     memoryview,
@@ -55,14 +56,14 @@ ResponseLike = Union[
 
 def render(
     request: Any,
-    payload: ResponseLike,
+    payload: RenderPayloadLike,
     *,
     hints: Optional[ResponseHints] = None,
     default_media: str = "application/json",
     envelope_default: bool = False,
-) -> Response:
+) -> ResponseLike:
     logger.debug("Rendering response with payload type %s", type(payload))
-    if isinstance(payload, Response):
+    if isinstance(payload, ResponseLike):
         return payload
 
     hints = hints or ResponseHints()
@@ -111,6 +112,6 @@ def render(
 __all__ = [
     "ResponseHints",
     "ResponseKind",
-    "ResponseLike",
+    "RenderPayloadLike",
     "render",
 ]

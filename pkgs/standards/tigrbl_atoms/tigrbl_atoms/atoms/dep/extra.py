@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Prepared
+from ...stages import Prepared
 
 import inspect
 from typing import Any, Callable
@@ -15,7 +15,7 @@ from ....mapping.core_resolver import (
 )
 from ...status.exceptions import HTTPException
 from ...status.mappings import status
-from ....security.dependencies import Dependency
+from ...types import DependencyLike, is_dependency_like
 from ... import events as _ev
 
 ANCHOR = _ev.DEP_EXTRA
@@ -29,15 +29,15 @@ async def invoke_dependency(router: Any, dep: Callable[..., Any], req: Any) -> A
 
     for name, param in inspect.signature(dep).parameters.items():
         base_annotation, extras = split_annotated(param.annotation)
-        dependency_marker = annotation_marker(extras, Dependency)
+        dependency_marker = annotation_marker(extras, DependencyLike)
         param_marker = annotation_marker(extras, Param)
 
         if is_request_annotation(base_annotation) or name == "request":
             kwargs[name] = req
-        elif isinstance(param.default, Dependency) or dependency_marker is not None:
+        elif is_dependency_like(param.default) or dependency_marker is not None:
             child = (
                 param.default.dependency
-                if isinstance(param.default, Dependency)
+                if is_dependency_like(param.default)
                 else dependency_marker.dependency
             )
             kwargs[name] = await invoke_dependency(router, child, req)
@@ -114,6 +114,7 @@ class AtomImpl(Atom[Prepared, Prepared]):
     async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
         await _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 
