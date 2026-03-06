@@ -10,7 +10,7 @@ from ... import events as _ev
 from ...gw.raw import GwRouteEnvelope
 from ...status import StatusDetailError
 from tigrbl_ops_oltp.crud.params import Param
-from ....mapping.core_resolver import (
+from tigrbl_canon.mapping.core_resolver import (
     annotation_marker,
     extract_param_value,
     is_request_annotation,
@@ -167,6 +167,7 @@ class AtomImpl(Atom[Executing, Operated]):
     async def __call__(self, obj: object | None, ctx: Ctx[Executing]) -> Ctx[Operated]:
         await _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 
