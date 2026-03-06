@@ -1,25 +1,3 @@
-from .core import infer
-from .types import (
-    Email,
-    Phone,
-    DataKind,
-    PyTypeInfo,
-    SATypePlan,
-    JsonHint,
-    Inferred,
-    InferenceError,
-    UnsupportedType,
-)
+"""Backward-compatible infer exports moved to ``tigrbl_canon``."""
 
-__all__ = [
-    "infer",
-    "Email",
-    "Phone",
-    "DataKind",
-    "PyTypeInfo",
-    "SATypePlan",
-    "JsonHint",
-    "Inferred",
-    "InferenceError",
-    "UnsupportedType",
-]
+from tigrbl_canon.column.infer import *  # noqa: F401,F403
