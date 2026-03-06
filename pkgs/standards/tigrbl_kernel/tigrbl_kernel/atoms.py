@@ -5,7 +5,17 @@ import inspect
 import logging
 import pkgutil
 from types import SimpleNamespace
-from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    cast,
+)
 
 from tigrbl_runtime.hook_types import PHASES as HOOK_PHASES
 from tigrbl_runtime.hook_types import StepFn
@@ -32,7 +42,9 @@ def _discover_atoms() -> list[_DiscoveredAtom]:
             mod = importlib.import_module(info.name)
             instance = getattr(mod, "INSTANCE", None)
             if instance is not None and callable(instance):
-                anchor = getattr(instance, "anchor", None) or getattr(mod, "ANCHOR", None)
+                anchor = getattr(instance, "anchor", None) or getattr(
+                    mod, "ANCHOR", None
+                )
                 if isinstance(anchor, str):
                     out.append((anchor, cast(_AtomRun, instance)))
                     continue
@@ -71,7 +83,11 @@ def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
         positional = [
             p
             for p in params
-            if p.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+            if p.kind
+            in (
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            )
         ]
         use_two_args = len(positional) != 1
     except (TypeError, ValueError):
@@ -142,12 +158,31 @@ def _inject_pre_tx_dep_atoms(chains: Dict[str, List[StepFn]], sp: Any | None) ->
 
     pre_tx = chains.setdefault("PRE_TX_BEGIN", [])
     for idx, dep in enumerate(getattr(sp, "secdeps", ()) or ()):
-        pre_tx.append(_make_dep_atom_step(sec_run, dep, label=_label_dep_atom(kind="security", index=idx, anchor=_ev.DEP_SECURITY)))
+        pre_tx.append(
+            _make_dep_atom_step(
+                sec_run,
+                dep,
+                label=_label_dep_atom(
+                    kind="security", index=idx, anchor=_ev.DEP_SECURITY
+                ),
+            )
+        )
     for idx, dep in enumerate(getattr(sp, "deps", ()) or ()):
-        pre_tx.append(_make_dep_atom_step(dep_run, dep, label=_label_dep_atom(kind="extra", index=idx, anchor=_ev.DEP_EXTRA)))
+        pre_tx.append(
+            _make_dep_atom_step(
+                dep_run,
+                dep,
+                label=_label_dep_atom(kind="extra", index=idx, anchor=_ev.DEP_EXTRA),
+            )
+        )
 
 
-def _inject_atoms(chains: Dict[str, List[StepFn]], atoms: Iterable[_DiscoveredAtom], *, persistent: bool) -> None:
+def _inject_atoms(
+    chains: Dict[str, List[StepFn]],
+    atoms: Iterable[_DiscoveredAtom],
+    *,
+    persistent: bool,
+) -> None:
     order = {name: i for i, name in enumerate(_ev.all_events_ordered())}
 
     def _sort_key(item: _DiscoveredAtom) -> tuple[int, int]:
@@ -164,7 +199,7 @@ def _inject_atoms(chains: Dict[str, List[StepFn]], atoms: Iterable[_DiscoveredAt
             info = _ev.get_anchor_info(anchor)
             phase = info.phase
             persist_tied = info.persist_tied
-        elif anchor in HOOK_PHASES:
+        elif anchor in _ev.PHASES:
             phase = anchor
             persist_tied = False
         else:
@@ -183,13 +218,19 @@ def _inject_atoms(chains: Dict[str, List[StepFn]], atoms: Iterable[_DiscoveredAt
         chains.setdefault(phase, []).append(_wrap_atom(run, anchor=anchor))
 
 
-def _inject_txn_system_steps(chains: Dict[str, List[StepFn]], *, model: Any | None = None) -> None:
+def _inject_txn_system_steps(
+    chains: Dict[str, List[StepFn]], *, model: Any | None = None
+) -> None:
     start_anchor, start_run = _sys.get("txn", "begin")
     end_anchor, end_run = _sys.get("txn", "commit")
-    chains.setdefault(start_anchor, []).append(_wrap_atom(start_run, anchor=start_anchor))
+    chains.setdefault(start_anchor, []).append(
+        _wrap_atom(start_run, anchor=start_anchor)
+    )
 
     if not chains.get(_sys.HANDLER) and _sys.can_resolve_handler(model):
         handler_anchor, handler_run = _sys.get("handler", "crud")
-        chains.setdefault(handler_anchor, []).append(_wrap_atom(handler_run, anchor=handler_anchor))
+        chains.setdefault(handler_anchor, []).append(
+            _wrap_atom(handler_run, anchor=handler_anchor)
+        )
 
     chains.setdefault(end_anchor, []).append(_wrap_atom(end_run, anchor=end_anchor))
