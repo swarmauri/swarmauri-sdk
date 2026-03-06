@@ -3,6 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Iterator, Mapping, Tuple
 
+try:
+    from tigrbl_typing.phases import MAINLINE_PHASES, ERROR_PHASES, phase_info
+except Exception:  # pragma: no cover - compatibility fallback
+    MAINLINE_PHASES = ()
+    ERROR_PHASES = ()
+    phase_info = None
+
 
 def _label_callable(fn: Any) -> str:
     name = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
@@ -62,6 +69,15 @@ class OpMeta:
 
 
 @dataclass(frozen=True, slots=True)
+class CompiledPhase:
+    name: str
+    stage_in: object | None
+    stage_out: object | None
+    in_tx: bool = False
+    is_error: bool = False
+
+
+@dataclass(frozen=True, slots=True)
 class KernelPlan:
     proto_indices: Mapping[str, Any] = field(default_factory=dict)
     opmeta: tuple[OpMeta, ...] = ()
@@ -71,6 +87,9 @@ class KernelPlan:
         default_factory=dict
     )
     egress_chain: Mapping[str, list[Callable[..., Any]]] = field(default_factory=dict)
+    phases: Mapping[str, CompiledPhase] = field(default_factory=dict)
+    mainline_phases: tuple[str, ...] = ()
+    error_phases: tuple[str, ...] = ()
     _appspec_mapping: Dict[str, Dict[str, list[str]]] = field(
         default_factory=dict, init=False, repr=False, compare=False
     )
@@ -79,14 +98,13 @@ class KernelPlan:
         if self._appspec_mapping:
             return self._appspec_mapping
 
-        from . import events as _ev
-
+        phase_order = self.mainline_phases or tuple(self.phases.keys())
         normalized: Dict[str, Dict[str, list[str]]] = {}
         for meta_index, meta in enumerate(self.opmeta):
             table_name = getattr(meta.model, "__name__", str(meta.model))
             labels: list[str] = []
             chains = self.phase_chains.get(meta_index, {})
-            for phase in _ev.PHASES:
+            for phase in phase_order:
                 phase_steps = chains.get(phase, ())
                 for step in phase_steps or ():
                     labels.append(_label_step(step, phase))
