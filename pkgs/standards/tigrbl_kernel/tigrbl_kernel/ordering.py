@@ -187,6 +187,14 @@ def flatten(
         out,
         by_anchor,
         anchors,
+        target_phase="POST_COMMIT",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
         target_phase="EGRESS_SHAPE",
         anchor_policies=anchor_policies,
         persist=persist,
