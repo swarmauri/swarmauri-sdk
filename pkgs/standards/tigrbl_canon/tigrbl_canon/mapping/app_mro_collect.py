@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from .._spec.app_spec import AppSpec
+from tigrbl_core._spec.app_spec import AppSpec
 
 
 @lru_cache(maxsize=None)

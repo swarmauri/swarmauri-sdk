@@ -5,9 +5,9 @@ from types import SimpleNamespace
 from typing import Any, Dict, Optional, Sequence, Tuple
 
 
-from ...runtime.status.mappings import status as _status
+from tigrbl_runtime.runtime.status.mappings import status as _status
 from ...security.dependencies import Depends
-from ..._spec import OpSpec
+from tigrbl_core._spec import OpSpec
 from ...op.types import CANON
 
 logger = logging.getLogger("uvicorn")

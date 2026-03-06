@@ -10,11 +10,11 @@ import typing as _typing
 from pydantic import BaseModel, Field, create_model
 
 from tigrbl_ops_oltp.crud.params import Query
-from ...runtime.status.exceptions import HTTPException
-from ...runtime.status.mappings import status as _status
+from tigrbl_runtime.runtime.status.exceptions import HTTPException
+from tigrbl_runtime.runtime.status.mappings import status as _status
 from ..._concrete._request import Request
 from .helpers import _ensure_jsonable
-from ..._spec import OpSpec
+from tigrbl_core._spec import OpSpec
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/rest/io")

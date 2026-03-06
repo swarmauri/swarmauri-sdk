@@ -8,7 +8,7 @@ from ..._concrete._request import Request
 from ...hook.types import PHASES
 
 try:
-    from ...runtime.kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore
+    from tigrbl_kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore
 except Exception:  # pragma: no cover
     _kernel_build_phase_chains = None  # type: ignore
 

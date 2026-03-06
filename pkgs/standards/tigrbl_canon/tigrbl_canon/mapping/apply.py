@@ -4,7 +4,7 @@ from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any
 
-from .._spec.binding_spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
+from tigrbl_core._spec.binding_spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
 
 from . import columns as _columns_binding
 from . import handlers as _handlers_binding

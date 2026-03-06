@@ -2,10 +2,14 @@ import logging
 
 # tigrbl/v3/mapping/columns.py
 from sqlalchemy import Column
-from ..specs import ColumnSpec, is_virtual
+from tigrbl_core._spec import ColumnSpec
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/columns")
+
+
+def _is_virtual(spec: ColumnSpec) -> bool:
+    return bool(getattr(getattr(spec, "storage", None), "virtual", False))
 
 
 def build_and_attach(model: type, specs=None, only_keys=None):
@@ -13,7 +17,7 @@ def build_and_attach(model: type, specs=None, only_keys=None):
     for name, attr in list(model.__dict__.items()):
         if not isinstance(attr, ColumnSpec):
             continue
-        if is_virtual(attr):
+        if _is_virtual(attr):
             cols[name] = attr
             continue
 

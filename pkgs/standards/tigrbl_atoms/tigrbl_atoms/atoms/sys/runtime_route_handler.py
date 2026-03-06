@@ -16,7 +16,7 @@ from tigrbl_canon.mapping.core_resolver import (
     is_request_annotation,
     split_annotated,
 )
-from ....security.dependencies import Dependency
+from ...types import DependencyLike, is_dependency_like
 from ..dep.extra import invoke_dependency as invoke_extra_dependency
 
 ANCHOR = _ev.SYS_HANDLER_PERSISTENCE
@@ -49,9 +49,9 @@ async def _resolve_runtime_deps(handler: Callable[..., Any], request: Any) -> No
         return
     for name, param in inspect.signature(handler).parameters.items():
         base_annotation, extras = split_annotated(param.annotation)
-        dep_marker = annotation_marker(extras, Dependency)
+        dep_marker = annotation_marker(extras, DependencyLike)
         dep = None
-        if isinstance(param.default, Dependency):
+        if is_dependency_like(param.default):
             dep = param.default.dependency
         elif dep_marker is not None:
             dep = dep_marker.dependency
@@ -85,8 +85,8 @@ def _resolve_handler_kwargs(
             continue
 
         if (
-            isinstance(param.default, Dependency)
-            or annotation_marker(extras, Dependency) is not None
+            is_dependency_like(param.default)
+            or annotation_marker(extras, DependencyLike) is not None
         ):
             continue
 

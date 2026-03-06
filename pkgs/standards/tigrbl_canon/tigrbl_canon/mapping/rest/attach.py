@@ -3,7 +3,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from typing import Any, Sequence
 
-from ..._spec import OpSpec
+from tigrbl_core._spec import OpSpec
 from .router import _build_router
 
 
