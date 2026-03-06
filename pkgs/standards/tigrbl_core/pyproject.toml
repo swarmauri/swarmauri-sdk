@@ -21,6 +21,8 @@ dependencies = [
     "tigrbl-ops-oltp",
     "tigrbl-typing",
     "pydantic>=2.0.0",
+    "pyyaml>=6.0.0",
+    "tomli-w>=1.0.0",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
