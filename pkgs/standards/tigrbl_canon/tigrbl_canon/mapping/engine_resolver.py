@@ -9,7 +9,13 @@ import logging
 import threading
 from typing import Any, Callable, Optional
 
-from tigrbl_concrete._concrete._engine import AsyncSession, Engine, Provider, Session
+from tigrbl_concrete._concrete._engine import (
+    AsyncSession,
+    Engine,
+    Provider,
+    Session,
+    provider_from_spec,
+)
 from tigrbl_core._spec.engine_spec import EngineSpec, EngineCfg
 
 logger = logging.getLogger("uvicorn")

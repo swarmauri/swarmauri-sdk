@@ -49,7 +49,7 @@ from ...config.constants import (
     TIGRBL_GET_DB_ATTR,
     TIGRBL_REST_DEPENDENCIES_ATTR,
 )
-from ...core.crud.params import Body, Path
+from tigrbl_ops_oltp.crud.params import Body, Path
 from ..._spec import OpSpec
 from ...op.types import CANON
 from ...rest import _nested_prefix

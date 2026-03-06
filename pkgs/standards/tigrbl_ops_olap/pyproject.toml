@@ -1,7 +1,7 @@
 [project]
-name = "tigrbl-core"
+name = "tigrbl-ops-olap"
 version = "0.1.0.dev0"
-description = "Core specifications and primitives for the Tigrbl framework."
+description = "OLAP operation package boundary for analytical Tigrbl workloads."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -17,15 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
-dependencies = [
-    "tigrbl-ops-oltp",
-    "tigrbl-typing",
-]
-keywords = ["tigrbl", "sdk", "standards", "framework"]
-
-[tool.uv.sources]
-"tigrbl-ops-oltp" = { workspace = true }
-"tigrbl-typing" = { workspace = true }
+keywords = ["tigrbl", "sdk", "standards", "framework", "olap", "analytics"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -34,7 +26,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 packages = [
-    { include = "tigrbl_core" },
+    { include = "tigrbl_ops_olap" },
 ]
 
 [dependency-groups]

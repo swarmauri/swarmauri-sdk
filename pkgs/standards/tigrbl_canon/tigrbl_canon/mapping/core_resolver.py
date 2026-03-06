@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any, Iterable, Protocol, get_args, get_origin
 
-from ..core.crud.params import Param
+from tigrbl_ops_oltp.crud.params import Param
 from ..runtime.status.exceptions import HTTPException
 from ..runtime.status.mappings import status
 

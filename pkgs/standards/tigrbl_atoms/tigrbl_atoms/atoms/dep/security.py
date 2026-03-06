@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 from typing import Any, Callable
 
-from ....core.crud.params import Param
+from tigrbl_ops_oltp.crud.params import Param
 from ....mapping.core_resolver import (
     annotation_marker,
     extract_param_value,

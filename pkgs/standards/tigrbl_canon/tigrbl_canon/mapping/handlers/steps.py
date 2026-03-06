@@ -6,7 +6,7 @@ import inspect
 from functools import lru_cache
 from typing import Any, Callable, Mapping, Optional
 
-from ... import core as _core
+import tigrbl_ops_oltp as _core
 from ..._spec import OpSpec
 from ...hook.types import StepFn
 from ...runtime.executor import _Ctx

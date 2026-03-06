@@ -342,6 +342,8 @@ members = [
     "standards/tigrbl_canon",
     "standards/tigrbl_concrete",
     "standards/tigrbl_core",
+    "standards/tigrbl_ops_oltp",
+    "standards/tigrbl_ops_olap",
     "standards/tigrbl_kernel",
     "standards/tigrbl_runtime",
     "standards/tigrbl_typing",

@@ -9,7 +9,7 @@ import typing as _typing
 
 from pydantic import BaseModel, Field, create_model
 
-from ...core.crud.params import Query
+from tigrbl_ops_oltp.crud.params import Query
 from ...runtime.status.exceptions import HTTPException
 from ...runtime.status.mappings import status as _status
 from ..._concrete._request import Request

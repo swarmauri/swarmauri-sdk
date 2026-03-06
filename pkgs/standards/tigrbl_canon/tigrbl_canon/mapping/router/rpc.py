@@ -6,7 +6,7 @@ from typing import Any, Dict, Mapping, Optional, Union
 
 from .common import RouterLike, _ensure_router_ns
 from ...mapping import engine_resolver as _resolver
-from ...core.crud.helpers.model import _single_pk_name
+from tigrbl_ops_oltp.crud.helpers.model import _single_pk_name
 from ...mapping.op_resolver import resolve as resolve_ops
 from ...runtime.executor.invoke import _invoke
 

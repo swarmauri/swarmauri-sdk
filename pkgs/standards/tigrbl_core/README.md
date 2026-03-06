@@ -6,9 +6,9 @@
 
 ## Features
 
-- Modular package in the Tigrbl namespace.
+- Core specification and primitive contracts for Tigrbl.
+- Operational implementations now live in `tigrbl-ops-oltp`.
 - Supports Python 3.10 through 3.12.
-- Distributed as part of the swarmauri-sdk workspace.
 
 ## Installation
 
