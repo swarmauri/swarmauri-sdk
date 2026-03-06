@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from .._spec.table_spec import TableSpec
+from tigrbl_core._spec.table_spec import TableSpec
 
 
 @lru_cache(maxsize=None)

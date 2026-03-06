@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Boot, Boot
+from ...stages import Boot
 
 from typing import Any, MutableMapping
 
@@ -32,8 +32,6 @@ def _run(obj: object | None, ctx: Any) -> None:
         ingress["compiled"] = compiled
 
 
-
-
 class AtomImpl(Atom[Boot, Boot]):
     name = "ingress.attach_compiled"
     anchor = ANCHOR
@@ -42,6 +40,9 @@ class AtomImpl(Atom[Boot, Boot]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

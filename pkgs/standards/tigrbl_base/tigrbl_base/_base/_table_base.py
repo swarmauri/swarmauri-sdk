@@ -1,6 +1,7 @@
 # tigrbl/tigrbl/table/_base.py
 from __future__ import annotations
 
+import warnings
 from typing import Any, Optional, Union, get_args, get_origin
 from enum import Enum as PyEnum
 
@@ -388,6 +389,16 @@ class TableBase(DeclarativeBase):
         if responses:
             cls.responses = responses
             cls.response = next(iter(responses.values()))
+
+        if "json" in cls.__dict__:
+            warnings.warn(
+                (
+                    f'Field name "json" in "{cls.__name__}" shadows an attribute '
+                    'in parent "BaseModel"'
+                ),
+                UserWarning,
+                stacklevel=2,
+            )
 
         # 3) Base package must remain canon/runtime-agnostic. Canon bindings and
         # schema synthesis are intentionally delegated to higher-level packages.

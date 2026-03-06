@@ -7,8 +7,8 @@ from tigrbl import Request
 
 class AuthNProvider(ABC):
     """
-    Marker‑interface that any AuthN extension must implement
-    so that Tigrbl can plug itself in at run‑time.
+    Marker-interface that any AuthN extension must implement
+    so that Tigrbl can plug itself in at run-time.
     """
 
     # ---------- ASGI dependency ----------

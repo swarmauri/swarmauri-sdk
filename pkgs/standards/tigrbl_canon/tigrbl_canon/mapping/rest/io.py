@@ -10,14 +10,18 @@ import typing as _typing
 from pydantic import BaseModel, Field, create_model
 
 from tigrbl_ops_oltp.crud.params import Query
-from ...runtime.status.exceptions import HTTPException
-from ...runtime.status.mappings import status as _status
-from ..._concrete._request import Request
+from tigrbl_runtime.status import HTTPException
+from tigrbl_runtime.runtime.status.mappings import status as _status
 from .helpers import _ensure_jsonable
-from ..._spec import OpSpec
+from tigrbl_core._spec import OpSpec
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/rest/io")
+Request = Any
+
+
+def _is_response_like(value: Any) -> bool:
+    return all(hasattr(value, attr) for attr in ("status_code", "raw_headers", "body"))
 
 
 def _serialize_output(
@@ -29,11 +33,7 @@ def _serialize_output(
     can JSON-encode the response.
     """
 
-    from ..._concrete._response import (
-        Response as _Response,
-    )  # local import to avoid cycles
-
-    if isinstance(result, _Response):
+    if _is_response_like(result):
         return result
 
     def _merge_passthrough(mapping_like: Any, dumped: Dict[str, Any]) -> Dict[str, Any]:

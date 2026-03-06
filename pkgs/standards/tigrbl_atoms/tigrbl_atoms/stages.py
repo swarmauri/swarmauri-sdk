@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from typing import Final, Tuple, Type
@@ -30,17 +29,47 @@ with failure transitions to:
 
 
 class Boot: ...
+
+
 class Ingress: ...
+
+
 class Routed: ...
+
+
 class Bound: ...
+
+
 class Selected: ...
+
+
 class Authorized: ...
+
+
+class Resolved: ...
+
+
 class Executing: ...
+
+
+class Prepared: ...
+
+
 class Ready: ...
+
+
 class Operated: ...
+
+
 class Encoded: ...
+
+
 class Emitting: ...
+
+
 class Egressed: ...
+
+
 class Failed: ...
 
 
@@ -53,7 +82,9 @@ STAGES: Final[Tuple[StageType, ...]] = (
     Bound,
     Selected,
     Authorized,
+    Resolved,
     Executing,
+    Prepared,
     Ready,
     Operated,
     Encoded,
@@ -103,7 +134,9 @@ __all__ = [
     "Bound",
     "Selected",
     "Authorized",
+    "Resolved",
     "Executing",
+    "Prepared",
     "Ready",
     "Operated",
     "Encoded",

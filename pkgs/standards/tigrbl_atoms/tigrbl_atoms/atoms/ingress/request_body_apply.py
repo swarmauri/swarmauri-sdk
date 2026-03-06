@@ -26,8 +26,6 @@ def _run(obj: object | None, ctx: Any) -> None:
         req.body = body
 
 
-
-
 class AtomImpl(Atom[Ingress, Prepared]):
     name = "ingress.request_body_apply"
     anchor = ANCHOR
@@ -36,6 +34,9 @@ class AtomImpl(Atom[Ingress, Prepared]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

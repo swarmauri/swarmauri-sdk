@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Prepared
+from ...stages import Ready
 
 from typing import Any, Iterable, Optional
 import logging
@@ -130,16 +130,17 @@ def _reason(
     return "; ".join(parts)
 
 
-
-
-class AtomImpl(Atom[Prepared, Prepared]):
+class AtomImpl(Atom[Ready, Ready]):
     name = "refresh.demand"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Ready]) -> Ctx[Ready]:
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

@@ -5,10 +5,10 @@ from types import SimpleNamespace
 from typing import Any, Dict, Mapping, Optional, Union
 
 from .common import RouterLike, _ensure_router_ns
-from ...mapping import engine_resolver as _resolver
+from tigrbl.mapping import engine_resolver as _resolver
 from tigrbl_ops_oltp.crud.helpers.model import _single_pk_name
 from ...mapping.op_resolver import resolve as resolve_ops
-from ...runtime.executor.invoke import _invoke
+from tigrbl_runtime.executor import _invoke
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/rpc")

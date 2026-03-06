@@ -52,6 +52,7 @@ tigrbl_client = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
+addopts = "--pylicense-accept-deps=asyncpg,mccabe,MarkupSafe,psycopg2-binary,packaging,pytest-metadata,greenlet,sniffio,click,joblib"
 markers = [
     "test: standard test",
     "unit: Unit tests",

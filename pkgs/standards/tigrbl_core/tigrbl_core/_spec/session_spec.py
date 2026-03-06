@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, fields
-from typing import Any, Mapping, MutableMapping, Optional, Union
+from typing import Any, Callable, Mapping, MutableMapping, Optional, Union
 
 SessionCfg = Union["SessionSpec", Mapping[str, Any], None]
 
@@ -135,15 +135,21 @@ def readonly() -> SessionSpec:
     return SessionSpec(read_only=True)
 
 
-def wrap_sessionmaker(maker, spec: SessionSpec):
-    """Wrap a provider session factory to yield DefaultSession instances."""
-    from .._concrete._session import DefaultSession
+def wrap_sessionmaker(
+    maker,
+    spec: SessionSpec,
+    *,
+    wrapper: Callable[[Any, SessionSpec], Any] | None = None,
+):
+    """Wrap a provider session factory and apply SessionSpec without concrete coupling."""
 
-    def _mk() -> DefaultSession:
+    def _mk() -> Any:
         underlying = maker()
-        s = DefaultSession(underlying, spec)
-        s.apply_spec(spec)
-        return s
+        session = wrapper(underlying, spec) if wrapper is not None else underlying
+        apply_spec = getattr(session, "apply_spec", None)
+        if callable(apply_spec):
+            apply_spec(spec)
+        return session
 
     return _mk
 

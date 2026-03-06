@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Emitting, Emitting
+from ...stages import Emitting
 
 from typing import Any, MutableMapping
 
@@ -43,8 +43,6 @@ def _run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "status_code", status)
 
 
-
-
 class AtomImpl(Atom[Emitting, Emitting]):
     name = "egress.http_finalize"
     anchor = ANCHOR
@@ -53,6 +51,9 @@ class AtomImpl(Atom[Emitting, Emitting]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

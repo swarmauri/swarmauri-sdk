@@ -4,11 +4,10 @@ import logging
 from types import SimpleNamespace
 from typing import Any, Awaitable, Callable, Dict, Mapping, Sequence, Tuple
 
-from ..._concrete._request import Request
-from ...hook.types import PHASES
+from tigrbl_runtime.hook_types import PHASES
 
 try:
-    from ...runtime.kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore
+    from tigrbl_kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore
 except Exception:  # pragma: no cover
     _kernel_build_phase_chains = None  # type: ignore
 
@@ -16,6 +15,7 @@ logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/rest/helpers")
 
 _Key = Tuple[str, str]  # (alias, target)
+Request = Any
 
 
 def _ensure_jsonable(obj: Any) -> Any:

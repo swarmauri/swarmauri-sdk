@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import Iterable, Literal
 from .table_config_provider import TableConfigProvider
-from .._spec import OpSpec
-from ..op.canonical import (  # noqa: F401
+from tigrbl_core._spec import OpSpec
+from tigrbl.op.canonical import (  # noqa: F401
     DEFAULT_CANON_VERBS,
     should_wire_canonical,
 )

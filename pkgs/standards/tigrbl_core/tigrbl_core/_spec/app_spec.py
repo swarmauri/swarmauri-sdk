@@ -45,7 +45,10 @@ class AppSpec(SerdeMixin):
 
     @classmethod
     def collect(cls, app: type) -> "AppSpec":
-        from ..mapping.spec_normalization import merge_seq_attr, normalize_app_spec
+        from tigrbl.mapping.spec_normalization import (
+            merge_seq_attr,
+            normalize_app_spec,
+        )
 
         sentinel = object()
         title: Any = sentinel

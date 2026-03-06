@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Prepared
+from ...stages import Prepared
 
 import uuid as _uuid
 from typing import Any, Dict, Mapping, MutableMapping, Optional
@@ -287,8 +287,6 @@ def _coerce_model_field_value(ctx: Any, field: str, value: Any) -> Any:
     return value
 
 
-
-
 class AtomImpl(Atom[Prepared, Prepared]):
     name = "wire.build_in"
     anchor = ANCHOR
@@ -297,6 +295,9 @@ class AtomImpl(Atom[Prepared, Prepared]):
         _run(obj, ctx)
         return cast_ctx(ctx)
 
+
 INSTANCE = AtomImpl()
+
+run = _run
 
 __all__ = ["ANCHOR", "INSTANCE"]

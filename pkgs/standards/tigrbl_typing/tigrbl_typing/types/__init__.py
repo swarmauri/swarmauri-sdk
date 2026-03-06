@@ -4,7 +4,7 @@ from types import MethodType, SimpleNamespace
 from uuid import uuid4, UUID
 
 # ── Third-party Dependencies (via deps module) ───────────────────────────
-from ..vendor.sqlalchemy import (
+from tigrbl.vendor.sqlalchemy import (
     # Core SQLAlchemy
     Boolean,
     Column,
@@ -48,15 +48,15 @@ from ..vendor.sqlalchemy import (
 )
 
 
-from ..vendor.pydantic import (
+from tigrbl.vendor.pydantic import (
     BaseModel,
     Field,
     ValidationError,
 )
 
-from ..core.crud.params import Path
-from ..runtime.status.exceptions import StatusDetailError
-from ..security.dependencies import Security
+from tigrbl_ops_oltp.crud.params import Path
+from tigrbl_runtime.runtime.status.exceptions import StatusDetailError
+from tigrbl.security.dependencies import Security
 
 # ── Local Package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
