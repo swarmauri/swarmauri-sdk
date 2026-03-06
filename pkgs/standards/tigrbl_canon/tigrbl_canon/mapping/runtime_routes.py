@@ -5,8 +5,8 @@ from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any, Callable
 
-from .._spec.binding_spec import HttpRestBindingSpec
-from .._spec.op_spec import OpSpec
+from tigrbl_core._spec.binding_spec import HttpRestBindingSpec
+from tigrbl_core._spec.op_spec import OpSpec
 from .model_helpers import _OpSpecGroup
 from tigrbl_ops_oltp.crud.params import Param
 from ..mapping.core_resolver import (
@@ -15,7 +15,7 @@ from ..mapping.core_resolver import (
     is_request_annotation,
     split_annotated,
 )
-from ..runtime.atoms.dep.extra import invoke_dependency as invoke_extra_dependency
+from tigrbl_atoms.atoms.dep.extra import invoke_dependency as invoke_extra_dependency
 from ..security.dependencies import Dependency
 
 
@@ -123,7 +123,9 @@ async def invoke_runtime_route_handler(
     *,
     handler: Callable[..., Any],
 ) -> None:
-    from ..runtime.atoms.sys.runtime_route_handler import run as _runtime_route_handler
+    from tigrbl_atoms.atoms.sys.runtime_route_handler import (
+        run as _runtime_route_handler,
+    )
 
     temp = _ensure_temp(ctx)
     route = temp.setdefault("route", {})

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Any, Iterable, Mapping
 
-from .._spec.app_spec import AppSpec
+from tigrbl_core._spec.app_spec import AppSpec
 
 
 def _seqify(value: Any) -> tuple[Any, ...]:

@@ -8,8 +8,8 @@ from typing import Any, Optional, Tuple, Type
 
 from pydantic import BaseModel, create_model
 
-from ...schema.types import SchemaArg, SchemaRef
-from ...schema import namely_model
+from tigrbl.schema.types import SchemaArg, SchemaRef
+from tigrbl.schema import namely_model
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/schemas/utils")
