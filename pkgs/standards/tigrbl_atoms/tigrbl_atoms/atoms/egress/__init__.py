@@ -14,18 +14,18 @@ from . import to_transport_response as _to_transport_response
 RunFn = Callable[[Optional[object], Any], Any]
 
 _ORDERED: Tuple[Tuple[str, str, str, RunFn], ...] = (
-    ("egress", "result_normalize", _result_normalize.ANCHOR, _result_normalize.run),
-    ("egress", "out_dump", _out_dump.ANCHOR, _out_dump.run),
-    ("egress", "envelope_apply", _envelope_apply.ANCHOR, _envelope_apply.run),
-    ("egress", "headers_apply", _headers_apply.ANCHOR, _headers_apply.run),
-    ("egress", "http_finalize", _http_finalize.ANCHOR, _http_finalize.run),
+    ("egress", "result_normalize", _result_normalize.ANCHOR, _result_normalize.INSTANCE),
+    ("egress", "out_dump", _out_dump.ANCHOR, _out_dump.INSTANCE),
+    ("egress", "envelope_apply", _envelope_apply.ANCHOR, _envelope_apply.INSTANCE),
+    ("egress", "headers_apply", _headers_apply.ANCHOR, _headers_apply.INSTANCE),
+    ("egress", "http_finalize", _http_finalize.ANCHOR, _http_finalize.INSTANCE),
     (
         "egress",
         "to_transport_response",
         _to_transport_response.ANCHOR,
-        _to_transport_response.run,
+        _to_transport_response.INSTANCE,
     ),
-    ("egress", "asgi_send", _asgi_send.ANCHOR, _asgi_send.run),
+    ("egress", "asgi_send", _asgi_send.ANCHOR, _asgi_send.INSTANCE),
 )
 
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {

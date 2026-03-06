@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Ingress, Ingress
+
 from collections import defaultdict
 from typing import Any, MutableMapping
 
@@ -35,7 +38,7 @@ def _parse_raw_headers(scope: dict[str, Any]) -> dict[str, list[str]]:
     return dict(out)
 
 
-def run(obj: object | None, ctx: Any) -> None:
+def _run(obj: object | None, ctx: Any) -> None:
     del obj
     parsed: dict[str, Any] | None = None
 
@@ -64,4 +67,16 @@ def run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "headers", parsed)
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Ingress, Ingress]):
+    name = "ingress.headers_parse"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Ingress]) -> Ctx[Ingress]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

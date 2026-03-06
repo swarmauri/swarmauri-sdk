@@ -1,6 +1,9 @@
 # pkgs/standards/tigrbl_atoms/tigrbl/atoms/wire/build_in.py
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Prepared, Prepared
+
 import uuid as _uuid
 from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
@@ -34,7 +37,7 @@ def _stage_rpc_error(
     temp["rpc_error"] = {"code": code, "message": message, "data": dict(data)}
 
 
-def run(obj: Optional[object], ctx: Any) -> None:
+def _run(obj: Optional[object], ctx: Any) -> None:
     """
     wire:build_in@in:validate
 
@@ -284,4 +287,16 @@ def _coerce_model_field_value(ctx: Any, field: str, value: Any) -> Any:
     return value
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Prepared, Prepared]):
+    name = "wire.build_in"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

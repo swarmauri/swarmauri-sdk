@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Failed, Encoded
+
 from typing import Any
 
 from ... import events as _ev
@@ -8,7 +11,7 @@ from ...status import create_standardized_error
 ANCHOR = _ev.OUT_DUMP
 
 
-async def run(obj: object | None, ctx: Any) -> None:
+async def _run(obj: object | None, ctx: Any) -> None:
     del obj
     err = getattr(ctx, "error", None)
     if err is None:
@@ -29,3 +32,16 @@ async def run(obj: object | None, ctx: Any) -> None:
         "body": {"detail": detail},
     }
     setattr(ctx, "status_code", status_code)
+
+
+class AtomImpl(Atom[Failed, Encoded]):
+    name = "response.error_to_transport"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Failed]) -> Ctx[Encoded]:
+        await _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

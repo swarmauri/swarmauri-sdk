@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Prepared, Prepared
+
 import json
 from dataclasses import replace
 from typing import Any, Mapping
@@ -48,7 +51,7 @@ def _normalize_rpc_envelope(payload: Mapping[str, Any]) -> dict[str, Any]:
     return envelope
 
 
-def run(obj: object | None, ctx: Any) -> None:
+def _run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
@@ -133,3 +136,16 @@ def run(obj: object | None, ctx: Any) -> None:
         setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=normalized))
     else:
         setattr(ctx, "gw_raw", replace(env, kind="rest"))
+
+
+class AtomImpl(Atom[Prepared, Prepared]):
+    name = "route.rpc_envelope_parse"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

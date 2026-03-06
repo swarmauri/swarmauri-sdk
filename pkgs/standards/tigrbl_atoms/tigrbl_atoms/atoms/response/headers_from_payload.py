@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Encoded, Encoded
+
 from ... import events as _ev
 from typing import Mapping
 
 ANCHOR = _ev.OUT_BUILD  # run after payload is prepared, before render
 
 
-def run(_, ctx) -> None:
+def _run(_, ctx) -> None:
     """Mirror fields configured with ``io.header_out`` into HTTP response headers.
 
     - Does NOT remove fields from the response body (no header-only behavior).
@@ -55,3 +58,16 @@ def run(_, ctx) -> None:
             value = payload[field_name]
             if value is not None:
                 hints.headers[header_name] = str(value)
+
+
+class AtomImpl(Atom[Encoded, Encoded]):
+    name = "response.headers_from_payload"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Encoded]) -> Ctx[Encoded]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Emitting, Egressed
+
 import json
 from typing import Any, Mapping
 
 from ... import events as _ev
-from ...._concrete._response import Response
+from ...response import Response
 
 ANCHOR = _ev.EGRESS_ASGI_SEND
 
@@ -123,7 +126,7 @@ def _to_headers_mapping(headers: Any) -> dict[str, Any]:
         return {}
 
 
-async def run(obj: object | None, ctx: Any) -> None:
+async def _run(obj: object | None, ctx: Any) -> None:
     del obj
     raw = getattr(ctx, "raw", None)
     send = getattr(raw, "send", None) if raw is not None else None
@@ -218,11 +221,23 @@ async def run(obj: object | None, ctx: Any) -> None:
     egress["response_sent"] = True
 
 
+
+
+class AtomImpl(Atom[Emitting, Egressed]):
+    name = "egress.asgi_send"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Emitting]) -> Ctx[Egressed]:
+        await _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
 __all__ = [
     "ANCHOR",
     "NO_BODY_STATUS",
     "finalize_transport_response",
     "_send_json",
     "_send_transport_response",
-    "run",
+    "INSTANCE",
 ]

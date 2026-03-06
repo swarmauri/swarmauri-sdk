@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Routed, Routed
+
 from typing import Any
 
 from ... import events as _ev
@@ -7,7 +10,7 @@ from ... import events as _ev
 ANCHOR = _ev.ROUTE_PLAN_SELECT
 
 
-def run(obj: object | None, ctx: Any) -> None:
+def _run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
@@ -29,3 +32,16 @@ def run(obj: object | None, ctx: Any) -> None:
     current = getattr(ctx, "plan", None)
     if current is not None:
         route["plan"] = current
+
+
+class AtomImpl(Atom[Routed, Routed]):
+    name = "route.plan_select"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Routed]) -> Ctx[Routed]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

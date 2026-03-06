@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Encoded, Emitting
+
 import json
 from typing import Any, Mapping, MutableMapping
 
@@ -77,7 +80,7 @@ def _normalize_jsonrpc_transport_response(
     return normalized
 
 
-def run(obj: object | None, ctx: Any) -> None:
+def _run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = _ensure_temp(ctx)
     egress = temp.setdefault("egress", {})
@@ -122,4 +125,16 @@ def run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "transport_response", response)
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Encoded, Emitting]):
+    name = "egress.to_transport_response"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Encoded]) -> Ctx[Emitting]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

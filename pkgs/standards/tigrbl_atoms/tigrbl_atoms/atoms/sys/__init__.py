@@ -10,20 +10,20 @@ from . import start_tx as _start_tx
 RunFn = Callable[[Optional[object], Any], Any]
 
 _ORDERED: Tuple[Tuple[str, str, str, RunFn], ...] = (
-    ("sys", "start_tx", _start_tx.ANCHOR, _start_tx.run),
+    ("sys", "start_tx", _start_tx.ANCHOR, _start_tx.INSTANCE),
     (
         "sys",
         "runtime_route_handler",
         _runtime_route_handler.ANCHOR,
-        _runtime_route_handler.run,
+        _runtime_route_handler.INSTANCE,
     ),
     (
         "sys",
         "handler_persistence",
         _handler_persistence.ANCHOR,
-        _handler_persistence.run,
+        _handler_persistence.INSTANCE,
     ),
-    ("sys", "commit_tx", _commit_tx.ANCHOR, _commit_tx.run),
+    ("sys", "commit_tx", _commit_tx.ANCHOR, _commit_tx.INSTANCE),
 )
 
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {

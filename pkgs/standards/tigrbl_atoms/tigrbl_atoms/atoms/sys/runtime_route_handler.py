@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Executing, Operated
+
 import inspect
 from typing import Any, Callable
 
@@ -106,7 +109,7 @@ def _resolve_handler_kwargs(
     return kwargs
 
 
-async def run(obj: object | None, ctx: Any) -> None:
+async def _run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = _ensure_temp(ctx)
     route = temp.setdefault("route", {})
@@ -155,3 +158,16 @@ async def run(obj: object | None, ctx: Any) -> None:
         return
 
     setattr(ctx, "result", result)
+
+
+class AtomImpl(Atom[Executing, Operated]):
+    name = "sys.runtime_route_handler"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Executing]) -> Ctx[Operated]:
+        await _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Prepared, Routed
+
 from typing import Any
 
 from ... import events as _ev
@@ -7,7 +10,7 @@ from ... import events as _ev
 ANCHOR = _ev.ROUTE_PROTOCOL_DETECT
 
 
-def run(obj: object | None, ctx: Any) -> None:
+def _run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
@@ -49,3 +52,16 @@ def run(obj: object | None, ctx: Any) -> None:
     if proto is not None:
         route["protocol"] = proto
         setattr(ctx, "proto", proto)
+
+
+class AtomImpl(Atom[Prepared, Routed]):
+    name = "route.protocol_detect"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Routed]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

@@ -18,29 +18,29 @@ from . import rpc_method_match as _rpc_method_match
 RunFn = Callable[[Optional[object], Any], Any]
 
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
-    ("route", "protocol_detect"): (_protocol_detect.ANCHOR, _protocol_detect.run),
-    ("route", "binding_match"): (_binding_match.ANCHOR, _binding_match.run),
+    ("route", "protocol_detect"): (_protocol_detect.ANCHOR, _protocol_detect.INSTANCE),
+    ("route", "binding_match"): (_binding_match.ANCHOR, _binding_match.INSTANCE),
     ("route", "rpc_envelope_parse"): (
         _rpc_envelope_parse.ANCHOR,
-        _rpc_envelope_parse.run,
+        _rpc_envelope_parse.INSTANCE,
     ),
-    ("route", "rpc_method_match"): (_rpc_method_match.ANCHOR, _rpc_method_match.run),
-    ("route", "op_resolve"): (_op_resolve.ANCHOR, _op_resolve.run),
+    ("route", "rpc_method_match"): (_rpc_method_match.ANCHOR, _rpc_method_match.INSTANCE),
+    ("route", "op_resolve"): (_op_resolve.ANCHOR, _op_resolve.INSTANCE),
     ("route", "path_params_extract"): (
         _path_params_extract.ANCHOR,
-        _path_params_extract.run,
+        _path_params_extract.INSTANCE,
     ),
-    ("route", "params_normalize"): (_params_normalize.ANCHOR, _params_normalize.run),
-    ("route", "payload_select"): (_payload_select.ANCHOR, _payload_select.run),
+    ("route", "params_normalize"): (_params_normalize.ANCHOR, _params_normalize.INSTANCE),
+    ("route", "payload_select"): (_payload_select.ANCHOR, _payload_select.INSTANCE),
     ("route", "binding_policy_apply"): (
         _binding_policy_apply.ANCHOR,
-        _binding_policy_apply.run,
+        _binding_policy_apply.INSTANCE,
     ),
-    ("route", "plan_select"): (_plan_select.ANCHOR, _plan_select.run),
-    ("route", "ctx_finalize"): (_ctx_finalize.ANCHOR, _ctx_finalize.run),
+    ("route", "plan_select"): (_plan_select.ANCHOR, _plan_select.INSTANCE),
+    ("route", "ctx_finalize"): (_ctx_finalize.ANCHOR, _ctx_finalize.INSTANCE),
     ("route", "jsonrpc_batch_intercept"): (
         _jsonrpc_batch_intercept.ANCHOR,
-        _jsonrpc_batch_intercept.run,
+        _jsonrpc_batch_intercept.INSTANCE,
     ),
 }
 

@@ -8,8 +8,8 @@ from . import security as _security
 RunFn = Callable[[Optional[object], Any], Any]
 
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
-    ("dep", "security"): (_security.ANCHOR, _security.run),
-    ("dep", "extra"): (_extra.ANCHOR, _extra.run),
+    ("dep", "security"): (_security.ANCHOR, _security.INSTANCE),
+    ("dep", "extra"): (_extra.ANCHOR, _extra.INSTANCE),
 }
 
 __all__ = ["REGISTRY", "RunFn"]

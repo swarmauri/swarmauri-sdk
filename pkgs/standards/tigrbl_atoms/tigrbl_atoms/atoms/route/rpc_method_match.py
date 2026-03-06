@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Prepared, Prepared
+
 from typing import Any
 
 from ... import events as _ev
@@ -7,7 +10,7 @@ from ... import events as _ev
 ANCHOR = _ev.ROUTE_RPC_METHOD_MATCH
 
 
-def run(obj: object | None, ctx: Any) -> None:
+def _run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
@@ -37,3 +40,16 @@ def run(obj: object | None, ctx: Any) -> None:
                 binding = method_index.get(rpc_method)
                 if isinstance(binding, int):
                     route["binding"] = binding
+
+
+class AtomImpl(Atom[Prepared, Prepared]):
+    name = "route.rpc_method_match"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

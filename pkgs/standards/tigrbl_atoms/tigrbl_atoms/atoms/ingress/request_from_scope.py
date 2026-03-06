@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Ingress, Ingress
+
 from typing import Any, MutableMapping
 
 from ... import events as _ev
-from ...._concrete._request import Request
+from typing import Any
+
+Request = Any
 
 ANCHOR = _ev.INGRESS_REQUEST_FROM_SCOPE
 
@@ -16,7 +21,7 @@ def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     return temp
 
 
-def run(obj: object | None, ctx: Any) -> None:
+def _run(obj: object | None, ctx: Any) -> None:
     del obj
     raw = getattr(ctx, "raw", None)
     scope = getattr(raw, "scope", None) if raw is not None else None
@@ -30,4 +35,16 @@ def run(obj: object | None, ctx: Any) -> None:
     temp.setdefault("ingress", {})["request"] = req
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Ingress, Ingress]):
+    name = "ingress.request_from_scope"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Ingress]) -> Ctx[Ingress]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]
