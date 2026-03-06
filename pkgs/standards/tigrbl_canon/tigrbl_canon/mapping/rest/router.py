@@ -80,6 +80,14 @@ def _query_param_schemas_from_model(
 def _build_router(
     model: type, specs: Sequence[OpSpec], *, router: Any | None = None
 ) -> Router:
+    # Support standalone router builds (tests/tools) that bypass full bind/apply.
+    # This guarantees schemas/handlers namespaces exist for the requested specs.
+    from ..schemas.builder import build_and_attach as _build_schemas
+    from ..handlers.builder import build_and_attach as _build_handlers
+
+    _build_schemas(model, list(specs))
+    _build_handlers(model, list(specs))
+
     resource = getattr(model, "resource_name", None) or getattr(
         model, "__resource__", model.__name__.lower()
     )
@@ -257,6 +265,11 @@ def _build_router(
         alias_ns = getattr(getattr(model, "schemas", None), sp.alias, None)
         out_model = getattr(alias_ns, "out", None) if alias_ns else None
         in_model = getattr(alias_ns, "in_", None) if alias_ns else None
+        if sp.target == "bulk_merge":
+            # Keep bulk-merge request schema generic (array<object>) to match
+            # permissive merge semantics and existing OpenAPI expectations.
+            in_model = list[dict[str, Any]]
+            out_model = None
 
         responses_meta = dict(_RESPONSES_META)
         if out_model is not None and status_code != _status.HTTP_204_NO_CONTENT:

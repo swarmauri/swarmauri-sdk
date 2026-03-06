@@ -219,13 +219,17 @@ def _make_collection_endpoint(
                 getattr(model, "schemas", None) or SimpleNamespace(), alias, None
             )
             item_model = getattr(alias_ns, "in_item", None) if alias_ns else None
-            body_annotation = (
-                _list_ann(item_model)
-                if isinstance(item_model, type) and issubclass(item_model, BaseModel)
-                else _list_ann(Mapping[str, Any])
-                if body_model is None
-                else base
-            )
+            if target == "bulk_merge":
+                body_annotation = _list_ann(Mapping[str, Any])
+            else:
+                body_annotation = (
+                    _list_ann(item_model)
+                    if isinstance(item_model, type)
+                    and issubclass(item_model, BaseModel)
+                    else _list_ann(Mapping[str, Any])
+                    if body_model is None
+                    else base
+                )
         elif target in {"create", "update", "replace", "merge"}:
             body_annotation = _union(
                 base if body_model else Mapping[str, Any],
