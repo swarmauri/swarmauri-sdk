@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from importlib import import_module
-from pkgutil import extend_path
+from pkgutil import extend_path, iter_modules
 import sys
 
 __path__ = extend_path(__path__, __name__)
@@ -31,10 +31,34 @@ def _optional_import(path: str):
         return None
 
 
+def _alias_submodules(alias_pkg: str, target_pkg: str) -> None:
+    target_module = _optional_import(target_pkg)
+    if target_module is None:
+        return
+    pkg_paths = getattr(target_module, "__path__", None)
+    if not pkg_paths:
+        return
+    for mod in iter_modules(pkg_paths):
+        target_name = f"{target_pkg}.{mod.name}"
+        alias_name = f"{alias_pkg}.{mod.name}"
+        submodule = _optional_import(target_name)
+        if submodule is not None:
+            sys.modules.setdefault(alias_name, submodule)
+
+
 for alias, target in _ALIAS_MODULES.items():
     module = _optional_import(target)
     if module is not None:
         sys.modules.setdefault(f"{__name__}.{alias}", module)
+
+_alias_submodules("tigrbl.runtime", "tigrbl_runtime.runtime")
+_alias_submodules("tigrbl.runtime.status", "tigrbl_runtime.runtime.status")
+
+# Kernel compatibility namespace (e.g. `tigrbl.runtime.kernel.atoms`).
+for _name in ("atoms", "models", "payload", "opview_compiler", "events", "ordering"):
+    _mod = _optional_import(f"tigrbl_runtime.runtime.kernel.{_name}")
+    if _mod is not None:
+        sys.modules.setdefault(f"tigrbl.runtime.kernel.{_name}", _mod)
 
 
 _spec = import_module("tigrbl_core._spec")

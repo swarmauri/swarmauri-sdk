@@ -199,7 +199,7 @@ def _inject_atoms(
             info = _ev.get_anchor_info(anchor)
             phase = info.phase
             persist_tied = info.persist_tied
-        elif anchor in HOOK_PHASES:
+        elif anchor in _ev.PHASES:
             phase = anchor
             persist_tied = False
         else:
