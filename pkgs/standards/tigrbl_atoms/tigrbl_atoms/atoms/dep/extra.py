@@ -7,14 +7,14 @@ import inspect
 from typing import Any, Callable
 
 from tigrbl_ops_oltp.crud.params import Param
-from ....mapping.core_resolver import (
+from tigrbl_canon.mapping.core_resolver import (
     annotation_marker,
     extract_param_value,
     is_request_annotation,
     split_annotated,
 )
 from ...status.exceptions import HTTPException
-from ...status.mappings import status
+from tigrbl_typing.runtime.status.mappings import status
 from ...types import DependencyLike, is_dependency_like
 from ... import events as _ev
 

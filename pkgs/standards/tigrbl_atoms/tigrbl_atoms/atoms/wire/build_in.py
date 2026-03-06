@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Prepared
+from ...stages import Prepared
 
 import uuid as _uuid
 from typing import Any, Dict, Mapping, MutableMapping, Optional
@@ -10,7 +10,7 @@ import logging
 
 from ... import events as _ev
 from ...status.exceptions import HTTPException
-from ...status.mappings import status as _status
+from tigrbl_typing.runtime.status.mappings import status as _status
 
 # Runs in PRE_HANDLER just before validation.
 ANCHOR = _ev.IN_VALIDATE  # "in:validate"
@@ -287,8 +287,6 @@ def _coerce_model_field_value(ctx: Any, field: str, value: Any) -> Any:
     return value
 
 
-
-
 class AtomImpl(Atom[Prepared, Prepared]):
     name = "wire.build_in"
     anchor = ANCHOR
@@ -296,6 +294,7 @@ class AtomImpl(Atom[Prepared, Prepared]):
     async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
         _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 
