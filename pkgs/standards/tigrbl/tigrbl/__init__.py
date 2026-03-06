@@ -53,6 +53,7 @@ for alias, target in _ALIAS_MODULES.items():
 
 _alias_submodules("tigrbl.runtime", "tigrbl_runtime.runtime")
 _alias_submodules("tigrbl.runtime.status", "tigrbl_runtime.runtime.status")
+_alias_submodules("tigrbl._concrete", "tigrbl_concrete._concrete")
 
 # Kernel compatibility namespace (e.g. `tigrbl.runtime.kernel.atoms`).
 for _name in ("atoms", "models", "payload", "opview_compiler", "events", "ordering"):
