@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Operated, Encoded
 from typing import Any, Optional
 
 from ... import events as _ev
@@ -8,7 +11,7 @@ from .renderer import ResponseHints
 ANCHOR = _ev.OUT_DUMP  # "out:dump"
 
 
-async def run(obj: Optional[object], ctx: Any) -> None:
+async def _run(obj: Optional[object], ctx: Any) -> None:
     """response:template@out:dump
 
     Render a template if configured on ``ctx.response``.
@@ -41,4 +44,16 @@ async def run(obj: Optional[object], ctx: Any) -> None:
         hints.media_type = "text/html"
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Operated, Encoded]):
+    name = "response.template"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Operated]) -> Ctx[Encoded]:
+        await _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

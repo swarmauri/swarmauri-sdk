@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Prepared, Prepared
+
 import inspect
 from typing import Any, Callable
 
@@ -10,8 +13,8 @@ from ....mapping.core_resolver import (
     is_request_annotation,
     split_annotated,
 )
-from ....runtime.status.exceptions import HTTPException
-from ....runtime.status.mappings import status
+from ...status.exceptions import HTTPException
+from ...status.mappings import status
 from ....security.dependencies import Dependency
 from ... import events as _ev
 
@@ -83,7 +86,7 @@ async def invoke_dependency(router: Any, dep: Callable[..., Any], req: Any) -> A
     return out
 
 
-async def run(dep: object | None, ctx: Any) -> Any:
+async def _run(dep: object | None, ctx: Any) -> Any:
     fn = getattr(dep, "dependency", dep)
     if not callable(fn):
         return None
@@ -102,3 +105,16 @@ async def run(dep: object | None, ctx: Any) -> Any:
     if inspect.isawaitable(rv):
         return await rv
     return rv
+
+
+class AtomImpl(Atom[Prepared, Prepared]):
+    name = "dep.extra"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
+        await _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

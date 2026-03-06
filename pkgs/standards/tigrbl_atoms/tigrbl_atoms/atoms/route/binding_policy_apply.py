@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Prepared, Authorized
+
 from typing import Any, Mapping
 
 from ... import events as _ev
@@ -38,7 +41,7 @@ def _headers_from_ctx(ctx: Any) -> dict[str, Any]:
     return {}
 
 
-def run(obj: object | None, ctx: Any) -> None:
+def _run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
@@ -79,4 +82,16 @@ def run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "payload", merged)
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Prepared, Authorized]):
+    name = "route.binding_policy_apply"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Authorized]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

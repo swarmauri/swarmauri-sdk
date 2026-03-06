@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Authorized, Resolved
+
 from types import SimpleNamespace
 from typing import Any
 
@@ -81,7 +84,7 @@ def _resolve_runtime_route_handler(ctx: Any, route: dict[str, Any]) -> None:
         route["method_not_allowed"] = True
 
 
-def run(obj: object | None, ctx: Any) -> None:
+def _run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
@@ -137,3 +140,16 @@ def run(obj: object | None, ctx: Any) -> None:
 
     if route.get("opmeta_index") is None and not callable(route.get("handler")):
         _resolve_runtime_route_handler(ctx, route)
+
+
+class AtomImpl(Atom[Authorized, Resolved]):
+    name = "route.op_resolve"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Authorized]) -> Ctx[Resolved]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

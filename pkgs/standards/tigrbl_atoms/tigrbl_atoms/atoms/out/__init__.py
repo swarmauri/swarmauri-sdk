@@ -13,7 +13,7 @@ RunFn = Callable[[Optional[object], Any], None]
 #: Domain-scoped registry consumed by the kernel plan (and aggregated at atoms/__init__.py).
 #: Keys are (domain, subject); values are (anchor, runner).
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
-    ("out", "masking"): (_masking.ANCHOR, _masking.run),
+    ("out", "masking"): (_masking.ANCHOR, _masking.INSTANCE),
 }
 
 logger = logging.getLogger("uvicorn")

@@ -1,6 +1,9 @@
 # pkgs/standards/tigrbl_atoms/tigrbl/atoms/resolve/assemble.py
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Prepared, Prepared
+
 from typing import Any, Mapping, Optional, Dict, Tuple
 import logging
 
@@ -13,7 +16,7 @@ ANCHOR = _ev.RESOLVE_VALUES  # "resolve:values"
 logger = logging.getLogger("uvicorn")
 
 
-def run(obj: Optional[object], ctx: Any) -> None:
+def _run(obj: Optional[object], ctx: Any) -> None:
     """
     resolve:assemble@resolve:values
 
@@ -164,4 +167,16 @@ def _ctx_view(ctx: Any) -> Dict[str, Any]:
     return view
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Prepared, Prepared]):
+    name = "resolve.assemble"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

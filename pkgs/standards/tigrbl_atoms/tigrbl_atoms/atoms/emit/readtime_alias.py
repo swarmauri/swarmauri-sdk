@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Encoded, Encoded
+
 from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
@@ -12,7 +15,7 @@ ANCHOR = _ev.EMIT_ALIASES_READ  # "emit:aliases:readtime"
 logger = logging.getLogger("uvicorn")
 
 
-def run(obj: Optional[object], ctx: Any) -> None:
+def _run(obj: Optional[object], ctx: Any) -> None:
     """Emit safe read-time aliases into response extras."""
     logger.debug("Running emit:readtime_alias")
     temp = _ensure_temp(ctx)
@@ -117,4 +120,16 @@ def _safe_readtime_value(value: Any, desc: Mapping[str, Any]) -> Any:
     return value
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Encoded, Encoded]):
+    name = "emit.readtime_alias"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Encoded]) -> Ctx[Encoded]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

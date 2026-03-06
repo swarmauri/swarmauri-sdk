@@ -1,6 +1,9 @@
 # pkgs/standards/tigrbl_atoms/tigrbl/atoms/emit/paired_pre.py
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Encoded, Encoded
+
 from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
@@ -13,7 +16,7 @@ ANCHOR = _ev.EMIT_ALIASES_PRE  # "emit:aliases:pre_flush"
 logger = logging.getLogger("uvicorn")
 
 
-def run(obj: Optional[object], ctx: Any) -> None:
+def _run(obj: Optional[object], ctx: Any) -> None:
     """
     emit:paired_pre@emit:aliases:pre_flush
 
@@ -103,4 +106,16 @@ def _get_paired_values(temp: Mapping[str, Any]) -> Mapping[str, Dict[str, Any]]:
     return pv if isinstance(pv, dict) else {}
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Encoded, Encoded]):
+    name = "emit.paired_pre"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Encoded]) -> Ctx[Encoded]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

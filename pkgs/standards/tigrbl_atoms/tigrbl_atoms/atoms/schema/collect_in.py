@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Prepared, Prepared
+
 from typing import Any, Optional
 import logging
 
@@ -12,10 +15,22 @@ ANCHOR = _ev.SCHEMA_COLLECT_IN  # "schema:collect_in"
 logger = logging.getLogger("uvicorn")
 
 
-def run(obj: Optional[object], ctx: Any) -> None:
+def _run(obj: Optional[object], ctx: Any) -> None:
     """Load precompiled inbound schema into ctx.temp."""
     ov = opview_from_ctx(ctx)
     ensure_schema_in(ctx, ov)
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Prepared, Prepared]):
+    name = "schema.collect_in"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

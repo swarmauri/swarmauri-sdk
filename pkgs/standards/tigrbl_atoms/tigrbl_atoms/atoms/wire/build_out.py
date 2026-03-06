@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Operated, Encoded
+
 from typing import Any, Dict, Mapping, Optional
 import logging
 
@@ -12,7 +15,7 @@ ANCHOR = _ev.OUT_BUILD  # "out:build"
 logger = logging.getLogger("uvicorn")
 
 
-def run(obj: Optional[object], ctx: Any) -> None:
+def _run(obj: Optional[object], ctx: Any) -> None:
     """Build canonical outbound values keyed by field name."""
     logger.debug("Running wire:build_out")
     # When ``ctx.result`` is already populated by handler/serializer stages,
@@ -96,4 +99,16 @@ def _read_current_value(obj: Optional[object], ctx: Any, field: str) -> Optional
     return None
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Operated, Encoded]):
+    name = "wire.build_out"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Operated]) -> Ctx[Encoded]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

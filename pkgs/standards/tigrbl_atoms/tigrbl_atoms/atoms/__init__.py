@@ -22,7 +22,7 @@ from .route import REGISTRY as _ROUTE
 from .sys import REGISTRY as _SYS
 
 # Runner signature: (obj|None, ctx) -> None
-RunFn = Callable[[Optional[object], Any], None]
+RunFn = Callable[[Optional[object], Any], Any]
 
 #: Global registry consumed by the kernel plan:
 #:   { (domain, subject): (anchor, runner) }

@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Operated, Encoded
 from typing import Any, Optional
 
 from ... import events as _ev
@@ -28,7 +31,7 @@ def _is_jsonrpc_request(ctx: Any) -> bool:
     return False
 
 
-def run(obj: Optional[object], ctx: Any) -> Any:
+def _run(obj: Optional[object], ctx: Any) -> Any:
     """response:render@out:dump
 
     Render ``ctx.response.result`` into a concrete Response object.
@@ -79,4 +82,16 @@ def run(obj: Optional[object], ctx: Any) -> Any:
     return resp
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Operated, Encoded]):
+    name = "response.render"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Operated]) -> Ctx[Encoded]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

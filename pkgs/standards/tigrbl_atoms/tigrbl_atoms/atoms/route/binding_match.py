@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Routed, Bound
+
 import re
 import json
 from typing import Any, Mapping
@@ -47,7 +50,7 @@ def _match_rest_index(index: Any, method: str, path: str) -> tuple[int, dict[str
     raise KeyError(selector)
 
 
-def run(obj: object | None, ctx: Any) -> None:
+def _run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
@@ -153,3 +156,16 @@ def run(obj: object | None, ctx: Any) -> None:
         index = proto_indices.get(proto)
         if isinstance(index, dict):
             route["binding"] = index.get(selector)
+
+
+class AtomImpl(Atom[Routed, Bound]):
+    name = "route.binding_match"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Routed]) -> Ctx[Bound]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

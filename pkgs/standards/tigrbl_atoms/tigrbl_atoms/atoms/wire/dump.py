@@ -1,6 +1,9 @@
 # pkgs/standards/tigrbl_atoms/tigrbl/atoms/wire/dump.py
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Encoded, Encoded
+
 import base64
 import datetime as _dt
 import decimal as _dc
@@ -17,7 +20,7 @@ ANCHOR = _ev.OUT_DUMP  # "out:dump"
 logger = logging.getLogger("uvicorn")
 
 
-def run(obj: Optional[object], ctx: Any) -> None:
+def _run(obj: Optional[object], ctx: Any) -> None:
     """
     wire:dump@out:dump
 
@@ -267,4 +270,16 @@ def _dump_scalar(v: Any) -> Any:
     return v
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Encoded, Encoded]):
+    name = "wire.dump"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Encoded]) -> Ctx[Encoded]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

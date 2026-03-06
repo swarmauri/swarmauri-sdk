@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Executing, Operated
+
 from typing import Any
 
 from ... import events as _ev
@@ -7,12 +10,12 @@ from ... import system as _sys
 from ...status import create_standardized_error, to_rpc_error_payload
 
 ANCHOR = _ev.SYS_HANDLER_PERSISTENCE
-_run = _sys.get("handler", "crud")[1]
+_delegate = _sys.get("handler", "crud")[1]
 
 
-async def run(obj: object | None, ctx: Any) -> None:
+async def _run(obj: object | None, ctx: Any) -> None:
     try:
-        rv = _run(obj, ctx)
+        rv = _delegate(obj, ctx)
         if hasattr(rv, "__await__"):
             await rv
     except Exception as exc:
@@ -35,4 +38,16 @@ async def run(obj: object | None, ctx: Any) -> None:
         setattr(ctx, "result", None)
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Executing, Operated]):
+    name = "sys.handler_persistence"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Executing]) -> Ctx[Operated]:
+        await _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

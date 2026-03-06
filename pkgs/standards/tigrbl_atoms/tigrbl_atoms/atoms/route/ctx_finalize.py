@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Authorized, Authorized
+
 import inspect
 from typing import Any
 
@@ -90,7 +93,7 @@ def _build_response_serializer(model: type, alias: str):
     return _serialize
 
 
-def run(obj: object | None, ctx: Any) -> None:
+def _run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
@@ -139,4 +142,16 @@ def run(obj: object | None, ctx: Any) -> None:
     temp["__sys_db_release__"] = release
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Authorized, Authorized]):
+    name = "route.ctx_finalize"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Authorized]) -> Ctx[Authorized]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

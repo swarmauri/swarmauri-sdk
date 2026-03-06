@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Boot, Ingress
+
 from urllib.parse import parse_qs
 from typing import Any, MutableMapping
 
@@ -54,7 +57,7 @@ def _is_jsonrpc_endpoint(ctx: object, path: str) -> bool:
     return _normalize_path(path) == _normalize_path(prefix)
 
 
-def run(obj: object | None, ctx: object) -> None:
+def _run(obj: object | None, ctx: object) -> None:
     del obj
     raw = getattr(ctx, "raw", None)
     scope = getattr(raw, "scope", None) if raw is not None else None
@@ -121,4 +124,16 @@ def run(obj: object | None, ctx: object) -> None:
     temp.setdefault("route", {})["gw_raw"] = route_envelope
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Boot, Ingress]):
+    name = "ingress.raw_from_scope"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Boot]) -> Ctx[Ingress]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Operated, Encoded
 from typing import Any, Optional
 
 from ... import events as _ev
@@ -8,7 +11,7 @@ from .renderer import ResponseHints
 ANCHOR = _ev.OUT_DUMP  # "out:dump"
 
 
-def run(obj: Optional[object], ctx: Any) -> None:
+def _run(obj: Optional[object], ctx: Any) -> None:
     """response:negotiate@out:dump
 
     Determine the response media type if not already set.
@@ -27,4 +30,16 @@ def run(obj: Optional[object], ctx: Any) -> None:
         hints.media_type = negotiate_media_type(accept, default_media)
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Operated, Encoded]):
+    name = "response.negotiate"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Operated]) -> Ctx[Encoded]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

@@ -1,14 +1,17 @@
 # pkgs/standards/tigrbl_atoms/tigrbl/atoms/wire/validate_in.py
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Prepared, Prepared
+
 import datetime as _dt
 import decimal as _dc
 import uuid as _uuid
 import logging
 from typing import Any, Dict, Mapping, Optional, Tuple
 
-from ....runtime.status.exceptions import HTTPException
-from ....runtime.status.mappings import status as _status
+from ...status.exceptions import HTTPException
+from ...status.mappings import status as _status
 
 from ... import events as _ev
 from ...opview import opview_from_ctx, ensure_schema_in, _ensure_temp
@@ -19,7 +22,7 @@ ANCHOR = _ev.IN_VALIDATE  # "in:validate"
 logger = logging.getLogger("uvicorn")
 
 
-def run(obj: Optional[object], ctx: Any) -> None:
+def _run(obj: Optional[object], ctx: Any) -> None:
     """
     wire:validate_in@in:validate
 
@@ -256,4 +259,16 @@ def _reserved_input_keys(
     return reserved
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Prepared, Prepared]):
+    name = "wire.validate_in"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

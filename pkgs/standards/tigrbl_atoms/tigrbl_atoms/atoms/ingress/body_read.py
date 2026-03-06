@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Ingress, Ingress
+
 from typing import Any, MutableMapping
 
 from ... import events as _ev
@@ -15,7 +18,7 @@ def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     return temp
 
 
-async def run(obj: object | None, ctx: Any) -> None:
+async def _run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = _ensure_temp(ctx)
     ingress = temp.setdefault("ingress", {})
@@ -63,4 +66,16 @@ async def run(obj: object | None, ctx: Any) -> None:
         setattr(ctx, "body_bytes", body)
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Ingress, Ingress]):
+    name = "ingress.body_read"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Ingress]) -> Ctx[Ingress]:
+        await _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

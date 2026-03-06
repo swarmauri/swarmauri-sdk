@@ -17,10 +17,10 @@ RunFn = Callable[[Optional[object], Any], None]
 #: Keys are (domain, subject); values are (anchor, runner).
 #: Canonical subjects mirror filenames; we keep "validate_in" (not "validate") to avoid duplicates.
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
-    ("wire", "build_in"): (_build_in.ANCHOR, _build_in.run),
-    ("wire", "validate_in"): (_validate_in.ANCHOR, _validate_in.run),
-    ("wire", "build_out"): (_build_out.ANCHOR, _build_out.run),
-    ("wire", "dump"): (_dump.ANCHOR, _dump.run),
+    ("wire", "build_in"): (_build_in.ANCHOR, _build_in.INSTANCE),
+    ("wire", "validate_in"): (_validate_in.ANCHOR, _validate_in.INSTANCE),
+    ("wire", "build_out"): (_build_out.ANCHOR, _build_out.INSTANCE),
+    ("wire", "dump"): (_dump.ANCHOR, _dump.INSTANCE),
 }
 
 logger = logging.getLogger("uvicorn")

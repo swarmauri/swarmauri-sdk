@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Prepared, Egressed
+
 import json
 from contextlib import asynccontextmanager
 from types import SimpleNamespace
@@ -69,7 +72,7 @@ async def _request_db_session(app: Any):
     yield stream
 
 
-async def run(obj: object | None, ctx: Any) -> None:
+async def _run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
@@ -172,3 +175,16 @@ async def run(obj: object | None, ctx: Any) -> None:
         "body": responses,
     }
     route["short_circuit"] = True
+
+
+class AtomImpl(Atom[Prepared, Egressed]):
+    name = "route.jsonrpc_batch_intercept"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Egressed]:
+        await _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

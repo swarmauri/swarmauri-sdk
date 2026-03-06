@@ -3,8 +3,10 @@ from functools import lru_cache
 import logging
 from typing import Any, Dict, Iterable, Optional, Tuple
 
-from ...._concrete._request import Request
-from ....vendor.jinja import (
+from typing import Any
+
+Request = Any
+from jinja2 import (
     Environment,
     FileSystemLoader,
     PackageLoader,

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Emitting, Emitting
+
 from typing import Any, MutableMapping
 
 from ... import events as _ev
@@ -15,7 +18,7 @@ def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     return temp
 
 
-def run(obj: object | None, ctx: Any) -> None:
+def _run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = _ensure_temp(ctx)
     egress = temp.setdefault("egress", {})
@@ -40,4 +43,16 @@ def run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "status_code", status)
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Emitting, Emitting]):
+    name = "egress.http_finalize"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Emitting]) -> Ctx[Emitting]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]

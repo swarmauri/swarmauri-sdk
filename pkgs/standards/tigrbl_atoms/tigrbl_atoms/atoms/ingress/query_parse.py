@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from ...types import Atom, Ctx, cast_ctx
+from ...stages import Ingress, Ingress
+
 from urllib.parse import parse_qs
 from typing import Any, Mapping, MutableMapping, Sequence
 
@@ -71,7 +74,7 @@ def _parse_temp_raw_query(ctx: Any) -> dict[str, list[str]] | None:
     return _normalize_query_map(raw_query) if raw_query is not None else None
 
 
-def run(obj: object | None, ctx: Any) -> None:
+def _run(obj: object | None, ctx: Any) -> None:
     del obj
     parsed: dict[str, list[Any]] | None = None
 
@@ -98,4 +101,16 @@ def run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "query", parsed)
 
 
-__all__ = ["ANCHOR", "run"]
+
+
+class AtomImpl(Atom[Ingress, Ingress]):
+    name = "ingress.query_parse"
+    anchor = ANCHOR
+
+    async def __call__(self, obj: object | None, ctx: Ctx[Ingress]) -> Ctx[Ingress]:
+        _run(obj, ctx)
+        return cast_ctx(ctx)
+
+INSTANCE = AtomImpl()
+
+__all__ = ["ANCHOR", "INSTANCE"]
