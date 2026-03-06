@@ -46,13 +46,6 @@ _EXPORTS = {
     "ForeignKeySpec": "storage_spec",
     "TableSpec": "table_spec",
     "TableRegistrySpec": "table_registry_spec",
-    "F": "shortcuts_spec",
-    "IO": "shortcuts_spec",
-    "S": "shortcuts_spec",
-    "makeColumn": "shortcuts_spec",
-    "makeVirtualColumn": "shortcuts_spec",
-    "acol": "shortcuts_spec",
-    "vcol": "shortcuts_spec",
 }
 
 __all__ = list(_EXPORTS)
