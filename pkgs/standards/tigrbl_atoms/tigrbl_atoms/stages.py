@@ -1,8 +1,3 @@
-
-from __future__ import annotations
-
-from typing import Final, Tuple, Type
-
 """
 Stage markers for Tigrbl's typed execution algebra.
 
@@ -28,25 +23,76 @@ with failure transitions to:
     Failed
 """
 
+from __future__ import annotations
+
+from typing import Final, Type
+
+__all__ = (
+    "Boot",
+    "Ingress",
+    "Routed",
+    "Bound",
+    "Selected",
+    "Authorized",
+    "Executing",
+    "Ready",
+    "Operated",
+    "Encoded",
+    "Emitting",
+    "Egressed",
+    "Failed",
+    "StageType",
+    "STAGES",
+    "stage_name",
+    "stage_ordinal",
+    "is_valid_stage",
+    "is_monotonic_transition",
+    "order_stages",
+)
+
 
 class Boot: ...
+
+
 class Ingress: ...
+
+
 class Routed: ...
+
+
 class Bound: ...
+
+
 class Selected: ...
+
+
 class Authorized: ...
+
+
 class Executing: ...
+
+
 class Ready: ...
+
+
 class Operated: ...
+
+
 class Encoded: ...
+
+
 class Emitting: ...
+
+
 class Egressed: ...
+
+
 class Failed: ...
 
 
 StageType = Type[object]
 
-STAGES: Final[Tuple[StageType, ...]] = (
+STAGES: Final[tuple[StageType, ...]] = (
     Boot,
     Ingress,
     Routed,
@@ -94,27 +140,3 @@ def order_stages(stages: tuple[StageType, ...] | list[StageType]) -> list[StageT
     out = list(stages)
     out.sort(key=stage_ordinal)
     return out
-
-
-__all__ = [
-    "Boot",
-    "Ingress",
-    "Routed",
-    "Bound",
-    "Selected",
-    "Authorized",
-    "Executing",
-    "Ready",
-    "Operated",
-    "Encoded",
-    "Emitting",
-    "Egressed",
-    "Failed",
-    "StageType",
-    "STAGES",
-    "stage_name",
-    "stage_ordinal",
-    "is_valid_stage",
-    "is_monotonic_transition",
-    "order_stages",
-]
