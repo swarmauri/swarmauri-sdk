@@ -36,7 +36,19 @@ def defineRouterSpec(
 
 def deriveRouter(**kw: Any) -> Type[Router]:
     spec = defineRouterSpec(**kw)
-    return type("RouterWithSpec", (spec, Router), {})
+    attrs = {
+        "NAME": getattr(spec, "NAME", "router"),
+        "PREFIX": getattr(spec, "PREFIX", ""),
+        "TAGS": getattr(spec, "TAGS", ()),
+        "ENGINE": getattr(spec, "ENGINE", None),
+        "OPS": getattr(spec, "OPS", ()),
+        "SCHEMAS": getattr(spec, "SCHEMAS", ()),
+        "HOOKS": getattr(spec, "HOOKS", ()),
+        "SECURITY_DEPS": getattr(spec, "SECURITY_DEPS", ()),
+        "DEPS": getattr(spec, "DEPS", ()),
+        "TABLES": getattr(spec, "TABLES", ()),
+    }
+    return type("RouterWithSpec", (Router, spec), attrs)
 
 
 __all__ = ["defineRouterSpec", "deriveRouter"]

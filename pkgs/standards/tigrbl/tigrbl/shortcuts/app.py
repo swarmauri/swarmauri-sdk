@@ -59,7 +59,23 @@ def defineAppSpec(
 def deriveApp(**kw: Any) -> Type[TigrblApp]:
     """Produce a concrete :class:`TigrblApp` subclass that inherits the spec."""
     Spec = defineAppSpec(**kw)
-    return type("AppWithSpec", (Spec, TigrblApp), {})
+    attrs = {
+        "TITLE": getattr(Spec, "TITLE", "Tigrbl"),
+        "VERSION": getattr(Spec, "VERSION", "0.1.0"),
+        "ENGINE": getattr(Spec, "ENGINE", None),
+        "ROUTERS": getattr(Spec, "ROUTERS", ()),
+        "OPS": getattr(Spec, "OPS", ()),
+        "TABLES": getattr(Spec, "TABLES", ()),
+        "SCHEMAS": getattr(Spec, "SCHEMAS", ()),
+        "HOOKS": getattr(Spec, "HOOKS", ()),
+        "SECURITY_DEPS": getattr(Spec, "SECURITY_DEPS", ()),
+        "DEPS": getattr(Spec, "DEPS", ()),
+        "JSONRPC_PREFIX": getattr(Spec, "JSONRPC_PREFIX", "/rpc"),
+        "SYSTEM_PREFIX": getattr(Spec, "SYSTEM_PREFIX", "/system"),
+        "MIDDLEWARES": getattr(Spec, "MIDDLEWARES", ()),
+        "LIFESPAN": getattr(Spec, "LIFESPAN", None),
+    }
+    return type("AppWithSpec", (TigrblApp, Spec), attrs)
 
 
 __all__ = ["defineAppSpec", "deriveApp"]
