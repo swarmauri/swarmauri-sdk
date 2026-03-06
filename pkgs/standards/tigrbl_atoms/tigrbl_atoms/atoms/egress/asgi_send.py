@@ -7,7 +7,7 @@ import json
 from typing import Any, Mapping
 
 from ... import events as _ev
-from ...response import Response
+from ...types import ResponseLike, is_response_like
 
 ANCHOR = _ev.EGRESS_ASGI_SEND
 
@@ -145,7 +145,7 @@ async def _run(obj: object | None, ctx: Any) -> None:
     resp_ns = getattr(ctx, "response", None)
     if resp_ns is not None:
         candidate = getattr(resp_ns, "result", None)
-        if isinstance(candidate, Response):
+        if isinstance(candidate, ResponseLike) and is_response_like(candidate):
             resp = candidate
 
     temp = getattr(ctx, "temp", None)
@@ -221,8 +221,6 @@ async def _run(obj: object | None, ctx: Any) -> None:
     egress["response_sent"] = True
 
 
-
-
 class AtomImpl(Atom[Emitting, Egressed]):
     name = "egress.asgi_send"
     anchor = ANCHOR
@@ -230,6 +228,7 @@ class AtomImpl(Atom[Emitting, Egressed]):
     async def __call__(self, obj: object | None, ctx: Ctx[Emitting]) -> Ctx[Egressed]:
         await _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 
