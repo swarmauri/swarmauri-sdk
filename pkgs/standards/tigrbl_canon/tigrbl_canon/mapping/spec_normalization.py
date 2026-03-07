@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import replace
 from typing import Any, Iterable, Mapping
 
+from tigrbl_base._base import AppBase
 from tigrbl_core._spec.app_spec import AppSpec
 
 
@@ -59,8 +59,11 @@ def merge_seq_attr(
 def normalize_app_spec(spec: AppSpec) -> AppSpec:
     """Return a mapping-normalized AppSpec snapshot with stable sequence fields."""
 
-    return replace(
-        spec,
+    return AppBase(
+        title=str(spec.title or "Tigrbl"),
+        description=spec.description,
+        version=str(spec.version or "0.1.0"),
+        engine=spec.engine,
         routers=_seqify(spec.routers),
         ops=_seqify(spec.ops),
         tables=_seqify(spec.tables),
@@ -69,8 +72,10 @@ def normalize_app_spec(spec: AppSpec) -> AppSpec:
         security_deps=_seqify(spec.security_deps),
         deps=_seqify(spec.deps),
         middlewares=_seqify(spec.middlewares),
+        response=spec.response,
         jsonrpc_prefix=str(spec.jsonrpc_prefix or "/rpc"),
         system_prefix=str(spec.system_prefix or "/system"),
+        lifespan=spec.lifespan,
     )
 
 

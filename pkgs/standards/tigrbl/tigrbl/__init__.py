@@ -103,7 +103,13 @@ from tigrbl.shortcuts.op import op  # noqa: E402
 from tigrbl.schema import _build_list_params, _build_schema, get_schema  # noqa: E402
 from tigrbl.ddl import bootstrap_dbschema, ensure_schemas, register_sqlite_attach  # noqa: E402
 
-from tigrbl_base._base import ForeignKeyBase, HookBase, TableBase, TableRegistryBase  # noqa: E402
+from tigrbl_base._base import (  # noqa: E402
+    AppBase,
+    ForeignKeyBase,
+    HookBase,
+    TableBase,
+    TableRegistryBase,
+)
 from tigrbl_core._spec import (  # noqa: E402
     AppSpec,
     Arity,
@@ -229,6 +235,7 @@ __all__ = [
     "ForeignKeyBase",
     "HookBase",
     "TableRegistryBase",
+    "AppBase",
     "App",
     "Table",
     "Column",
