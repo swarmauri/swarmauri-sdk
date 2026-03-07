@@ -1,8 +1,8 @@
 # pkgs/standards/tigrbl_atoms/tigrbl/atoms/wire/dump.py
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
-from ...stages import Encoded, Encoded
+from ...types import Atom, Ctx, EncodedCtx
+from ...stages import Encoded
 
 import base64
 import datetime as _dt
@@ -270,15 +270,14 @@ def _dump_scalar(v: Any) -> Any:
     return v
 
 
-
-
 class AtomImpl(Atom[Encoded, Encoded]):
     name = "wire.dump"
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Encoded]) -> Ctx[Encoded]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(EncodedCtx)
+
 
 INSTANCE = AtomImpl()
 

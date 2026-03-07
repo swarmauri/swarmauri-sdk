@@ -1,8 +1,8 @@
 # pkgs/standards/tigrbl_atoms/tigrbl/atoms/emit/paired_post.py
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
-from ...stages import Encoded, Encoded
+from ...types import Atom, Ctx, EncodedCtx
+from ...stages import Encoded
 
 from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
@@ -158,15 +158,14 @@ def _scrub_paired_raw(pv: MutableMapping[str, Dict[str, Any]], field: str) -> No
     entry["emitted"] = True
 
 
-
-
 class AtomImpl(Atom[Encoded, Encoded]):
     name = "emit.paired_post"
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Encoded]) -> Ctx[Encoded]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(EncodedCtx)
+
 
 INSTANCE = AtomImpl()
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
-from ...stages import Encoded, Encoded
+from ...types import Atom, Ctx, EncodedCtx
+from ...stages import Encoded
 
 from ... import events as _ev
 from typing import Mapping
@@ -66,7 +66,8 @@ class AtomImpl(Atom[Encoded, Encoded]):
 
     async def __call__(self, obj: object | None, ctx: Ctx[Encoded]) -> Ctx[Encoded]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(EncodedCtx)
+
 
 INSTANCE = AtomImpl()
 

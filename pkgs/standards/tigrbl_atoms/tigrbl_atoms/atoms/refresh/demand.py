@@ -1,7 +1,7 @@
 # pkgs/standards/tigrbl_atoms/tigrbl/atoms/refresh/demand.py
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
+from ...types import Atom, Ctx, OperatedCtx
 from ...stages import Operated
 
 from typing import Any, Iterable, Optional
@@ -136,7 +136,7 @@ class AtomImpl(Atom[Operated, Operated]):
 
     async def __call__(self, obj: object | None, ctx: Ctx[Operated]) -> Ctx[Operated]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(OperatedCtx)
 
 
 INSTANCE = AtomImpl()

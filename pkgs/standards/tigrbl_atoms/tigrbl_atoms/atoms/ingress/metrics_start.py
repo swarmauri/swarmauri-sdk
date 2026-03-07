@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
-from ...stages import Boot, Boot
+from ...types import Atom, Ctx, BootCtx
+from ...stages import Boot
 
 from time import perf_counter, perf_counter_ns
 from typing import Any, MutableMapping
@@ -27,15 +27,14 @@ def _run(obj: object | None, ctx: Any) -> None:
     metrics.setdefault("ingress_started_ns", perf_counter_ns())
 
 
-
-
 class AtomImpl(Atom[Boot, Boot]):
     name = "ingress.metrics_start"
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Boot]) -> Ctx[Boot]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(BootCtx)
+
 
 INSTANCE = AtomImpl()
 
