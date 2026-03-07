@@ -40,7 +40,6 @@ _EXPORTS = {
     "tx_repeatable_read": "session_spec",
     "tx_serializable": "session_spec",
     "readonly": "session_spec",
-    "wrap_sessionmaker": "session_spec",
     "StorageSpec": "storage_spec",
     "StorageTransform": "storage_spec",
     "ForeignKeySpec": "storage_spec",
