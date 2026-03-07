@@ -67,7 +67,7 @@ class BaseCtx(Generic[S]):
 Ctx: TypeAlias = BaseCtx[S]
 
 
-def promote(ctx: BaseCtx[S], cls: type[U], /, **updates: object) -> U:
+def promote(ctx: Ctx[S], cls: type[U], /, **updates: object) -> U:
     return ctx.promote(cls, **updates)
 
 
@@ -157,7 +157,7 @@ class Atom(ABC, Generic[S, T]):
     anchor: str = ""
 
     @abstractmethod
-    async def __call__(self, obj: object | None, ctx: BaseCtx[S]) -> BaseCtx[T]:
+    async def __call__(self, obj: object | None, ctx: Ctx[S]) -> Ctx[T]:
         raise NotImplementedError
 
 
