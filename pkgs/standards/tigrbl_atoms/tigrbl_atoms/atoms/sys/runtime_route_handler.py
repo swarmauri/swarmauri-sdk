@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
+from ...types import Atom, Ctx, OperatedCtx
 from ...stages import Resolved, Operated
 
 import inspect
@@ -9,7 +9,7 @@ from typing import Any, Callable
 from ... import events as _ev
 from ...gw.raw import GwRouteEnvelope
 from ...status import StatusDetailError
-from tigrbl_ops_oltp.crud.params import Param
+from tigrbl_core.core.crud.params import Param
 from tigrbl_canon.mapping.core_resolver import (
     annotation_marker,
     extract_param_value,
@@ -166,7 +166,7 @@ class AtomImpl(Atom[Resolved, Operated]):
 
     async def __call__(self, obj: object | None, ctx: Ctx[Resolved]) -> Ctx[Operated]:
         await _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(OperatedCtx)
 
 
 INSTANCE = AtomImpl()

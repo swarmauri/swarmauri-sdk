@@ -16,17 +16,9 @@ from .bulk import (
     bulk_delete,
 )
 
-from .params import Body, Header, Param, Path, Query
-
-# Public alias named exactly `list` to preserve API surface
-list = _list  # noqa: A001 - intentional shadow of built-in for public API
+list = _list  # noqa: A001
 
 __all__ = [
-    "Header",
-    "Path",
-    "Query",
-    "Body",
-    "Param",
     "create",
     "read",
     "update",

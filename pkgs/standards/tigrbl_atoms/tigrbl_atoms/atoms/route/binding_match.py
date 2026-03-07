@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
+from ...types import Atom, Ctx, BoundCtx
 from ...stages import Routed, Bound
 
 import re
@@ -164,7 +164,8 @@ class AtomImpl(Atom[Routed, Bound]):
 
     async def __call__(self, obj: object | None, ctx: Ctx[Routed]) -> Ctx[Bound]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(BoundCtx)
+
 
 INSTANCE = AtomImpl()
 

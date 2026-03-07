@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import MISSING, dataclass, field, fields, is_dataclass
-from typing import Generic, TypeVar
+from typing import Generic, TypeAlias, TypeVar
 
 from .stages import (
     Boot,
@@ -62,6 +62,9 @@ class BaseCtx(Generic[S]):
             return self.temp[key]
         except KeyError as e:
             raise KeyError(f"missing temp field: {key!r}") from e
+
+
+Ctx: TypeAlias = BaseCtx[S]
 
 
 @dataclass(slots=True)
@@ -154,10 +157,15 @@ class Atom(ABC, Generic[S, T]):
         raise NotImplementedError
 
 
+def promote(ctx: BaseCtx[S], cls: type[U], /, **updates: object) -> U:
+    return ctx.promote(cls, **updates)
+
+
 __all__ = [
     "S",
     "T",
     "U",
+    "Ctx",
     "BaseCtx",
     "BootCtx",
     "IngressCtx",
@@ -173,6 +181,7 @@ __all__ = [
     "EgressedCtx",
     "FailedCtx",
     "Atom",
+    "promote",
     "DependencyLike",
     "ResponseLike",
     "is_dependency_like",

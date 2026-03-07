@@ -8,7 +8,7 @@ from typing import Any, Callable
 from tigrbl_core._spec.binding_spec import HttpRestBindingSpec
 from tigrbl_core._spec.op_spec import OpSpec
 from .model_helpers import _OpSpecGroup
-from tigrbl_ops_oltp.crud.params import Param
+from tigrbl_core.core.crud.params import Param
 from ..mapping.core_resolver import (
     annotation_marker,
     extract_param_value,

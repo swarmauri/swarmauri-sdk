@@ -227,10 +227,4 @@ def _inject_txn_system_steps(
         _wrap_atom(start_run, anchor=start_anchor)
     )
 
-    if not chains.get(_sys.HANDLER) and _sys.can_resolve_handler(model):
-        handler_anchor, handler_run = _sys.get("handler", "crud")
-        chains.setdefault(handler_anchor, []).append(
-            _wrap_atom(handler_run, anchor=handler_anchor)
-        )
-
     chains.setdefault(end_anchor, []).append(_wrap_atom(end_run, anchor=end_anchor))

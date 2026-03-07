@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
+from ...types import Atom, Ctx, EncodedCtx
 from ...stages import Failed, Encoded
 
 from typing import Any
@@ -40,7 +40,8 @@ class AtomImpl(Atom[Failed, Encoded]):
 
     async def __call__(self, obj: object | None, ctx: Ctx[Failed]) -> Ctx[Encoded]:
         await _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(EncodedCtx)
+
 
 INSTANCE = AtomImpl()
 

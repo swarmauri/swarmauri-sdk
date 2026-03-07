@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
-from ...stages import Emitting, Emitting
+from ...types import Atom, Ctx, EmittingCtx
+from ...stages import Emitting
 
 from typing import Any, MutableMapping
 
@@ -43,15 +43,14 @@ def _run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "status_code", status)
 
 
-
-
 class AtomImpl(Atom[Emitting, Emitting]):
     name = "egress.http_finalize"
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Emitting]) -> Ctx[Emitting]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(EmittingCtx)
+
 
 INSTANCE = AtomImpl()
 

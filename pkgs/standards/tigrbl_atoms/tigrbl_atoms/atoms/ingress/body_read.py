@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
-from ...stages import Ingress, Ingress
+from ...types import Atom, Ctx, IngressCtx
+from ...stages import Ingress
 
 from typing import Any, MutableMapping
 
@@ -66,15 +66,14 @@ async def _run(obj: object | None, ctx: Any) -> None:
         setattr(ctx, "body_bytes", body)
 
 
-
-
 class AtomImpl(Atom[Ingress, Ingress]):
     name = "ingress.body_read"
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Ingress]) -> Ctx[Ingress]:
         await _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(IngressCtx)
+
 
 INSTANCE = AtomImpl()
 

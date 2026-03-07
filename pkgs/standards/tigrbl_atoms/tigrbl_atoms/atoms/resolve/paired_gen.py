@@ -1,7 +1,7 @@
 # pkgs/standards/tigrbl_atoms/tigrbl/atoms/resolve/paired_gen.py
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
+from ...types import Atom, Ctx, ResolvedCtx
 from ...stages import Executing, Resolved
 
 import secrets
@@ -158,7 +158,7 @@ class AtomImpl(Atom[Executing, Resolved]):
 
     async def __call__(self, obj: object | None, ctx: Ctx[Executing]) -> Ctx[Resolved]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(ResolvedCtx)
 
 
 INSTANCE = AtomImpl()

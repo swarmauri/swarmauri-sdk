@@ -147,6 +147,99 @@ def _label_step(step: Any, phase: str) -> str:
     return f"hook:wire:{_label_callable(step).replace('.', ':')}@{phase}"
 
 
+def _normalize_execution_intent(alias: str, sp: Any | None) -> dict[str, Any]:
+    target = (getattr(sp, "target", alias) or alias).lower()
+    persist_policy = getattr(sp, "persist", "default")
+    family = "oltp"
+    executor_key = f"{family}:{target}"
+    return {
+        "family": family,
+        "target": target,
+        "persist": persist_policy,
+        "executor_key": executor_key,
+    }
+
+
+def _compile_execution_seed_step(intent: Mapping[str, Any]) -> StepFn:
+    def _seed(ctx: Any) -> None:
+        temp = getattr(ctx, "temp", None)
+        if not isinstance(temp, dict):
+            temp = {}
+            setattr(ctx, "temp", temp)
+        temp.setdefault("execution", dict(intent))
+
+    setattr(_seed, "__tigrbl_label", "hook:handler:execution-seed@PRE_HANDLER")
+    return _seed
+
+
+def _compile_handler_dispatch(intent: Mapping[str, Any]) -> StepFn:
+    executor_key = str(intent.get("executor_key", ""))
+
+    async def _dispatch(ctx: Any) -> Any:
+        from tigrbl_ops_oltp.executors import resolve_executor
+
+        temp = getattr(ctx, "temp", None)
+        if not isinstance(temp, dict):
+            temp = {}
+            setattr(ctx, "temp", temp)
+        temp.setdefault("execution", dict(intent))
+
+        executor = resolve_executor(executor_key)
+        model = getattr(ctx, "model", None)
+        db = getattr(ctx, "db", None)
+        in_values = getattr(ctx, "in_values", None)
+        if not isinstance(in_values, dict):
+            in_values = (
+                temp.get("in_values") if isinstance(temp.get("in_values"), dict) else {}
+            )
+        ident = getattr(ctx, "ident", None)
+        if ident is None and isinstance(in_values, dict):
+            ident = in_values.get("id")
+        filters = getattr(ctx, "filters", None)
+        if filters is None:
+            filters = (
+                temp.get("filters") if isinstance(temp.get("filters"), dict) else None
+            )
+        sort = getattr(ctx, "sort", None)
+        if sort is None:
+            sort = temp.get("sort")
+        skip = getattr(ctx, "skip", None)
+        if skip is None:
+            skip = temp.get("skip")
+        limit = getattr(ctx, "limit", None)
+        if limit is None:
+            limit = temp.get("limit")
+
+        target = str(intent.get("target", ""))
+        if target == "create":
+            result = await executor(model=model, data=in_values or {}, db=db)
+        elif target in {"read", "delete"}:
+            result = await executor(model=model, ident=ident, db=db)
+        elif target in {"update", "replace", "merge"}:
+            result = await executor(
+                model=model, ident=ident, data=in_values or {}, db=db
+            )
+        elif target == "list":
+            result = await executor(
+                model=model,
+                db=db,
+                filters=filters or {},
+                sort=sort,
+                skip=skip,
+                limit=limit,
+            )
+        else:
+            raise ValueError(f"unsupported executor target: {target}")
+
+        ctx.result = result
+        return result
+
+    setattr(
+        _dispatch, "__tigrbl_label", f"hook:handler:dispatch:{executor_key}@HANDLER"
+    )
+    return _dispatch
+
+
 class Kernel:
     """
     SSoT for runtime scheduling. One Kernel per App (not per API).
@@ -200,8 +293,9 @@ class Kernel:
         specs = getattr(getattr(model, "ops", SimpleNamespace()), "by_alias", {})
         sp_list = specs.get(alias) or ()
         sp = sp_list[0] if sp_list else None
-        target = (getattr(sp, "target", alias) or "").lower()
-        persist_policy = getattr(sp, "persist", "default")
+        execution_intent = _normalize_execution_intent(alias, sp)
+        target = str(execution_intent["target"])
+        persist_policy = str(execution_intent["persist"])
         persistent = (
             persist_policy != "skip" and target not in {"read", "list"}
         ) or _is_persistent(chains)
@@ -216,6 +310,10 @@ class Kernel:
             )
 
         _inject_pre_tx_dep_atoms(chains, sp)
+        chains.setdefault("PRE_HANDLER", []).insert(
+            0, _compile_execution_seed_step(execution_intent)
+        )
+        chains["HANDLER"] = [_compile_handler_dispatch(execution_intent)]
 
         if persistent:
             try:

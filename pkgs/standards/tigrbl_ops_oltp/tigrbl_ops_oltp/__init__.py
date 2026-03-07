@@ -1,11 +1,6 @@
-"""OLTP operation implementations for Tigrbl."""
+"""OLTP operation executors for Tigrbl."""
 
 from .crud import (  # noqa: F401
-    Body,
-    Header,
-    Param,
-    Path,
-    Query,
     bulk_create,
     bulk_delete,
     bulk_merge,
@@ -20,3 +15,23 @@ from .crud import (  # noqa: F401
     replace,
     update,
 )
+from .executors import dispatch, register_executor, resolve_executor
+
+__all__ = [
+    "create",
+    "read",
+    "update",
+    "replace",
+    "merge",
+    "delete",
+    "list",
+    "clear",
+    "bulk_create",
+    "bulk_update",
+    "bulk_replace",
+    "bulk_merge",
+    "bulk_delete",
+    "resolve_executor",
+    "register_executor",
+    "dispatch",
+]

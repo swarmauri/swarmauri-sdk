@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
-from ...stages import Ingress, Ingress
+from ...types import Atom, Ctx, IngressCtx
+from ...stages import Ingress
 
 from urllib.parse import parse_qs
 from typing import Any, Mapping, MutableMapping, Sequence
@@ -101,15 +101,14 @@ def _run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "query", parsed)
 
 
-
-
 class AtomImpl(Atom[Ingress, Ingress]):
     name = "ingress.query_parse"
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Ingress]) -> Ctx[Ingress]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(IngressCtx)
+
 
 INSTANCE = AtomImpl()
 
