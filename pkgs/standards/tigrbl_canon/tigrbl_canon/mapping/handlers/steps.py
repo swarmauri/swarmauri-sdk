@@ -83,6 +83,7 @@ def _wrap_core(model: type, target: str) -> StepFn:
         "update": "handler_update",
         "replace": "handler_replace",
         "merge": "handler_merge",
+        "noop": "handler_noop",
         "delete": "handler_delete",
         "list": "handler_list",
         "clear": "handler_clear",
