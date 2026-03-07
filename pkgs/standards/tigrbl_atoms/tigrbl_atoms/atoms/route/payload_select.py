@@ -8,9 +8,20 @@ from typing import Any, Mapping, Sequence
 
 from ... import events as _ev
 from ...opview import ensure_schema_in, opview_from_ctx
-from tigrbl_ops_oltp.crud.helpers.model import _single_pk_name
 
 ANCHOR = _ev.ROUTE_PAYLOAD_SELECT
+
+
+def _single_pk_name(model: type) -> str:
+    table = getattr(model, "__table__", None)
+    if table is None:
+        raise ValueError(f"{model.__name__} has no __table__")
+    pks = tuple(getattr(getattr(table, "primary_key", None), "columns", ()))
+    if len(pks) != 1:
+        raise NotImplementedError(
+            f"{model.__name__} has composite PK; not supported by default core"
+        )
+    return pks[0].name
 
 
 _BULKABLE_ALIASES = frozenset({"create", "update", "replace", "merge"})

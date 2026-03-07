@@ -9,7 +9,7 @@ from typing import Any, Callable
 from ... import events as _ev
 from ...gw.raw import GwRouteEnvelope
 from ...status import StatusDetailError
-from tigrbl_ops_oltp.crud.params import Param
+from tigrbl_canon.mapping.core_resolver import Param
 from tigrbl_canon.mapping.core_resolver import (
     annotation_marker,
     extract_param_value,
