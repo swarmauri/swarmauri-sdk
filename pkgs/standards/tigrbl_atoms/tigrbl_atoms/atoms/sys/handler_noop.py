@@ -4,7 +4,7 @@ from typing import Any
 
 from ... import events as _ev
 from ...stages import Operated, Ready
-from ...types import Atom, Ctx, cast_ctx
+from ...types import Atom, Ctx, OperatedCtx
 
 ANCHOR = _ev.SYS_HANDLER_PERSISTENCE
 TARGET = "noop"
@@ -30,7 +30,7 @@ class AtomImpl(Atom[Ready, Operated]):
 
     async def __call__(self, obj: object | None, ctx: Ctx[Ready]) -> Ctx[Operated]:
         await _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(OperatedCtx)
 
 
 INSTANCE = AtomImpl()
