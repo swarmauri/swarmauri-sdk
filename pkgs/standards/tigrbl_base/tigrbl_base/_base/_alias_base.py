@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from tigrbl_core._spec.alias_spec import AliasSpec
 from tigrbl_core._spec.op_spec import Arity, PersistPolicy
-from tigrbl_core.schema.types import SchemaArg
+
+if TYPE_CHECKING:  # pragma: no cover
+    from tigrbl.schema.types import SchemaArg
+else:
+    SchemaArg = Any
 
 
 @dataclass(frozen=True)
