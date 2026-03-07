@@ -6,6 +6,7 @@ from importlib import import_module
 from typing import Any
 
 _EXPORTS = {
+    "AliasBase": "_alias_base",
     "EngineBase": "_engine_base",
     "EngineProviderBase": "_engine_provider_base",
     "HookBase": "_hook_base",

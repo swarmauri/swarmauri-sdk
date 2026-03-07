@@ -54,6 +54,7 @@ concrete = _concrete
 
 from tigrbl_concrete._concrete import (  # noqa: E402
     APIKey,
+    Alias,
     App,
     BackgroundTask,
     Column,
@@ -182,6 +183,7 @@ __all__ = [
     "schema_ctx",
     "response_ctx",
     "alias",
+    "Alias",
     "op_alias",
     "engine_ctx",
     "ResponseSpec",
