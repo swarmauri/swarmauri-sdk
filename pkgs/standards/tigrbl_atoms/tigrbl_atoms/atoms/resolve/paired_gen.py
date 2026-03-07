@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Prepared
+from ...stages import Executing, Resolved
 
 import secrets
 import logging
@@ -152,15 +152,14 @@ def _secure_token(max_len: int) -> str:
     return token
 
 
-
-
-class AtomImpl(Atom[Prepared, Prepared]):
+class AtomImpl(Atom[Executing, Resolved]):
     name = "resolve.paired_gen"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Executing]) -> Ctx[Resolved]:
         _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 

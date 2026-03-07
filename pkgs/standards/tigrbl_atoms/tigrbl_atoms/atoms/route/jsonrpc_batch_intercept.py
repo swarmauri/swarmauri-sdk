@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Egressed
+from ...stages import Planned
 
 import json
 from contextlib import asynccontextmanager
@@ -177,11 +177,11 @@ async def _run(obj: object | None, ctx: Any) -> None:
     route["short_circuit"] = True
 
 
-class AtomImpl(Atom[Prepared, Egressed]):
+class AtomImpl(Atom[Planned, Planned]):
     name = "route.jsonrpc_batch_intercept"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Egressed]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Planned]) -> Ctx[Planned]:
         await _run(obj, ctx)
         return cast_ctx(ctx)
 

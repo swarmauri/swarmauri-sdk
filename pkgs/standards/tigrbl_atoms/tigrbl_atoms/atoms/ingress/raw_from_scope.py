@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Boot, Ingress
+from ...stages import Ingress
 
 from urllib.parse import parse_qs
 from typing import Any, MutableMapping
@@ -124,15 +124,14 @@ def _run(obj: object | None, ctx: object) -> None:
     temp.setdefault("route", {})["gw_raw"] = route_envelope
 
 
-
-
-class AtomImpl(Atom[Boot, Ingress]):
+class AtomImpl(Atom[Ingress, Ingress]):
     name = "ingress.raw_from_scope"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Boot]) -> Ctx[Ingress]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Ingress]) -> Ctx[Ingress]:
         _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 

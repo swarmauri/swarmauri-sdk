@@ -15,16 +15,16 @@ class Routed: ...
 class Bound: ...
 
 
-class Selected: ...
+class Planned: ...
 
 
-class Authorized: ...
+class Guarded: ...
 
 
 class Executing: ...
 
 
-class Ready: ...
+class Resolved: ...
 
 
 class Operated: ...
@@ -49,10 +49,10 @@ STAGES: Final[Tuple[Stage, ...]] = (
     Ingress,
     Routed,
     Bound,
-    Selected,
-    Authorized,
+    Planned,
+    Guarded,
     Executing,
-    Ready,
+    Resolved,
     Operated,
     Encoded,
     Emitting,
@@ -91,10 +91,10 @@ __all__ = [
     "Ingress",
     "Routed",
     "Bound",
-    "Selected",
-    "Authorized",
+    "Planned",
+    "Guarded",
     "Executing",
-    "Ready",
+    "Resolved",
     "Operated",
     "Encoded",
     "Emitting",

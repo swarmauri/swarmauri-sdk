@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Executing, Operated
+from ...stages import Resolved, Operated
 
 import inspect
 from typing import Any, Callable
@@ -160,11 +160,11 @@ async def _run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "result", result)
 
 
-class AtomImpl(Atom[Executing, Operated]):
+class AtomImpl(Atom[Resolved, Operated]):
     name = "sys.runtime_route_handler"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Executing]) -> Ctx[Operated]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Resolved]) -> Ctx[Operated]:
         await _run(obj, ctx)
         return cast_ctx(ctx)
 

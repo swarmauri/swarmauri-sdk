@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Prepared
+from ...stages import Executing
 
 from typing import Any, Optional
 import logging
@@ -21,15 +21,14 @@ def _run(obj: Optional[object], ctx: Any) -> None:
     ensure_schema_in(ctx, ov)
 
 
-
-
-class AtomImpl(Atom[Prepared, Prepared]):
+class AtomImpl(Atom[Executing, Executing]):
     name = "schema.collect_in"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Executing]) -> Ctx[Executing]:
         _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 

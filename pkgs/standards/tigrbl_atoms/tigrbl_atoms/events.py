@@ -5,7 +5,7 @@ from typing import Dict, Iterable, List, Tuple
 
 from .phases import PHASES, PhaseName, phase_info
 from .stages import (
-    Authorized,
+    Guarded,
     Boot,
     Bound,
     Egressed,
@@ -14,10 +14,10 @@ from .stages import (
     Executing,
     Ingress,
     Operated,
-    Ready,
+    Resolved,
     Routed,
-    Selected,
-    StageType,
+    Planned,
+    Stage,
     stage_ordinal,
 )
 
@@ -201,8 +201,8 @@ class AnchorInfo:
     phase: Phase
     ordinal: int
     persist_tied: bool
-    stage_in: StageType
-    stage_out: StageType
+    stage_in: Stage
+    stage_out: Stage
     in_tx: bool
     is_error: bool
 
@@ -261,12 +261,11 @@ _ANCHOR_PHASE: Dict[str, Phase] = {
 
 # Per-anchor stage windows.
 # These are intentionally typed against the current phase-stage algebra.
-_ANCHOR_STAGE: Dict[str, Tuple[StageType, StageType]] = {
+_ANCHOR_STAGE: Dict[str, Tuple[Stage, Stage]] = {
     # INGRESS_BEGIN
     INGRESS_CTX_INIT: (Boot, Boot),
     INGRESS_CTX_ATTACH_COMPILED: (Boot, Boot),
     INGRESS_METRICS_START: (Boot, Ingress),
-
     # INGRESS_PARSE
     INGRESS_RAW_FROM_SCOPE: (Ingress, Ingress),
     INGRESS_METHOD_EXTRACT: (Ingress, Ingress),
@@ -277,7 +276,6 @@ _ANCHOR_STAGE: Dict[str, Tuple[StageType, StageType]] = {
     INGRESS_BODY_READ: (Ingress, Ingress),
     INGRESS_REQUEST_BODY_APPLY: (Ingress, Ingress),
     INGRESS_BODY_PEEK: (Ingress, Ingress),
-
     # INGRESS_ROUTE
     ROUTE_PROTOCOL_DETECT: (Ingress, Routed),
     ROUTE_BINDING_MATCH: (Routed, Bound),
@@ -288,30 +286,24 @@ _ANCHOR_STAGE: Dict[str, Tuple[StageType, StageType]] = {
     ROUTE_PAYLOAD_SELECT: (Bound, Bound),
     ROUTE_BINDING_POLICY_APPLY: (Bound, Bound),
     ROUTE_PLAN_SELECT: (Bound, Bound),
-    ROUTE_OP_RESOLVE: (Bound, Selected),
-    ROUTE_CTX_FINALIZE: (Selected, Selected),
-
+    ROUTE_OP_RESOLVE: (Bound, Planned),
+    ROUTE_CTX_FINALIZE: (Planned, Planned),
     # PRE_TX_BEGIN
-    DEP_SECURITY: (Selected, Authorized),
-    DEP_EXTRA: (Authorized, Authorized),
-
+    DEP_SECURITY: (Planned, Guarded),
+    DEP_EXTRA: (Guarded, Guarded),
     # START_TX
-    SYS_TX_BEGIN: (Authorized, Executing),
-
+    SYS_TX_BEGIN: (Guarded, Executing),
     # PRE_HANDLER
     SCHEMA_COLLECT_IN: (Executing, Executing),
     IN_VALIDATE: (Executing, Executing),
-    RESOLVE_VALUES: (Executing, Ready),
-    PRE_FLUSH: (Ready, Ready),
-    EMIT_ALIASES_PRE: (Ready, Ready),
-
+    RESOLVE_VALUES: (Executing, Resolved),
+    PRE_FLUSH: (Resolved, Resolved),
+    EMIT_ALIASES_PRE: (Resolved, Resolved),
     # HANDLER
-    HANDLER: (Ready, Operated),
-    SYS_HANDLER_PERSISTENCE: (Ready, Operated),
-
+    HANDLER: (Resolved, Operated),
+    SYS_HANDLER_PERSISTENCE: (Resolved, Operated),
     # END_TX
     SYS_TX_COMMIT: (Operated, Operated),
-
     # POST_COMMIT
     POST_FLUSH: (Operated, Operated),
     EMIT_ALIASES_POST: (Operated, Operated),
@@ -319,13 +311,11 @@ _ANCHOR_STAGE: Dict[str, Tuple[StageType, StageType]] = {
     OUT_BUILD: (Operated, Encoded),
     EMIT_ALIASES_READ: (Encoded, Encoded),
     OUT_DUMP: (Operated, Encoded),
-
     # EGRESS_SHAPE
     EGRESS_RESULT_NORMALIZE: (Encoded, Encoded),
     EGRESS_OUT_DUMP: (Encoded, Encoded),
     EGRESS_ENVELOPE_APPLY: (Encoded, Encoded),
     EGRESS_HEADERS_APPLY: (Encoded, Encoded),
-
     # EGRESS_FINALIZE
     EGRESS_HTTP_FINALIZE: (Encoded, Encoded),
     EGRESS_TO_TRANSPORT_RESPONSE: (Encoded, Emitting),
@@ -388,6 +378,7 @@ _ANCHORS: Dict[str, AnchorInfo] = {
 # Public helpers
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def is_valid_event(anchor: str) -> bool:
     """True if the given anchor is one of the canonical events."""
     return anchor in _ANCHORS
@@ -401,7 +392,7 @@ def phase_for_event(anchor: str) -> Phase:
         raise ValueError(f"Unknown event anchor: {anchor!r}") from e
 
 
-def stage_in_for_event(anchor: str) -> StageType:
+def stage_in_for_event(anchor: str) -> Stage:
     """Return the anchor's typed entry stage window."""
     try:
         return _ANCHORS[anchor].stage_in
@@ -409,7 +400,7 @@ def stage_in_for_event(anchor: str) -> StageType:
         raise ValueError(f"Unknown event anchor: {anchor!r}") from e
 
 
-def stage_out_for_event(anchor: str) -> StageType:
+def stage_out_for_event(anchor: str) -> Stage:
     """Return the anchor's typed exit stage window."""
     try:
         return _ANCHORS[anchor].stage_out

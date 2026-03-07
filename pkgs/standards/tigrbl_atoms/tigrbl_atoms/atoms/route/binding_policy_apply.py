@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Authorized
+from ...stages import Bound
 
 from typing import Any, Mapping
 
@@ -82,15 +82,14 @@ def _run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "payload", merged)
 
 
-
-
-class AtomImpl(Atom[Prepared, Authorized]):
+class AtomImpl(Atom[Bound, Bound]):
     name = "route.binding_policy_apply"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Authorized]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Bound]) -> Ctx[Bound]:
         _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 

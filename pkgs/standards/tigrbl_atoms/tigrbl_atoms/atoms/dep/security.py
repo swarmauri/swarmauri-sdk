@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Authorized
+from ...stages import Planned, Guarded
 
 import inspect
 from typing import Any, Callable
@@ -117,11 +117,11 @@ async def _run(dep: object | None, ctx: Any) -> Any:
     return rv
 
 
-class AtomImpl(Atom[Prepared, Authorized]):
+class AtomImpl(Atom[Planned, Guarded]):
     name = "dep.security"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Authorized]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Planned]) -> Ctx[Guarded]:
         await _run(obj, ctx)
         return cast_ctx(ctx)
 

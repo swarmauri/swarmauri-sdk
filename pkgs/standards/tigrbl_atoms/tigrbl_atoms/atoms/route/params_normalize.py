@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Bound, Prepared
+from ...stages import Bound
 
 from typing import Any
 
@@ -22,15 +22,14 @@ def _run(obj: object | None, ctx: Any) -> None:
     route["params"] = {**dict(query or {}), **dict(params or {})}
 
 
-
-
-class AtomImpl(Atom[Bound, Prepared]):
+class AtomImpl(Atom[Bound, Bound]):
     name = "route.params_normalize"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Bound]) -> Ctx[Prepared]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Bound]) -> Ctx[Bound]:
         _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 

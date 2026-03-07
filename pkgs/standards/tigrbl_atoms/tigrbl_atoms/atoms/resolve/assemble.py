@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Prepared
+from ...stages import Executing, Resolved
 
 from typing import Any, Mapping, Optional, Dict, Tuple
 import logging
@@ -167,15 +167,14 @@ def _ctx_view(ctx: Any) -> Dict[str, Any]:
     return view
 
 
-
-
-class AtomImpl(Atom[Prepared, Prepared]):
+class AtomImpl(Atom[Executing, Resolved]):
     name = "resolve.assemble"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Executing]) -> Ctx[Resolved]:
         _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 

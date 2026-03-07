@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Prepared
+from ...stages import Ingress, Routed
 
 from typing import Any
 
@@ -42,13 +42,14 @@ def _run(obj: object | None, ctx: Any) -> None:
                     route["binding"] = binding
 
 
-class AtomImpl(Atom[Prepared, Prepared]):
+class AtomImpl(Atom[Ingress, Routed]):
     name = "route.rpc_method_match"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Ingress]) -> Ctx[Routed]:
         _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 
