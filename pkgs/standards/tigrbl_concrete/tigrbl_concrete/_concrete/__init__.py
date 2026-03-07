@@ -38,6 +38,7 @@ _EXPORTS = {
     "TigrblApp": "tigrbl_app",
     "TigrblRouter": "tigrbl_router",
     "BackgroundTask": "_background",
+    "wrap_sessionmaker": "_session",
 }
 
 __all__ = list(_EXPORTS)

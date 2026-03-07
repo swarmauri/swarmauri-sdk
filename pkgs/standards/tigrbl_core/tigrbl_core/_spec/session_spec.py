@@ -135,19 +135,6 @@ def readonly() -> SessionSpec:
     return SessionSpec(read_only=True)
 
 
-def wrap_sessionmaker(maker, spec: SessionSpec):
-    """Wrap a provider session factory to yield DefaultSession instances."""
-    from .._concrete._session import DefaultSession
-
-    def _mk() -> DefaultSession:
-        underlying = maker()
-        s = DefaultSession(underlying, spec)
-        s.apply_spec(spec)
-        return s
-
-    return _mk
-
-
 __all__ = [
     "SessionCfg",
     "SessionSpec",
@@ -156,5 +143,4 @@ __all__ = [
     "tx_repeatable_read",
     "tx_serializable",
     "readonly",
-    "wrap_sessionmaker",
 ]

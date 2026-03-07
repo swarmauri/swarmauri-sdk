@@ -109,4 +109,16 @@ class DefaultSession(TigrblSessionBase):
                 await rv
 
 
-__all__ = ["DefaultSession"]
+def wrap_sessionmaker(maker: Callable[..., Any], spec: SessionSpec):
+    """Wrap a provider session factory to yield DefaultSession instances."""
+
+    def _mk() -> DefaultSession:
+        underlying = maker()
+        session = DefaultSession(underlying, spec)
+        session.apply_spec(spec)
+        return session
+
+    return _mk
+
+
+__all__ = ["DefaultSession", "wrap_sessionmaker"]
