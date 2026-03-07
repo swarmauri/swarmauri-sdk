@@ -5,7 +5,7 @@ from typing import Any, Awaitable, Callable
 
 from ... import events as _ev
 from ...stages import Operated, Ready
-from ...types import Atom, Ctx, cast_ctx
+from ...types import Atom, Ctx, OperatedCtx
 
 ANCHOR = _ev.SYS_HANDLER_PERSISTENCE
 
@@ -26,7 +26,7 @@ class BoundAtom(Atom[Ready, Operated]):
         if inspect.isawaitable(result):
             result = await result
         setattr(ctx, "result", result)
-        return cast_ctx(ctx)
+        return ctx.promote(OperatedCtx)
 
 
 def bind(fn: HandlerFn, *, name: str | None = None) -> Atom[Ready, Operated]:
