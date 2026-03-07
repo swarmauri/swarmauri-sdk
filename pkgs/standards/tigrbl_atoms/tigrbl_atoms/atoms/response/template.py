@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
+from ...types import Atom, Ctx, EncodedCtx
 from ...stages import Operated, Encoded
 from typing import Any, Optional
 
@@ -44,15 +44,14 @@ async def _run(obj: Optional[object], ctx: Any) -> None:
         hints.media_type = "text/html"
 
 
-
-
 class AtomImpl(Atom[Operated, Encoded]):
     name = "response.template"
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Operated]) -> Ctx[Encoded]:
         await _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(EncodedCtx)
+
 
 INSTANCE = AtomImpl()
 

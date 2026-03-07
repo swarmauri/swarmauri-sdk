@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
+from ...types import Atom, Ctx, EmittingCtx
 from ...stages import Encoded, Emitting
 
 import json
@@ -125,15 +125,14 @@ def _run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "transport_response", response)
 
 
-
-
 class AtomImpl(Atom[Encoded, Emitting]):
     name = "egress.to_transport_response"
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Encoded]) -> Ctx[Emitting]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(EmittingCtx)
+
 
 INSTANCE = AtomImpl()
 

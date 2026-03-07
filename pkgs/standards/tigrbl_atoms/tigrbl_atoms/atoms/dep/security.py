@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
+from ...types import Atom, Ctx, GuardedCtx
 from ...stages import Planned, Guarded
 
 import inspect
 from typing import Any, Callable
 
-from tigrbl_ops_oltp.crud.params import Param
 from tigrbl_canon.mapping.core_resolver import (
+    Param,
     annotation_marker,
     extract_param_value,
     is_request_annotation,
@@ -123,7 +123,7 @@ class AtomImpl(Atom[Planned, Guarded]):
 
     async def __call__(self, obj: object | None, ctx: Ctx[Planned]) -> Ctx[Guarded]:
         await _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(GuardedCtx)
 
 
 INSTANCE = AtomImpl()

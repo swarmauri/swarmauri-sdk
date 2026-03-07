@@ -14,7 +14,12 @@ from . import to_transport_response as _to_transport_response
 RunFn = Callable[[Optional[object], Any], Any]
 
 _ORDERED: Tuple[Tuple[str, str, str, RunFn], ...] = (
-    ("egress", "result_normalize", _result_normalize.ANCHOR, _result_normalize.INSTANCE),
+    (
+        "egress",
+        "result_normalize",
+        _result_normalize.ANCHOR,
+        _result_normalize.INSTANCE,
+    ),
     ("egress", "out_dump", _out_dump.ANCHOR, _out_dump.INSTANCE),
     ("egress", "envelope_apply", _envelope_apply.ANCHOR, _envelope_apply.INSTANCE),
     ("egress", "headers_apply", _headers_apply.ANCHOR, _headers_apply.INSTANCE),

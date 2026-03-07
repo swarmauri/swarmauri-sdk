@@ -1,8 +1,8 @@
 # pkgs/standards/tigrbl_atoms/tigrbl/atoms/out/masking.py
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
-from ...stages import Encoded, Encoded
+from ...types import Atom, Ctx, EncodedCtx
+from ...stages import Encoded
 
 from typing import Any, Dict, Mapping, MutableMapping, Optional, Sequence
 import logging
@@ -135,15 +135,14 @@ def _mask_value(value: Any, keep_last: Optional[int]) -> str:
     return "•" * (len(s) - n) + s[-n:]
 
 
-
-
 class AtomImpl(Atom[Encoded, Encoded]):
     name = "out.masking"
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Encoded]) -> Ctx[Encoded]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(EncodedCtx)
+
 
 INSTANCE = AtomImpl()
 

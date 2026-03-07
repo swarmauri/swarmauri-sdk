@@ -1,7 +1,7 @@
 # pkgs/standards/tigrbl_atoms/tigrbl/atoms/wire/validate_in.py
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
+from ...types import Atom, Ctx, ExecutingCtx
 from ...stages import Executing
 
 import datetime as _dt
@@ -265,7 +265,7 @@ class AtomImpl(Atom[Executing, Executing]):
 
     async def __call__(self, obj: object | None, ctx: Ctx[Executing]) -> Ctx[Executing]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(ExecutingCtx)
 
 
 INSTANCE = AtomImpl()
