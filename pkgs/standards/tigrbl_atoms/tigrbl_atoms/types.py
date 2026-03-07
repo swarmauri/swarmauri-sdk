@@ -2,22 +2,11 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import MISSING, dataclass, field, fields, is_dataclass
-from typing import Any, Generic, TypeVar
+from typing import Generic, TypeVar
 
 from .stages import (
-    Authorized,
     Boot,
-    Bound,
-    Egressed,
-    Emitting,
-    Encoded,
-    Executing,
     Failed,
-    Ingress,
-    Operated,
-    Ready,
-    Routed,
-    Selected,
 )
 
 from tigrbl_typing.protocols import (
@@ -26,7 +15,6 @@ from tigrbl_typing.protocols import (
     is_dependency_like,
     is_response_like,
 )
-
 
 
 S = TypeVar("S")
@@ -106,7 +94,7 @@ class BoundCtx(RoutedCtx):
 
 
 @dataclass(slots=True)
-class SelectedCtx(BoundCtx):
+class PlannedCtx(BoundCtx):
     payload: object | None = None
     plan: object | None = None
     opmeta: object | None = None
@@ -114,23 +102,23 @@ class SelectedCtx(BoundCtx):
 
 
 @dataclass(slots=True)
-class AuthorizedCtx(SelectedCtx):
+class GuardedCtx(PlannedCtx):
     authz: object | None = None
 
 
 @dataclass(slots=True)
-class ExecutingCtx(AuthorizedCtx):
+class ExecutingCtx(GuardedCtx):
     pass
 
 
 @dataclass(slots=True)
-class ReadyCtx(ExecutingCtx):
+class ResolvedCtx(ExecutingCtx):
     schema_in: object | None = None
     in_values: dict[str, object] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
-class OperatedCtx(ReadyCtx):
+class OperatedCtx(ResolvedCtx):
     result: object | None = None
 
 
@@ -175,10 +163,10 @@ __all__ = [
     "IngressCtx",
     "RoutedCtx",
     "BoundCtx",
-    "SelectedCtx",
-    "AuthorizedCtx",
+    "PlannedCtx",
+    "GuardedCtx",
     "ExecutingCtx",
-    "ReadyCtx",
+    "ResolvedCtx",
     "OperatedCtx",
     "EncodedCtx",
     "EmittingCtx",

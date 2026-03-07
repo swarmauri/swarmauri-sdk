@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Prepared
+from ...stages import Ingress
 
 import json
 from dataclasses import replace
@@ -138,13 +138,14 @@ def _run(obj: object | None, ctx: Any) -> None:
         setattr(ctx, "gw_raw", replace(env, kind="rest"))
 
 
-class AtomImpl(Atom[Prepared, Prepared]):
+class AtomImpl(Atom[Ingress, Ingress]):
     name = "route.rpc_envelope_parse"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Ingress]) -> Ctx[Ingress]:
         _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared, Routed
+from ...stages import Ingress, Routed
 
 from typing import Any
 
@@ -54,13 +54,14 @@ def _run(obj: object | None, ctx: Any) -> None:
         setattr(ctx, "proto", proto)
 
 
-class AtomImpl(Atom[Prepared, Routed]):
+class AtomImpl(Atom[Ingress, Routed]):
     name = "route.protocol_detect"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Routed]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Ingress]) -> Ctx[Routed]:
         _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 

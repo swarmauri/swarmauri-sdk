@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Ingress, Prepared
+from ...stages import Ingress
 
 from typing import Any
 
@@ -26,15 +26,14 @@ def _run(obj: object | None, ctx: Any) -> None:
         req.body = body
 
 
-
-
-class AtomImpl(Atom[Ingress, Prepared]):
+class AtomImpl(Atom[Ingress, Ingress]):
     name = "ingress.request_body_apply"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Ingress]) -> Ctx[Prepared]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Ingress]) -> Ctx[Ingress]:
         _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 

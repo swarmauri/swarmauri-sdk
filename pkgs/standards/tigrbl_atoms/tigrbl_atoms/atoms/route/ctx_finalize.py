@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Authorized
+from ...stages import Planned
 
 import inspect
 from typing import Any
@@ -142,13 +142,11 @@ def _run(obj: object | None, ctx: Any) -> None:
     temp["__sys_db_release__"] = release
 
 
-class AtomImpl(Atom[Authorized, Authorized]):
+class AtomImpl(Atom[Planned, Planned]):
     name = "route.ctx_finalize"
     anchor = ANCHOR
 
-    async def __call__(
-        self, obj: object | None, ctx: Ctx[Authorized]
-    ) -> Ctx[Authorized]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Planned]) -> Ctx[Planned]:
         _run(obj, ctx)
         return cast_ctx(ctx)
 

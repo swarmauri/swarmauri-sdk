@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Resolved, Executing
+from ...stages import Guarded, Executing
 
 from typing import Any
 
@@ -42,11 +42,11 @@ async def _run(obj: object | None, ctx: Any) -> None:
             await rv
 
 
-class AtomImpl(Atom[Resolved, Executing]):
+class AtomImpl(Atom[Guarded, Executing]):
     name = "sys.start_tx"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Resolved]) -> Ctx[Executing]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Guarded]) -> Ctx[Executing]:
         await _run(obj, ctx)
         return cast_ctx(ctx)
 

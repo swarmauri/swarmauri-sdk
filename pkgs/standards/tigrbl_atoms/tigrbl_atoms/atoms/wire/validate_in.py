@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Prepared
+from ...stages import Executing
 
 import datetime as _dt
 import decimal as _dc
@@ -259,11 +259,11 @@ def _reserved_input_keys(
     return reserved
 
 
-class AtomImpl(Atom[Prepared, Prepared]):
+class AtomImpl(Atom[Executing, Executing]):
     name = "wire.validate_in"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Prepared]) -> Ctx[Prepared]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Executing]) -> Ctx[Executing]:
         _run(obj, ctx)
         return cast_ctx(ctx)
 

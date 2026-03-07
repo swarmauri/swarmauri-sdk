@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -7,18 +6,15 @@ from typing import Dict, Final, Generic, Literal, Tuple, TypeVar
 from .stages import (
     Boot,
     Ingress,
-    Routed,
-    Bound,
-    Selected,
-    Authorized,
+    Planned,
+    Guarded,
     Executing,
-    Ready,
+    Resolved,
     Operated,
     Encoded,
-    Emitting,
     Egressed,
     Failed,
-    StageType,
+    Stage,
 )
 
 S = TypeVar("S")
@@ -57,8 +53,8 @@ PhaseName = Literal[
 @dataclass(frozen=True)
 class PhaseStep(Generic[S, T]):
     name: PhaseName
-    stage_in: StageType
-    stage_out: StageType
+    stage_in: Stage
+    stage_out: Stage
     in_tx: bool = False
     is_error: bool = False
 
@@ -75,13 +71,13 @@ def seq_phase(a: PhaseStep[S, T], b: PhaseStep[T, U]) -> PhaseStep[S, U]:
 
 INGRESS_BEGIN = PhaseStep("INGRESS_BEGIN", Boot, Ingress)
 INGRESS_PARSE = PhaseStep("INGRESS_PARSE", Ingress, Ingress)
-INGRESS_ROUTE = PhaseStep("INGRESS_ROUTE", Ingress, Selected)
+INGRESS_ROUTE = PhaseStep("INGRESS_ROUTE", Ingress, Planned)
 
-PRE_TX_BEGIN = PhaseStep("PRE_TX_BEGIN", Selected, Authorized)
+PRE_TX_BEGIN = PhaseStep("PRE_TX_BEGIN", Planned, Guarded)
 
-START_TX = PhaseStep("START_TX", Authorized, Executing, in_tx=True)
-PRE_HANDLER = PhaseStep("PRE_HANDLER", Executing, Ready, in_tx=True)
-HANDLER = PhaseStep("HANDLER", Ready, Operated, in_tx=True)
+START_TX = PhaseStep("START_TX", Guarded, Executing, in_tx=True)
+PRE_HANDLER = PhaseStep("PRE_HANDLER", Executing, Resolved, in_tx=True)
+HANDLER = PhaseStep("HANDLER", Resolved, Operated, in_tx=True)
 POST_HANDLER = PhaseStep("POST_HANDLER", Operated, Operated, in_tx=True)
 PRE_COMMIT = PhaseStep("PRE_COMMIT", Operated, Operated, in_tx=True)
 END_TX = PhaseStep("END_TX", Operated, Operated, in_tx=True)
@@ -93,15 +89,31 @@ POST_RESPONSE = PhaseStep("POST_RESPONSE", Egressed, Egressed)
 
 
 ON_ERROR = PhaseStep("ON_ERROR", Failed, Failed, is_error=True)
-ON_PRE_TX_BEGIN_ERROR = PhaseStep("ON_PRE_TX_BEGIN_ERROR", Failed, Failed, is_error=True)
-ON_START_TX_ERROR = PhaseStep("ON_START_TX_ERROR", Failed, Failed, in_tx=True, is_error=True)
-ON_PRE_HANDLER_ERROR = PhaseStep("ON_PRE_HANDLER_ERROR", Failed, Failed, in_tx=True, is_error=True)
-ON_HANDLER_ERROR = PhaseStep("ON_HANDLER_ERROR", Failed, Failed, in_tx=True, is_error=True)
-ON_POST_HANDLER_ERROR = PhaseStep("ON_POST_HANDLER_ERROR", Failed, Failed, in_tx=True, is_error=True)
-ON_PRE_COMMIT_ERROR = PhaseStep("ON_PRE_COMMIT_ERROR", Failed, Failed, in_tx=True, is_error=True)
-ON_END_TX_ERROR = PhaseStep("ON_END_TX_ERROR", Failed, Failed, in_tx=True, is_error=True)
+ON_PRE_TX_BEGIN_ERROR = PhaseStep(
+    "ON_PRE_TX_BEGIN_ERROR", Failed, Failed, is_error=True
+)
+ON_START_TX_ERROR = PhaseStep(
+    "ON_START_TX_ERROR", Failed, Failed, in_tx=True, is_error=True
+)
+ON_PRE_HANDLER_ERROR = PhaseStep(
+    "ON_PRE_HANDLER_ERROR", Failed, Failed, in_tx=True, is_error=True
+)
+ON_HANDLER_ERROR = PhaseStep(
+    "ON_HANDLER_ERROR", Failed, Failed, in_tx=True, is_error=True
+)
+ON_POST_HANDLER_ERROR = PhaseStep(
+    "ON_POST_HANDLER_ERROR", Failed, Failed, in_tx=True, is_error=True
+)
+ON_PRE_COMMIT_ERROR = PhaseStep(
+    "ON_PRE_COMMIT_ERROR", Failed, Failed, in_tx=True, is_error=True
+)
+ON_END_TX_ERROR = PhaseStep(
+    "ON_END_TX_ERROR", Failed, Failed, in_tx=True, is_error=True
+)
 ON_POST_COMMIT_ERROR = PhaseStep("ON_POST_COMMIT_ERROR", Failed, Failed, is_error=True)
-ON_POST_RESPONSE_ERROR = PhaseStep("ON_POST_RESPONSE_ERROR", Failed, Failed, is_error=True)
+ON_POST_RESPONSE_ERROR = PhaseStep(
+    "ON_POST_RESPONSE_ERROR", Failed, Failed, is_error=True
+)
 ON_ROLLBACK = PhaseStep("ON_ROLLBACK", Failed, Failed, in_tx=True, is_error=True)
 
 
@@ -173,11 +185,11 @@ def phase_info(name: PhaseName) -> PhaseStep:
         raise ValueError(f"Unknown phase: {name!r}") from e
 
 
-def phase_stage_in(name: PhaseName) -> StageType:
+def phase_stage_in(name: PhaseName) -> Stage:
     return phase_info(name).stage_in
 
 
-def phase_stage_out(name: PhaseName) -> StageType:
+def phase_stage_out(name: PhaseName) -> Stage:
     return phase_info(name).stage_out
 
 

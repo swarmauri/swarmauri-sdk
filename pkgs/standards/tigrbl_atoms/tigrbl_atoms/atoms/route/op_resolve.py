@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ...types import Atom, Ctx, cast_ctx
-from ...stages import Authorized, Resolved
+from ...stages import Bound, Planned
 
 from types import SimpleNamespace
 from typing import Any
@@ -142,13 +142,14 @@ def _run(obj: object | None, ctx: Any) -> None:
         _resolve_runtime_route_handler(ctx, route)
 
 
-class AtomImpl(Atom[Authorized, Resolved]):
+class AtomImpl(Atom[Bound, Planned]):
     name = "route.op_resolve"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Authorized]) -> Ctx[Resolved]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Bound]) -> Ctx[Planned]:
         _run(obj, ctx)
         return cast_ctx(ctx)
+
 
 INSTANCE = AtomImpl()
 
