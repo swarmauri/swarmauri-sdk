@@ -6,7 +6,7 @@ from ...stages import Guarded
 import inspect
 from typing import Any, Callable
 
-from tigrbl_ops_oltp.crud.params import Param
+from tigrbl_canon.mapping.core_resolver import Param
 from tigrbl_canon.mapping.core_resolver import (
     annotation_marker,
     extract_param_value,

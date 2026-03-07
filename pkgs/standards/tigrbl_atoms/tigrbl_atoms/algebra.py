@@ -78,7 +78,7 @@ def try_(a: Atom[S, T]) -> Atom[S, T]:
                 return await a(obj, ctx)
             except Exception as e:
                 ctx.error = e
-                return cast(Ctx[T], ctx)
+                return ctx.promote(type(ctx))
 
     return _Try()
 
@@ -113,7 +113,7 @@ def bracket(
             try:
                 return await use(obj, ctx)
             finally:
-                await release(cast(Ctx[T], ctx), res)
+                await release(ctx.promote(type(ctx)), res)
 
     return _Bracket()
 
