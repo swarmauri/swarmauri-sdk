@@ -1,54 +1,6 @@
-"""
-Stage markers for Tigrbl's typed execution algebra.
-
-A stage is a typed invariant over ctx, not a lifecycle anchor.
-
-Mainline progression:
-
-    Boot
-    -> Ingress
-    -> Routed
-    -> Bound
-    -> Selected
-    -> Authorized
-    -> Executing
-    -> Ready
-    -> Operated
-    -> Encoded
-    -> Emitting
-    -> Egressed
-
-with failure transitions to:
-
-    Failed
-"""
-
 from __future__ import annotations
 
-from typing import Final, Type
-
-__all__ = (
-    "Boot",
-    "Ingress",
-    "Routed",
-    "Bound",
-    "Selected",
-    "Authorized",
-    "Executing",
-    "Ready",
-    "Operated",
-    "Encoded",
-    "Emitting",
-    "Egressed",
-    "Failed",
-    "StageType",
-    "STAGES",
-    "stage_name",
-    "stage_ordinal",
-    "is_valid_stage",
-    "is_monotonic_transition",
-    "order_stages",
-)
+from typing import Final, Tuple, Type
 
 
 class Boot: ...
@@ -90,9 +42,9 @@ class Egressed: ...
 class Failed: ...
 
 
-StageType = Type[object]
+Stage = Type[object]
 
-STAGES: Final[tuple[StageType, ...]] = (
+STAGES: Final[Tuple[Stage, ...]] = (
     Boot,
     Ingress,
     Routed,
@@ -108,35 +60,50 @@ STAGES: Final[tuple[StageType, ...]] = (
     Failed,
 )
 
-_STAGE_ORDINAL = {stage: idx for idx, stage in enumerate(STAGES)}
+_STAGE_ORDINAL: Final[dict[Stage, int]] = {
+    stage: idx for idx, stage in enumerate(STAGES)
+}
 
 
-def stage_name(stage: StageType) -> str:
+def stage_name(stage: Stage) -> str:
     return stage.__name__
 
 
-def stage_ordinal(stage: StageType) -> int:
+def stage_ordinal(stage: Stage) -> int:
     try:
         return _STAGE_ORDINAL[stage]
     except KeyError as e:
-        raise ValueError(f"Unknown stage: {stage!r}") from e
+        raise ValueError(f"unknown stage: {stage!r}") from e
 
 
-def is_valid_stage(stage: StageType) -> bool:
+def is_valid_stage(stage: object) -> bool:
     return stage in _STAGE_ORDINAL
 
 
-def is_monotonic_transition(src: StageType, dst: StageType) -> bool:
-    """
-    True if src -> dst is forward-only in the mainline stage order.
-    Failed is treated as terminal and exempt from normal forward checks.
-    """
+def is_monotonic_transition(src: Stage, dst: Stage) -> bool:
     if src is Failed or dst is Failed:
         return True
     return stage_ordinal(src) <= stage_ordinal(dst)
 
 
-def order_stages(stages: tuple[StageType, ...] | list[StageType]) -> list[StageType]:
-    out = list(stages)
-    out.sort(key=stage_ordinal)
-    return out
+__all__ = [
+    "Boot",
+    "Ingress",
+    "Routed",
+    "Bound",
+    "Selected",
+    "Authorized",
+    "Executing",
+    "Ready",
+    "Operated",
+    "Encoded",
+    "Emitting",
+    "Egressed",
+    "Failed",
+    "Stage",
+    "STAGES",
+    "stage_name",
+    "stage_ordinal",
+    "is_valid_stage",
+    "is_monotonic_transition",
+]
