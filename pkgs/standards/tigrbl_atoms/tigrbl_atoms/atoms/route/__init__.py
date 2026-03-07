@@ -24,13 +24,19 @@ REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
         _rpc_envelope_parse.ANCHOR,
         _rpc_envelope_parse.INSTANCE,
     ),
-    ("route", "rpc_method_match"): (_rpc_method_match.ANCHOR, _rpc_method_match.INSTANCE),
+    ("route", "rpc_method_match"): (
+        _rpc_method_match.ANCHOR,
+        _rpc_method_match.INSTANCE,
+    ),
     ("route", "op_resolve"): (_op_resolve.ANCHOR, _op_resolve.INSTANCE),
     ("route", "path_params_extract"): (
         _path_params_extract.ANCHOR,
         _path_params_extract.INSTANCE,
     ),
-    ("route", "params_normalize"): (_params_normalize.ANCHOR, _params_normalize.INSTANCE),
+    ("route", "params_normalize"): (
+        _params_normalize.ANCHOR,
+        _params_normalize.INSTANCE,
+    ),
     ("route", "payload_select"): (_payload_select.ANCHOR, _payload_select.INSTANCE),
     ("route", "binding_policy_apply"): (
         _binding_policy_apply.ANCHOR,

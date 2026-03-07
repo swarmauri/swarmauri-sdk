@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
+from ...types import Atom, Ctx, EncodedCtx
 from ...stages import Operated, Encoded
 from typing import Any, Optional
 
@@ -82,15 +82,14 @@ def _run(obj: Optional[object], ctx: Any) -> Any:
     return resp
 
 
-
-
 class AtomImpl(Atom[Operated, Encoded]):
     name = "response.render"
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Operated]) -> Ctx[Encoded]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(EncodedCtx)
+
 
 INSTANCE = AtomImpl()
 

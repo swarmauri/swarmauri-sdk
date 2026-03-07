@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
+from ...types import Atom, Ctx, GuardedCtx
 from ...stages import Guarded
 
 import inspect
@@ -113,7 +113,7 @@ class AtomImpl(Atom[Guarded, Guarded]):
 
     async def __call__(self, obj: object | None, ctx: Ctx[Guarded]) -> Ctx[Guarded]:
         await _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(GuardedCtx)
 
 
 INSTANCE = AtomImpl()

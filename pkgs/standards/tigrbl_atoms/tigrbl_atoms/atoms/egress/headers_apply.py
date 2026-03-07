@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
-from ...stages import Encoded, Encoded
+from ...types import Atom, Ctx, EncodedCtx
+from ...stages import Encoded
 
 from typing import Any, MutableMapping
 
@@ -58,15 +58,14 @@ def _run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "response_headers", headers)
 
 
-
-
 class AtomImpl(Atom[Encoded, Encoded]):
     name = "egress.headers_apply"
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Encoded]) -> Ctx[Encoded]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(EncodedCtx)
+
 
 INSTANCE = AtomImpl()
 

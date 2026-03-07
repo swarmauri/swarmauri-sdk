@@ -1,7 +1,7 @@
 # pkgs/standards/tigrbl_atoms/tigrbl/atoms/storage/to_stored.py
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
+from ...types import Atom, Ctx, ResolvedCtx
 from ...stages import Resolved
 
 import logging
@@ -173,7 +173,7 @@ class AtomImpl(Atom[Resolved, Resolved]):
 
     async def __call__(self, obj: object | None, ctx: Ctx[Resolved]) -> Ctx[Resolved]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(ResolvedCtx)
 
 
 INSTANCE = AtomImpl()

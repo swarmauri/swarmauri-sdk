@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
+from ...types import Atom, Ctx, EgressedCtx
 from ...stages import Emitting, Egressed
 
 import json
@@ -227,7 +227,7 @@ class AtomImpl(Atom[Emitting, Egressed]):
 
     async def __call__(self, obj: object | None, ctx: Ctx[Emitting]) -> Ctx[Egressed]:
         await _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(EgressedCtx)
 
 
 INSTANCE = AtomImpl()

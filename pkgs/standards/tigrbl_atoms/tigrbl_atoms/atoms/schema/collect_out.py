@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, cast_ctx
-from ...stages import Operated, Operated
+from ...types import Atom, Ctx, OperatedCtx
+from ...stages import Operated
 
 from typing import Any, Optional
 import logging
@@ -21,15 +21,14 @@ def _run(obj: Optional[object], ctx: Any) -> None:
     ensure_schema_out(ctx, ov)
 
 
-
-
 class AtomImpl(Atom[Operated, Operated]):
     name = "schema.collect_out"
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Operated]) -> Ctx[Operated]:
         _run(obj, ctx)
-        return cast_ctx(ctx)
+        return ctx.promote(OperatedCtx)
+
 
 INSTANCE = AtomImpl()
 
