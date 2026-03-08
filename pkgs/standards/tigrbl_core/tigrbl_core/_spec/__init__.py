@@ -11,9 +11,9 @@ from typing import Any
 _EXPORTS = {
     "AliasSpec": "alias_spec",
     "AppSpec": "app_spec",
-    "Binding": "binding_spec",
-    "BindingRegistry": "binding_spec",
     "BindingSpec": "binding_spec",
+    "BindingRegistrySpec": "binding_spec",
+    "TransportBindingSpec": "binding_spec",
     "HttpRestBindingSpec": "binding_spec",
     "HttpJsonRpcBindingSpec": "binding_spec",
     "WsBindingSpec": "binding_spec",
