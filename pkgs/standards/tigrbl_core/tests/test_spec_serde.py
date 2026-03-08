@@ -4,11 +4,17 @@ from dataclasses import dataclass
 from typing import Any
 
 from tigrbl_core._spec.app_spec import AppSpec
+from tigrbl_core._spec.binding_spec import (
+    BindingRegistrySpec,
+    BindingSpec,
+    HttpRestBindingSpec,
+)
 from tigrbl_core._spec.column_spec import ColumnSpec
 from tigrbl_core._spec.engine_spec import EngineCfg
 from tigrbl_core._spec.field_spec import FieldSpec
 from tigrbl_core._spec.io_spec import IOSpec
 from tigrbl_core._spec.response_spec import ResponseSpec
+from tigrbl_core._spec.serde import SerdeMixin
 from tigrbl_core._spec.storage_spec import ForeignKeySpec, StorageSpec
 
 
@@ -93,3 +99,44 @@ def test_column_spec_yaml_round_trip_preserves_nested_foreign_key() -> None:
     assert restored.storage.fk is not None
     assert restored.storage.fk.target == "parents.id"
     assert restored.io.out_verbs == ("list",)
+
+
+def test_binding_spec_inherits_serde_mixin_and_round_trips() -> None:
+    spec = BindingSpec(
+        name="list_widgets",
+        spec=HttpRestBindingSpec(
+            proto="http.rest",
+            methods=("GET",),
+            path="/widgets",
+        ),
+    )
+
+    restored = BindingSpec.from_json(spec.to_json())
+
+    assert isinstance(spec, SerdeMixin)
+    assert isinstance(restored, BindingSpec)
+    assert restored.name == "list_widgets"
+    assert isinstance(restored.spec, HttpRestBindingSpec)
+    assert restored.spec.path == "/widgets"
+
+
+def test_binding_registry_spec_inherits_serde_mixin_and_round_trips() -> None:
+    binding = BindingSpec(
+        name="create_widget",
+        spec=HttpRestBindingSpec(
+            proto="http.rest",
+            methods=("POST",),
+            path="/widgets",
+        ),
+    )
+    registry = BindingRegistrySpec()
+    registry.register(binding)
+
+    restored = BindingRegistrySpec.from_json(registry.to_json())
+
+    assert isinstance(registry, SerdeMixin)
+    assert isinstance(restored, BindingRegistrySpec)
+    restored_binding = restored.get("create_widget")
+    assert restored_binding is not None
+    assert restored_binding.name == "create_widget"
+    assert isinstance(restored_binding.spec, HttpRestBindingSpec)
