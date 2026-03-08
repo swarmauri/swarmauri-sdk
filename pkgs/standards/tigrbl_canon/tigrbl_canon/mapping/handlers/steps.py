@@ -1,93 +1,20 @@
 # tigrbl/v3/mapping/handlers/steps.py
 from __future__ import annotations
-import logging
 
 import inspect
+import logging
 from functools import lru_cache
-from typing import Any, Callable, Mapping, Optional
+from typing import Any, Callable
 
-import tigrbl_ops_oltp as _core
+from tigrbl_atoms.atoms import get as _get_atom
 from tigrbl_core._spec import OpSpec
-from ...hook.types import StepFn
 from tigrbl_runtime.runtime.executor import _Ctx
+
+from ...hook.types import StepFn
 from .ctx import _ctx_db, _ctx_payload, _ctx_request
-from .identifiers import _resolve_ident
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/handlers/steps")
-
-
-async def _call_list_core(
-    fn: Callable[..., Any],
-    model: type,
-    payload: Mapping[str, Any],
-    ctx: Mapping[str, Any],
-):
-    filters = dict(payload) if isinstance(payload, Mapping) else {}
-    skip = filters.pop("skip", None)
-    limit = filters.pop("limit", None)
-    filters_arg = filters if filters else None
-
-    db = _ctx_db(ctx)
-    req = _ctx_request(ctx)
-
-    candidates: list[tuple[tuple, dict]] = []
-
-    def add_candidate(
-        use_pos_filters: bool, use_pos_db: bool, with_req: bool, with_pag: bool
-    ):
-        args: tuple = ()
-        kwargs: dict = {}
-        if use_pos_filters:
-            args += (filters_arg,)
-        else:
-            kwargs["filters"] = filters_arg
-        if use_pos_db:
-            args += (db,)
-        else:
-            kwargs["db"] = db
-        if with_req and req is not None:
-            kwargs["request"] = req
-        if with_pag:
-            if skip is not None:
-                kwargs["skip"] = skip
-            if limit is not None:
-                kwargs["limit"] = limit
-        candidates.append((args, kwargs))
-
-    add_candidate(False, False, True, True)
-    add_candidate(True, False, True, True)
-    add_candidate(True, True, True, True)
-
-    add_candidate(False, False, False, True)
-    add_candidate(True, False, False, True)
-    add_candidate(True, True, False, True)
-
-    add_candidate(False, False, True, False)
-    add_candidate(True, False, True, False)
-    add_candidate(True, True, True, False)
-
-    add_candidate(False, False, False, False)
-    add_candidate(True, False, False, False)
-    add_candidate(True, True, False, False)
-
-    last_err: Optional[BaseException] = None
-    for args, kwargs in candidates:
-        try:
-            logger.debug("Trying list core call with args=%s kwargs=%s", args, kwargs)
-            rv = fn(model, *args, **kwargs)
-            if inspect.isawaitable(rv):
-                logger.debug("Awaiting async result for list core")
-                return await rv
-            return rv
-        except TypeError as e:
-            logger.debug("Candidate failed with TypeError: %s", e)
-            last_err = e
-            continue
-    if last_err:
-        logger.debug("Reraising last TypeError from list core resolution")
-        raise last_err
-    raise RuntimeError("list() call resolution failed unexpectedly")
 
 
 def _accepted_kw(handler: Callable[..., Any]) -> set[str]:
@@ -116,7 +43,7 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
         bound = user_handler
         wanted = _accepted_kw(bound)
 
-        kw = {}
+        kw: dict[str, Any] = {}
         if "ctx" in wanted:
             kw["ctx"] = isolated
         if "db" in wanted:
@@ -150,127 +77,45 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
 def _wrap_core(model: type, target: str) -> StepFn:
     logger.debug("Creating core wrapper for %s.%s", model.__name__, target)
 
-    async def create_step(ctx: Any) -> Any:
-        db = _ctx_db(ctx)
-        payload = _ctx_payload(ctx)
-        logger.debug("Dispatching to core.create")
-        return await _core.create(model, payload, db=db)
-
-    async def read_step(ctx: Any) -> Any:
-        db = _ctx_db(ctx)
-        ident = _resolve_ident(model, ctx)
-        logger.debug("Dispatching to core.read with ident=%r", ident)
-        return await _core.read(model, ident, db=db)
-
-    async def update_step(ctx: Any) -> Any:
-        db = _ctx_db(ctx)
-        ident = _resolve_ident(model, ctx)
-        payload = _ctx_payload(ctx)
-        logger.debug("Dispatching to core.update with ident=%r", ident)
-        return await _core.update(model, ident, payload, db=db)
-
-    async def replace_step(ctx: Any) -> Any:
-        db = _ctx_db(ctx)
-        ident = _resolve_ident(model, ctx)
-        payload = _ctx_payload(ctx)
-        logger.debug("Dispatching to core.replace with ident=%r", ident)
-        return await _core.replace(model, ident, payload, db=db)
-
-    async def merge_step(ctx: Any) -> Any:
-        db = _ctx_db(ctx)
-        ident = _resolve_ident(model, ctx)
-        payload = _ctx_payload(ctx)
-        logger.debug("Dispatching to core.merge with ident=%r", ident)
-        return await _core.merge(model, ident, payload, db=db)
-
-    async def delete_step(ctx: Any) -> Any:
-        db = _ctx_db(ctx)
-        ident = _resolve_ident(model, ctx)
-        logger.debug("Dispatching to core.delete with ident=%r", ident)
-        return await _core.delete(model, ident, db=db)
-
-    async def list_step(ctx: Any) -> Any:
-        payload = _ctx_payload(ctx)
-        logger.debug("Dispatching to core.list")
-        return await _call_list_core(_core.list, model, payload, ctx)
-
-    async def clear_step(ctx: Any) -> Any:
-        db = _ctx_db(ctx)
-        logger.debug("Dispatching to core.clear")
-        return await _core.clear(model, {}, db=db)
-
-    async def bulk_create_step(ctx: Any) -> Any:
-        db = _ctx_db(ctx)
-        payload = _ctx_payload(ctx)
-        logger.debug("Dispatching to core.bulk_create")
-        if not isinstance(payload, list):
-            raise TypeError("bulk_create expects a list payload")
-        return await _core.bulk_create(model, payload, db=db)
-
-    async def bulk_update_step(ctx: Any) -> Any:
-        db = _ctx_db(ctx)
-        payload = _ctx_payload(ctx)
-        logger.debug("Dispatching to core.bulk_update")
-        if not isinstance(payload, list):
-            raise TypeError("bulk_update expects a list payload")
-        return await _core.bulk_update(model, payload, db=db)
-
-    async def bulk_replace_step(ctx: Any) -> Any:
-        db = _ctx_db(ctx)
-        payload = _ctx_payload(ctx)
-        logger.debug("Dispatching to core.bulk_replace")
-        if not isinstance(payload, list):
-            raise TypeError("bulk_replace expects a list payload")
-        return await _core.bulk_replace(model, payload, db=db)
-
-    async def bulk_merge_step(ctx: Any) -> Any:
-        db = _ctx_db(ctx)
-        payload = _ctx_payload(ctx)
-        logger.debug("Dispatching to core.bulk_merge")
-        if not isinstance(payload, list):
-            raise TypeError("bulk_merge expects a list payload")
-        return await _core.bulk_merge(model, payload, db=db)
-
-    async def bulk_delete_step(ctx: Any) -> Any:
-        db = _ctx_db(ctx)
-        payload = _ctx_payload(ctx)
-        logger.debug("Dispatching to core.bulk_delete")
-        ids = payload.get("ids") if isinstance(payload, Mapping) else []
-        return await _core.bulk_delete(model, ids, db=db)
-
-    async def default_step(ctx: Any) -> Any:
-        logger.debug("No core operation matched; returning payload")
-        return _ctx_payload(ctx)
-
-    steps: dict[str, StepFn] = {
-        "create": create_step,
-        "read": read_step,
-        "update": update_step,
-        "replace": replace_step,
-        "merge": merge_step,
-        "delete": delete_step,
-        "list": list_step,
-        "clear": clear_step,
-        "bulk_create": bulk_create_step,
-        "bulk_update": bulk_update_step,
-        "bulk_replace": bulk_replace_step,
-        "bulk_merge": bulk_merge_step,
-        "bulk_delete": bulk_delete_step,
+    subject_by_target = {
+        "create": "handler_create",
+        "read": "handler_read",
+        "update": "handler_update",
+        "replace": "handler_replace",
+        "merge": "handler_merge",
+        "noop": "handler_noop",
+        "delete": "handler_delete",
+        "list": "handler_list",
+        "clear": "handler_clear",
+        "bulk_create": "handler_bulk_create",
+        "bulk_update": "handler_bulk_update",
+        "bulk_replace": "handler_bulk_replace",
+        "bulk_merge": "handler_bulk_merge",
+        "bulk_delete": "handler_bulk_delete",
     }
 
-    step = steps.get(target, default_step)
+    subject = subject_by_target.get(target)
 
-    fn = getattr(_core, target, None)
-    step.__name__ = getattr(fn, "__name__", step.__name__)
-    step.__qualname__ = getattr(fn, "__qualname__", step.__name__)
-    step.__module__ = getattr(fn, "__module__", step.__module__)
-    step.__tigrbl_label = f"hook:wire:tigrbl:core:crud:ops:{target}@HANDLER"
+    if subject is None:
+
+        async def default_step(ctx: Any) -> Any:
+            logger.debug("No core operation matched; returning payload")
+            return _ctx_payload(ctx)
+
+        default_step.__name__ = f"{target}_default"
+        return default_step
+
+    anchor, atom_runner = _get_atom("sys", subject)
+
+    async def step(ctx: Any) -> Any:
+        await atom_runner(model, ctx)
+        return getattr(ctx, "result", None)
+
+    step.__name__ = getattr(atom_runner, "__name__", target)
+    step.__qualname__ = getattr(atom_runner, "__qualname__", step.__name__)
+    step.__module__ = getattr(atom_runner, "__module__", step.__module__)
+    step.__tigrbl_label = f"atom:sys:{subject}@{anchor}"
     return step
 
 
-__all__ = [
-    "_call_list_core",
-    "_accepted_kw",
-    "_wrap_custom",
-    "_wrap_core",
-]
+__all__ = ["_accepted_kw", "_wrap_custom", "_wrap_core"]
