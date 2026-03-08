@@ -8,24 +8,12 @@ from tigrbl_core._spec.binding_spec import Binding, BindingRegistry, BindingSpec
 from tigrbl_core._spec.serde import SerdeMixin
 
 
-@dataclass(frozen=True, slots=True, init=False)
+@dataclass(frozen=True, slots=True)
 class BindingBase(SerdeMixin, Binding):
     """Base binding implementation shared by concrete wrappers."""
 
-    _name: str
-    _spec: BindingSpec
-
-    def __init__(self, name: str, spec: BindingSpec) -> None:
-        object.__setattr__(self, "_name", name)
-        object.__setattr__(self, "_spec", spec)
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def spec(self) -> BindingSpec:
-        return self._spec
+    name: str
+    spec: BindingSpec
 
 
 @dataclass(slots=True)
