@@ -29,15 +29,14 @@ _PREF: Dict[str, Tuple[str, ...]] = {
     _ev.INGRESS_REQUEST_BODY_APPLY: ("ingress:request_body_apply",),
     _ev.INGRESS_BODY_PEEK: ("ingress:body_peek",),
     _ev.ROUTE_PROTOCOL_DETECT: ("route:protocol_detect",),
-    _ev.ROUTE_BINDING_MATCH: ("route:binding_match",),
     _ev.ROUTE_RPC_ENVELOPE_PARSE: ("route:rpc_envelope_parse",),
-    _ev.ROUTE_RPC_METHOD_MATCH: ("route:rpc_method_match",),
+    _ev.ROUTE_MATCH_JSONRPC: ("route:match_jsonrpc",),
+    _ev.ROUTE_MATCH_REST: ("route:match_rest",),
+    _ev.ROUTE_MATCH_WS: ("route:match_ws",),
+    _ev.ROUTE_MATCH_FALLBACK: ("route:match_fallback",),
     _ev.ROUTE_OP_RESOLVE: ("route:op_resolve",),
-    _ev.ROUTE_PATH_PARAMS_EXTRACT: ("route:path_params_extract",),
     _ev.ROUTE_PARAMS_NORMALIZE: ("route:params_normalize",),
     _ev.ROUTE_PAYLOAD_SELECT: ("route:payload_select",),
-    _ev.ROUTE_BINDING_POLICY_APPLY: ("route:binding_policy_apply",),
-    _ev.ROUTE_PLAN_SELECT: ("route:plan_select",),
     _ev.ROUTE_CTX_FINALIZE: ("route:ctx_finalize", "route:jsonrpc_batch_intercept"),
     _ev.DEP_SECURITY: (_ev.DEP_SECURITY,),
     _ev.DEP_EXTRA: (_ev.DEP_EXTRA,),
@@ -113,7 +112,7 @@ def flatten(
     Produce a flattened order of labels across all anchors.
 
     Rules:
-    - secdep → dep → PRE_HANDLER anchors → POST_HANDLER anchors → POST_RESPONSE anchors
+    - secdep → dep → canonical phase blocks from INGRESS_BEGIN through POST_RESPONSE
     - persist-tied anchors are pruned when persist=False (see events.is_persist_tied).
     - Within each anchor, perform a topo sort using DEFAULT_EDGES + anchor_policies[anchor].edges,
       with stable tie-breaks using preferences + (kind, domain, subject, field).
@@ -171,6 +170,22 @@ def flatten(
         out,
         by_anchor,
         anchors,
+        target_phase="PRE_TX_BEGIN",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
+        target_phase="START_TX",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
         target_phase="PRE_HANDLER",
         anchor_policies=anchor_policies,
         persist=persist,
@@ -179,7 +194,15 @@ def flatten(
         out,
         by_anchor,
         anchors,
-        target_phase="POST_HANDLER",
+        target_phase="HANDLER",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
+        target_phase="END_TX",
         anchor_policies=anchor_policies,
         persist=persist,
     )

@@ -66,15 +66,14 @@ INGRESS_BODY_PEEK = "ingress.body.peek"
 
 # INGRESS_ROUTE
 ROUTE_PROTOCOL_DETECT = "route.protocol.detect"
-ROUTE_BINDING_MATCH = "route.binding.match"
 ROUTE_RPC_ENVELOPE_PARSE = "route.rpc.envelope.parse"
-ROUTE_RPC_METHOD_MATCH = "route.rpc.method.match"
-ROUTE_OP_RESOLVE = "route.op.resolve"
-ROUTE_PATH_PARAMS_EXTRACT = "route.path_params.extract"
+ROUTE_MATCH_JSONRPC = "route.match.jsonrpc"
+ROUTE_MATCH_REST = "route.match.rest"
+ROUTE_MATCH_WS = "route.match.ws"
+ROUTE_MATCH_FALLBACK = "route.match.fallback"
 ROUTE_PARAMS_NORMALIZE = "route.params.normalize"
 ROUTE_PAYLOAD_SELECT = "route.payload.select"
-ROUTE_BINDING_POLICY_APPLY = "route.binding.policy.apply"
-ROUTE_PLAN_SELECT = "route.plan.select"
+ROUTE_OP_RESOLVE = "route.op.resolve"
 ROUTE_CTX_FINALIZE = "route.ctx.finalize"
 
 # PRE_TX_BEGIN
@@ -138,14 +137,13 @@ _EVENT_ORDER: Tuple[str, ...] = (
     INGRESS_BODY_PEEK,
     # INGRESS_ROUTE
     ROUTE_PROTOCOL_DETECT,
-    ROUTE_BINDING_MATCH,
     ROUTE_RPC_ENVELOPE_PARSE,
-    ROUTE_RPC_METHOD_MATCH,
-    ROUTE_PATH_PARAMS_EXTRACT,
+    ROUTE_MATCH_JSONRPC,
+    ROUTE_MATCH_REST,
+    ROUTE_MATCH_WS,
+    ROUTE_MATCH_FALLBACK,
     ROUTE_PARAMS_NORMALIZE,
     ROUTE_PAYLOAD_SELECT,
-    ROUTE_BINDING_POLICY_APPLY,
-    ROUTE_PLAN_SELECT,
     ROUTE_OP_RESOLVE,
     ROUTE_CTX_FINALIZE,
     # PRE_TX_BEGIN
@@ -222,14 +220,13 @@ _ANCHOR_PHASE: Dict[str, Phase] = {
     INGRESS_REQUEST_BODY_APPLY: INGRESS_PARSE,
     INGRESS_BODY_PEEK: INGRESS_PARSE,
     ROUTE_PROTOCOL_DETECT: INGRESS_ROUTE,
-    ROUTE_BINDING_MATCH: INGRESS_ROUTE,
     ROUTE_RPC_ENVELOPE_PARSE: INGRESS_ROUTE,
-    ROUTE_RPC_METHOD_MATCH: INGRESS_ROUTE,
-    ROUTE_PATH_PARAMS_EXTRACT: INGRESS_ROUTE,
+    ROUTE_MATCH_JSONRPC: INGRESS_ROUTE,
+    ROUTE_MATCH_REST: INGRESS_ROUTE,
+    ROUTE_MATCH_WS: INGRESS_ROUTE,
+    ROUTE_MATCH_FALLBACK: INGRESS_ROUTE,
     ROUTE_PARAMS_NORMALIZE: INGRESS_ROUTE,
     ROUTE_PAYLOAD_SELECT: INGRESS_ROUTE,
-    ROUTE_BINDING_POLICY_APPLY: INGRESS_ROUTE,
-    ROUTE_PLAN_SELECT: INGRESS_ROUTE,
     ROUTE_OP_RESOLVE: INGRESS_ROUTE,
     ROUTE_CTX_FINALIZE: INGRESS_ROUTE,
     DEP_SECURITY: PRE_TX_BEGIN,
@@ -278,14 +275,13 @@ _ANCHOR_STAGE: Dict[str, Tuple[Stage, Stage]] = {
     INGRESS_BODY_PEEK: (Ingress, Ingress),
     # INGRESS_ROUTE
     ROUTE_PROTOCOL_DETECT: (Ingress, Routed),
-    ROUTE_BINDING_MATCH: (Routed, Bound),
-    ROUTE_RPC_ENVELOPE_PARSE: (Ingress, Ingress),
-    ROUTE_RPC_METHOD_MATCH: (Ingress, Routed),
-    ROUTE_PATH_PARAMS_EXTRACT: (Bound, Bound),
+    ROUTE_RPC_ENVELOPE_PARSE: (Routed, Routed),
+    ROUTE_MATCH_JSONRPC: (Routed, Bound),
+    ROUTE_MATCH_REST: (Routed, Bound),
+    ROUTE_MATCH_WS: (Routed, Bound),
+    ROUTE_MATCH_FALLBACK: (Routed, Bound),
     ROUTE_PARAMS_NORMALIZE: (Bound, Bound),
     ROUTE_PAYLOAD_SELECT: (Bound, Bound),
-    ROUTE_BINDING_POLICY_APPLY: (Bound, Bound),
-    ROUTE_PLAN_SELECT: (Bound, Bound),
     ROUTE_OP_RESOLVE: (Bound, Planned),
     ROUTE_CTX_FINALIZE: (Planned, Planned),
     # PRE_TX_BEGIN
@@ -300,7 +296,7 @@ _ANCHOR_STAGE: Dict[str, Tuple[Stage, Stage]] = {
     PRE_FLUSH: (Resolved, Resolved),
     EMIT_ALIASES_PRE: (Resolved, Resolved),
     # HANDLER
-    HANDLER: (Resolved, Operated),
+    HANDLER: (Resolved, Resolved),
     SYS_HANDLER_PERSISTENCE: (Resolved, Operated),
     # END_TX
     SYS_TX_COMMIT: (Operated, Operated),
@@ -310,16 +306,16 @@ _ANCHOR_STAGE: Dict[str, Tuple[Stage, Stage]] = {
     SCHEMA_COLLECT_OUT: (Operated, Operated),
     OUT_BUILD: (Operated, Encoded),
     EMIT_ALIASES_READ: (Encoded, Encoded),
-    OUT_DUMP: (Operated, Encoded),
+    OUT_DUMP: (Encoded, Encoded),
     # EGRESS_SHAPE
     EGRESS_RESULT_NORMALIZE: (Encoded, Encoded),
     EGRESS_OUT_DUMP: (Encoded, Encoded),
     EGRESS_ENVELOPE_APPLY: (Encoded, Encoded),
     EGRESS_HEADERS_APPLY: (Encoded, Encoded),
     # EGRESS_FINALIZE
-    EGRESS_HTTP_FINALIZE: (Encoded, Encoded),
-    EGRESS_TO_TRANSPORT_RESPONSE: (Encoded, Emitting),
-    EGRESS_ASGI_SEND: (Emitting, Egressed),
+    EGRESS_HTTP_FINALIZE: (Emitting, Emitting),
+    EGRESS_TO_TRANSPORT_RESPONSE: (Emitting, Egressed),
+    EGRESS_ASGI_SEND: (Egressed, Egressed),
 }
 
 
@@ -506,15 +502,14 @@ __all__ = [
     "INGRESS_REQUEST_BODY_APPLY",
     "INGRESS_BODY_PEEK",
     "ROUTE_PROTOCOL_DETECT",
-    "ROUTE_BINDING_MATCH",
     "ROUTE_RPC_ENVELOPE_PARSE",
-    "ROUTE_RPC_METHOD_MATCH",
+    "ROUTE_MATCH_JSONRPC",
+    "ROUTE_MATCH_REST",
+    "ROUTE_MATCH_WS",
+    "ROUTE_MATCH_FALLBACK",
     "ROUTE_OP_RESOLVE",
-    "ROUTE_PATH_PARAMS_EXTRACT",
     "ROUTE_PARAMS_NORMALIZE",
     "ROUTE_PAYLOAD_SELECT",
-    "ROUTE_BINDING_POLICY_APPLY",
-    "ROUTE_PLAN_SELECT",
     "ROUTE_CTX_FINALIZE",
     "DEP_SECURITY",
     "DEP_EXTRA",
