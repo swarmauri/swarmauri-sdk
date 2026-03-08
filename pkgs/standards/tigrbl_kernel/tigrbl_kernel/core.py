@@ -4,7 +4,7 @@ import logging
 import re
 import threading
 from types import SimpleNamespace
-from typing import Any, ClassVar, Dict, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, ClassVar, Dict, List, Mapping, Optional, Sequence
 
 from tigrbl_runtime.hook_types import StepFn
 from tigrbl_runtime.executor import _Ctx, _invoke
@@ -37,15 +37,41 @@ def deepmerge_phase_chains(
     return {phase: list(steps) for phase, steps in merged.items()}
 
 
-def _table_iter(app: Any) -> Sequence[type]:
+def _table_iter(app: Any) -> Sequence[Any]:
     tables = getattr(app, "tables", None)
     if isinstance(tables, dict):
         return tuple(v for v in tables.values() if isinstance(v, type))
+    if isinstance(tables, Sequence) and not isinstance(tables, (str, bytes, bytearray)):
+        return tuple(tables)
     return ()
 
 
-def _opspecs(model: type) -> Sequence[Any]:
-    return getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ()) or ()
+def _opspecs(model: Any) -> Sequence[Any]:
+    ops = getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ()) or ()
+    if ops:
+        return tuple(ops)
+
+    table_ops = getattr(model, "ops", ()) or ()
+    if table_ops:
+        return tuple(table_ops)
+
+    declared_ops = getattr(model, "__tigrbl_ops__", ()) or ()
+    if declared_ops:
+        return tuple(declared_ops)
+
+    return ()
+
+
+def _canonicalize_app(app: Any) -> Any:
+    try:
+        from tigrbl_core._spec.app_spec import AppSpec
+        from tigrbl_canon.mapping.spec_normalization import normalize_app_spec
+    except Exception:
+        return app
+
+    if isinstance(app, AppSpec):
+        return normalize_app_spec(app)
+    return app
 
 
 def _label_callable(fn: Any) -> str:
@@ -387,6 +413,8 @@ class Kernel:
         await _send_transport_response(env, ctx)
 
     def compile_plan(self, app: Any) -> KernelPlan:
+        app = _canonicalize_app(app)
+
         from tigrbl_core._spec.binding_spec import (
             HttpJsonRpcBindingSpec,
             HttpRestBindingSpec,
@@ -413,10 +441,14 @@ class Kernel:
 
                 for binding in getattr(sp, "bindings", ()) or ():
                     if isinstance(binding, HttpRestBindingSpec):
-                        bucket = route_data.setdefault(binding.proto, {"exact": {}, "templated": []})
+                        bucket = route_data.setdefault(
+                            binding.proto, {"exact": {}, "templated": []}
+                        )
                         for method in binding.methods:
                             selector = f"{method.upper()} {binding.path}"
-                            opkey_to_meta[OpKey(proto=binding.proto, selector=selector)] = meta_index
+                            opkey_to_meta[
+                                OpKey(proto=binding.proto, selector=selector)
+                            ] = meta_index
                             if "{" in binding.path and "}" in binding.path:
                                 pattern, names = _compile_path_pattern(binding.path)
                                 bucket["templated"].append(
@@ -436,14 +468,18 @@ class Kernel:
                         opkey_to_meta[
                             OpKey(proto=binding.proto, selector=binding.rpc_method)
                         ] = meta_index
-                        route_data.setdefault(binding.proto, {})[
-                            binding.rpc_method
-                        ] = meta_index
+                        route_data.setdefault(binding.proto, {})[binding.rpc_method] = (
+                            meta_index
+                        )
 
                     elif isinstance(binding, WsBindingSpec):
-                        bucket = route_data.setdefault(binding.proto, {"exact": {}, "templated": []})
+                        bucket = route_data.setdefault(
+                            binding.proto, {"exact": {}, "templated": []}
+                        )
                         selector = binding.path
-                        opkey_to_meta[OpKey(proto=binding.proto, selector=selector)] = meta_index
+                        opkey_to_meta[OpKey(proto=binding.proto, selector=selector)] = (
+                            meta_index
+                        )
 
                         if "{" in binding.path and "}" in binding.path:
                             pattern, names = _compile_path_pattern(binding.path)
