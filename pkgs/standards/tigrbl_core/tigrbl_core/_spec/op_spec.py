@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal, Mapping, Optional, Tuple
 
-from .binding_spec import BindingSpec
+from .binding_spec import BindingTargetSpec
 
 from .._spec.hook_spec import HookSpec as OpHook
 
@@ -62,7 +62,7 @@ class OpSpec(SerdeMixin):
     expose_routes: bool = True
     expose_rpc: bool = True
     expose_method: bool = True
-    bindings: Tuple[BindingSpec, ...] = field(default_factory=tuple)
+    bindings: Tuple[BindingTargetSpec, ...] = field(default_factory=tuple)
 
     # Optional per-op engine binding (DSN string or mapping spec)
     engine: Optional[EngineCfg] = None

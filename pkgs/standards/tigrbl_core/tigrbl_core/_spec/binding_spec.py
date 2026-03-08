@@ -27,35 +27,33 @@ class WsBindingSpec(SerdeMixin):
     subprotocols: tuple[str, ...] = ()
 
 
-BindingSpec = Union[HttpRestBindingSpec, HttpJsonRpcBindingSpec, WsBindingSpec]
+BindingTargetSpec = Union[HttpRestBindingSpec, HttpJsonRpcBindingSpec, WsBindingSpec]
 
 
 @dataclass(frozen=True, slots=True)
-class Binding(SerdeMixin):
-    """Named binding declaration used for registry composition."""
-
-    """Named binding wrapper used by registries and planners."""
+class BindingSpec(SerdeMixin):
+    """Concrete named binding declaration."""
 
     name: str
-    spec: BindingSpec
+    spec: BindingTargetSpec
 
 
 @dataclass(slots=True)
-class BindingRegistry:
-    """Simple in-memory registry for named transport bindings."""
+class BindingRegistrySpec(SerdeMixin):
+    """Concrete named binding registry."""
 
-    _bindings: dict[str, Binding]
+    _bindings: dict[str, BindingSpec]
 
     def __init__(self) -> None:
         self._bindings = {}
 
-    def register(self, binding: Binding) -> None:
+    def register(self, binding: BindingSpec) -> None:
         self._bindings[binding.name] = binding
 
-    def get(self, name: str) -> Optional[Binding]:
+    def get(self, name: str) -> Optional[BindingSpec]:
         return self._bindings.get(name)
 
-    def values(self) -> tuple[Binding, ...]:
+    def values(self) -> tuple[BindingSpec, ...]:
         return tuple(self._bindings.values())
 
 
@@ -69,9 +67,9 @@ def resolve_rest_nested_prefix(model: Type) -> Optional[str]:
 
 
 __all__ = [
-    "Binding",
-    "BindingRegistry",
     "BindingSpec",
+    "BindingRegistrySpec",
+    "BindingTargetSpec",
     "HttpJsonRpcBindingSpec",
     "HttpRestBindingSpec",
     "WsBindingSpec",
