@@ -1,150 +1,101 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, IngressCtx
-from ...stages import Ingress
-
 import json
-from dataclasses import replace
 from typing import Any, Mapping
-from uuid import uuid4
 
 from ... import events as _ev
-from ...gw.raw import GwRouteEnvelope
+from ...stages import Routed
+from ...types import Atom, Ctx, RoutedCtx
 
 ANCHOR = _ev.ROUTE_RPC_ENVELOPE_PARSE
 
 
-def _normalize_path(path: str | None) -> str:
-    if not isinstance(path, str) or not path:
-        return "/"
-    if path == "/":
-        return "/"
-    return path.rstrip("/") or "/"
-
-
-def _is_jsonrpc_endpoint(ctx: Any, env: GwRouteEnvelope) -> bool:
-    app = getattr(ctx, "app", None)
-    prefix = getattr(app, "jsonrpc_prefix", None)
-    if not isinstance(prefix, str):
-        return False
-    return _normalize_path(env.path) == _normalize_path(prefix)
-
-
-def _is_rpc_payload(payload: Mapping[str, Any]) -> bool:
-    if "method" not in payload:
-        return False
-    # Accept both strict JSON-RPC 2.0 envelopes and shorthand method/params
-    # payloads used by compatibility clients.
-    return payload.get("jsonrpc") == "2.0" or "params" in payload
-
-
-def _normalize_rpc_envelope(payload: Mapping[str, Any]) -> dict[str, Any]:
-    """Normalize compatibility JSON-RPC payloads into canonical envelopes.
-
-    For shorthand payloads (method/params without explicit ``jsonrpc`` marker),
-    synthesize request metadata expected by downstream transport atoms.
-    """
-    envelope = dict(payload)
-    if envelope.get("jsonrpc") != "2.0":
-        envelope["jsonrpc"] = "2.0"
-        envelope.setdefault("id", str(uuid4()))
-    return envelope
-
-
-def _run(obj: object | None, ctx: Any) -> None:
-    del obj
+def _route_dict(ctx: Any) -> dict[str, object]:
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
         temp = {}
         setattr(ctx, "temp", temp)
-    route = temp.setdefault("route", {})
 
-    env = getattr(ctx, "gw_raw", None)
-    if not isinstance(env, GwRouteEnvelope):
-        payload = getattr(ctx, "payload", None)
-        if isinstance(payload, Mapping):
-            method = payload.get("method")
-            marker = payload.get("jsonrpc")
-            if (
-                isinstance(method, str)
-                and method.strip()
-                and (marker is None or marker == "2.0")
-            ):
-                route["rpc_envelope"] = dict(payload)
-                return
-        return
+    route_obj = temp.setdefault("route", {})
+    if isinstance(route_obj, dict):
+        return route_obj
 
-    route_proto = route.get("protocol")
-    binding_preselected_rpc = (
-        isinstance(route_proto, str)
-        and route_proto.endswith(".jsonrpc")
-        and route.get("binding") is not None
-    )
+    route: dict[str, object] = {}
+    temp["route"] = route
+    return route
 
-    rest_jsonrpc_endpoint = env.kind == "rest" and _is_jsonrpc_endpoint(ctx, env)
 
-    if (
-        env.kind not in {"maybe-jsonrpc", "rest"}
-        and not binding_preselected_rpc
-        and not rest_jsonrpc_endpoint
-    ):
-        return
+def _body_from_ctx(ctx: Any) -> object | None:
+    body = getattr(ctx, "body", None)
+    if body is not None:
+        return body
 
-    if env.kind == "rest" and not rest_jsonrpc_endpoint and not binding_preselected_rpc:
-        return
+    gw_raw = getattr(ctx, "gw_raw", None)
+    if gw_raw is not None:
+        maybe = getattr(gw_raw, "body", None)
+        if maybe is not None:
+            return maybe
 
-    def _has_rpc_method(payload: Mapping[str, Any] | Any) -> bool:
-        if isinstance(payload, Mapping):
-            method = payload.get("method")
-        else:
-            method = getattr(payload, "method", None)
-        return isinstance(method, str) and bool(method.strip())
+    return None
 
-    parsed_payload = getattr(ctx, "payload", None)
-    if not isinstance(parsed_payload, Mapping):
-        parsed_payload = getattr(ctx, "body", None)
-    if isinstance(parsed_payload, Mapping) and _is_rpc_payload(parsed_payload):
-        rpc_envelope = _normalize_rpc_envelope(parsed_payload)
-        route["rpc_envelope"] = rpc_envelope
-        setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=rpc_envelope))
-        return
 
-    body = env.body
-    if body is None:
-        body = getattr(ctx, "body", None)
-    if not isinstance(body, (bytes, bytearray)):
-        body = getattr(ctx, "body", None)
-    if not isinstance(body, (bytes, bytearray)):
-        ingress = temp.get("ingress") if isinstance(temp.get("ingress"), dict) else {}
-        body = ingress.get("body") if isinstance(ingress, dict) else None
-    if _has_rpc_method(body):
-        rpc_data = _normalize_rpc_envelope(body) if isinstance(body, Mapping) else {}
-        route["rpc_envelope"] = rpc_data
-        setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=rpc_data))
-        return
-    if not isinstance(body, (bytes, bytearray)):
-        return
-
+def _parse_json_bytes(raw: bytes) -> object | None:
     try:
-        parsed = json.loads(bytes(body).decode("utf-8"))
+        return json.loads(raw.decode("utf-8"))
     except Exception:
+        return None
+
+
+def _normalize_rpc_dict(body: Mapping[str, object]) -> dict[str, object] | None:
+    method = body.get("method")
+    if not isinstance(method, str) or not method:
+        return None
+
+    out: dict[str, object] = {
+        "jsonrpc": "2.0" if body.get("jsonrpc") == "2.0" else body.get("jsonrpc", "2.0"),
+        "method": method,
+    }
+
+    if "params" in body:
+        out["params"] = body.get("params")
+    if "id" in body:
+        out["id"] = body.get("id")
+
+    return out
+
+
+def _run(obj: object | None, ctx: Any) -> None:
+    del obj
+
+    route = _route_dict(ctx)
+    body = _body_from_ctx(ctx)
+
+    normalized: dict[str, object] | None = None
+
+    if isinstance(body, Mapping):
+        normalized = _normalize_rpc_dict(body)
+    elif isinstance(body, (bytes, bytearray)):
+        parsed = _parse_json_bytes(bytes(body))
+        if isinstance(parsed, Mapping):
+            normalized = _normalize_rpc_dict(parsed)
+
+    if normalized is None:
         return
 
-    if isinstance(parsed, dict) and _is_rpc_payload(parsed):
-        normalized = _normalize_rpc_envelope(parsed)
-        route["rpc_envelope"] = normalized
-        setattr(ctx, "gw_raw", replace(env, kind="jsonrpc", rpc=normalized))
-    else:
-        setattr(ctx, "gw_raw", replace(env, kind="rest"))
+    route["rpc"] = normalized
+    route["rpc_method"] = normalized.get("method")
 
 
-class AtomImpl(Atom[Ingress, Ingress]):
+class AtomImpl(Atom[Routed, Routed]):
     name = "route.rpc_envelope_parse"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Ingress]) -> Ctx[Ingress]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Routed]) -> Ctx[Routed]:
         _run(obj, ctx)
-        return ctx.promote(IngressCtx)
+        return ctx.promote(
+            RoutedCtx,
+            protocol=str(ctx.temp.get("route", {}).get("protocol", "") or ""),
+        )
 
 
 INSTANCE = AtomImpl()
