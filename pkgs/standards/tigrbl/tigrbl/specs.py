@@ -6,7 +6,7 @@ going forward.
 
 from __future__ import annotations
 
-from tigrbl_core._spec.column_spec import ColumnSpec
+from tigrbl_base._base import ColumnBase as ColumnSpec
 from tigrbl_core._spec.field_spec import FieldSpec as F
 from tigrbl_core._spec.io_spec import IOSpec as IO
 from tigrbl_core._spec.io_spec import Pair

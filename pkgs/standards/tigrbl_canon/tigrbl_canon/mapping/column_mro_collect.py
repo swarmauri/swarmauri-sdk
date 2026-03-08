@@ -5,6 +5,7 @@ from functools import lru_cache
 from types import SimpleNamespace
 from typing import Dict
 
+from tigrbl_base._base import ColumnBase
 from tigrbl_core._spec.column_spec import ColumnSpec
 from tigrbl_core._spec.io_spec import IOSpec as IO
 from tigrbl_core._spec.storage_spec import StorageSpec as S
@@ -87,7 +88,7 @@ def _mro_collect_columns_cached(
             name = getattr(col, "key", None) or getattr(col, "name", None)
             if not isinstance(name, str):
                 continue
-            out.setdefault(name, ColumnSpec(storage=S(), io=_DEFAULT_IO))
+            out.setdefault(name, ColumnBase(storage=S(), io=_DEFAULT_IO))
 
     logger.info("Collected %d columns for %s", len(out), _model_label(model))
     return out

@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Callable, Optional
 
-from .._concrete._column import Column
+from .._base import ColumnBase
+from .._concrete import Column
 from .._spec.column_spec import ColumnSpec
 from .._spec.field_spec import FieldSpec as F
 from .._spec.io_spec import IOSpec as IO
@@ -42,7 +43,7 @@ def makeColumn(
             raise ValueError(
                 "read_producer is only valid for virtual (storage=None) columns."
             )
-        spec = ColumnSpec(
+        spec = ColumnBase(
             storage=storage,
             field=field,
             io=io,
@@ -72,7 +73,7 @@ def makeVirtualColumn(
             )
         rp = read_producer or producer
         if rp is not None:
-            spec = ColumnSpec(
+            spec = ColumnBase(
                 storage=spec.storage,
                 field=spec.field,
                 io=spec.io,
@@ -84,7 +85,7 @@ def makeVirtualColumn(
         raise ValueError("Provide only one of producer= or read_producer=, not both.")
     rp = read_producer or producer
     return Column(
-        spec=ColumnSpec(
+        spec=ColumnBase(
             storage=None,
             field=field,
             io=io,

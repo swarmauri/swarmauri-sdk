@@ -96,6 +96,7 @@ def _materialize_colspecs_to_sqla(cls, *, map_columns: bool = True) -> None:
     Keep the original specs in __tigrbl_cols__ for downstream builders.
     """
     try:
+        from tigrbl_base._base._column_base import ColumnBase
         from tigrbl_core._spec.column_spec import ColumnSpec
     except Exception:
         return
@@ -128,7 +129,7 @@ def _materialize_colspecs_to_sqla(cls, *, map_columns: bool = True) -> None:
                 if MappedColumn is not None and isinstance(spec, MappedColumn):
                     annotations = getattr(cls, "__annotations__", {}) or {}
                     if name not in annotations:
-                        replacement = ColumnSpec(
+                        replacement = ColumnBase(
                             storage=None,
                             field=getattr(spec, "field", None),
                             io=getattr(spec, "io", None),

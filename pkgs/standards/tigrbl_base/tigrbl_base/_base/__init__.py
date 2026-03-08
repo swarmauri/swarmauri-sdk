@@ -10,6 +10,7 @@ _EXPORTS = {
     "AliasBase": "_alias_base",
     "BindingBase": "_binding_base",
     "BindingRegistryBase": "_binding_base",
+    "ColumnBase": "_column_base",
     "resolve_rest_nested_prefix": "_binding_base",
     "EngineBase": "_engine_base",
     "EngineProviderBase": "_engine_provider_base",

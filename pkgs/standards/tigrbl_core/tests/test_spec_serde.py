@@ -9,6 +9,7 @@ from tigrbl_core._spec.engine_spec import EngineCfg
 from tigrbl_core._spec.field_spec import FieldSpec
 from tigrbl_core._spec.io_spec import IOSpec
 from tigrbl_core._spec.response_spec import ResponseSpec
+from tigrbl_core._spec.serde import SerdeMixin
 from tigrbl_core._spec.storage_spec import ForeignKeySpec, StorageSpec
 
 
@@ -36,8 +37,65 @@ class ConcreteAppSpec(AppSpec):
     lifespan: Any | None = None
 
 
+class ConcreteColumnSpec(SerdeMixin, ColumnSpec):
+    def __init__(
+        self,
+        *,
+        storage: StorageSpec | None,
+        field: FieldSpec | None = None,
+        io: IOSpec | None = None,
+        default_factory: Any = None,
+        read_producer: Any = None,
+    ) -> None:
+        self.storage = storage
+        self.field = field if field is not None else FieldSpec()
+        self.io = io if io is not None else IOSpec()
+        self.default_factory = default_factory
+        self.read_producer = read_producer
+
+    @property
+    def storage(self) -> StorageSpec | None:
+        return self.__dict__["storage"]
+
+    @storage.setter
+    def storage(self, value: StorageSpec | None) -> None:
+        self.__dict__["storage"] = value
+
+    @property
+    def field(self) -> FieldSpec:
+        return self.__dict__["field"]
+
+    @field.setter
+    def field(self, value: FieldSpec) -> None:
+        self.__dict__["field"] = value
+
+    @property
+    def io(self) -> IOSpec:
+        return self.__dict__["io"]
+
+    @io.setter
+    def io(self, value: IOSpec) -> None:
+        self.__dict__["io"] = value
+
+    @property
+    def default_factory(self) -> Any:
+        return self.__dict__["default_factory"]
+
+    @default_factory.setter
+    def default_factory(self, value: Any) -> None:
+        self.__dict__["default_factory"] = value
+
+    @property
+    def read_producer(self) -> Any:
+        return self.__dict__["read_producer"]
+
+    @read_producer.setter
+    def read_producer(self, value: Any) -> None:
+        self.__dict__["read_producer"] = value
+
+
 def test_column_spec_json_round_trip_restores_nested_specs() -> None:
-    spec = ColumnSpec(
+    spec = ConcreteColumnSpec(
         storage=StorageSpec(
             type_=ExampleClass,
             nullable=False,
@@ -47,7 +105,7 @@ def test_column_spec_json_round_trip_restores_nested_specs() -> None:
         io=IOSpec(in_verbs=("create",), out_verbs=("read",)),
     )
 
-    restored = ColumnSpec.from_json(spec.to_json())
+    restored = ConcreteColumnSpec.from_json(spec.to_json())
 
     assert isinstance(restored.storage, StorageSpec)
     assert restored.storage is not None
@@ -77,7 +135,7 @@ def test_app_spec_toml_round_trip_preserves_scalars() -> None:
 
 
 def test_column_spec_yaml_round_trip_preserves_nested_foreign_key() -> None:
-    spec = ColumnSpec(
+    spec = ConcreteColumnSpec(
         storage=StorageSpec(
             type_=str,
             nullable=True,
@@ -87,7 +145,7 @@ def test_column_spec_yaml_round_trip_preserves_nested_foreign_key() -> None:
         io=IOSpec(out_verbs=("list",)),
     )
 
-    restored = ColumnSpec.from_yaml(spec.to_yaml())
+    restored = ConcreteColumnSpec.from_yaml(spec.to_yaml())
 
     assert restored.storage is not None
     assert restored.storage.fk is not None
