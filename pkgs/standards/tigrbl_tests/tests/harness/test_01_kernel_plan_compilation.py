@@ -106,3 +106,60 @@ def test_kernel_plan_roundtrips_opkey_to_meta() -> None:
     assert key in plan.opkey_to_meta
     meta_idx = plan.opkey_to_meta[key]
     assert plan.opmeta[meta_idx].alias == "list"
+
+
+@pytest.mark.acceptance
+def test_compile_kernel_plan_from_app_spec_includes_all_operation_bindings() -> None:
+    from tigrbl._spec import AppSpec
+    from tigrbl._spec import ColumnSpec, FieldSpec as F, IOSpec as IO
+    from tigrbl._spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
+    from tigrbl._spec import OpSpec, TableSpec
+    from tigrbl.runtime.kernel import Kernel
+
+    table_spec = TableSpec(
+        model_ref="tests.models:Gadget",
+        columns={
+            "name": ColumnSpec(
+                storage=None,
+                field=F(py_type=str, required_in=("create",)),
+                io=IO(in_verbs=("create",), out_verbs=("list", "read")),
+            )
+        },
+        ops=(
+            OpSpec(
+                alias="list",
+                target="list",
+                bindings=(
+                    HttpRestBindingSpec(
+                        proto="http.rest", path="/gadget", methods=("GET",)
+                    ),
+                ),
+            ),
+            OpSpec(
+                alias="create",
+                target="create",
+                bindings=(
+                    HttpRestBindingSpec(
+                        proto="http.rest", path="/gadget", methods=("POST",)
+                    ),
+                    HttpJsonRpcBindingSpec(
+                        proto="http.jsonrpc",
+                        rpc_method="Gadget.create",
+                    ),
+                ),
+            ),
+        ),
+    )
+
+    app_spec = AppSpec(tables=[table_spec])
+
+    plan = Kernel().compile_plan(app_spec)
+
+    assert "http.rest" in plan.proto_indices
+    assert "http.jsonrpc" in plan.proto_indices
+    assert "GET /gadget" in plan.proto_indices["http.rest"]["exact"]
+    assert "POST /gadget" in plan.proto_indices["http.rest"]["exact"]
+    assert "Gadget.create" in plan.proto_indices["http.jsonrpc"]
+
+    aliases = {meta.alias for meta in plan.opmeta}
+    assert aliases == {"list", "create"}
