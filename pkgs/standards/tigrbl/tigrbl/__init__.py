@@ -109,6 +109,7 @@ from tigrbl_base._base import (  # noqa: E402
     AppBase,
     BindingBase,
     BindingRegistryBase,
+    ColumnBase,
     ForeignKeyBase,
     HookBase,
     TableBase,
@@ -117,7 +118,6 @@ from tigrbl_base._base import (  # noqa: E402
 from tigrbl_core._spec import (  # noqa: E402
     AppSpec,
     Arity,
-    ColumnSpec,
     EngineSpec,
     FieldSpec,
     ForeignKeySpec,
@@ -142,6 +142,10 @@ from tigrbl_core._spec import (  # noqa: E402
     TemplateSpec,
 )
 from tigrbl_runtime.runtime.executor import _invoke  # noqa: E402
+
+# Backward-compatible concrete binding for legacy ``tigrbl._spec.ColumnSpec`` imports.
+ColumnSpec = ColumnBase
+setattr(_spec, "ColumnSpec", ColumnSpec)
 
 bind = canon.bind
 rebind = canon.rebind
@@ -242,6 +246,7 @@ __all__ = [
     "HookBase",
     "BindingBase",
     "BindingRegistryBase",
+    "ColumnBase",
     "TableRegistryBase",
     "AppBase",
     "App",

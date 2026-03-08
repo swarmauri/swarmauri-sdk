@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .._spec.column_spec import ColumnSpec
+from .._base import ColumnBase as ColumnSpec
 from .._spec.field_spec import FieldSpec as F
 from .._spec.io_spec import IOSpec as IO
 from .._spec.storage_spec import StorageSpec as S

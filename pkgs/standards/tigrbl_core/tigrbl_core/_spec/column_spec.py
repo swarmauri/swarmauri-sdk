@@ -1,41 +1,35 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from typing import Any, Callable, Optional
 
 from .._spec.field_spec import FieldSpec as F
 from .._spec.io_spec import IOSpec as IO
 from .._spec.storage_spec import StorageSpec as S
-from .serde import SerdeMixin
 
 
-class ColumnSpec(SerdeMixin):
-    """Aggregate configuration for a model attribute.
+class ColumnSpec(ABC):
+    """Core interface for column declaration specs."""
 
-    A :class:`ColumnSpec` brings together the three lower-level specs used by
-    Tigrbl's declarative column system:
+    @property
+    @abstractmethod
+    def storage(self) -> S | None: ...
 
-    - ``storage`` (:class:`~tigrbl._spec.storage_spec.StorageSpec`) controls
-      how the value is persisted in the database.
-    - ``field`` (:class:`~tigrbl._spec.field_spec.FieldSpec`) describes the
-      Python type and any schema metadata.
-    - ``io`` (:class:`~tigrbl._spec.io_spec.IOSpec`) governs inbound and
-      outbound API exposure.
+    @property
+    @abstractmethod
+    def field(self) -> F: ...
 
-    Optional ``default_factory`` and ``read_producer`` callables allow for
-    programmatic defaults and virtual read-time values respectively.
-    """
+    @property
+    @abstractmethod
+    def io(self) -> IO: ...
 
-    def __init__(
-        self,
-        *,
-        storage: S | None,
-        field: F | None = None,
-        io: IO | None = None,
-        default_factory: Optional[Callable[[dict], Any]] = None,
-        read_producer: Optional[Callable[[object, dict], Any]] = None,
-    ) -> None:
-        self.storage = storage
-        self.field = field if field is not None else F()
-        self.io = io if io is not None else IO()
-        self.default_factory = default_factory
-        self.read_producer = read_producer
+    @property
+    @abstractmethod
+    def default_factory(self) -> Optional[Callable[[dict], Any]]: ...
+
+    @property
+    @abstractmethod
+    def read_producer(self) -> Optional[Callable[[object, dict], Any]]: ...
+
+
+__all__ = ["ColumnSpec"]
