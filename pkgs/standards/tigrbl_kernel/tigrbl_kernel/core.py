@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import threading
 from types import SimpleNamespace
 from typing import Any, ClassVar, Dict, List, Mapping, Optional, Sequence, Tuple
@@ -29,7 +30,6 @@ logger = logging.getLogger(__name__)
 def deepmerge_phase_chains(
     *phase_maps: Mapping[str, Sequence[StepFn]],
 ) -> Dict[str, List[StepFn]]:
-    """Deterministically concatenate phase step lists into a new mapping."""
     merged: Dict[str, List[StepFn]] = {}
     for phase_map in phase_maps:
         for phase, steps in (phase_map or {}).items():
@@ -69,12 +69,30 @@ def _label_step(step: Any, phase: str) -> str:
     return f"hook:wire:{_label_callable(step).replace('.', ':')}@{phase}"
 
 
-class Kernel:
-    """
-    SSoT for runtime scheduling. One Kernel per App (not per API).
-    Auto-primed under the hood. Downstream users never touch this.
-    """
+def _compile_path_pattern(path: str) -> tuple[re.Pattern[str], tuple[str, ...]]:
+    names: list[str] = []
 
+    def _replace(match: re.Match[str]) -> str:
+        name = match.group(1)
+        names.append(name)
+        return rf"(?P<{name}>[^/]+)"
+
+    pattern = "^" + re.sub(r"\{([^{}]+)\}", _replace, path) + "$"
+    return re.compile(pattern), tuple(names)
+
+
+def _route_payload_template() -> dict[str, Any]:
+    return {
+        "http.rest": {"exact": {}, "templated": []},
+        "https.rest": {"exact": {}, "templated": []},
+        "http.jsonrpc": {},
+        "https.jsonrpc": {},
+        "ws": {"exact": {}, "templated": []},
+        "wss": {"exact": {}, "templated": []},
+    }
+
+
+class Kernel:
     _instance: ClassVar["Kernel | None"] = None
 
     def __new__(cls, *args: Any, **kwargs: Any) -> "Kernel":
@@ -108,7 +126,6 @@ class Kernel:
         return self._specs_cache.get(model)
 
     def _compile_opview_from_specs(self, specs: Mapping[str, Any], sp: Any) -> OpView:
-        """Compatibility shim for callers using legacy Kernel method dispatch."""
         return compile_opview_from_specs(specs, sp)
 
     def prime_specs(self, models: Sequence[type]) -> None:
@@ -224,45 +241,19 @@ class Kernel:
 
         return labels
 
-    async def invoke(
-        self,
-        *,
-        model: type,
-        alias: str,
-        db: Any,
-        request: Any | None = None,
-        ctx: Optional[Mapping[str, Any]] = None,
-    ) -> Any:
-        """Execute an operation for ``model.alias`` using the executor."""
-        phases = self.build_op(model, alias)
-        base_ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
-        base_ctx.model = model
-        base_ctx.op = alias
-        specs = self.get_specs(model)
-        base_ctx.opview = compile_opview_from_specs(specs, SimpleNamespace(alias=alias))
-        return await _invoke(request=request, db=db, phases=phases, ctx=base_ctx)
-
     def ensure_primed(self, app: Any) -> None:
-        """Autoprime once per App: specs → OpViews → /kernelz payload."""
+        if self._primed.get(app):
+            return
         with self._lock:
             if self._primed.get(app):
                 return
-            models = list(_table_iter(app))
-            for model in models:
-                self._specs_cache.get(model)
-
-            ov_map: Dict[Tuple[type, str], OpView] = {}
-            for model in models:
-                specs = self._specs_cache.get(model)
-                for sp in _opspecs(model):
-                    ov_map[(model, sp.alias)] = compile_opview_from_specs(specs, sp)
-            self._opviews[app] = ov_map
-
-            self._kernelz_payload[app] = self.compile_plan(app)
+            self.prime_specs(_table_iter(app))
+            self._kernel_plans.pop(app, None)
+            self._kernelz_payload.pop(app, None)
+            self._opviews.pop(app, None)
             self._primed[app] = True
 
     def get_opview(self, app: Any, model: type, alias: str) -> OpView:
-        """Return OpView for (model, alias); compile on-demand if missing."""
         ov_map = self._opviews.get(app)
         if isinstance(ov_map, dict):
             opview = ov_map.get((model, alias))
@@ -379,7 +370,7 @@ class Kernel:
                 env, int(getattr(exc, "status_code", 500) or 500), {"detail": detail}
             )
             return
-        except Exception as exc:  # pragma: no cover - defensive runtime fallback
+        except Exception as exc:
             from tigrbl_runtime.status import create_standardized_error
 
             std = create_standardized_error(exc)
@@ -402,7 +393,7 @@ class Kernel:
             WsBindingSpec,
         )
 
-        proto_indices: dict[str, Any] = {}
+        route_data: dict[str, Any] = _route_payload_template()
         opmeta: list[OpMeta] = []
         opkey_to_meta: dict[OpKey, int] = {}
         phase_chains: dict[int, Mapping[str, list[StepFn]]] = {}
@@ -422,40 +413,55 @@ class Kernel:
 
                 for binding in getattr(sp, "bindings", ()) or ():
                     if isinstance(binding, HttpRestBindingSpec):
+                        bucket = route_data.setdefault(binding.proto, {"exact": {}, "templated": []})
                         for method in binding.methods:
                             selector = f"{method.upper()} {binding.path}"
-                            opkey = OpKey(proto=binding.proto, selector=selector)
-                            opkey_to_meta[opkey] = meta_index
-                            proto_indices.setdefault(binding.proto, {})[selector] = (
-                                meta_index
-                            )
+                            opkey_to_meta[OpKey(proto=binding.proto, selector=selector)] = meta_index
+                            if "{" in binding.path and "}" in binding.path:
+                                pattern, names = _compile_path_pattern(binding.path)
+                                bucket["templated"].append(
+                                    {
+                                        "method": method.upper(),
+                                        "path": binding.path,
+                                        "pattern": pattern,
+                                        "names": names,
+                                        "meta_index": meta_index,
+                                        "selector": selector,
+                                    }
+                                )
+                            else:
+                                bucket["exact"][selector] = meta_index
+
                     elif isinstance(binding, HttpJsonRpcBindingSpec):
-                        opkey = OpKey(proto=binding.proto, selector=binding.rpc_method)
-                        opkey_to_meta[opkey] = meta_index
-                        proto_indices.setdefault(binding.proto, {})[
+                        opkey_to_meta[
+                            OpKey(proto=binding.proto, selector=binding.rpc_method)
+                        ] = meta_index
+                        route_data.setdefault(binding.proto, {})[
                             binding.rpc_method
                         ] = meta_index
+
                     elif isinstance(binding, WsBindingSpec):
+                        bucket = route_data.setdefault(binding.proto, {"exact": {}, "templated": []})
                         selector = binding.path
-                        if binding.subprotocols:
-                            for subprotocol in binding.subprotocols:
-                                full_selector = f"{selector}|{subprotocol}"
-                                opkey = OpKey(
-                                    proto=binding.proto, selector=full_selector
-                                )
-                                opkey_to_meta[opkey] = meta_index
-                                proto_indices.setdefault(binding.proto, {})[
-                                    full_selector
-                                ] = meta_index
-                        else:
-                            opkey = OpKey(proto=binding.proto, selector=selector)
-                            opkey_to_meta[opkey] = meta_index
-                            proto_indices.setdefault(binding.proto, {})[selector] = (
-                                meta_index
+                        opkey_to_meta[OpKey(proto=binding.proto, selector=selector)] = meta_index
+
+                        if "{" in binding.path and "}" in binding.path:
+                            pattern, names = _compile_path_pattern(binding.path)
+                            bucket["templated"].append(
+                                {
+                                    "path": binding.path,
+                                    "pattern": pattern,
+                                    "names": names,
+                                    "meta_index": meta_index,
+                                    "selector": selector,
+                                    "subprotocols": tuple(binding.subprotocols or ()),
+                                }
                             )
+                        else:
+                            bucket["exact"][selector] = meta_index
 
         return KernelPlan(
-            proto_indices=proto_indices,
+            proto_indices=route_data,  # compatibility field; now compiled route payload
             opmeta=tuple(opmeta),
             opkey_to_meta=opkey_to_meta,
             ingress_chain=ingress_chain,
@@ -464,7 +470,6 @@ class Kernel:
         )
 
     def compile_bootstrap_plan(self, app: Any) -> Dict[str, List[StepFn]]:
-        """Compatibility entrypoint for ingress-only bootstrap diagnostics."""
         return self.build_ingress(app)
 
     def kernel_plan(self, app: Any) -> KernelPlan:
@@ -487,7 +492,6 @@ class Kernel:
         return compiled
 
     def kernelz_payload(self, app: Any) -> dict[str, dict[str, list[str]]]:
-        """Thin accessor for endpoint: guarantees primed diagnostics payload."""
         self.kernel_plan(app)
         payload = self._kernelz_payload.get(app)
         if isinstance(payload, dict):
