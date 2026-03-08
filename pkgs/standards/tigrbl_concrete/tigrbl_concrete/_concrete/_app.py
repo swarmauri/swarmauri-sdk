@@ -3,10 +3,11 @@ from __future__ import annotations
 from typing import Any
 
 from ._table_registry import TableRegistry
-from tigrbl_core._spec.app_spec import AppSpec
+from tigrbl_base._base import AppBase
 from tigrbl.ddl import initialize as _ddl_initialize
 from ._engine import Engine
 from tigrbl_canon.mapping import engine_resolver as _resolver
+from tigrbl_core._spec.app_spec import AppSpec
 from tigrbl_core._spec.engine_spec import EngineCfg
 from ._routing import (
     include_router as _include_router_impl,
@@ -17,11 +18,11 @@ from tigrbl_runtime.runtime.gw.invoke import invoke
 from tigrbl_runtime.runtime.gw.raw import GwRawEnvelope
 
 
-class App(AppSpec):
+class App(AppBase):
     @classmethod
     def collect(cls) -> AppSpec:
         """Collect and normalize AppSpec configuration for this App class."""
-        return AppSpec.collect(cls)
+        return cls.collect_spec(cls)
 
     @classmethod
     def _collect_mro_spec(cls) -> AppSpec:
