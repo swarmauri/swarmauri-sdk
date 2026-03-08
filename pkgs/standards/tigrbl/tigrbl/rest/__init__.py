@@ -3,7 +3,7 @@
 from __future__ import annotations
 from typing import Optional, Type
 
-from .._spec.binding_spec import resolve_rest_nested_prefix
+from .._base import resolve_rest_nested_prefix
 
 
 def _nested_prefix(model: Type) -> Optional[str]:

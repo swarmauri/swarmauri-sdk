@@ -8,6 +8,9 @@ from typing import Any
 _EXPORTS = {
     "AppBase": "_app_base",
     "AliasBase": "_alias_base",
+    "BindingBase": "_binding_base",
+    "BindingRegistryBase": "_binding_base",
+    "resolve_rest_nested_prefix": "_binding_base",
     "EngineBase": "_engine_base",
     "EngineProviderBase": "_engine_provider_base",
     "HookBase": "_hook_base",

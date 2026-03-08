@@ -8,6 +8,8 @@ from typing import Any
 _EXPORTS = {
     "Alias": "_alias",
     "App": "_app",
+    "Binding": "_binding",
+    "BindingRegistry": "_binding",
     "Column": "_column",
     "Engine": "_engine",
     "Hook": "_hook",

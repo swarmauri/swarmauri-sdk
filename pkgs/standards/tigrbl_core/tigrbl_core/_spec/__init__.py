@@ -17,7 +17,6 @@ _EXPORTS = {
     "HttpRestBindingSpec": "binding_spec",
     "HttpJsonRpcBindingSpec": "binding_spec",
     "WsBindingSpec": "binding_spec",
-    "resolve_rest_nested_prefix": "binding_spec",
     "ColumnSpec": "column_spec",
     "EngineSpec": "engine_spec",
     "EngineProviderSpec": "engine_spec",

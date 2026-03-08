@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Literal, Optional, Type, Union
+from typing import Literal, Optional, Union
 
-from ..config.constants import TIGRBL_NESTED_PATHS_ATTR
 from .serde import SerdeMixin
 
 
@@ -30,42 +30,29 @@ class WsBindingSpec(SerdeMixin):
 BindingSpec = Union[HttpRestBindingSpec, HttpJsonRpcBindingSpec, WsBindingSpec]
 
 
-@dataclass(frozen=True, slots=True)
-class Binding(SerdeMixin):
-    """Named binding declaration used for registry composition."""
+class Binding(ABC):
+    """Core interface for named binding declarations."""
 
-    """Named binding wrapper used by registries and planners."""
+    @property
+    @abstractmethod
+    def name(self) -> str: ...
 
-    name: str
-    spec: BindingSpec
-
-
-@dataclass(slots=True)
-class BindingRegistry:
-    """Simple in-memory registry for named transport bindings."""
-
-    _bindings: dict[str, Binding]
-
-    def __init__(self) -> None:
-        self._bindings = {}
-
-    def register(self, binding: Binding) -> None:
-        self._bindings[binding.name] = binding
-
-    def get(self, name: str) -> Optional[Binding]:
-        return self._bindings.get(name)
-
-    def values(self) -> tuple[Binding, ...]:
-        return tuple(self._bindings.values())
+    @property
+    @abstractmethod
+    def spec(self) -> BindingSpec: ...
 
 
-def resolve_rest_nested_prefix(model: Type) -> Optional[str]:
-    """Return the configured nested REST prefix for ``model`` if present."""
+class BindingRegistry(ABC):
+    """Core interface for named binding registries."""
 
-    cb = getattr(model, TIGRBL_NESTED_PATHS_ATTR, None)
-    if callable(cb):
-        return cb()
-    return getattr(model, "_nested_path", None)
+    @abstractmethod
+    def register(self, binding: Binding) -> None: ...
+
+    @abstractmethod
+    def get(self, name: str) -> Optional[Binding]: ...
+
+    @abstractmethod
+    def values(self) -> tuple[Binding, ...]: ...
 
 
 __all__ = [
@@ -75,5 +62,4 @@ __all__ = [
     "HttpJsonRpcBindingSpec",
     "HttpRestBindingSpec",
     "WsBindingSpec",
-    "resolve_rest_nested_prefix",
 ]
