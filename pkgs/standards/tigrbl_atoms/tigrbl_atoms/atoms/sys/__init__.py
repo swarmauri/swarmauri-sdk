@@ -18,19 +18,12 @@ from . import handler_persistence as _handler_persistence
 from . import handler_read as _handler_read
 from . import handler_replace as _handler_replace
 from . import handler_update as _handler_update
-from . import runtime_route_handler as _runtime_route_handler
 from . import start_tx as _start_tx
 
 RunFn = Callable[[Optional[object], Any], Any]
 
 _ORDERED: Tuple[Tuple[str, str, str, RunFn], ...] = (
     ("sys", "start_tx", _start_tx.ANCHOR, _start_tx.INSTANCE),
-    (
-        "sys",
-        "runtime_route_handler",
-        _runtime_route_handler.ANCHOR,
-        _runtime_route_handler.INSTANCE,
-    ),
     (
         "sys",
         "handler_persistence",
