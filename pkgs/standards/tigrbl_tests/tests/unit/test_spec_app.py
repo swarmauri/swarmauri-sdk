@@ -1,5 +1,4 @@
-from tigrbl._spec.app_spec import AppSpec
-from tigrbl._concrete._app import App
+from tigrbl import App, AppBase
 from tigrbl.shortcuts.app import defineAppSpec, deriveApp
 
 
@@ -13,7 +12,7 @@ class ChildApp(BaseAppSpec):
 
 
 def test_app_spec_defaults_and_merge():
-    spec = AppSpec.collect(ChildApp)
+    spec = AppBase.collect_spec(ChildApp)
     assert spec.title == "TableBase"
     assert spec.version == "1.0"
     assert spec.routers == ("child", "base")
@@ -60,7 +59,7 @@ class ScalarAttrsApp(App):
 
 
 def test_app_spec_normalizes_scalar_sequence_fields():
-    spec = AppSpec.collect(ScalarAttrsApp)
+    spec = AppBase.collect_spec(ScalarAttrsApp)
 
     assert spec.routers == ("router",)
     assert spec.ops == ("read",)
