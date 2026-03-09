@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import MISSING, dataclass, field, fields, is_dataclass
-from typing import Generic, TypeAlias, TypeVar
+from typing import Generic, TypeAlias, TypeVar, cast, final
 
 from .stages import (
     Boot,
@@ -20,14 +20,17 @@ from tigrbl_typing.protocols import (
 S = TypeVar("S")
 T = TypeVar("T")
 U = TypeVar("U")
+E = TypeVar("E")
 
 
 @dataclass(slots=True)
-class BaseCtx(Generic[S]):
+class BaseCtx(Generic[S, E]):
     env: object | None = None
     bag: dict[str, object] = field(default_factory=dict)
     temp: dict[str, object] = field(default_factory=dict)
-    error: Exception | None = None
+    error: E | None = None
+    current_phase: str | None = None
+    error_phase: str | None = None
 
     def promote(self, cls: type[U], /, **updates: object) -> U:
         if not is_dataclass(cls):
@@ -64,20 +67,24 @@ class BaseCtx(Generic[S]):
             raise KeyError(f"missing temp field: {key!r}") from e
 
 
-Ctx: TypeAlias = BaseCtx[S]
+Ctx: TypeAlias = BaseCtx[S, E]
 
 
-def promote(ctx: Ctx[S], cls: type[U], /, **updates: object) -> U:
+def promote(ctx: Ctx[S, E], cls: type[U], /, **updates: object) -> U:
     return ctx.promote(cls, **updates)
 
 
+def has_error(ctx: BaseCtx[S, E]) -> bool:
+    return ctx.error is not None
+
+
 @dataclass(slots=True)
-class BootCtx(BaseCtx[Boot]):
+class BootCtx(BaseCtx[Boot, E], Generic[E]):
     pass
 
 
 @dataclass(slots=True)
-class IngressCtx(BootCtx):
+class IngressCtx(BootCtx[E], Generic[E]):
     raw: object | None = None
     request: object | None = None
     method: str = ""
@@ -88,20 +95,20 @@ class IngressCtx(BootCtx):
 
 
 @dataclass(slots=True)
-class RoutedCtx(IngressCtx):
+class RoutedCtx(IngressCtx[E], Generic[E]):
     protocol: str = ""
     path_params: dict[str, object] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
-class BoundCtx(RoutedCtx):
+class BoundCtx(RoutedCtx[E], Generic[E]):
     binding: object | None = None
     model: object | None = None
     op: str = ""
 
 
 @dataclass(slots=True)
-class PlannedCtx(BoundCtx):
+class PlannedCtx(BoundCtx[E], Generic[E]):
     payload: object | None = None
     plan: object | None = None
     opmeta: object | None = None
@@ -109,28 +116,28 @@ class PlannedCtx(BoundCtx):
 
 
 @dataclass(slots=True)
-class GuardedCtx(PlannedCtx):
+class GuardedCtx(PlannedCtx[E], Generic[E]):
     authz: object | None = None
 
 
 @dataclass(slots=True)
-class ExecutingCtx(GuardedCtx):
+class ExecutingCtx(GuardedCtx[E], Generic[E]):
     pass
 
 
 @dataclass(slots=True)
-class ResolvedCtx(ExecutingCtx):
+class ResolvedCtx(ExecutingCtx[E], Generic[E]):
     schema_in: object | None = None
     in_values: dict[str, object] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
-class OperatedCtx(ResolvedCtx):
+class OperatedCtx(ResolvedCtx[E], Generic[E]):
     result: object | None = None
 
 
 @dataclass(slots=True)
-class EncodedCtx(OperatedCtx):
+class EncodedCtx(OperatedCtx[E], Generic[E]):
     schema_out: object | None = None
     response_payload: object | None = None
     response_headers: dict[str, object] = field(default_factory=dict)
@@ -138,34 +145,113 @@ class EncodedCtx(OperatedCtx):
 
 
 @dataclass(slots=True)
-class EmittingCtx(EncodedCtx):
+class EmittingCtx(EncodedCtx[E], Generic[E]):
     transport_response: object | None = None
 
 
 @dataclass(slots=True)
-class EgressedCtx(EmittingCtx):
+class EgressedCtx(EmittingCtx[E], Generic[E]):
     pass
 
 
 @dataclass(slots=True)
-class FailedCtx(BaseCtx[Failed]):
-    error: Exception | None = None
+class FailedCtx(BaseCtx[Failed, E], Generic[E]):
+    error: E | None = None
 
 
-class Atom(ABC, Generic[S, T]):
+AtomResult: TypeAlias = Ctx[T, E] | FailedCtx[E]
+
+
+def fail(ctx: Ctx[S, E], error: E, /, **updates: object) -> FailedCtx[E]:
+    return cast(
+        FailedCtx[E],
+        ctx.promote(
+            FailedCtx,
+            error=error,
+            **updates,
+        ),
+    )
+
+
+class AtomFailure(Exception):
+    """
+    Optional internal exception type for atoms that want to signal
+    a mapped domain/runtime failure via raise instead of returning fail(...).
+    """
+
+    def __init__(self, error: object) -> None:
+        super().__init__(str(error))
+        self.error = error
+
+
+class Atom(ABC, Generic[S, T, E]):
     name: str = "atom"
     anchor: str = ""
 
     @abstractmethod
-    async def __call__(self, obj: object | None, ctx: Ctx[S]) -> Ctx[T]:
+    async def __call__(
+        self,
+        obj: object | None,
+        ctx: Ctx[S, E],
+    ) -> AtomResult[T, E]:
         raise NotImplementedError
+
+
+class StandardAtom(Atom[S, T, E], ABC):
+    """
+    Template-method base:
+      - handles pre-failed input
+      - handles success promotion
+      - handles fail normalization
+      - optionally maps raised exceptions into E
+    """
+
+    target_ctx: type[BaseCtx[T, E]]
+
+    @final
+    async def __call__(
+        self,
+        obj: object | None,
+        ctx: Ctx[S, E],
+    ) -> AtomResult[T, E]:
+        if has_error(ctx):
+            assert ctx.error is not None
+            return fail(ctx, ctx.error)
+
+        try:
+            result = await self._run(obj, ctx)
+        except AtomFailure as ex:
+            return fail(ctx, cast(E, ex.error))
+        except Exception as ex:
+            mapped = self._map_exception(ex)
+            if mapped is None:
+                raise
+            return fail(ctx, mapped)
+
+        if isinstance(result, FailedCtx):
+            return result
+
+        return promote(ctx, self.target_ctx, **result)
+
+    @abstractmethod
+    async def _run(
+        self,
+        obj: object | None,
+        ctx: Ctx[S, E],
+    ) -> dict[str, object] | FailedCtx[E]:
+        raise NotImplementedError
+
+    def _map_exception(self, ex: Exception) -> E | None:
+        return None
 
 
 __all__ = [
     "S",
     "T",
     "U",
+    "E",
     "Ctx",
+    "AtomResult",
     "BaseCtx",
     "BootCtx",
     "IngressCtx",
@@ -180,8 +266,12 @@ __all__ = [
     "EmittingCtx",
     "EgressedCtx",
     "FailedCtx",
+    "AtomFailure",
     "Atom",
+    "StandardAtom",
     "promote",
+    "fail",
+    "has_error",
     "DependencyLike",
     "ResponseLike",
     "is_dependency_like",
