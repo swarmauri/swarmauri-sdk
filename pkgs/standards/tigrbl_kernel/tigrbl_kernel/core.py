@@ -259,7 +259,7 @@ class Kernel:
     def _coerce_int(value: Any) -> int | None:
         return value if isinstance(value, int) else None
 
-    def _resolve_program_id_from_ctx(self, ctx: _Ctx, packed: PackedKernel) -> int:
+    def _require_program_id_from_ctx(self, ctx: _Ctx) -> int:
         temp = getattr(ctx, "temp", None)
         if not isinstance(temp, dict):
             ctx.temp = {}
@@ -277,32 +277,7 @@ class Kernel:
         if value is not None:
             return value
 
-        proto_id = self._coerce_int(temp.get("proto_id"))
-        selector_id = self._coerce_int(temp.get("selector_id"))
-        if proto_id is None or selector_id is None:
-            return -1
-
-        if packed.numba_executor is not None:
-            try:
-                program_id = int(packed.numba_executor(proto_id, selector_id))
-            except Exception:
-                program_id = -1
-        else:
-            if proto_id < 0 or selector_id < 0:
-                return -1
-            if proto_id >= len(packed.route_to_program):
-                return -1
-            row = packed.route_to_program[proto_id]
-            if selector_id >= len(row):
-                return -1
-            program_id = int(row[selector_id])
-
-        if program_id >= 0:
-            temp["program_id"] = program_id
-            if isinstance(route, dict):
-                route.setdefault("program_id", program_id)
-                route.setdefault("opmeta_index", program_id)
-        return program_id
+        return -1
 
     async def _execute_packed(
         self, env: Any, ctx: _Ctx, plan: KernelPlan, packed: PackedKernel
@@ -319,7 +294,7 @@ class Kernel:
             ctx.temp = {}
             temp = ctx.temp
 
-        program_id = self._resolve_program_id_from_ctx(ctx, packed)
+        program_id = self._require_program_id_from_ctx(ctx)
         if program_id < 0:
             route = temp.get("route", {})
             if isinstance(route, dict) and route.get("method_not_allowed") is True:
@@ -341,13 +316,6 @@ class Kernel:
                 env, 404, {"detail": "No runtime operation matched request."}
             )
             return
-
-        opmeta = plan.opmeta[program_id]
-        ctx.model = opmeta.model
-        ctx.op = opmeta.alias
-        ctx.opview = self.get_opview(
-            app=ctx.app, model=opmeta.model, alias=opmeta.alias
-        )
 
         seg_offset = packed.op_segment_offsets[program_id]
         seg_length = packed.op_segment_lengths[program_id]
@@ -389,13 +357,6 @@ class Kernel:
             return
 
         await _send_transport_response(env, ctx)
-
-    @staticmethod
-    def _without_ingress_phases(phases: Mapping[str, Any] | None) -> dict[str, Any]:
-        if not phases:
-            return {}
-        ingress = set(INGRESS_PHASES)
-        return {phase: steps for phase, steps in phases.items() if phase not in ingress}
 
     def _segment_label(self, program_id: int, phase: str) -> str:
         return f"program:{program_id}:{phase}"
@@ -446,7 +407,7 @@ class Kernel:
         op_to_segment_ids: list[int] = []
 
         for program_id, _meta in enumerate(plan.opmeta):
-            chains = self._without_ingress_phases(plan.phase_chains.get(program_id, {}))
+            chains = dict(plan.phase_chains.get(program_id, {}) or {})
             op_segment_offsets.append(len(op_to_segment_ids))
             seg_count = 0
             for phase in DEFAULT_PHASE_ORDER:
@@ -528,10 +489,10 @@ class Kernel:
 
     def _build_numba_packed_executor(self, packed: PackedKernel):
         """
-        Numba target for the extracted synchronous route/program spine only.
+        Numba target for an extracted synchronous route/program helper.
 
-        Because all atoms are async at the semantic layer, we do not try to JIT the
-        atom call surface. We only JIT the bounded numeric dispatch core:
+        Semantic route authority remains with route atoms. This helper is only an
+        optional implementation detail for synchronous numeric dispatch extraction:
 
             program_id = route_to_program[proto_id, selector_id]
         """
