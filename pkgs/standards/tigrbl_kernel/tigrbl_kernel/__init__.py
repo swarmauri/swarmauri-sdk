@@ -5,18 +5,25 @@ from typing import Any, Dict, List, Mapping, Optional
 from tigrbl_runtime.hook_types import StepFn
 from tigrbl_runtime.executor import _Ctx, _invoke
 from .core import Kernel
-from .models import OpView, SchemaIn, SchemaOut
+from .models import OpView, PackedKernel, SchemaIn, SchemaOut
 
 _default_kernel = Kernel()
 
 
 def get_cached_specs(model: type) -> Mapping[str, Any]:
-    """Atoms can call this; zero per-request collection."""
     return _default_kernel.get_specs(model)
 
 
 def build_phase_chains(model: type, alias: str) -> Dict[str, List[StepFn]]:
     return _default_kernel.build_op(model, alias)
+
+
+def build_kernel_plan(app: Any):
+    return _default_kernel.kernel_plan(app)
+
+
+def build_packed_kernel(app: Any) -> PackedKernel | None:
+    return _default_kernel.kernel_plan(app).packed
 
 
 def plan_labels(model: type, alias: str) -> list[str]:
@@ -39,8 +46,11 @@ async def run(
 __all__ = [
     "Kernel",
     "OpView",
+    "PackedKernel",
     "SchemaIn",
     "SchemaOut",
+    "build_kernel_plan",
+    "build_packed_kernel",
     "get_cached_specs",
     "_default_kernel",
     "build_phase_chains",

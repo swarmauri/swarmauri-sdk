@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import re
 import threading
+from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any, ClassVar, Dict, List, Mapping, Optional, Sequence
 
@@ -20,11 +21,28 @@ from .atoms import (
     _wrap_atom,
 )
 from .cache import _SpecsOnceCache, _WeakMaybeDict
-from .models import KernelPlan, OpKey, OpMeta, OpView
-from .labels import label_hook
+from .models import CompiledPhase, KernelPlan, OpKey, OpMeta, OpView, PackedKernel
 from .opview_compiler import compile_opview_from_specs
 
 logger = logging.getLogger(__name__)
+
+
+INGRESS_PHASES = ("INGRESS_BEGIN", "INGRESS_PARSE", "INGRESS_ROUTE")
+EGRESS_PHASES = ("EGRESS_SHAPE", "EGRESS_FINALIZE", "POST_RESPONSE")
+DEFAULT_PHASE_ORDER = tuple(getattr(_ev, "PHASES", ())) or (
+    "INGRESS_BEGIN",
+    "INGRESS_PARSE",
+    "INGRESS_ROUTE",
+    "PRE_TX_BEGIN",
+    "START_TX",
+    "PRE_HANDLER",
+    "HANDLER",
+    "END_TX",
+    "POST_COMMIT",
+    "EGRESS_SHAPE",
+    "EGRESS_FINALIZE",
+    "POST_RESPONSE",
+)
 
 
 def deepmerge_phase_chains(
@@ -118,6 +136,27 @@ def _route_payload_template() -> dict[str, Any]:
     }
 
 
+def _phase_info_map() -> tuple[dict[str, CompiledPhase], tuple[str, ...], tuple[str, ...]]:
+    phases: dict[str, CompiledPhase] = {}
+    if hasattr(_ev, "PHASES"):
+        for name in DEFAULT_PHASE_ORDER:
+            try:
+                is_error = bool(getattr(_ev, "is_error_phase", lambda _n: False)(name))
+            except Exception:
+                is_error = False
+            in_tx = name in {"START_TX", "PRE_HANDLER", "HANDLER", "END_TX", "POST_COMMIT"}
+            phases[name] = CompiledPhase(
+                name=name,
+                stage_in=None,
+                stage_out=None,
+                in_tx=in_tx,
+                is_error=is_error,
+            )
+    mainline = tuple(name for name in DEFAULT_PHASE_ORDER if not phases.get(name, CompiledPhase(name, None, None)).is_error)
+    error = tuple(name for name in DEFAULT_PHASE_ORDER if phases.get(name, CompiledPhase(name, None, None)).is_error)
+    return phases, mainline, error
+
+
 class Kernel:
     _instance: ClassVar["Kernel | None"] = None
 
@@ -191,7 +230,7 @@ class Kernel:
                     getattr(model, "__name__", model),
                     alias,
                 )
-        for phase in _ev.PHASES:
+        for phase in DEFAULT_PHASE_ORDER:
             chains.setdefault(phase, [])
         return chains
 
@@ -206,7 +245,7 @@ class Kernel:
             if not _ev.is_valid_event(anchor):
                 continue
             phase = _ev.phase_for_event(anchor)
-            if phase not in {"INGRESS_BEGIN", "INGRESS_PARSE", "INGRESS_ROUTE"}:
+            if phase not in INGRESS_PHASES:
                 continue
             ingress_atoms.setdefault(phase, []).append((anchor, run))
 
@@ -224,7 +263,7 @@ class Kernel:
             if not _ev.is_valid_event(anchor):
                 continue
             phase = _ev.phase_for_event(anchor)
-            if phase not in {"EGRESS_SHAPE", "EGRESS_FINALIZE", "POST_RESPONSE"}:
+            if phase not in EGRESS_PHASES:
                 continue
             egress_atoms.setdefault(phase, []).append((anchor, run))
 
@@ -248,19 +287,11 @@ class Kernel:
         if persist:
             labels.append(tx_begin)
 
-        for phase in _ev.PHASES:
-            if phase in {
-                "INGRESS_BEGIN",
-                "INGRESS_PARSE",
-                "INGRESS_ROUTE",
-                "EGRESS_SHAPE",
-                "EGRESS_FINALIZE",
-                "START_TX",
-                "END_TX",
-            }:
+        for phase in DEFAULT_PHASE_ORDER:
+            if phase in {"START_TX", "END_TX"}:
                 continue
             for step in chains.get(phase, ()) or ():
-                labels.append(f"{phase}:{label_hook(step, phase)}")
+                labels.append(f"{phase}:{_label_step(step, phase)}")
 
         if persist:
             labels.append(tx_end)
@@ -320,12 +351,331 @@ class Kernel:
                 if hasattr(rv, "__await__"):
                     await rv
 
+    async def _run_segment_python(self, ctx: _Ctx, packed: PackedKernel, seg_id: int) -> None:
+        start = packed.segment_offsets[seg_id]
+        end = start + packed.segment_lengths[seg_id]
+        for idx in range(start, end):
+            step_id = packed.segment_step_ids[idx]
+            step = packed.step_table[step_id]
+            rv = step(ctx)
+            if hasattr(rv, "__await__"):
+                await rv
+
+    def _selector_from_ctx(self, ctx: _Ctx) -> tuple[str | None, str | None]:
+        temp = getattr(ctx, "temp", None)
+        if not isinstance(temp, dict):
+            return None, None
+
+        proto = temp.get("proto") or temp.get("proto_name")
+        selector = temp.get("selector") or temp.get("selector_name")
+
+        if isinstance(proto, str) and isinstance(selector, str):
+            return proto, selector
+
+        route = temp.get("route")
+        if isinstance(route, dict):
+            route_proto = route.get("proto")
+            route_selector = route.get("selector")
+            if isinstance(route_proto, str) and isinstance(route_selector, str):
+                return route_proto, route_selector
+
+        proto_id = temp.get("proto_id")
+        selector_id = temp.get("selector_id")
+        packed = getattr(ctx, "kernel_plan", None)
+        if isinstance(packed, KernelPlan) and packed.packed is not None:
+            image = packed.packed
+            if isinstance(proto_id, int) and 0 <= proto_id < len(image.proto_names):
+                proto = image.proto_names[proto_id]
+            if isinstance(selector_id, int) and 0 <= selector_id < len(image.selector_names):
+                selector = image.selector_names[selector_id]
+            if isinstance(proto, str) and isinstance(selector, str):
+                return proto, selector
+
+        return None, None
+
+    def _resolve_program_id(self, ctx: _Ctx, packed: PackedKernel) -> int:
+        temp = getattr(ctx, "temp", None)
+        if not isinstance(temp, dict):
+            return -1
+
+        proto_id = temp.get("proto_id")
+        selector_id = temp.get("selector_id")
+        if not isinstance(proto_id, int) or not isinstance(selector_id, int):
+            proto_name, selector_name = self._selector_from_ctx(ctx)
+            if isinstance(proto_name, str):
+                proto_id = packed.proto_to_id.get(proto_name)
+                if proto_id is not None:
+                    temp["proto_id"] = proto_id
+            if isinstance(selector_name, str):
+                selector_id = packed.selector_to_id.get(selector_name)
+                if selector_id is not None:
+                    temp["selector_id"] = selector_id
+
+        if not isinstance(proto_id, int) or not isinstance(selector_id, int):
+            route = temp.get("route")
+            if isinstance(route, dict):
+                meta_index = route.get("opmeta_index")
+                if isinstance(meta_index, int):
+                    return meta_index
+            return -1
+
+        if proto_id < 0 or selector_id < 0:
+            return -1
+        if proto_id >= len(packed.route_to_program):
+            return -1
+        row = packed.route_to_program[proto_id]
+        if selector_id >= len(row):
+            return -1
+        program_id = row[selector_id]
+        return int(program_id) if isinstance(program_id, int) else -1
+
+    async def _execute_packed(self, env: Any, ctx: _Ctx, plan: KernelPlan, packed: PackedKernel) -> None:
+        from tigrbl_canon.mapping.runtime_routes import invoke_runtime_route_handler
+        from tigrbl_concrete.atoms.egress.asgi_send import _send_json, _send_transport_response
+        from tigrbl_runtime.status import StatusDetailError, create_standardized_error
+
+        temp = getattr(ctx, "temp", None)
+        if not isinstance(temp, dict):
+            ctx.temp = {}
+            temp = ctx.temp
+
+        program_id = self._resolve_program_id(ctx, packed)
+        if program_id < 0:
+            route = temp.get("route", {})
+            if isinstance(route, dict) and route.get("method_not_allowed") is True:
+                await _send_json(env, 405, {"detail": "Method Not Allowed"})
+                return
+            handler = route.get("handler") if isinstance(route, dict) else None
+            if callable(handler):
+                await invoke_runtime_route_handler(ctx, handler=handler)
+                await _send_transport_response(env, ctx)
+                return
+            await _send_json(env, 404, {"detail": "No runtime operation matched request."})
+            return
+
+        temp["program_id"] = program_id
+        opmeta = plan.opmeta[program_id]
+        ctx.model = opmeta.model
+        ctx.op = opmeta.alias
+        ctx.opview = self.get_opview(app=ctx.app, model=opmeta.model, alias=opmeta.alias)
+
+        seg_offset = packed.op_segment_offsets[program_id]
+        seg_length = packed.op_segment_lengths[program_id]
+        try:
+            for i in range(seg_offset, seg_offset + seg_length):
+                seg_id = packed.op_to_segment_ids[i]
+                await self._run_segment_python(ctx, packed, seg_id)
+        except StatusDetailError as exc:
+            detail = exc.detail if getattr(exc, "detail", None) not in (None, "") else str(exc)
+            await _send_json(env, int(getattr(exc, "status_code", 500) or 500), {"detail": detail})
+            return
+        except Exception as exc:
+            std = create_standardized_error(exc)
+            detail = std.detail if getattr(std, "detail", None) not in (None, "") else str(std)
+            await _send_json(env, int(getattr(std, "status_code", 500) or 500), {"detail": detail})
+            return
+
+        route = temp.get("route", {}) if isinstance(temp, dict) else {}
+        egress = temp.get("egress", {}) if isinstance(temp, dict) else {}
+        if (
+            isinstance(route, dict)
+            and route.get("short_circuit") is True
+            and isinstance(egress, dict)
+            and egress.get("transport_response")
+        ):
+            await _send_transport_response(env, ctx)
+            return
+
+        await _send_transport_response(env, ctx)
+
     @staticmethod
     def _without_ingress_phases(phases: Mapping[str, Any] | None) -> dict[str, Any]:
         if not phases:
             return {}
-        ingress = {"INGRESS_BEGIN", "INGRESS_PARSE", "INGRESS_ROUTE"}
+        ingress = set(INGRESS_PHASES)
         return {phase: steps for phase, steps in phases.items() if phase not in ingress}
+
+    def _segment_label(self, program_id: int, phase: str) -> str:
+        return f"program:{program_id}:{phase}"
+
+    def _build_route_matrix(
+        self,
+        *,
+        proto_names: tuple[str, ...],
+        selector_names: tuple[str, ...],
+        opkey_to_meta: Mapping[OpKey, int],
+    ) -> tuple[tuple[int, ...], ...]:
+        proto_to_id = {name: idx for idx, name in enumerate(proto_names)}
+        selector_to_id = {name: idx for idx, name in enumerate(selector_names)}
+        matrix = [[-1 for _ in selector_names] for _ in proto_names]
+        for key, meta_index in opkey_to_meta.items():
+            proto_id = proto_to_id.get(key.proto)
+            selector_id = selector_to_id.get(key.selector)
+            if proto_id is None or selector_id is None:
+                continue
+            matrix[proto_id][selector_id] = int(meta_index)
+        return tuple(tuple(row) for row in matrix)
+
+    def _pack_kernel_plan(self, plan: KernelPlan) -> PackedKernel:
+        selector_names = tuple(sorted({key.selector for key in plan.opkey_to_meta.keys()}))
+        proto_names = tuple(sorted(plan.proto_indices.keys()))
+        op_names = tuple(f"{meta.model.__name__}.{meta.alias}" for meta in plan.opmeta)
+
+        proto_to_id = {name: idx for idx, name in enumerate(proto_names)}
+        selector_to_id = {name: idx for idx, name in enumerate(selector_names)}
+        op_to_id = {name: idx for idx, name in enumerate(op_names)}
+
+        step_index: dict[int, int] = {}
+        step_table: list[StepFn] = []
+        step_labels: list[str] = []
+        effect_ids: list[int] = []
+        effect_payloads: list[tuple[int, ...]] = []
+
+        segment_offsets: list[int] = []
+        segment_lengths: list[int] = []
+        segment_step_ids: list[int] = []
+        segment_phases: list[str] = []
+        segment_executor_kinds: list[str] = []
+
+        op_segment_offsets: list[int] = []
+        op_segment_lengths: list[int] = []
+        op_to_segment_ids: list[int] = []
+
+        for program_id, _meta in enumerate(plan.opmeta):
+            chains = plan.phase_chains.get(program_id, {})
+            op_segment_offsets.append(len(op_to_segment_ids))
+            seg_count = 0
+            for phase in DEFAULT_PHASE_ORDER:
+                steps = list(chains.get(phase, ()) or ())
+                if not steps:
+                    continue
+
+                seg_id = len(segment_offsets)
+                segment_offsets.append(len(segment_step_ids))
+                segment_lengths.append(len(steps))
+                segment_phases.append(phase)
+                segment_executor_kinds.append("python")
+
+                for step in steps:
+                    key = id(step)
+                    step_id = step_index.get(key)
+                    if step_id is None:
+                        step_id = len(step_table)
+                        step_index[key] = step_id
+                        step_table.append(step)
+                        step_labels.append(_label_step(step, phase))
+                        effect = getattr(step, "__tigrbl_numba_effect__", None)
+                        if isinstance(effect, tuple):
+                            effect_id = int(effect[0]) if effect else -1
+                            payload = tuple(int(v) for v in effect[1:])
+                        elif isinstance(effect, int):
+                            effect_id = int(effect)
+                            payload = ()
+                        else:
+                            effect_id = -1
+                            payload = ()
+                        effect_ids.append(effect_id)
+                        effect_payloads.append(payload)
+                    segment_step_ids.append(step_id)
+
+                op_to_segment_ids.append(seg_id)
+                seg_count += 1
+            op_segment_lengths.append(seg_count)
+
+        route_to_program = self._build_route_matrix(
+            proto_names=proto_names,
+            selector_names=selector_names,
+            opkey_to_meta=plan.opkey_to_meta,
+        )
+
+        packed = PackedKernel(
+            proto_names=proto_names,
+            selector_names=selector_names,
+            op_names=op_names,
+            proto_to_id=proto_to_id,
+            selector_to_id=selector_to_id,
+            op_to_id=op_to_id,
+            route_to_program=route_to_program,
+            segment_offsets=tuple(segment_offsets),
+            segment_lengths=tuple(segment_lengths),
+            segment_step_ids=tuple(segment_step_ids),
+            segment_phases=tuple(segment_phases),
+            segment_executor_kinds=tuple(segment_executor_kinds),
+            op_segment_offsets=tuple(op_segment_offsets),
+            op_segment_lengths=tuple(op_segment_lengths),
+            op_to_segment_ids=tuple(op_to_segment_ids),
+            step_table=tuple(step_table),
+            step_labels=tuple(step_labels),
+            numba_effect_ids=tuple(effect_ids),
+            numba_effect_payloads=tuple(effect_payloads),
+            executor_kind="python",
+        )
+        return replace(
+            packed,
+            executor=self._build_python_packed_executor(packed),
+            numba_executor=self._build_numba_packed_executor(packed),
+        )
+
+    def _build_python_packed_executor(self, packed: PackedKernel):
+        async def _executor(kernel: "Kernel", env: Any, ctx: _Ctx, plan: KernelPlan) -> None:
+            await kernel._execute_packed(env, ctx, plan, packed)
+
+        return _executor
+
+    def _build_numba_packed_executor(self, packed: PackedKernel):
+        if not packed.numba_effect_ids:
+            return None
+        if any(effect_id < 0 for effect_id in packed.numba_effect_ids):
+            return None
+        try:
+            from numba import njit
+        except Exception:
+            return None
+
+        route_to_program = packed.route_to_program
+        op_segment_offsets = packed.op_segment_offsets
+        op_segment_lengths = packed.op_segment_lengths
+        op_to_segment_ids = packed.op_to_segment_ids
+        segment_offsets = packed.segment_offsets
+        segment_lengths = packed.segment_lengths
+        segment_step_ids = packed.segment_step_ids
+        effect_ids = packed.numba_effect_ids
+
+        @njit(cache=True)
+        def _dispatch(proto_id: int, selector_id: int) -> int:
+            if proto_id < 0 or selector_id < 0:
+                return -1
+            if proto_id >= len(route_to_program):
+                return -1
+            row = route_to_program[proto_id]
+            if selector_id >= len(row):
+                return -1
+            return row[selector_id]
+
+        @njit(cache=True)
+        def _program_checksum(program_id: int) -> int:
+            if program_id < 0 or program_id >= len(op_segment_offsets):
+                return -1
+            acc = 0
+            start = op_segment_offsets[program_id]
+            end = start + op_segment_lengths[program_id]
+            for idx in range(start, end):
+                seg_id = op_to_segment_ids[idx]
+                s = segment_offsets[seg_id]
+                e = s + segment_lengths[seg_id]
+                for j in range(s, e):
+                    step_id = segment_step_ids[j]
+                    acc += effect_ids[step_id]
+            return acc
+
+        def _executor(proto_id: int, selector_id: int) -> tuple[int, int]:
+            program_id = int(_dispatch(int(proto_id), int(selector_id)))
+            if program_id < 0:
+                return -1, -1
+            checksum = int(_program_checksum(program_id))
+            return program_id, checksum
+
+        return _executor
 
     async def handle_http(self, env: Any, app: Any) -> None:
         from tigrbl_canon.mapping.runtime_routes import invoke_runtime_route_handler
@@ -341,6 +691,11 @@ class Kernel:
         ctx.router = app
         ctx.raw = env
         ctx.kernel_plan = plan
+
+        if plan.packed is not None and plan.packed.executor is not None:
+            await self._run_phase_chain(ctx, plan.ingress_chain)
+            await plan.packed.executor(self, env, ctx, plan)
+            return
 
         await self._run_phase_chain(ctx, plan.ingress_chain)
 
@@ -427,6 +782,7 @@ class Kernel:
         phase_chains: dict[int, Mapping[str, list[StepFn]]] = {}
         ingress_chain = self.build_ingress(app)
         egress_chain = self.build_egress(app)
+        phases, mainline_phases, error_phases = _phase_info_map()
 
         for model in _table_iter(app):
             for sp in _opspecs(model):
@@ -496,14 +852,18 @@ class Kernel:
                         else:
                             bucket["exact"][selector] = meta_index
 
-        return KernelPlan(
-            proto_indices=route_data,  # compatibility field; now compiled route payload
+        semantic = KernelPlan(
+            proto_indices=route_data,
             opmeta=tuple(opmeta),
             opkey_to_meta=opkey_to_meta,
             ingress_chain=ingress_chain,
             phase_chains=phase_chains,
             egress_chain=egress_chain,
+            phases=phases,
+            mainline_phases=mainline_phases,
+            error_phases=error_phases,
         )
+        return replace(semantic, packed=self._pack_kernel_plan(semantic))
 
     def compile_bootstrap_plan(self, app: Any) -> Dict[str, List[StepFn]]:
         return self.build_ingress(app)

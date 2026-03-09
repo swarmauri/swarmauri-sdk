@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Iterator, Mapping, Tuple
+from typing import Any, Callable, Dict, Iterator, Mapping, Sequence, Tuple
 
 try:
     from tigrbl_typing.phases import MAINLINE_PHASES, ERROR_PHASES, phase_info
@@ -9,6 +9,9 @@ except Exception:  # pragma: no cover - compatibility fallback
     MAINLINE_PHASES = ()
     ERROR_PHASES = ()
     phase_info = None
+
+
+StepFn = Callable[..., Any]
 
 
 def _label_callable(fn: Any) -> str:
@@ -78,18 +81,64 @@ class CompiledPhase:
 
 
 @dataclass(frozen=True, slots=True)
+class PackedSegment:
+    id: int
+    phase: str
+    offset: int
+    length: int
+    label: str
+    executor_kind: str = "python"
+
+
+@dataclass(frozen=True, slots=True)
+class PackedKernel:
+    proto_names: tuple[str, ...] = ()
+    selector_names: tuple[str, ...] = ()
+    op_names: tuple[str, ...] = ()
+
+    proto_to_id: Mapping[str, int] = field(default_factory=dict)
+    selector_to_id: Mapping[str, int] = field(default_factory=dict)
+    op_to_id: Mapping[str, int] = field(default_factory=dict)
+
+    route_to_program: Any = None
+
+    segment_offsets: tuple[int, ...] = ()
+    segment_lengths: tuple[int, ...] = ()
+    segment_step_ids: tuple[int, ...] = ()
+    segment_phases: tuple[str, ...] = ()
+    segment_executor_kinds: tuple[str, ...] = ()
+
+    op_segment_offsets: tuple[int, ...] = ()
+    op_segment_lengths: tuple[int, ...] = ()
+    op_to_segment_ids: tuple[int, ...] = ()
+
+    step_table: tuple[StepFn, ...] = ()
+    step_labels: tuple[str, ...] = ()
+
+    numba_effect_ids: tuple[int, ...] = ()
+    numba_effect_payloads: tuple[tuple[int, ...], ...] = ()
+
+    ingress_program_id: int = -1
+    egress_ok_program_id: int = -1
+    egress_err_program_id: int = -1
+
+    executor_kind: str = "python"
+    executor: Callable[..., Any] | None = None
+    numba_executor: Callable[..., Any] | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class KernelPlan:
     proto_indices: Mapping[str, Any] = field(default_factory=dict)
     opmeta: tuple[OpMeta, ...] = ()
     opkey_to_meta: Mapping[OpKey, int] = field(default_factory=dict)
-    ingress_chain: Mapping[str, list[Callable[..., Any]]] = field(default_factory=dict)
-    phase_chains: Mapping[int, Mapping[str, list[Callable[..., Any]]]] = field(
-        default_factory=dict
-    )
-    egress_chain: Mapping[str, list[Callable[..., Any]]] = field(default_factory=dict)
+    ingress_chain: Mapping[str, list[StepFn]] = field(default_factory=dict)
+    phase_chains: Mapping[int, Mapping[str, list[StepFn]]] = field(default_factory=dict)
+    egress_chain: Mapping[str, list[StepFn]] = field(default_factory=dict)
     phases: Mapping[str, CompiledPhase] = field(default_factory=dict)
     mainline_phases: tuple[str, ...] = ()
     error_phases: tuple[str, ...] = ()
+    packed: PackedKernel | None = None
     _appspec_mapping: Dict[str, Dict[str, list[str]]] = field(
         default_factory=dict, init=False, repr=False, compare=False
     )
@@ -99,6 +148,9 @@ class KernelPlan:
             return self._appspec_mapping
 
         phase_order = self.mainline_phases or tuple(self.phases.keys())
+        if not phase_order:
+            phase_order = tuple(self.ingress_chain.keys()) or tuple()
+
         normalized: Dict[str, Dict[str, list[str]]] = {}
         for meta_index, meta in enumerate(self.opmeta):
             table_name = getattr(meta.model, "__name__", str(meta.model))
