@@ -7,7 +7,7 @@ from urllib.parse import parse_qs
 from typing import Any, MutableMapping
 
 from ... import events as _ev
-from ...gw.raw import GwRouteEnvelope
+from tigrbl_typing.gw.raw import GwRouteEnvelope
 
 ANCHOR = _ev.INGRESS_RAW_FROM_SCOPE
 
