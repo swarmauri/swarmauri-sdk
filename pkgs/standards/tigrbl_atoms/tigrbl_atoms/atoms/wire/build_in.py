@@ -9,8 +9,8 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
 from ... import events as _ev
-from ...status.exceptions import HTTPException
-from tigrbl_typing.runtime.status.mappings import status as _status
+from tigrbl_typing.status.exceptions import HTTPException
+from tigrbl_typing.status.mappings import status as _status
 
 # Runs in PRE_HANDLER just before validation.
 ANCHOR = _ev.IN_VALIDATE  # "in:validate"

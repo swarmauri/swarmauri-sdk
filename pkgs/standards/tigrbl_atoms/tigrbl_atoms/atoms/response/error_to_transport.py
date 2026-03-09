@@ -6,7 +6,7 @@ from ...stages import Failed, Encoded
 from typing import Any
 
 from ... import events as _ev
-from ...status import create_standardized_error
+from tigrbl_typing.status import create_standardized_error
 
 ANCHOR = _ev.OUT_DUMP
 

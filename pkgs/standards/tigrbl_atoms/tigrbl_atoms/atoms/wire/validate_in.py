@@ -10,8 +10,8 @@ import uuid as _uuid
 import logging
 from typing import Any, Dict, Mapping, Optional, Tuple
 
-from ...status.exceptions import HTTPException
-from tigrbl_typing.runtime.status.mappings import status as _status
+from tigrbl_typing.status.exceptions import HTTPException
+from tigrbl_typing.status.mappings import status as _status
 
 from ... import events as _ev
 from ...opview import opview_from_ctx, ensure_schema_in, _ensure_temp

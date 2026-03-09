@@ -13,8 +13,8 @@ from ._param_resolver import (
     is_request_annotation,
     split_annotated,
 )
-from ...status.exceptions import HTTPException
-from tigrbl_typing.runtime.status.mappings import status
+from tigrbl_typing.status.exceptions import HTTPException
+from tigrbl_typing.status.mappings import status
 from ...types import DependencyLike, is_dependency_like
 from ... import events as _ev
 
