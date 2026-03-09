@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Iterator, Mapping, Sequence, Tuple
+from typing import Any, Callable, Dict, Iterator, Mapping, Tuple
 
 try:
     from tigrbl_typing.phases import MAINLINE_PHASES, ERROR_PHASES, phase_info
