@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import logging
 import threading
-from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any, ClassVar, Mapping, Optional, Sequence
 
-from tigrbl_runtime.hook_types import StepFn
 
 from . import events as _ev
 from ._build import (
@@ -20,6 +18,7 @@ from ._build import (
     compile_bootstrap_plan,
     plan_labels,
 )
+from ._compile import _compile_opview_from_specs, compile_plan
 from ._executor import (
     _build_numba_packed_executor,
     _build_python_packed_executor,
@@ -31,17 +30,12 @@ from ._executor import (
 )
 from .atoms import _DiscoveredAtom, _discover_atoms
 from .cache import _SpecsOnceCache, _WeakMaybeDict
-from .models import KernelPlan, OpKey, OpMeta, OpView
+from .models import KernelPlan, OpView
 from .opview_compiler import compile_opview_from_specs
 from .types import DEFAULT_PHASE_ORDER as _DEFAULT_PHASE_ORDER
 from .utils import (
-    _canonicalize_app,
-    _compile_path_pattern,
     _opspecs,
-    _phase_info_map,
-    _route_payload_template,
     _table_iter,
-    deepmerge_phase_chains,
 )
 
 logger = logging.getLogger(__name__)
@@ -82,9 +76,6 @@ class Kernel:
 
     def get_specs(self, model: type) -> Mapping[str, Any]:
         return self._specs_cache.get(model)
-
-    def _compile_opview_from_specs(self, specs: Mapping[str, Any], sp: Any) -> OpView:
-        return compile_opview_from_specs(specs, sp)
 
     def prime_specs(self, models: Sequence[type]) -> None:
         self._specs_cache.prime(models)
@@ -138,104 +129,6 @@ class Kernel:
                 f"opview_missing: app={app!r} model={getattr(model, '__name__', model)!r} alias={alias!r}"
             ) from exc
 
-    def compile_plan(self, app: Any) -> KernelPlan:
-        app = _canonicalize_app(app)
-
-        from tigrbl_core._spec.binding_spec import (
-            HttpJsonRpcBindingSpec,
-            HttpRestBindingSpec,
-            WsBindingSpec,
-        )
-
-        route_data: dict[str, Any] = _route_payload_template()
-        opmeta: list[OpMeta] = []
-        opkey_to_meta: dict[OpKey, int] = {}
-        phase_chains: dict[int, Mapping[str, list[StepFn]]] = {}
-        ingress_chain = self.build_ingress(app)
-        egress_chain = self.build_egress(app)
-        phases, mainline_phases, error_phases = _phase_info_map(DEFAULT_PHASE_ORDER)
-
-        for model in _table_iter(app):
-            for sp in _opspecs(model):
-                meta_index = len(opmeta)
-                target = (getattr(sp, "target", sp.alias) or sp.alias).lower()
-                opmeta.append(OpMeta(model=model, alias=sp.alias, target=target))
-                phase_chains[meta_index] = deepmerge_phase_chains(
-                    ingress_chain,
-                    self.build_op(model, sp.alias),
-                    egress_chain,
-                )
-
-                for binding in getattr(sp, "bindings", ()) or ():
-                    if isinstance(binding, HttpRestBindingSpec):
-                        bucket = route_data.setdefault(
-                            binding.proto, {"exact": {}, "templated": []}
-                        )
-                        for method in binding.methods:
-                            selector = f"{method.upper()} {binding.path}"
-                            opkey_to_meta[
-                                OpKey(proto=binding.proto, selector=selector)
-                            ] = meta_index
-                            if "{" in binding.path and "}" in binding.path:
-                                pattern, names = _compile_path_pattern(binding.path)
-                                bucket["templated"].append(
-                                    {
-                                        "method": method.upper(),
-                                        "path": binding.path,
-                                        "pattern": pattern,
-                                        "names": names,
-                                        "meta_index": meta_index,
-                                        "selector": selector,
-                                    }
-                                )
-                            else:
-                                bucket["exact"][selector] = meta_index
-
-                    elif isinstance(binding, HttpJsonRpcBindingSpec):
-                        opkey_to_meta[
-                            OpKey(proto=binding.proto, selector=binding.rpc_method)
-                        ] = meta_index
-                        route_data.setdefault(binding.proto, {})[binding.rpc_method] = (
-                            meta_index
-                        )
-
-                    elif isinstance(binding, WsBindingSpec):
-                        bucket = route_data.setdefault(
-                            binding.proto, {"exact": {}, "templated": []}
-                        )
-                        selector = binding.path
-                        opkey_to_meta[OpKey(proto=binding.proto, selector=selector)] = (
-                            meta_index
-                        )
-
-                        if "{" in binding.path and "}" in binding.path:
-                            pattern, names = _compile_path_pattern(binding.path)
-                            bucket["templated"].append(
-                                {
-                                    "path": binding.path,
-                                    "pattern": pattern,
-                                    "names": names,
-                                    "meta_index": meta_index,
-                                    "selector": selector,
-                                    "subprotocols": tuple(binding.subprotocols or ()),
-                                }
-                            )
-                        else:
-                            bucket["exact"][selector] = meta_index
-
-        semantic = KernelPlan(
-            proto_indices=route_data,
-            opmeta=tuple(opmeta),
-            opkey_to_meta=opkey_to_meta,
-            ingress_chain=ingress_chain,
-            phase_chains=phase_chains,
-            egress_chain=egress_chain,
-            phases=phases,
-            mainline_phases=mainline_phases,
-            error_phases=error_phases,
-        )
-        return replace(semantic, packed=self._pack_kernel_plan(semantic))
-
     def kernel_plan(self, app: Any) -> KernelPlan:
         self.ensure_primed(app)
         plan = self._kernel_plans.get(app)
@@ -285,6 +178,9 @@ Kernel.compile_bootstrap_plan = compile_bootstrap_plan
 Kernel._segment_label = _segment_label
 Kernel._build_route_matrix = _build_route_matrix
 Kernel._pack_kernel_plan = _pack_kernel_plan
+
+Kernel.compile_plan = compile_plan
+Kernel._compile_opview_from_specs = _compile_opview_from_specs
 
 Kernel._run_phase_chain = _run_phase_chain
 Kernel._run_segment_python = _run_segment_python
