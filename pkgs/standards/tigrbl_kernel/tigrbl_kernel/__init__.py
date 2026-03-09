@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any, Dict, List, Mapping, Optional
 
 from tigrbl_runtime.hook_types import StepFn
-from tigrbl_runtime.executor import _Ctx, _invoke
 from .core import Kernel
 from .models import OpView, PackedKernel, SchemaIn, SchemaOut
 
@@ -15,7 +14,7 @@ def get_cached_specs(model: type) -> Mapping[str, Any]:
 
 
 def build_phase_chains(model: type, alias: str) -> Dict[str, List[StepFn]]:
-    return _default_kernel.build_op(model, alias)
+    return _default_kernel._build_op(model, alias)
 
 
 def build_kernel_plan(app: Any):
@@ -27,7 +26,7 @@ def build_packed_kernel(app: Any) -> PackedKernel | None:
 
 
 def plan_labels(model: type, alias: str) -> list[str]:
-    return _default_kernel.plan_labels(model, alias)
+    return _default_kernel._plan_labels(model, alias)
 
 
 async def run(
@@ -38,9 +37,13 @@ async def run(
     request: Any | None = None,
     ctx: Optional[Mapping[str, Any]] = None,
 ) -> Any:
-    phases = _default_kernel.build_op(model, alias)
-    base_ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
-    return await _invoke(request=request, db=db, phases=phases, ctx=base_ctx)
+    return await _default_kernel._run(
+        model,
+        alias,
+        db=db,
+        request=request,
+        ctx=ctx,
+    )
 
 
 __all__ = [

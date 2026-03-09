@@ -11,20 +11,21 @@ from ._build import (
     _build_route_matrix,
     _pack_kernel_plan,
     _segment_label,
-    build,
-    build_egress,
-    build_ingress,
-    build_op,
-    compile_bootstrap_plan,
-    plan_labels,
+    _build,
+    _build_egress,
+    _build_ingress,
+    _build_op,
+    _compile_bootstrap_plan,
+    _plan_labels,
 )
-from ._compile import _compile_opview_from_specs, compile_plan
+from ._compile import _compile_opview_from_specs, _compile_plan
 from ._executor import (
     _build_numba_packed_executor,
     _build_python_packed_executor,
     _coerce_int,
     _execute_packed,
     _require_program_id_from_ctx,
+    _run,
     _run_phase_chain,
     _run_segment_python,
 )
@@ -143,7 +144,7 @@ class Kernel:
             model_name = getattr(model, "__name__", str(model))
             payload[model_name] = {}
             for sp in _opspecs(model):
-                payload[model_name][sp.alias] = self.plan_labels(model, sp.alias)
+                payload[model_name][sp.alias] = self._plan_labels(model, sp.alias)
         self._kernelz_payload[app] = payload
 
         return compiled
@@ -169,19 +170,20 @@ class Kernel:
                 self._primed.pop(app, None)
 
 
-Kernel.build_op = build_op
-Kernel.build = build
-Kernel.build_ingress = build_ingress
-Kernel.build_egress = build_egress
-Kernel.plan_labels = plan_labels
-Kernel.compile_bootstrap_plan = compile_bootstrap_plan
+Kernel._build_op = _build_op
+Kernel._build = _build
+Kernel._build_ingress = _build_ingress
+Kernel._build_egress = _build_egress
+Kernel._plan_labels = _plan_labels
+Kernel._compile_bootstrap_plan = _compile_bootstrap_plan
 Kernel._segment_label = _segment_label
 Kernel._build_route_matrix = _build_route_matrix
 Kernel._pack_kernel_plan = _pack_kernel_plan
 
-Kernel.compile_plan = compile_plan
+Kernel.compile_plan = _compile_plan
 Kernel._compile_opview_from_specs = _compile_opview_from_specs
 
+Kernel._run = _run
 Kernel._run_phase_chain = _run_phase_chain
 Kernel._run_segment_python = _run_segment_python
 Kernel._coerce_int = staticmethod(_coerce_int)
