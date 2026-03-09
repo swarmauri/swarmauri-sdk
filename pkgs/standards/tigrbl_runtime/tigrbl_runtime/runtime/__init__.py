@@ -10,7 +10,6 @@ _EXPORTS = {
     "_Ctx": "executor",
     "Kernel": "kernel",
     "build_phase_chains": "kernel",
-    "run": "kernel",
     "get_cached_specs": "kernel",
     "_default_kernel": "kernel",
     "events": "events",

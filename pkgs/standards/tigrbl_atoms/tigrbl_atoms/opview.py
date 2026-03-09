@@ -16,7 +16,7 @@ def opview_from_ctx(ctx: Any):
     if ov is not None:
         return ov
     try:
-        from tigrbl_runtime.runtime import kernel as _kernel  # type: ignore
+        from tigrbl_kernel import _default_kernel as _kernel  # type: ignore
     except Exception:
         _kernel = None
     app = getattr(ctx, "app", None) or getattr(ctx, "router", None)
@@ -27,11 +27,11 @@ def opview_from_ctx(ctx: Any):
     )
     alias = getattr(ctx, "op", None) or getattr(ctx, "method", None)
     if _kernel is not None and app and model and alias:
-        return _kernel._default_kernel.get_opview(app, model, alias)
+        return _kernel.get_opview(app, model, alias)
     if _kernel is not None and alias:
         specs = getattr(ctx, "specs", None)
         if specs is not None:
-            return _kernel._default_kernel._compile_opview_from_specs(
+            return _kernel._compile_opview_from_specs(
                 specs, SimpleNamespace(alias=alias)
             )
     raise RuntimeError("ctx_missing:opview")

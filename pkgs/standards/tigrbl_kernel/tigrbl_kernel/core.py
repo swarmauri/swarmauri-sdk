@@ -19,16 +19,6 @@ from ._build import (
     _plan_labels,
 )
 from ._compile import _compile_opview_from_specs, _compile_plan
-from ._executor import (
-    _build_numba_packed_executor,
-    _build_python_packed_executor,
-    _coerce_int,
-    _execute_packed,
-    _require_program_id_from_ctx,
-    _run,
-    _run_phase_chain,
-    _run_segment_python,
-)
 from .atoms import _DiscoveredAtom, _discover_atoms
 from .cache import _SpecsOnceCache, _WeakMaybeDict
 from .models import KernelPlan, OpView
@@ -182,12 +172,3 @@ Kernel._pack_kernel_plan = _pack_kernel_plan
 
 Kernel.compile_plan = _compile_plan
 Kernel._compile_opview_from_specs = _compile_opview_from_specs
-
-Kernel._run = _run
-Kernel._run_phase_chain = _run_phase_chain
-Kernel._run_segment_python = _run_segment_python
-Kernel._coerce_int = staticmethod(_coerce_int)
-Kernel._require_program_id_from_ctx = _require_program_id_from_ctx
-Kernel._execute_packed = _execute_packed
-Kernel._build_python_packed_executor = _build_python_packed_executor
-Kernel._build_numba_packed_executor = _build_numba_packed_executor

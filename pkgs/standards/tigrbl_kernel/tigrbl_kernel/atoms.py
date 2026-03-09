@@ -17,8 +17,9 @@ from typing import (
     cast,
 )
 
-from tigrbl_runtime.hook_types import PHASES as HOOK_PHASES
-from tigrbl_runtime.hook_types import StepFn
+from tigrbl_typing.phases import HOOK_PHASES as HOOK_PHASES
+
+from .hook_types import StepFn
 from . import events as _ev, ordering as _ordering
 
 logger = logging.getLogger(__name__)
