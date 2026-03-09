@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from ...types import Atom, Ctx, RoutedCtx
-from ...stages import Routed
+from ...types import Atom, Ctx, PlannedCtx
+from ...stages import Planned
 
 from typing import Any
 
@@ -34,13 +34,13 @@ def _run(obj: object | None, ctx: Any) -> None:
         route["plan"] = current
 
 
-class AtomImpl(Atom[Routed, Routed]):
+class AtomImpl(Atom[Planned, Planned]):
     name = "route.plan_select"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Routed]) -> Ctx[Routed]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Planned]) -> Ctx[Planned]:
         _run(obj, ctx)
-        return ctx.promote(RoutedCtx)
+        return ctx.promote(PlannedCtx)
 
 
 INSTANCE = AtomImpl()
