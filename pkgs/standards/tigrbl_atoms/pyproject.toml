@@ -24,6 +24,11 @@ dependencies = [
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
+[project.optional-dependencies]
+template = [
+    "jinja2>=3.1",
+]
+
 [tool.uv.sources]
 "tigrbl-ops-oltp" = { workspace = true }
 "tigrbl-base" = { workspace = true }
