@@ -36,42 +36,43 @@ def _default_status(op_alias: str) -> int:
 def _run(obj: object | None, ctx: Any) -> None:
     del obj
     route = _route_dict(ctx)
-    binding = route.get('program_id', route.get('opmeta_index', route.get('binding')) )
+    binding = route.get("program_id", route.get("opmeta_index", route.get("binding")))
     if not isinstance(binding, int) or binding < 0:
         return
     plan = _plan(ctx)
     if plan is None:
         return
-    opmeta = getattr(plan, 'opmeta', ())
+    opmeta = getattr(plan, "opmeta", ())
     if not isinstance(opmeta, (list, tuple)) or binding >= len(opmeta):
         return
     meta = opmeta[binding]
-    route['binding'] = binding
-    route['program_id'] = binding
-    route['opmeta_index'] = binding
-    model = getattr(meta, 'model', None)
-    alias = getattr(meta, 'alias', None)
-    target = getattr(meta, 'target', None)
-    setattr(ctx, 'model', model)
-    setattr(ctx, 'op', alias)
-    setattr(ctx, 'target', target)
+    route["binding"] = binding
+    route["program_id"] = binding
+    route["opmeta_index"] = binding
+    model = getattr(meta, "model", None)
+    alias = getattr(meta, "alias", None)
+    target = getattr(meta, "target", None)
+    setattr(ctx, "model", model)
+    setattr(ctx, "op", alias)
+    setattr(ctx, "target", target)
     if isinstance(alias, str):
         status_code = _default_status(alias)
-        route.setdefault('status_code', status_code)
-        setattr(ctx, 'status_code', route['status_code'])
+        route.setdefault("status_code", status_code)
+        setattr(ctx, "status_code", route["status_code"])
 
 
 class AtomImpl(Atom[Bound, Planned]):
-    name = 'route.op_resolve'
+    name = "route.op_resolve"
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Bound]) -> Ctx[Planned]:
         _run(obj, ctx)
-        return ctx.promote(PlannedCtx,
-            protocol=str(ctx.temp.get('route', {}).get('protocol', '') or ''),
-            path_params=dict(ctx.temp.get('route', {}).get('path_params', {}) or {}),
-            binding=ctx.temp.get('route', {}).get('binding'),
-            opmeta_index=ctx.temp.get('route', {}).get('opmeta_index'),
+        return ctx.promote(
+            PlannedCtx,
+            protocol=str(ctx.temp.get("route", {}).get("protocol", "") or ""),
+            path_params=dict(ctx.temp.get("route", {}).get("path_params", {}) or {}),
+            binding=ctx.temp.get("route", {}).get("binding"),
+            opmeta_index=ctx.temp.get("route", {}).get("opmeta_index"),
         )
 
 

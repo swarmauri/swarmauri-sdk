@@ -5,7 +5,7 @@ from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any, Dict, List, Mapping
 
-from tigrbl_runtime.hook_types import StepFn
+from .hook_types import StepFn
 
 from . import events as _ev
 from .atoms import (
@@ -249,10 +249,16 @@ def _pack_kernel_plan(self, plan: KernelPlan) -> PackedKernel:
         numba_effect_payloads=tuple(effect_payloads),
         executor_kind="python",
     )
+    build_python_executor = getattr(self, "_build_python_packed_executor", None)
+    build_numba_executor = getattr(self, "_build_numba_packed_executor", None)
     return replace(
         packed,
-        executor=self._build_python_packed_executor(packed),
-        numba_executor=self._build_numba_packed_executor(packed),
+        executor=build_python_executor(packed)
+        if callable(build_python_executor)
+        else None,
+        numba_executor=build_numba_executor(packed)
+        if callable(build_numba_executor)
+        else None,
     )
 
 

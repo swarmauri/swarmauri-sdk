@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from tigrbl_runtime.executor import _Ctx, _invoke
+from .executor import _Ctx, _invoke
 
-from .models import KernelPlan, PackedKernel
+from tigrbl_kernel.models import KernelPlan, PackedKernel
 
 if TYPE_CHECKING:
-    from .core import Kernel
+    from tigrbl_kernel.core import Kernel
 
 
 async def _run(
@@ -152,14 +152,6 @@ def _build_python_packed_executor(self, packed: PackedKernel):
 
 
 def _build_numba_packed_executor(self, packed: PackedKernel):
-    """
-    Numba target for an extracted synchronous route/program helper.
-
-    Semantic route authority remains with route atoms. This helper is only an
-    optional implementation detail for synchronous numeric dispatch extraction:
-
-        program_id = route_to_program[proto_id, selector_id]
-    """
     if not packed.route_to_program:
         return None
     try:
