@@ -12,7 +12,6 @@ from .atoms import (
     _hook_phase_chains,
     _inject_atoms,
     _inject_pre_tx_dep_atoms,
-    _inject_txn_system_steps,
     _is_persistent,
     _wrap_atom,
 )
@@ -58,15 +57,6 @@ def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
 
     _inject_pre_tx_dep_atoms(chains, sp)
 
-    if persistent:
-        try:
-            _inject_txn_system_steps(chains, model=model)
-        except Exception:
-            logger.exception(
-                "kernel: failed to inject txn system steps for %s.%s",
-                getattr(model, "__name__", model),
-                alias,
-            )
     for phase in DEFAULT_PHASE_ORDER:
         chains.setdefault(phase, [])
     return chains
