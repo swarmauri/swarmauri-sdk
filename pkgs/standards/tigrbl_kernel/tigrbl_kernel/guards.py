@@ -18,8 +18,8 @@ except Exception:  # pragma: no cover
     Session = Any  # type: ignore
     AsyncSession = Any  # type: ignore
 
-from .types import _Ctx, PhaseChains
-from .helpers import _is_async_db, _run_chain, _g
+from tigrbl_runtime.runtime.executor.types import _Ctx, PhaseChains
+from tigrbl_runtime.runtime.executor.helpers import _is_async_db, _run_chain, _g
 
 logger = logging.getLogger(__name__)
 
@@ -116,13 +116,15 @@ async def _rollback_if_owned(
 
     if not owns_tx or db is None:
         return
-    try:
-        if _is_async_db(db):
-            await db.rollback()  # type: ignore[func-returns-value]
-        else:
-            db.rollback()
-    except Exception as rb_exc:  # pragma: no cover
-        logger.exception("Rollback failed: %s", rb_exc)
+
+    if not _g(phases, "ON_ROLLBACK"):
+        try:
+            if _is_async_db(db):
+                await db.rollback()  # type: ignore[func-returns-value]
+            else:
+                db.rollback()
+        except Exception as rb_exc:  # pragma: no cover
+            logger.exception("Rollback failed: %s", rb_exc)
     try:
         await _run_chain(ctx, _g(phases, "ON_ROLLBACK"), phase="ON_ROLLBACK")
     except Exception:  # pragma: no cover
