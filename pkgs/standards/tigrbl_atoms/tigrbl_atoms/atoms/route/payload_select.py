@@ -24,7 +24,9 @@ def _route_dict(ctx: Any) -> dict[str, object]:
     return route
 
 
-def _merge_dicts(base: Mapping[str, object], overlay: Mapping[str, object]) -> dict[str, object]:
+def _merge_dicts(
+    base: Mapping[str, object], overlay: Mapping[str, object]
+) -> dict[str, object]:
     out = {str(k): v for k, v in base.items()}
     for key, value in overlay.items():
         out[str(key)] = value
@@ -44,7 +46,9 @@ def _run(obj: object | None, ctx: Any) -> None:
     route = _route_dict(ctx)
     protocol = str(route.get("protocol", "") or "")
     params = route.get("params")
-    params_dict = {str(k): v for k, v in params.items()} if isinstance(params, Mapping) else {}
+    params_dict = (
+        {str(k): v for k, v in params.items()} if isinstance(params, Mapping) else {}
+    )
 
     payload: object
     payload_source: str

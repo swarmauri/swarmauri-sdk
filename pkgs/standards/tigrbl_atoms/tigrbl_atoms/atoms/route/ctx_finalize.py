@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any
 
 from ... import events as _ev
 from ...stages import Planned
@@ -25,7 +25,10 @@ def _route_dict(ctx: Any) -> dict[str, object]:
 
 
 def _acquire_session(ctx: Any) -> None:
-    if getattr(ctx, "db", None) is not None or getattr(ctx, "session", None) is not None:
+    if (
+        getattr(ctx, "db", None) is not None
+        or getattr(ctx, "session", None) is not None
+    ):
         return
 
     factory = getattr(ctx, "db_factory", None) or getattr(ctx, "session_factory", None)

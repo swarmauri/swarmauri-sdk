@@ -6,7 +6,7 @@ from ...stages import Planned, Guarded
 import inspect
 from typing import Any, Callable
 
-from tigrbl_canon.mapping.core_resolver import (
+from ._param_resolver import (
     Param,
     annotation_marker,
     extract_param_value,

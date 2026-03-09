@@ -52,7 +52,9 @@ def _normalize_rpc_dict(body: Mapping[str, object]) -> dict[str, object] | None:
         return None
 
     out: dict[str, object] = {
-        "jsonrpc": "2.0" if body.get("jsonrpc") == "2.0" else body.get("jsonrpc", "2.0"),
+        "jsonrpc": "2.0"
+        if body.get("jsonrpc") == "2.0"
+        else body.get("jsonrpc", "2.0"),
         "method": method,
     }
 
