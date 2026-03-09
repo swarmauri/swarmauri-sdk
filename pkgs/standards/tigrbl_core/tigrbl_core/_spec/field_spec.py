@@ -2,9 +2,24 @@
 from __future__ import annotations
 from dataclasses import dataclass, field as dc_field
 from typing import Any, Dict, Tuple, Callable
-from pydantic import ValidationInfo  # v2
 
 from .serde import SerdeMixin
+
+
+@dataclass(frozen=True)
+class ValidationInfo:
+    """Validation context passed to field validators.
+
+    This lightweight local type avoids coupling field specs to Pydantic internals
+    while still providing the common context payload validators rely on.
+    """
+
+    data: Dict[str, Any] | None = None
+    context: Dict[str, Any] | None = None
+    field_name: str | None = None
+    mode: str | None = None
+    config: Dict[str, Any] | None = None
+
 
 PreFn = Callable[[Any, ValidationInfo], Any]  # BeforeValidator
 PostFn = Callable[[Any, ValidationInfo], Any]  # AfterValidator
