@@ -34,7 +34,7 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 
-def build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
+def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
     from .core import DEFAULT_PHASE_ORDER
 
     chains = _hook_phase_chains(model, alias)
@@ -72,11 +72,11 @@ def build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
     return chains
 
 
-def build(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
-    return self.build_op(model, alias)
+def _build(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
+    return self._build_op(model, alias)
 
 
-def build_ingress(self, app: Any) -> Dict[str, List[StepFn]]:
+def _build_ingress(self, app: Any) -> Dict[str, List[StepFn]]:
     del app
     order = {name: idx for idx, name in enumerate(_ev.all_events_ordered())}
     ingress_atoms: Dict[str, List[tuple[str, Any]]] = {}
@@ -95,7 +95,7 @@ def build_ingress(self, app: Any) -> Dict[str, List[StepFn]]:
     return out
 
 
-def build_egress(self, app: Any) -> Dict[str, List[StepFn]]:
+def _build_egress(self, app: Any) -> Dict[str, List[StepFn]]:
     del app
     order = {name: idx for idx, name in enumerate(_ev.all_events_ordered())}
     egress_atoms: Dict[str, List[tuple[str, Any]]] = {}
@@ -114,11 +114,11 @@ def build_egress(self, app: Any) -> Dict[str, List[StepFn]]:
     return out
 
 
-def plan_labels(self, model: type, alias: str) -> list[str]:
+def _plan_labels(self, model: type, alias: str) -> list[str]:
     from .core import DEFAULT_PHASE_ORDER
 
     labels: list[str] = []
-    chains = self.build(model, alias)
+    chains = self._build(model, alias)
     opspec = next(
         (sp for sp in _opspecs(model) if getattr(sp, "alias", None) == alias),
         None,
@@ -266,5 +266,5 @@ def _pack_kernel_plan(self, plan: KernelPlan) -> PackedKernel:
     )
 
 
-def compile_bootstrap_plan(self, app: Any) -> Dict[str, List[StepFn]]:
-    return self.build_ingress(app)
+def _compile_bootstrap_plan(self, app: Any) -> Dict[str, List[StepFn]]:
+    return self._build_ingress(app)

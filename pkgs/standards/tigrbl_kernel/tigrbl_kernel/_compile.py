@@ -27,7 +27,7 @@ def _compile_opview_from_specs(self: Any, specs: Mapping[str, Any], sp: Any) -> 
     return compile_opview_from_specs(specs, sp)
 
 
-def compile_plan(self: Any, app: Any) -> KernelPlan:
+def _compile_plan(self: Any, app: Any) -> KernelPlan:
     app = _canonicalize_app(app)
 
     from tigrbl_core._spec.binding_spec import (
@@ -40,8 +40,8 @@ def compile_plan(self: Any, app: Any) -> KernelPlan:
     opmeta: list[OpMeta] = []
     opkey_to_meta: dict[OpKey, int] = {}
     phase_chains: dict[int, Mapping[str, list[StepFn]]] = {}
-    ingress_chain = self.build_ingress(app)
-    egress_chain = self.build_egress(app)
+    ingress_chain = self._build_ingress(app)
+    egress_chain = self._build_egress(app)
     phases, mainline_phases, error_phases = _phase_info_map(DEFAULT_PHASE_ORDER)
 
     for model in _table_iter(app):
@@ -51,7 +51,7 @@ def compile_plan(self: Any, app: Any) -> KernelPlan:
             opmeta.append(OpMeta(model=model, alias=sp.alias, target=target))
             phase_chains[meta_index] = deepmerge_phase_chains(
                 ingress_chain,
-                self.build_op(model, sp.alias),
+                self._build_op(model, sp.alias),
                 egress_chain,
             )
 

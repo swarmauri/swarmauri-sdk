@@ -47,7 +47,7 @@ def build_kernelz_payload(kernel: "Kernel", app: Any):
             if persist:
                 labels.append("START_TX:hook:sys:txn:begin@START_TX")
 
-            chains = kernel.build(model, sp.alias)
+            chains = kernel._build(model, sp.alias)
             for phase in _ev.PHASES:
                 if phase in {"START_TX", "END_TX", "PRE_TX_BEGIN", "POST_RESPONSE"}:
                     continue
