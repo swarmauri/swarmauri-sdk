@@ -4,7 +4,7 @@ import inspect
 from typing import Any, Awaitable, Callable
 
 from ... import events as _ev
-from ...stages import Operated, Ready
+from ...stages import Operated, Resolved
 from ...types import Atom, Ctx, OperatedCtx
 
 ANCHOR = _ev.SYS_HANDLER_PERSISTENCE
@@ -12,7 +12,7 @@ ANCHOR = _ev.SYS_HANDLER_PERSISTENCE
 HandlerFn = Callable[[object | None, Any], object | Awaitable[object]]
 
 
-class BoundAtom(Atom[Ready, Operated]):
+class BoundAtom(Atom[Resolved, Operated]):
     name = "handler.custom"
     anchor = ANCHOR
 
@@ -21,7 +21,7 @@ class BoundAtom(Atom[Ready, Operated]):
         if name:
             self.name = name
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Ready]) -> Ctx[Operated]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Resolved]) -> Ctx[Operated]:
         result = self._fn(obj, ctx)
         if inspect.isawaitable(result):
             result = await result
@@ -29,7 +29,7 @@ class BoundAtom(Atom[Ready, Operated]):
         return ctx.promote(OperatedCtx)
 
 
-def bind(fn: HandlerFn, *, name: str | None = None) -> Atom[Ready, Operated]:
+def bind(fn: HandlerFn, *, name: str | None = None) -> Atom[Resolved, Operated]:
     return BoundAtom(fn, name=name)
 
 

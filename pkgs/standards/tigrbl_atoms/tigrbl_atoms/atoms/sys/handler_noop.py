@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from ... import events as _ev
-from ...stages import Operated, Ready
+from ...stages import Operated, Resolved
 from ...types import Atom, Ctx, OperatedCtx
 
 ANCHOR = _ev.SYS_HANDLER_PERSISTENCE
@@ -24,11 +24,11 @@ async def _run(obj: object | None, ctx: Any) -> None:
     )
 
 
-class AtomImpl(Atom[Ready, Operated]):
+class AtomImpl(Atom[Resolved, Operated]):
     name = "handler.noop"
     anchor = ANCHOR
 
-    async def __call__(self, obj: object | None, ctx: Ctx[Ready]) -> Ctx[Operated]:
+    async def __call__(self, obj: object | None, ctx: Ctx[Resolved]) -> Ctx[Operated]:
         await _run(obj, ctx)
         return ctx.promote(OperatedCtx)
 

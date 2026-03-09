@@ -11,26 +11,30 @@ ANCHOR = _ev.ROUTE_MATCH_REST
 
 def _run(obj: object | None, ctx: Any) -> None:
     del obj
-    temp = getattr(ctx, 'temp', None)
+    temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
         temp = {}
-        setattr(ctx, 'temp', temp)
-    route = temp.setdefault('route', {})
+        setattr(ctx, "temp", temp)
+    route = temp.setdefault("route", {})
     if not isinstance(route, dict):
         route = {}
-        temp['route'] = route
-    candidates = route.get('protocol_candidates')
+        temp["route"] = route
+    candidates = route.get("protocol_candidates")
     if isinstance(candidates, list):
-        route['rest_candidates'] = [p for p in candidates if isinstance(p, str) and p.endswith('.rest')]
+        route["rest_candidates"] = [
+            p for p in candidates if isinstance(p, str) and p.endswith(".rest")
+        ]
 
 
 class AtomImpl(Atom[Routed, Routed]):
-    name = 'route.match_rest'
+    name = "route.match_rest"
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Routed]) -> Ctx[Routed]:
         _run(obj, ctx)
-        return ctx.promote(RoutedCtx, protocol=str(ctx.temp.get('route', {}).get('protocol', '') or ''))
+        return ctx.promote(
+            RoutedCtx, protocol=str(ctx.temp.get("route", {}).get("protocol", "") or "")
+        )
 
 
 INSTANCE = AtomImpl()

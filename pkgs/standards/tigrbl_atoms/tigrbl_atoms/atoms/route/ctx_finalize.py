@@ -72,7 +72,11 @@ def _run(obj: object | None, ctx: Any) -> None:
 
     route = _route_dict(ctx)
 
-    if not isinstance(route.get("program_id"), int) and not isinstance(route.get("opmeta_index"), int) and route.get("handler") is None:
+    if (
+        not isinstance(route.get("program_id"), int)
+        and not isinstance(route.get("opmeta_index"), int)
+        and route.get("handler") is None
+    ):
         return
 
     _acquire_session(ctx)
