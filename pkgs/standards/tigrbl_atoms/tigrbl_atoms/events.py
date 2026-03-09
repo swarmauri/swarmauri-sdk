@@ -77,8 +77,8 @@ ROUTE_PARAMS_NORMALIZE = "route.params.normalize"
 ROUTE_PAYLOAD_SELECT = "route.payload.select"
 ROUTE_BINDING_POLICY_APPLY = "route.binding_policy.apply"
 ROUTE_OP_RESOLVE = "route.op.resolve"
-ROUTE_CTX_FINALIZE = "route.ctx.finalize"
 ROUTE_PLAN_SELECT = "route.plan.select"
+ROUTE_CTX_FINALIZE = "route.ctx.finalize"
 
 # PRE_TX_BEGIN
 DEP_SECURITY = "dep:security"
@@ -152,8 +152,8 @@ _EVENT_ORDER: Tuple[str, ...] = (
     ROUTE_PAYLOAD_SELECT,
     ROUTE_BINDING_POLICY_APPLY,
     ROUTE_OP_RESOLVE,
-    ROUTE_CTX_FINALIZE,
     ROUTE_PLAN_SELECT,
+    ROUTE_CTX_FINALIZE,
     # PRE_TX_BEGIN
     DEP_SECURITY,
     DEP_EXTRA,
@@ -239,8 +239,8 @@ _ANCHOR_PHASE: Dict[str, Phase] = {
     ROUTE_PAYLOAD_SELECT: INGRESS_ROUTE,
     ROUTE_BINDING_POLICY_APPLY: INGRESS_ROUTE,
     ROUTE_OP_RESOLVE: INGRESS_ROUTE,
-    ROUTE_CTX_FINALIZE: INGRESS_ROUTE,
     ROUTE_PLAN_SELECT: INGRESS_ROUTE,
+    ROUTE_CTX_FINALIZE: INGRESS_ROUTE,
     DEP_SECURITY: PRE_TX_BEGIN,
     DEP_EXTRA: PRE_TX_BEGIN,
     SYS_TX_BEGIN: START_TX,
@@ -298,8 +298,8 @@ _ANCHOR_STAGE: Dict[str, Tuple[Stage, Stage]] = {
     ROUTE_PAYLOAD_SELECT: (Bound, Bound),
     ROUTE_BINDING_POLICY_APPLY: (Bound, Bound),
     ROUTE_OP_RESOLVE: (Bound, Planned),
-    ROUTE_CTX_FINALIZE: (Planned, Planned),
     ROUTE_PLAN_SELECT: (Planned, Planned),
+    ROUTE_CTX_FINALIZE: (Planned, Planned),
     # PRE_TX_BEGIN
     DEP_SECURITY: (Planned, Guarded),
     DEP_EXTRA: (Guarded, Guarded),
