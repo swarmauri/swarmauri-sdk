@@ -4,42 +4,50 @@ from typing import Any, Mapping
 
 from tigrbl_atoms.atoms.egress.asgi_send import _send_transport_response
 from tigrbl_atoms.atoms.response.error_to_transport import run as _error_to_transport
-from tigrbl_atoms.atoms.sys.runtime_route_handler import run as _runtime_route_handler
 from ..executor import _Ctx, _invoke
-from ..kernel.core import Kernel
+from tigrbl_kernel.core import Kernel
 from .raw import GwRawEnvelope
 
 
-async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
+async def invoke(
+    env: GwRawEnvelope,
+    *,
+    app: Any | None = None,
+    kernel_plan: Any | None = None,
+) -> None:
     app = app if app is not None else _resolve_app(env)
-    if app is None:
+    plan = kernel_plan if kernel_plan is not None else _resolve_kernel_plan(env)
+    if plan is None and app is None:
         return
 
     scope_type = env.scope.get("type")
     if scope_type == "lifespan":
-        await _handle_lifespan(app, env)
+        if app is not None:
+            await _handle_lifespan(app, env)
         return
     if scope_type != "http":
         return
 
     kernel = Kernel()
-    plan = kernel.kernel_plan(app)
+    if plan is None:
+        plan = kernel.kernel_plan(app)
+
     ctx = _Ctx.ensure(request=None, db=None)
     ctx.app = app
     ctx.router = app
     ctx.raw = env
+    ctx.gw_raw = env
     ctx.kernel_plan = plan
 
     await _run_phase_chain(ctx, plan.ingress_chain)
 
     opmeta_index = _resolve_op_index(ctx, plan)
     if opmeta_index is None:
+        ctx.error = RuntimeError("No runtime operation matched request.")
         await _invoke(
             request=None,
             db=None,
             phases={
-                "HANDLER": [_runtime_route_handler],
-                "ON_HANDLER_ERROR": [_error_to_transport],
                 "ON_ERROR": [_error_to_transport],
             },
             ctx=ctx,
@@ -50,7 +58,8 @@ async def invoke(env: GwRawEnvelope, *, app: Any | None = None) -> None:
     opmeta = plan.opmeta[opmeta_index]
     ctx.model = opmeta.model
     ctx.op = opmeta.alias
-    ctx.opview = kernel.get_opview(app, opmeta.model, opmeta.alias)
+    if app is not None:
+        ctx.opview = kernel.get_opview(app, opmeta.model, opmeta.alias)
 
     phases = _without_ingress_phases(plan.phase_chains.get(opmeta_index, {}))
     phases.setdefault("ON_ERROR", []).append(_error_to_transport)
@@ -64,6 +73,10 @@ def _resolve_app(env: GwRawEnvelope) -> Any | None:
     if app is None:
         app = env.scope.get("tigrbl.app")
     return app
+
+
+def _resolve_kernel_plan(env: GwRawEnvelope) -> Any | None:
+    return env.scope.get("tigrbl.kernel_plan")
 
 
 def _resolve_op_index(ctx: _Ctx, plan: Any) -> int | None:

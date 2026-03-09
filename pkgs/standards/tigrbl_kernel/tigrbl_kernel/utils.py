@@ -4,7 +4,7 @@ import re
 from types import SimpleNamespace
 from typing import Any, Mapping, Sequence
 
-from tigrbl_runtime.hook_types import StepFn
+from .hook_types import StepFn
 
 from . import events as _ev
 from .models import CompiledPhase

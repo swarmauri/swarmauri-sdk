@@ -11,7 +11,7 @@ except Exception:  # pragma: no cover
     AsyncSession = Any  # type: ignore
 
 try:
-    from .. import trace as _trace  # type: ignore
+    from tigrbl_kernel import trace as _trace  # type: ignore
 except Exception:  # pragma: no cover
     _trace = None  # type: ignore
 

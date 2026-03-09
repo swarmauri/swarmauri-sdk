@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Mapping, Optional
+from typing import Any, Dict, List, Mapping
 
-from tigrbl_runtime.hook_types import StepFn
+from .hook_types import StepFn
 from .core import Kernel
 from .models import OpView, PackedKernel, SchemaIn, SchemaOut
 
@@ -29,23 +29,6 @@ def plan_labels(model: type, alias: str) -> list[str]:
     return _default_kernel._plan_labels(model, alias)
 
 
-async def run(
-    model: type,
-    alias: str,
-    *,
-    db: Any,
-    request: Any | None = None,
-    ctx: Optional[Mapping[str, Any]] = None,
-) -> Any:
-    return await _default_kernel._run(
-        model,
-        alias,
-        db=db,
-        request=request,
-        ctx=ctx,
-    )
-
-
 __all__ = [
     "Kernel",
     "OpView",
@@ -58,5 +41,4 @@ __all__ = [
     "_default_kernel",
     "build_phase_chains",
     "plan_labels",
-    "run",
 ]
