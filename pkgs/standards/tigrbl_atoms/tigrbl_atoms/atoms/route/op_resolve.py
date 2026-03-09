@@ -14,11 +14,9 @@ def _route_dict(ctx: Any) -> dict[str, object]:
     if not isinstance(temp, dict):
         temp = {}
         setattr(ctx, "temp", temp)
-
     route_obj = temp.setdefault("route", {})
     if isinstance(route_obj, dict):
         return route_obj
-
     route: dict[str, object] = {}
     temp["route"] = route
     return route
@@ -32,80 +30,49 @@ def _default_status(op_alias: str) -> int:
     alias = op_alias.lower()
     if alias in {"create", "bulk_create"}:
         return 201
-    if alias in {"delete", "bulk_delete"}:
-        return 200
     return 200
 
 
 def _run(obj: object | None, ctx: Any) -> None:
     del obj
-
     route = _route_dict(ctx)
-    binding = route.get("opmeta_index", route.get("binding"))
-
-    if not isinstance(binding, int):
+    binding = route.get('program_id', route.get('opmeta_index', route.get('binding')) )
+    if not isinstance(binding, int) or binding < 0:
         return
-
     plan = _plan(ctx)
     if plan is None:
         return
-
-    opmeta = getattr(plan, "opmeta", ())
-    if not isinstance(opmeta, (list, tuple)):
+    opmeta = getattr(plan, 'opmeta', ())
+    if not isinstance(opmeta, (list, tuple)) or binding >= len(opmeta):
         return
-    if binding < 0 or binding >= len(opmeta):
-        return
-
     meta = opmeta[binding]
-
-    model = getattr(meta, "model", None)
-    alias = getattr(meta, "alias", None)
-    target = getattr(meta, "target", None)
-
-    route["binding"] = binding
-    route["opmeta_index"] = binding
-
-    setattr(ctx, "model", model)
-    setattr(ctx, "op", alias)
-    setattr(ctx, "target", target)
-
-    specs_cache = getattr(ctx, "specs_cache", None)
-    if specs_cache is not None and model is not None and isinstance(alias, str):
-        try:
-            specs = specs_cache.get(model)
-            setattr(ctx, "specs", specs)
-        except Exception:
-            pass
-
-    compiler = getattr(ctx, "opview_compiler", None)
-    if callable(compiler) and model is not None and isinstance(alias, str):
-        try:
-            opview = compiler(model, alias)
-            setattr(ctx, "opview", opview)
-        except Exception:
-            pass
-
+    route['binding'] = binding
+    route['program_id'] = binding
+    route['opmeta_index'] = binding
+    model = getattr(meta, 'model', None)
+    alias = getattr(meta, 'alias', None)
+    target = getattr(meta, 'target', None)
+    setattr(ctx, 'model', model)
+    setattr(ctx, 'op', alias)
+    setattr(ctx, 'target', target)
     if isinstance(alias, str):
         status_code = _default_status(alias)
-        route.setdefault("status_code", status_code)
-        setattr(ctx, "status_code", route["status_code"])
+        route.setdefault('status_code', status_code)
+        setattr(ctx, 'status_code', route['status_code'])
 
 
 class AtomImpl(Atom[Bound, Planned]):
-    name = "route.op_resolve"
+    name = 'route.op_resolve'
     anchor = ANCHOR
 
     async def __call__(self, obj: object | None, ctx: Ctx[Bound]) -> Ctx[Planned]:
         _run(obj, ctx)
-        return ctx.promote(
-            PlannedCtx,
-            protocol=str(ctx.temp.get("route", {}).get("protocol", "") or ""),
-            path_params=dict(ctx.temp.get("route", {}).get("path_params", {}) or {}),
-            binding=ctx.temp.get("route", {}).get("binding"),
-            opmeta_index=ctx.temp.get("route", {}).get("opmeta_index"),
+        return ctx.promote(PlannedCtx,
+            protocol=str(ctx.temp.get('route', {}).get('protocol', '') or ''),
+            path_params=dict(ctx.temp.get('route', {}).get('path_params', {}) or {}),
+            binding=ctx.temp.get('route', {}).get('binding'),
+            opmeta_index=ctx.temp.get('route', {}).get('opmeta_index'),
         )
 
 
 INSTANCE = AtomImpl()
-
-__all__ = ["ANCHOR", "INSTANCE"]

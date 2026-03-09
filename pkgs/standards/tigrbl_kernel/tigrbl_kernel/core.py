@@ -44,6 +44,51 @@ DEFAULT_PHASE_ORDER = tuple(getattr(_ev, "PHASES", ())) or (
     "POST_RESPONSE",
 )
 
+# ---------------------------------------------------------------------------
+# Lowering taxonomy
+# ---------------------------------------------------------------------------
+# All atoms remain async semantic truth. We only lower the bounded synchronous
+# sub-effects we can extract safely. Today, that means the route/program spine
+# and other tiny request-shape helpers.
+LOWER_KIND_ASYNC_DIRECT = "async_direct"
+LOWER_KIND_SYNC_EXTRACTABLE = "sync_extractable"
+LOWER_KIND_SPLIT_EXTRACTABLE = "split_extractable"
+
+EFFECT_NONE = -1
+EFFECT_ROUTE_PROTOCOL_DETECT = 1
+EFFECT_ROUTE_SELECTOR_RESOLVE = 2
+EFFECT_ROUTE_PROGRAM_RESOLVE = 3
+EFFECT_ROUTE_OP_RESOLVE = 4
+EFFECT_INGRESS_METHOD_EXTRACT = 5
+EFFECT_INGRESS_PATH_EXTRACT = 6
+EFFECT_ROUTE_MATCH_REST = 7
+EFFECT_ROUTE_MATCH_JSONRPC = 8
+EFFECT_ROUTE_MATCH_WS = 9
+
+_EFFECT_BY_ATOM_NAME: dict[str, int] = {
+    "route.protocol_detect": EFFECT_ROUTE_PROTOCOL_DETECT,
+    "route.selector_resolve": EFFECT_ROUTE_SELECTOR_RESOLVE,
+    "route.program_resolve": EFFECT_ROUTE_PROGRAM_RESOLVE,
+    "route.op_resolve": EFFECT_ROUTE_OP_RESOLVE,
+    "ingress.method_extract": EFFECT_INGRESS_METHOD_EXTRACT,
+    "ingress.path_extract": EFFECT_INGRESS_PATH_EXTRACT,
+    "route.match_rest": EFFECT_ROUTE_MATCH_REST,
+    "route.match_jsonrpc": EFFECT_ROUTE_MATCH_JSONRPC,
+    "route.match_ws": EFFECT_ROUTE_MATCH_WS,
+}
+
+
+ROUTE_SPINE_ATOMS = {
+    "route.protocol_detect",
+    "route.match_rest",
+    "route.match_jsonrpc",
+    "route.match_ws",
+    "route.match_fallback",
+    "route.selector_resolve",
+    "route.program_resolve",
+    "route.op_resolve",
+}
+
 
 def deepmerge_phase_chains(
     *phase_maps: Mapping[str, Sequence[StepFn]],
@@ -98,6 +143,22 @@ def _label_callable(fn: Any) -> str:
     return f"{module}.{name}" if module else name
 
 
+def _atom_name(step: Any) -> str | None:
+    for attr in ("__tigrbl_atom_name__", "__tigrbl_name__", "name"):
+        value = getattr(step, attr, None)
+        if isinstance(value, str) and value:
+            return value
+    label = getattr(step, "__tigrbl_label", None)
+    if isinstance(label, str) and label:
+        prefix = label.split("@", 1)[0]
+        if ":hook:wire:" in prefix:
+            prefix = prefix.split(":hook:wire:", 1)[1]
+        prefix = prefix.replace(":", ".")
+        if prefix:
+            return prefix
+    return None
+
+
 def _label_step(step: Any, phase: str) -> str:
     label = getattr(step, "__tigrbl_label", None)
     if isinstance(label, str) and "@" in label:
@@ -110,7 +171,31 @@ def _label_step(step: Any, phase: str) -> str:
         and name
     ):
         return f"hook:wire:tigrbl:core:crud:ops:{name}@{phase}"
+    atom_name = _atom_name(step)
+    if isinstance(atom_name, str) and atom_name:
+        return f"hook:wire:{atom_name.replace('.', ':')}@{phase}"
     return f"hook:wire:{_label_callable(step).replace('.', ':')}@{phase}"
+
+
+def _classify_step_lowering(step: Any, phase: str) -> str:
+    name = _atom_name(step)
+    if name in ROUTE_SPINE_ATOMS:
+        return LOWER_KIND_SYNC_EXTRACTABLE
+    if name in {"ingress.method_extract", "ingress.path_extract"}:
+        return LOWER_KIND_SYNC_EXTRACTABLE
+    if name in {"route.params_normalize", "route.payload_select", "route.rpc_envelope_parse", "ingress.headers_parse", "ingress.query_parse"}:
+        return LOWER_KIND_SPLIT_EXTRACTABLE
+    if phase in EGRESS_PHASES:
+        return LOWER_KIND_ASYNC_DIRECT
+    return LOWER_KIND_ASYNC_DIRECT
+
+
+def _effect_descriptor_for_step(step: Any) -> tuple[int, tuple[int, ...]]:
+    name = _atom_name(step)
+    if not isinstance(name, str) or not name:
+        return EFFECT_NONE, ()
+    effect_id = _EFFECT_BY_ATOM_NAME.get(name, EFFECT_NONE)
+    return int(effect_id), ()
 
 
 def _compile_path_pattern(path: str) -> tuple[re.Pattern[str], tuple[str, ...]]:
@@ -361,73 +446,54 @@ class Kernel:
             if hasattr(rv, "__await__"):
                 await rv
 
-    def _selector_from_ctx(self, ctx: _Ctx) -> tuple[str | None, str | None]:
+    @staticmethod
+    def _coerce_int(value: Any) -> int | None:
+        return value if isinstance(value, int) else None
+
+    def _resolve_program_id_from_ctx(self, ctx: _Ctx, packed: PackedKernel) -> int:
         temp = getattr(ctx, "temp", None)
         if not isinstance(temp, dict):
-            return None, None
+            ctx.temp = {}
+            temp = ctx.temp
 
-        proto = temp.get("proto") or temp.get("proto_name")
-        selector = temp.get("selector") or temp.get("selector_name")
-
-        if isinstance(proto, str) and isinstance(selector, str):
-            return proto, selector
-
-        route = temp.get("route")
+        route = temp.get("route") if isinstance(temp, dict) else None
         if isinstance(route, dict):
-            route_proto = route.get("proto")
-            route_selector = route.get("selector")
-            if isinstance(route_proto, str) and isinstance(route_selector, str):
-                return route_proto, route_selector
+            for key in ("program_id", "opmeta_index"):
+                value = self._coerce_int(route.get(key))
+                if value is not None:
+                    temp["program_id"] = value
+                    return value
 
-        proto_id = temp.get("proto_id")
-        selector_id = temp.get("selector_id")
-        packed = getattr(ctx, "kernel_plan", None)
-        if isinstance(packed, KernelPlan) and packed.packed is not None:
-            image = packed.packed
-            if isinstance(proto_id, int) and 0 <= proto_id < len(image.proto_names):
-                proto = image.proto_names[proto_id]
-            if isinstance(selector_id, int) and 0 <= selector_id < len(image.selector_names):
-                selector = image.selector_names[selector_id]
-            if isinstance(proto, str) and isinstance(selector, str):
-                return proto, selector
+        value = self._coerce_int(temp.get("program_id"))
+        if value is not None:
+            return value
 
-        return None, None
-
-    def _resolve_program_id(self, ctx: _Ctx, packed: PackedKernel) -> int:
-        temp = getattr(ctx, "temp", None)
-        if not isinstance(temp, dict):
+        proto_id = self._coerce_int(temp.get("proto_id"))
+        selector_id = self._coerce_int(temp.get("selector_id"))
+        if proto_id is None or selector_id is None:
             return -1
 
-        proto_id = temp.get("proto_id")
-        selector_id = temp.get("selector_id")
-        if not isinstance(proto_id, int) or not isinstance(selector_id, int):
-            proto_name, selector_name = self._selector_from_ctx(ctx)
-            if isinstance(proto_name, str):
-                proto_id = packed.proto_to_id.get(proto_name)
-                if proto_id is not None:
-                    temp["proto_id"] = proto_id
-            if isinstance(selector_name, str):
-                selector_id = packed.selector_to_id.get(selector_name)
-                if selector_id is not None:
-                    temp["selector_id"] = selector_id
+        if packed.numba_executor is not None:
+            try:
+                program_id = int(packed.numba_executor(proto_id, selector_id))
+            except Exception:
+                program_id = -1
+        else:
+            if proto_id < 0 or selector_id < 0:
+                return -1
+            if proto_id >= len(packed.route_to_program):
+                return -1
+            row = packed.route_to_program[proto_id]
+            if selector_id >= len(row):
+                return -1
+            program_id = int(row[selector_id])
 
-        if not isinstance(proto_id, int) or not isinstance(selector_id, int):
-            route = temp.get("route")
+        if program_id >= 0:
+            temp["program_id"] = program_id
             if isinstance(route, dict):
-                meta_index = route.get("opmeta_index")
-                if isinstance(meta_index, int):
-                    return meta_index
-            return -1
-
-        if proto_id < 0 or selector_id < 0:
-            return -1
-        if proto_id >= len(packed.route_to_program):
-            return -1
-        row = packed.route_to_program[proto_id]
-        if selector_id >= len(row):
-            return -1
-        program_id = row[selector_id]
-        return int(program_id) if isinstance(program_id, int) else -1
+                route.setdefault("program_id", program_id)
+                route.setdefault("opmeta_index", program_id)
+        return program_id
 
     async def _execute_packed(self, env: Any, ctx: _Ctx, plan: KernelPlan, packed: PackedKernel) -> None:
         from tigrbl_canon.mapping.runtime_routes import invoke_runtime_route_handler
@@ -439,7 +505,7 @@ class Kernel:
             ctx.temp = {}
             temp = ctx.temp
 
-        program_id = self._resolve_program_id(ctx, packed)
+        program_id = self._resolve_program_id_from_ctx(ctx, packed)
         if program_id < 0:
             route = temp.get("route", {})
             if isinstance(route, dict) and route.get("method_not_allowed") is True:
@@ -454,6 +520,10 @@ class Kernel:
             return
 
         temp["program_id"] = program_id
+        if program_id >= len(plan.opmeta):
+            await _send_json(env, 404, {"detail": "No runtime operation matched request."})
+            return
+
         opmeta = plan.opmeta[program_id]
         ctx.model = opmeta.model
         ctx.op = opmeta.alias
@@ -542,7 +612,7 @@ class Kernel:
         op_to_segment_ids: list[int] = []
 
         for program_id, _meta in enumerate(plan.opmeta):
-            chains = plan.phase_chains.get(program_id, {})
+            chains = self._without_ingress_phases(plan.phase_chains.get(program_id, {}))
             op_segment_offsets.append(len(op_to_segment_ids))
             seg_count = 0
             for phase in DEFAULT_PHASE_ORDER:
@@ -554,7 +624,14 @@ class Kernel:
                 segment_offsets.append(len(segment_step_ids))
                 segment_lengths.append(len(steps))
                 segment_phases.append(phase)
-                segment_executor_kinds.append("python")
+
+                kinds = {_classify_step_lowering(step, phase) for step in steps}
+                if len(kinds) == 1 and LOWER_KIND_SYNC_EXTRACTABLE in kinds:
+                    segment_executor_kinds.append(LOWER_KIND_SYNC_EXTRACTABLE)
+                elif LOWER_KIND_ASYNC_DIRECT in kinds:
+                    segment_executor_kinds.append(LOWER_KIND_ASYNC_DIRECT)
+                else:
+                    segment_executor_kinds.append(LOWER_KIND_SPLIT_EXTRACTABLE)
 
                 for step in steps:
                     key = id(step)
@@ -564,16 +641,7 @@ class Kernel:
                         step_index[key] = step_id
                         step_table.append(step)
                         step_labels.append(_label_step(step, phase))
-                        effect = getattr(step, "__tigrbl_numba_effect__", None)
-                        if isinstance(effect, tuple):
-                            effect_id = int(effect[0]) if effect else -1
-                            payload = tuple(int(v) for v in effect[1:])
-                        elif isinstance(effect, int):
-                            effect_id = int(effect)
-                            payload = ()
-                        else:
-                            effect_id = -1
-                            payload = ()
+                        effect_id, payload = _effect_descriptor_for_step(step)
                         effect_ids.append(effect_id)
                         effect_payloads.append(payload)
                     segment_step_ids.append(step_id)
@@ -623,9 +691,15 @@ class Kernel:
         return _executor
 
     def _build_numba_packed_executor(self, packed: PackedKernel):
-        if not packed.numba_effect_ids:
-            return None
-        if any(effect_id < 0 for effect_id in packed.numba_effect_ids):
+        """
+        Numba target for the extracted synchronous route/program spine only.
+
+        Because all atoms are async at the semantic layer, we do not try to JIT the
+        atom call surface. We only JIT the bounded numeric dispatch core:
+
+            program_id = route_to_program[proto_id, selector_id]
+        """
+        if not packed.route_to_program:
             return None
         try:
             from numba import njit
@@ -633,13 +707,6 @@ class Kernel:
             return None
 
         route_to_program = packed.route_to_program
-        op_segment_offsets = packed.op_segment_offsets
-        op_segment_lengths = packed.op_segment_lengths
-        op_to_segment_ids = packed.op_to_segment_ids
-        segment_offsets = packed.segment_offsets
-        segment_lengths = packed.segment_lengths
-        segment_step_ids = packed.segment_step_ids
-        effect_ids = packed.numba_effect_ids
 
         @njit(cache=True)
         def _dispatch(proto_id: int, selector_id: int) -> int:
@@ -652,120 +719,12 @@ class Kernel:
                 return -1
             return row[selector_id]
 
-        @njit(cache=True)
-        def _program_checksum(program_id: int) -> int:
-            if program_id < 0 or program_id >= len(op_segment_offsets):
-                return -1
-            acc = 0
-            start = op_segment_offsets[program_id]
-            end = start + op_segment_lengths[program_id]
-            for idx in range(start, end):
-                seg_id = op_to_segment_ids[idx]
-                s = segment_offsets[seg_id]
-                e = s + segment_lengths[seg_id]
-                for j in range(s, e):
-                    step_id = segment_step_ids[j]
-                    acc += effect_ids[step_id]
-            return acc
-
-        def _executor(proto_id: int, selector_id: int) -> tuple[int, int]:
-            program_id = int(_dispatch(int(proto_id), int(selector_id)))
-            if program_id < 0:
-                return -1, -1
-            checksum = int(_program_checksum(program_id))
-            return program_id, checksum
+        def _executor(proto_id: int, selector_id: int) -> int:
+            return int(_dispatch(int(proto_id), int(selector_id)))
 
         return _executor
 
-    async def handle_http(self, env: Any, app: Any) -> None:
-        from tigrbl_canon.mapping.runtime_routes import invoke_runtime_route_handler
-        from tigrbl_concrete.atoms.egress.asgi_send import (
-            _send_json,
-            _send_transport_response,
-        )
-        from tigrbl_runtime.status import StatusDetailError
 
-        plan = self.kernel_plan(app)
-        ctx = _Ctx.ensure(request=None, db=None)
-        ctx.app = app
-        ctx.router = app
-        ctx.raw = env
-        ctx.kernel_plan = plan
-
-        if plan.packed is not None and plan.packed.executor is not None:
-            await self._run_phase_chain(ctx, plan.ingress_chain)
-            await plan.packed.executor(self, env, ctx, plan)
-            return
-
-        await self._run_phase_chain(ctx, plan.ingress_chain)
-
-        route = (
-            ctx.temp.get("route", {})
-            if isinstance(getattr(ctx, "temp", None), dict)
-            else {}
-        )
-        egress = (
-            ctx.temp.get("egress", {})
-            if isinstance(getattr(ctx, "temp", None), dict)
-            else {}
-        )
-        if (
-            isinstance(route, dict)
-            and route.get("short_circuit") is True
-            and isinstance(egress, dict)
-            and egress.get("transport_response")
-        ):
-            await _send_transport_response(env, ctx)
-            return
-
-        opmeta_index = route.get("opmeta_index") if isinstance(route, dict) else None
-        if not isinstance(opmeta_index, int):
-            if isinstance(route, dict) and route.get("method_not_allowed") is True:
-                await _send_json(env, 405, {"detail": "Method Not Allowed"})
-                return
-            handler = route.get("handler") if isinstance(route, dict) else None
-            if callable(handler):
-                await invoke_runtime_route_handler(ctx, handler=handler)
-                await _send_transport_response(env, ctx)
-                return
-            await _send_json(
-                env, 404, {"detail": "No runtime operation matched request."}
-            )
-            return
-
-        opmeta = plan.opmeta[opmeta_index]
-        ctx.model = opmeta.model
-        ctx.op = opmeta.alias
-        ctx.opview = self.get_opview(app, opmeta.model, opmeta.alias)
-
-        phases = self._without_ingress_phases(plan.phase_chains.get(opmeta_index, {}))
-        try:
-            await _invoke(request=None, db=None, phases=phases, ctx=ctx)
-        except StatusDetailError as exc:
-            detail = (
-                exc.detail
-                if getattr(exc, "detail", None) not in (None, "")
-                else str(exc)
-            )
-            await _send_json(
-                env, int(getattr(exc, "status_code", 500) or 500), {"detail": detail}
-            )
-            return
-        except Exception as exc:
-            from tigrbl_runtime.status import create_standardized_error
-
-            std = create_standardized_error(exc)
-            detail = (
-                std.detail
-                if getattr(std, "detail", None) not in (None, "")
-                else str(std)
-            )
-            await _send_json(
-                env, int(getattr(std, "status_code", 500) or 500), {"detail": detail}
-            )
-            return
-
-        await _send_transport_response(env, ctx)
 
     def compile_plan(self, app: Any) -> KernelPlan:
         app = _canonicalize_app(app)

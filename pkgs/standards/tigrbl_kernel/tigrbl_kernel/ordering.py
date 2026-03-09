@@ -34,6 +34,8 @@ _PREF: Dict[str, Tuple[str, ...]] = {
     _ev.ROUTE_MATCH_REST: ("route:match_rest",),
     _ev.ROUTE_MATCH_WS: ("route:match_ws",),
     _ev.ROUTE_MATCH_FALLBACK: ("route:match_fallback",),
+    _ev.ROUTE_SELECTOR_RESOLVE: ("route:selector_resolve",),
+    _ev.ROUTE_PROGRAM_RESOLVE: ("route:program_resolve",),
     _ev.ROUTE_OP_RESOLVE: ("route:op_resolve",),
     _ev.ROUTE_PARAMS_NORMALIZE: ("route:params_normalize",),
     _ev.ROUTE_PAYLOAD_SELECT: ("route:payload_select",),

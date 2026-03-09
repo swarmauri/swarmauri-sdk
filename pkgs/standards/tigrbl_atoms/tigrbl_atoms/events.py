@@ -71,6 +71,8 @@ ROUTE_MATCH_JSONRPC = "route.match.jsonrpc"
 ROUTE_MATCH_REST = "route.match.rest"
 ROUTE_MATCH_WS = "route.match.ws"
 ROUTE_MATCH_FALLBACK = "route.match.fallback"
+ROUTE_SELECTOR_RESOLVE = "route.selector.resolve"
+ROUTE_PROGRAM_RESOLVE = "route.program.resolve"
 ROUTE_PARAMS_NORMALIZE = "route.params.normalize"
 ROUTE_PAYLOAD_SELECT = "route.payload.select"
 ROUTE_OP_RESOLVE = "route.op.resolve"
@@ -142,6 +144,8 @@ _EVENT_ORDER: Tuple[str, ...] = (
     ROUTE_MATCH_REST,
     ROUTE_MATCH_WS,
     ROUTE_MATCH_FALLBACK,
+    ROUTE_SELECTOR_RESOLVE,
+    ROUTE_PROGRAM_RESOLVE,
     ROUTE_PARAMS_NORMALIZE,
     ROUTE_PAYLOAD_SELECT,
     ROUTE_OP_RESOLVE,
@@ -225,6 +229,8 @@ _ANCHOR_PHASE: Dict[str, Phase] = {
     ROUTE_MATCH_REST: INGRESS_ROUTE,
     ROUTE_MATCH_WS: INGRESS_ROUTE,
     ROUTE_MATCH_FALLBACK: INGRESS_ROUTE,
+    ROUTE_SELECTOR_RESOLVE: INGRESS_ROUTE,
+    ROUTE_PROGRAM_RESOLVE: INGRESS_ROUTE,
     ROUTE_PARAMS_NORMALIZE: INGRESS_ROUTE,
     ROUTE_PAYLOAD_SELECT: INGRESS_ROUTE,
     ROUTE_OP_RESOLVE: INGRESS_ROUTE,
@@ -276,10 +282,12 @@ _ANCHOR_STAGE: Dict[str, Tuple[Stage, Stage]] = {
     # INGRESS_ROUTE
     ROUTE_PROTOCOL_DETECT: (Ingress, Routed),
     ROUTE_RPC_ENVELOPE_PARSE: (Routed, Routed),
-    ROUTE_MATCH_JSONRPC: (Routed, Bound),
-    ROUTE_MATCH_REST: (Routed, Bound),
-    ROUTE_MATCH_WS: (Routed, Bound),
-    ROUTE_MATCH_FALLBACK: (Routed, Bound),
+    ROUTE_MATCH_JSONRPC: (Routed, Routed),
+    ROUTE_MATCH_REST: (Routed, Routed),
+    ROUTE_MATCH_WS: (Routed, Routed),
+    ROUTE_MATCH_FALLBACK: (Routed, Routed),
+    ROUTE_SELECTOR_RESOLVE: (Routed, Bound),
+    ROUTE_PROGRAM_RESOLVE: (Bound, Bound),
     ROUTE_PARAMS_NORMALIZE: (Bound, Bound),
     ROUTE_PAYLOAD_SELECT: (Bound, Bound),
     ROUTE_OP_RESOLVE: (Bound, Planned),
@@ -507,6 +515,8 @@ __all__ = [
     "ROUTE_MATCH_REST",
     "ROUTE_MATCH_WS",
     "ROUTE_MATCH_FALLBACK",
+    "ROUTE_SELECTOR_RESOLVE",
+    "ROUTE_PROGRAM_RESOLVE",
     "ROUTE_OP_RESOLVE",
     "ROUTE_PARAMS_NORMALIZE",
     "ROUTE_PAYLOAD_SELECT",
