@@ -28,12 +28,23 @@ def _is_jsonrpc_path(app: Any, scope: Mapping[str, Any]) -> bool:
     return _normalize_path(str(scope.get("path", "/"))) == _normalize_path(prefix)
 
 
+def _resolve_get_db(app: Any) -> Any:
+    provider = getattr(app, "dependency_overrides_provider", None)
+    if provider is None:
+        provider = getattr(app, "provider", None)
+    if provider is not None:
+        get_db = getattr(provider, "get_db", None)
+        if callable(get_db):
+            return get_db
+    get_db = getattr(app, "get_db", None)
+    if callable(get_db):
+        return get_db
+    return None
+
+
 @asynccontextmanager
 async def _request_db_session(app: Any):
-    from tigrbl_canon.mapping import engine_resolver as _resolver
-
-    provider = _resolver.resolve_provider(router=app)
-    get_db = provider.get_db if provider is not None else None
+    get_db = _resolve_get_db(app)
     if get_db is None:
         yield None
         return

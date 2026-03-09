@@ -48,7 +48,9 @@ def _jsonrpc_index_for(plan: Any, proto: str) -> Any:
     return None
 
 
-def _extract_jsonrpc_envelope(route: dict[str, object], ctx: Any) -> dict[str, object] | None:
+def _extract_jsonrpc_envelope(
+    route: dict[str, object], ctx: Any
+) -> dict[str, object] | None:
     rpc = route.get("rpc")
     if isinstance(rpc, dict):
         return rpc

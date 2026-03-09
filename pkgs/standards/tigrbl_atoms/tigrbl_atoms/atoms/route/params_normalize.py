@@ -70,14 +70,8 @@ def _run(obj: object | None, ctx: Any) -> None:
     path_params = _to_plain_dict(route.get("path_params"))
     query_params = _query_params(ctx)
 
-    normalized_path = {
-        str(k): _normalize_scalar(v)
-        for k, v in path_params.items()
-    }
-    normalized_query = {
-        str(k): _normalize_scalar(v)
-        for k, v in query_params.items()
-    }
+    normalized_path = {str(k): _normalize_scalar(v) for k, v in path_params.items()}
+    normalized_query = {str(k): _normalize_scalar(v) for k, v in query_params.items()}
 
     params: dict[str, object] = {}
     params.update(normalized_query)
