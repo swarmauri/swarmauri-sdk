@@ -7,7 +7,6 @@ from typing import Any, Optional
 import logging
 
 from ... import events as _ev
-from ...opview import opview_from_ctx, ensure_schema_out
 
 # Runs late in POST_HANDLER, before out model build and dumping.
 ANCHOR = _ev.SCHEMA_COLLECT_OUT  # "schema:collect_out"
@@ -17,8 +16,24 @@ logger = logging.getLogger("uvicorn")
 
 def _run(obj: Optional[object], ctx: Any) -> None:
     """Load precompiled outbound schema into ctx.temp."""
-    ov = opview_from_ctx(ctx)
-    ensure_schema_out(ctx, ov)
+    del obj
+    temp = getattr(ctx, "temp", None)
+    if not isinstance(temp, dict):
+        temp = {}
+        setattr(ctx, "temp", temp)
+
+    if isinstance(temp.get("schema_out"), dict):
+        return
+
+    ov = getattr(ctx, "opview", None)
+    if ov is None:
+        raise RuntimeError("ctx_missing:opview")
+
+    temp["schema_out"] = {
+        "fields": ov.schema_out.fields,
+        "by_field": ov.schema_out.by_field,
+        "expose": ov.schema_out.expose,
+    }
 
 
 class AtomImpl(Atom[Operated, Operated]):

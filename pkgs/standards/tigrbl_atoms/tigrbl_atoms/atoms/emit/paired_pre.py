@@ -8,7 +8,7 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
 from ... import events as _ev
-from ...opview import opview_from_ctx, _ensure_temp
+from ..._opview_helpers import opview_from_ctx, _ensure_temp
 
 # This atom runs before the flush, after values have been assembled/generated.
 ANCHOR = _ev.EMIT_ALIASES_PRE  # "emit:aliases:pre_flush"

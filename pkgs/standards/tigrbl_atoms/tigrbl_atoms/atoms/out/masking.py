@@ -8,7 +8,7 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional, Sequence
 import logging
 
 from ... import events as _ev
-from ...opview import opview_from_ctx, ensure_schema_out, _ensure_temp
+from ..._opview_helpers import opview_from_ctx, ensure_schema_out, _ensure_temp
 
 # Runs at the very end of the lifecycle (after wire:dump).
 ANCHOR = _ev.OUT_DUMP  # "out:dump"

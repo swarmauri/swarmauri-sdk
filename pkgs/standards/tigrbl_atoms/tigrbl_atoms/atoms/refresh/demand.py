@@ -8,7 +8,7 @@ from typing import Any, Iterable, Optional
 import logging
 
 from ... import events as _ev
-from ...opview import opview_from_ctx, _ensure_temp
+from ..._opview_helpers import opview_from_ctx, _ensure_temp
 
 # After the handler flushes changes; decide whether to hydrate DB-generated values.
 ANCHOR = _ev.POST_FLUSH  # "post:flush"

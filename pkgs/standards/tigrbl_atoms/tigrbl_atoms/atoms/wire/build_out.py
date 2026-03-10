@@ -7,7 +7,7 @@ from typing import Any, Dict, Mapping, Optional
 import logging
 
 from ... import events as _ev
-from ...opview import opview_from_ctx, ensure_schema_out, _ensure_temp
+from ..._opview_helpers import opview_from_ctx, ensure_schema_out, _ensure_temp
 
 # POST_HANDLER, runs before readtime aliases and dump.
 ANCHOR = _ev.OUT_BUILD  # "out:build"

@@ -9,7 +9,7 @@ import logging
 from typing import Any, Dict, MutableMapping, Optional
 
 from ... import events as _ev
-from ...opview import opview_from_ctx, _ensure_temp
+from ..._opview_helpers import opview_from_ctx, _ensure_temp
 
 # Runs in HANDLER phase, before pre:flush (and before storage transforms).
 ANCHOR = _ev.RESOLVE_VALUES  # "resolve:values"

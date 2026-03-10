@@ -7,7 +7,7 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
 from ... import events as _ev
-from ...opview import opview_from_ctx, ensure_schema_out, _ensure_temp
+from ..._opview_helpers import opview_from_ctx, ensure_schema_out, _ensure_temp
 
 # Runs near the end of the lifecycle, before wire:dump/out:masking.
 ANCHOR = _ev.EMIT_ALIASES_READ  # "emit:aliases:readtime"
