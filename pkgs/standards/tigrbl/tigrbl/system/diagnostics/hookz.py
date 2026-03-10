@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 from types import SimpleNamespace
 
-from ...op.types import PHASES
+from ...op.types import HookPhases
 
 
 def build_hookz_endpoint(router: Any):
@@ -37,10 +37,10 @@ def build_hookz_endpoint(router: Any):
             for alias in sorted(alias_sources):
                 alias_ns = getattr(hooks_root, alias, None) or SimpleNamespace()
                 phase_map: Dict[str, List[str]] = {}
-                for ph in PHASES:
-                    steps = list(getattr(alias_ns, ph, []) or [])
+                for ph in HookPhases:
+                    steps = list(getattr(alias_ns, ph.value, []) or [])
                     if steps:
-                        phase_map[ph] = [_label_callable(fn) for fn in steps]
+                        phase_map[ph.value] = [_label_callable(fn) for fn in steps]
                 if phase_map:
                     model_map[alias] = phase_map
             out[mname] = model_map
