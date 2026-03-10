@@ -73,8 +73,14 @@ def _run(obj: Optional[object], ctx: Any) -> None:
 
         alias_name = desc.get("alias") or field
         raw = None
-        if alias_name in virtual_in:
+        used_client_value = False
+        if field in virtual_in:
+            raw = virtual_in.get(field)
+            used_client_value = True
+            logger.debug("Using client-provided raw for field %s", field)
+        elif alias_name in virtual_in:
             raw = virtual_in.get(alias_name)
+            used_client_value = True
             logger.debug(
                 "Using client-provided raw for field %s via alias %s", field, alias_name
             )
@@ -107,7 +113,8 @@ def _run(obj: Optional[object], ctx: Any) -> None:
 
         persist_from_paired[field] = {"source": ("paired_values", field, "raw")}
 
-        generated.append(field)
+        if not used_client_value:
+            generated.append(field)
 
     if generated:
         temp["generated_paired"] = tuple(generated)
