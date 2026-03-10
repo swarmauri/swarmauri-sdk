@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Mapping, Dict
+from typing import Any, Dict
 from types import SimpleNamespace
 
 from . import kernel as _kernel  # single, app-scoped kernel
@@ -56,34 +56,4 @@ def opview_from_ctx(ctx: Any):
     raise RuntimeError(f"ctx_missing:{','.join(missing)}")
 
 
-def ensure_schema_in(ctx: Any, ov) -> Mapping[str, Any]:
-    """
-    Load precompiled inbound schema from OpView into ctx.temp['schema_in'] if absent.
-    """
-    temp = _ensure_temp(ctx)
-    if "schema_in" not in temp:
-        bf = ov.schema_in.by_field
-        req = tuple(n for n, e in bf.items() if e.get("required"))
-        temp["schema_in"] = {
-            "fields": ov.schema_in.fields,
-            "by_field": bf,
-            "required": req,
-        }
-    return temp["schema_in"]
-
-
-def ensure_schema_out(ctx: Any, ov) -> Mapping[str, Any]:
-    """
-    Load precompiled outbound schema from OpView into ctx.temp['schema_out'] if absent.
-    """
-    temp = _ensure_temp(ctx)
-    if "schema_out" not in temp:
-        temp["schema_out"] = {
-            "fields": ov.schema_out.fields,
-            "by_field": ov.schema_out.by_field,
-            "expose": ov.schema_out.expose,
-        }
-    return temp["schema_out"]
-
-
-__all__ = ["opview_from_ctx", "ensure_schema_in", "ensure_schema_out", "_ensure_temp"]
+__all__ = ["opview_from_ctx", "_ensure_temp"]
