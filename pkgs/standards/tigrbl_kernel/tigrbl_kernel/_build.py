@@ -5,7 +5,7 @@ from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any, Dict, List, Mapping
 
-from .hook_types import StepFn
+from tigrbl_atoms import StepFn
 
 from . import events as _ev
 from .atoms import (

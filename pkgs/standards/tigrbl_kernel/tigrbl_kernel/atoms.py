@@ -19,7 +19,7 @@ from typing import (
 
 from tigrbl_typing.phases import HOOK_PHASES as HOOK_PHASES
 
-from .hook_types import StepFn
+from tigrbl_atoms import StepFn
 from . import events as _ev, ordering as _ordering
 
 logger = logging.getLogger(__name__)

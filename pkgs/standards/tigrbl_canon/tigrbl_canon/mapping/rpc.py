@@ -18,7 +18,7 @@ from typing import (
 from pydantic import BaseModel
 
 from tigrbl_core._spec import OpSpec
-from tigrbl_runtime.runtime.hook_types import PHASES
+from tigrbl_atoms import PHASES
 from tigrbl_runtime.runtime.status import HTTPException
 
 

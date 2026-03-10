@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Any, Mapping
 
-from .hook_types import StepFn
+from tigrbl_atoms import StepFn
 
 from . import events as _ev
 from .models import KernelPlan, OpKey, OpMeta, OpView
