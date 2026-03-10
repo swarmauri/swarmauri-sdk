@@ -70,22 +70,14 @@ def _deserialize_value(value: Any) -> Any:
 
 
 def _load_yaml(yaml_str: str) -> Any:
-    try:
-        import yaml
-    except ModuleNotFoundError as exc:
-        raise ModuleNotFoundError(
-            "PyYAML is required for from_yaml(). Install with `pip install pyyaml`."
-        ) from exc
+    import yaml
+
     return yaml.safe_load(yaml_str)
 
 
 def _dump_yaml(value: Any) -> str:
-    try:
-        import yaml
-    except ModuleNotFoundError as exc:
-        raise ModuleNotFoundError(
-            "PyYAML is required for to_yaml(). Install with `pip install pyyaml`."
-        ) from exc
+    import yaml
+
     return yaml.safe_dump(value, sort_keys=False)
 
 
@@ -112,19 +104,9 @@ def _dump_toml(value: Any) -> str:
         return obj
 
     value = _toml_sanitize(value)
-    try:
-        import tomli_w
+    import tomli_w
 
-        return tomli_w.dumps(value)
-    except ModuleNotFoundError:
-        try:
-            import toml
-
-            return toml.dumps(value)
-        except ModuleNotFoundError as exc:
-            raise ModuleNotFoundError(
-                "tomli-w or toml is required for to_toml(). Install with `pip install tomli-w`."
-            ) from exc
+    return tomli_w.dumps(value)
 
 
 class SerdeMixin:
