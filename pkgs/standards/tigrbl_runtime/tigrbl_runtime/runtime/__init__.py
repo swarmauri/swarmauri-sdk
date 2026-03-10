@@ -13,7 +13,6 @@ _EXPORTS = {
     "get_cached_specs": "kernel",
     "_default_kernel": "kernel",
     "status": "status",
-    "context": "context",
     "STEP_KINDS": "labels",
     "DOMAINS": "labels",
 }
