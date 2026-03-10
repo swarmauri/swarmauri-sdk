@@ -20,6 +20,8 @@ authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "tigrbl-ops-oltp",
     "tigrbl-typing",
+    "pyyaml",
+    "tomli-w",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
