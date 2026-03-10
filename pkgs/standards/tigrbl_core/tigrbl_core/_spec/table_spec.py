@@ -3,9 +3,43 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Optional, Sequence
 
+from .._spec.app_spec import merge_seq_attr
 from .._spec.engine_spec import EngineCfg
 from .._spec.response_spec import ResponseSpec
 from .serde import SerdeMixin
+
+
+def resolve_table_engine(model: type) -> Any | None:
+    """Resolve a table engine with wrapper-precedence semantics."""
+
+    resolved_engine: Any | None = None
+    for base in model.__mro__:
+        cfg = base.__dict__.get("table_config")
+        if not isinstance(cfg, Mapping):
+            continue
+        eng = (
+            cfg.get("engine")
+            or cfg.get("db")
+            or cfg.get("database")
+            or cfg.get("engine_provider")
+            or cfg.get("db_provider")
+        )
+        if eng is not None:
+            resolved_engine = eng
+
+    if resolved_engine is not None:
+        return resolved_engine
+
+    cfg = getattr(model, "table_config", None)
+    if isinstance(cfg, Mapping):
+        return (
+            cfg.get("engine")
+            or cfg.get("db")
+            or cfg.get("database")
+            or cfg.get("engine_provider")
+            or cfg.get("db_provider")
+        )
+    return None
 
 
 @dataclass
@@ -33,7 +67,6 @@ class TableSpec(SerdeMixin):
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
-        from ..mapping.spec_normalization import merge_seq_attr, resolve_table_engine
 
         cls.OPS = tuple(merge_seq_attr(cls, "OPS", include_inherited=True))
         cls.COLUMNS = tuple(merge_seq_attr(cls, "COLUMNS", include_inherited=True))
@@ -58,8 +91,6 @@ class TableSpec(SerdeMixin):
 
     @classmethod
     def collect(cls, model: type) -> "TableSpec":
-        from ..mapping.spec_normalization import merge_seq_attr, resolve_table_engine
-
         return cls(
             model=model,
             engine=resolve_table_engine(model),
