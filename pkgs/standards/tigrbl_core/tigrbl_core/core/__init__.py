@@ -1,36 +1,7 @@
-"""Compatibility facade for OLTP operations.
+"""Core namespace for shared non-operational primitives.
 
-Operation implementations now live in ``tigrbl_ops_oltp``.
+Operational CRUD handlers live in the ``tigrbl_ops_oltp`` package and are not
+re-exported from ``tigrbl_core``.
 """
 
-from tigrbl_ops_oltp import (  # noqa: F401
-    bulk_create,
-    bulk_delete,
-    bulk_merge,
-    bulk_replace,
-    bulk_update,
-    clear,
-    create,
-    delete,
-    list,
-    merge,
-    read,
-    replace,
-    update,
-)
-
-__all__ = [
-    "create",
-    "read",
-    "update",
-    "replace",
-    "merge",
-    "delete",
-    "list",
-    "clear",
-    "bulk_create",
-    "bulk_update",
-    "bulk_replace",
-    "bulk_merge",
-    "bulk_delete",
-]
+__all__: list[str] = []
