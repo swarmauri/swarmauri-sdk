@@ -1,4 +1,6 @@
 from __future__ import annotations
+from typing import Any, Dict
+from types import SimpleNamespace
 
 import warnings
 from typing import Any, Mapping
@@ -29,14 +31,4 @@ def opview_from_ctx(ctx: Any):
     return _atoms_opview_from_ctx(ctx)
 
 
-def ensure_schema_in(ctx: Any, ov) -> Mapping[str, Any]:
-    warnings.warn(_DEPRECATION, DeprecationWarning, stacklevel=2)
-    return _atoms_ensure_schema_in(ctx, ov)
-
-
-def ensure_schema_out(ctx: Any, ov) -> Mapping[str, Any]:
-    warnings.warn(_DEPRECATION, DeprecationWarning, stacklevel=2)
-    return _atoms_ensure_schema_out(ctx, ov)
-
-
-__all__ = ["opview_from_ctx", "ensure_schema_in", "ensure_schema_out", "_ensure_temp"]
+__all__ = ["opview_from_ctx", "_ensure_temp"]
