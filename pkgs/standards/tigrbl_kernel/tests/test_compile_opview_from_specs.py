@@ -43,3 +43,25 @@ def test_compile_opview_from_specs_builds_in_and_out_schema_metadata() -> None:
     assert opview.schema_out.by_field["display_name"]["alias_out"] == "displayName"
     assert opview.schema_in.by_field["computed"]["virtual"] is True
     assert opview.schema_out.by_field["computed"]["virtual"] is True
+
+
+def test_compile_opview_from_specs_adds_header_and_py_type_metadata() -> None:
+    columns = {
+        "request_id": ColumnSpec(
+            storage=StorageSpec(type_=str, nullable=False),
+            field=FieldSpec(py_type=str, required_in=("create",)),
+            io=IOSpec(
+                in_verbs=("create",),
+                out_verbs=("create",),
+                header_in="X-Request-Id",
+                header_required_in=True,
+            ),
+        ),
+    }
+    op_spec = OpSpec(alias="create", target="create")
+
+    opview = _compile_opview_from_specs(self=None, specs=columns, sp=op_spec)
+
+    assert opview.schema_in.by_field["request_id"]["header_in"] == "X-Request-Id"
+    assert opview.schema_in.by_field["request_id"]["header_required_in"] is True
+    assert opview.schema_out.by_field["request_id"]["py_type"] == "str"

@@ -8,6 +8,7 @@ from tigrbl_core._spec.binding_spec import (
     HttpRestBindingSpec,
     WsBindingSpec,
 )
+from tigrbl_core._spec.app_spec import AppSpec
 from tigrbl_core._spec.op_spec import OpSpec
 
 from tigrbl_kernel._compile import _compile_plan
@@ -102,3 +103,31 @@ def test_compile_plan_builds_indices_for_rest_ws_and_jsonrpc_bindings() -> None:
     assert templated_ws["names"] == ("widget_id",)
 
     assert plan.proto_indices["http.jsonrpc"]["widgets.lookup"] == 2
+
+
+def test_compile_plan_accepts_appspec_and_declared_tigrbl_ops() -> None:
+    class GadgetTable:
+        __tigrbl_ops__ = (
+            OpSpec(
+                alias="list_gadgets",
+                target="list",
+                bindings=(
+                    HttpRestBindingSpec(
+                        proto="https.rest",
+                        methods=("GET",),
+                        path="/gadgets",
+                    ),
+                ),
+            ),
+        )
+
+    compiler = CompilerFixture()
+    app = AppSpec(tables=(GadgetTable,))
+
+    plan = _compile_plan(compiler, app)
+
+    assert len(plan.opmeta) == 1
+    assert plan.opmeta[0].alias == "list_gadgets"
+    assert plan.opmeta[0].target == "list"
+    assert plan.opkey_to_meta[OpKey("https.rest", "GET /gadgets")] == 0
+    assert plan.proto_indices["https.rest"]["exact"]["GET /gadgets"] == 0
