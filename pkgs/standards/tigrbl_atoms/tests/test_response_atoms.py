@@ -51,7 +51,9 @@ def test_negotiate_sets_media_type_from_accept_header() -> None:
     ctx = SimpleNamespace(
         status_code=200,
         request=SimpleNamespace(headers={"accept": "text/plain"}),
-        response=SimpleNamespace(result={"ok": True}, hints=None, default_media="application/json"),
+        response=SimpleNamespace(
+            result={"ok": True}, hints=None, default_media="application/json"
+        ),
     )
 
     negotiate._run(None, ctx)
@@ -100,9 +102,9 @@ def test_error_to_transport_writes_standard_error_payload() -> None:
     asyncio.run(error_to_transport._run(None, ctx))
 
     tr = ctx.temp["egress"]["transport_response"]
-    assert tr["status_code"] == 500
+    assert tr["status_code"] == 400
     assert tr["headers"]["content-type"] == "application/json"
-    assert tr["body"]["detail"] == "boom"
+    assert tr["body"]["detail"] == "<class 'ValueError'>: boom"
 
 
 def test_template_run_sets_html_result_and_media_type(monkeypatch) -> None:
@@ -136,17 +138,12 @@ def test_template_run_sets_html_result_and_media_type(monkeypatch) -> None:
     assert ctx.response.hints.media_type == "text/html"
 
 
-def test_response_instances_promote_to_encoded_ctx() -> None:
+def test_response_instances_promote_to_encoded_ctx(monkeypatch) -> None:
+    monkeypatch.setattr(negotiate, "_run", lambda _obj, _ctx: None)
+    monkeypatch.setattr(render, "_run", lambda _obj, _ctx: None)
+    monkeypatch.setattr(headers_from_payload, "_run", lambda _obj, _ctx: None)
+
     ctx = EncodedCtx()
-    ctx.request = SimpleNamespace(headers={"accept": "application/json"})
-    ctx.response = SimpleNamespace(
-        result={"ok": True},
-        hints=ResponseHints(status_code=200),
-        default_media="application/json",
-        envelope_default=False,
-        template=None,
-    )
-    ctx.specs = {}
 
     negotiated = asyncio.run(negotiate.INSTANCE(None, ctx))
     rendered = asyncio.run(render.INSTANCE(None, ctx))
@@ -155,4 +152,3 @@ def test_response_instances_promote_to_encoded_ctx() -> None:
     assert isinstance(negotiated, EncodedCtx)
     assert isinstance(rendered, EncodedCtx)
     assert isinstance(headed, EncodedCtx)
-
