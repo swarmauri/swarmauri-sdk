@@ -57,7 +57,7 @@ def test_assemble_builds_values_applies_default_and_tracks_virtuals() -> None:
 
 def test_paired_gen_uses_virtual_input_then_sets_persist_pointer() -> None:
     ctx = SimpleNamespace(
-        temp={"virtual_in": {"token_alias": "client-secret"}},
+        temp={"virtual_in": {"token": "client-secret"}},
         opview=SimpleNamespace(
             paired_index={
                 "token": {
