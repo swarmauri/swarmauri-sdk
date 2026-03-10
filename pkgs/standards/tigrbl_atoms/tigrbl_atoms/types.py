@@ -147,6 +147,7 @@ class HookPhase(str, Enum):
 
 
 HookPhases: Tuple[HookPhase, ...] = tuple(HookPhase)
+VALID_HOOK_PHASES: set[str] = {hook_phase.value for hook_phase in HookPhases}
 StepFn = Callable[[Ctx[Any, Exception]], Awaitable[Any] | Any]
 HookPredicate = Callable[[Ctx[Any, Exception]], bool]
 
@@ -334,6 +335,7 @@ __all__ = [
     "Ctx",
     "HookPhase",
     "HookPhases",
+    "VALID_HOOK_PHASES",
     "StepFn",
     "HookPredicate",
     "AtomResult",

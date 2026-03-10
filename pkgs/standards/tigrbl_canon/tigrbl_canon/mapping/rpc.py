@@ -18,7 +18,7 @@ from typing import (
 from pydantic import BaseModel
 
 from tigrbl_core._spec import OpSpec
-from tigrbl_runtime.runtime.hook_types import PHASES
+from tigrbl_atoms import HookPhases
 from tigrbl_runtime.runtime.status import HTTPException
 
 
@@ -124,8 +124,9 @@ def _get_phase_chains(
         hooks_root = _ns(model, "hooks")
         alias_ns = getattr(hooks_root, alias, None)
         out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
-        for ph in PHASES:
-            out[ph] = list(getattr(alias_ns, ph, []) or [])
+        for hook_phase in HookPhases:
+            phase = hook_phase.value
+            out[phase] = list(getattr(alias_ns, phase, []) or [])
         return out
 
 
