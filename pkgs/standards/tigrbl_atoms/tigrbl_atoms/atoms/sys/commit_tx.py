@@ -6,17 +6,9 @@ from ...stages import Operated
 from typing import Any
 
 from ... import events as _ev
+from .._temp import _ensure_temp
 
 ANCHOR = _ev.SYS_TX_COMMIT
-
-
-def _ensure_temp(ctx: Any) -> dict[str, Any]:
-    temp = getattr(ctx, "temp", None)
-    if isinstance(temp, dict):
-        return temp
-    temp = {}
-    setattr(ctx, "temp", temp)
-    return temp
 
 
 def _resolve_db_handle(ctx: Any) -> Any:

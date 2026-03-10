@@ -8,6 +8,7 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
 from ... import events as _ev
+from .._temp import _ensure_temp
 
 # Runs after DB flush + refresh, before out model construction.
 ANCHOR = _ev.EMIT_ALIASES_POST  # "emit:aliases:post_refresh"
@@ -99,14 +100,6 @@ def _run(obj: Optional[object], ctx: Any) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    temp = getattr(ctx, "temp", None)
-    if not isinstance(temp, dict):
-        temp = {}
-        setattr(ctx, "temp", temp)
-    return temp
 
 
 def _ensure_emit_buf(temp: MutableMapping[str, Any]) -> Dict[str, list]:

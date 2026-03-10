@@ -5,10 +5,11 @@ from ...types import Atom, Ctx, ExecutingCtx
 from ...stages import Executing
 
 import uuid as _uuid
-from typing import Any, Dict, Mapping, MutableMapping, Optional
+from typing import Any, Dict, Mapping, Optional
 import logging
 
 from ... import events as _ev
+from .._temp import _ensure_temp
 from tigrbl_typing.status.exceptions import HTTPException
 from tigrbl_typing.status.mappings import status as _status
 
@@ -148,14 +149,6 @@ def _run(obj: Optional[object], ctx: Any) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    tmp = getattr(ctx, "temp", None)
-    if not isinstance(tmp, dict):
-        tmp = {}
-        setattr(ctx, "temp", tmp)
-    return tmp
 
 
 def _schema_in(ctx: Any) -> Mapping[str, Any]:

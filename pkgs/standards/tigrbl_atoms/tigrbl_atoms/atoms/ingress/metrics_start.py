@@ -4,19 +4,12 @@ from ...types import Atom, Ctx, BootCtx
 from ...stages import Boot
 
 from time import perf_counter, perf_counter_ns
-from typing import Any, MutableMapping
+from typing import Any
 
 from ... import events as _ev
+from .._temp import _ensure_temp
 
 ANCHOR = _ev.INGRESS_METRICS_START
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    temp = getattr(ctx, "temp", None)
-    if not isinstance(temp, dict):
-        temp = {}
-        setattr(ctx, "temp", temp)
-    return temp
 
 
 def _run(obj: object | None, ctx: Any) -> None:
