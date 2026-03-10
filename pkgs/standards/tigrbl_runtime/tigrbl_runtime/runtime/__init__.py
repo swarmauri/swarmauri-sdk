@@ -12,7 +12,6 @@ _EXPORTS = {
     "build_phase_chains": "kernel",
     "get_cached_specs": "kernel",
     "_default_kernel": "kernel",
-    "events": "events",
     "status": "status",
     "context": "context",
     "STEP_KINDS": "labels",
