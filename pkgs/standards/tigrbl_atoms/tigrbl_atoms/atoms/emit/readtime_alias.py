@@ -7,7 +7,7 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
 from ... import events as _ev
-from ..._opview_helpers import opview_from_ctx, ensure_schema_out, _ensure_temp
+from ..._opview_helpers import _ensure_schema_out, _ensure_temp
 
 # Runs near the end of the lifecycle, before wire:dump/out:masking.
 ANCHOR = _ev.EMIT_ALIASES_READ  # "emit:aliases:readtime"
@@ -22,8 +22,7 @@ def _run(obj: Optional[object], ctx: Any) -> None:
     emit_buf = _ensure_emit_buf(temp)
     extras = _ensure_response_extras(temp)
 
-    ov = opview_from_ctx(ctx)
-    schema_out = ensure_schema_out(ctx, ov)
+    schema_out = _ensure_schema_out(ctx)
     for field, desc in schema_out["by_field"].items():
         out_alias = desc.get("alias_out")
         if not out_alias:

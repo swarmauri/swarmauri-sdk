@@ -1,15 +1,11 @@
 from __future__ import annotations
-from typing import Any, Dict
-from types import SimpleNamespace
+from typing import Any
 
 import warnings
-from typing import Any, Mapping
 
 from tigrbl_atoms._opview_helpers import (
     _ensure_temp as _atoms_ensure_temp,
-    ensure_schema_in as _atoms_ensure_schema_in,
-    ensure_schema_out as _atoms_ensure_schema_out,
-    opview_from_ctx as _atoms_opview_from_ctx,
+    _ensure_ov as _atoms_ensure_ov,
 )
 
 _DEPRECATION = (
@@ -26,9 +22,9 @@ def _ensure_temp(ctx: Any) -> dict[str, Any]:
     return _atoms_ensure_temp(ctx)
 
 
-def opview_from_ctx(ctx: Any):
+def _ensure_ov(ctx: Any):
     warnings.warn(_DEPRECATION, DeprecationWarning, stacklevel=2)
-    return _atoms_opview_from_ctx(ctx)
+    return _atoms_ensure_ov(ctx)
 
 
-__all__ = ["opview_from_ctx", "_ensure_temp"]
+__all__ = ["_ensure_ov", "_ensure_temp"]

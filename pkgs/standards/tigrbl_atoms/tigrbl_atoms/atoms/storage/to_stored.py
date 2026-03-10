@@ -8,7 +8,7 @@ import logging
 from typing import Any, Dict, Mapping, MutableMapping, Optional
 
 from ... import events as _ev
-from ..._opview_helpers import opview_from_ctx, ensure_schema_in, _ensure_temp
+from ..._opview_helpers import _ensure_ov, _ensure_schema_in, _ensure_temp
 
 # Runs right before the handler flushes to the DB.
 ANCHOR = _ev.PRE_FLUSH  # "pre:flush"
@@ -37,8 +37,8 @@ def _run(obj: Optional[object], ctx: Any) -> None:
         logger.debug("Skipping storage:to_stored; ctx.persist is False")
         return
 
-    ov = opview_from_ctx(ctx)
-    schema_in = ensure_schema_in(ctx, ov)
+    ov = _ensure_ov(ctx)
+    schema_in = _ensure_schema_in(ctx)
     temp = _ensure_temp(ctx)
     assembled = _ensure_dict(temp, "assembled_values")
     paired_values = _ensure_dict(temp, "paired_values")

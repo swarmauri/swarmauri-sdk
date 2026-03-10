@@ -9,6 +9,7 @@ from typing import Any, Dict, Mapping, Optional
 import logging
 
 from ... import events as _ev
+from ..._opview_helpers import _ensure_schema_in
 from .._temp import _ensure_temp
 from tigrbl_typing.status.exceptions import HTTPException
 from tigrbl_typing.status.mappings import status as _status
@@ -63,7 +64,7 @@ def _run(obj: Optional[object], ctx: Any) -> None:
     - For bulk inputs, adapters may pre-split and invoke the executor per-item.
     """
     payload = _coerce_payload(ctx)
-    schema_in = _schema_in(ctx)
+    schema_in = _ensure_schema_in(ctx)
     payload = _inject_path_params_for_bulk(payload, ctx)
     if payload is not getattr(ctx, "payload", None):
         setattr(ctx, "payload", payload)
@@ -149,16 +150,6 @@ def _run(obj: Optional[object], ctx: Any) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
-
-
-def _schema_in(ctx: Any) -> Mapping[str, Any]:
-    tmp = getattr(ctx, "temp", {})
-    sch = getattr(tmp, "get", lambda *_a, **_k: None)("schema_in")  # type: ignore
-    if isinstance(sch, Mapping):
-        return sch
-    # allow adapters to stuff schema_in directly on ctx
-    sch2 = getattr(ctx, "schema_in", None)
-    return sch2 if isinstance(sch2, Mapping) else {}
 
 
 def _coerce_payload(ctx: Any) -> Mapping[str, Any] | Any:
