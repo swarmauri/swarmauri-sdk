@@ -4,20 +4,12 @@ from ...types import Atom, Ctx, IngressCtx
 from ...stages import Ingress
 
 from urllib.parse import parse_qs
-from typing import Any, MutableMapping
 
 from ... import events as _ev
+from .._temp import _ensure_temp
 from tigrbl_typing.gw.raw import GwRouteEnvelope
 
 ANCHOR = _ev.INGRESS_RAW_FROM_SCOPE
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    temp = getattr(ctx, "temp", None)
-    if not isinstance(temp, dict):
-        temp = {}
-        setattr(ctx, "temp", temp)
-    return temp
 
 
 def _decode_headers(headers: object) -> dict[str, str]:

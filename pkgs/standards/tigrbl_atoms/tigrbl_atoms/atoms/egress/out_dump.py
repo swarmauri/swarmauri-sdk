@@ -3,19 +3,12 @@ from __future__ import annotations
 from ...types import Atom, Ctx, EncodedCtx
 from ...stages import Encoded
 
-from typing import Any, MutableMapping
+from typing import Any
 
 from ... import events as _ev
+from .._temp import _ensure_temp
 
 ANCHOR = _ev.EGRESS_OUT_DUMP
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    temp = getattr(ctx, "temp", None)
-    if not isinstance(temp, dict):
-        temp = {}
-        setattr(ctx, "temp", temp)
-    return temp
 
 
 def _run(obj: object | None, ctx: Any) -> None:

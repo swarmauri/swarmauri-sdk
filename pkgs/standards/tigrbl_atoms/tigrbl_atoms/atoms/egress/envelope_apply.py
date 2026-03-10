@@ -6,16 +6,9 @@ from ...stages import Encoded
 from typing import Any, MutableMapping
 
 from ... import events as _ev
+from .._temp import _ensure_temp
 
 ANCHOR = _ev.EGRESS_ENVELOPE_APPLY
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    temp = getattr(ctx, "temp", None)
-    if not isinstance(temp, dict):
-        temp = {}
-        setattr(ctx, "temp", temp)
-    return temp
 
 
 def _is_jsonrpc(ctx: Any, egress: MutableMapping[str, Any]) -> bool:
