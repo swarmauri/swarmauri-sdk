@@ -7,7 +7,7 @@ from typing import Any, Dict, Mapping, Optional
 import logging
 
 from ... import events as _ev
-from ..._opview_helpers import opview_from_ctx, ensure_schema_out, _ensure_temp
+from ..._opview_helpers import _ensure_ov, _ensure_schema_out, _ensure_temp
 
 # POST_HANDLER, runs before readtime aliases and dump.
 ANCHOR = _ev.OUT_BUILD  # "out:build"
@@ -30,8 +30,8 @@ def _run(obj: Optional[object], ctx: Any) -> None:
         logger.debug("Skipping wire:build_out because ctx.result is already set")
         return
 
-    ov = opview_from_ctx(ctx)
-    schema_out = ensure_schema_out(ctx, ov)
+    ov = _ensure_ov(ctx)
+    schema_out = _ensure_schema_out(ctx)
     by_field = schema_out["by_field"]
     expose = schema_out["expose"]
 
