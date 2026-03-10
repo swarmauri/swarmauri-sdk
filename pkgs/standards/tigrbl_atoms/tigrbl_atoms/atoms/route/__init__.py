@@ -36,12 +36,12 @@ REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
     ("route", "params_normalize"): (params_normalize.ANCHOR, params_normalize.INSTANCE),
     ("route", "payload_select"): (payload_select.ANCHOR, payload_select.INSTANCE),
     ("route", "op_resolve"): (op_resolve.ANCHOR, op_resolve.INSTANCE),
+    ("route", "plan_select"): (plan_select.ANCHOR, plan_select.INSTANCE),
     ("route", "ctx_finalize"): (ctx_finalize.ANCHOR, ctx_finalize.INSTANCE),
     ("route", "jsonrpc_batch_intercept"): (
         jsonrpc_batch_intercept.ANCHOR,
         jsonrpc_batch_intercept.INSTANCE,
     ),
-    ("route", "plan_select"): (plan_select.ANCHOR, plan_select.INSTANCE),
 }
 
 __all__ = [

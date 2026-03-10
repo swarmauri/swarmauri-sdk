@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import MISSING, dataclass, field, fields, is_dataclass
-from typing import Generic, TypeAlias, TypeVar, cast, final
+from typing import cast, final
+
+from typing_extensions import Generic, TypeAlias, TypeVar
 
 from .stages import (
     Boot,
@@ -20,7 +22,7 @@ from tigrbl_typing.protocols import (
 S = TypeVar("S")
 T = TypeVar("T")
 U = TypeVar("U")
-E = TypeVar("E")
+E = TypeVar("E", default=Exception)
 
 
 @dataclass(slots=True)
