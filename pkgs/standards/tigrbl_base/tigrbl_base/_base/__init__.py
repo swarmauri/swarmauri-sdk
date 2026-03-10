@@ -15,6 +15,7 @@ _EXPORTS = {
     "EngineProviderBase": "_engine_provider_base",
     "HookBase": "_hook_base",
     "ForeignKeyBase": "_storage",
+    "StorageTransformBase": "_storage",
     "OpBase": "_op_base",
     "RequestBase": "_request_base",
     "SchemaBase": "_schema_base",

@@ -41,6 +41,7 @@ _EXPORTS = {
     "tx_serializable": "session_spec",
     "readonly": "session_spec",
     "StorageSpec": "storage_spec",
+    "StorageTransformSpec": "storage_spec",
     "StorageTransform": "storage_spec",
     "ForeignKeySpec": "storage_spec",
     "TableSpec": "table_spec",

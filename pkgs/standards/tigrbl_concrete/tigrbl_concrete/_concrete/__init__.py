@@ -18,6 +18,7 @@ _EXPORTS = {
     "Router": "_router",
     "Schema": "_schema",
     "ForeignKey": "_storage",
+    "StorageTransform": "_storage",
     "Table": "_table",
     "Template": "_response",
     "TableRegistry": "_table_registry",

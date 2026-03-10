@@ -32,7 +32,7 @@ class AppBase(AppSpec):
 
     @classmethod
     def collect_spec(cls, app: type) -> AppSpec:
-        from tigrbl_canon.mapping.spec_normalization import (
+        from tigrbl_core._spec.app_spec import (
             merge_seq_attr,
             normalize_app_spec,
         )

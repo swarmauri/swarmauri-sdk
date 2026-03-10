@@ -1,11 +1,83 @@
 # pkgs/standards/tigrbl_core/tigrbl/_spec/app_spec.py
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Any, Callable, Optional, Sequence
+from typing import Any, Callable, Iterable, Mapping, Optional, Sequence
 
 from .._spec.engine_spec import EngineCfg
 from .._spec.response_spec import ResponseSpec
 from .serde import SerdeMixin
+
+
+def _seqify(value: Any) -> tuple[Any, ...]:
+    """Normalize sequence-like inputs while treating scalars as a single item."""
+
+    if value is None:
+        return ()
+    if isinstance(value, tuple):
+        return value
+    if isinstance(value, (str, bytes, bytearray)):
+        return (value,)
+    if isinstance(value, Mapping):
+        return (value,)
+    if isinstance(value, Iterable):
+        return tuple(value)
+    return (value,)
+
+
+def merge_seq_attr(
+    owner: type,
+    attr: str,
+    *,
+    include_inherited: bool = False,
+    reverse: bool = False,
+    dedupe: bool = True,
+) -> tuple[Any, ...]:
+    """Merge sequence-like class attributes over the MRO."""
+
+    values: list[Any] = []
+    seen_hashable: set[Any] = set()
+    mro = reversed(owner.__mro__) if reverse else owner.__mro__
+    for base in mro:
+        if include_inherited:
+            if not hasattr(base, attr):
+                continue
+            seq = getattr(base, attr) or ()
+        else:
+            seq = base.__dict__.get(attr, ()) or ()
+        for item in _seqify(seq):
+            if dedupe:
+                try:
+                    if item in seen_hashable:
+                        continue
+                    seen_hashable.add(item)
+                except TypeError:
+                    if any(item == existing for existing in values):
+                        continue
+            values.append(item)
+    return tuple(values)
+
+
+def normalize_app_spec(spec: "AppSpec") -> "AppSpec":
+    """Return a normalized app spec snapshot with stable sequence fields."""
+
+    return AppSpec(
+        title=str(spec.title or "Tigrbl"),
+        description=spec.description,
+        version=str(spec.version or "0.1.0"),
+        engine=spec.engine,
+        routers=_seqify(spec.routers),
+        ops=_seqify(spec.ops),
+        tables=_seqify(spec.tables),
+        schemas=_seqify(spec.schemas),
+        hooks=_seqify(spec.hooks),
+        security_deps=_seqify(spec.security_deps),
+        deps=_seqify(spec.deps),
+        middlewares=_seqify(spec.middlewares),
+        response=spec.response,
+        jsonrpc_prefix=str(spec.jsonrpc_prefix or "/rpc"),
+        system_prefix=str(spec.system_prefix or "/system"),
+        lifespan=spec.lifespan,
+    )
 
 
 @dataclass(eq=False)
@@ -45,8 +117,6 @@ class AppSpec(SerdeMixin):
 
     @classmethod
     def collect(cls, app: type) -> "AppSpec":
-        from ..mapping.spec_normalization import merge_seq_attr, normalize_app_spec
-
         sentinel = object()
         title: Any = sentinel
         version: Any = sentinel

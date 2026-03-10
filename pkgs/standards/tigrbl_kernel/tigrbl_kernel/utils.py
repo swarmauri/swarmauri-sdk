@@ -47,7 +47,7 @@ def _opspecs(model: Any) -> Sequence[Any]:
 
 def _canonicalize_app(app: Any) -> Any:
     try:
-        from tigrbl_canon.mapping.spec_normalization import normalize_app_spec
+        from tigrbl_core._spec.app_spec import normalize_app_spec
         from tigrbl_core._spec.app_spec import AppSpec
     except Exception:
         return app

@@ -48,8 +48,7 @@ from tigrbl.op import get_registry
 from ._table_registry import TableRegistry
 from tigrbl_core._spec.app_spec import AppSpec
 from tigrbl_canon.mapping.runtime_routes import register_runtime_route
-from tigrbl_canon.mapping.spec_normalization import normalize_app_spec
-from tigrbl_canon.mapping.spec_normalization import _seqify
+from tigrbl_core._spec.app_spec import _seqify, normalize_app_spec
 from tigrbl.system.favicon import FAVICON_PATH, mount_favicon
 from tigrbl_canon.mapping.model_helpers import _OpSpecGroup
 

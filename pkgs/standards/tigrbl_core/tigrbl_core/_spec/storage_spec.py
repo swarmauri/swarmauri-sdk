@@ -8,7 +8,7 @@ from .serde import SerdeMixin
 
 
 @dataclass(frozen=True)
-class StorageTransform(SerdeMixin):
+class StorageTransformSpec(SerdeMixin):
     """Functions used to transform values on the way to and from the database."""
 
     to_stored: Union[callable, None] = (
@@ -61,13 +61,18 @@ class StorageSpec(SerdeMixin):
     refresh_on_return: bool = False  # force refresh after flush when DB generated
 
     # Optional storage helpers
-    transform: StorageTransform | None = None
+    transform: StorageTransformSpec | None = None
     fk: ForeignKeySpec | None = None
     check: str | None = None
     comment: str | None = None
 
 
+# Backwards compatibility alias for older imports.
+StorageTransform = StorageTransformSpec
+
+
 __all__ = [
+    "StorageTransformSpec",
     "StorageTransform",
     "ForeignKeySpec",
     "StorageSpec",
