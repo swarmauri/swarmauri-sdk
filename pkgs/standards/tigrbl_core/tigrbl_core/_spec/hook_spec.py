@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
-from tigrbl_typing.hook_types import HookPhase, HookPredicate, StepFn
+from tigrbl_atoms import HookPhase, HookPredicate, StepFn
 
 
 @dataclass(frozen=True, slots=True)
