@@ -6,7 +6,7 @@ from ...stages import Encoded
 from typing import Any
 
 from ... import events as _ev
-from .._temp import _ensure_temp
+from .._temp import _ensure_temp, _response_payload
 
 ANCHOR = _ev.EGRESS_OUT_DUMP
 
@@ -18,7 +18,7 @@ def _run(obj: object | None, ctx: Any) -> None:
     if "wire_payload" in egress:
         return
 
-    wire_payload = temp.get("response_payload")
+    wire_payload = _response_payload(ctx)
     if wire_payload is None:
         wire_payload = egress.get("result", getattr(ctx, "result", None))
 

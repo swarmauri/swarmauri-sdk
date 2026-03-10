@@ -117,55 +117,6 @@ class Context:
             base = {**base, "temp": MappingProxy(exposed)}
         return MappingProxy(base)
 
-    # ── tiny helpers used by atoms / kernel ───────────────────────────────────
-
-    def mark_used_returning(self, value: bool = True) -> None:
-        """Flag that DB RETURNING already hydrated values."""
-        self.temp["used_returning"] = bool(value)
-
-    def merge_hydrated_values(
-        self, mapping: Mapping[str, Any], *, replace: bool = False
-    ) -> None:
-        """
-        Save values hydrated from DB (RETURNING/refresh). If replace=False (default),
-        performs a shallow merge into any existing 'hydrated_values'.
-        """
-        if not isinstance(mapping, Mapping):
-            return
-        hv = self.temp.get("hydrated_values")
-        if replace or not isinstance(hv, dict):
-            self.temp["hydrated_values"] = dict(mapping)
-        else:
-            hv.update(mapping)
-
-    def add_response_extras(
-        self, extras: Mapping[str, Any], *, overwrite: Optional[bool] = None
-    ) -> Sequence[str]:
-        """
-        Merge alias extras into temp['response_extras'].
-        Returns a tuple of conflicting keys that were skipped when overwrite=False.
-        """
-        if not isinstance(extras, Mapping) or not extras:
-            return ()
-        buf = self.temp.get("response_extras")
-        if not isinstance(buf, dict):
-            buf = {}
-            self.temp["response_extras"] = buf
-        if overwrite is None:
-            # fall back to cfg; atoms call wire:dump to honor final overwrite policy
-            overwrite = bool(getattr(self.cfg, "response_extras_overwrite", False))
-        conflicts: list[str] = []
-        for k, v in extras.items():
-            if (k in buf) and not overwrite:
-                conflicts.append(k)
-                continue
-            buf[k] = v
-        return tuple(conflicts)
-
-    def get_response_payload(self) -> Any:
-        """Return the payload assembled by wire:dump (or None if not yet available)."""
-        return self.temp.get("response_payload")
-
     # ── representation (avoid leaking large/sensitive temp contents) ──────────
 
     def __repr__(self) -> str:  # pragma: no cover

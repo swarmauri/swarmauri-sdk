@@ -14,7 +14,7 @@ from typing import Any, Dict, Optional
 
 from ... import events as _ev
 from ..._opview_helpers import _ensure_schema_out
-from .._temp import _ensure_temp
+from .._temp import _ensure_temp, _set_response_payload
 
 # Runs at the very end of model shaping; out:masking follows at the same anchor.
 ANCHOR = _ev.OUT_DUMP  # "out:dump"
@@ -39,7 +39,7 @@ def _run(obj: Optional[object], ctx: Any) -> None:
     - Optionally omits null values (cfg.exclude_none / cfg.omit_nulls).
     - Applies minimal JSON-friendly scalar conversions (date/time/uuid/decimal/bytes).
     - Merges response_extras (without overwriting unless configured) for single-object payloads.
-    - Stores the result in ctx.temp["response_payload"] for downstream masking/transport.
+    - Stores the result in ctx.response_payload for downstream masking/transport.
 
     Notes
     -----
@@ -91,7 +91,7 @@ def _run(obj: Optional[object], ctx: Any) -> None:
                 payload[k] = _dump_scalar(v)
             if conflicts:
                 temp["dump_conflicts"] = tuple(sorted(set(conflicts)))
-        temp["response_payload"] = payload
+        _set_response_payload(ctx, payload)
         logger.debug("Response payload built: %s", payload)
         _sync_transport_response_from_ctx(ctx, temp)
         return None
@@ -105,12 +105,12 @@ def _run(obj: Optional[object], ctx: Any) -> None:
             _dump_one(item, aliases, omit_nulls)
             for item in out_values  # type: ignore[arg-type]
         ]
-        temp["response_payload"] = payload_list
+        _set_response_payload(ctx, payload_list)
         _sync_transport_response_from_ctx(ctx, temp)
         return None
 
     # Unknown shape — stash as-is to avoid surprises (transport may serialize).
-    temp["response_payload"] = out_values
+    _set_response_payload(ctx, out_values)
     logger.debug("Stored opaque response payload: %s", type(out_values).__name__)
     _sync_transport_response_from_ctx(ctx, temp)
     return None

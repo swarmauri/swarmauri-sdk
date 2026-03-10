@@ -9,6 +9,7 @@ import logging
 
 from ... import events as _ev
 from ..._opview_helpers import _ensure_schema_out, _ensure_temp
+from .._temp import _response_payload
 
 # Runs at the very end of the lifecycle (after wire:dump).
 ANCHOR = _ev.OUT_DUMP  # "out:dump"
@@ -29,7 +30,7 @@ def _run(obj: Optional[object], ctx: Any) -> None:
 
     Inputs / Conventions
     --------------------
-    - ctx.temp["response_payload"] : dict or list[dict] (produced by wire:dump)
+    - ctx.response_payload : dict or list[dict] (produced by wire:dump)
     - ctx.temp["emit_aliases"]["post"] / ["read"] : lists of descriptors that
       include {"alias": "..."}; these alias keys are skipped (not masked).
 
@@ -45,7 +46,7 @@ def _run(obj: Optional[object], ctx: Any) -> None:
     schema_out = _ensure_schema_out(ctx)
 
     temp = _ensure_temp(ctx)
-    payload = temp.get("response_payload")
+    payload = _response_payload(ctx)
     if payload is None:
         logger.debug("No response payload found; skipping masking")
         return

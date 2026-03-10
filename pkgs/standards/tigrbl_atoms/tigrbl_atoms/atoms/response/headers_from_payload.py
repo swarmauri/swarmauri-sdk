@@ -6,6 +6,8 @@ from ...stages import Encoded
 from ... import events as _ev
 from typing import Mapping
 
+from .._temp import _response_payload
+
 ANCHOR = _ev.OUT_BUILD  # run after payload is prepared, before render
 
 
@@ -29,9 +31,7 @@ def _run(_, ctx) -> None:
 
     payload = getattr(resp, "result", None)
     if payload is None:
-        temp = getattr(ctx, "temp", None)
-        if isinstance(temp, Mapping):
-            payload = temp.get("response_payload")
+        payload = _response_payload(ctx)
     if not isinstance(payload, dict):
         return
 
