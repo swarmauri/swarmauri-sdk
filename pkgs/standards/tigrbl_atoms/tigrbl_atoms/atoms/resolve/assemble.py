@@ -8,6 +8,7 @@ from typing import Any, Mapping, Optional, Dict, Tuple
 import logging
 
 from ... import events as _ev
+from ..._ctx import _ctx_view
 from ..._opview_helpers import _ensure_schema_in, _ensure_temp
 
 # Runs in HANDLER phase, before pre:flush and any storage transforms.
@@ -147,23 +148,6 @@ def _try_read_inbound(inbound: Mapping[str, Any], field: str) -> Tuple[bool, Any
         if alt in inbound:
             return True, inbound.get(alt)
     return False, None
-
-
-def _ctx_view(ctx: Any) -> Dict[str, Any]:
-    """
-    Provide a small read-only view for default_factory functions
-    without exposing the entire executor context.
-    """
-    view = {
-        "op": getattr(ctx, "op", None),
-        "persist": getattr(ctx, "persist", True),
-        "temp": getattr(ctx, "temp", None),
-        # optional hints the executor might set
-        "tenant": getattr(ctx, "tenant", None),
-        "user": getattr(ctx, "user", None),
-        "now": getattr(ctx, "now", None),
-    }
-    return view
 
 
 class AtomImpl(Atom[Executing, Resolved]):

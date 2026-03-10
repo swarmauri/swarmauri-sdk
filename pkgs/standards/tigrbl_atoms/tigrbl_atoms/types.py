@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import MISSING, dataclass, field, fields, is_dataclass
-from typing import cast, final
+from enum import Enum
+from typing import Any, Awaitable, Callable, Tuple, cast, final
+
+from collections.abc import Mapping
 
 from typing_extensions import Generic, TypeAlias, TypeVar
 
@@ -68,8 +71,85 @@ class BaseCtx(Generic[S, E]):
         except KeyError as e:
             raise KeyError(f"missing temp field: {key!r}") from e
 
+    def safe_view(
+        self,
+        *,
+        include_temp: bool = False,
+        temp_keys: tuple[str, ...] | None = None,
+    ) -> Mapping[str, object]:
+        """
+        Return a compact read-only mapping intended for user callables.
+
+        By default, temp is excluded to avoid exposing runtime internals.
+        """
+        base: dict[str, object] = {
+            "op": getattr(self, "op", None),
+            "persist": getattr(self, "persist", True),
+            "model": getattr(self, "model", None),
+            "specs": getattr(self, "specs", None),
+            "user": getattr(self, "user", None),
+            "tenant": getattr(self, "tenant", None),
+            "now": getattr(self, "now", None),
+        }
+        if include_temp:
+            allowed = set(temp_keys or ("assembled_values", "virtual_in"))
+            exposed: dict[str, object] = {}
+            for key in allowed:
+                if key in self.temp:
+                    exposed[key] = self.temp[key]
+            base["temp"] = MappingProxy(exposed)
+        return MappingProxy(base)
+
+
+class MappingProxy(Mapping[str, object]):
+    __slots__ = ("_d",)
+
+    def __init__(self, data: Mapping[str, object]):
+        self._d = dict(data)
+
+    def __getitem__(self, key: str) -> object:
+        return self._d[key]
+
+    def __iter__(self):
+        return iter(self._d)
+
+    def __len__(self) -> int:
+        return len(self._d)
+
+    def get(self, key: str, default: object = None) -> object:
+        return self._d.get(key, default)
+
 
 Ctx: TypeAlias = BaseCtx[S, E]
+
+
+class HookPhase(str, Enum):
+    PRE_TX_BEGIN = "PRE_TX_BEGIN"
+    START_TX = "START_TX"
+    PRE_HANDLER = "PRE_HANDLER"
+    HANDLER = "HANDLER"
+    POST_HANDLER = "POST_HANDLER"
+    PRE_COMMIT = "PRE_COMMIT"
+    END_TX = "END_TX"
+    POST_COMMIT = "POST_COMMIT"
+    POST_RESPONSE = "POST_RESPONSE"
+    ON_ERROR = "ON_ERROR"
+    ON_PRE_TX_BEGIN_ERROR = "ON_PRE_TX_BEGIN_ERROR"
+    ON_START_TX_ERROR = "ON_START_TX_ERROR"
+    ON_PRE_HANDLER_ERROR = "ON_PRE_HANDLER_ERROR"
+    ON_HANDLER_ERROR = "ON_HANDLER_ERROR"
+    ON_POST_HANDLER_ERROR = "ON_POST_HANDLER_ERROR"
+    ON_PRE_COMMIT_ERROR = "ON_PRE_COMMIT_ERROR"
+    ON_END_TX_ERROR = "ON_END_TX_ERROR"
+    ON_POST_COMMIT_ERROR = "ON_POST_COMMIT_ERROR"
+    ON_POST_RESPONSE_ERROR = "ON_POST_RESPONSE_ERROR"
+    ON_ROLLBACK = "ON_ROLLBACK"
+
+
+HookPhases: Tuple[HookPhase, ...] = tuple(HookPhase)
+VALID_HOOK_PHASES: set[str] = {hook_phase.value for hook_phase in HookPhases}
+StepFn = Callable[[Ctx[Any, Exception]], Awaitable[Any] | Any]
+HookPredicate = Callable[[Ctx[Any, Exception]], bool]
 
 
 def promote(ctx: Ctx[S, E], cls: type[U], /, **updates: object) -> U:
@@ -253,6 +333,11 @@ __all__ = [
     "U",
     "E",
     "Ctx",
+    "HookPhase",
+    "HookPhases",
+    "VALID_HOOK_PHASES",
+    "StepFn",
+    "HookPredicate",
     "AtomResult",
     "BaseCtx",
     "BootCtx",

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Mapping
 
-from .hook_types import StepFn
+from tigrbl_atoms import StepFn
 from .core import Kernel
 from .models import OpView, PackedKernel, SchemaIn, SchemaOut
 

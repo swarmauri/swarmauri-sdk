@@ -5,8 +5,6 @@ The kernel compiles plans and phase chains, but does not execute them.
 
 from __future__ import annotations
 
-from typing import Any, Awaitable, Callable
+from tigrbl_atoms import HookPhase, HookPhases, StepFn
 
-StepFn = Callable[[Any], Awaitable[Any] | Any]
-
-__all__ = ["StepFn"]
+__all__ = ["HookPhase", "HookPhases", "StepFn"]

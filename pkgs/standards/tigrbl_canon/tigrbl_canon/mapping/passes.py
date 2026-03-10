@@ -4,7 +4,7 @@ from typing import Any, Callable, Iterable, List
 
 from .hook_mro_collect import mro_collect_decorated_hooks
 from ..op import resolve as resolve_ops
-from tigrbl_runtime.runtime.hook_types import PHASES
+from tigrbl_atoms import VALID_HOOK_PHASES
 from .context import MappingContext
 from .precedence import key_for, merge_op_specs
 
@@ -53,7 +53,7 @@ def bind_hooks(ctx: MappingContext) -> MappingContext:
             continue
         per = base_hooks.setdefault(alias, {})
         for phase, fns in phases.items():
-            if phase in PHASES:
+            if phase in VALID_HOOK_PHASES:
                 existing = per.setdefault(phase, [])
                 per[phase] = _dedupe_by_name([*existing, *fns])
     return ctx.evolve(merged_hooks=base_hooks)

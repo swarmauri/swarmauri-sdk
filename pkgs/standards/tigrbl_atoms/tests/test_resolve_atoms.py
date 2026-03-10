@@ -57,7 +57,7 @@ def test_assemble_builds_values_applies_default_and_tracks_virtuals() -> None:
 
 def test_paired_gen_uses_virtual_input_then_sets_persist_pointer() -> None:
     ctx = SimpleNamespace(
-        temp={"virtual_in": {"token_alias": "client-secret"}},
+        temp={"virtual_in": {"token": "client-secret"}},
         opview=SimpleNamespace(
             paired_index={
                 "token": {
@@ -79,6 +79,32 @@ def test_paired_gen_uses_virtual_input_then_sets_persist_pointer() -> None:
         "raw",
     )
     assert ctx.temp["response_extras"]["token_alias"] == "client-secret"
+    assert "generated_paired" not in ctx.temp
+
+
+def test_paired_gen_uses_alias_virtual_input_as_fallback() -> None:
+    ctx = SimpleNamespace(
+        temp={"virtual_in": {"token_alias": "client-secret"}},
+        opview=SimpleNamespace(
+            paired_index={
+                "token": {
+                    "alias": "token_alias",
+                    "gen": lambda _ctx: "generated-secret",
+                    "mask_last": 2,
+                }
+            }
+        ),
+    )
+
+    paired_gen._run(None, ctx)
+
+    assert ctx.temp["paired_values"]["token"]["raw"] == "client-secret"
+    assert ctx.temp["persist_from_paired"]["token"]["source"] == (
+        "paired_values",
+        "token",
+        "raw",
+    )
+    assert "generated_paired" not in ctx.temp
 
 
 def test_paired_gen_generates_when_virtual_value_missing() -> None:
