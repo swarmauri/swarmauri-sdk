@@ -8,7 +8,7 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional, Sequence
 import logging
 
 from ... import events as _ev
-from ...opview import opview_from_ctx, ensure_schema_out, _ensure_temp
+from ..._opview_helpers import _ensure_schema_out, _ensure_temp
 
 # Runs at the very end of the lifecycle (after wire:dump).
 ANCHOR = _ev.OUT_DUMP  # "out:dump"
@@ -42,8 +42,7 @@ def _run(obj: Optional[object], ctx: Any) -> None:
       emit_aliases.post/read).
     """
     logger.debug("Running out:masking")
-    ov = opview_from_ctx(ctx)
-    schema_out = ensure_schema_out(ctx, ov)
+    schema_out = _ensure_schema_out(ctx)
 
     temp = _ensure_temp(ctx)
     payload = temp.get("response_payload")

@@ -14,7 +14,7 @@ from tigrbl_typing.status.exceptions import HTTPException
 from tigrbl_typing.status.mappings import status as _status
 
 from ... import events as _ev
-from ...opview import opview_from_ctx, ensure_schema_in, _ensure_temp
+from ..._opview_helpers import _ensure_ov, _ensure_schema_in, _ensure_temp
 
 # PRE_HANDLER, runs after wire:build_in
 ANCHOR = _ev.IN_VALIDATE  # "in:validate"
@@ -50,8 +50,7 @@ def _run(obj: Optional[object], ctx: Any) -> None:
     temp = _ensure_temp(ctx)
     if isinstance(temp.get("rpc_error"), dict):
         return
-    ov = opview_from_ctx(ctx)
-    schema_in = ensure_schema_in(ctx, ov)
+    schema_in = _ensure_schema_in(ctx)
 
     in_values: Dict[str, Any] = dict(temp.get("in_values") or {})
     by_field: Mapping[str, Mapping[str, Any]] = schema_in.get("by_field", {})  # type: ignore[assignment]
@@ -245,7 +244,7 @@ def _reserved_input_keys(
     reserved: set[str] = set()
 
     try:
-        ov = opview_from_ctx(ctx)
+        ov = _ensure_ov(ctx)
     except Exception:
         return reserved
 
