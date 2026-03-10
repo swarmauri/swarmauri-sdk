@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from sqlalchemy import Integer, String
 
-from tigrbl_canon.mapping.spec_normalization import normalize_app_spec
+from tigrbl_core._spec.app_spec import normalize_app_spec
 from tigrbl_core._spec.app_spec import AppSpec
 from tigrbl_core._spec.column_spec import ColumnSpec
 from tigrbl_core._spec.field_spec import FieldSpec
