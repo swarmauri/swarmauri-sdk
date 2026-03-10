@@ -8,15 +8,20 @@ from typing import Iterable, Union
 from ..config.constants import HOOK_DECLS_ATTR
 from .._concrete import Hook
 from ..hook.exceptions import InvalidHookPhaseError
-from ..hook.types import PHASE, PHASES
+from ..hook.types import HookPhase, HookPhases
 
 
-def hook_ctx(ops: Union[str, Iterable[str]], *, phase: str | PHASE | Enum):
+def hook_ctx(ops: Union[str, Iterable[str]], *, phase: str | HookPhase | Enum):
     """Declare a ctx-only hook for one/many ops at a given phase."""
 
-    normalized_phase = phase.value if isinstance(phase, Enum) else phase
-    if normalized_phase not in PHASES:
-        raise InvalidHookPhaseError(phase=str(normalized_phase), allowed_phases=PHASES)
+    phase_value = phase.value if isinstance(phase, Enum) else phase
+    try:
+        normalized_phase = HookPhase(phase_value)
+    except ValueError as exc:
+        raise InvalidHookPhaseError(
+            phase=str(phase_value),
+            allowed_phases=tuple(p.value for p in HookPhases),
+        ) from exc
 
     def deco(fn):
         from .op import _ensure_cm, _unwrap
