@@ -9,6 +9,7 @@ import logging
 from typing import Any, Dict, MutableMapping, Optional
 
 from ... import events as _ev
+from ..._ctx import _ctx_view
 from ..._opview_helpers import _ensure_ov, _ensure_temp
 
 # Runs in HANDLER phase, before pre:flush (and before storage transforms).
@@ -134,27 +135,10 @@ def _ensure_dict(temp: MutableMapping[str, Any], key: str) -> Dict[str, Any]:
     return d  # type: ignore[return-value]
 
 
-def _ctx_view(ctx: Any) -> Dict[str, Any]:
-    """Small read-only view for generator callables."""
-    return {
-        "op": getattr(ctx, "op", None),
-        "persist": getattr(ctx, "persist", True),
-        "temp": getattr(ctx, "temp", None),
-        "tenant": getattr(ctx, "tenant", None),
-        "user": getattr(ctx, "user", None),
-        "now": getattr(ctx, "now", None),
-    }
-
-
 def _secure_token(max_len: int) -> str:
-    """
-    Generate a URL-safe token. If max_len > 0, keep within that bound.
-    We aim for ~32 bytes entropy by default.
-    """
-    # 32 bytes → ~43 chars base64-url
+    """Generate a URL-safe token, optionally bounded by max_len."""
     token = secrets.token_urlsafe(32)
     if max_len and max_len > 0 and len(token) > max_len:
-        # Trim conservatively; if extremely small, ensure we still return something.
         token = token[: max(8, max_len)]
     return token
 
