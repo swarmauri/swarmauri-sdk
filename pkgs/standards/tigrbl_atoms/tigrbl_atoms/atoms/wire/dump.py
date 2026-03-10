@@ -13,6 +13,8 @@ from collections.abc import Mapping, MutableMapping
 from typing import Any, Dict, Optional
 
 from ... import events as _ev
+from ..._opview_helpers import _ensure_schema_out
+from .._temp import _ensure_temp
 
 # Runs at the very end of model shaping; out:masking follows at the same anchor.
 ANCHOR = _ev.OUT_DUMP  # "out:dump"
@@ -65,7 +67,7 @@ def _run(obj: Optional[object], ctx: Any) -> None:
         _sync_transport_response_from_ctx(ctx, temp)
         return  # nothing to dump
 
-    schema_out = _schema_out(ctx)
+    schema_out = _ensure_schema_out(ctx)
     aliases: Mapping[str, str] = (
         schema_out.get("aliases", {}) if isinstance(schema_out, Mapping) else {}
     )
@@ -162,23 +164,6 @@ def _normalize_transport_body(value: Any) -> Any:
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    tmp = getattr(ctx, "temp", None)
-    if not isinstance(tmp, dict):
-        tmp = {}
-        setattr(ctx, "temp", tmp)
-    return tmp
-
-
-def _schema_out(ctx: Any) -> Mapping[str, Any]:
-    tmp = getattr(ctx, "temp", {})
-    sch = getattr(tmp, "get", lambda *_a, **_k: None)("schema_out")  # type: ignore
-    if isinstance(sch, Mapping):
-        return sch
-    sch2 = getattr(ctx, "schema_out", None)
-    return sch2 if isinstance(sch2, Mapping) else {}
 
 
 def _omit_nulls(ctx: Any) -> bool:

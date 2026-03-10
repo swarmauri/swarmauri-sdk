@@ -3,21 +3,14 @@ from __future__ import annotations
 from ...types import Atom, Ctx, IngressCtx
 from ...stages import Ingress
 
-from typing import Any, MutableMapping
+from typing import Any
 
 from ... import events as _ev
+from .._temp import _ensure_temp
 
 Request = Any
 
 ANCHOR = _ev.INGRESS_REQUEST_FROM_SCOPE
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    temp = getattr(ctx, "temp", None)
-    if not isinstance(temp, dict):
-        temp = {}
-        setattr(ctx, "temp", temp)
-    return temp
 
 
 def _run(obj: object | None, ctx: Any) -> None:

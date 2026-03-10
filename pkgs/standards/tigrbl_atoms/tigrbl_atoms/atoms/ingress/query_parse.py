@@ -4,19 +4,12 @@ from ...types import Atom, Ctx, IngressCtx
 from ...stages import Ingress
 
 from urllib.parse import parse_qs
-from typing import Any, Mapping, MutableMapping, Sequence
+from typing import Any, Mapping, Sequence
 
 from ... import events as _ev
+from .._temp import _ensure_temp
 
 ANCHOR = _ev.INGRESS_QUERY_PARSE
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    temp = getattr(ctx, "temp", None)
-    if not isinstance(temp, dict):
-        temp = {}
-        setattr(ctx, "temp", temp)
-    return temp
 
 
 def _normalize_query_map(query: object) -> dict[str, list[Any]] | None:

@@ -8,7 +8,7 @@ from typing import Any, Mapping, Optional, Dict, Tuple
 import logging
 
 from ... import events as _ev
-from ...opview import opview_from_ctx, ensure_schema_in, _ensure_temp
+from ..._opview_helpers import _ensure_schema_in, _ensure_temp
 
 # Runs in HANDLER phase, before pre:flush and any storage transforms.
 ANCHOR = _ev.RESOLVE_VALUES  # "resolve:values"
@@ -49,8 +49,7 @@ def _run(obj: Optional[object], ctx: Any) -> None:
         return
 
     logger.debug("Running resolve:assemble")
-    ov = opview_from_ctx(ctx)
-    schema_in = ensure_schema_in(ctx, ov)
+    schema_in = _ensure_schema_in(ctx)
     inbound = _coerce_inbound(getattr(ctx, "temp", {}).get("in_values", None), ctx)
 
     temp = _ensure_temp(ctx)

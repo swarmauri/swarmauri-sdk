@@ -4,19 +4,12 @@ from ...types import Atom, Ctx, EmittingCtx
 from ...stages import Encoded, Emitting
 
 import json
-from typing import Any, Mapping, MutableMapping
+from typing import Any, Mapping
 
 from ... import events as _ev
+from .._temp import _ensure_temp
 
 ANCHOR = _ev.EGRESS_TO_TRANSPORT_RESPONSE
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    temp = getattr(ctx, "temp", None)
-    if not isinstance(temp, dict):
-        temp = {}
-        setattr(ctx, "temp", temp)
-    return temp
 
 
 def _jsonrpc_request_id(ctx: Any) -> Any:

@@ -8,7 +8,7 @@ from typing import Any, Iterable, Optional
 import logging
 
 from ... import events as _ev
-from ...opview import opview_from_ctx, _ensure_temp
+from ..._opview_helpers import _ensure_ov, _ensure_temp
 
 # After the handler flushes changes; decide whether to hydrate DB-generated values.
 ANCHOR = _ev.POST_FLUSH  # "post:flush"
@@ -47,7 +47,7 @@ def _run(obj: Optional[object], ctx: Any) -> None:
         return
 
     temp = _ensure_temp(ctx)
-    ov = opview_from_ctx(ctx)
+    ov = _ensure_ov(ctx)
     refresh_hints = tuple(ov.refresh_hints)
 
     # If RETURNING already produced hydrated values, skip unless policy forces refresh.

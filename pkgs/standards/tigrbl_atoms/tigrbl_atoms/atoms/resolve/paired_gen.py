@@ -9,7 +9,7 @@ import logging
 from typing import Any, Dict, MutableMapping, Optional
 
 from ... import events as _ev
-from ...opview import opview_from_ctx, _ensure_temp
+from ..._opview_helpers import _ensure_ov, _ensure_temp
 
 # Runs in HANDLER phase, before pre:flush (and before storage transforms).
 ANCHOR = _ev.RESOLVE_VALUES  # "resolve:values"
@@ -54,7 +54,7 @@ def _run(obj: Optional[object], ctx: Any) -> None:
         return
 
     logger.debug("Running resolve:paired_gen")
-    ov = opview_from_ctx(ctx)
+    ov = _ensure_ov(ctx)
     temp = _ensure_temp(ctx)
     assembled = _ensure_dict(temp, "assembled_values")
     virtual_in = _ensure_dict(temp, "virtual_in")
