@@ -14,7 +14,7 @@ from tigrbl_typing.status.exceptions import HTTPException
 from tigrbl_typing.status.mappings import status as _status
 
 from ... import events as _ev
-from ...opview import opview_from_ctx, ensure_schema_in, _ensure_temp
+from ..._opview_helpers import opview_from_ctx, ensure_schema_in, _ensure_temp
 
 # PRE_HANDLER, runs after wire:build_in
 ANCHOR = _ev.IN_VALIDATE  # "in:validate"

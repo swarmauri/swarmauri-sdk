@@ -8,7 +8,7 @@ from typing import Any, Mapping, Optional, Dict, Tuple
 import logging
 
 from ... import events as _ev
-from ...opview import opview_from_ctx, ensure_schema_in, _ensure_temp
+from ..._opview_helpers import opview_from_ctx, ensure_schema_in, _ensure_temp
 
 # Runs in HANDLER phase, before pre:flush and any storage transforms.
 ANCHOR = _ev.RESOLVE_VALUES  # "resolve:values"
