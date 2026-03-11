@@ -1,5 +1,4 @@
 # ── Standard Library ─────────────────────────────────────────────────────
-import warnings
 from types import MethodType, SimpleNamespace
 from uuid import uuid4, UUID
 
@@ -152,34 +151,3 @@ __all__: list[str] = [
     # status
     "StatusDetailError",
 ]
-
-
-_DEPRECATED_EXPORTS: dict[str, tuple[str, str]] = {
-    "Router": ("tigrbl", "Router"),
-    "Request": ("tigrbl", "Request"),
-    "Body": ("tigrbl_ops_oltp.crud", "Body"),
-    "Path": ("tigrbl_ops_oltp.crud.params", "Path"),
-    "Security": ("tigrbl_concrete._concrete.dependencies", "Security"),
-    "Depends": ("tigrbl_concrete._concrete.dependencies", "Depends"),
-    "HTTPException": ("tigrbl_typing.status.exceptions", "HTTPException"),
-    "Response": ("tigrbl", "Response"),
-}
-
-
-def __getattr__(name: str):
-    if name in _DEPRECATED_EXPORTS:
-        module, _attr = _DEPRECATED_EXPORTS[name]
-        warnings.warn(
-            (
-                f"tigrbl.types.{name} is deprecated and no longer exports from "
-                "tigrbl.types. "
-                f"Import it from '{module}' instead."
-            ),
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        raise AttributeError(
-            f"tigrbl.types.{name} no longer exports from tigrbl_typing.types. "
-            f"Import it from '{module}' instead."
-        )
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
