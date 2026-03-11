@@ -9,7 +9,7 @@ rollback when the runtime owns the transaction.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional, Union
+from typing import Any, Mapping, Optional, Sequence, Union
 
 try:
     from sqlalchemy.orm import Session  # type: ignore
@@ -18,9 +18,8 @@ except Exception:  # pragma: no cover
     Session = Any  # type: ignore
     AsyncSession = Any  # type: ignore
 
-from tigrbl_runtime.executors.types import _Ctx, PhaseChains
 from tigrbl_atoms.atoms.sys._db import _is_async_db
-from tigrbl_runtime.executors.helpers import _run_chain, _g
+from tigrbl_kernel.helpers import _run_chain, _g
 
 logger = logging.getLogger(__name__)
 
@@ -110,8 +109,8 @@ async def _rollback_if_owned(
     db: Union[Session, AsyncSession, None],
     owns_tx: bool,
     *,
-    phases: Optional[PhaseChains],
-    ctx: _Ctx,
+    phases: Optional[Mapping[str, Sequence[Any]]],
+    ctx: Any,
 ) -> None:
     """Rollback the session if this runtime owns the transaction."""
 
