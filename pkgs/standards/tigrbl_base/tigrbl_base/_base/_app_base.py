@@ -79,7 +79,7 @@ class AppBase(AppSpec):
 
         description = getattr(app, "DESCRIPTION", None)
         include_inherited_routers = "ROUTERS" not in app.__dict__
-        spec = cls(
+        spec = AppSpec(
             title=title,
             description=description,
             version=version,

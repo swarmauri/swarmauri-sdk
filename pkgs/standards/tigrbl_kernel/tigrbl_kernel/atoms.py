@@ -95,7 +95,7 @@ def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
 
     async def _step(ctx: Any) -> Any:
         rv = run(None, ctx) if use_two_args else run(ctx)  # type: ignore[misc]
-        if hasattr(rv, "__await__"):
+        if inspect.isawaitable(rv):
             return await cast(Any, rv)
         return rv
 

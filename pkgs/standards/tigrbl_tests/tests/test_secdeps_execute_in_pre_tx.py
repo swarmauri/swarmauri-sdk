@@ -86,7 +86,7 @@ async def test_secdeps_execute_before_txn_begin_and_handler(
         setattr(Model.hooks, alias, SimpleNamespace(HANDLER=[handler]))
 
         k = _kernel()
-        labels = k.plan_labels(Model, alias)
+        labels = k._plan_labels(Model, alias)
         assert labels.count(f"PRE_TX_BEGIN:hook:dep:security:0@{_ev.DEP_SECURITY}") == 1
         assert labels.count(f"PRE_TX_BEGIN:hook:dep:security:1@{_ev.DEP_SECURITY}") == 1
         assert labels.count(f"PRE_TX_BEGIN:hook:dep:extra:0@{_ev.DEP_EXTRA}") == 1

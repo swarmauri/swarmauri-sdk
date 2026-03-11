@@ -30,6 +30,18 @@ PHASES = (
     "ON_ROLLBACK",
 )
 
+INGRESS_BEGIN = "INGRESS_BEGIN"
+INGRESS_PARSE = "INGRESS_PARSE"
+INGRESS_ROUTE = "INGRESS_ROUTE"
+
+INGRESS_CTX_INIT = "ingress:ctx_init"
+INGRESS_RAW_FROM_SCOPE = "ingress:raw_from_scope"
+ROUTE_PROTOCOL_DETECT = "route:protocol_detect"
+ROUTE_BINDING_MATCH = "route:match"
+ROUTE_OP_RESOLVE = "route:op_resolve"
+ROUTE_PLAN_SELECT = "route:plan_select"
+ROUTE_CTX_FINALIZE = "route:ctx_finalize"
+
 DEP_SECURITY = "dep:security"
 DEP_EXTRA = "dep:extra"
 SCHEMA_COLLECT_IN = "schema:collect_in"

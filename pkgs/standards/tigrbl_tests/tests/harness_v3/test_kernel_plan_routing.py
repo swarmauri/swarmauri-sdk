@@ -33,7 +33,12 @@ def test_kernel_plan_compiles_rest_and_rpc_indices() -> None:
 
     rest_index = plan.proto_indices["http.rest"]
     assert isinstance(rest_index, dict)
-    assert "POST /widget" in rest_index
+    rest_exact = (
+        rest_index.get("exact", rest_index)
+        if isinstance(rest_index, dict)
+        else rest_index
+    )
+    assert "POST /widget" in rest_exact
 
     rpc_index = plan.proto_indices["http.jsonrpc"]
     assert isinstance(rpc_index, dict)

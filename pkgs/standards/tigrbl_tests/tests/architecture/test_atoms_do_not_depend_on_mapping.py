@@ -4,7 +4,9 @@ import ast
 from pathlib import Path
 
 
-RUNTIME_ROOT = Path(__file__).resolve().parents[2] / "../tigrbl/tigrbl/runtime/atoms"
+RUNTIME_ROOT = (
+    Path(__file__).resolve().parents[2] / "../tigrbl_atoms/tigrbl_atoms/atoms"
+)
 PAYLOAD_SELECT = RUNTIME_ROOT / "route" / "payload_select.py"
 
 

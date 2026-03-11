@@ -7,8 +7,7 @@ from typing import Any
 
 from ... import events as _ev
 from .._temp import _ensure_temp
-
-Request = Any
+from tigrbl_concrete._concrete._request import Request
 
 ANCHOR = _ev.INGRESS_REQUEST_FROM_SCOPE
 

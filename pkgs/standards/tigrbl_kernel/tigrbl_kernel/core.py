@@ -171,4 +171,5 @@ Kernel._build_route_matrix = _build_route_matrix
 Kernel._pack_kernel_plan = _pack_kernel_plan
 
 Kernel.compile_plan = _compile_plan
+Kernel.compile_bootstrap_plan = _compile_bootstrap_plan
 Kernel._compile_opview_from_specs = _compile_opview_from_specs

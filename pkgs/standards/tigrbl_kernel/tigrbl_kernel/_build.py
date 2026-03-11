@@ -189,7 +189,10 @@ def _pack_kernel_plan(self, plan: KernelPlan) -> PackedKernel:
 
     selector_names = tuple(sorted({key.selector for key in plan.opkey_to_meta.keys()}))
     proto_names = tuple(sorted(plan.proto_indices.keys()))
-    op_names = tuple(f"{meta.model.__name__}.{meta.alias}" for meta in plan.opmeta)
+    op_names = tuple(
+        f"{getattr(meta.model, '__name__', None) or getattr(meta.model, 'model_ref', None) or str(meta.model)}.{meta.alias}"
+        for meta in plan.opmeta
+    )
 
     proto_to_id = {name: idx for idx, name in enumerate(proto_names)}
     selector_to_id = {name: idx for idx, name in enumerate(selector_names)}
