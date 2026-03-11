@@ -4,7 +4,8 @@ from typing import Any, Mapping
 
 from tigrbl_atoms.atoms.egress.asgi_send import _send_transport_response
 from tigrbl_atoms.atoms.response.error_to_transport import run as _error_to_transport
-from ..executor import _Ctx, _invoke
+from ...executors.types import _Ctx
+from ...executors.invoke import _invoke
 from tigrbl_kernel.core import Kernel
 from .raw import GwRawEnvelope
 

@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from .executor import _Ctx, _invoke
+from .types import _Ctx
+from .invoke import _invoke
 
 from tigrbl_kernel.models import KernelPlan, PackedKernel
 
