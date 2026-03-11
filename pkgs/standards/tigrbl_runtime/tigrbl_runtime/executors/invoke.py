@@ -7,7 +7,6 @@ from typing import Any, Mapping, MutableMapping, Optional, Union
 from .types import _Ctx, PhaseChains, Request, Session, AsyncSession
 from tigrbl_kernel.helpers import _run_chain, _g
 from tigrbl_atoms.atoms.sys._db import _in_transaction
-from tigrbl_kernel.guards import _install_db_guards, _rollback_if_owned
 from ..runtime.status import create_standardized_error, to_rpc_error_payload
 from ..config.constants import CTX_SKIP_PERSIST_FLAG
 
@@ -46,6 +45,32 @@ def _normalize_result_payload(payload: Any) -> Any:
             return _normalize_result_payload(data)
 
     return str(payload)
+
+
+async def _maybe_await(value: Any) -> Any:
+    if hasattr(value, "__await__"):
+        return await value
+    return value
+
+
+async def _rollback_if_owned(
+    db: Union[Session, AsyncSession, None],
+    owns_tx: bool,
+    *,
+    phases: Optional[PhaseChains],
+    ctx: Any,
+) -> None:
+    if not owns_tx or db is None:
+        return
+    if not _g(phases, "ON_ROLLBACK"):
+        try:
+            await _maybe_await(db.rollback())
+        except Exception:  # pragma: no cover
+            logger.exception("Rollback failed", exc_info=True)
+    try:
+        await _run_chain(ctx, _g(phases, "ON_ROLLBACK"), phase="ON_ROLLBACK")
+    except Exception:  # pragma: no cover
+        pass
 
 
 async def _invoke(
@@ -88,21 +113,13 @@ async def _invoke(
         if not chain:
             return
 
-        eff_allow_flush = allow_flush and (not skip_persist)
-        eff_allow_commit = allow_commit and (not skip_persist)
-
         owns_tx_now = bool(owns_tx_for_phase)
         if owns_tx_for_phase is None:
             owns_tx_now = not existed_tx_before
 
-        guard = _install_db_guards(
-            db,
-            phase=name,
-            allow_flush=eff_allow_flush,
-            allow_commit=eff_allow_commit,
-            require_owned_tx_for_commit=require_owned_for_commit,
-            owns_tx=owns_tx_now,
-        )
+        del allow_flush, allow_commit, require_owned_for_commit
+        ctx.phase = name
+        ctx.owns_tx = owns_tx_now
 
         try:
             await _run_chain(ctx, chain, phase=name)
@@ -121,8 +138,6 @@ async def _invoke(
                 logger.exception("%s failed (nonfatal): %s", name, exc)
                 return
             raise create_standardized_error(exc)
-        finally:
-            guard.restore()
 
     await _run_phase(
         "INGRESS_BEGIN", allow_flush=False, allow_commit=False, in_tx=False

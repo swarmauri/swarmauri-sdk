@@ -2,7 +2,7 @@
 
 > **Maintainer-only:** This module is internal to the SDK. Downstream users **must not** modify or rely on it directly.
 
-The runtime executor coordinates Tigrbl operations through a fixed set of **phase chains**. Each phase has a list of steps built by the kernel and is executed under strict database guards.
+The runtime executor coordinates Tigrbl operations through a fixed set of **phase chains**. Each phase has a list of steps built by the kernel and is executed with strict phase-bound database capabilities.
 
 ## Kernel Architecture Form
 
@@ -129,25 +129,22 @@ operates after the transaction is committed to shape the returned payload. The
 kernel uses the pair `(domain, subject)` to register and inject atoms into phase
 chains.
 
-## DB Guards
+## PhaseDb
 
-For every phase the executor installs database guards that monkey‑patch
-`commit` and `flush` on the session. Guards enforce which operations are
-allowed and ensure only the owning transaction may commit.
+For every phase, the kernel injects a builtin phase-entry step that binds
+`ctx.db` to a `PhaseDb` capability adapter. The raw DB handle is stored as
+`ctx._raw_db` and is not the public execution surface.
 
-The guard installer swaps these methods with stubs that raise
-`RuntimeError` when a disallowed operation is attempted. Each phase passes
-flags describing its policy:
+`PhaseDb` enforces phase legality structurally:
 
-- `allow_flush` – permit calls to `session.flush`.
-- `allow_commit` – permit calls to `session.commit`.
-- `require_owned_tx_for_commit` – when `True`, block commits if the
-  executor did not open the transaction.
+- `flush()` is allowed only in phases whose capability table permits it
+- `commit()` is allowed only in phases whose capability table permits it
+- `commit()` additionally requires transaction ownership when configured
+- `refresh()` is phase-gated explicitly
 
-The installer returns a handle that restores the original methods once the
-phase finishes so restrictions do not leak across phases. A companion
-helper triggers a rollback if the runtime owns the transaction and a phase
-raises an error.
+The runtime no longer monkey-patches DB methods. It stamps `ctx.phase` and
+`ctx.owns_tx`; the first builtin phase step materializes the restricted DB
+surface for that phase.
 
 | Phase | Flush | Commit | Notes |
 |-------|-------|--------|-------|
@@ -170,10 +167,10 @@ transaction is started, phases such as `PRE_HANDLER`, `HANDLER`, and
 `POST_HANDLER` allow flushes so SQL statements can be issued while the
 commit remains deferred. The `end_tx` step executes during the `END_TX`
 phase, performing a final flush and committing the transaction if the
-runtime owns it. Once this phase completes, guards restore the original
-session methods.
+runtime owns it. Once this phase completes, subsequent phases can rebind `ctx.db` with their
+own capability surface.
 
-If a phase fails, the guard restores the original methods and the executor rolls back when it owns the transaction. Optional `ON_<PHASE>_ERROR` chains can handle cleanup.
+If a phase fails, the executor rolls back when it owns the transaction. Optional `ON_<PHASE>_ERROR` chains can handle cleanup.
 
 ---
 

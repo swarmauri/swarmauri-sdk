@@ -119,7 +119,9 @@ class _Ctx(dict):
                 except Exception:  # pragma: no cover
                     pass
         if db is not None:
-            ctx.db = db
+            ctx._raw_db = db
+            if "db" not in ctx:
+                ctx.db = None
         if "temp" not in ctx or not isinstance(ctx.get("temp"), dict):
             ctx.temp = {}
         return ctx
