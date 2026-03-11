@@ -54,9 +54,7 @@ from ..vendor.pydantic import (
     ValidationError,
 )
 
-from ..core.crud.params import Path
-from ..runtime.status.exceptions import StatusDetailError
-from ..security.dependencies import Security
+from ..status.exceptions import StatusDetailError
 
 # ── Local Package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
@@ -151,9 +149,7 @@ __all__: list[str] = [
     "BaseModel",
     "Field",
     "ValidationError",
-    # routing/dependency support (from deps)
-    "Security",
-    "Path",
+    # status
     "StatusDetailError",
 ]
 
@@ -161,9 +157,11 @@ __all__: list[str] = [
 _DEPRECATED_EXPORTS: dict[str, tuple[str, str]] = {
     "Router": ("tigrbl", "Router"),
     "Request": ("tigrbl", "Request"),
-    "Body": ("tigrbl.core.crud", "Body"),
-    "Depends": ("tigrbl.security", "Depends"),
-    "HTTPException": ("tigrbl.runtime.status", "HTTPException"),
+    "Body": ("tigrbl_ops_oltp.crud", "Body"),
+    "Path": ("tigrbl_ops_oltp.crud.params", "Path"),
+    "Security": ("tigrbl_concrete._concrete.dependencies", "Security"),
+    "Depends": ("tigrbl_concrete._concrete.dependencies", "Depends"),
+    "HTTPException": ("tigrbl_typing.status.exceptions", "HTTPException"),
     "Response": ("tigrbl", "Response"),
 }
 
