@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import MISSING, dataclass, field, fields, is_dataclass
 from enum import Enum
-from typing import Any, Awaitable, Callable, Tuple, cast, final
+from typing import Any, Awaitable, Callable, Final, Tuple, cast, final
 
 from collections.abc import Mapping
 
@@ -26,6 +26,27 @@ S = TypeVar("S")
 T = TypeVar("T")
 U = TypeVar("U")
 E = TypeVar("E", default=Exception)
+
+PHASE_SEQUENCE: Final[tuple[str, ...]] = (
+    "INGRESS_BEGIN",
+    "INGRESS_PARSE",
+    "INGRESS_ROUTE",
+    "PRE_TX_BEGIN",
+    "START_TX",
+    "PRE_HANDLER",
+    "HANDLER",
+    "POST_HANDLER",
+    "PRE_COMMIT",
+    "END_TX",
+    "POST_COMMIT",
+    "POST_RESPONSE",
+    "EGRESS_SHAPE",
+    "EGRESS_FINALIZE",
+)
+
+INGRESS_PHASES: Final[tuple[str, ...]] = PHASE_SEQUENCE[:4]
+HANDLER_PHASES: Final[tuple[str, ...]] = PHASE_SEQUENCE[5:8]
+EGRESS_PHASES: Final[tuple[str, ...]] = PHASE_SEQUENCE[-3:]
 
 
 @dataclass(slots=True)
@@ -333,6 +354,10 @@ __all__ = [
     "U",
     "E",
     "Ctx",
+    "PHASE_SEQUENCE",
+    "INGRESS_PHASES",
+    "HANDLER_PHASES",
+    "EGRESS_PHASES",
     "HookPhase",
     "HookPhases",
     "VALID_HOOK_PHASES",

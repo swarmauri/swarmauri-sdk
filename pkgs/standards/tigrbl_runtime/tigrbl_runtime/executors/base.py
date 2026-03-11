@@ -10,6 +10,11 @@ class ExecutorBase(ABC):
     def __init__(self, name: str) -> None:
         self.name = name
 
+    def build(self, *args: Any, **kwargs: Any) -> Any:
+        """Optional build hook for executor-specific precompiled callables."""
+        del args, kwargs
+        return None
+
     @abstractmethod
     async def invoke(
         self,

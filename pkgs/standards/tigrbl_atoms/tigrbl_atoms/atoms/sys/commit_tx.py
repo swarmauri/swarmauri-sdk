@@ -7,25 +7,9 @@ from typing import Any
 
 from ... import events as _ev
 from .._temp import _ensure_temp
+from ._db import _in_transaction, _maybe_await, _resolve_db_handle
 
 ANCHOR = _ev.SYS_TX_COMMIT
-
-
-def _resolve_db_handle(ctx: Any) -> Any:
-    db = getattr(ctx, "db", None)
-    if db is not None:
-        return db
-    return getattr(ctx, "session", None)
-
-
-def _in_transaction(db: Any) -> bool:
-    marker = getattr(db, "in_transaction", None)
-    if callable(marker):
-        try:
-            return bool(marker())
-        except Exception:
-            return False
-    return False
 
 
 async def _run(obj: object | None, ctx: Any) -> None:
@@ -41,9 +25,7 @@ async def _run(obj: object | None, ctx: Any) -> None:
             return
         commit = getattr(db, "commit", None)
         if callable(commit):
-            rv = commit()
-            if hasattr(rv, "__await__"):
-                await rv
+            await _maybe_await(commit())
     finally:
         temp["__sys_tx_open__"] = False
         release = temp.pop("__sys_db_release__", None)
