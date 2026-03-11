@@ -9,6 +9,10 @@ from tigrbl_atoms.atoms.sys import REGISTRY
 from tigrbl_atoms.atoms.sys import (
     commit_tx,
     handler_bulk_create,
+    handler_bulk_delete,
+    handler_bulk_merge,
+    handler_bulk_replace,
+    handler_bulk_update,
     handler_clear,
     handler_create,
     handler_custom,
@@ -85,6 +89,22 @@ def test_sys_registry_binds_expected_anchor_and_instance_samples() -> None:
         handler_bulk_create.ANCHOR,
         handler_bulk_create.INSTANCE,
     )
+    assert REGISTRY[("sys", "handler_bulk_update")] == (
+        handler_bulk_update.ANCHOR,
+        handler_bulk_update.INSTANCE,
+    )
+    assert REGISTRY[("sys", "handler_bulk_replace")] == (
+        handler_bulk_replace.ANCHOR,
+        handler_bulk_replace.INSTANCE,
+    )
+    assert REGISTRY[("sys", "handler_bulk_merge")] == (
+        handler_bulk_merge.ANCHOR,
+        handler_bulk_merge.INSTANCE,
+    )
+    assert REGISTRY[("sys", "handler_bulk_delete")] == (
+        handler_bulk_delete.ANCHOR,
+        handler_bulk_delete.INSTANCE,
+    )
     assert REGISTRY[("sys", "handler_persistence")] == (
         handler_persistence.ANCHOR,
         handler_persistence.INSTANCE,
@@ -110,6 +130,10 @@ def test_sys_instances_and_impls_use_atom_contract() -> None:
         handler_list,
         handler_clear,
         handler_bulk_create,
+        handler_bulk_update,
+        handler_bulk_replace,
+        handler_bulk_merge,
+        handler_bulk_delete,
         handler_noop,
     )
     for module in modules:
@@ -204,6 +228,45 @@ def test_handler_bulk_create_requires_list_payload() -> None:
 
     with pytest.raises(TypeError, match="bulk_create expects a list payload"):
         asyncio.run(handler_bulk_create._run(Model, SimpleNamespace(payload={"x": 1})))
+
+
+@pytest.mark.parametrize(
+    ("atom", "msg"),
+    (
+        (handler_bulk_update, "bulk_update expects a list payload"),
+        (handler_bulk_replace, "bulk_replace expects a list payload"),
+        (handler_bulk_merge, "bulk_merge expects a list payload"),
+    ),
+)
+def test_bulk_handlers_require_list_payload(atom: Atom, msg: str) -> None:
+    class Model:
+        pass
+
+    with pytest.raises(TypeError, match=msg):
+        asyncio.run(atom._run(Model, SimpleNamespace(payload={"x": 1})))
+
+
+def test_handler_bulk_delete_uses_ids_from_payload(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Model:
+        pass
+
+    async def fake_bulk_delete(
+        model: type, ids: object, db: object
+    ) -> dict[str, object]:
+        assert model is Model
+        assert ids == [1, 3, 5]
+        assert db == "db-handle"
+        return {"deleted": 3}
+
+    monkeypatch.setattr(handler_bulk_delete._core, "bulk_delete", fake_bulk_delete)
+
+    ctx = SimpleNamespace(payload={"ids": [1, 3, 5]}, db="db-handle")
+
+    asyncio.run(handler_bulk_delete._run(Model, ctx))
+
+    assert ctx.result == {"deleted": 3}
 
 
 def test_handler_list_passes_filters_and_pagination(
