@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, create_model
 from tigrbl_ops_oltp.crud.params import Query
 from tigrbl_runtime.runtime.status.exceptions import HTTPException
 from tigrbl_runtime.runtime.status.mappings import status as _status
-from ..._concrete._request import Request
+from tigrbl_concrete._concrete._request import Request
 from .helpers import _ensure_jsonable
 from tigrbl_core._spec import OpSpec
 
@@ -29,7 +29,7 @@ def _serialize_output(
     can JSON-encode the response.
     """
 
-    from ..._concrete._response import (
+    from tigrbl_concrete._concrete._response import (
         Response as _Response,
     )  # local import to avoid cycles
 
