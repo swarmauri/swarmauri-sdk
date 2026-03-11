@@ -5,10 +5,10 @@ import logging
 from typing import Any, Mapping, MutableMapping, Optional, Union
 
 from .types import _Ctx, PhaseChains, Request, Session, AsyncSession
-from .helpers import _run_chain, _g
+from tigrbl_kernel.helpers import _run_chain, _g
 from tigrbl_atoms.atoms.sys._db import _in_transaction
 from tigrbl_kernel.guards import _install_db_guards, _rollback_if_owned
-from ..runtime.status import create_standardized_error
+from ..runtime.status import create_standardized_error, to_rpc_error_payload
 from ..config.constants import CTX_SKIP_PERSIST_FLAG
 
 logger = logging.getLogger(__name__)
@@ -67,6 +67,10 @@ async def _invoke(
         if obj is not None:
             ctx.model = type(obj)
     skip_persist: bool = bool(ctx.get(CTX_SKIP_PERSIST_FLAG) or ctx.get("skip_persist"))
+    if not callable(ctx.get("rpc_error_builder")):
+        ctx["rpc_error_builder"] = lambda exc: to_rpc_error_payload(
+            create_standardized_error(exc)
+        )
 
     existed_tx_before = _in_transaction(db) if db is not None else False
 
