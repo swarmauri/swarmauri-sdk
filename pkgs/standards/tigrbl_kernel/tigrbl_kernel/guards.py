@@ -19,7 +19,8 @@ except Exception:  # pragma: no cover
     AsyncSession = Any  # type: ignore
 
 from tigrbl_runtime.executors.types import _Ctx, PhaseChains
-from tigrbl_runtime.executors.helpers import _is_async_db, _run_chain, _g
+from tigrbl_atoms.atoms.sys._db import _is_async_db
+from tigrbl_runtime.executors.helpers import _run_chain, _g
 
 logger = logging.getLogger(__name__)
 

@@ -6,11 +6,6 @@ import logging
 from typing import Any, Iterable, Optional, Sequence
 
 try:
-    from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
-except Exception:  # pragma: no cover
-    AsyncSession = Any  # type: ignore
-
-try:
     from tigrbl_kernel import trace as _trace  # type: ignore
 except Exception:  # pragma: no cover
     _trace = None  # type: ignore
@@ -47,34 +42,6 @@ def _normalize_payload(payload: Any) -> Any:
             return _normalize_payload(data)
 
     return str(payload)
-
-
-def _is_async_db(db: Any) -> bool:
-    """Detect DB interfaces that require `await` for transactional methods."""
-    if isinstance(db, AsyncSession) or hasattr(db, "run_sync"):
-        return True
-    for attr in ("commit", "begin", "rollback", "flush"):
-        if inspect.iscoroutinefunction(getattr(db, attr, None)):
-            return True
-    return False
-
-
-def _bool_call(meth: Any) -> bool:
-    try:
-        return bool(meth())
-    except Exception:  # pragma: no cover
-        return False
-
-
-def _in_tx(db: Any) -> bool:
-    for name in ("in_transaction", "in_nested_transaction"):
-        attr = getattr(db, name, None)
-        if callable(attr):
-            if _bool_call(attr):
-                return True
-        elif attr:
-            return True
-    return False
 
 
 async def _maybe_await(v: Any) -> Any:
@@ -184,11 +151,4 @@ def _g(phases: Optional[PhaseChains], key: str) -> Sequence[HandlerStep]:
     return () if not phases else phases.get(key, ())
 
 
-__all__ = [
-    "_is_async_db",
-    "_bool_call",
-    "_in_tx",
-    "_maybe_await",
-    "_run_chain",
-    "_g",
-]
+__all__ = ["_maybe_await", "_run_chain", "_g"]
