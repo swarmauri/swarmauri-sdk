@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.wire import build_in
+from tigrbl_atoms.atoms.wire import build_in
 from tigrbl.runtime.status.exceptions import HTTPException
 
 

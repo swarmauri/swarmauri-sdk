@@ -22,7 +22,7 @@ def test_compile_kernel_plan_indexes_rest_and_jsonrpc_bindings() -> None:
     from tigrbl import TigrblApp
     from tigrbl._spec import OpSpec
     from tigrbl.orm.mixins import GUIDPk
-    from tigrbl.runtime.kernel import Kernel
+    from tigrbl_kernel import Kernel
     from tigrbl._spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
 
     class Widget(TableBase, GUIDPk):
@@ -78,8 +78,8 @@ def test_kernel_plan_roundtrips_opkey_to_meta() -> None:
     from tigrbl import TigrblApp
     from tigrbl._spec import OpSpec
     from tigrbl.orm.mixins import GUIDPk
-    from tigrbl.runtime.kernel import Kernel
-    from tigrbl.runtime.kernel.models import OpKey
+    from tigrbl_kernel import Kernel
+    from tigrbl_kernel.models import OpKey
     from tigrbl._spec import HttpRestBindingSpec
 
     class Widget(TableBase, GUIDPk):
@@ -114,7 +114,7 @@ def test_compile_kernel_plan_from_app_spec_includes_all_operation_bindings() -> 
     from tigrbl._spec import ColumnSpec, FieldSpec as F, IOSpec as IO
     from tigrbl._spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
     from tigrbl._spec import OpSpec, TableSpec
-    from tigrbl.runtime.kernel import Kernel
+    from tigrbl_kernel import Kernel
 
     table_spec = TableSpec(
         model_ref="tests.models:Gadget",

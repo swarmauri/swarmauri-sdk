@@ -15,7 +15,8 @@ from tigrbl.orm.mixins import (
     tzutcnow_plus_day,
 )
 from tigrbl.orm.mixins.utils import CRUD_IO
-from tigrbl._spec import F, S, acol
+from tigrbl._spec import F, S
+from tigrbl.shortcuts.column import acol
 from tigrbl.orm.tables import TableBase
 from tigrbl.types import Mapped, String
 

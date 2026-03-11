@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.refresh import demand
-from tigrbl.runtime.kernel import (
+from tigrbl_atoms.atoms.refresh import demand
+from tigrbl_kernel import (
     SchemaIn,
     SchemaOut,
     OpView,

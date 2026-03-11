@@ -7,7 +7,7 @@ import pytest
 from tigrbl._spec import OpSpec
 from tigrbl.runtime import events as _ev
 from tigrbl.runtime import system as _sys
-from tigrbl.runtime.kernel import Kernel
+from tigrbl_kernel import Kernel
 
 
 class _FakeDB:

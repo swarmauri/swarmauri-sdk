@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.kernel.opview_compiler import compile_opview_from_specs
+from tigrbl_kernel.opview_compiler import compile_opview_from_specs
 
 
 def test_compile_opview_from_specs_builds_sorted_io_fields() -> None:

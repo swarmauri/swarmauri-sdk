@@ -8,10 +8,11 @@ from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
 
 from tigrbl.mapping.model import bind
-from tigrbl.op.types import PHASES
-from tigrbl.runtime.kernel import build_phase_chains
+from tigrbl_atoms import HookPhases as PHASES
+from tigrbl_kernel import build_phase_chains
 from tigrbl.runtime import system as runtime_system
-from tigrbl._spec import IO, S, acol
+from tigrbl._spec import IO, S
+from tigrbl.shortcuts.column import acol
 from tigrbl.orm.tables import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.decorators.hook import hook_ctx

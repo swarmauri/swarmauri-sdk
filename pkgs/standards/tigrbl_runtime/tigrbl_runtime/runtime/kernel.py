@@ -4,7 +4,7 @@ Canonical kernel planning now lives in ``tigrbl_kernel``.
 Runtime execution stays in ``tigrbl_runtime.executors``.
 """
 
-from ..executors.kernel_executor import (
+from tigrbl_runtime.executors.kernel_executor import (
     _build_numba_packed_executor,
     _build_python_packed_executor,
     _coerce_int,

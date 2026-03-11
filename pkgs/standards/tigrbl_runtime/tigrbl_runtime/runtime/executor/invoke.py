@@ -1,5 +1,5 @@
 """Compatibility wrapper for legacy invoke import path."""
 
-from ...executors.invoke import _invoke
+from tigrbl_runtime.executors.invoke import _invoke
 
 __all__ = ["_invoke"]

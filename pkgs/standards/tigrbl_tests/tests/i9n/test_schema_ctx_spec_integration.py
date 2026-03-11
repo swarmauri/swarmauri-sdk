@@ -11,7 +11,8 @@ from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.tables import TableBase as Base3
 from tigrbl.decorators.schema import schema_ctx
-from tigrbl._spec import IO, F, S, acol
+from tigrbl._spec import IO, F, S
+from tigrbl.shortcuts.column import acol
 
 
 @pytest_asyncio.fixture
