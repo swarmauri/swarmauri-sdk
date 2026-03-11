@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from typing import Any, Dict, List, Mapping
 
 from tigrbl_atoms import StepFn
+from tigrbl_atoms.atoms.sys.phase_db import run as _bind_phase_db
 
 from . import events as _ev
 from .atoms import (
@@ -31,6 +32,27 @@ from .utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+_PHASE_DB_LABEL = "atom:sys:phase_db@SYS_PHASE_DB_BIND"
+
+
+def _phase_db_step() -> StepFn:
+    step = _wrap_atom(_bind_phase_db, anchor="SYS_PHASE_DB_BIND")
+    setattr(step, "__tigrbl_label", _PHASE_DB_LABEL)
+    return step
+
+
+def _prepend_phase_db_binding(
+    chains: Dict[str, List[StepFn]],
+    phases: tuple[str, ...] | list[str],
+) -> None:
+    for phase in phases:
+        steps = list(chains.get(phase, ()) or ())
+        if steps and getattr(steps[0], "__tigrbl_label", None) == _PHASE_DB_LABEL:
+            chains[phase] = steps
+            continue
+        chains[phase] = [_phase_db_step(), *steps]
 
 
 def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
@@ -59,6 +81,7 @@ def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
 
     for phase in DEFAULT_PHASE_ORDER:
         chains.setdefault(phase, [])
+    _prepend_phase_db_binding(chains, list(DEFAULT_PHASE_ORDER))
     return chains
 
 
@@ -82,6 +105,9 @@ def _build_ingress(self, app: Any) -> Dict[str, List[StepFn]]:
     for phase, atoms in ingress_atoms.items():
         ordered = sorted(atoms, key=lambda item: order.get(item[0], 10_000))
         out[phase] = [_wrap_atom(run, anchor=anchor) for anchor, run in ordered]
+    for phase in INGRESS_PHASES:
+        out.setdefault(phase, [])
+    _prepend_phase_db_binding(out, list(INGRESS_PHASES))
     return out
 
 
@@ -101,6 +127,9 @@ def _build_egress(self, app: Any) -> Dict[str, List[StepFn]]:
     for phase, atoms in egress_atoms.items():
         ordered = sorted(atoms, key=lambda item: order.get(item[0], 10_000))
         out[phase] = [_wrap_atom(run, anchor=anchor) for anchor, run in ordered]
+    for phase in EGRESS_PHASES:
+        out.setdefault(phase, [])
+    _prepend_phase_db_binding(out, list(EGRESS_PHASES))
     return out
 
 

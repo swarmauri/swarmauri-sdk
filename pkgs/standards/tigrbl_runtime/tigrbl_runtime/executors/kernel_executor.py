@@ -27,6 +27,7 @@ async def _run(
 
 async def _run_phase_chain(self, ctx: _Ctx, phases: Any) -> None:
     for _phase, steps in (phases or {}).items():
+        ctx.phase = _phase
         for step in steps or ():
             rv = step(ctx)
             if hasattr(rv, "__await__"):
@@ -36,6 +37,7 @@ async def _run_phase_chain(self, ctx: _Ctx, phases: Any) -> None:
 async def _run_segment_python(
     self, ctx: _Ctx, packed: PackedKernel, seg_id: int
 ) -> None:
+    ctx.phase = packed.segment_phases[seg_id]
     start = packed.segment_offsets[seg_id]
     end = start + packed.segment_lengths[seg_id]
     for idx in range(start, end):

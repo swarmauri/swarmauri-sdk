@@ -90,6 +90,7 @@ def _resolve_op_index(ctx: _Ctx, plan: Any) -> int | None:
 
 async def _run_phase_chain(ctx: _Ctx, phases: Any) -> None:
     for _phase, steps in (phases or {}).items():
+        ctx.phase = _phase
         for step in steps or ():
             rv = step(ctx)
             if hasattr(rv, "__await__"):
