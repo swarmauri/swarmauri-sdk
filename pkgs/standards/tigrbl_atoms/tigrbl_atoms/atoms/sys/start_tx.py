@@ -1,21 +1,15 @@
 from __future__ import annotations
 
+from typing import Any
+
 from ...types import Atom, Ctx, ExecutingCtx
 from ...stages import Guarded, Executing
 
-from typing import Any
-
 from ... import events as _ev
 from .._temp import _ensure_temp
+from ._db import _resolve_db_handle
 
 ANCHOR = _ev.SYS_TX_BEGIN
-
-
-def _resolve_db_handle(ctx: Any) -> Any:
-    db = getattr(ctx, "db", None)
-    if db is not None:
-        return db
-    return getattr(ctx, "session", None)
 
 
 async def _run(obj: object | None, ctx: Any) -> None:

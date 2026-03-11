@@ -2,14 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from tigrbl_atoms.atoms.sys._db import _resolve_db_handle
+
 ANCHOR = "ON_ROLLBACK"
-
-
-def _resolve_db_handle(ctx: Any) -> Any:
-    db = getattr(ctx, "db", None)
-    if db is not None:
-        return db
-    return getattr(ctx, "session", None)
 
 
 async def run(obj: object | None, ctx: Any) -> None:

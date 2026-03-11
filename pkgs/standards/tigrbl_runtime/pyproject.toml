@@ -21,6 +21,7 @@ dependencies = [
     "tigrbl-typing",
     "tigrbl-kernel",
     "tigrbl-concrete",
+    "tigrbl-atoms",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
@@ -28,6 +29,7 @@ keywords = ["tigrbl", "sdk", "standards", "framework"]
 "tigrbl-typing" = { workspace = true }
 "tigrbl-kernel" = { workspace = true }
 "tigrbl-concrete" = { workspace = true }
+"tigrbl-atoms" = { workspace = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
