@@ -1,7 +1,7 @@
 from tigrbl_kernel import Kernel as KernelFromKernel
 
 from tigrbl_runtime.runtime import Kernel as KernelFromRuntime
-from tigrbl_runtime.runtime._executor import (
+from tigrbl_runtime.executors.kernel_executor import (
     _build_numba_packed_executor,
     _build_python_packed_executor,
     _coerce_int,

@@ -1,10 +1,10 @@
 """Compatibility wrapper for runtime kernel APIs.
 
 Canonical kernel planning now lives in ``tigrbl_kernel``.
-Runtime execution stays in ``tigrbl_runtime.runtime.executor``.
+Runtime execution stays in ``tigrbl_runtime.executors``.
 """
 
-from ._executor import (
+from ..executors.kernel_executor import (
     _build_numba_packed_executor,
     _build_python_packed_executor,
     _coerce_int,

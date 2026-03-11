@@ -1,4 +1,4 @@
-"""Runtime public API with lazy imports to avoid circular startup."""
+"""Executor public API with lazy imports to avoid circular startup."""
 
 from __future__ import annotations
 
@@ -6,15 +6,11 @@ from importlib import import_module
 from typing import Any
 
 _EXPORTS = {
-    "Kernel": "kernel",
-    "build_phase_chains": "kernel",
-    "get_cached_specs": "kernel",
-    "_default_kernel": "kernel",
-    "status": "status",
-    "STEP_KINDS": "labels",
-    "DOMAINS": "labels",
-    "RuntimeBase": "base",
-    "Runtime": "runtime",
+    "ExecutorBase": "base",
+    "PhaseExecutor": "phase",
+    "PackedPlanExecutor": "packed",
+    "_Ctx": "types",
+    "_invoke": "invoke",
 }
 
 __all__ = list(_EXPORTS)
