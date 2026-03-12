@@ -1,5 +1,4 @@
 # ── Standard Library ─────────────────────────────────────────────────────
-import warnings
 from types import MethodType, SimpleNamespace
 from uuid import uuid4, UUID
 
@@ -54,9 +53,7 @@ from ..vendor.pydantic import (
     ValidationError,
 )
 
-from ..core.crud.params import Path
-from ..runtime.status.exceptions import StatusDetailError
-from ..security.dependencies import Security
+from ..status.exceptions import StatusDetailError
 
 # ── Local Package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
@@ -151,37 +148,6 @@ __all__: list[str] = [
     "BaseModel",
     "Field",
     "ValidationError",
-    # routing/dependency support (from deps)
-    "Security",
-    "Path",
+    # status
     "StatusDetailError",
 ]
-
-
-_DEPRECATED_EXPORTS: dict[str, tuple[str, str]] = {
-    "Router": ("tigrbl", "Router"),
-    "Request": ("tigrbl", "Request"),
-    "Body": ("tigrbl.core.crud", "Body"),
-    "Depends": ("tigrbl.security", "Depends"),
-    "HTTPException": ("tigrbl.runtime.status", "HTTPException"),
-    "Response": ("tigrbl", "Response"),
-}
-
-
-def __getattr__(name: str):
-    if name in _DEPRECATED_EXPORTS:
-        module, _attr = _DEPRECATED_EXPORTS[name]
-        warnings.warn(
-            (
-                f"tigrbl.types.{name} is deprecated and no longer exports from "
-                "tigrbl.types. "
-                f"Import it from '{module}' instead."
-            ),
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        raise AttributeError(
-            f"tigrbl.types.{name} no longer exports from tigrbl_typing.types. "
-            f"Import it from '{module}' instead."
-        )
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

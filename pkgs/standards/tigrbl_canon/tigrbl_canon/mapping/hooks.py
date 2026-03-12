@@ -18,7 +18,7 @@ from typing import (
 
 from tigrbl_core._spec import OpSpec
 from tigrbl_core._spec.hook_spec import HookSpec
-from ..hook.types import PHASES, StepFn
+from tigrbl_atoms import HookPhases as PHASES, StepFn
 from tigrbl.config.constants import (
     TIGRBL_ROUTER_HOOKS_ATTR,
     TIGRBL_HOOKS_ATTR,

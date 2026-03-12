@@ -1,7 +1,7 @@
 """Lesson 09.2: Registering table configuration providers."""
 
 from tigrbl.types import TableConfigProvider
-from tigrbl.types.table_config_provider import list_table_config_providers
+from tigrbl_typing.types.table_config_provider import list_table_config_providers
 
 
 def test_table_config_providers_register():

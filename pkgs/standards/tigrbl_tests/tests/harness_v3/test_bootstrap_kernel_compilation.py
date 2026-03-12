@@ -16,7 +16,7 @@ import inspect
 from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.runtime.kernel import _default_kernel
+from tigrbl_kernel import _default_kernel
 from tigrbl.types import Column, String
 
 

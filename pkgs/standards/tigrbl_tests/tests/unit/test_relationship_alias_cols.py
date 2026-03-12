@@ -1,5 +1,6 @@
 import pytest
-from tigrbl._spec import F, S, acol, vcol
+from tigrbl._spec import F, S
+from tigrbl.shortcuts.column import acol, vcol
 from tigrbl.decorators.op import alias_ctx
 from tigrbl.orm.tables import TableBase
 from tigrbl.types import (

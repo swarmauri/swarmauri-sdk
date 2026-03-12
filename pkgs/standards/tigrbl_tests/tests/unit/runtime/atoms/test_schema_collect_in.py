@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
-from tigrbl.runtime.kernel import (
+from tigrbl_atoms.atoms.schema.collect_in import _run as collect_in_run
+from tigrbl_kernel import (
     SchemaIn,
     SchemaOut,
     OpView,

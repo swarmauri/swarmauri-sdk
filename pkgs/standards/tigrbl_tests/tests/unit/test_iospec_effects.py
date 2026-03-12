@@ -12,12 +12,13 @@ from sqlalchemy.orm import DeclarativeBase
 from tigrbl.mapping.model import bind
 from tigrbl.mapping.rest.router import _build_router
 from tigrbl._spec import OpSpec
-from tigrbl.runtime.atoms.resolve import assemble
-from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
-from tigrbl.runtime.atoms.schema.collect_out import run as collect_out_run
-from tigrbl.runtime.kernel import _default_kernel as K
+from tigrbl_atoms.atoms.resolve import assemble
+from tigrbl_atoms.atoms.schema.collect_in import _run as collect_in_run
+from tigrbl_atoms.atoms.schema.collect_out import _run as collect_out_run
+from tigrbl_kernel import _default_kernel as K
 from tigrbl.schema import _build_list_params
-from tigrbl._spec import ColumnSpec, F, IO, S, acol, vcol
+from tigrbl._spec import ColumnSpec, F, IO, S
+from tigrbl.shortcuts.column import acol, vcol
 from tigrbl.orm.tables import TableBase
 from tigrbl.orm.mixins import GUIDPk
 

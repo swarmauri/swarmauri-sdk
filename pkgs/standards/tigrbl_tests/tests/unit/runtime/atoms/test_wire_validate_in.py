@@ -2,9 +2,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from tigrbl.runtime.atoms.wire import validate_in
+from tigrbl_atoms.atoms.wire import validate_in
 from tigrbl.runtime.status import HTTPException
-from tigrbl.runtime.kernel import (
+from tigrbl_kernel import (
     SchemaIn,
     SchemaOut,
     OpView,

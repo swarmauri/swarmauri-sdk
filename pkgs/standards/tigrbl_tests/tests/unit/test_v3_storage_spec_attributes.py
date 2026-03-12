@@ -1,13 +1,14 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.storage import to_stored
-from tigrbl.runtime.kernel import (
+from tigrbl_atoms.atoms.storage import to_stored
+from tigrbl_kernel import (
     SchemaIn,
     SchemaOut,
     OpView,
     _default_kernel as K,
 )
-from tigrbl._spec import S, acol
+from tigrbl._spec import S
+from tigrbl.shortcuts.column import acol
 from tigrbl._spec import ForeignKeySpec, StorageTransform
 from tigrbl.orm.tables import TableBase
 from sqlalchemy import Integer, String, text

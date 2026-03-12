@@ -9,8 +9,9 @@ from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase
-from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
-from tigrbl._spec import IO, F, S, acol
+from tigrbl_atoms.atoms.schema.collect_in import _run as collect_in_run
+from tigrbl._spec import IO, F, S
+from tigrbl.shortcuts.column import acol
 from tigrbl.types import String
 
 

@@ -5,7 +5,8 @@ from tigrbl import response_ctx
 from tigrbl.shortcuts.engine import engine, mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase
-from tigrbl._spec import IO, S, F, acol as spec_acol
+from tigrbl._spec import IO, S, F
+from tigrbl.shortcuts.column import acol as spec_acol
 from tigrbl.types import String
 from tigrbl import TigrblRouter
 

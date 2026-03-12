@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.wire import build_out
-from tigrbl.runtime.kernel import (
+from tigrbl_atoms.atoms.wire import build_out
+from tigrbl_kernel import (
     SchemaIn,
     SchemaOut,
     OpView,

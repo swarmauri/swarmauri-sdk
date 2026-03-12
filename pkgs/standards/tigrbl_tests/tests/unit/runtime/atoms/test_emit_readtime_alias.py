@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.emit import readtime_alias
-from tigrbl.runtime.kernel import (
+from tigrbl_atoms.atoms.emit import readtime_alias
+from tigrbl_kernel import (
     SchemaIn,
     SchemaOut,
     OpView,

@@ -4,8 +4,8 @@ import pytest
 
 from tigrbl import TigrblApp
 from tigrbl.runtime import events as _ev
-from tigrbl.runtime.kernel import Kernel
-from tigrbl.runtime.kernel.payload import build_kernelz_payload
+from tigrbl_kernel import Kernel
+from tigrbl_kernel.payload import build_kernelz_payload
 from tigrbl.runtime.system import END_TX, START_TX
 
 

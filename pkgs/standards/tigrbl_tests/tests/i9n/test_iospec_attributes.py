@@ -12,12 +12,13 @@ from tigrbl.mapping.rpc import register_and_attach
 from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase
-from tigrbl.runtime.atoms.resolve import assemble
-from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
-from tigrbl.runtime.atoms.schema.collect_out import run as collect_out_run
-from tigrbl.runtime.kernel import _default_kernel as K
-from tigrbl.runtime.kernel import build_phase_chains
-from tigrbl._spec import IO, F, S, acol, vcol
+from tigrbl_atoms.atoms.resolve import assemble
+from tigrbl_atoms.atoms.schema.collect_in import _run as collect_in_run
+from tigrbl_atoms.atoms.schema.collect_out import _run as collect_out_run
+from tigrbl_kernel import _default_kernel as K
+from tigrbl_kernel import build_phase_chains
+from tigrbl._spec import IO, F, S
+from tigrbl.shortcuts.column import acol, vcol
 from tigrbl.types import Integer as IntType
 from tigrbl.types import SimpleNamespace
 from tigrbl.types import String as StrType

@@ -1,6 +1,6 @@
 from tigrbl.runtime import events as _ev
 from tigrbl.runtime.labels import Label
-from tigrbl.runtime.ordering import flatten
+from tigrbl_kernel.ordering import flatten
 
 
 def test_flatten_orders_labels_by_runtime_anchor_sequence() -> None:

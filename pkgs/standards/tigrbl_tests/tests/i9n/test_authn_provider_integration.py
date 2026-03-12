@@ -8,7 +8,7 @@ from tigrbl.runtime.status import HTTPException
 from tigrbl import HTTPBearer
 from tigrbl.security import Security
 from tigrbl._concrete._security.http_bearer import HTTPAuthorizationCredentials
-from tigrbl.types.authn_abc import AuthNProvider
+from tigrbl_typing.types.authn_abc import AuthNProvider
 
 
 class HookedAuth(AuthNProvider):

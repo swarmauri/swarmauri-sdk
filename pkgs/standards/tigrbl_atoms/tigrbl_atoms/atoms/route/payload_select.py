@@ -92,6 +92,10 @@ def _run(obj: object | None, ctx: Any) -> None:
     setattr(ctx, "payload", payload)
 
 
+def run(obj: object | None, ctx: Any) -> None:
+    _run(obj, ctx)
+
+
 class AtomImpl(Atom[Bound, Bound]):
     name = "route.payload_select"
     anchor = ANCHOR
@@ -108,4 +112,4 @@ class AtomImpl(Atom[Bound, Bound]):
 
 INSTANCE = AtomImpl()
 
-__all__ = ["ANCHOR", "INSTANCE"]
+__all__ = ["ANCHOR", "INSTANCE", "run"]
