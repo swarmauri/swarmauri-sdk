@@ -1,4 +1,4 @@
-from math import inf
+from math import inf, isfinite
 from typing import List, Literal
 
 from swarmauri_base.ComponentBase import ComponentBase
@@ -14,11 +14,19 @@ class WassersteinDistance(DistanceBase):
 
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """Compute the 1D Wasserstein distance between two vectors."""
-        values_a = sorted(float(value) for value in vector_a.value)
-        values_b = sorted(float(value) for value in vector_b.value)
+        values_a = [float(value) for value in vector_a.value]
+        values_b = [float(value) for value in vector_b.value]
 
         if not values_a or not values_b:
             raise ValueError("Wasserstein distance requires non-empty vectors.")
+
+        if not all(isfinite(value) for value in values_a + values_b):
+            raise ValueError(
+                "Wasserstein distance requires vectors with only finite values."
+            )
+
+        values_a.sort()
+        values_b.sort()
 
         size_a = len(values_a)
         size_b = len(values_b)
