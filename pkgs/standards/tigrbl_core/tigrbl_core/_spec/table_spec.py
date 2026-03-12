@@ -77,10 +77,12 @@ class TableSpec(SerdeMixin):
         )
         cls.DEPS = tuple(merge_seq_attr(cls, "DEPS", include_inherited=True))
 
-        engine = resolve_table_engine(cls)
-        if engine is not None:
-            cfg = dict(getattr(cls, "table_config", {}) or {})
-            cfg.setdefault("engine", engine)
+        cfg = dict(getattr(cls, "table_config", {}) or {})
+        if "engine" not in cfg:
+            legacy_engine = getattr(cls, "ENGINE", None)
+            if legacy_engine is not None:
+                cfg["engine"] = legacy_engine
+        if cfg:
             cls.table_config = cfg
 
     def __post_init__(self) -> None:

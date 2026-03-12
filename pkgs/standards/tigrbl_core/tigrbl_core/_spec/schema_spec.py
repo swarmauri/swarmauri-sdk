@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
-from tigrbl.schema.types import SchemaArg, SchemaKind, SchemaRef
+from tigrbl_core.schema.types import SchemaArg, SchemaKind, SchemaRef
 from .serde import SerdeMixin
 
 
