@@ -13,7 +13,7 @@ except Exception:  # pragma: no cover
 
 
 from tigrbl_base._base import SchemaBase
-from tigrbl.schema.types import SchemaKind
+from tigrbl_core._spec.schema_spec import SchemaKind
 
 
 @dataclass(frozen=True, slots=True)

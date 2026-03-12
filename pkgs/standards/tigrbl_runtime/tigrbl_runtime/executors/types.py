@@ -1,6 +1,7 @@
 # tigrbl/runtime/executor/types.py
 from __future__ import annotations
 
+from dataclasses import MISSING, fields, is_dataclass
 from typing import (
     Any,
     Awaitable,
@@ -14,9 +15,10 @@ from typing import (
     runtime_checkable,
 )
 
-from tigrbl_concrete._concrete._request import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
+from tigrbl_atoms.types import BaseCtx
+from tigrbl_concrete._concrete._request import Request
 
 
 class _ResponseState:
@@ -66,17 +68,7 @@ PhaseChains = Mapping[str, Sequence[HandlerStep]]
 
 
 class _Ctx(dict):
-    """Dict-like context with attribute access.
-
-    Common keys:
-      • request: ASGI Request (optional)
-      • db: Session | AsyncSession
-      • router/model/op: optional metadata
-      • result: last non-None step result
-      • error: last exception caught (on failure paths)
-      • response: SimpleNamespace(result=...) for POST_RESPONSE shaping
-      • temp: scratch dict used by atoms/hook steps
-    """
+    """Dict-like runtime context with attribute access and atom promotion support."""
 
     __slots__ = ()
     __getattr__ = dict.get  # type: ignore[assignment]
@@ -101,15 +93,49 @@ class _Ctx(dict):
 
     __setattr__ = __setitem__  # type: ignore[assignment]
 
+    def promote(self, cls: type[Any], /, **updates: object) -> Any:
+        """Promote runtime contexts into atom dataclass contexts."""
+        if not is_dataclass(cls):
+            raise TypeError(f"promote target must be a dataclass type, got {cls!r}")
+
+        data: dict[str, object] = {}
+        missing_required: list[str] = []
+
+        for f in fields(cls):
+            if f.name in updates:
+                continue
+            if f.name in self:
+                data[f.name] = self[f.name]
+                continue
+            if f.default is MISSING and f.default_factory is MISSING:
+                missing_required.append(f.name)
+
+        if missing_required:
+            raise TypeError(
+                f"cannot promote {type(self).__name__} -> {cls.__name__}; "
+                f"missing required fields: {', '.join(missing_required)}"
+            )
+
+        data.update(updates)
+        return cls(**data)
+
     @classmethod
     def ensure(
         cls,
         *,
         request: Optional[Request],
         db: Union[Session, AsyncSession, None],
-        seed: Optional[MutableMapping[str, Any]] = None,
+        seed: Optional[MutableMapping[str, Any] | BaseCtx[Any, Any]] = None,
     ) -> "_Ctx":
-        ctx = cls() if seed is None else (seed if isinstance(seed, _Ctx) else cls(seed))
+        if seed is None:
+            ctx = cls()
+        elif isinstance(seed, _Ctx):
+            ctx = seed
+        elif isinstance(seed, BaseCtx):
+            ctx = cls({f.name: getattr(seed, f.name) for f in fields(type(seed))})
+        else:
+            ctx = cls(seed)
+
         if request is not None:
             ctx.request = request
             state = getattr(request, "state", None)

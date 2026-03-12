@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from tigrbl_base._base import AppBase
-
-from tigrbl_canon.mapping.spec_normalization import merge_seq_attr, normalize_app_spec
+from tigrbl_core._spec.app_spec import merge_seq_attr, normalize_app_spec
 
 
 class _Base:
