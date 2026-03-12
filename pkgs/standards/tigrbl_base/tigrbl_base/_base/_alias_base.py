@@ -7,7 +7,7 @@ from tigrbl_core._spec.alias_spec import AliasSpec
 from tigrbl_core._spec.op_spec import Arity, PersistPolicy
 
 if TYPE_CHECKING:  # pragma: no cover
-    from tigrbl.schema.types import SchemaArg
+    from tigrbl_core._spec.schema_spec import SchemaArg
 else:
     SchemaArg = Any
 

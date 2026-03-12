@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .._spec.schema_spec import SchemaRef
+from .._spec.schema_spec import SchemaArg, SchemaRef
 from ..utils.schema import get_schema
 from .builder.build_schema import _build_schema
 from .builder.list_params import _build_list_params
@@ -16,6 +16,7 @@ from .utils import (
 __all__ = [
     "get_schema",
     "SchemaRef",
+    "SchemaArg",
     "_build_schema",
     "_build_list_params",
     "_make_bulk_rows_model",
