@@ -118,21 +118,6 @@ def _resolve_handler_kwargs(
     return kwargs
 
 
-async def invoke_runtime_route_handler(
-    ctx: Any,
-    *,
-    handler: Callable[..., Any],
-) -> None:
-    from tigrbl_atoms.atoms.sys.runtime_route_handler import (
-        run as _runtime_route_handler,
-    )
-
-    temp = _ensure_temp(ctx)
-    route = temp.setdefault("route", {})
-    route["handler"] = handler
-    await _runtime_route_handler(None, ctx)
-
-
 def _merge_table_op_binding(route: Any) -> bool:
     model = getattr(route, "tigrbl_model", None)
     alias = getattr(route, "tigrbl_alias", None)
@@ -224,7 +209,14 @@ def register_runtime_route(app: Any, route: Any) -> None:
     ) + (op,)
 
     async def _runtime_route_handler(ctx: Any) -> None:
-        await invoke_runtime_route_handler(ctx, handler=handler)
+        from tigrbl_atoms.atoms.sys.runtime_route_handler import (
+            run as _runtime_route_handler_atom,
+        )
+
+        temp = _ensure_temp(ctx)
+        route_ctx = temp.setdefault("route", {})
+        route_ctx["handler"] = handler
+        await _runtime_route_handler_atom(None, ctx)
 
     hooks_ns = getattr(model.hooks, alias, None)
     if hooks_ns is None:
@@ -233,4 +225,4 @@ def register_runtime_route(app: Any, route: Any) -> None:
     hooks_ns.HANDLER = [_runtime_route_handler]
 
 
-__all__ = ["invoke_runtime_route_handler", "register_runtime_route"]
+__all__ = ["register_runtime_route"]
