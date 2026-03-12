@@ -51,6 +51,17 @@ def test_bind_phase_db_wraps_db_with_phase_caps_and_tx_ownership() -> None:
     assert ctx.db.raw is raw_db
 
 
+def test_phase_db_run_uses_bind_phase_db_contract() -> None:
+    raw_db = object()
+    ctx = SimpleNamespace(_raw_db=raw_db, phase="PRE_HANDLER", owns_tx=False)
+
+    out = phase_db.run(ctx)
+
+    assert out is ctx
+    assert isinstance(ctx.db, phase_db.PhaseDb)
+    assert ctx.db.raw is raw_db
+
+
 def test_phase_db_enforces_flush_commit_and_refresh_rules() -> None:
     calls: list[str] = []
 
