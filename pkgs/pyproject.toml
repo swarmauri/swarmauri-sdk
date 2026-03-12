@@ -223,6 +223,7 @@ members = [
     "standards/swarmauri_crypto_rust",
     "experimental/swarmauri_crypto_sodium",
     "standards/swarmauri_distance_minkowski",
+    "standards/swarmauri_distance_wasserstein",
     "standards/swarmauri_embedding_doc2vec",
     "standards/swarmauri_embedding_nmf",
     "standards/swarmauri_evaluator_abstractmethods",
