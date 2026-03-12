@@ -59,6 +59,20 @@ class BaseCtx(Generic[S, E]):
     current_phase: str | None = None
     error_phase: str | None = None
 
+    def __getattribute__(self, name: str) -> Any:
+        """
+        Keep core context methods callable even if runtime data shadows names.
+
+        Some adapters may attach arbitrary attributes to ctx instances. If one of
+        those attributes is named ``promote`` and set to ``None`` (or any
+        non-callable), ``ctx.promote(...)`` would fail with ``NoneType is not
+        callable``. Always resolving ``promote`` from ``BaseCtx`` preserves the
+        invariant that every ctx remains promotable.
+        """
+        if name == "promote":
+            return BaseCtx.promote.__get__(self, type(self))
+        return object.__getattribute__(self, name)
+
     def promote(self, cls: type[U], /, **updates: object) -> U:
         if not is_dataclass(cls):
             raise TypeError(f"promote target must be a dataclass type, got {cls!r}")
