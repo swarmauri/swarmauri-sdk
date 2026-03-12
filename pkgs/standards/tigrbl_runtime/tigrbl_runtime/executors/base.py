@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, ClassVar
 
 
 class ExecutorBase(ABC):
     """Contract for runtime executors."""
 
-    def __init__(self, name: str) -> None:
-        self.name = name
+    name: ClassVar[str]
 
     @abstractmethod
     async def invoke(

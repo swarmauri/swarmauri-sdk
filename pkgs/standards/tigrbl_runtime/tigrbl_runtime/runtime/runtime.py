@@ -13,11 +13,11 @@ class Runtime(RuntimeBase):
 
     def __init__(self, kernel: Kernel | None = None) -> None:
         super().__init__(kernel=kernel or _default_kernel)
-        self.register_executor("phase", PhaseExecutor())
-        self.register_executor("packed", PackedPlanExecutor())
+        self.register_executor(PhaseExecutor())
+        self.register_executor(PackedPlanExecutor())
 
-    def register_executor(self, name: str, executor: ExecutorBase) -> None:
-        self.executors[name] = executor
+    def register_executor(self, executor: ExecutorBase) -> None:
+        self.executors[executor.name] = executor
 
     def compile(self, *args: Any, **kwargs: Any) -> tuple[Any, Any | None]:
         plan = self.kernel.compile(*args, **kwargs)
