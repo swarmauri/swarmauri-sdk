@@ -90,7 +90,7 @@ class AppBase(AppSpec):
                     "ROUTERS",
                     include_inherited=include_inherited_routers,
                     reverse=include_inherited_routers,
-                    dedupe=False,
+                    dedupe=True,
                 )
                 or ()
             ),
