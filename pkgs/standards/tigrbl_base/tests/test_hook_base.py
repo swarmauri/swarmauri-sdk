@@ -8,10 +8,10 @@ def step_fn(ctx: dict) -> dict:
 
 
 def test_hook_base_fields_and_inheritance() -> None:
-    hook = HookBase(phase=HookPhase.BEFORE_IN, fn=step_fn, ops=("create",), order=10)
+    hook = HookBase(phase=HookPhase.PRE_HANDLER, fn=step_fn, ops=("create",), order=10)
 
     assert isinstance(hook, HookSpec)
-    assert hook.phase == HookPhase.BEFORE_IN
+    assert hook.phase == HookPhase.PRE_HANDLER
     assert hook.fn is step_fn
     assert tuple(hook.ops) == ("create",)
     assert hook.order == 10
