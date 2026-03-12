@@ -64,7 +64,7 @@ def test_atoms_request_contract_matches_request_spec_shape() -> None:
         "client",
     }
 
-    assert {"__init__"} <= spec_methods
+    assert "__init__" not in spec_methods
     assert required_methods <= atoms_methods
     assert not spec_properties
     assert required_properties <= atoms_properties
