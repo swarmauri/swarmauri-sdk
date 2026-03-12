@@ -87,9 +87,9 @@ def test_phase_db_enforces_flush_commit_and_refresh_rules() -> None:
     )
 
     asyncio.run(pre_handler.flush())
-    with pytest.raises(RuntimeError, match="db.commit\(\) is not allowed"):
+    with pytest.raises(RuntimeError, match=r"db.commit\(\) is not allowed"):
         asyncio.run(pre_handler.commit())
-    with pytest.raises(RuntimeError, match="db.refresh\(\) is not allowed"):
+    with pytest.raises(RuntimeError, match=r"db.refresh\(\) is not allowed"):
         asyncio.run(pre_handler.refresh(object()))
 
     post_commit = phase_db.PhaseDb(
@@ -116,7 +116,7 @@ def test_phase_db_denies_commit_when_tx_not_owned_even_if_phase_allows_commit() 
         owns_tx=False,
     )
 
-    with pytest.raises(RuntimeError, match="db.commit\(\) is not allowed"):
+    with pytest.raises(RuntimeError, match=r"db.commit\(\) is not allowed"):
         asyncio.run(wrapper.commit())
 
 
