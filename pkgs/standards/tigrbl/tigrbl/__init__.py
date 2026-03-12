@@ -19,6 +19,7 @@ _ALIAS_MODULES = {
     "mapping": "tigrbl_canon.mapping",
     "orm": "tigrbl_orm.orm",
     "runtime": "tigrbl_runtime.runtime",
+    "executors": "tigrbl_runtime.executors",
     "atoms": "tigrbl_atoms.atoms",
     "kernel": "tigrbl_kernel.kernel",
 }
