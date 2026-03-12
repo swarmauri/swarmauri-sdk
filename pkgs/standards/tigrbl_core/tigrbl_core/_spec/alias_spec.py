@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Optional
 from .._spec.op_spec import Arity, PersistPolicy
 
 if TYPE_CHECKING:  # pragma: no cover
-    from ..schema.types import SchemaArg
+    from .schema_spec import SchemaArg
 
 
 class AliasSpec(ABC):

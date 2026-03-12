@@ -33,7 +33,7 @@ TargetOp = Literal[
 if TYPE_CHECKING:  # pragma: no cover
     from .._spec.engine_spec import EngineCfg
     from .._spec.response_spec import ResponseSpec
-    from tigrbl.schema.types import SchemaArg
+    from .schema_spec import SchemaArg
 else:
     EngineCfg = Any
 

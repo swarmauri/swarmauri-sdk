@@ -8,7 +8,7 @@ from typing import Any, Optional, Tuple, Type
 
 from pydantic import BaseModel, create_model
 
-from tigrbl.schema.types import SchemaArg, SchemaRef
+from tigrbl_core._spec.schema_spec import SchemaArg, SchemaRef
 from tigrbl.schema import namely_model
 
 logger = logging.getLogger("uvicorn")
