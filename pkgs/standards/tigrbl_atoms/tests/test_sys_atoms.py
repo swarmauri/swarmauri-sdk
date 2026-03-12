@@ -245,7 +245,7 @@ def test_handlers_delegate_to_core_with_ident_and_db(
     async def fake_call(*args: object, **kwargs: object) -> dict[str, object]:
         assert args[0] is Model
         assert args[1] == 7
-        if core_name != "read":
+        if core_name not in {"read", "delete"}:
             assert args[2] == payload
         assert kwargs == {"db": "db-handle"}
         return expected
