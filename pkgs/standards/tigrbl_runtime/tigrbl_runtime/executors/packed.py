@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from tigrbl_kernel.models import KernelPlan, PackedKernel
 
@@ -11,8 +11,7 @@ from .types import _Ctx
 class PackedPlanExecutor(ExecutorBase):
     """Executes packed kernel plans via kernel-attached packed execution hooks."""
 
-    def __init__(self) -> None:
-        super().__init__(name="packed")
+    name: ClassVar[str] = "packed"
 
     @staticmethod
     def _coerce_int(value: Any) -> int | None:
