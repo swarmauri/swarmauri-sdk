@@ -1,29 +1,39 @@
-from math import inf, isfinite
+from itertools import chain
+from math import inf, isfinite, isnan
 from typing import List, Literal
 
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.distances.DistanceBase import DistanceBase
+from swarmauri_base.metrics.MetricBase import MetricBase
 from swarmauri_standard.vectors.Vector import Vector
 
 
-@ComponentBase.register_type(DistanceBase, "WassersteinDistance")
-class WassersteinDistance(DistanceBase):
+@ComponentBase.register_type(MetricBase, "WassersteinMetric")
+class WassersteinMetric(MetricBase):
     """Compute Wasserstein distance and derived similarity scores."""
 
-    type: Literal["WassersteinDistance"] = "WassersteinDistance"
+    type: Literal["WassersteinMetric"] = "WassersteinMetric"
+
+    @staticmethod
+    def _validate_values(values_a: List[float], values_b: List[float]) -> None:
+        """Validate Wasserstein input values before CDF iteration."""
+        if not values_a or not values_b:
+            raise ValueError("Wasserstein distance requires non-empty vectors.")
+
+        all_values = chain(values_a, values_b)
+
+        if any(isnan(value) for value in all_values):
+            raise ValueError("Wasserstein distance does not accept NaN values.")
+
+        if not all(isfinite(value) for value in chain(values_a, values_b)):
+            raise ValueError(
+                "Wasserstein distance requires vectors with only finite values."
+            )
 
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """Compute the 1D Wasserstein distance between two vectors."""
         values_a = [float(value) for value in vector_a.value]
         values_b = [float(value) for value in vector_b.value]
-
-        if not values_a or not values_b:
-            raise ValueError("Wasserstein distance requires non-empty vectors.")
-
-        if not all(isfinite(value) for value in values_a + values_b):
-            raise ValueError(
-                "Wasserstein distance requires vectors with only finite values."
-            )
+        self._validate_values(values_a, values_b)
 
         values_a.sort()
         values_b.sort()
@@ -45,10 +55,19 @@ class WassersteinDistance(DistanceBase):
             cdf_b = index_b / size_b
             area += abs(cdf_a - cdf_b) * (next_x - previous_x)
 
+            prior_index_a = index_a
+            prior_index_b = index_b
+
             while index_a < size_a and values_a[index_a] == next_x:
                 index_a += 1
             while index_b < size_b and values_b[index_b] == next_x:
                 index_b += 1
+
+            if prior_index_a == index_a and prior_index_b == index_b:
+                raise ValueError(
+                    "Wasserstein distance iteration failed to advance; "
+                    "check input values for NaN or unsupported values."
+                )
 
             previous_x = next_x
 
