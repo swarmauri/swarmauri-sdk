@@ -16,7 +16,7 @@ class RuntimeBase(ABC):
         """Delegate compilation/planning to the underlying kernel."""
 
     @abstractmethod
-    def register_executor(self, name: str, executor: Any) -> None:
+    def register_executor(self, executor: Any) -> None:
         """Register an executor implementation."""
 
     @abstractmethod
