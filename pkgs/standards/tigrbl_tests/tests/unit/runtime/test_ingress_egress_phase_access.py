@@ -2,7 +2,7 @@ import pytest
 
 from tigrbl.decorators.hook import hook_ctx
 from tigrbl.hook.exceptions import InvalidHookPhaseError
-from tigrbl.runtime.kernel.atoms import _inject_atoms
+from tigrbl_kernel.atoms import _inject_atoms
 
 
 _PHASE_ONLY_ATOM_ANCHORS = (

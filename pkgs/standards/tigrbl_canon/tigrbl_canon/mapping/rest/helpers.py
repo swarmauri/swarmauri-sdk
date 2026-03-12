@@ -4,8 +4,8 @@ import logging
 from types import SimpleNamespace
 from typing import Any, Awaitable, Callable, Dict, Mapping, Sequence, Tuple
 
-from ..._concrete._request import Request
-from ...hook.types import PHASES
+from tigrbl_concrete._concrete._request import Request
+from tigrbl_atoms import HookPhases as PHASES  # tuple of HookPhase str-enums
 
 try:
     from tigrbl_kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore

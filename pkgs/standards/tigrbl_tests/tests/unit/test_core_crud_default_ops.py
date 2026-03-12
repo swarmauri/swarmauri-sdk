@@ -3,7 +3,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, declarative_base
 
 from tigrbl.core import crud
-from tigrbl._spec import IO, S, F, acol
+from tigrbl._spec import IO, S, F
+from tigrbl.shortcuts.column import acol
 from tigrbl.types import Integer, String
 from tigrbl.schema import _build_list_params
 from sqlalchemy.orm.exc import NoResultFound

@@ -5,7 +5,7 @@ import re
 import pytest
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.route import jsonrpc_batch_intercept, op_resolve
+from tigrbl_atoms.atoms.route import jsonrpc_batch_intercept, op_resolve
 
 
 def _ctx_for_route(*, method: str, path: str, routes: list[object]):

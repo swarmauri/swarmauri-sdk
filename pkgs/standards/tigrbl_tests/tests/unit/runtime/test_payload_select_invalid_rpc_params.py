@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.route import payload_select
+from tigrbl_atoms.atoms.route import payload_select
 
 
 def test_payload_select_invalid_jsonrpc_string_params_returns_invalid_rpc_error():

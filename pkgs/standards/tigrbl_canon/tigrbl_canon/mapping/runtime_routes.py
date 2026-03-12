@@ -16,7 +16,7 @@ from ..mapping.core_resolver import (
     split_annotated,
 )
 from tigrbl_atoms.atoms.dep.extra import invoke_dependency as invoke_extra_dependency
-from ..security.dependencies import Dependency
+from tigrbl_concrete._concrete.dependencies import Dependency
 
 
 def _ensure_temp(ctx: Any) -> dict[str, Any]:

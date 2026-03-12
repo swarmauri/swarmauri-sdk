@@ -52,7 +52,7 @@ def _canonicalize_app(app: Any) -> Any:
     except Exception:
         return app
 
-    if isinstance(app, AppSpec):
+    if type(app) is AppSpec:
         return normalize_app_spec(app)
     return app
 

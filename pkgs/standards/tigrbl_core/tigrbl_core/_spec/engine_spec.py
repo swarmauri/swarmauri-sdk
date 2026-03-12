@@ -219,7 +219,7 @@ class EngineSpec(SerdeMixin):
 
     def build(self) -> Tuple[Any, SessionFactory]:
         """Construct the engine and sessionmaker for this spec."""
-        from ..engine.builders import (
+        from tigrbl.engine.builders import (
             async_postgres_engine,
             async_sqlite_engine,
             blocking_postgres_engine,

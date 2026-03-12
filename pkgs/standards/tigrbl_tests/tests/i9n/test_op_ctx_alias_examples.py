@@ -3,7 +3,8 @@ from pydantic import BaseModel
 from tigrbl import op_alias, op_ctx
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase
-from tigrbl._spec import F, S, acol
+from tigrbl._spec import F, S
+from tigrbl.shortcuts.column import acol
 from tigrbl.types import Column, Mapped, String
 
 from .test_op_ctx_behavior import setup_router

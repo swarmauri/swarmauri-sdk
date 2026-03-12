@@ -3,7 +3,7 @@ from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.schema import _build_schema
 from tigrbl.types import Column, Field, RequestExtrasProvider, String
-from tigrbl.types.request_extras_provider import list_request_extras_providers
+from tigrbl_typing.types.request_extras_provider import list_request_extras_providers
 
 
 @pytest.mark.i9n

@@ -4,7 +4,7 @@ from typing import Any
 
 from tigrbl_kernel import Kernel, _default_kernel
 
-from ..executors import ExecutorBase, PackedPlanExecutor, PhaseExecutor
+from tigrbl_runtime.executors import ExecutorBase, PackedPlanExecutor, PhaseExecutor
 from .base import RuntimeBase
 
 

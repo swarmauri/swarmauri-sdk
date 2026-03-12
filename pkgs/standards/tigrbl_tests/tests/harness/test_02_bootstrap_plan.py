@@ -29,7 +29,7 @@ def test_kernel_compiles_bootstrap_plan_with_required_anchors() -> None:
     from tigrbl.orm.mixins import GUIDPk
     from tigrbl._spec import OpSpec
     from tigrbl.runtime import events as ev
-    from tigrbl.runtime.kernel import Kernel
+    from tigrbl_kernel import Kernel
     from tigrbl._spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
 
     class Widget(TableBase, GUIDPk):

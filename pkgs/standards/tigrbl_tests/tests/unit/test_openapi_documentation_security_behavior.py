@@ -16,7 +16,7 @@ from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase
 from tigrbl.shortcuts.engine import mem
-from tigrbl.types import Security
+from tigrbl.security import Security
 
 
 def _bearer_dep(cred=Security(HTTPBearer(scheme_name="BearerAuth"))):

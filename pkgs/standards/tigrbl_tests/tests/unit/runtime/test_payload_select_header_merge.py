@@ -1,10 +1,11 @@
 from types import SimpleNamespace
 
-from tigrbl._spec import F, IO, S, acol
+from tigrbl._spec import F, IO, S
+from tigrbl.shortcuts.column import acol
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase
-from tigrbl.runtime.atoms.route import payload_select
-from tigrbl.runtime.kernel.opview_compiler import compile_opview_from_specs
+from tigrbl_atoms.atoms.route import payload_select
+from tigrbl_kernel.opview_compiler import compile_opview_from_specs
 from tigrbl.types import Mapped, String
 
 

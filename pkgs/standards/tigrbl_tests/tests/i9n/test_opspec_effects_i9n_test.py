@@ -7,12 +7,13 @@ from tigrbl import TigrblApp
 from tigrbl import core as _core
 from tigrbl.decorators.hook import hook_ctx
 from tigrbl.mapping.model import bind
-from tigrbl.op.types import PHASES
+from tigrbl_atoms import HookPhases as PHASES
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase
 from tigrbl.runtime import system as runtime_system
-from tigrbl.runtime.kernel import build_phase_chains
-from tigrbl._spec import IO, S, acol
+from tigrbl_kernel import build_phase_chains
+from tigrbl._spec import IO, S
+from tigrbl.shortcuts.column import acol
 
 # --- models --------------------------------------------------------------------
 

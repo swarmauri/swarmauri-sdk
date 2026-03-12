@@ -6,9 +6,9 @@ from typing import Any, Dict, Optional, Sequence, Tuple
 
 
 from tigrbl_runtime.runtime.status.mappings import status as _status
-from ...security.dependencies import Depends
+from tigrbl_concrete._concrete.dependencies import Depends
 from tigrbl_core._spec import OpSpec
-from ...op.types import CANON
+from tigrbl.op.types import CANON
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/rest/routing")
