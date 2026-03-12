@@ -1,7 +1,7 @@
-from .WassersteinDistance import WassersteinDistance
+from .WassersteinMetric import WassersteinMetric
 
 
-__all__ = ["WassersteinDistance"]
+__all__ = ["WassersteinMetric"]
 
 try:
     # For Python 3.8 and newer
@@ -11,7 +11,7 @@ except ImportError:
     from importlib_metadata import version, PackageNotFoundError
 
 try:
-    __version__ = version("swarmauri_distance_wasserstein")
+    __version__ = version("swamauri_metric_wasserstein")
 except PackageNotFoundError:
     # If the package is not installed (for example, during development)
     __version__ = "0.0.0"

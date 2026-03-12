@@ -1,7 +1,7 @@
 [project]
-name = "swarmauri_distance_wasserstein"
+name = "swamauri_metric_wasserstein"
 version = "0.9.0.dev40"
-description = "Wasserstein distance plugin for Swarmauri vector comparisons."
+description = "Wasserstein metric plugin for Swarmauri vector comparisons."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -26,7 +26,7 @@ keywords = [
     'swarmauri',
     'sdk',
     'standards',
-    'distance',
+    'metric',
     'wasserstein',
 ]
 
@@ -57,7 +57,7 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [project.entry-points.'swarmauri.distances']
-WassersteinDistance = "swarmauri_distance_wasserstein:WassersteinDistance"
+WassersteinMetric = "swamauri_metric_wasserstein:WassersteinMetric"
 
 
 [build-system]
