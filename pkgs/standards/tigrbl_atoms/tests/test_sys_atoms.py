@@ -222,6 +222,62 @@ def test_handler_create_delegates_to_core_create(
     assert ctx.result == {"id": 1}
 
 
+@pytest.mark.parametrize(
+    ("atom", "core_name", "payload", "expected"),
+    (
+        (handler_read, "read", {"id": 7}, {"id": 7}),
+        (handler_update, "update", {"name": "Ada"}, {"updated": True}),
+        (handler_replace, "replace", {"name": "Grace"}, {"replaced": True}),
+        (handler_merge, "merge", {"name": "Linus"}, {"merged": True}),
+        (handler_delete, "delete", {"id": 7}, {"deleted": True}),
+    ),
+)
+def test_handlers_delegate_to_core_with_ident_and_db(
+    monkeypatch: pytest.MonkeyPatch,
+    atom: Atom,
+    core_name: str,
+    payload: dict[str, object],
+    expected: dict[str, object],
+) -> None:
+    class Model:
+        pass
+
+    async def fake_call(*args: object, **kwargs: object) -> dict[str, object]:
+        assert args[0] is Model
+        assert args[1] == 7
+        if core_name != "read":
+            assert args[2] == payload
+        assert kwargs == {"db": "db-handle"}
+        return expected
+
+    monkeypatch.setattr(atom._core, core_name, fake_call)
+
+    ctx = SimpleNamespace(payload=payload, path_params={"id": 7}, db="db-handle")
+    asyncio.run(atom._run(Model, ctx))
+
+    assert ctx.result == expected
+
+
+def test_handler_clear_delegates_to_core_clear_with_empty_filter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Model:
+        pass
+
+    async def fake_clear(model: type, filters: object, db: object) -> dict[str, object]:
+        assert model is Model
+        assert filters == {}
+        assert db == "db-handle"
+        return {"cleared": True}
+
+    monkeypatch.setattr(handler_clear._core, "clear", fake_clear)
+
+    ctx = SimpleNamespace(payload={"ignored": True}, db="db-handle")
+    asyncio.run(handler_clear._run(Model, ctx))
+
+    assert ctx.result == {"cleared": True}
+
+
 def test_handler_bulk_create_requires_list_payload() -> None:
     class Model:
         pass
@@ -267,6 +323,42 @@ def test_handler_bulk_delete_uses_ids_from_payload(
     asyncio.run(handler_bulk_delete._run(Model, ctx))
 
     assert ctx.result == {"deleted": 3}
+
+
+@pytest.mark.parametrize(
+    ("atom", "core_name", "expected"),
+    (
+        (handler_bulk_create, "bulk_create", {"created": 2}),
+        (handler_bulk_update, "bulk_update", {"updated": 2}),
+        (handler_bulk_replace, "bulk_replace", {"replaced": 2}),
+        (handler_bulk_merge, "bulk_merge", {"merged": 2}),
+    ),
+)
+def test_bulk_handlers_delegate_list_payload_to_core(
+    monkeypatch: pytest.MonkeyPatch,
+    atom: Atom,
+    core_name: str,
+    expected: dict[str, object],
+) -> None:
+    class Model:
+        pass
+
+    payload = [{"id": 1}, {"id": 2}]
+
+    async def fake_bulk(
+        model: type, incoming_payload: object, db: object
+    ) -> dict[str, object]:
+        assert model is Model
+        assert incoming_payload == payload
+        assert db == "db-handle"
+        return expected
+
+    monkeypatch.setattr(atom._core, core_name, fake_bulk)
+
+    ctx = SimpleNamespace(payload=payload, db="db-handle")
+    asyncio.run(atom._run(Model, ctx))
+
+    assert ctx.result == expected
 
 
 def test_handler_list_passes_filters_and_pagination(
