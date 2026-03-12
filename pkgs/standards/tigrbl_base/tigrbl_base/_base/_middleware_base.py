@@ -6,6 +6,7 @@ from typing import Any
 from urllib.parse import urlencode
 
 from tigrbl_core._spec.middleware_spec import (
+    ASGIApp,
     ASGIReceive,
     ASGISend,
     Message,
@@ -30,6 +31,10 @@ def finalize_transport_response(
 
 class MiddlewareBase(MiddlewareSpec):
     """Base middleware for intercepting HTTP requests in ASGI mode."""
+
+    def __init__(self, app: ASGIApp, **kwargs: Any) -> None:
+        self.app = app
+        self.kwargs = kwargs
 
     async def dispatch(self, request: RequestBase, call_next: Any) -> ResponseBase:
         return await call_next(request)
