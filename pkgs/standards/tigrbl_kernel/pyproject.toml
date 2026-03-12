@@ -42,5 +42,6 @@ packages = [
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    "pytest-asyncio>=0.24",
     "ruff>=0.9",
 ]
