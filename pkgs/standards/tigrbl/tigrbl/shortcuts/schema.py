@@ -13,7 +13,7 @@ except Exception:  # pragma: no cover
 
 from .._concrete._schema import Schema
 from .._spec.schema_spec import SchemaSpec
-from ..schema.types import SchemaArg, SchemaKind
+from .._spec.schema_spec import SchemaArg, SchemaKind
 
 
 def schema_spec(
