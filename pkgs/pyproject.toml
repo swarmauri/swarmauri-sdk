@@ -456,6 +456,7 @@ swarmauri_crypto_pgp = { workspace = true }
 swarmauri_crypto_rust = { workspace = true }
 swarmauri_crypto_sodium = { workspace = true }
 swarmauri_distance_minkowski = { workspace = true }
+swarmauri_distance_wasserstein = { workspace = true }
 swarmauri_embedding_doc2vec = { workspace = true }
 swarmauri_embedding_mlm = { workspace = true }
 swarmauri_embedding_nmf = { workspace = true }

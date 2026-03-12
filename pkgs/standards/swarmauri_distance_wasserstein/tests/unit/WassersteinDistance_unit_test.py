@@ -45,3 +45,19 @@ def test_distance_for_shifted_vectors():
 def test_distance_rejects_empty_vectors():
     with pytest.raises(ValueError, match="non-empty vectors"):
         WassersteinDistance().distance(Vector(value=[]), Vector(value=[1.0]))
+
+
+@pytest.mark.unit
+def test_distance_rejects_nan_values():
+    with pytest.raises(ValueError, match="finite values"):
+        WassersteinDistance().distance(
+            Vector(value=[1.0, float("nan")]), Vector(value=[1.0])
+        )
+
+
+@pytest.mark.unit
+def test_distance_rejects_infinite_values():
+    with pytest.raises(ValueError, match="finite values"):
+        WassersteinDistance().distance(
+            Vector(value=[1.0, float("inf")]), Vector(value=[1.0])
+        )
