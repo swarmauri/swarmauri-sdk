@@ -19,6 +19,7 @@ classifiers = [
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "tigrbl-typing",
+    "tigrbl-atoms",
     "pyyaml",
     "tomli-w",
 ]
@@ -26,6 +27,7 @@ keywords = ["tigrbl", "sdk", "standards", "framework"]
 
 [tool.uv.sources]
 "tigrbl-typing" = { workspace = true }
+"tigrbl-atoms" = { workspace = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

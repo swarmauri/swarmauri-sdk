@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any, ClassVar, Mapping
 
 from tigrbl_kernel.models import KernelPlan
 
@@ -12,8 +12,7 @@ from .invoke import _invoke
 class PhaseExecutor(ExecutorBase):
     """Executes a kernel plan by running assembled phase chains."""
 
-    def __init__(self) -> None:
-        super().__init__(name="phase")
+    name: ClassVar[str] = "phase"
 
     async def invoke(
         self,
