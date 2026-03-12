@@ -41,7 +41,7 @@ def test_from_any_rejects_unknown_dsn() -> None:
 
 
 def test_build_uses_builder_module_for_sqlite() -> None:
-    module = types.ModuleType("tigrbl_core.engine.builders")
+    module = types.ModuleType("tigrbl_concrete.engine.builders")
     module.async_sqlite_engine = lambda **kw: ("async_sqlite", kw)
     module.blocking_sqlite_engine = lambda **kw: ("sync_sqlite", kw)
     module.async_postgres_engine = lambda **kw: ("async_pg", kw)
