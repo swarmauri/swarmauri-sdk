@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional, Sequence, Tuple
 from tigrbl_runtime.runtime.status.mappings import status as _status
 from tigrbl_concrete._concrete.dependencies import Depends
 from tigrbl_core._spec import OpSpec
-from tigrbl.op.types import CANON
+from tigrbl_core.config.constants import CANON
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/rest/routing")
@@ -81,10 +81,12 @@ _DEFAULT_METHODS: Dict[str, Tuple[str, ...]] = {
 def _default_path_suffix(sp: OpSpec) -> str | None:
     if sp.target.startswith("bulk_"):
         return None
-    if sp.alias != sp.target and (
-        sp.target in {"create", "custom"} or sp.target not in CANON
-    ):
+
+    # Mount explicit aliases as dedicated REST suffixes so canonical endpoints
+    # and aliased endpoints can coexist for both member and collection ops.
+    if sp.alias != sp.target and sp.target in CANON:
         return f"/{sp.alias}"
+
     return None
 
 
