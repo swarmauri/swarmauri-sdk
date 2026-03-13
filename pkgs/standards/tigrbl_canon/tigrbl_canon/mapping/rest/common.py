@@ -42,7 +42,7 @@ from tigrbl_concrete._concrete._request import Request
 from tigrbl_concrete._concrete._response import Response
 
 from tigrbl_concrete._concrete._router import Router
-from tigrbl.config.constants import (
+from tigrbl_core.config.constants import (
     TIGRBL_ALLOW_ANON_ATTR,
     TIGRBL_AUTH_CONTEXT_ATTR,
     TIGRBL_AUTH_DEP_ATTR,
