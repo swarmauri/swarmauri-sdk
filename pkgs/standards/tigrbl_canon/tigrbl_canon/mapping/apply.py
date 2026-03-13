@@ -67,7 +67,7 @@ def apply(context: MappingContext):
     _schemas_binding.build_and_attach(
         model, list(context.visible_specs), only_keys=context.only_keys
     )
-    _hooks_binding.normalize_and_attach(
+    _hooks_binding.build_and_attach(
         model, list(context.visible_specs), only_keys=context.only_keys
     )
     _handlers_binding.build_and_attach(

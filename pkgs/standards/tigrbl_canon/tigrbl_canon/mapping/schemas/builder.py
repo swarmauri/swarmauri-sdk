@@ -40,11 +40,18 @@ def build_and_attach(
         len(specs),
         only_keys,
     )
-    if not hasattr(model, "schemas"):
+    existing_schemas = model.__dict__.get("schemas", None)
+    if not isinstance(existing_schemas, SimpleNamespace):
+        inherited = getattr(model, "schemas", None)
         model.schemas = SimpleNamespace()
-        logger.debug("Created new schemas namespace on %s", model.__name__)
+        if isinstance(inherited, SimpleNamespace):
+            for key, value in vars(inherited).items():
+                setattr(model.schemas, key, value)
+        logger.debug("Created model-local schemas namespace on %s", model.__name__)
     else:
-        logger.debug("Using existing schemas namespace on %s", model.__name__)
+        logger.debug(
+            "Using existing model-local schemas namespace on %s", model.__name__
+        )
 
     wanted = set(only_keys or ())
     if wanted:
