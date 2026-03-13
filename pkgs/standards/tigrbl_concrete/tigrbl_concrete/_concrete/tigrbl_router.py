@@ -66,6 +66,21 @@ class TigrblRouter(_Router):
     _optional_authn_dep: Any = None
     _allow_anon_ops: set[str] = set()
 
+    @staticmethod
+    def _collect_declared_tables(owner: type) -> tuple[Any, ...]:
+        collected: list[Any] = []
+        seen: set[int] = set()
+        for base in owner.__mro__:
+            if "TABLES" not in base.__dict__:
+                continue
+            for table in tuple(base.__dict__.get("TABLES", ()) or ()):
+                marker = id(table)
+                if marker in seen:
+                    continue
+                seen.add(marker)
+                collected.append(table)
+        return tuple(collected)
+
     def __init__(
         self,
         *,
@@ -105,7 +120,9 @@ class TigrblRouter(_Router):
         )
 
         # public containers (mirrors used by bindings.router)
-        self.tables = TableRegistry(tables=getattr(self, "TABLES", ()))
+        self.tables = TableRegistry(
+            tables=self._collect_declared_tables(self.__class__)
+        )
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
         self.hooks = SimpleNamespace()
