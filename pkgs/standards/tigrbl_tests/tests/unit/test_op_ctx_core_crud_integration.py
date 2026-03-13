@@ -2,7 +2,13 @@ import pytest
 from sqlalchemy import Column, Integer, String
 
 from tigrbl import TableBase, op_ctx
+from tigrbl.mapping import build_handlers
+from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
 import tigrbl.core as core
+
+
+def _bind(model):
+    build_handlers(model, mro_collect_decorated_ops(model))
 
 
 @pytest.mark.asyncio
@@ -35,6 +41,7 @@ async def test_op_ctx_target_read_core_executes(monkeypatch, alias_kw, handler_a
             ctx["touched"] = True
             return {"id": 99}
 
+    _bind(Widget)
     ctx = {"path_params": {"id": 1}, "db": object()}
     ctx_before = ctx.copy()
     handler = getattr(Widget.handlers, handler_alias).raw
@@ -67,6 +74,7 @@ async def test_op_ctx_alias_read_overrides_core(monkeypatch):
             ctx["touched"] = True
             return {"id": 99}
 
+    _bind(Gadget)
     ctx = {"path_params": {"id": 1}, "db": object()}
     ctx_before = ctx.copy()
     result = await Gadget.handlers.read.raw(ctx)
@@ -108,6 +116,7 @@ async def test_op_ctx_target_create_core_executes(monkeypatch, alias_kw, handler
             ctx["touched"] = True
             return {"id": 99}
 
+    _bind(Gadget)
     ctx = {"payload": {"id": 1, "value": "a"}, "db": object()}
     ctx_before = ctx.copy()
     handler = getattr(Gadget.handlers, handler_alias).raw
@@ -142,6 +151,7 @@ async def test_op_ctx_alias_create_overrides_core(monkeypatch):
             ctx["touched"] = True
             return {"id": 99}
 
+    _bind(Widget)
     ctx = {"payload": {"id": 1, "value": "a"}, "db": object()}
     ctx_before = ctx.copy()
     result = await Widget.handlers.create.raw(ctx)
@@ -183,6 +193,7 @@ async def test_op_ctx_target_update_core_executes(monkeypatch, alias_kw, handler
             ctx["touched"] = True
             return {"id": 99}
 
+    _bind(Gizmo)
     ctx = {"path_params": {"id": 1}, "payload": {"value": "b"}, "db": object()}
     ctx_before = ctx.copy()
     handler = getattr(Gizmo.handlers, handler_alias).raw
@@ -217,6 +228,7 @@ async def test_op_ctx_alias_update_overrides_core(monkeypatch):
             ctx["touched"] = True
             return {"id": 99}
 
+    _bind(Device)
     ctx = {"path_params": {"id": 1}, "payload": {"value": "b"}, "db": object()}
     ctx_before = ctx.copy()
     result = await Device.handlers.update.raw(ctx)
@@ -260,6 +272,7 @@ async def test_op_ctx_target_replace_core_executes(
             ctx["touched"] = True
             return {"id": 99}
 
+    _bind(Thing)
     ctx = {"path_params": {"id": 1}, "payload": {"value": "c"}, "db": object()}
     ctx_before = ctx.copy()
     handler = getattr(Thing.handlers, handler_alias).raw
@@ -294,6 +307,7 @@ async def test_op_ctx_alias_replace_overrides_core(monkeypatch):
             ctx["touched"] = True
             return {"id": 99}
 
+    _bind(Part)
     ctx = {"path_params": {"id": 1}, "payload": {"value": "c"}, "db": object()}
     ctx_before = ctx.copy()
     result = await Part.handlers.replace.raw(ctx)
@@ -334,6 +348,7 @@ async def test_op_ctx_target_delete_core_executes(monkeypatch, alias_kw, handler
             ctx["touched"] = True
             return {"deleted": 0}
 
+    _bind(Piece)
     ctx = {"path_params": {"id": 1}, "db": object()}
     ctx_before = ctx.copy()
     handler = getattr(Piece.handlers, handler_alias).raw
@@ -367,6 +382,7 @@ async def test_op_ctx_alias_delete_overrides_core(monkeypatch):
             ctx["touched"] = True
             return {"deleted": 0}
 
+    _bind(Chip)
     ctx = {"path_params": {"id": 1}, "db": object()}
     ctx_before = ctx.copy()
     result = await Chip.handlers.delete.raw(ctx)

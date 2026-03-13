@@ -108,6 +108,8 @@ def _wrap_core(model: type, target: str) -> StepFn:
     anchor, atom_runner = _get_atom("sys", subject)
 
     async def step(ctx: Any) -> Any:
+        if not isinstance(ctx, _Ctx):
+            ctx = _Ctx.ensure(request=_ctx_request(ctx), db=_ctx_db(ctx), seed=ctx)
         await atom_runner(model, ctx)
         return getattr(ctx, "result", None)
 
