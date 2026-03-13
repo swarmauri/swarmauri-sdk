@@ -71,7 +71,16 @@ class _Ctx(dict):
     """Dict-like runtime context with attribute access and atom promotion support."""
 
     __slots__ = ()
-    __getattr__ = dict.get  # type: ignore[assignment]
+
+    def __getattribute__(self, name: str) -> Any:
+        # Keep core context methods callable even when runtime data shadows
+        # method names (for example: ctx["promote"] = None).
+        if name == "promote":
+            return _Ctx.promote.__get__(self, type(self))
+        return dict.__getattribute__(self, name)
+
+    def __getattr__(self, name: str) -> Any:
+        return dict.get(self, name)
 
     def __setitem__(self, key: str, value: Any) -> None:
         if (

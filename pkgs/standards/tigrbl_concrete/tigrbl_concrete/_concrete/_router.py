@@ -62,6 +62,21 @@ class Router(RouterSpec):
     RPC_PREFIX = "/rpc"
     SYSTEM_PREFIX = "/system"
 
+    @staticmethod
+    def _collect_declared_tables(owner: type) -> tuple[Any, ...]:
+        collected: list[Any] = []
+        seen: set[int] = set()
+        for base in owner.__mro__:
+            if "TABLES" not in base.__dict__:
+                continue
+            for table in tuple(base.__dict__.get("TABLES", ()) or ()):
+                marker = id(table)
+                if marker in seen:
+                    continue
+                seen.add(marker)
+                collected.append(table)
+        return tuple(collected)
+
     def __init__(
         self,
         *,
@@ -116,7 +131,9 @@ class Router(RouterSpec):
         self.rest_prefix = getattr(self, "REST_PREFIX", "/router")
         self.rpc_prefix = getattr(self, "RPC_PREFIX", "/rpc")
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
-        self.tables = TableRegistry(tables=getattr(self, "TABLES", ()))
+        self.tables = TableRegistry(
+            tables=self._collect_declared_tables(self.__class__)
+        )
 
         default_dependencies = list(self.security_deps) + list(self.deps)
         self.dependencies = list(

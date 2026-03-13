@@ -88,6 +88,21 @@ class TigrblApp(_App):
 
     mount_favicon = mount_favicon
 
+    @staticmethod
+    def _collect_declared_tables(owner: type) -> tuple[Any, ...]:
+        collected: list[Any] = []
+        seen: set[int] = set()
+        for base in owner.__mro__:
+            if "TABLES" not in base.__dict__:
+                continue
+            for table in tuple(base.__dict__.get("TABLES", ()) or ()):
+                marker = id(table)
+                if marker in seen:
+                    continue
+                seen.add(marker)
+                collected.append(table)
+        return tuple(collected)
+
     @classmethod
     def from_spec(cls, spec: AppSpec) -> "TigrblApp":
         """Materialize an app instance from an :class:`~tigrbl.AppSpec`."""
@@ -168,7 +183,7 @@ class TigrblApp(_App):
         self._allow_anon_ops: set[str] = set()
         self._middlewares: list[tuple[Any, dict[str, Any]]] = []
         self.middlewares = _seqify(getattr(self, "MIDDLEWARES", ()))
-        declared_tables = getattr(self, "TABLES", ())
+        declared_tables = self._collect_declared_tables(self.__class__)
         self._table_registry = TableRegistry(tables=declared_tables)
         self._favicon_path = favicon_path
         for mw in self.middlewares:
