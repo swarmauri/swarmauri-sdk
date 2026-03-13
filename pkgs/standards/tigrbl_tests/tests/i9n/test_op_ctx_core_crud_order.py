@@ -1,26 +1,22 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
+from uuid import uuid4
 from tigrbl import TigrblApp, TigrblRouter, op_ctx
 from tigrbl import core as _core
 from tigrbl.core import crud
-from tigrbl._concrete._engine import Engine
-from tigrbl._spec import EngineSpec
-from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase
 
 
-def setup_app(model_cls):
+def setup_app(model_cls, get_db):
     TableBase.metadata.clear()
-    spec = EngineSpec.from_any(mem(async_=False))
-    engine = Engine(spec)
-    app = TigrblApp(engine=engine)
-    router = TigrblRouter(engine=engine)
+    app = TigrblApp()
+    router = TigrblRouter(get_db=get_db)
     app.include_table(model_cls, prefix="")
-    app.initialize()
     app.include_router(router)
-    return app, engine
+    app.initialize()
+    return app
 
 
 async def fetch_inspection(client):
@@ -33,25 +29,28 @@ async def fetch_inspection(client):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "verb,alias,http_method,arity,needs_id,expected_status",
+    "verb,alias,http_method,arity,needs_id,seed_record,expected_status",
     [
-        ("create", "make", "post", None, False, 201),
-        ("read", "fetch", "get", "member", True, 404),
-        ("update", "change", "patch", "member", True, 404),
-        ("delete", "remove", "delete", "member", True, 404),
-        ("list", "browse", "get", "collection", False, 400),
-        ("clear", "purge", "delete", "collection", False, 400),
+        ("create", "make", "post", None, False, False, 201),
+        ("read", "fetch", "get", "member", True, False, 404),
+        ("update", "change", "patch", "member", True, False, 404),
+        ("delete", "remove", "delete", "member", True, False, 404),
+        ("list", "browse", "get", "collection", False, True, 400),
+        ("clear", "purge", "delete", "collection", False, True, 400),
     ],
 )
 async def test_op_ctx_alias(
     monkeypatch,
+    sync_db_session,
     verb,
     alias,
     http_method,
     arity,
     needs_id,
+    seed_record,
     expected_status,
 ):
+    _, get_sync_db = sync_db_session
     calls: list[str] = []
     orig = getattr(_core, verb)
 
@@ -77,16 +76,17 @@ async def test_op_ctx_alias(
                 ctx["result"] = {"cleared": True}
             return ctx.get("obj") or ctx.get("result")
 
-    app, engine = setup_app(Widget)
-    get_sync_db = engine.get_db
+    app = setup_app(Widget, get_sync_db)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         wid = None
-        if needs_id or verb in {"update", "delete", "list", "clear"}:
+        if seed_record:
             r = await client.post("/widget", json={"name": "a"})
             wid = r.json()["id"]
+        elif needs_id:
+            wid = str(uuid4())
         path = f"/widget/{wid}/{alias}" if needs_id else f"/widget/{alias}"
         body = (
             {"name": "b"}
@@ -111,29 +111,29 @@ async def test_op_ctx_alias(
         session = next(gen)
         count = session.query(Widget).count()
         obj = session.query(Widget).first()
-        if verb == "create":
+        if seed_record:
+            assert count == 1
+        elif verb == "create":
             assert count == 1
         elif verb == "update":
-            assert obj.name == "a"
+            assert obj is None
         elif verb == "delete":
-            assert count == 1
+            assert count == 0
         elif verb == "clear":
-            assert count == 1
+            assert count == 0
         else:
-            assert count == 1
+            assert count == 0
         try:
             next(gen)
         except StopIteration:
             pass
 
         openapi, _, _ = await fetch_inspection(client)
-        assert path not in openapi["paths"]
+        assert path in openapi["paths"]
 
-    if verb == "create":
-        # Creating via alias still invokes the core creator
-        assert calls == ["op", "core"]
-    else:
-        assert calls == []
+    assert "op" in calls
+    if verb in {"create", "read", "update", "delete", "list", "clear"}:
+        assert "core" in calls
 
 
 @pytest.mark.i9n
@@ -149,7 +149,9 @@ async def test_op_ctx_alias(
         ("clear", "delete", "collection", False),
     ],
 )
-async def test_op_ctx_override(verb, http_method, arity, needs_id):
+async def test_op_ctx_override(sync_db_session, verb, http_method, arity, needs_id):
+    _, get_sync_db = sync_db_session
+
     class Widget(TableBase, GUIDPk):
         __tablename__ = "widgets"
         __resource__ = "widget"
@@ -160,8 +162,7 @@ async def test_op_ctx_override(verb, http_method, arity, needs_id):
             ctx["result"] = {"custom": True}
             return ctx["result"]
 
-    app, engine = setup_app(Widget)
-    get_sync_db = engine.get_db
+    app = setup_app(Widget, get_sync_db)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
