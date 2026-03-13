@@ -40,6 +40,6 @@ def test_to_stored_derives_from_paired_raw() -> None:
         "assembled_values": {},
     }
     ctx = SimpleNamespace(app=app, model=Model, op=alias, persist=True, temp=temp)
-    to_stored.run(None, ctx)
+    to_stored._run(None, ctx)
     assert ctx.temp["assembled_values"]["token"] == "ABC"
     assert ctx.temp["storage_log"][0]["action"] == "derived_from_paired"

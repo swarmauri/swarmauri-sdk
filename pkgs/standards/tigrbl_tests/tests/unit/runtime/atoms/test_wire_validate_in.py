@@ -35,7 +35,7 @@ def test_validate_in_missing_required() -> None:
 
     ctx = SimpleNamespace(app=app, model=Model, op=alias, temp={"in_values": {}})
     with pytest.raises(HTTPException) as exc:
-        validate_in.run(None, ctx)
+        validate_in._run(None, ctx)
     assert exc.value.status_code == 422
     assert ctx.temp["in_invalid"] is True
 
@@ -64,6 +64,6 @@ def test_validate_in_coerces_types() -> None:
     ctx = SimpleNamespace(
         app=app, model=Model, op=alias, temp={"in_values": {"age": "5"}}
     )
-    validate_in.run(None, ctx)
+    validate_in._run(None, ctx)
     assert ctx.temp["in_values"]["age"] == 5
     assert ctx.temp["in_coerced"] == ("age",)

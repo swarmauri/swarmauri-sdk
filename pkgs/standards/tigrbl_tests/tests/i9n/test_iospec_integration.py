@@ -96,7 +96,7 @@ async def test_default_factory_resolution(widget_setup):
     ctx = SimpleNamespace(
         specs=specs, op="create", temp={"in_values": {}}, persist=True
     )
-    assemble.run(None, ctx)
+    assemble._run(None, ctx)
     assert ctx.temp["assembled_values"]["created_at"] == "now"
 
 

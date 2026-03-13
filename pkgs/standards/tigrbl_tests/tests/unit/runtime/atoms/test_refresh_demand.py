@@ -38,6 +38,6 @@ def test_refresh_demand_marks_need() -> None:
         temp={},
         cfg=SimpleNamespace(),
     )
-    demand.run(None, ctx)
+    demand._run(None, ctx)
     assert ctx.temp["refresh_demand"] is True
     assert ctx.temp["refresh_fields"] == ("id",)

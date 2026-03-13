@@ -98,7 +98,7 @@ def test_sensitive_flag_has_no_masking_effect():
     )
     ov = K._compile_opview_from_specs({"secret": spec}, SimpleNamespace(alias="read"))
     ctx = SimpleNamespace(opview=ov, temp={"response_payload": {"secret": "topsecret"}})
-    masking.run(None, ctx)
+    masking._run(None, ctx)
     assert ctx.temp["response_payload"]["secret"] == "topsecret"
 
 
@@ -110,7 +110,7 @@ def test_redact_last_flag_has_no_masking_effect():
     )
     ov = K._compile_opview_from_specs({"secret": spec}, SimpleNamespace(alias="read"))
     ctx = SimpleNamespace(opview=ov, temp={"response_payload": {"secret": "abcdef"}})
-    masking.run(None, ctx)
+    masking._run(None, ctx)
     assert ctx.temp["response_payload"]["secret"] == "abcdef"
 
 

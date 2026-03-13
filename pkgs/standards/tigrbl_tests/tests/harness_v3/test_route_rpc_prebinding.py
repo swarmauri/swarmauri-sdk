@@ -38,7 +38,7 @@ def test_rpc_envelope_parse_uses_ctx_body_when_route_body_missing() -> None:
     payload = {"jsonrpc": "2.0", "method": "Gadget.create", "params": {}, "id": 1}
     ctx = _mk_ctx(json.dumps(payload).encode("utf-8"))
 
-    rpc_envelope_parse.run(None, ctx)
+    rpc_envelope_parse._run(None, ctx)
 
     assert ctx.temp["route"]["rpc_envelope"]["method"] == "Gadget.create"
     assert ctx.gw_raw.kind == "jsonrpc"

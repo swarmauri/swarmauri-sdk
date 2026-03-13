@@ -107,7 +107,7 @@ def test_iospec_default_factory_resolves_absent_values() -> None:
     specs = Thing.__tigrbl_cols__
     ov = K._compile_opview_from_specs(specs, SimpleNamespace(alias="create"))
     ctx = SimpleNamespace(opview=ov, temp={"in_values": {}}, persist=True)
-    assemble.run(None, ctx)
+    assemble._run(None, ctx)
     assembled = ctx.temp["assembled_values"]
     assert assembled["created_at"] == "now"
     assert "created_at" in ctx.temp["used_default_factory"]
