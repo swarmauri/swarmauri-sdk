@@ -18,7 +18,7 @@ def test_payload_select_invalid_jsonrpc_string_params_returns_invalid_rpc_error(
         }
     )
 
-    payload_select.run(None, ctx)
+    payload_select._run(None, ctx)
 
     assert isinstance(ctx.temp["route"].get("payload"), dict)
     assert ctx.payload == {}

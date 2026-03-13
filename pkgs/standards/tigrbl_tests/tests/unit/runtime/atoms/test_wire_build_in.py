@@ -9,7 +9,7 @@ def test_build_in_maps_alias_and_tracks_unknown() -> None:
     ctx = SimpleNamespace(
         temp={"schema_in": schema_in}, in_data={"n": "Bob", "extra": 1}
     )
-    build_in.run(None, ctx)
+    build_in._run(None, ctx)
     assert ctx.temp["in_values"] == {"name": "Bob"}
     assert ctx.temp["in_unknown"] == ("extra",)
 
@@ -22,7 +22,7 @@ def test_build_in_rejects_wrapper_keys_when_not_in_schema() -> None:
     )
 
     try:
-        build_in.run(None, ctx)
+        build_in._run(None, ctx)
     except HTTPException as exc:
         assert exc.status_code == 422
         assert exc.detail["disallowed_keys"] == ["data"]
@@ -34,6 +34,6 @@ def test_build_in_allows_wrapper_key_when_field_exists() -> None:
     schema_in = {"by_field": {"data": {"alias_in": "data"}}}
     ctx = SimpleNamespace(temp={"schema_in": schema_in}, in_data={"data": "ok"})
 
-    build_in.run(None, ctx)
+    build_in._run(None, ctx)
 
     assert ctx.temp["in_values"] == {"data": "ok"}

@@ -36,5 +36,5 @@ def test_build_out_reads_and_produces() -> None:
 
     ctx = SimpleNamespace(app=app, model=Model, op=alias, temp={})
     obj = SimpleNamespace(id=1)
-    build_out.run(obj, ctx)
+    build_out._run(obj, ctx)
     assert ctx.temp["out_values"] == {"id": 1, "virtual": "v"}
