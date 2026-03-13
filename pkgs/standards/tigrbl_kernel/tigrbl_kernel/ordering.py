@@ -48,7 +48,7 @@ _PREF: Dict[str, Tuple[str, ...]] = {
     _ev.RESOLVE_VALUES: ("resolve:assemble", "resolve:paired_gen"),
     _ev.PRE_FLUSH: ("storage:to_stored",),
     _ev.EMIT_ALIASES_PRE: ("emit:paired_pre",),
-    _ev.SYS_HANDLER_PERSISTENCE: ("sys:runtime_route_handler", "sys:handler:crud"),
+    _ev.SYS_HANDLER_PERSISTENCE: ("sys:handler:crud",),
     _ev.SYS_TX_COMMIT: ("sys:txn:commit",),
     _ev.POST_FLUSH: ("refresh:demand",),
     _ev.EMIT_ALIASES_POST: ("emit:paired_post",),

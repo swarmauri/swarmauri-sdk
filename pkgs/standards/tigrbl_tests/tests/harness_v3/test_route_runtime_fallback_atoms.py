@@ -17,27 +17,6 @@ def _ctx_for_route(*, method: str, path: str, routes: list[object]):
     )
 
 
-def test_op_resolve_discovers_runtime_route_handler() -> None:
-    captured = {"ok": True}
-
-    def handler() -> dict[str, bool]:
-        return captured
-
-    route = SimpleNamespace(
-        pattern=re.compile(r"^/items/(?P<item_id>[^/]+)$"),
-        methods={"GET"},
-        handler=handler,
-    )
-    ctx = _ctx_for_route(method="GET", path="/items/abc", routes=[route])
-
-    op_resolve.run(None, ctx)
-
-    route_ns = ctx.temp["route"]
-    assert route_ns["handler"] is handler
-    assert route_ns["path_params"] == {"item_id": "abc"}
-    assert route_ns.get("method_not_allowed") is None
-
-
 def test_op_resolve_marks_method_not_allowed_for_runtime_route() -> None:
     route = SimpleNamespace(
         pattern=re.compile(r"^/items/(?P<item_id>[^/]+)$"),

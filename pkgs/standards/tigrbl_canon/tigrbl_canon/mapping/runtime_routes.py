@@ -208,21 +208,9 @@ def register_runtime_route(app: Any, route: Any) -> None:
         spec for spec in model.opspecs.all if getattr(spec, "alias", None) != alias
     ) + (op,)
 
-    async def _runtime_route_handler(ctx: Any) -> None:
-        from tigrbl_atoms.atoms.sys.runtime_route_handler import (
-            run as _runtime_route_handler_atom,
-        )
-
-        temp = _ensure_temp(ctx)
-        route_ctx = temp.setdefault("route", {})
-        route_ctx["handler"] = handler
-        await _runtime_route_handler_atom(None, ctx)
-
-    hooks_ns = getattr(model.hooks, alias, None)
-    if hooks_ns is None:
-        hooks_ns = SimpleNamespace()
-        setattr(model.hooks, alias, hooks_ns)
-    hooks_ns.HANDLER = [_runtime_route_handler]
+    # Runtime fallback route-handler invocation is intentionally disabled.
+    # Keep operation metadata registration for introspection/parity only.
+    del handler
 
 
 __all__ = ["register_runtime_route"]
