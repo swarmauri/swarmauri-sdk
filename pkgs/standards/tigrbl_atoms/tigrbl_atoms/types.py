@@ -227,6 +227,7 @@ class BoundCtx(RoutedCtx[E], Generic[E]):
 
 @dataclass(slots=True)
 class PlannedCtx(BoundCtx[E], Generic[E]):
+    opmeta_index: object | None = None
     payload: object | None = None
     plan: object | None = None
     opmeta: object | None = None

@@ -53,9 +53,6 @@ class PackedPlanExecutor(ExecutorBase):
     async def _execute_packed(
         self, env: Any, ctx: _Ctx, plan: KernelPlan, packed: PackedKernel
     ) -> None:
-        from tigrbl_atoms.atoms.sys.runtime_route_handler import (
-            run as _runtime_route_handler,
-        )
         from tigrbl_concrete.atoms.egress.asgi_send import (
             _send_json,
             _send_transport_response,
@@ -72,12 +69,6 @@ class PackedPlanExecutor(ExecutorBase):
             route = temp.get("route", {})
             if isinstance(route, dict) and route.get("method_not_allowed") is True:
                 await _send_json(env, 405, {"detail": "Method Not Allowed"})
-                return
-            handler = route.get("handler") if isinstance(route, dict) else None
-            if callable(handler):
-                route["handler"] = handler
-                await _runtime_route_handler(None, ctx)
-                await _send_transport_response(env, ctx)
                 return
             await _send_json(
                 env, 404, {"detail": "No runtime operation matched request."}
