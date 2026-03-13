@@ -9,7 +9,7 @@ from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop
 from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Column, String
+from tigrbl.types import F, IO, S, String, acol
 
 
 @pytest.mark.asyncio
@@ -18,7 +18,11 @@ async def test_rpc_create_via_client() -> None:
         __tablename__ = "lesson_rpc_widget"
         __allow_unmapped__ = True
 
-        name = Column(String, nullable=False)
+        name = acol(
+            storage=S(type_=String, nullable=False),
+            field=F(py_type=str),
+            io=IO(in_verbs=("create",), out_verbs=("read",)),
+        )
 
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(Widget)
