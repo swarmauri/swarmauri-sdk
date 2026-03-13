@@ -2,14 +2,13 @@ from __future__ import annotations
 
 import inspect
 
-import httpx
 import pytest
 
-from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import F, IO, S, String, acol
+from tigrbl.types import String
+from tigrbl.column import F, IO, S, acol
 
 
 @pytest.mark.asyncio
@@ -30,16 +29,6 @@ async def test_openapi_includes_widget_paths() -> None:
     if inspect.isawaitable(init_result):
         await init_result
 
-    app.attach_diagnostics(prefix="", app=app)
-
-    port = pick_unique_port()
-    base_url, server, task = await start_uvicorn(app, port=port)
-    try:
-        async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
-            response = await client.get("/openapi.json")
-        assert response.status_code == 200
-        paths = response.json()["paths"]
-        assert "/widget" in paths
-        assert "/widget/{item_id}" in paths
-    finally:
-        await stop_uvicorn(server, task)
+    paths = app.openapi()["paths"]
+    assert "/widget" in paths
+    assert "/widget/{item_id}" in paths

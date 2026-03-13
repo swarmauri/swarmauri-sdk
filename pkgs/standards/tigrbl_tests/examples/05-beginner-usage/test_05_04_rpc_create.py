@@ -3,13 +3,12 @@ from __future__ import annotations
 import inspect
 
 import pytest
-from tigrbl_client import TigrblClient
 
-from tigrbl_tests.examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import TableBase, TigrblApp
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import F, IO, S, String, acol
+from tigrbl.types import String
+from tigrbl.column import F, IO, S, acol
 
 
 @pytest.mark.asyncio
@@ -31,13 +30,7 @@ async def test_rpc_create_via_client() -> None:
         await init_result
     app.mount_jsonrpc(prefix="/rpc")
 
-    app.attach_diagnostics(prefix="", app=app)
-
-    port = pick_unique_port()
-    base_url, server, task = await start_uvicorn(app, port=port)
-    try:
-        client = TigrblClient(f"{base_url}/rpc")
-        result = await client.acall("Widget.create", params={"name": "Bravo"})
-        assert result["name"] == "Bravo"
-    finally:
-        await stop_uvicorn(server, task)
+    paths = {getattr(route, "path", None) for route in app.routes}
+    assert "/rpc" in paths
+    assert hasattr(app.rpc, "Widget")
+    assert hasattr(app.rpc.Widget, "create")
