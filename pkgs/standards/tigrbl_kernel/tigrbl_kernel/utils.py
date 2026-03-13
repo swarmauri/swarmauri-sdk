@@ -40,7 +40,17 @@ def _opspecs(model: Any) -> Sequence[Any]:
         if isinstance(by_alias, Mapping) and by_alias:
             flattened: list[Any] = []
             for specs in by_alias.values():
-                flattened.extend(tuple(specs or ()))
+                if specs is None:
+                    continue
+                if isinstance(specs, Sequence) and not isinstance(
+                    specs, (str, bytes, bytearray)
+                ):
+                    flattened.extend(tuple(specs))
+                    continue
+                alias = getattr(specs, "alias", None)
+                target = getattr(specs, "target", None)
+                if alias is not None and target is not None:
+                    flattened.append(specs)
             if flattened:
                 return tuple(flattened)
         all_ops = getattr(table_ops, "all", ()) or ()
