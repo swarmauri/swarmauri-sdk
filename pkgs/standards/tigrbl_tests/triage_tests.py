@@ -283,6 +283,8 @@ def render_report(
     grouped: dict[str, list[ErrorGroup]],
     summary: dict,
     c: dict[str, str],
+    *,
+    max_tests: int = MAX_TESTS_PER_GROUP,
 ) -> str:
     """Render the full triage report as a string."""
     lines: list[str] = []
@@ -354,7 +356,8 @@ def render_report(
                 lines.append(_render_box_line(f"  {count_text}"))
                 lines.append(_render_box_line(""))
 
-                shown = group.tests[:MAX_TESTS_PER_GROUP]
+                limit = max_tests if max_tests > 0 else len(group.tests)
+                shown = group.tests[:limit]
                 for t in shown:
                     # Truncate long node IDs
                     display_id = t
@@ -363,7 +366,7 @@ def render_report(
                         display_id = display_id[: max_len - 2] + ".."
                     lines.append(_render_box_line(f"  \u2022 {display_id}"))
 
-                remaining = len(group.tests) - MAX_TESTS_PER_GROUP
+                remaining = len(group.tests) - limit
                 if remaining > 0:
                     lines.append(_render_box_line(f"  ... and {remaining} more"))
 
@@ -409,9 +412,22 @@ def main(argv: list[str] | None = None) -> int:
 
     # Extract our own flags
     use_color = True
+    report_file: str | None = None
+
     if "--no-color" in args:
         use_color = False
         args = [a for a in args if a != "--no-color"]
+
+    # --report / --report=FILE
+    filtered_args: list[str] = []
+    for a in args:
+        if a == "--report":
+            report_file = "triage_report.txt"
+        elif a.startswith("--report="):
+            report_file = a.split("=", 1)[1]
+        else:
+            filtered_args.append(a)
+    args = filtered_args
 
     # Auto-detect: no color if output is not a terminal
     if not sys.stdout.isatty() and "--color" not in args:
@@ -464,6 +480,14 @@ def main(argv: list[str] | None = None) -> int:
 
         print()
         print(output)
+
+        # Write full (untruncated, no-color) report to file
+        if report_file:
+            plain_c = _colors(False)
+            full_output = render_report(grouped, summary, plain_c, max_tests=0)
+            out_path = Path(report_file)
+            out_path.write_text(full_output + "\n", encoding="utf-8")
+            print(f"\n{c['bold']}Full report written to: {out_path.resolve()}{c['reset']}")
 
         # Exit code = number of P0 + P1 failures (capped at 125 for POSIX)
         p0_count = sum(len(g.tests) for g in grouped.get("P0", []))
