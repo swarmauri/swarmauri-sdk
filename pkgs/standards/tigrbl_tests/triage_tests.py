@@ -274,7 +274,7 @@ MAX_TESTS_PER_GROUP = 5  # show at most N test names, then "... and M more"
 BOX_WIDTH = 62
 
 
-def _render_box_line(text: str, width: int = BOX_WIDTH) -> str:
+def _box_line(text: str, width: int = BOX_WIDTH) -> str:
     """Pad text inside a box."""
     return f"  \u2502 {text:<{width - 4}} \u2502"
 
@@ -285,10 +285,14 @@ def render_report(
     c: dict[str, str],
     *,
     max_tests: int = MAX_TESTS_PER_GROUP,
+    box_width: int = BOX_WIDTH,
 ) -> str:
     """Render the full triage report as a string."""
     lines: list[str] = []
-    nl = "\n"
+    W = box_width
+
+    def _box_line(text: str) -> str:
+        return f"  \u2502 {text:<{W - 4}} \u2502"
 
     total = summary.get("total", 0)
     passed = summary.get("passed", 0)
@@ -297,7 +301,7 @@ def render_report(
     duration = summary.get("duration", 0.0)
 
     # Header
-    lines.append(f"{c['bold']}{'=' * BOX_WIDTH}{c['reset']}")
+    lines.append(f"{c['bold']}{'=' * W}{c['reset']}")
     lines.append(f"{c['bold']}  TIGRBL TEST TRIAGE REPORT{c['reset']}")
     lines.append(
         f"  Ran {total} tests in {duration:.1f}s | "
@@ -305,7 +309,7 @@ def render_report(
         f"{c['red']}{failed} failed{c['reset']} | "
         f"{errors} errors"
     )
-    lines.append(f"{c['bold']}{'=' * BOX_WIDTH}{c['reset']}")
+    lines.append(f"{c['bold']}{'=' * W}{c['reset']}")
 
     # Priority icons
     icons = {
@@ -334,49 +338,49 @@ def render_report(
         )
         lines.append(f"   {c['dim']}{description}{c['reset']}")
 
-        lines.append(f"  \u250c{'─' * (BOX_WIDTH - 2)}\u2510")
+        lines.append(f"  \u250c{'─' * (W - 2)}\u2510")
 
         if not groups:
-            lines.append(_render_box_line("(no failures)"))
+            lines.append(_box_line("(no failures)"))
         else:
             for gi, group in enumerate(groups):
                 if gi > 0:
-                    lines.append(f"  \u251c{'─' * (BOX_WIDTH - 2)}\u2524")
+                    lines.append(f"  \u251c{'─' * (W - 2)}\u2524")
 
                 # Error signature header
                 display = group.display_message
-                if len(display) > BOX_WIDTH - 6:
-                    display = display[: BOX_WIDTH - 9] + "..."
-                lines.append(_render_box_line(f"{color}{display}{c['reset']}"))
+                if len(display) > W - 6:
+                    display = display[: W - 9] + "..."
+                lines.append(_box_line(f"{color}{display}{c['reset']}"))
 
                 count_text = f"({len(group.tests)} tests"
                 if len(group.tests) > 1:
                     count_text += " \u2014 likely 1 root cause"
                 count_text += ")"
-                lines.append(_render_box_line(f"  {count_text}"))
-                lines.append(_render_box_line(""))
+                lines.append(_box_line(f"  {count_text}"))
+                lines.append(_box_line(""))
 
                 limit = max_tests if max_tests > 0 else len(group.tests)
                 shown = group.tests[:limit]
                 for t in shown:
                     # Truncate long node IDs
                     display_id = t
-                    max_len = BOX_WIDTH - 10
+                    max_len = W - 10
                     if len(display_id) > max_len:
                         display_id = display_id[: max_len - 2] + ".."
-                    lines.append(_render_box_line(f"  \u2022 {display_id}"))
+                    lines.append(_box_line(f"  \u2022 {display_id}"))
 
                 remaining = len(group.tests) - limit
                 if remaining > 0:
-                    lines.append(_render_box_line(f"  ... and {remaining} more"))
+                    lines.append(_box_line(f"  ... and {remaining} more"))
 
-        lines.append(f"  \u2514{'─' * (BOX_WIDTH - 2)}\u2518")
+        lines.append(f"  \u2514{'─' * (W - 2)}\u2518")
 
     # Summary footer
     lines.append("")
-    lines.append(f"{'─' * BOX_WIDTH}")
+    lines.append(f"{'─' * W}")
     lines.append(f"{c['bold']}  TRIAGE SUMMARY{c['reset']}")
-    lines.append(f"{'─' * BOX_WIDTH}")
+    lines.append(f"{'─' * W}")
 
     for priority, label, test_count, root_causes in bucket_summaries:
         # Pad label to align counts
@@ -384,7 +388,7 @@ def render_report(
         rc_text = f"  ({root_causes} root cause{'s' if root_causes != 1 else ''})" if root_causes else ""
         lines.append(f"  {priority}  {padded_label} {test_count}{rc_text}")
 
-    lines.append(f"{'─' * BOX_WIDTH}")
+    lines.append(f"{'─' * W}")
     lines.append(
         f"  Root causes to fix: {c['bold']}{total_root_causes}{c['reset']} | "
         f"Total failures: {c['bold']}{total_failures}{c['reset']}"
@@ -400,9 +404,9 @@ def render_report(
             )
             break
 
-    lines.append(f"{c['bold']}{'=' * BOX_WIDTH}{c['reset']}")
+    lines.append(f"{c['bold']}{'=' * W}{c['reset']}")
 
-    return nl.join(lines)
+    return "\n".join(lines)
 
 
 # ── Main ────────────────────────────────────────────────────────────────
@@ -481,10 +485,12 @@ def main(argv: list[str] | None = None) -> int:
         print()
         print(output)
 
-        # Write full (untruncated, no-color) report to file
+        # Write full (untruncated, no-color, wide) report to file
         if report_file:
             plain_c = _colors(False)
-            full_output = render_report(grouped, summary, plain_c, max_tests=0)
+            full_output = render_report(
+                grouped, summary, plain_c, max_tests=0, box_width=120,
+            )
             out_path = Path(report_file)
             out_path.write_text(full_output + "\n", encoding="utf-8")
             print(f"\n{c['bold']}Full report written to: {out_path.resolve()}{c['reset']}")
