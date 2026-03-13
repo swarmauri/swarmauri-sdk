@@ -26,16 +26,8 @@ def _imports_module(path: Path, module: str, symbol: str | None = None) -> bool:
     return False
 
 
-def test_gateway_invoke_invokes_runtime_kernel_plan_and_executor():
-    source = _source(RUNTIME_ROOT, "runtime/gw/invoke.py")
-    assert "kernel.kernel_plan(app)" in source
-    assert "await _invoke(" in source
-
-
-def test_gateway_invoke_uses_runtime_atoms_for_fallback_and_errors():
-    source = _source(RUNTIME_ROOT, "runtime/gw/invoke.py")
-    assert "_error_to_transport" in source
-    assert "except Exception" not in source
+def test_gateway_runtime_module_removed():
+    assert not (RUNTIME_ROOT / "runtime" / "gw").exists()
 
 
 def test_mapping_does_not_import_dispatch_modules():

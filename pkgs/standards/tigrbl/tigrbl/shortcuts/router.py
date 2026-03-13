@@ -36,7 +36,7 @@ def defineRouterSpec(
 
 def deriveRouter(**kw: Any) -> Type[Router]:
     spec = defineRouterSpec(**kw)
-    return type("RouterWithSpec", (spec, Router), {})
+    return type("RouterWithSpec", (Router, spec), {})
 
 
 __all__ = ["defineRouterSpec", "deriveRouter"]

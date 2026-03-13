@@ -34,6 +34,7 @@ from .common import (
     _RESPONSES_META,
 )
 from tigrbl.schema import _make_bulk_rows_model
+from ..schemas import build_and_attach as _build_and_attach_schemas
 import typing as _typing
 
 logger = logging.getLogger("uvicorn")
@@ -92,6 +93,9 @@ def _build_router(
     resource = getattr(model, "resource_name", None) or getattr(
         model, "__resource__", model.__name__.lower()
     )
+
+    if not hasattr(model, "schemas"):
+        _build_and_attach_schemas(model, list(specs))
 
     # Router-level deps: extra deps only (transport-level; never part of kernel plan)
     extra_router_deps = _normalize_deps(

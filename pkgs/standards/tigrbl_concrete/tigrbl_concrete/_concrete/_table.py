@@ -8,6 +8,7 @@ from ._engine import AsyncSession, Session
 from tigrbl.ddl import initialize as _ddl_initialize
 from ._engine import Engine  # reuse the collector
 from tigrbl_canon.mapping import engine_resolver as _resolver
+from tigrbl_canon.mapping.model_helpers import _ensure_model_namespaces
 from tigrbl_core._spec.table_spec import TableSpec
 from tigrbl_base._base._table_base import TableBase
 
@@ -82,6 +83,10 @@ class Table(TableBase):
         # expose ColumnSpecs under `columns` namespace
         specs = getattr(cls, "__tigrbl_cols__", {})
         cls.columns = SimpleNamespace(**specs)
+
+        # Ensure each model owns isolated namespaces for ops/schemas/hooks/etc.
+        # This keeps subclass mutations from leaking across siblings.
+        _ensure_model_namespaces(cls)
 
         # auto-register table-level bindings if declared
         try:
