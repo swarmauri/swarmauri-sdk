@@ -95,8 +95,8 @@ def test_kernel_build_injects_sys_steps_only_for_persistent_ops() -> None:
             }
         )
 
-    create_chains = kernel.build(Model, "create")
-    read_chains = kernel.build(Model, "read")
+    create_chains = kernel._build_op(Model, "create")
+    read_chains = kernel._build_op(Model, "read")
 
     assert create_chains[START_TX] != []
     assert create_chains[END_TX] != []
@@ -153,7 +153,7 @@ async def test_kernelz_payload_full_plan_ordering_for_app_router_and_table(monke
         }
 
     kernel = Kernel(atoms=[])
-    monkeypatch.setattr(kernel, "build", fake_build)
+    monkeypatch.setattr(kernel, "_build_op", fake_build)
     monkeypatch.setattr(kernel, "get_specs", lambda model: {})
 
     payload = build_kernelz_payload(kernel, app)
