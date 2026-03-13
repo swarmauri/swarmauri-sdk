@@ -59,7 +59,7 @@ def defineAppSpec(
 def deriveApp(**kw: Any) -> Type[TigrblApp]:
     """Produce a concrete :class:`TigrblApp` subclass that inherits the spec."""
     Spec = defineAppSpec(**kw)
-    return type("AppWithSpec", (TigrblApp, Spec), {})
+    return type("AppWithSpec", (Spec, TigrblApp), {})
 
 
 __all__ = ["defineAppSpec", "deriveApp"]
