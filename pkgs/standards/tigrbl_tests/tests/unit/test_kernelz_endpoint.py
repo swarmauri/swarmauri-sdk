@@ -48,7 +48,7 @@ async def test_kernelz_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
         assert model is Model and alias == "create"
         return {"PRE_HANDLER": [sample_atom, sample_hook], "HANDLER": [handler]}
 
-    monkeypatch.setattr(_diag._default_kernel, "build", fake_build)
+    monkeypatch.setattr(_diag._default_kernel, "_build_op", fake_build)
 
     kernelz = _build_kernelz_endpoint(router)
     data = await kernelz()

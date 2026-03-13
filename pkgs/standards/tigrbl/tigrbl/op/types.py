@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Literal, Tuple, cast
 
-from ..config.constants import CANON as CANONICAL_VERB_TUPLE
+from tigrbl_core.config.constants import CANON as CANONICAL_VERB_TUPLE
 from .._concrete._op import Op as OpSpec
 from ..hook.types import HookPhase, HookPhases, StepFn
 

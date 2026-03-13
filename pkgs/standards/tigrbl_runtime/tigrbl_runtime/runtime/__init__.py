@@ -15,6 +15,7 @@ _EXPORTS = {
     "DOMAINS": "labels",
     "RuntimeBase": "base",
     "Runtime": "runtime",
+    "GwRawEnvelope": "_typing_aliases",
 }
 
 __all__ = list(_EXPORTS)

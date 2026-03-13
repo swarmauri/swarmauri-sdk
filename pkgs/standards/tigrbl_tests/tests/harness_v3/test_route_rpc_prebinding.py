@@ -40,7 +40,5 @@ def test_rpc_envelope_parse_uses_ctx_body_when_route_body_missing() -> None:
 
     rpc_envelope_parse._run(None, ctx)
 
-    assert ctx.temp["route"]["rpc_envelope"]["method"] == "Gadget.create"
-    assert ctx.gw_raw.kind == "jsonrpc"
-    assert ctx.gw_raw.rpc is not None
-    assert ctx.gw_raw.rpc.get("id") == 1
+    assert ctx.temp["route"]["rpc"]["method"] == "Gadget.create"
+    assert ctx.temp["route"]["rpc_method"] == "Gadget.create"

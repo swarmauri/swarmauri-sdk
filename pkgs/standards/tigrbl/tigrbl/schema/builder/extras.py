@@ -7,7 +7,7 @@ from typing import Any, Dict, Set, Tuple
 
 from pydantic import Field
 
-from ...config.constants import (
+from tigrbl_core.config.constants import (
     TIGRBL_REQUEST_EXTRAS_ATTR,
     TIGRBL_RESPONSE_EXTRAS_ATTR,
 )

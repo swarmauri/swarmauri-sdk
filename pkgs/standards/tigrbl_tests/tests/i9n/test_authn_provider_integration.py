@@ -1,6 +1,6 @@
 from httpx import ASGITransport, Client
 from tigrbl import TableBase, TigrblApp, hook_ctx
-from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from tigrbl_core.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl import Request
