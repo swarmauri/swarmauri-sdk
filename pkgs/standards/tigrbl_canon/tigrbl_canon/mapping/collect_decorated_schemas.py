@@ -6,7 +6,7 @@ import logging
 from functools import lru_cache
 from typing import Dict
 
-from tigrbl.config.constants import TIGRBL_SCHEMA_DECLS_ATTR
+from tigrbl_core.config.constants import TIGRBL_SCHEMA_DECLS_ATTR
 
 from tigrbl.decorators.schema import _SchemaDecl
 from pydantic import BaseModel, create_model

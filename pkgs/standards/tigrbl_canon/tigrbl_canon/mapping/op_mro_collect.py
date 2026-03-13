@@ -119,7 +119,6 @@ def mro_collect_decorated_ops(table: type) -> list[OpSpec]:
                 engine=getattr(op_spec, "engine", None),
                 response=getattr(op_spec, "response", None),
                 returns=getattr(op_spec, "returns", None),
-                rbac_guard_op=getattr(op_spec, "rbac_guard_op", None),
                 core=getattr(op_spec, "core", None),
                 core_raw=getattr(op_spec, "core_raw", None),
                 extra=dict(getattr(op_spec, "extra", {}) or {}),

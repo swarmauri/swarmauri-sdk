@@ -23,7 +23,7 @@ class RuntimeBase(ABC):
     async def invoke(
         self,
         *,
-        executor: str,
+        executor: str | None = None,
         env: Any,
         ctx: Any,
         plan: Any,

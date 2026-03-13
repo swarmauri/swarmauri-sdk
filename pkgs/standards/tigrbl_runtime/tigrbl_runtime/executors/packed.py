@@ -53,11 +53,14 @@ class PackedPlanExecutor(ExecutorBase):
     async def _execute_packed(
         self, env: Any, ctx: _Ctx, plan: KernelPlan, packed: PackedKernel
     ) -> None:
-        from tigrbl_concrete.atoms.egress.asgi_send import (
+        from tigrbl_atoms.atoms.egress.asgi_send import (
             _send_json,
             _send_transport_response,
         )
-        from tigrbl_runtime.status import StatusDetailError, create_standardized_error
+        from tigrbl_runtime.runtime.status import (
+            StatusDetailError,
+            create_standardized_error,
+        )
 
         temp = getattr(ctx, "temp", None)
         if not isinstance(temp, dict):

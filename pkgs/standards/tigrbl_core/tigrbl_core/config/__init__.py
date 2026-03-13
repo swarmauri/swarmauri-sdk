@@ -1,3 +1,2 @@
-from .constants import TIGRBL_NESTED_PATHS_ATTR
-
-__all__ = ["TIGRBL_NESTED_PATHS_ATTR"]
+from .constants import *  # noqa: F403
+from .constants import __all__ as __all__
