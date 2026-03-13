@@ -3,9 +3,9 @@ import logging
 
 # tigrbl/v3/mapping/schemas/defaults.py
 
-from typing import Dict, Optional, Type
+from typing import Any, Dict, List, Optional, Type
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, RootModel
 
 from tigrbl_core._spec import OpSpec
 from tigrbl.schema import (
@@ -16,6 +16,7 @@ from tigrbl.schema import (
     _make_bulk_ids_model,
     _make_deleted_response_model,
     _make_pk_model,
+    namely_model,
 )
 from .utils import _pk_info
 
@@ -186,13 +187,16 @@ def _default_schemas_for_spec(
 
     elif target == "bulk_merge":
         logger.debug("Using bulk_merge defaults for %s.%s", model.__name__, sp.alias)
-        item_in = _build_schema(
-            model,
-            verb="update",
-            name=f"{model.__name__}BulkMergeItem",
+
+        class _BulkMergeRequest(RootModel[List[Dict[str, Any]]]):
+            model_config = ConfigDict(json_schema_extra={"examples": [[{}]]})
+
+        result["in_"] = namely_model(
+            _BulkMergeRequest,
+            name=f"{model.__name__}BulkMergeRequest",
+            doc=f"bulk_merge request schema for {model.__name__}",
         )
-        result["in_"] = _make_bulk_rows_model(model, "bulk_merge", item_in)
-        result["in_item"] = item_in
+        result["in_item"] = None
         if read_schema:
             result["out"] = _make_bulk_rows_response_model(
                 model, "bulk_merge", read_schema

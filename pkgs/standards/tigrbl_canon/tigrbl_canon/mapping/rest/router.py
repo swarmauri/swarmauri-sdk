@@ -10,6 +10,9 @@ from typing import get_args as _get_args, get_origin as _get_origin
 
 from .collection import _make_collection_endpoint
 from .member import _make_member_endpoint
+from ..schemas import build_and_attach as _build_schemas
+from ..hooks import build_and_attach as _build_hooks
+from ..handlers import build_and_attach as _build_handlers
 from .common import (
     TIGRBL_GET_DB_ATTR,
     TIGRBL_REST_DEPENDENCIES_ATTR,
@@ -80,6 +83,12 @@ def _query_param_schemas_from_model(
 def _build_router(
     model: type, specs: Sequence[OpSpec], *, router: Any | None = None
 ) -> Router:
+    # Ensure schema/hook/handler namespaces are present when router building is
+    # used directly in tests or low-level integration code.
+    _build_schemas(model, specs)
+    _build_hooks(model, specs)
+    _build_handlers(model, specs)
+
     resource = getattr(model, "resource_name", None) or getattr(
         model, "__resource__", model.__name__.lower()
     )
