@@ -1,6 +1,7 @@
 # tigrbl/tigrbl/table/_base.py
 from __future__ import annotations
 
+import warnings
 from typing import Any, Optional, Union, get_args, get_origin
 from enum import Enum as PyEnum
 
@@ -361,6 +362,13 @@ class TableBase(DeclarativeBase):
                 cls.__abstract__ = False
 
         should_map = not getattr(cls, "__abstract__", False)
+
+        if "json" in cls.__dict__:
+            warnings.warn(
+                f'Field name "json" in "{cls.__name__}" shadows an attribute in parent "BaseModel"',
+                UserWarning,
+                stacklevel=2,
+            )
 
         # 1.5) BEFORE SQLAlchemy maps: turn ColumnSpecs into real mapped_column(...)
         _materialize_colspecs_to_sqla(cls, map_columns=should_map)
