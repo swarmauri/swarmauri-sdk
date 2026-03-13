@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 from . import events as _ev
 from .labels import label_hook
+from .utils import _opspecs as _iter_opspecs
 
 
 def _callable_label(fn: Any) -> str:
@@ -23,16 +24,12 @@ def _table_iter(app: Any):
     return ()
 
 
-def _opspecs(model: type):
-    return getattr(getattr(model, "opspecs", object()), "all", ()) or ()
-
-
 def build_kernelz_payload(kernel: "Kernel", app: Any):
     payload: dict[str, dict[str, list[str]]] = {}
     for model in _table_iter(app):
         mname = getattr(model, "__name__", str(model))
         payload[mname] = {}
-        for sp in _opspecs(model):
+        for sp in _iter_opspecs(model):
             labels: list[str] = []
             for dep in getattr(sp, "secdeps", ()) or ():
                 labels.append(
