@@ -68,6 +68,9 @@ class Kernel:
     def get_specs(self, model: type) -> Mapping[str, Any]:
         return self._specs_cache.get(model)
 
+    def plan_labels(self, model: type, alias: str) -> list[str]:
+        return self._plan_labels(model, alias)
+
     def prime_specs(self, models: Sequence[type]) -> None:
         self._specs_cache.prime(models)
 
