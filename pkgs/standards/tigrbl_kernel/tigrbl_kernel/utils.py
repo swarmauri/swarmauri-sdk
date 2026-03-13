@@ -34,9 +34,22 @@ def _opspecs(model: Any) -> Sequence[Any]:
     if ops:
         return tuple(ops)
 
-    table_ops = getattr(model, "ops", ()) or ()
-    if table_ops:
-        return tuple(table_ops)
+    table_ops = getattr(model, "ops", None)
+    if table_ops is not None:
+        by_alias = getattr(table_ops, "by_alias", None)
+        if isinstance(by_alias, Mapping) and by_alias:
+            flattened: list[Any] = []
+            for specs in by_alias.values():
+                flattened.extend(tuple(specs or ()))
+            if flattened:
+                return tuple(flattened)
+        all_ops = getattr(table_ops, "all", ()) or ()
+        if all_ops:
+            return tuple(all_ops)
+        if isinstance(table_ops, Sequence) and not isinstance(
+            table_ops, (str, bytes, bytearray)
+        ):
+            return tuple(table_ops)
 
     declared_ops = getattr(model, "__tigrbl_ops__", ()) or ()
     if declared_ops:
