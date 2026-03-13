@@ -2,7 +2,7 @@ import pytest
 from pydantic import BaseModel
 
 from tigrbl import schema_ctx
-from tigrbl.config.constants import TIGRBL_SCHEMA_DECLS_ATTR
+from tigrbl_core.config.constants import TIGRBL_SCHEMA_DECLS_ATTR
 
 
 def test_schema_ctx_internal_binding_attaches_decl_to_schema():

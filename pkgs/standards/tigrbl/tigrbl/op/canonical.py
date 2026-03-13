@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Type
 
 from .._concrete._table import Table
-from ..config.constants import (
+from tigrbl_core.config.constants import (
     ALL_VERBS,
     TIGRBL_DEFAULTS_EXCLUDE_ATTR,
     TIGRBL_DEFAULTS_INCLUDE_ATTR,

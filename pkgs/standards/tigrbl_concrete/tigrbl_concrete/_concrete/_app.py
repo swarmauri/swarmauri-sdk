@@ -14,8 +14,8 @@ from ._routing import (
     merge_tags as _merge_tags_impl,
     normalize_prefix as _normalize_prefix_impl,
 )
-from tigrbl_runtime.runtime.gw.invoke import invoke
-from tigrbl_runtime.runtime.gw.raw import GwRawEnvelope
+from tigrbl_runtime.runtime import Runtime
+from tigrbl_typing.gw.raw import GwRawEnvelope
 
 
 class App(AppBase):
@@ -140,6 +140,10 @@ class App(AppBase):
             _resolver.set_default(_engine_ctx)
             _resolver.resolve_provider()
 
+        self.runtime = Runtime(
+            default_executor=getattr(self, "DEFAULT_EXECUTOR", "packed")
+        )
+
     @property
     def router(self) -> "App":
         return self
@@ -161,7 +165,23 @@ class App(AppBase):
             )
 
     async def invoke(self, env: GwRawEnvelope) -> None:
-        await invoke(env, app=self)
+        plan, packed_plan = self.runtime.compile(self)
+        ctx: dict[str, Any] = {
+            "app": self,
+            "router": self,
+            "raw": env,
+            "env": env,
+            "kernel_plan": plan,
+            "plan": plan,
+            "packed_plan": packed_plan,
+            "temp": {},
+        }
+        await self.runtime.invoke(
+            env=env,
+            ctx=ctx,
+            plan=plan,
+            packed_plan=packed_plan,
+        )
 
     async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
         env = GwRawEnvelope(kind="asgi3", scope=scope, receive=receive, send=send)

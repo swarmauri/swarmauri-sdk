@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass
 from typing import Dict, Optional
 
-from ..config.constants import TIGRBL_SCHEMA_DECLS_ATTR
+from tigrbl_core.config.constants import TIGRBL_SCHEMA_DECLS_ATTR
 
 logger = logging.getLogger("uvicorn")
 
