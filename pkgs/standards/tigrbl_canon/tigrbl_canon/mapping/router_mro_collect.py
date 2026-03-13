@@ -5,7 +5,7 @@ import logging
 from functools import lru_cache
 from typing import Any, Callable, Dict, Iterable, Mapping
 
-from tigrbl.config.constants import TIGRBL_ROUTER_HOOKS_ATTR
+from tigrbl_core.config.constants import TIGRBL_ROUTER_HOOKS_ATTR
 
 logger = logging.getLogger("uvicorn")
 

@@ -14,8 +14,8 @@ from ._routing import (
     merge_tags as _merge_tags_impl,
     normalize_prefix as _normalize_prefix_impl,
 )
-from tigrbl_runtime.runtime.gw.invoke import invoke
-from tigrbl_runtime.runtime.gw.raw import GwRawEnvelope
+from tigrbl_runtime.executors.invoke import _invoke as invoke
+from tigrbl_runtime.runtime import GwRawEnvelope
 
 
 class App(AppBase):
@@ -161,7 +161,7 @@ class App(AppBase):
             )
 
     async def invoke(self, env: GwRawEnvelope) -> None:
-        await invoke(env, app=self)
+        await invoke(request=None, db=None, phases=None, ctx={"env": env, "app": self})
 
     async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
         env = GwRawEnvelope(kind="asgi3", scope=scope, receive=receive, send=send)

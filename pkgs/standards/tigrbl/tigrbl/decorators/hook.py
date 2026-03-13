@@ -5,7 +5,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Iterable, Union
 
-from ..config.constants import HOOK_DECLS_ATTR
+from tigrbl_core.config.constants import HOOK_DECLS_ATTR
 from .._concrete import Hook
 from ..hook.exceptions import InvalidHookPhaseError
 from ..hook.types import HookPhase, HookPhases

@@ -6,7 +6,7 @@ import re
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from tigrbl_core._spec.op_spec import OpSpec, TargetOp
-from tigrbl.config.constants import TIGRBL_OPS_ATTR
+from tigrbl_core.config.constants import TIGRBL_OPS_ATTR
 from tigrbl.op.canonical import should_wire_canonical
 from .op_mro_collect import mro_alias_map_for
 

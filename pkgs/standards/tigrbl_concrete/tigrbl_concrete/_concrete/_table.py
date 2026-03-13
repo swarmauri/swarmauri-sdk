@@ -35,7 +35,7 @@ class Table(TableBase):
 
     @classmethod
     def should_wire_canonical(cls, op: str) -> bool:
-        from tigrbl.config.constants import (
+        from tigrbl_core.config.constants import (
             TIGRBL_DEFAULTS_EXCLUDE_ATTR,
             TIGRBL_DEFAULTS_INCLUDE_ATTR,
             TIGRBL_DEFAULTS_MODE_ATTR,
