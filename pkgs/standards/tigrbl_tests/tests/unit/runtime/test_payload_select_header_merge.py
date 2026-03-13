@@ -63,6 +63,6 @@ def test_payload_select_merges_header_values_without_mapping_collectors(monkeypa
         },
     )
 
-    payload_select.run(None, ctx)
+    payload_select._run(None, ctx)
 
     assert ctx.payload["worker_key"] == "alpha"

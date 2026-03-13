@@ -39,7 +39,7 @@ def test_out_masking_applies_to_sensitive_fields() -> None:
         "emit_aliases": {"pre": [], "post": [{"alias": "token"}], "read": []},
     }
     ctx = SimpleNamespace(app=app, model=Model, op=alias, temp=temp)
-    masking.run(None, ctx)
+    masking._run(None, ctx)
     assert ctx.temp["response_payload"]["secret"] == "••••1234"
     assert ctx.temp["response_payload"]["token"] == "abc"
 
@@ -71,6 +71,6 @@ def test_out_masking_handles_missing_payload_gracefully() -> None:
 
     temp = {}
     ctx = SimpleNamespace(app=app, model=Model, op=alias, temp=temp)
-    masking.run(None, ctx)
+    masking._run(None, ctx)
     assert "response_payload" not in ctx.temp
     assert "emit_aliases" not in ctx.temp

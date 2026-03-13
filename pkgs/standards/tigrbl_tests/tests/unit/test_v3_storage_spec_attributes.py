@@ -194,7 +194,7 @@ def test_transform_applied_during_persist():
         persist=True,
         temp={"assembled_values": {"name": "abc"}},
     )
-    to_stored.run(None, ctx)
+    to_stored._run(None, ctx)
     assert ctx.temp["assembled_values"]["name"] == "ABC"
 
 
