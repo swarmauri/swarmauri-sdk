@@ -97,7 +97,7 @@ def mro_collect_decorated_ops(table: type) -> list[OpSpec]:
             if op_spec is None:
                 continue
 
-            resolved_alias = op_spec.alias or name
+            resolved_alias = op_spec.alias or op_spec.target or name
 
             spec = OpSpec(
                 table=table,
