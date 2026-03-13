@@ -26,7 +26,7 @@ def build_packed_kernel(app: Any) -> PackedKernel | None:
 
 
 def plan_labels(model: type, alias: str) -> list[str]:
-    return _default_kernel._plan_labels(model, alias)
+    return _default_kernel.plan_labels(model, alias)
 
 
 __all__ = [

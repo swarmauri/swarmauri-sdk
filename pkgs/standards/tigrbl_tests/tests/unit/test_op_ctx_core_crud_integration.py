@@ -37,7 +37,7 @@ async def test_op_ctx_target_read_core_executes(monkeypatch, alias_kw, handler_a
 
     ctx = {"path_params": {"id": 1}, "db": object()}
     ctx_before = ctx.copy()
-    handler = getattr(Widget.handlers, handler_alias).raw
+    handler = Widget.ops.by_alias[handler_alias][0].core_raw
     result = await handler(ctx)
     assert result == {"id": 1}
     assert ctx == ctx_before
@@ -69,7 +69,7 @@ async def test_op_ctx_alias_read_overrides_core(monkeypatch):
 
     ctx = {"path_params": {"id": 1}, "db": object()}
     ctx_before = ctx.copy()
-    result = await Gadget.handlers.read.raw(ctx)
+    result = await Gadget.ops.by_alias["read"][0].core_raw(ctx)
     assert result == {"id": 99}
     assert ctx == ctx_before
     assert storage == {1: {"id": 1}}
@@ -110,7 +110,7 @@ async def test_op_ctx_target_create_core_executes(monkeypatch, alias_kw, handler
 
     ctx = {"payload": {"id": 1, "value": "a"}, "db": object()}
     ctx_before = ctx.copy()
-    handler = getattr(Gadget.handlers, handler_alias).raw
+    handler = Gadget.ops.by_alias[handler_alias][0].core_raw
     result = await handler(ctx)
     assert result == {"id": 1, "value": "a"}
     assert ctx == ctx_before
@@ -144,7 +144,7 @@ async def test_op_ctx_alias_create_overrides_core(monkeypatch):
 
     ctx = {"payload": {"id": 1, "value": "a"}, "db": object()}
     ctx_before = ctx.copy()
-    result = await Widget.handlers.create.raw(ctx)
+    result = await Widget.ops.by_alias["create"][0].core_raw(ctx)
     assert result == {"id": 99}
     assert ctx == ctx_before
     assert storage == {}
@@ -185,7 +185,7 @@ async def test_op_ctx_target_update_core_executes(monkeypatch, alias_kw, handler
 
     ctx = {"path_params": {"id": 1}, "payload": {"value": "b"}, "db": object()}
     ctx_before = ctx.copy()
-    handler = getattr(Gizmo.handlers, handler_alias).raw
+    handler = Gizmo.ops.by_alias[handler_alias][0].core_raw
     result = await handler(ctx)
     assert result == {"id": 1, "value": "b"}
     assert ctx == ctx_before
@@ -219,7 +219,7 @@ async def test_op_ctx_alias_update_overrides_core(monkeypatch):
 
     ctx = {"path_params": {"id": 1}, "payload": {"value": "b"}, "db": object()}
     ctx_before = ctx.copy()
-    result = await Device.handlers.update.raw(ctx)
+    result = await Device.ops.by_alias["update"][0].core_raw(ctx)
     assert result == {"id": 99}
     assert ctx == ctx_before
     assert storage == {1: {"id": 1, "value": "a"}}
@@ -262,7 +262,7 @@ async def test_op_ctx_target_replace_core_executes(
 
     ctx = {"path_params": {"id": 1}, "payload": {"value": "c"}, "db": object()}
     ctx_before = ctx.copy()
-    handler = getattr(Thing.handlers, handler_alias).raw
+    handler = Thing.ops.by_alias[handler_alias][0].core_raw
     result = await handler(ctx)
     assert result == {"id": 1, "value": "c"}
     assert ctx == ctx_before
@@ -296,7 +296,7 @@ async def test_op_ctx_alias_replace_overrides_core(monkeypatch):
 
     ctx = {"path_params": {"id": 1}, "payload": {"value": "c"}, "db": object()}
     ctx_before = ctx.copy()
-    result = await Part.handlers.replace.raw(ctx)
+    result = await Part.ops.by_alias["replace"][0].core_raw(ctx)
     assert result == {"id": 99}
     assert ctx == ctx_before
     assert storage == {1: {"id": 1, "value": "a"}}
@@ -336,7 +336,7 @@ async def test_op_ctx_target_delete_core_executes(monkeypatch, alias_kw, handler
 
     ctx = {"path_params": {"id": 1}, "db": object()}
     ctx_before = ctx.copy()
-    handler = getattr(Piece.handlers, handler_alias).raw
+    handler = Piece.ops.by_alias[handler_alias][0].core_raw
     result = await handler(ctx)
     assert result == {"deleted": 1}
     assert ctx == ctx_before
@@ -369,7 +369,7 @@ async def test_op_ctx_alias_delete_overrides_core(monkeypatch):
 
     ctx = {"path_params": {"id": 1}, "db": object()}
     ctx_before = ctx.copy()
-    result = await Chip.handlers.delete.raw(ctx)
+    result = await Chip.ops.by_alias["delete"][0].core_raw(ctx)
     assert result == {"deleted": 0}
     assert ctx == ctx_before
     assert storage == {1: {"id": 1}}

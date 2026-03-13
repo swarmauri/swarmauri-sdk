@@ -65,7 +65,7 @@ def test_file_response_ops(tmp_path):
     file_path.write_text("content")
     Widget = _build_model(object, file_path)
 
-    resp = asyncio.run(Widget.handlers.download.handler({}))
+    resp = asyncio.run(Widget.ops.by_alias["download"][0].core_raw({}))
     assert resp.path == str(file_path)
 
     response = _server_client_roundtrip(Widget.rest.router)
@@ -78,7 +78,7 @@ def test_file_response_table(tmp_path):
     file_path.write_text("table")
     Widget = _build_model(Table, file_path, bind=False)
 
-    resp = asyncio.run(Widget.handlers.download.handler({}))
+    resp = asyncio.run(Widget.ops.by_alias["download"][0].core_raw({}))
     assert resp.path == str(file_path)
 
     response = _server_client_roundtrip(Widget.rest.router)
@@ -100,7 +100,7 @@ def test_file_response_api(tmp_path):
     router.get_db = fake_db  # type: ignore[assignment]
     include_table(router, Widget)
 
-    resp = asyncio.run(Widget.handlers.download.handler({}))
+    resp = asyncio.run(Widget.ops.by_alias["download"][0].core_raw({}))
     assert resp.path == str(file_path)
 
     app = TigrblApp()
