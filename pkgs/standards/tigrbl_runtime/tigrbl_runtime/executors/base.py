@@ -9,6 +9,12 @@ class ExecutorBase(ABC):
 
     name: ClassVar[str]
 
+    def __init__(self) -> None:
+        self.runtime: Any | None = None
+
+    def attach_runtime(self, runtime: Any) -> None:
+        self.runtime = runtime
+
     @abstractmethod
     async def invoke(
         self,

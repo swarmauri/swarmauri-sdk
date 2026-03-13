@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import pytest
 
 from tigrbl_atoms.atoms.route import rpc_envelope_parse
-from tigrbl.runtime.gw.raw import GwRouteEnvelope
+from tigrbl_typing.gw.raw import GwRouteEnvelope
 
 
 def _mk_ctx(body: bytes):
