@@ -22,5 +22,4 @@ class RouterSpec(SerdeMixin):
     security_deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
     deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
     response: Optional[ResponseSpec] = None
-    models: Sequence[Any] = field(default_factory=tuple)
     tables: Sequence[Any] = field(default_factory=tuple)
