@@ -118,6 +118,51 @@ def _resolve_handler_kwargs(
     return kwargs
 
 
+async def run_runtime_route_handler(ctx: Any) -> None:
+    """Execute a runtime route handler attached to ctx.temp['route']['handler']."""
+    temp = _ensure_temp(ctx)
+    route = temp.setdefault("route", {})
+    handler = route.get("handler") if isinstance(route, dict) else None
+
+    if route.get("method_not_allowed") is True:
+        from tigrbl_runtime.status import StatusDetailError
+
+        raise StatusDetailError(status_code=405, detail="Method Not Allowed")
+    if not callable(handler):
+        from tigrbl_runtime.status import StatusDetailError
+
+        raise StatusDetailError(
+            status_code=404, detail="No runtime operation matched request."
+        )
+
+    request = getattr(ctx, "request", None) or getattr(ctx, "req", None)
+    if request is not None:
+        path_params = route.get("path_params")
+        if path_params:
+            request.path_params = dict(path_params)
+        kwargs = _resolve_handler_kwargs(handler, request)
+    else:
+        kwargs = {}
+
+    result = handler(**kwargs)
+    if inspect.isawaitable(result):
+        result = await result
+
+    if hasattr(result, "status_code") and hasattr(result, "body"):
+        headers_obj = getattr(result, "headers", None)
+        if hasattr(headers_obj, "items"):
+            headers_obj = dict(headers_obj.items())
+        egress = temp.setdefault("egress", {})
+        egress["transport_response"] = {
+            "status_code": int(getattr(result, "status_code", 200) or 200),
+            "headers": dict(headers_obj or {}),
+            "body": getattr(result, "body", b""),
+        }
+        return
+
+    setattr(ctx, "result", result)
+
+
 def _merge_table_op_binding(route: Any) -> bool:
     model = getattr(route, "tigrbl_model", None)
     alias = getattr(route, "tigrbl_alias", None)
@@ -209,14 +254,10 @@ def register_runtime_route(app: Any, route: Any) -> None:
     ) + (op,)
 
     async def _runtime_route_handler(ctx: Any) -> None:
-        from tigrbl_atoms.atoms.sys.runtime_route_handler import (
-            run as _runtime_route_handler_atom,
-        )
-
         temp = _ensure_temp(ctx)
         route_ctx = temp.setdefault("route", {})
         route_ctx["handler"] = handler
-        await _runtime_route_handler_atom(None, ctx)
+        await run_runtime_route_handler(ctx)
 
     hooks_ns = getattr(model.hooks, alias, None)
     if hooks_ns is None:
@@ -225,4 +266,4 @@ def register_runtime_route(app: Any, route: Any) -> None:
     hooks_ns.HANDLER = [_runtime_route_handler]
 
 
-__all__ = ["register_runtime_route"]
+__all__ = ["register_runtime_route", "run_runtime_route_handler"]

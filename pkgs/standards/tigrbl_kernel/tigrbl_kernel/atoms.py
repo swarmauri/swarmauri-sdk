@@ -93,11 +93,10 @@ def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
     except (TypeError, ValueError):
         use_two_args = True
 
-    async def _step(ctx: Any) -> Any:
+    async def _step(ctx: Any) -> None:
         rv = run(None, ctx) if use_two_args else run(ctx)  # type: ignore[misc]
         if inspect.isawaitable(rv):
-            return await cast(Any, rv)
-        return rv
+            await cast(Any, rv)
 
     label = getattr(run, "__tigrbl_label", None)
     if not isinstance(label, str):

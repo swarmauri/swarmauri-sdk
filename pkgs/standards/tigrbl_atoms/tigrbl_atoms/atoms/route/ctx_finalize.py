@@ -97,7 +97,6 @@ class AtomImpl(Atom[Planned, Planned]):
             protocol=str(ctx.temp.get("route", {}).get("protocol", "") or ""),
             path_params=dict(ctx.temp.get("route", {}).get("path_params", {}) or {}),
             binding=ctx.temp.get("route", {}).get("binding"),
-            opmeta_index=ctx.temp.get("route", {}).get("opmeta_index"),
         )
 
 
