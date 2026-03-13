@@ -87,7 +87,7 @@ from tigrbl_concrete._concrete.dependencies import Depends  # noqa: E402
 from tigrbl_runtime.runtime.status.exceptions import HTTPException  # noqa: E402
 from tigrbl.engine import resolver  # noqa: E402
 from tigrbl.system import mount_diagnostics  # noqa: E402
-from tigrbl.config.constants import DEFAULT_HTTP_METHODS, HOOK_DECLS_ATTR  # noqa: E402
+from tigrbl_core.config.constants import DEFAULT_HTTP_METHODS, HOOK_DECLS_ATTR  # noqa: E402
 from tigrbl.decorators import (  # noqa: E402
     alias,
     alias_ctx,
