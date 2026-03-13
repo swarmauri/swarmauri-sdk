@@ -42,7 +42,7 @@ async def test_op_ctx_persist_options(
     def fake_build(model, alias):
         return {"HANDLER": Model.hooks.create.HANDLER}
 
-    monkeypatch.setattr(_diag._default_kernel, "build", fake_build)
+    monkeypatch.setattr(_diag._default_kernel, "_build_op", fake_build)
 
     router = SimpleNamespace(tables={"Model": Model})
     kernelz = _diag._build_kernelz_endpoint(router)

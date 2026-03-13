@@ -1,7 +1,7 @@
 """Lesson 07.1: Declaring ctx-only hooks with `hook_ctx`."""
 
 from tigrbl import hook_ctx
-from tigrbl.config.constants import HOOK_DECLS_ATTR
+from tigrbl_core.config.constants import HOOK_DECLS_ATTR
 
 
 def test_hook_ctx_attaches_declarations():

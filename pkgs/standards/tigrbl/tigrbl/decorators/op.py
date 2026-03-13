@@ -112,7 +112,6 @@ def op_alias(
     response_model: SchemaArg | None = None,
     http_methods: Sequence[str] | None = None,
     tags: Sequence[str] | None = None,
-    rbac_guard_op: TargetOp | None = None,
 ):
     """Class decorator to declare an alias for an operation."""
 
@@ -132,7 +131,6 @@ def op_alias(
             response_model=response_model,
             http_methods=tuple(http_methods) if http_methods else None,
             tags=tuple(tags or ()),
-            rbac_guard_op=rbac_guard_op,
         )
         ops.append(spec)
         table_cls.__tigrbl_ops__ = tuple(ops)
