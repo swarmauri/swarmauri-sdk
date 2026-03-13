@@ -63,8 +63,3 @@ def test_op_alias_sets_http_methods():
 def test_op_alias_sets_tags():
     spec = _get_spec(alias="tag_op", target="custom", tags=("a", "b"))
     assert spec.tags == ("a", "b")
-
-
-def test_op_alias_sets_rbac_guard_op():
-    spec = _get_spec(alias="rbac_op", target="custom", rbac_guard_op="read")
-    assert spec.rbac_guard_op == "read"

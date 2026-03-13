@@ -3,7 +3,25 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, Iterable, List, Tuple
 
-from .phases import PHASES, PhaseName, phase_info
+from .phases import (
+    EGRESS_FINALIZE_PHASE,
+    EGRESS_SHAPE_PHASE,
+    END_TX_PHASE,
+    HANDLER_PHASE,
+    INGRESS_BEGIN_PHASE,
+    INGRESS_PARSE_PHASE,
+    INGRESS_ROUTE_PHASE,
+    PHASES,
+    POST_COMMIT_PHASE,
+    POST_HANDLER_PHASE,
+    POST_RESPONSE_PHASE,
+    PRE_COMMIT_PHASE,
+    PRE_HANDLER_PHASE,
+    PRE_TX_BEGIN_PHASE,
+    START_TX_PHASE,
+    PhaseName,
+    phase_info,
+)
 from .stages import (
     Guarded,
     Boot,
@@ -24,23 +42,20 @@ from .stages import (
 # Public alias preserved for compatibility with older imports.
 Phase = PhaseName
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Canonical phase name exports (used by harness tests and diagnostics)
-# ──────────────────────────────────────────────────────────────────────────────
-INGRESS_BEGIN: Phase = "INGRESS_BEGIN"
-INGRESS_PARSE: Phase = "INGRESS_PARSE"
-INGRESS_ROUTE: Phase = "INGRESS_ROUTE"
-PRE_TX_BEGIN: Phase = "PRE_TX_BEGIN"
-START_TX: Phase = "START_TX"
-PRE_HANDLER: Phase = "PRE_HANDLER"
-HANDLER_PHASE: Phase = "HANDLER"
-POST_HANDLER: Phase = "POST_HANDLER"
-PRE_COMMIT: Phase = "PRE_COMMIT"
-END_TX: Phase = "END_TX"
-POST_COMMIT: Phase = "POST_COMMIT"
-EGRESS_SHAPE: Phase = "EGRESS_SHAPE"
-EGRESS_FINALIZE: Phase = "EGRESS_FINALIZE"
-POST_RESPONSE: Phase = "POST_RESPONSE"
+# Canonical phase name aliases preserved for compatibility.
+INGRESS_BEGIN: Phase = INGRESS_BEGIN_PHASE
+INGRESS_PARSE: Phase = INGRESS_PARSE_PHASE
+INGRESS_ROUTE: Phase = INGRESS_ROUTE_PHASE
+PRE_TX_BEGIN: Phase = PRE_TX_BEGIN_PHASE
+START_TX: Phase = START_TX_PHASE
+PRE_HANDLER: Phase = PRE_HANDLER_PHASE
+POST_HANDLER: Phase = POST_HANDLER_PHASE
+PRE_COMMIT: Phase = PRE_COMMIT_PHASE
+END_TX: Phase = END_TX_PHASE
+POST_COMMIT: Phase = POST_COMMIT_PHASE
+EGRESS_SHAPE: Phase = EGRESS_SHAPE_PHASE
+EGRESS_FINALIZE: Phase = EGRESS_FINALIZE_PHASE
+POST_RESPONSE: Phase = POST_RESPONSE_PHASE
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Canonical anchors (events)

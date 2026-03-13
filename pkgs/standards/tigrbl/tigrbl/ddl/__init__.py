@@ -15,7 +15,7 @@ except Exception:  # pragma: no cover
     event = text = CreateSchema = None  # type: ignore
     Engine = object  # type: ignore
 
-from ..config.constants import __SAFE_IDENT__
+from tigrbl_core.config.constants import __SAFE_IDENT__
 
 
 class _NoopAwaitable:

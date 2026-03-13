@@ -5,7 +5,7 @@ import pytest
 from httpx import ASGITransport, Client
 from sqlalchemy import Column, String
 from tigrbl import TableBase, TigrblApp, TigrblRouter
-from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from tigrbl_core.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.mixins.ownable import Ownable, OwnerPolicy
 from tigrbl.orm.mixins.tenant_bound import TenantBound, TenantPolicy

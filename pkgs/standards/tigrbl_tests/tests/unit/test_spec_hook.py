@@ -1,4 +1,4 @@
-from tigrbl.config.constants import HOOK_DECLS_ATTR
+from tigrbl_core.config.constants import HOOK_DECLS_ATTR
 from tigrbl.decorators.hook import hook_ctx
 from tigrbl._spec import HookSpec
 from tigrbl.shortcuts.hook import hook, hook_spec
