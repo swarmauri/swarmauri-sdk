@@ -25,7 +25,7 @@ def test_op_resolve_marks_method_not_allowed_for_runtime_route() -> None:
     )
     ctx = _ctx_for_route(method="POST", path="/items/abc", routes=[route])
 
-    op_resolve.run(None, ctx)
+    op_resolve._run(None, ctx)
 
     route_ns = ctx.temp["route"]
     assert route_ns.get("handler") is None
@@ -61,7 +61,7 @@ def test_op_resolve_finds_opmeta_index_from_proto_and_selector() -> None:
 
     ctx.kernel_plan.opkey_to_meta = {_OpKey("http.jsonrpc", "Widget.create"): 0}
 
-    op_resolve.run(None, ctx)
+    op_resolve._run(None, ctx)
 
     assert ctx.temp["route"]["opmeta_index"] == 0
 
@@ -84,7 +84,7 @@ async def test_jsonrpc_batch_intercept_short_circuits_response() -> None:
         temp={"route": {}},
     )
 
-    await jsonrpc_batch_intercept.run(None, ctx)
+    await jsonrpc_batch_intercept._run(None, ctx)
 
     route = ctx.temp["route"]
     response = ctx.temp["egress"]["transport_response"]

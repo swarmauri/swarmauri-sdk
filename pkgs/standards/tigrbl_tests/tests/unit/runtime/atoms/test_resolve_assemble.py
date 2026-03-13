@@ -40,6 +40,6 @@ def test_assemble_separates_virtual_and_persisted() -> None:
         persist=True,
         temp={"in_values": {"name": "Alice", "v": "x"}},
     )
-    assemble.run(None, ctx)
+    assemble._run(None, ctx)
     assert ctx.temp["assembled_values"] == {"name": "Alice"}
     assert ctx.temp["virtual_in"] == {"v": "x"}

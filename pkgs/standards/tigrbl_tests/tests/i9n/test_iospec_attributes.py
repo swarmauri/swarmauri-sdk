@@ -107,7 +107,7 @@ def test_default_factory_resolves_missing_value():
         temp={"in_values": {}},
         persist=True,
     )
-    assemble.run(None, ctx)
+    assemble._run(None, ctx)
     assembled = ctx.temp["assembled_values"]
     assert assembled["created"] == "now"
     assert "created" in ctx.temp["used_default_factory"]
@@ -350,7 +350,7 @@ def test_atoms_execute_with_iospec():
         persist=True,
     )
     collect_in_run(None, ctx)
-    assemble.run(None, ctx)
+    assemble._run(None, ctx)
     collect_out_run(None, ctx)
     assert ctx.temp["assembled_values"]["name"] == "x"
 
