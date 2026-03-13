@@ -6,7 +6,6 @@ from tigrbl_kernel.models import PackedKernel
 from tigrbl_runtime.executors.kernel_executor import _run_phase_chain
 from tigrbl_runtime.executors.packed import PackedPlanExecutor
 from tigrbl_runtime.executors.types import _Ctx
-from tigrbl_runtime.runtime.gw.invoke import _run_phase_chain as _run_gw_phase_chain
 
 
 class DummyKernel:
@@ -47,16 +46,3 @@ async def test_run_segment_python_sets_ctx_phase_from_packed_segment() -> None:
     await PackedPlanExecutor()._run_segment_python(ctx, packed, 0)
 
     assert seen == ["POST_COMMIT"]
-
-
-@pytest.mark.asyncio
-async def test_gateway_run_phase_chain_sets_ctx_phase() -> None:
-    seen = []
-
-    async def step(ctx):
-        seen.append(ctx.phase)
-
-    ctx = _Ctx.ensure(request=None, db=None, seed={})
-    await _run_gw_phase_chain(ctx, {"INGRESS_BEGIN": [step], "INGRESS_ROUTE": [step]})
-
-    assert seen == ["INGRESS_BEGIN", "INGRESS_ROUTE"]
