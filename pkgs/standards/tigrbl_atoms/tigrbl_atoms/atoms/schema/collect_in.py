@@ -7,6 +7,7 @@ from typing import Any, Optional
 import logging
 
 from ... import events as _ev
+from ..._opview_helpers import _ensure_schema_in
 
 # Runs at the very beginning of the lifecycle, before in-model build/validation.
 ANCHOR = _ev.SCHEMA_COLLECT_IN  # "schema:collect_in"
@@ -25,17 +26,7 @@ def _run(obj: Optional[object], ctx: Any) -> None:
     if isinstance(temp.get("schema_in"), dict):
         return
 
-    ov = getattr(ctx, "opview", None)
-    if ov is None:
-        raise RuntimeError("ctx_missing:opview")
-
-    by_field = ov.schema_in.by_field
-    required = tuple(name for name, entry in by_field.items() if entry.get("required"))
-    temp["schema_in"] = {
-        "fields": ov.schema_in.fields,
-        "by_field": by_field,
-        "required": required,
-    }
+    temp["schema_in"] = dict(_ensure_schema_in(ctx))
 
 
 class AtomImpl(Atom[Executing, Executing]):
