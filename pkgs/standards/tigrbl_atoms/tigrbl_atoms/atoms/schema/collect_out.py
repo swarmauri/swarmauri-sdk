@@ -7,6 +7,7 @@ from typing import Any, Optional
 import logging
 
 from ... import events as _ev
+from ..._opview_helpers import _ensure_schema_out
 
 # Runs late in POST_HANDLER, before out model build and dumping.
 ANCHOR = _ev.SCHEMA_COLLECT_OUT  # "schema:collect_out"
@@ -25,15 +26,7 @@ def _run(obj: Optional[object], ctx: Any) -> None:
     if isinstance(temp.get("schema_out"), dict):
         return
 
-    ov = getattr(ctx, "opview", None)
-    if ov is None:
-        raise RuntimeError("ctx_missing:opview")
-
-    temp["schema_out"] = {
-        "fields": ov.schema_out.fields,
-        "by_field": ov.schema_out.by_field,
-        "expose": ov.schema_out.expose,
-    }
+    temp["schema_out"] = dict(_ensure_schema_out(ctx))
 
 
 class AtomImpl(Atom[Operated, Operated]):
