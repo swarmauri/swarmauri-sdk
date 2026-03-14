@@ -46,6 +46,12 @@ class _ResponseState:
         data = object.__getattribute__(self, "_data")
         return data.get(name)
 
+    def __delitem__(self, key: str) -> None:
+        if key in self._FIELD_NAMES:
+            object.__setattr__(self, key, None)
+            return
+        del object.__getattribute__(self, "bag")[key]
+
     def __setattr__(self, name: str, value: Any) -> None:
         data = object.__getattribute__(self, "_data")
         data[name] = value
@@ -108,7 +114,9 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
         return object.__getattribute__(self, "bag").get(key, default)
 
     def items(self):
-        merged = {name: object.__getattribute__(self, name) for name in self._FIELD_NAMES}
+        merged = {
+            name: object.__getattribute__(self, name) for name in self._FIELD_NAMES
+        }
         merged.update(object.__getattribute__(self, "bag"))
         return merged.items()
 
@@ -158,6 +166,12 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
                 data = object.__getattribute__(response, "_data")
                 data["result"] = value
         bag[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        if key in self._FIELD_NAMES:
+            object.__setattr__(self, key, None)
+            return
+        del object.__getattribute__(self, "bag")[key]
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name in self._FIELD_NAMES:
@@ -219,7 +233,20 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
                 error_phase=seed_values.get("error_phase"),
             )
         else:
-            ctx = cls(bag=dict(seed))
+            seed_values = dict(seed)
+            bag = dict(seed_values.pop("bag", {}) or {})
+            for key, value in list(seed_values.items()):
+                if key in cls._FIELD_NAMES:
+                    continue
+                bag[key] = value
+            ctx = cls(
+                env=seed_values.get("env"),
+                bag=bag,
+                temp=dict(seed_values.get("temp") or {}),
+                error=seed_values.get("error"),
+                current_phase=seed_values.get("current_phase"),
+                error_phase=seed_values.get("error_phase"),
+            )
 
         if request is not None:
             ctx.request = request
