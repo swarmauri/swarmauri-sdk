@@ -29,14 +29,9 @@ from tigrbl.ddl import initialize as _ddl_initialize
 from tigrbl_canon.mapping.router.common import (
     AttrDict,
     _default_prefix,
-    _mount_router,
 )
-from tigrbl_canon.mapping.router.include import _seed_security_and_deps
 from tigrbl_canon.mapping.router.rpc import rpc_call as _rpc_call
 from tigrbl_canon.mapping.table import rebind as _rebind, bind as _bind
-from tigrbl_canon.mapping.rest import (
-    build_router_and_attach as _build_router_and_attach,
-)
 from tigrbl.system import mount_diagnostics as _mount_diagnostics
 from tigrbl.system import mount_lens as _mount_lens
 from tigrbl.system import mount_openapi as _mount_openapi
@@ -879,22 +874,14 @@ class TigrblApp(_App):
         # Reset router to baseline and allow_anon ops cache
         self._routes = list(self._base_routes)
         self._allow_anon_ops = set()
+        default_router = self._ensure_default_router()
         for table in self._table_registry.values():
-            _seed_security_and_deps(self, table)
-            specs = getattr(getattr(table, "opspecs", SimpleNamespace()), "all", ())
-            if specs:
-                _build_router_and_attach(table, list(specs))
+            default_router.include_table(table, mount_router=False)
             router = getattr(getattr(table, "rest", SimpleNamespace()), "router", None)
             if router is None:
                 continue
-            # update router-level references
-            mname = table.__name__
-            rest_ns = getattr(self.rest, mname, SimpleNamespace())
-            rest_ns.router = router
-            setattr(self.rest, mname, rest_ns)
-            self.routers[mname] = router
-            prefix = _default_prefix(table)
-            _mount_router(self, router, prefix=prefix)
+            self.include_router(router, prefix=_default_prefix(table))
+        self._sync_default_router_namespaces()
 
     def _collect_tables(self):
         # dedupe; handle multiple DeclarativeBases (multiple metadatas)
