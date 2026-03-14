@@ -12,8 +12,8 @@ from tigrbl import HTTPBearer
 from tigrbl.security import Security
 from tigrbl._concrete._security.http_bearer import HTTPAuthorizationCredentials
 from tigrbl.types import (
-    AllowAnonProvider,
     AuthNProvider,
+    allow_anon,
     Column,
     ForeignKey,
     PgUUID,
@@ -152,16 +152,13 @@ def _build_client_create_noauth():
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(TableBase, GUIDPk, AllowAnonProvider):
+    @allow_anon("create", "bulk_create")
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
         )
         name = Column(String, nullable=False)
-
-        @classmethod
-        def __tigrbl_allow_anon__(cls):
-            return {"create", "bulk_create"}
 
     cfg = mem(async_=False)
     router = TigrblRouter(engine=cfg)
@@ -186,14 +183,13 @@ def _build_client_create_attr_noauth():
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(TableBase, GUIDPk, AllowAnonProvider):
+    @allow_anon("create", "bulk_create")
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
         )
         name = Column(String, nullable=False)
-
-        __tigrbl_allow_anon__ = {"create", "bulk_create"}
 
     cfg = mem(async_=False)
     router = TigrblRouter(engine=cfg)
