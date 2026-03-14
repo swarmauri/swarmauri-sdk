@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Mapping
 
 from tigrbl_kernel.models import KernelPlan, PackedKernel
 
@@ -174,8 +174,8 @@ class PackedPlanExecutor(ExecutorBase):
             raise TypeError("PackedPlanExecutor requires a PackedKernel instance")
 
         base_ctx = _Ctx.ensure(
-            request=ctx.get("request") if isinstance(ctx, dict) else None,
-            db=ctx.get("db") if isinstance(ctx, dict) else None,
+            request=ctx.get("request") if isinstance(ctx, Mapping) else None,
+            db=ctx.get("db") if isinstance(ctx, Mapping) else None,
             seed=ctx,
         )
         await self._execute_packed(env, base_ctx, plan, packed_plan)
