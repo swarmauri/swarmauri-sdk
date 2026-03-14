@@ -1,5 +1,6 @@
 import uuid
 from itertools import product
+from inspect import isawaitable
 
 import httpx
 import pytest
@@ -158,6 +159,11 @@ async def test_uvicorn_client_call_with_op_ctx_parameter_combinations(
         app, path = await _build_router_app(arity, response_schema, persist)
     else:
         app, path = _build_app_local_op(arity, response_schema, persist)
+
+    app.attach_diagnostics()
+    initialize_result = app.initialize()
+    if isawaitable(initialize_result):
+        await initialize_result
 
     base_url, server, task = await run_uvicorn_in_task(app)
     try:
