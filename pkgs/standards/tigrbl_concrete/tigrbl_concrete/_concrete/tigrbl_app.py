@@ -42,7 +42,7 @@ from tigrbl.system.docs import build_openapi as _build_openapi
 from tigrbl.op import get_registry
 from ._table_registry import TableRegistry
 from tigrbl_core._spec.app_spec import AppSpec
-from tigrbl_canon.mapping.runtime_routes import register_runtime_route
+from .runtime_route_binding import register_runtime_route
 from tigrbl_core._spec.app_spec import _seqify, normalize_app_spec
 from tigrbl.system.favicon import FAVICON_PATH, mount_favicon
 from tigrbl_canon.mapping.model_helpers import _OpSpecGroup
@@ -475,7 +475,7 @@ class TigrblApp(_App):
         prefix: str | None = None,
         mount_router: bool = True,
     ) -> Any:
-        """Mount a Tigrbl Router router onto this app and track it."""
+        """Mount a Router and mirror mounted routes into runtime op metadata."""
 
         def _normalize_mount_prefix(value: str | None) -> str:
             if not value:
@@ -626,7 +626,7 @@ class TigrblApp(_App):
         _add_route_impl(self, path, endpoint, **kwargs)
 
     def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Register a route directly on this app instance."""
+        """Register a route and mirror it into runtime op metadata."""
         _add_route_impl(self, path, endpoint, **kwargs)
         if self.routes:
             register_runtime_route(self, self.routes[-1])
@@ -804,6 +804,13 @@ class TigrblApp(_App):
             include_other = getattr(app, "include_router", None)
             if callable(include_other):
                 include_other(router, prefix=px)
+        runtime = getattr(self, "runtime", None)
+        kernel = getattr(runtime, "kernel", None)
+        invalidate = getattr(kernel, "invalidate_kernelz_payload", None)
+        if callable(invalidate):
+            invalidate(self)
+            if app is not None and app is not self:
+                invalidate(app)
         if app is None:
             self._base_routes = list(self._routes)
         return router

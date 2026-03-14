@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 from typing import Any, ClassVar, Mapping
-import json
 
-from tigrbl_kernel.models import KernelPlan, PackedKernel
+from tigrbl_kernel.models import KernelPlan, OpKey, PackedKernel
 
 from .base import ExecutorBase
 from .types import _Ctx
@@ -38,140 +37,95 @@ class PackedPlanExecutor(ExecutorBase):
 
         return -1
 
-    async def _resolve_program_id_fallback(
-        self, ctx: _Ctx, plan: KernelPlan, packed: PackedKernel
-    ) -> int | None:
+    def _resolve_program_id_from_dispatch(self, ctx: _Ctx, packed: PackedKernel) -> int:
         temp = getattr(ctx, "temp", None)
         if not isinstance(temp, dict):
-            ctx.temp = {}
-            temp = ctx.temp
+            return -1
 
-        raw = getattr(ctx, "raw", None) or getattr(ctx, "env", None)
-        scope = getattr(raw, "scope", None)
-        if not isinstance(scope, dict):
-            return None
+        dispatch = temp.get("dispatch")
+        if not isinstance(dispatch, dict):
+            return -1
 
-        method = str(scope.get("method", "") or "").upper()
-        path = str(scope.get("path", "/") or "/")
-        rpc_method: str | None = None
+        selector = dispatch.get("binding_selector")
+        protocol = dispatch.get("binding_protocol")
+        if not (isinstance(selector, str) and isinstance(protocol, str)):
+            return -1
 
-        if scope.get("type") == "http":
-            receive = getattr(raw, "receive", None)
-            if callable(receive):
-                chunks: list[bytes] = []
-                while True:
-                    message = await receive()
-                    if (
-                        not isinstance(message, dict)
-                        or message.get("type") != "http.request"
-                    ):
-                        break
-                    chunk = message.get("body", b"")
-                    if isinstance(chunk, (bytes, bytearray)):
-                        chunks.append(bytes(chunk))
-                    if not bool(message.get("more_body", False)):
-                        break
-                if chunks:
-                    body = b"".join(chunks)
-                    ctx.body = body
-                    ingress = temp.setdefault("ingress", {})
-                    if isinstance(ingress, dict):
-                        ingress["body"] = body
-                        ingress["method"] = method
-                        ingress["path"] = path
-                    try:
-                        payload = json.loads(body.decode("utf-8"))
-                    except Exception:
-                        payload = None
-                    if isinstance(payload, Mapping):
-                        temp.setdefault("dispatch", {})["body_json"] = dict(payload)
-                        if isinstance(ingress, dict):
-                            ingress["body_json"] = dict(payload)
-                        if "params" in payload and isinstance(
-                            payload.get("params"), Mapping
-                        ):
-                            ctx.payload = dict(payload.get("params") or {})
-                        else:
-                            ctx.payload = dict(payload)
-                        maybe = payload.get("method")
-                        if isinstance(maybe, str):
-                            rpc_method = maybe
+        selector_to_id = getattr(packed, "selector_to_id", None)
+        proto_to_id = getattr(packed, "proto_to_id", None)
+        route_to_program = getattr(packed, "route_to_program", None)
+        if not (
+            isinstance(selector_to_id, Mapping)
+            and isinstance(proto_to_id, Mapping)
+            and route_to_program is not None
+        ):
+            return -1
 
-        proto_indices = getattr(plan, "proto_indices", {})
-        if not isinstance(proto_indices, Mapping):
-            return None
+        selector_id = self._coerce_int(selector_to_id.get(selector))
+        proto_id = self._coerce_int(proto_to_id.get(protocol))
+        if selector_id is None or proto_id is None:
+            return -1
+        if not (0 <= proto_id < len(route_to_program)):
+            return -1
 
-        matched_proto: str | None = None
-        matched_selector: str | None = None
-        for proto, bucket in proto_indices.items():
-            if not isinstance(proto, str) or not isinstance(bucket, Mapping):
-                continue
-            if (
-                proto.endswith(".jsonrpc")
-                and isinstance(rpc_method, str)
-                and rpc_method in bucket
-            ):
-                matched_proto = proto
-                matched_selector = rpc_method
-                break
-            if proto.endswith(".rest"):
-                selector = f"{method} {path}"
-                exact = bucket.get("exact")
-                if isinstance(exact, Mapping) and selector in exact:
-                    matched_proto = proto
-                    matched_selector = selector
-                    break
+        row = route_to_program[proto_id]
+        if not (0 <= selector_id < len(row)):
+            return -1
 
-                templated = bucket.get("templated")
-                if isinstance(templated, list):
-                    for entry in templated:
-                        if not isinstance(entry, Mapping):
-                            continue
-                        if str(entry.get("method", "") or "").upper() != method:
-                            continue
-                        pattern = entry.get("pattern")
-                        selector_template = entry.get("selector")
-                        if not hasattr(pattern, "match") or not isinstance(
-                            selector_template, str
-                        ):
-                            continue
-                        matched = pattern.match(path)
-                        if matched is None:
-                            continue
-
-                        matched_proto = proto
-                        matched_selector = selector_template
-                        route = temp.setdefault("route", {})
-                        if isinstance(route, dict):
-                            route["path_params"] = dict(matched.groupdict())
-                        break
-
-                    if matched_proto is not None and matched_selector is not None:
-                        break
-
-        if matched_proto is None or matched_selector is None:
-            return None
-
-        proto_id = packed.proto_to_id.get(matched_proto)
-        selector_id = packed.selector_to_id.get(matched_selector)
-        if not isinstance(proto_id, int) or not isinstance(selector_id, int):
-            return None
-        if proto_id < 0 or proto_id >= len(packed.route_to_program):
-            return None
-        row = packed.route_to_program[proto_id]
-        if selector_id < 0 or selector_id >= len(row):
-            return None
-        maybe = row[selector_id]
-        if not isinstance(maybe, int) or maybe < 0:
-            return None
+        program_id = self._coerce_int(row[selector_id])
+        if program_id is None or program_id < 0:
+            return -1
 
         route = temp.setdefault("route", {})
         if isinstance(route, dict):
-            route["program_id"] = maybe
-            route["opmeta_index"] = maybe
-            route["protocol"] = matched_proto
-            route["selector"] = matched_selector
-        return maybe
+            route.setdefault("program_id", program_id)
+            route.setdefault("opmeta_index", program_id)
+        temp["program_id"] = program_id
+        return program_id
+
+    @staticmethod
+    def _resolve_program_id_from_request(ctx: _Ctx, plan: KernelPlan) -> int:
+        method = getattr(ctx, "method", None)
+        path = getattr(ctx, "path", None)
+
+        if not (isinstance(method, str) and isinstance(path, str) and path):
+            raw = getattr(ctx, "raw", None)
+            scope = getattr(raw, "scope", None) if raw is not None else None
+            if isinstance(scope, Mapping):
+                method = method or scope.get("method")
+                path = path or scope.get("path")
+
+        if not (isinstance(method, str) and isinstance(path, str) and path):
+            return -1
+
+        method = method.upper()
+        selector = f"{method} {path}"
+        for proto in ("http.rest", "https.rest"):
+            maybe = plan.opkey_to_meta.get(OpKey(proto=proto, selector=selector))
+            if isinstance(maybe, int):
+                return maybe
+
+        for proto in ("http.rest", "https.rest"):
+            bucket = plan.proto_indices.get(proto)
+            templated = bucket.get("templated") if isinstance(bucket, Mapping) else None
+            if not isinstance(templated, list):
+                continue
+            for entry in templated:
+                if not isinstance(entry, Mapping):
+                    continue
+                entry_method = str(entry.get("method", "") or "").upper()
+                if entry_method and entry_method != method:
+                    continue
+                pattern = entry.get("pattern")
+                if pattern is None or not hasattr(pattern, "match"):
+                    continue
+                if pattern.match(path) is None:
+                    continue
+                meta_index = entry.get("meta_index")
+                if isinstance(meta_index, int):
+                    return meta_index
+
+        return -1
 
     async def _run_segment_python(
         self, ctx: _Ctx, packed: PackedKernel, seg_id: int
@@ -205,9 +159,9 @@ class PackedPlanExecutor(ExecutorBase):
 
         program_id = self._require_program_id_from_ctx(ctx)
         if program_id < 0:
-            resolved = await self._resolve_program_id_fallback(ctx, plan, packed)
-            if isinstance(resolved, int):
-                program_id = resolved
+            program_id = self._resolve_program_id_from_dispatch(ctx, packed)
+        if program_id < 0:
+            program_id = self._resolve_program_id_from_request(ctx, plan)
         if program_id < 0:
             route = temp.get("route", {})
             if isinstance(route, dict) and route.get("method_not_allowed") is True:

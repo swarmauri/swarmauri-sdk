@@ -44,31 +44,34 @@ def _metadata_router(router: Any) -> Any:
     return router
 
 
+def _first_header_value(headers: Any, name: str) -> str | None:
+    value = headers.get(name)
+    if value is None:
+        return None
+    normalized = str(value).split(",", maxsplit=1)[0].strip()
+    return normalized or None
+
+
 def _request_origin(request: Any) -> str | None:
     headers = getattr(request, "headers", None)
     if headers is None or not hasattr(headers, "get"):
         return None
 
-    forwarded_host = headers.get("x-forwarded-host")
-    host = forwarded_host or headers.get("host")
-    if not host:
-        return None
-    host = str(host).split(",", maxsplit=1)[0].strip()
+    forwarded_host = _first_header_value(headers, "x-forwarded-host")
+    host = forwarded_host or _first_header_value(headers, "host")
     if not host:
         return None
 
     proto = (
-        headers.get("x-forwarded-proto")
-        or headers.get("x-forwarded-protocol")
-        or headers.get("x-forwarded-scheme")
+        _first_header_value(headers, "x-forwarded-proto")
+        or _first_header_value(headers, "x-forwarded-protocol")
+        or _first_header_value(headers, "x-forwarded-scheme")
     )
     forwarded = headers.get("forwarded", "")
     if not (forwarded_host or proto or forwarded):
         return None
 
-    scheme = None
-    if proto:
-        scheme = str(proto).split(",", maxsplit=1)[0].strip()
+    scheme = proto.lower() if proto else None
 
     if not scheme:
         request_url = getattr(request, "url", None)
@@ -82,7 +85,7 @@ def _request_origin(request: Any) -> str | None:
 
     if not scheme:
         scheme = "https" if str(forwarded).lower().find("proto=https") >= 0 else "http"
-    return f"{scheme}://{host}"
+    return f"{str(scheme).lower()}://{host}"
 
 
 def _table_model(entry: Any) -> type | None:
