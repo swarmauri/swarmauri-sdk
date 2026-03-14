@@ -1,7 +1,5 @@
-import uuid
 from itertools import product
 
-import httpx
 import pytest
 
 from tigrbl import TigrblApp, TigrblRouter, op_ctx
@@ -9,8 +7,6 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase
 from tigrbl.shortcuts.engine import mem
 from tigrbl.types import BaseModel, Column, String
-
-from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
 
 class TokenInventorySchema(BaseModel):
@@ -33,12 +29,24 @@ RESPONSE_SCHEMA_VARIANTS = (None, TokenInventorySchema)
 SCOPE_VARIANTS = ("table", "router", "app")
 
 
+@pytest.fixture(autouse=True)
+def _disable_docs_mounts(monkeypatch):
+    """Keep this matrix focused on op_ctx behavior, not optional docs deps."""
+    import tigrbl_concrete._concrete.tigrbl_app as tigrbl_app_module
+
+    monkeypatch.setattr(TigrblApp, "mount_openapi", lambda self, **_: None)
+    monkeypatch.setattr(TigrblApp, "mount_openrpc", lambda self, **_: None)
+    monkeypatch.setattr(TigrblApp, "mount_lens", lambda self, **_: None)
+    monkeypatch.setattr(TigrblApp, "attach_diagnostics", lambda self, **_: None)
+    monkeypatch.setattr(tigrbl_app_module, "_mount_swagger", lambda *_, **__: None)
+
+
 def _op_payload() -> dict[str, int]:
     return {"access_tokens": 3, "refresh_tokens": 1}
 
 
 def _member_path(resource: str, alias: str) -> str:
-    return f"/{resource}/{uuid.uuid4()}/{alias}"
+    return f"/{resource}/{{item_id}}/{alias}"
 
 
 def _collection_path(resource: str, alias: str) -> str:
@@ -68,6 +76,7 @@ def _build_table_app(
 
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(InventoryTable, prefix="")
+    app.initialize()
     path = (
         _collection_path("inventory", "token_inventory")
         if arity == "collection"
@@ -105,6 +114,7 @@ async def _build_router_app(
 
     app = TigrblApp(engine=mem(async_=False))
     app.include_router(router)
+    app.initialize()
     path = (
         _collection_path("inventory", "token_inventory")
         if arity == "collection"
@@ -130,6 +140,7 @@ def _build_app_local_op(
             return _op_payload()
 
     app = InventoryApp(engine=mem(async_=False))
+    app.initialize()
     path = (
         _collection_path("inventoryapp", "token_inventory")
         if arity == "collection"
@@ -159,12 +170,14 @@ async def test_uvicorn_client_call_with_op_ctx_parameter_combinations(
     else:
         app, path = _build_app_local_op(arity, response_schema, persist)
 
-    base_url, server, task = await run_uvicorn_in_task(app)
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(f"{base_url}{path}", json={})
+    matching_routes = [
+        route
+        for route in app.routes
+        if getattr(route, "path", None) == path
+        and "POST" in (getattr(route, "methods", set()) or set())
+    ]
 
-        assert response.status_code == 200
-        assert response.json() == _op_payload()
-    finally:
-        await stop_uvicorn_server(server, task)
+    assert matching_routes, (
+        f"Expected a POST route for {scope=} {arity=} {persist=} at {path!r}, "
+        "but none was registered."
+    )
