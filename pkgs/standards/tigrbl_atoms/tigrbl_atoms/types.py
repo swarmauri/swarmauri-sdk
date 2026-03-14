@@ -31,7 +31,7 @@ E = TypeVar("E", default=Exception)
 PHASE_SEQUENCE: Final[tuple[str, ...]] = (
     "INGRESS_BEGIN",
     "INGRESS_PARSE",
-    "INGRESS_ROUTE",
+    "INGRESS_DISPATCH",
     "PRE_TX_BEGIN",
     "START_TX",
     "PRE_HANDLER",

@@ -24,7 +24,7 @@ U = TypeVar("U")
 PhaseName = Literal[
     "INGRESS_BEGIN",
     "INGRESS_PARSE",
-    "INGRESS_ROUTE",
+    "INGRESS_DISPATCH",
     "PRE_TX_BEGIN",
     "START_TX",
     "PRE_HANDLER",
@@ -61,7 +61,7 @@ class PhaseStep(Generic[S, T]):
 
 INGRESS_BEGIN_PHASE: Final[PhaseName] = "INGRESS_BEGIN"
 INGRESS_PARSE_PHASE: Final[PhaseName] = "INGRESS_PARSE"
-INGRESS_ROUTE_PHASE: Final[PhaseName] = "INGRESS_ROUTE"
+INGRESS_DISPATCH_PHASE: Final[PhaseName] = "INGRESS_DISPATCH"
 PRE_TX_BEGIN_PHASE: Final[PhaseName] = "PRE_TX_BEGIN"
 START_TX_PHASE: Final[PhaseName] = "START_TX"
 PRE_HANDLER_PHASE: Final[PhaseName] = "PRE_HANDLER"
@@ -87,7 +87,7 @@ def seq_phase(a: PhaseStep[S, T], b: PhaseStep[T, U]) -> PhaseStep[S, U]:
 
 INGRESS_BEGIN = PhaseStep("INGRESS_BEGIN", Boot, Ingress)
 INGRESS_PARSE = PhaseStep("INGRESS_PARSE", Ingress, Ingress)
-INGRESS_ROUTE = PhaseStep("INGRESS_ROUTE", Ingress, Planned)
+INGRESS_DISPATCH = PhaseStep("INGRESS_DISPATCH", Ingress, Planned)
 
 PRE_TX_BEGIN = PhaseStep("PRE_TX_BEGIN", Planned, Guarded)
 
@@ -136,7 +136,7 @@ ON_ROLLBACK = PhaseStep("ON_ROLLBACK", Failed, Failed, in_tx=True, is_error=True
 PHASES: Final[Tuple[PhaseName, ...]] = (
     "INGRESS_BEGIN",
     "INGRESS_PARSE",
-    "INGRESS_ROUTE",
+    "INGRESS_DISPATCH",
     "PRE_TX_BEGIN",
     "START_TX",
     "PRE_HANDLER",
@@ -167,7 +167,7 @@ PHASE_INFO: Final[Dict[PhaseName, PhaseStep]] = {
     for p in (
         INGRESS_BEGIN,
         INGRESS_PARSE,
-        INGRESS_ROUTE,
+        INGRESS_DISPATCH,
         PRE_TX_BEGIN,
         START_TX,
         PRE_HANDLER,
@@ -214,7 +214,7 @@ __all__ = [
     "seq_phase",
     "INGRESS_BEGIN_PHASE",
     "INGRESS_PARSE_PHASE",
-    "INGRESS_ROUTE_PHASE",
+    "INGRESS_DISPATCH_PHASE",
     "PRE_TX_BEGIN_PHASE",
     "START_TX_PHASE",
     "PRE_HANDLER_PHASE",

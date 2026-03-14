@@ -3,44 +3,21 @@ from __future__ import annotations
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from ... import events as _ev
-from . import attach_compiled as _attach_compiled
-from . import body_peek as _body_peek
-from . import body_read as _body_read
 from . import ctx_init as _ctx_init
-from . import headers_parse as _headers_parse
-from . import request_body_apply as _request_body_apply
-from . import request_from_scope as _request_from_scope
-from . import method_extract as _method_extract
-from . import metrics_start as _metrics_start
-from . import path_extract as _path_extract
-from . import query_parse as _query_parse
-from . import raw_from_scope as _raw_from_scope
+from . import input_prepare as _input_prepare
+from . import transport_extract as _transport_extract
 
 RunFn = Callable[[Optional[object], Any], Any]
 
 _ORDERED: Tuple[Tuple[str, str, str, RunFn], ...] = (
     ("ingress", "ctx_init", _ctx_init.ANCHOR, _ctx_init.INSTANCE),
-    ("ingress", "attach_compiled", _attach_compiled.ANCHOR, _attach_compiled.INSTANCE),
-    ("ingress", "metrics_start", _metrics_start.ANCHOR, _metrics_start.INSTANCE),
-    ("ingress", "raw_from_scope", _raw_from_scope.ANCHOR, _raw_from_scope.INSTANCE),
-    ("ingress", "method_extract", _method_extract.ANCHOR, _method_extract.INSTANCE),
-    ("ingress", "path_extract", _path_extract.ANCHOR, _path_extract.INSTANCE),
     (
         "ingress",
-        "request_from_scope",
-        _request_from_scope.ANCHOR,
-        _request_from_scope.INSTANCE,
+        "transport_extract",
+        _transport_extract.ANCHOR,
+        _transport_extract.INSTANCE,
     ),
-    ("ingress", "headers_parse", _headers_parse.ANCHOR, _headers_parse.INSTANCE),
-    ("ingress", "query_parse", _query_parse.ANCHOR, _query_parse.INSTANCE),
-    ("ingress", "body_read", _body_read.ANCHOR, _body_read.INSTANCE),
-    (
-        "ingress",
-        "request_body_apply",
-        _request_body_apply.ANCHOR,
-        _request_body_apply.INSTANCE,
-    ),
-    ("ingress", "body_peek", _body_peek.ANCHOR, _body_peek.INSTANCE),
+    ("ingress", "input_prepare", _input_prepare.ANCHOR, _input_prepare.INSTANCE),
 )
 
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {

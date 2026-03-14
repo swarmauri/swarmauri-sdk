@@ -23,7 +23,7 @@ class DbCapabilities:
 _PHASE_DB_CAPABILITIES: dict[PhaseName, DbCapabilities] = {
     "INGRESS_BEGIN": DbCapabilities(False, False, True, False),
     "INGRESS_PARSE": DbCapabilities(False, False, True, False),
-    "INGRESS_ROUTE": DbCapabilities(False, False, True, False),
+    "INGRESS_DISPATCH": DbCapabilities(False, False, True, False),
     "PRE_TX_BEGIN": DbCapabilities(False, False, True, False),
     "START_TX": DbCapabilities(False, False, True, False),
     "PRE_HANDLER": DbCapabilities(True, False, True, False),
