@@ -72,16 +72,14 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
 
     __slots__ = ()
 
-    _CORE_FIELDS = frozenset(
-        {
-            "env",
-            "bag",
-            "temp",
-            "error",
-            "current_phase",
-            "error_phase",
-        }
-    )
+    _FIELD_NAMES = {
+        "env",
+        "bag",
+        "temp",
+        "error",
+        "current_phase",
+        "error_phase",
+    }
 
     def __getattribute__(self, name: str) -> Any:
         # Keep core context methods callable even when runtime data shadows
@@ -94,49 +92,56 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
         bag = object.__getattribute__(self, "bag")
         return bag.get(name)
 
-    def __getitem__(self, key: str) -> Any:
-        bag = object.__getattribute__(self, "bag")
-        if key in bag:
-            return bag[key]
-        if key in _Ctx._CORE_FIELDS:
-            return object.__getattribute__(self, key)
-        raise KeyError(key)
-
-    def __iter__(self):
-        bag = object.__getattribute__(self, "bag")
-        yielded = set()
-        for key in _Ctx._CORE_FIELDS:
-            yielded.add(key)
-            yield key
-        for key in bag:
-            if key not in yielded:
-                yield key
-
-    def __len__(self) -> int:
-        bag = object.__getattribute__(self, "bag")
-        return len(set(_Ctx._CORE_FIELDS) | set(bag.keys()))
-
-    def __delitem__(self, key: str) -> None:
-        if key in _Ctx._CORE_FIELDS:
-            raise KeyError(f"cannot delete core ctx field: {key}")
-        bag = object.__getattribute__(self, "bag")
-        del bag[key]
-
-    def __contains__(self, key: object) -> bool:
-        if not isinstance(key, str):
-            return False
-        if key in _Ctx._CORE_FIELDS:
+    def __contains__(self, key: str) -> bool:
+        if key in self._FIELD_NAMES:
             return True
-        bag = object.__getattribute__(self, "bag")
-        return key in bag
+        return key in object.__getattribute__(self, "bag")
+
+    def __getitem__(self, key: str) -> Any:
+        if key in self._FIELD_NAMES:
+            return object.__getattribute__(self, key)
+        return object.__getattribute__(self, "bag")[key]
 
     def get(self, key: str, default: Any = None) -> Any:
-        try:
-            return self[key]
-        except KeyError:
-            return default
+        if key in self._FIELD_NAMES:
+            return object.__getattribute__(self, key)
+        return object.__getattribute__(self, "bag").get(key, default)
+
+    def items(self):
+        merged = {name: object.__getattribute__(self, name) for name in self._FIELD_NAMES}
+        merged.update(object.__getattribute__(self, "bag"))
+        return merged.items()
+
+    def keys(self):
+        return dict(self.items()).keys()
+
+    def values(self):
+        return dict(self.items()).values()
+
+    def __iter__(self):
+        return iter(dict(self.items()))
+
+    def __len__(self) -> int:
+        return len(dict(self.items()))
+
+    def setdefault(self, key: str, default: Any = None) -> Any:
+        return object.__getattribute__(self, "bag").setdefault(key, default)
+
+    def update(self, *args: Any, **kwargs: Any) -> None:
+        object.__getattribute__(self, "bag").update(*args, **kwargs)
+
+    def pop(self, key: str, default: Any = None) -> Any:
+        return object.__getattribute__(self, "bag").pop(key, default)
+
+    def clear(self) -> None:
+        object.__getattribute__(self, "bag").clear()
 
     def __setitem__(self, key: str, value: Any) -> None:
+        if key in self._FIELD_NAMES:
+            object.__setattr__(self, key, value)
+            return
+
+        bag = object.__getattribute__(self, "bag")
         if (
             key == "response"
             and value is not None
@@ -148,18 +153,14 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
         ):
             value = _ResponseState(self, value)
         if key == "result":
-            response = self.get("response")
+            response = bag.get("response")
             if isinstance(response, _ResponseState):
                 data = object.__getattribute__(response, "_data")
                 data["result"] = value
-        if key in _Ctx._CORE_FIELDS:
-            object.__setattr__(self, key, value)
-            return
-        bag = object.__getattribute__(self, "bag")
         bag[key] = value
 
     def __setattr__(self, name: str, value: Any) -> None:
-        if name in _Ctx._CORE_FIELDS:
+        if name in self._FIELD_NAMES:
             object.__setattr__(self, name, value)
             return
         self.__setitem__(name, value)
@@ -203,25 +204,22 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
         elif isinstance(seed, _Ctx):
             ctx = seed
         elif isinstance(seed, BaseCtx):
-            values = {f.name: getattr(seed, f.name) for f in fields(type(seed))}
-            core_kwargs = {
-                k: values.pop(k) for k in tuple(values) if k in cls._CORE_FIELDS
-            }
-            bag = dict(values.pop("bag", {}) or {})
-            bag.update(values)
-            ctx = cls(**core_kwargs)
-            object.__setattr__(ctx, "bag", bag)
+            seed_values = {f.name: getattr(seed, f.name) for f in fields(type(seed))}
+            bag = dict(seed_values.pop("bag", {}) or {})
+            for key, value in seed_values.items():
+                if key in cls._FIELD_NAMES:
+                    continue
+                bag[key] = value
+            ctx = cls(
+                env=seed_values.get("env"),
+                bag=bag,
+                temp=dict(seed_values.get("temp") or {}),
+                error=seed_values.get("error"),
+                current_phase=seed_values.get("current_phase"),
+                error_phase=seed_values.get("error_phase"),
+            )
         else:
-            seed_map = dict(seed)
-            core_kwargs = {
-                key: seed_map.pop(key)
-                for key in tuple(seed_map)
-                if key in cls._CORE_FIELDS and key != "bag"
-            }
-            bag = dict(seed_map.pop("bag", {}) or {})
-            bag.update(seed_map)
-            ctx = cls(**core_kwargs)
-            object.__setattr__(ctx, "bag", bag)
+            ctx = cls(bag=dict(seed))
 
         if request is not None:
             ctx.request = request
@@ -235,7 +233,7 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
             ctx._raw_db = db
             if "db" not in ctx:
                 ctx.db = None
-        if "temp" not in ctx or not isinstance(ctx.get("temp"), dict):
+        if not isinstance(getattr(ctx, "temp", None), dict):
             ctx.temp = {}
         return ctx
 
