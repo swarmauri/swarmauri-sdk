@@ -108,7 +108,9 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
         return object.__getattribute__(self, "bag").get(key, default)
 
     def items(self):
-        merged = {name: object.__getattribute__(self, name) for name in self._FIELD_NAMES}
+        merged = {
+            name: object.__getattribute__(self, name) for name in self._FIELD_NAMES
+        }
         merged.update(object.__getattribute__(self, "bag"))
         return merged.items()
 
@@ -158,6 +160,11 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
                 data = object.__getattribute__(response, "_data")
                 data["result"] = value
         bag[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        if key in self._FIELD_NAMES:
+            raise KeyError(key)
+        del object.__getattribute__(self, "bag")[key]
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name in self._FIELD_NAMES:
@@ -219,7 +226,20 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
                 error_phase=seed_values.get("error_phase"),
             )
         else:
-            ctx = cls(bag=dict(seed))
+            seed_values = dict(seed)
+            seed_fields = {
+                name: seed_values.pop(name)
+                for name in cls._FIELD_NAMES
+                if name in seed_values
+            }
+            ctx = cls(
+                env=seed_fields.get("env"),
+                bag=seed_values,
+                temp=dict(seed_fields.get("temp") or {}),
+                error=seed_fields.get("error"),
+                current_phase=seed_fields.get("current_phase"),
+                error_phase=seed_fields.get("error_phase"),
+            )
 
         if request is not None:
             ctx.request = request

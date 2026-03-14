@@ -37,6 +37,52 @@ class PackedPlanExecutor(ExecutorBase):
 
         return -1
 
+    def _resolve_program_id_from_dispatch(self, ctx: _Ctx, packed: PackedKernel) -> int:
+        temp = getattr(ctx, "temp", None)
+        if not isinstance(temp, dict):
+            return -1
+
+        dispatch = temp.get("dispatch")
+        if not isinstance(dispatch, dict):
+            return -1
+
+        selector = dispatch.get("binding_selector")
+        protocol = dispatch.get("binding_protocol")
+        if not (isinstance(selector, str) and isinstance(protocol, str)):
+            return -1
+
+        selector_to_id = getattr(packed, "selector_to_id", None)
+        proto_to_id = getattr(packed, "proto_to_id", None)
+        route_to_program = getattr(packed, "route_to_program", None)
+        if not (
+            isinstance(selector_to_id, Mapping)
+            and isinstance(proto_to_id, Mapping)
+            and route_to_program is not None
+        ):
+            return -1
+
+        selector_id = self._coerce_int(selector_to_id.get(selector))
+        proto_id = self._coerce_int(proto_to_id.get(protocol))
+        if selector_id is None or proto_id is None:
+            return -1
+        if not (0 <= proto_id < len(route_to_program)):
+            return -1
+
+        row = route_to_program[proto_id]
+        if not (0 <= selector_id < len(row)):
+            return -1
+
+        program_id = self._coerce_int(row[selector_id])
+        if program_id is None or program_id < 0:
+            return -1
+
+        route = temp.setdefault("route", {})
+        if isinstance(route, dict):
+            route.setdefault("program_id", program_id)
+            route.setdefault("opmeta_index", program_id)
+        temp["program_id"] = program_id
+        return program_id
+
     async def _run_segment_python(
         self, ctx: _Ctx, packed: PackedKernel, seg_id: int
     ) -> None:
@@ -68,6 +114,8 @@ class PackedPlanExecutor(ExecutorBase):
             temp = ctx.temp
 
         program_id = self._require_program_id_from_ctx(ctx)
+        if program_id < 0:
+            program_id = self._resolve_program_id_from_dispatch(ctx, packed)
         if program_id < 0:
             route = temp.get("route", {})
             if isinstance(route, dict) and route.get("method_not_allowed") is True:
