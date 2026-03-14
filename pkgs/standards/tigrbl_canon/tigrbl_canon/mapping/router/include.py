@@ -102,140 +102,6 @@ def _mark_required_auth_dependency(dep: Any) -> Any:
     return _required_auth_wrapper
 
 
-def _seed_security_and_deps(router: Any, model: type) -> None:
-    """
-    Copy API-level dependency hooks onto the model so downstream binders can use them.
-    - __tigrbl_get_db__             : DB dep (ASGI Depends-compatible)
-    - __tigrbl_auth_dep__           : auth dependency (returns user or raises 401)
-    - __tigrbl_rest_dependencies__  : list of extra dependencies for REST (e.g., rate-limits)
-    - __tigrbl_rpc_dependencies__   : list of extra dependencies for JSON-RPC router
-    """
-    # DB deps
-    prov = _resolver.resolve_provider(router=router)
-    if prov is not None:
-        logger.debug("Resolved provider for %s", model.__name__)
-        setattr(model, TIGRBL_GET_DB_ATTR, prov.get_db)
-    else:
-        logger.debug("No provider resolved for %s", model.__name__)
-
-    # Authn (prefer optional dep when available)
-    auth_dep = None
-    if getattr(router, "_optional_authn_dep", None):
-        auth_dep = router._optional_authn_dep
-        logger.debug("Using optional auth dependency for %s", model.__name__)
-    elif getattr(router, "_allow_anon", True) is False and getattr(
-        router, "_authn", None
-    ):
-        auth_dep = router._authn
-        logger.debug("Using required auth dependency for %s", model.__name__)
-    elif getattr(router, "_authn", None):
-        auth_dep = router._authn
-        logger.debug("Using default auth dependency for %s", model.__name__)
-    if auth_dep is not None and getattr(router, "_allow_anon", True) is False:
-        auth_dep = _mark_required_auth_dependency(auth_dep)
-
-    if auth_dep is not None:
-        setattr(model, TIGRBL_AUTH_DEP_ATTR, auth_dep)
-    else:
-        logger.debug("No auth dependency configured for %s", model.__name__)
-
-    # Allow anonymous verbs
-    allow_attr = getattr(model, TIGRBL_ALLOW_ANON_ATTR, None)
-    if allow_attr:
-        verbs = allow_attr() if callable(allow_attr) else allow_attr
-        logger.debug("Allowing anonymous verbs %s for %s", verbs, model.__name__)
-        for v in verbs:
-            router._allow_anon_ops.add(f"{model.__name__}.{v}")
-    else:
-        logger.debug("No anonymous verbs for %s", model.__name__)
-
-    runtime_secdeps: tuple[Any, ...] = ()
-    if auth_dep is not None:
-        runtime_secdeps = runtime_secdeps + (auth_dep,)
-
-    authorize_dep = _make_authorize_secdep(router)
-    if authorize_dep is not None:
-        runtime_secdeps = runtime_secdeps + (authorize_dep,)
-
-    if authorize_dep is not None:
-        logger.debug("Authorization secdep attached for %s", model.__name__)
-    else:
-        logger.debug("No authorization secdep for %s", model.__name__)
-
-    # Extra deps (router-level only; never part of kernel plan)
-    rest_deps: list[Any] = []
-    if getattr(router, "rest_dependencies", None):
-        rest_deps.extend(list(router.rest_dependencies))
-    if rest_deps:
-        setattr(model, TIGRBL_REST_DEPENDENCIES_ATTR, rest_deps)
-        logger.debug("REST dependencies seeded for %s", model.__name__)
-    else:
-        logger.debug("No REST dependencies for %s", model.__name__)
-    if getattr(router, "rpc_dependencies", None):
-        setattr(model, TIGRBL_RPC_DEPENDENCIES_ATTR, list(router.rpc_dependencies))
-        logger.debug("RPC dependencies seeded for %s", model.__name__)
-    else:
-        logger.debug("No RPC dependencies for %s", model.__name__)
-
-
-def _inject_runtime_secdeps(
-    model: type, runtime_secdeps: tuple[Any, ...], allow_anon: set[Any]
-) -> None:
-    if not runtime_secdeps:
-        return
-    ops_ns = getattr(model, "ops", None)
-    by_alias = getattr(ops_ns, "by_alias", None)
-    if not isinstance(by_alias, dict):
-        return
-
-    for alias, specs in list(by_alias.items()):
-        patched_specs = []
-        changed = False
-        for sp in tuple(specs or ()):  # type: ignore[arg-type]
-            exempt = sp.alias in allow_anon or sp.target in allow_anon
-            if exempt:
-                patched_specs.append(sp)
-                continue
-            secdeps = tuple(getattr(sp, "secdeps", ()) or ())
-            missing = tuple(dep for dep in runtime_secdeps if dep not in secdeps)
-            if not missing:
-                patched_specs.append(sp)
-                continue
-            patched_specs.append(replace(sp, secdeps=((*missing, *secdeps))))
-            changed = True
-        if changed:
-            by_alias[alias] = _OpSpecGroup(tuple(patched_specs))
-
-
-def _make_authorize_secdep(router: Any) -> Any | None:
-    authorize = getattr(router, "_authorize", None)
-    if not callable(authorize):
-        return None
-
-    async def _authorize_secdep(ctx: Any) -> None:
-        ctx_map = ctx if isinstance(ctx, dict) else {}
-        request = getattr(ctx, "request", None) or ctx_map.get("request")
-        model = getattr(ctx, "model", None) or ctx_map.get("model")
-        alias = getattr(ctx, "op", None) or ctx_map.get("op") or ctx_map.get("method")
-        payload = getattr(ctx, "payload", None) or ctx_map.get("payload")
-        user = (
-            getattr(ctx, "auth_context", None)
-            or ctx_map.get("auth_context")
-            or getattr(getattr(request, "state", None), "user", None)
-        )
-
-        rv = authorize(request, model, alias, payload, user)
-        if hasattr(rv, "__await__"):
-            rv = await rv
-        if rv is False:
-            from ...errors import ForbiddenError
-
-            raise ForbiddenError("Forbidden")
-
-    setattr(_authorize_secdep, "__tigrbl_dep_name__", "security.authorize")
-    return _authorize_secdep
-
-
 def _attach_to_router(router: RouterLike, table: type) -> None:
     """
     Attach the model’s bound namespaces to the router facade.
@@ -363,17 +229,117 @@ def include_model(
             logger.debug("Failed to remap model %s", model.__name__, exc_info=True)
 
     # 0) seed deps/security so binders can see them (transport-level only)
-    _seed_security_and_deps(router, model)
+    prov = _resolver.resolve_provider(router=router)
+    if prov is not None:
+        logger.debug("Resolved provider for %s", model.__name__)
+        setattr(model, TIGRBL_GET_DB_ATTR, prov.get_db)
+    else:
+        logger.debug("No provider resolved for %s", model.__name__)
+
+    auth_dep = None
+    if getattr(router, "_optional_authn_dep", None):
+        auth_dep = router._optional_authn_dep
+        logger.debug("Using optional auth dependency for %s", model.__name__)
+    elif getattr(router, "_allow_anon", True) is False and getattr(
+        router, "_authn", None
+    ):
+        auth_dep = router._authn
+        logger.debug("Using required auth dependency for %s", model.__name__)
+    elif getattr(router, "_authn", None):
+        auth_dep = router._authn
+        logger.debug("Using default auth dependency for %s", model.__name__)
+    if auth_dep is not None and getattr(router, "_allow_anon", True) is False:
+        auth_dep = _mark_required_auth_dependency(auth_dep)
+
+    if auth_dep is not None:
+        setattr(model, TIGRBL_AUTH_DEP_ATTR, auth_dep)
+    else:
+        logger.debug("No auth dependency configured for %s", model.__name__)
+
+    allow_attr = getattr(model, TIGRBL_ALLOW_ANON_ATTR, None)
+    allow_anon = set((allow_attr() if callable(allow_attr) else allow_attr) or ())
+    if allow_anon:
+        logger.debug("Allowing anonymous verbs %s for %s", allow_anon, model.__name__)
+        for verb in allow_anon:
+            router._allow_anon_ops.add(f"{model.__name__}.{verb}")
+    else:
+        logger.debug("No anonymous verbs for %s", model.__name__)
+
+    authorize_dep = None
+    authorize = getattr(router, "_authorize", None)
+    if callable(authorize):
+
+        async def _authorize_secdep(ctx: Any) -> None:
+            ctx_map = ctx if isinstance(ctx, dict) else {}
+            request = getattr(ctx, "request", None) or ctx_map.get("request")
+            target_model = getattr(ctx, "model", None) or ctx_map.get("model")
+            alias = (
+                getattr(ctx, "op", None) or ctx_map.get("op") or ctx_map.get("method")
+            )
+            payload = getattr(ctx, "payload", None) or ctx_map.get("payload")
+            user = (
+                getattr(ctx, "auth_context", None)
+                or ctx_map.get("auth_context")
+                or getattr(getattr(request, "state", None), "user", None)
+            )
+
+            rv = authorize(request, target_model, alias, payload, user)
+            if hasattr(rv, "__await__"):
+                rv = await rv
+            if rv is False:
+                from ...errors import ForbiddenError
+
+                raise ForbiddenError("Forbidden")
+
+        setattr(_authorize_secdep, "__tigrbl_dep_name__", "security.authorize")
+        authorize_dep = _authorize_secdep
+
+    runtime_secdeps = tuple(dep for dep in (auth_dep, authorize_dep) if dep is not None)
+    if authorize_dep is not None:
+        logger.debug("Authorization secdep attached for %s", model.__name__)
+    else:
+        logger.debug("No authorization secdep for %s", model.__name__)
+
+    rest_deps: list[Any] = []
+    if getattr(router, "rest_dependencies", None):
+        rest_deps.extend(list(router.rest_dependencies))
+    if rest_deps:
+        setattr(model, TIGRBL_REST_DEPENDENCIES_ATTR, rest_deps)
+        logger.debug("REST dependencies seeded for %s", model.__name__)
+    else:
+        logger.debug("No REST dependencies for %s", model.__name__)
+    if getattr(router, "rpc_dependencies", None):
+        setattr(model, TIGRBL_RPC_DEPENDENCIES_ATTR, list(router.rpc_dependencies))
+        logger.debug("RPC dependencies seeded for %s", model.__name__)
+    else:
+        logger.debug("No RPC dependencies for %s", model.__name__)
 
     # 1) Build/bind model namespaces (idempotent)
     _binder.bind(model, router=router)
 
-    auth_dep = getattr(model, TIGRBL_AUTH_DEP_ATTR, None)
-    authorize_dep = _make_authorize_secdep(router)
-    runtime_secdeps = tuple(d for d in (auth_dep, authorize_dep) if d is not None)
-    allow_attr = getattr(model, TIGRBL_ALLOW_ANON_ATTR, None)
-    allow_anon = set((allow_attr() if callable(allow_attr) else allow_attr) or ())
-    _inject_runtime_secdeps(model, runtime_secdeps, allow_anon)
+    if runtime_secdeps:
+        ops_ns = getattr(model, "ops", None)
+        by_alias = getattr(ops_ns, "by_alias", None)
+        if isinstance(by_alias, dict):
+            for alias, specs in list(by_alias.items()):
+                patched_specs = []
+                changed = False
+                for spec in tuple(specs or ()):  # type: ignore[arg-type]
+                    exempt = spec.alias in allow_anon or spec.target in allow_anon
+                    if exempt:
+                        patched_specs.append(spec)
+                        continue
+                    secdeps = tuple(getattr(spec, "secdeps", ()) or ())
+                    missing = tuple(
+                        dep for dep in runtime_secdeps if dep not in secdeps
+                    )
+                    if not missing:
+                        patched_specs.append(spec)
+                        continue
+                    patched_specs.append(replace(spec, secdeps=((*missing, *secdeps))))
+                    changed = True
+                if changed:
+                    by_alias[alias] = _OpSpecGroup(tuple(patched_specs))
 
     # 2) Pick a router & mount prefix
     model_router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
