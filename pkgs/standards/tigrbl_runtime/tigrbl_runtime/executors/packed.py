@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 from typing import Any, ClassVar, Mapping
-import json
 
-from tigrbl_kernel.models import KernelPlan, PackedKernel
+from tigrbl_kernel.models import KernelPlan, OpKey, PackedKernel
 
 from .base import ExecutorBase
 from .types import _Ctx
@@ -84,6 +83,50 @@ class PackedPlanExecutor(ExecutorBase):
         temp["program_id"] = program_id
         return program_id
 
+    @staticmethod
+    def _resolve_program_id_from_request(ctx: _Ctx, plan: KernelPlan) -> int:
+        method = getattr(ctx, "method", None)
+        path = getattr(ctx, "path", None)
+
+        if not (isinstance(method, str) and isinstance(path, str) and path):
+            raw = getattr(ctx, "raw", None)
+            scope = getattr(raw, "scope", None) if raw is not None else None
+            if isinstance(scope, Mapping):
+                method = method or scope.get("method")
+                path = path or scope.get("path")
+
+        if not (isinstance(method, str) and isinstance(path, str) and path):
+            return -1
+
+        method = method.upper()
+        selector = f"{method} {path}"
+        for proto in ("http.rest", "https.rest"):
+            maybe = plan.opkey_to_meta.get(OpKey(proto=proto, selector=selector))
+            if isinstance(maybe, int):
+                return maybe
+
+        for proto in ("http.rest", "https.rest"):
+            bucket = plan.proto_indices.get(proto)
+            templated = bucket.get("templated") if isinstance(bucket, Mapping) else None
+            if not isinstance(templated, list):
+                continue
+            for entry in templated:
+                if not isinstance(entry, Mapping):
+                    continue
+                entry_method = str(entry.get("method", "") or "").upper()
+                if entry_method and entry_method != method:
+                    continue
+                pattern = entry.get("pattern")
+                if pattern is None or not hasattr(pattern, "match"):
+                    continue
+                if pattern.match(path) is None:
+                    continue
+                meta_index = entry.get("meta_index")
+                if isinstance(meta_index, int):
+                    return meta_index
+
+        return -1
+
     async def _run_segment_python(
         self, ctx: _Ctx, packed: PackedKernel, seg_id: int
     ) -> None:
@@ -117,6 +160,8 @@ class PackedPlanExecutor(ExecutorBase):
         program_id = self._require_program_id_from_ctx(ctx)
         if program_id < 0:
             program_id = self._resolve_program_id_from_dispatch(ctx, packed)
+        if program_id < 0:
+            program_id = self._resolve_program_id_from_request(ctx, plan)
         if program_id < 0:
             route = temp.get("route", {})
             if isinstance(route, dict) and route.get("method_not_allowed") is True:

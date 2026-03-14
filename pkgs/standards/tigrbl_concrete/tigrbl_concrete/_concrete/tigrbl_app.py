@@ -804,6 +804,13 @@ class TigrblApp(_App):
             include_other = getattr(app, "include_router", None)
             if callable(include_other):
                 include_other(router, prefix=px)
+        runtime = getattr(self, "runtime", None)
+        kernel = getattr(runtime, "kernel", None)
+        invalidate = getattr(kernel, "invalidate_kernelz_payload", None)
+        if callable(invalidate):
+            invalidate(self)
+            if app is not None and app is not self:
+                invalidate(app)
         if app is None:
             self._base_routes = list(self._routes)
         return router
