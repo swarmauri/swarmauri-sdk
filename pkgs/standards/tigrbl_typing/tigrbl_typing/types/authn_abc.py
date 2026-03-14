@@ -1,8 +1,10 @@
 # tigrbl/types/authn_abc.py
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
-from tigrbl import Request
+if TYPE_CHECKING:
+    from tigrbl import Request
 
 
 class AuthNProvider(ABC):
@@ -13,7 +15,7 @@ class AuthNProvider(ABC):
 
     # ---------- ASGI dependency ----------
     @abstractmethod
-    async def get_principal(self, request: Request):  # -> dict[str, str]
+    async def get_principal(self, request: "Request"):  # -> dict[str, str]
         """Return {"sub": user_id, "tid": tenant_id, ...} or raise HTTP 401."""
 
 
