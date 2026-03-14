@@ -8,7 +8,7 @@ from typing import Any, Dict, Iterable, Set, Tuple, Type, Union
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, create_model
 
 from ..utils import namely_model
-from tigrbl_canon.mapping.column_mro_collect import mro_collect_columns
+from tigrbl_core._spec.column_spec import mro_collect_columns
 from .cache import _SchemaCache
 from .extras import _merge_request_extras, _merge_response_extras
 from .helpers import _add_field, _is_required, _normalize_py_type, _python_type
