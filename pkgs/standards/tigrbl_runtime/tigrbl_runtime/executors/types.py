@@ -108,7 +108,9 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
         return object.__getattribute__(self, "bag").get(key, default)
 
     def items(self):
-        merged = {name: object.__getattribute__(self, name) for name in self._FIELD_NAMES}
+        merged = {
+            name: object.__getattribute__(self, name) for name in self._FIELD_NAMES
+        }
         merged.update(object.__getattribute__(self, "bag"))
         return merged.items()
 
@@ -158,6 +160,12 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
                 data = object.__getattribute__(response, "_data")
                 data["result"] = value
         bag[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        if key in self._FIELD_NAMES:
+            msg = f"cannot delete core context field {key!r}"
+            raise KeyError(msg)
+        del object.__getattribute__(self, "bag")[key]
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name in self._FIELD_NAMES:

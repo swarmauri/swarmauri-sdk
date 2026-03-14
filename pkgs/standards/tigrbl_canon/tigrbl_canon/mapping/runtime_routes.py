@@ -183,6 +183,25 @@ def register_runtime_route(app: Any, route: Any) -> None:
     if not (isinstance(path, str) and methods and callable(handler)):
         return
 
+    system_docs = getattr(app, "tables", {}).get("__tigrbl_system_docs__")
+    if system_docs is not None:
+        for specs in getattr(
+            getattr(system_docs, "ops", None), "by_alias", {}
+        ).values():
+            for spec in tuple(specs or ()):  # pragma: no branch - small tuple scan
+                for binding in tuple(
+                    getattr(spec, "bindings", ()) or ()
+                ):  # pragma: no branch
+                    if not isinstance(binding, HttpRestBindingSpec):
+                        continue
+                    same_path = str(getattr(binding, "path", "")) == path
+                    same_methods = {
+                        str(m).upper()
+                        for m in tuple(getattr(binding, "methods", ()) or ())
+                    } == {str(m).upper() for m in methods}
+                    if same_path and same_methods:
+                        return
+
     method_tokens = "_".join(sorted(str(m).lower() for m in methods))
     alias = f"__route__:{method_tokens}:{path}"
     model = app._ensure_system_route_model()
