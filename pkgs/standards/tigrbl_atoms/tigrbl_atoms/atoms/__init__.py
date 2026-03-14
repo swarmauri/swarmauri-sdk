@@ -18,7 +18,7 @@ from .response import REGISTRY as _RESPONSE
 from .dep import REGISTRY as _DEP
 from .egress import REGISTRY as _EGRESS
 from .ingress import REGISTRY as _INGRESS
-from .route import REGISTRY as _ROUTE
+from .dispatch import REGISTRY as _DISPATCH
 from .sys import REGISTRY as _SYS
 
 # Runner signature: (obj|None, ctx) -> None
@@ -55,7 +55,7 @@ _add_bulk(_WIRE)
 _add_bulk(_RESPONSE)
 _add_bulk(_DEP)
 _add_bulk(_INGRESS)
-_add_bulk(_ROUTE)
+_add_bulk(_DISPATCH)
 _add_bulk(_EGRESS)
 _add_bulk(_SYS)
 
