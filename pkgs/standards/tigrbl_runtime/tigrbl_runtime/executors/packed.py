@@ -122,6 +122,33 @@ class PackedPlanExecutor(ExecutorBase):
                     matched_selector = selector
                     break
 
+                templated = bucket.get("templated")
+                if isinstance(templated, list):
+                    for entry in templated:
+                        if not isinstance(entry, Mapping):
+                            continue
+                        if str(entry.get("method", "") or "").upper() != method:
+                            continue
+                        pattern = entry.get("pattern")
+                        selector_template = entry.get("selector")
+                        if not hasattr(pattern, "match") or not isinstance(
+                            selector_template, str
+                        ):
+                            continue
+                        matched = pattern.match(path)
+                        if matched is None:
+                            continue
+
+                        matched_proto = proto
+                        matched_selector = selector_template
+                        route = temp.setdefault("route", {})
+                        if isinstance(route, dict):
+                            route["path_params"] = dict(matched.groupdict())
+                        break
+
+                    if matched_proto is not None and matched_selector is not None:
+                        break
+
         if matched_proto is None or matched_selector is None:
             return None
 
