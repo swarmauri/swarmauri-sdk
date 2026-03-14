@@ -42,6 +42,7 @@ async def client_and_model():
 
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(Gadget, prefix="")
+    app.mount_jsonrpc()
     await app.initialize()
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
@@ -159,6 +160,7 @@ async def wrapper_field_client_and_model():
 
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(WrapperNamed, prefix="")
+    app.mount_jsonrpc()
     await app.initialize()
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
@@ -256,6 +258,7 @@ async def bulk_client_and_model():
 
     app = TigrblApp(engine=mem(async_=False))
     app.include_table(Gadget, prefix="")
+    app.mount_jsonrpc()
     await app.initialize()
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
