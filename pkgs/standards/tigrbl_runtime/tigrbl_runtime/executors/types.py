@@ -169,8 +169,7 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
 
     def __delitem__(self, key: str) -> None:
         if key in self._FIELD_NAMES:
-            object.__setattr__(self, key, None)
-            return
+            raise KeyError(key)
         del object.__getattribute__(self, "bag")[key]
 
     def __setattr__(self, name: str, value: Any) -> None:
@@ -234,18 +233,18 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
             )
         else:
             seed_values = dict(seed)
-            bag = dict(seed_values.pop("bag", {}) or {})
-            for key, value in list(seed_values.items()):
-                if key in cls._FIELD_NAMES:
-                    continue
-                bag[key] = value
+            seed_fields = {
+                name: seed_values.pop(name)
+                for name in cls._FIELD_NAMES
+                if name in seed_values
+            }
             ctx = cls(
-                env=seed_values.get("env"),
-                bag=bag,
-                temp=dict(seed_values.get("temp") or {}),
-                error=seed_values.get("error"),
-                current_phase=seed_values.get("current_phase"),
-                error_phase=seed_values.get("error_phase"),
+                env=seed_fields.get("env"),
+                bag=seed_values,
+                temp=dict(seed_fields.get("temp") or {}),
+                error=seed_fields.get("error"),
+                current_phase=seed_fields.get("current_phase"),
+                error_phase=seed_fields.get("error_phase"),
             )
 
         if request is not None:

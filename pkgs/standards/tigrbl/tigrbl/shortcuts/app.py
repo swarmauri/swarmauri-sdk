@@ -59,23 +59,7 @@ def defineAppSpec(
 def deriveApp(**kw: Any) -> Type[TigrblApp]:
     """Produce a concrete :class:`TigrblApp` subclass that inherits the spec."""
     Spec = defineAppSpec(**kw)
-    forwarded = {
-        "TITLE": getattr(Spec, "TITLE", "Tigrbl"),
-        "VERSION": getattr(Spec, "VERSION", "0.1.0"),
-        "ENGINE": getattr(Spec, "ENGINE", None),
-        "ROUTERS": tuple(getattr(Spec, "ROUTERS", ()) or ()),
-        "OPS": tuple(getattr(Spec, "OPS", ()) or ()),
-        "TABLES": tuple(getattr(Spec, "TABLES", ()) or ()),
-        "SCHEMAS": tuple(getattr(Spec, "SCHEMAS", ()) or ()),
-        "HOOKS": tuple(getattr(Spec, "HOOKS", ()) or ()),
-        "SECURITY_DEPS": tuple(getattr(Spec, "SECURITY_DEPS", ()) or ()),
-        "DEPS": tuple(getattr(Spec, "DEPS", ()) or ()),
-        "JSONRPC_PREFIX": getattr(Spec, "JSONRPC_PREFIX", "/rpc"),
-        "SYSTEM_PREFIX": getattr(Spec, "SYSTEM_PREFIX", "/system"),
-        "MIDDLEWARES": tuple(getattr(Spec, "MIDDLEWARES", ()) or ()),
-        "LIFESPAN": getattr(Spec, "LIFESPAN", None),
-    }
-    return type("AppWithSpec", (TigrblApp, Spec), forwarded)
+    return type("AppWithSpec", (TigrblApp, Spec), {})
 
 
 __all__ = ["defineAppSpec", "deriveApp"]
