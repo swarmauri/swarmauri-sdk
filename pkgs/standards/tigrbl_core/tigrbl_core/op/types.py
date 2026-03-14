@@ -1,0 +1,55 @@
+# tigrbl/v3/ops/types.py
+from __future__ import annotations
+
+from typing import Literal, Tuple, cast
+
+from tigrbl_core.config.constants import CANON as CANONICAL_VERB_TUPLE
+from tigrbl_concrete._concrete._op import Op as OpSpec
+from tigrbl_atoms import HookPhase, HookPhases, StepFn
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Core aliases & enums
+# ───────────────────────────────────────────────────────────────────────────────
+
+PersistPolicy = Literal[
+    "default",
+    "prepend",
+    "append",
+    "override",
+    "skip",
+]  # TX policy
+Arity = Literal["collection", "member"]  # HTTP path shape
+
+TargetOp = Literal[
+    "create",
+    "read",
+    "update",
+    "replace",
+    "merge",
+    "delete",
+    "list",
+    "clear",
+    "bulk_create",
+    "bulk_update",
+    "bulk_replace",
+    "bulk_merge",
+    "bulk_delete",
+    "custom",
+]
+
+VerbAliasPolicy = Literal["both", "alias_only", "canonical_only"]  # legacy export
+
+# Canonical verb set
+CANON: Tuple[TargetOp, ...] = cast(Tuple[TargetOp, ...], CANONICAL_VERB_TUPLE)
+
+__all__ = [
+    "PersistPolicy",
+    "Arity",
+    "TargetOp",
+    "VerbAliasPolicy",
+    "OpSpec",
+    "HookPhase",
+    "HookPhases",
+    "StepFn",
+    "CANON",
+]

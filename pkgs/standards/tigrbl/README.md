@@ -26,6 +26,18 @@ A high-leverage ASGI meta-framework that turns plain SQLAlchemy models into a fu
 - 🧩 Pluggable engine and provider abstractions
 - 🚀 Built as an ASGI-native framework with Pydantic-powered schema generation
 
+## Split Package Module Locations 🗂️
+
+These surfaces are now maintained in the split Tigrbl packages (with `tigrbl.*`
+kept as compatibility imports):
+
+- `tigrbl.ddl` → `tigrbl_concrete.ddl`
+- `tigrbl.system` → `tigrbl_concrete.system`
+- `tigrbl.op` → `tigrbl_core.op`
+- `tigrbl.config` → `tigrbl_core.config`
+- `tigrbl.schema` → `tigrbl_core.schema`
+- `tigrbl.security` → `tigrbl_concrete.security`
+
 ## Runtime-owned Routing Contract
 
 For the kernel-first flow that avoids pre-runtime REST/RPC dispatching, see

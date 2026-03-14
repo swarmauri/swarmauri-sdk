@@ -1,5 +1,3 @@
-"""Dependency wrappers for API/security injection semantics."""
+"""Compatibility shim for relocated security dependencies."""
 
-from .._concrete.dependencies import Dependency, Depends, Security
-
-__all__ = ["Depends", "Security", "Dependency"]
+from tigrbl_concrete.security.dependencies import *  # noqa: F403
