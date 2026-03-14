@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, ClassVar, Mapping
+import json
 
 from tigrbl_kernel.models import KernelPlan, PackedKernel
 
@@ -37,6 +38,114 @@ class PackedPlanExecutor(ExecutorBase):
 
         return -1
 
+    async def _resolve_program_id_fallback(
+        self, ctx: _Ctx, plan: KernelPlan, packed: PackedKernel
+    ) -> int | None:
+        temp = getattr(ctx, "temp", None)
+        if not isinstance(temp, dict):
+            ctx.temp = {}
+            temp = ctx.temp
+
+        raw = getattr(ctx, "raw", None) or getattr(ctx, "env", None)
+        scope = getattr(raw, "scope", None)
+        if not isinstance(scope, dict):
+            return None
+
+        method = str(scope.get("method", "") or "").upper()
+        path = str(scope.get("path", "/") or "/")
+        rpc_method: str | None = None
+
+        if scope.get("type") == "http":
+            receive = getattr(raw, "receive", None)
+            if callable(receive):
+                chunks: list[bytes] = []
+                while True:
+                    message = await receive()
+                    if (
+                        not isinstance(message, dict)
+                        or message.get("type") != "http.request"
+                    ):
+                        break
+                    chunk = message.get("body", b"")
+                    if isinstance(chunk, (bytes, bytearray)):
+                        chunks.append(bytes(chunk))
+                    if not bool(message.get("more_body", False)):
+                        break
+                if chunks:
+                    body = b"".join(chunks)
+                    ctx.body = body
+                    ingress = temp.setdefault("ingress", {})
+                    if isinstance(ingress, dict):
+                        ingress["body"] = body
+                        ingress["method"] = method
+                        ingress["path"] = path
+                    try:
+                        payload = json.loads(body.decode("utf-8"))
+                    except Exception:
+                        payload = None
+                    if isinstance(payload, Mapping):
+                        temp.setdefault("dispatch", {})["body_json"] = dict(payload)
+                        if isinstance(ingress, dict):
+                            ingress["body_json"] = dict(payload)
+                        if "params" in payload and isinstance(
+                            payload.get("params"), Mapping
+                        ):
+                            ctx.payload = dict(payload.get("params") or {})
+                        else:
+                            ctx.payload = dict(payload)
+                        maybe = payload.get("method")
+                        if isinstance(maybe, str):
+                            rpc_method = maybe
+
+        proto_indices = getattr(plan, "proto_indices", {})
+        if not isinstance(proto_indices, Mapping):
+            return None
+
+        matched_proto: str | None = None
+        matched_selector: str | None = None
+        for proto, bucket in proto_indices.items():
+            if not isinstance(proto, str) or not isinstance(bucket, Mapping):
+                continue
+            if (
+                proto.endswith(".jsonrpc")
+                and isinstance(rpc_method, str)
+                and rpc_method in bucket
+            ):
+                matched_proto = proto
+                matched_selector = rpc_method
+                break
+            if proto.endswith(".rest"):
+                selector = f"{method} {path}"
+                exact = bucket.get("exact")
+                if isinstance(exact, Mapping) and selector in exact:
+                    matched_proto = proto
+                    matched_selector = selector
+                    break
+
+        if matched_proto is None or matched_selector is None:
+            return None
+
+        proto_id = packed.proto_to_id.get(matched_proto)
+        selector_id = packed.selector_to_id.get(matched_selector)
+        if not isinstance(proto_id, int) or not isinstance(selector_id, int):
+            return None
+        if proto_id < 0 or proto_id >= len(packed.route_to_program):
+            return None
+        row = packed.route_to_program[proto_id]
+        if selector_id < 0 or selector_id >= len(row):
+            return None
+        maybe = row[selector_id]
+        if not isinstance(maybe, int) or maybe < 0:
+            return None
+
+        route = temp.setdefault("route", {})
+        if isinstance(route, dict):
+            route["program_id"] = maybe
+            route["opmeta_index"] = maybe
+            route["protocol"] = matched_proto
+            route["selector"] = matched_selector
+        return maybe
+
     async def _run_segment_python(
         self, ctx: _Ctx, packed: PackedKernel, seg_id: int
     ) -> None:
@@ -69,6 +178,10 @@ class PackedPlanExecutor(ExecutorBase):
 
         program_id = self._require_program_id_from_ctx(ctx)
         if program_id < 0:
+            resolved = await self._resolve_program_id_fallback(ctx, plan, packed)
+            if isinstance(resolved, int):
+                program_id = resolved
+        if program_id < 0:
             route = temp.get("route", {})
             if isinstance(route, dict) and route.get("method_not_allowed") is True:
                 await _send_json(env, 405, {"detail": "Method Not Allowed"})
@@ -84,6 +197,14 @@ class PackedPlanExecutor(ExecutorBase):
                 env, 404, {"detail": "No runtime operation matched request."}
             )
             return
+
+        meta = plan.opmeta[program_id]
+        ctx.model = getattr(meta, "model", None)
+        ctx.op = getattr(meta, "alias", None)
+        ctx.target = getattr(meta, "target", None)
+        app = getattr(ctx, "app", None)
+        if app is not None and ctx.model is not None and isinstance(ctx.op, str):
+            ctx.opview = self.runtime.kernel.get_opview(app, ctx.model, ctx.op)
 
         seg_offset = packed.op_segment_offsets[program_id]
         seg_length = packed.op_segment_lengths[program_id]
