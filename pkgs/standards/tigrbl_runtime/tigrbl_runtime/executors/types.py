@@ -51,7 +51,7 @@ class _ResponseState:
         data[name] = value
         if name == "result":
             ctx = object.__getattribute__(self, "_ctx")
-            dict.__setitem__(ctx, "result", value)
+            ctx["result"] = value
 
 
 @runtime_checkable
@@ -72,17 +72,76 @@ class _Ctx(BaseCtx[Any, Any]):
 
     __slots__ = ()
 
+    _FIELD_NAMES = {
+        "env",
+        "bag",
+        "temp",
+        "error",
+        "current_phase",
+        "error_phase",
+    }
+
     def __getattribute__(self, name: str) -> Any:
         # Keep core context methods callable even when runtime data shadows
         # method names (for example: ctx["promote"] = None).
         if name == "promote":
             return _Ctx.promote.__get__(self, type(self))
-        return dict.__getattribute__(self, name)
+        return object.__getattribute__(self, name)
 
     def __getattr__(self, name: str) -> Any:
-        return dict.get(self, name)
+        bag = object.__getattribute__(self, "bag")
+        return bag.get(name)
+
+    def __contains__(self, key: str) -> bool:
+        if key in self._FIELD_NAMES:
+            return True
+        return key in object.__getattribute__(self, "bag")
+
+    def __getitem__(self, key: str) -> Any:
+        if key in self._FIELD_NAMES:
+            return object.__getattribute__(self, key)
+        return object.__getattribute__(self, "bag")[key]
+
+    def get(self, key: str, default: Any = None) -> Any:
+        if key in self._FIELD_NAMES:
+            return object.__getattribute__(self, key)
+        return object.__getattribute__(self, "bag").get(key, default)
+
+    def items(self):
+        merged = {name: object.__getattribute__(self, name) for name in self._FIELD_NAMES}
+        merged.update(object.__getattribute__(self, "bag"))
+        return merged.items()
+
+    def keys(self):
+        return dict(self.items()).keys()
+
+    def values(self):
+        return dict(self.items()).values()
+
+    def __iter__(self):
+        return iter(dict(self.items()))
+
+    def __len__(self) -> int:
+        return len(dict(self.items()))
+
+    def setdefault(self, key: str, default: Any = None) -> Any:
+        return object.__getattribute__(self, "bag").setdefault(key, default)
+
+    def update(self, *args: Any, **kwargs: Any) -> None:
+        object.__getattribute__(self, "bag").update(*args, **kwargs)
+
+    def pop(self, key: str, default: Any = None) -> Any:
+        return object.__getattribute__(self, "bag").pop(key, default)
+
+    def clear(self) -> None:
+        object.__getattribute__(self, "bag").clear()
 
     def __setitem__(self, key: str, value: Any) -> None:
+        if key in self._FIELD_NAMES:
+            object.__setattr__(self, key, value)
+            return
+
+        bag = object.__getattribute__(self, "bag")
         if (
             key == "response"
             and value is not None
@@ -94,13 +153,17 @@ class _Ctx(BaseCtx[Any, Any]):
         ):
             value = _ResponseState(self, value)
         if key == "result":
-            response = dict.get(self, "response")
+            response = bag.get("response")
             if isinstance(response, _ResponseState):
                 data = object.__getattribute__(response, "_data")
                 data["result"] = value
-        dict.__setitem__(self, key, value)
+        bag[key] = value
 
-    __setattr__ = __setitem__  # type: ignore[assignment]
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name in self._FIELD_NAMES:
+            object.__setattr__(self, name, value)
+            return
+        self.__setitem__(name, value)
 
     def promote(self, cls: type[Any], /, **updates: object) -> Any:
         """Promote runtime contexts into atom dataclass contexts."""
@@ -141,9 +204,22 @@ class _Ctx(BaseCtx[Any, Any]):
         elif isinstance(seed, _Ctx):
             ctx = seed
         elif isinstance(seed, BaseCtx):
-            ctx = cls({f.name: getattr(seed, f.name) for f in fields(type(seed))})
+            seed_values = {f.name: getattr(seed, f.name) for f in fields(type(seed))}
+            bag = dict(seed_values.pop("bag", {}) or {})
+            for key, value in seed_values.items():
+                if key in cls._FIELD_NAMES:
+                    continue
+                bag[key] = value
+            ctx = cls(
+                env=seed_values.get("env"),
+                bag=bag,
+                temp=dict(seed_values.get("temp") or {}),
+                error=seed_values.get("error"),
+                current_phase=seed_values.get("current_phase"),
+                error_phase=seed_values.get("error_phase"),
+            )
         else:
-            ctx = cls(seed)
+            ctx = cls(bag=dict(seed))
 
         if request is not None:
             ctx.request = request
@@ -157,7 +233,7 @@ class _Ctx(BaseCtx[Any, Any]):
             ctx._raw_db = db
             if "db" not in ctx:
                 ctx.db = None
-        if "temp" not in ctx or not isinstance(ctx.get("temp"), dict):
+        if not isinstance(getattr(ctx, "temp", None), dict):
             ctx.temp = {}
         return ctx
 
