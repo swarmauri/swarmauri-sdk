@@ -67,7 +67,7 @@ HandlerStep = Union[
 PhaseChains = Mapping[str, Sequence[HandlerStep]]
 
 
-class _Ctx(BaseCtx[Any, Any]):
+class _Ctx(dict):
     """Dict-like runtime context with attribute access and atom promotion support."""
 
     __slots__ = ()
