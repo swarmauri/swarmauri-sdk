@@ -6,7 +6,8 @@ import sqlalchemy as sa
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.exc import IntegrityError
 
-from ...types import Session, event
+from sqlalchemy import event
+from tigrbl_concrete._concrete._engine import Session
 
 log = logging.getLogger(__name__)
 
