@@ -16,7 +16,7 @@ from .types import (
     LOWER_KIND_ASYNC_DIRECT,
     LOWER_KIND_SPLIT_EXTRACTABLE,
     LOWER_KIND_SYNC_EXTRACTABLE,
-    ROUTE_SPINE_ATOMS,
+    DISPATCH_SPINE_ATOMS,
 )
 
 
@@ -122,16 +122,14 @@ def _label_step(step: Any, phase: str) -> str:
 
 def _classify_step_lowering(step: Any, phase: str) -> str:
     name = _atom_name(step)
-    if name in ROUTE_SPINE_ATOMS:
+    if name in DISPATCH_SPINE_ATOMS:
         return LOWER_KIND_SYNC_EXTRACTABLE
-    if name in {"ingress.method_extract", "ingress.path_extract"}:
+    if name in {"ingress.transport_extract"}:
         return LOWER_KIND_SYNC_EXTRACTABLE
     if name in {
-        "route.params_normalize",
-        "route.payload_select",
-        "route.rpc_envelope_parse",
-        "ingress.headers_parse",
-        "ingress.query_parse",
+        "dispatch.binding_parse",
+        "dispatch.input_normalize",
+        "ingress.input_prepare",
     }:
         return LOWER_KIND_SPLIT_EXTRACTABLE
     if phase in EGRESS_PHASES:

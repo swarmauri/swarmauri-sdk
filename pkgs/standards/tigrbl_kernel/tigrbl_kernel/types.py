@@ -33,16 +33,11 @@ EFFECT_BY_ATOM_NAME = {
 }
 
 # Route atoms that can be lowered into fast sync extractors.
-ROUTE_SPINE_ATOMS = {
-    "route.protocol_detect",
-    "route.match_rest",
-    "route.match_jsonrpc",
-    "route.match_ws",
-    "route.match_fallback",
-    "route.plan_select",
-    "route.op_resolve",
-    "route.program_resolve",
-    "route.selector_resolve",
+DISPATCH_SPINE_ATOMS = {
+    "dispatch.binding_match",
+    "dispatch.binding_parse",
+    "dispatch.input_normalize",
+    "dispatch.op_resolve",
 }
 
 __all__ = [
@@ -54,7 +49,7 @@ __all__ = [
     "EFFECT_DB_WRITE",
     "EFFECT_WIRE",
     "EFFECT_BY_ATOM_NAME",
-    "ROUTE_SPINE_ATOMS",
+    "DISPATCH_SPINE_ATOMS",
     "LOWER_KIND_SYNC_EXTRACTABLE",
     "LOWER_KIND_SPLIT_EXTRACTABLE",
     "LOWER_KIND_ASYNC_DIRECT",
