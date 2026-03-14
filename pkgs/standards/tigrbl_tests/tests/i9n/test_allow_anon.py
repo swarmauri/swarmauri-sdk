@@ -11,6 +11,7 @@ from tigrbl.runtime.status import HTTPException
 from tigrbl import HTTPBearer
 from tigrbl.security import Security
 from tigrbl._concrete._security.http_bearer import HTTPAuthorizationCredentials
+from tigrbl.decorators.allow_anon import allow_anon
 from tigrbl.types import (
     AuthNProvider,
     allow_anon,

@@ -43,6 +43,7 @@ _EXPORTS = {
     "TigrblRouter": "tigrbl_router",
     "BackgroundTask": "_background",
     "wrap_sessionmaker": "_session",
+    "allow_anon": "_allow_anon",
 }
 
 __all__ = list(_EXPORTS)

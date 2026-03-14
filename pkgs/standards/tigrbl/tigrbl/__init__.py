@@ -90,6 +90,7 @@ from tigrbl.system import mount_diagnostics  # noqa: E402
 from tigrbl_core.config.constants import DEFAULT_HTTP_METHODS, HOOK_DECLS_ATTR  # noqa: E402
 from tigrbl.decorators import (  # noqa: E402
     alias,
+    allow_anon,
     alias_ctx,
     engine_ctx,
     hook_ctx,
@@ -191,6 +192,7 @@ __all__ = [
     "schema_ctx",
     "response_ctx",
     "alias",
+    "allow_anon",
     "Alias",
     "op_alias",
     "engine_ctx",
