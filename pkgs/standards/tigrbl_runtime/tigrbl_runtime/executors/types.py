@@ -46,6 +46,12 @@ class _ResponseState:
         data = object.__getattribute__(self, "_data")
         return data.get(name)
 
+    def __delitem__(self, key: str) -> None:
+        if key in self._FIELD_NAMES:
+            object.__setattr__(self, key, None)
+            return
+        del object.__getattribute__(self, "bag")[key]
+
     def __setattr__(self, name: str, value: Any) -> None:
         data = object.__getattribute__(self, "_data")
         data[name] = value

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, ClassVar, Mapping
+import json
 
 from tigrbl_kernel.models import KernelPlan, PackedKernel
 
@@ -132,6 +133,14 @@ class PackedPlanExecutor(ExecutorBase):
                 env, 404, {"detail": "No runtime operation matched request."}
             )
             return
+
+        meta = plan.opmeta[program_id]
+        ctx.model = getattr(meta, "model", None)
+        ctx.op = getattr(meta, "alias", None)
+        ctx.target = getattr(meta, "target", None)
+        app = getattr(ctx, "app", None)
+        if app is not None and ctx.model is not None and isinstance(ctx.op, str):
+            ctx.opview = self.runtime.kernel.get_opview(app, ctx.model, ctx.op)
 
         seg_offset = packed.op_segment_offsets[program_id]
         seg_length = packed.op_segment_lengths[program_id]
