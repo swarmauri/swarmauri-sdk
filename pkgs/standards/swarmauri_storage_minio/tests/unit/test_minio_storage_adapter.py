@@ -1,4 +1,5 @@
 import io
+import mmap
 
 import pytest
 
@@ -80,6 +81,36 @@ def test_upload_download(adapter):
     assert uri.endswith("foo.txt")
     data = adapter.download("foo.txt").read()
     assert data == b"hi"
+
+
+def test_upload_memoryview_and_download_memoryview(adapter):
+    uri = adapter.upload_memoryview("memoryview.bin", memoryview(b"payload"))
+    assert uri.endswith("memoryview.bin")
+
+    result = adapter.download_memoryview("memoryview.bin")
+    assert isinstance(result, memoryview)
+    assert result.tobytes() == b"payload"
+
+
+def test_upload_mmap_and_open_mmap(adapter, tmp_path):
+    path = tmp_path / "blob.bin"
+    path.write_bytes(b"mmap-content")
+
+    with path.open("r+b") as file_handle:
+        with mmap.mmap(file_handle.fileno(), 0, access=mmap.ACCESS_READ) as source:
+            uri = adapter.upload_mmap("mmap.bin", source)
+
+    assert uri.endswith("mmap.bin")
+    with adapter.open_mmap("mmap.bin") as mapped:
+        assert mapped.read() == b"mmap-content"
+
+
+def test_open_mmap_rejects_empty_objects(adapter):
+    adapter.upload("empty.bin", io.BytesIO(b""))
+
+    with pytest.raises(ValueError, match="cannot create mmap"):
+        with adapter.open_mmap("empty.bin"):
+            pass
 
 
 def test_put_get_blob(adapter):

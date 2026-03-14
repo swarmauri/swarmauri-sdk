@@ -25,6 +25,7 @@ Peagen storage adapter that saves artifacts to a MinIO or any S3-compatible buck
 - Automatically creates the target bucket if it does not already exist.
 - Optional `prefix` argument to scope uploads without changing your keys.
 - Implements `upload`, `download`, `upload_dir`, `download_dir`, and `iter_prefix` helpers for working with single files or directories.
+- Adds `upload_memoryview`, `download_memoryview`, `upload_mmap`, and `open_mmap` helpers for zero-copy byte workflows.
 - Exposes a `root_uri` describing the bucket and prefix (`minio[s]://endpoint/bucket/prefix/`).
 - `MinioStorageAdapter.from_uri()` reads credentials from `MINIO_ACCESS_KEY` and `MINIO_SECRET_KEY` environment variables for zero-copy configuration.
 
