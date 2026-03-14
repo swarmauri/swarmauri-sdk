@@ -38,8 +38,9 @@ def _op_payload() -> dict[str, int]:
     return {"access_tokens": 3, "refresh_tokens": 1}
 
 
-def _member_path(resource: str, alias: str) -> str:
-    return f"/{resource}/{uuid.uuid4()}/{alias}"
+def _member_path(resource: str, alias: str, item_id: str | None = None) -> str:
+    resolved_item_id = item_id or str(uuid.uuid4())
+    return f"/{resource}/{resolved_item_id}/{alias}"
 
 
 def _collection_path(resource: str, alias: str) -> str:
@@ -171,6 +172,7 @@ async def test_uvicorn_client_call_with_op_ctx_parameter_combinations(
             response = await client.post(f"{base_url}{path}", json={})
 
         assert response.status_code == 200
+        assert response.content
         assert response.json() == _op_payload()
     finally:
         await stop_uvicorn_server(server, task)
