@@ -19,17 +19,12 @@ from typing import (
 from ._router import Router as _Router
 from tigrbl_core._spec.engine_spec import EngineCfg
 from tigrbl.ddl import initialize as _ddl_initialize
-from tigrbl_canon.mapping.router.common import _default_prefix, _mount_router
 from tigrbl_canon.mapping.router.include import (
-    _seed_security_and_deps,
     include_table as _include_table,
     include_tables as _include_tables,
 )
 from tigrbl_canon.mapping.router.rpc import rpc_call as _rpc_call
 from tigrbl_canon.mapping.model import rebind as _rebind, bind as _bind
-from tigrbl_canon.mapping.rest import (
-    build_router_and_attach as _build_router_and_attach,
-)
 from tigrbl.op import get_registry
 from tigrbl_core._spec import OpSpec
 from ._table_registry import TableRegistry
@@ -386,21 +381,7 @@ class TigrblRouter(_Router):
             model = self._resolve_registered_model(name, registered)
             if not isinstance(model, type):
                 continue
-            _seed_security_and_deps(self, model)
-            specs = getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ())
-            if specs:
-                _build_router_and_attach(model, list(specs))
-            router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
-            if router is None:
-                continue
-            # update router-level references
-            mname = model.__name__
-            rest_ns = getattr(self.rest, mname, SimpleNamespace())
-            rest_ns.router = router
-            setattr(self.rest, mname, rest_ns)
-            self.routers[mname] = router
-            prefix = _default_prefix(model)
-            _mount_router(self, router, prefix=prefix)
+            self.include_table(model, mount_router=False)
 
     def _collect_tables(self):
         # dedupe; handle multiple DeclarativeBases (multiple metadatas)
