@@ -6,7 +6,7 @@ from typing import Any, Dict, Mapping, Tuple
 import logging
 
 try:
-    from tigrbl_canon.mapping.column_mro_collect import mro_collect_columns
+    from tigrbl_core._spec.column_spec import mro_collect_columns
 except Exception:  # pragma: no cover
 
     def mro_collect_columns(_model: type, _cache_bust: int | None = None):
