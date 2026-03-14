@@ -129,7 +129,7 @@ class ColumnSpec(SerdeMixin):
         return out
 
     @classmethod
-    def mro_collect_columns(
+    def collect(
         cls, model: object, *, _cache_bust: int | None = None
     ) -> Dict[str, "ColumnSpec"]:
         """Collect ColumnSpecs for *model* with topology-aware cache busting."""
@@ -150,11 +150,19 @@ class ColumnSpec(SerdeMixin):
             )
         return cls._mro_collect_columns_cached(model, _cache_bust)
 
+    @classmethod
+    def mro_collect_columns(
+        cls, model: object, *, _cache_bust: int | None = None
+    ) -> Dict[str, "ColumnSpec"]:
+        """Backward-compatible alias for :meth:`collect`."""
+
+        return cls.collect(model, _cache_bust=_cache_bust)
+
 
 def mro_collect_columns(
     model: object, *, _cache_bust: int | None = None
 ) -> Dict[str, ColumnSpec]:
-    return ColumnSpec.mro_collect_columns(model, _cache_bust=_cache_bust)
+    return ColumnSpec.collect(model, _cache_bust=_cache_bust)
 
 
 mro_collect_columns.cache_clear = ColumnSpec._mro_collect_columns_cached.cache_clear

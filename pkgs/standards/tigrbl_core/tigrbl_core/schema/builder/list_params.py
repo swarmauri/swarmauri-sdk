@@ -9,7 +9,7 @@ from typing import Any, Type
 from pydantic import BaseModel, ConfigDict, Field, create_model
 
 from ..utils import namely_model
-from tigrbl_core._spec.column_spec import mro_collect_columns
+from tigrbl_core._spec.column_spec import ColumnSpec
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +79,7 @@ def _build_list_params(model: type) -> Type[BaseModel]:
             continue
         py_t = getattr(c.type, "python_type", Any)
         if py_t in _scalars:
-            spec_map = mro_collect_columns(model)
+            spec_map = ColumnSpec.collect(model)
             spec = spec_map.get(c.name)
             io = getattr(spec, "io", None)
             ops_raw = set(getattr(io, "filter_ops", ()) or [])

@@ -26,3 +26,19 @@ def test_column_spec_stores_custom_factories() -> None:
 
     assert spec.default_factory is make_default
     assert spec.read_producer is make_read
+
+
+def test_column_spec_collect_reads_declared_mappings() -> None:
+    class Demo:
+        __tigrbl_colspecs__ = {"name": ColumnSpec(storage=None)}
+
+    collected = ColumnSpec.collect(Demo)
+
+    assert "name" in collected
+
+
+def test_column_spec_mro_collect_columns_aliases_collect() -> None:
+    class Demo:
+        __tigrbl_cols__ = {"title": ColumnSpec(storage=None)}
+
+    assert ColumnSpec.mro_collect_columns(Demo) == ColumnSpec.collect(Demo)
