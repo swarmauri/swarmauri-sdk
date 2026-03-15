@@ -22,7 +22,7 @@ class App(AppBase):
     @classmethod
     def collect(cls) -> AppSpec:
         """Collect and normalize AppSpec configuration for this App class."""
-        return cls.collect_spec(cls)
+        return AppSpec.collect(cls)
 
     @classmethod
     def _collect_mro_spec(cls) -> AppSpec:
@@ -49,6 +49,7 @@ class App(AppBase):
 
     def __init__(self, *, engine: EngineCfg | None = None, **asgi_kwargs: Any) -> None:
         collected_spec = self.__class__._collect_mro_spec()
+        collected_spec = self.__class__.bind_spec(collected_spec, parent=self)
 
         title = asgi_kwargs.pop("title", None)
         if title is not None:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import inspect
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -21,6 +22,7 @@ from .._spec.hook_spec import HookSpec as OpHook
 
 from .serde import SerdeMixin
 from tigrbl_atoms import StepFn
+from tigrbl.decorators.op import _maybe_await, _normalize_persist, _unwrap
 
 PersistPolicy = Literal["default", "prepend", "append", "override", "skip"]
 Arity = Literal["collection", "member"]
@@ -117,10 +119,7 @@ class OpSpec(SerdeMixin):
     @classmethod
     def collect(cls, table: type) -> tuple["OpSpec", ...]:
         """Collect decorated operations declared across ``table`` MRO."""
-
-        from tigrbl_canon.mapping.op_mro_collect import mro_collect_decorated_ops
-
-        return tuple(mro_collect_decorated_ops(table))
+        return tuple(_mro_collect_decorated_ops(table))
 
 
 _ALIAS_RE = __import__("re").compile(r"^[a-z][a-z0-9_]*$")
@@ -265,10 +264,9 @@ def _dedupe(
 def _apply_alias_ctx_to_canon(specs: List["OpSpec"], model: type) -> List["OpSpec"]:
     import logging
     from dataclasses import replace
-    from tigrbl_canon.mapping.op_mro_collect import mro_alias_map_for
 
     logger = logging.getLogger("uvicorn")
-    aliases = mro_alias_map_for(model)
+    aliases = _mro_alias_map_for(model)
     overrides: Mapping[str, Mapping[str, Any]] = (
         getattr(model, "__tigrbl_alias_overrides__", {}) or {}
     )
@@ -328,3 +326,123 @@ def resolve(model: type) -> List["OpSpec"]:
 
     specs = list(merged.values())
     return [_ensure_spec_table(sp, model) for sp in specs]
+
+
+def _ensure_ctx(
+    *, request: Any = None, db: Any = None, seed: Dict[str, Any] | None = None
+) -> Dict[str, Any]:
+    ctx: Dict[str, Any] = dict(seed or {})
+    if request is not None:
+        ctx.setdefault("request", request)
+    if db is not None:
+        ctx.setdefault("db", db)
+    return ctx
+
+
+def _merge_mro_dict(model: type, attr: str) -> Dict[str, Any]:
+    merged: Dict[str, Any] = {}
+    for base in reversed(model.__mro__):
+        merged.update(getattr(base, attr, {}) or {})
+    return merged
+
+
+def _mro_alias_map_for(table: type) -> Dict[str, str]:
+    return _merge_mro_dict(table, "__tigrbl_aliases__")
+
+
+def _wrap_ctx_core(table: type, func: Any) -> StepFn:
+    async def core(p=None, *, db=None, request=None, ctx: Dict[str, Any] | None = None):
+        ctx = _ensure_ctx(request=request, db=db, seed=ctx)
+        if p is not None:
+            ctx["payload"] = p
+        bound = func.__get__(table, table)
+        sig = inspect.signature(bound)
+        kwargs: Dict[str, Any] = {}
+        args: list[Any] = []
+        if "ctx" in sig.parameters:
+            kwargs["ctx"] = ctx
+        elif "_ctx" in sig.parameters:
+            kwargs["_ctx"] = ctx
+        if "obj" in sig.parameters:
+            kwargs["obj"] = ctx.get("obj")
+        elif "_obj" in sig.parameters:
+            kwargs["_obj"] = ctx.get("obj")
+        if "objs" in sig.parameters:
+            kwargs["objs"] = ctx.get("objs")
+        elif "_objs" in sig.parameters:
+            kwargs["_objs"] = ctx.get("objs")
+        if "id" in sig.parameters:
+            kwargs["id"] = ctx.get("ident")
+        elif "_id" in sig.parameters:
+            kwargs["_id"] = ctx.get("ident")
+
+        if not kwargs:
+            positional = [
+                param
+                for param in sig.parameters.values()
+                if param.kind
+                in {
+                    inspect.Parameter.POSITIONAL_ONLY,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                }
+                and param.default is inspect._empty
+            ]
+            if len(positional) == 1:
+                args.append(ctx)
+
+        res = await _maybe_await(bound(*args, **kwargs))
+        return res if res is not None else ctx.get("result")
+
+    core.__name__ = getattr(func, "__name__", "core")
+    core.__qualname__ = getattr(func, "__qualname__", core.__name__)
+    core.__tigrbl_ctx_wrapper__ = True
+    return core
+
+
+def _mro_collect_decorated_ops(table: type) -> List["OpSpec"]:
+    out: List[OpSpec] = []
+    seen: set[str] = set()
+
+    for base in table.__mro__:
+        for name, attr in vars(base).items():
+            if name in seen:
+                continue
+            func = _unwrap(attr)
+            op_spec: OpSpec | None = getattr(func, "__tigrbl_op_spec__", None)
+            if op_spec is None:
+                op_spec = getattr(func, "__tigrbl_op_decl__", None)
+            if op_spec is None:
+                continue
+
+            resolved_alias = op_spec.alias or op_spec.target or name
+            out.append(
+                OpSpec(
+                    table=table,
+                    alias=resolved_alias,
+                    target=op_spec.target,
+                    arity=op_spec.arity,
+                    persist=_normalize_persist(op_spec.persist),
+                    handler=_wrap_ctx_core(table, func),
+                    http_methods=getattr(op_spec, "http_methods", None),
+                    path_suffix=getattr(op_spec, "path_suffix", ""),
+                    tags=tuple(getattr(op_spec, "tags", ()) or ()),
+                    request_model=getattr(op_spec, "request_model", None),
+                    response_model=getattr(op_spec, "response_model", None),
+                    hooks=tuple(getattr(op_spec, "hooks", ()) or ()),
+                    status_code=getattr(op_spec, "status_code", None),
+                    expose_routes=getattr(op_spec, "expose_routes", None),
+                    expose_rpc=getattr(op_spec, "expose_rpc", None),
+                    expose_method=getattr(op_spec, "expose_method", None),
+                    engine=getattr(op_spec, "engine", None),
+                    response=getattr(op_spec, "response", None),
+                    returns=getattr(op_spec, "returns", None),
+                    core=getattr(op_spec, "core", None),
+                    core_raw=getattr(op_spec, "core_raw", None),
+                    extra=dict(getattr(op_spec, "extra", {}) or {}),
+                    deps=tuple(getattr(op_spec, "deps", ()) or ()),
+                    secdeps=tuple(getattr(op_spec, "secdeps", ()) or ()),
+                )
+            )
+            seen.add(name)
+
+    return out

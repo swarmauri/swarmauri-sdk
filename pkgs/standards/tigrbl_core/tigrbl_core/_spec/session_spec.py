@@ -3,11 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass, fields
 from typing import Any, Mapping, MutableMapping, Optional, Union
 
+from .serde import SerdeMixin
+
 SessionCfg = Union["SessionSpec", Mapping[str, Any], None]
 
 
 @dataclass(frozen=True)
-class SessionSpec:
+class SessionSpec(SerdeMixin):
     """
     Per-session policy for Tigrbl sessions.
 
