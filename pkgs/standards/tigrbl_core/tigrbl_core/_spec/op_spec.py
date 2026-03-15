@@ -22,7 +22,7 @@ from .._spec.hook_spec import HookSpec as OpHook
 
 from .serde import SerdeMixin
 from tigrbl_atoms import StepFn
-from tigrbl.decorators.op import _maybe_await, _normalize_persist, _unwrap
+from .op_utils import _maybe_await, _normalize_persist, _unwrap
 
 PersistPolicy = Literal["default", "prepend", "append", "override", "skip"]
 Arity = Literal["collection", "member"]
