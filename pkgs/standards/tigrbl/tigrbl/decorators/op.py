@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
-import inspect
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Optional, Sequence, Union
 
 from .._spec.op_spec import OpSpec, Arity, TargetOp, PersistPolicy
+from tigrbl_core._spec.op_utils import (
+    _maybe_await as _core_maybe_await,
+    _normalize_persist as _core_normalize_persist,
+    _unwrap as _core_unwrap,
+)
 from .._spec.schema_spec import SchemaArg
 
 
@@ -17,9 +21,7 @@ from .._spec.schema_spec import SchemaArg
 
 def _unwrap(obj: Any) -> Callable[..., Any]:
     """Get underlying function for (class|static)method; else return obj."""
-    if isinstance(obj, (classmethod, staticmethod)):
-        return obj.__func__  # type: ignore[attr-defined]
-    return obj
+    return _core_unwrap(obj)
 
 
 def _ensure_cm(func: Any) -> Any:
@@ -30,13 +32,7 @@ def _ensure_cm(func: Any) -> Any:
 
 
 def _maybe_await(v):
-    if inspect.isawaitable(v):
-        return v
-
-    async def _done():
-        return v
-
-    return _done()
+    return _core_maybe_await(v)
 
 
 # ---------------------------------------------------------------------------
@@ -233,20 +229,7 @@ def _infer_arity(target: str) -> str:
 
 
 def _normalize_persist(p) -> str:
-    if p is None:
-        return "default"
-    p = str(p).lower()
-    if p in {"none", "skip", "read"}:
-        return "skip"
-    if p in {"append"}:
-        return "append"
-    if p in {"override"}:
-        return "override"
-    if p in {"prepend"}:
-        return "prepend"
-    if p in {"write", "default", "persist"}:
-        return "default"
-    return "default"
+    return _core_normalize_persist(p)
 
 
 __all__ = ["alias", "alias_ctx", "op_alias", "op_ctx"]
