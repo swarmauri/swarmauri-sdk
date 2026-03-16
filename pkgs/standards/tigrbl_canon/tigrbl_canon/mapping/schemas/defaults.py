@@ -8,7 +8,8 @@ from typing import Any, Dict, List, Optional, Type
 from pydantic import BaseModel, ConfigDict, RootModel
 
 from tigrbl_core._spec import OpSpec
-from tigrbl.schema import (
+from tigrbl_core.op.canonical import should_wire_canonical
+from tigrbl_core.schema import (
     _build_schema,
     _build_list_params,
     _make_bulk_rows_model,
@@ -22,6 +23,22 @@ from .utils import _pk_info
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/schemas/defaults")
+
+_CANONICAL_TARGETS = {
+    "create",
+    "read",
+    "update",
+    "replace",
+    "merge",
+    "delete",
+    "list",
+    "clear",
+    "bulk_create",
+    "bulk_update",
+    "bulk_replace",
+    "bulk_merge",
+    "bulk_delete",
+}
 
 
 def _default_schemas_for_spec(
@@ -57,6 +74,14 @@ def _default_schemas_for_spec(
         sp.alias,
         target,
     )
+    if target in _CANONICAL_TARGETS and not should_wire_canonical(model, target):
+        logger.debug(
+            "Skipping default schema build for unwired canonical op %s.%s",
+            model.__name__,
+            target,
+        )
+        return result
+
     if target == "create":
         logger.debug("Using create defaults for %s.%s", model.__name__, sp.alias)
         item_in = _build_schema(model, verb="create")

@@ -116,8 +116,8 @@ class OpSpec(SerdeMixin):
 
     @classmethod
     def collect(cls, table: type) -> tuple["OpSpec", ...]:
-        """Collect decorated operations declared across ``table`` MRO."""
-        return tuple(_mro_collect_decorated_ops(table))
+        """Collect resolved operations for ``table`` (canonical + declared + registry)."""
+        return tuple(resolve(table))
 
 
 _ALIAS_RE = __import__("re").compile(r"^[a-z][a-z0-9_]*$")
