@@ -190,12 +190,20 @@ class TigrblApp(_App):
         self.jsonrpc_prefix = (
             jsonrpc_prefix
             if jsonrpc_prefix is not None
-            else getattr(self, "JSONRPC_PREFIX", "/rpc")
+            else getattr(
+                self,
+                "jsonrpc_prefix",
+                getattr(self, "JSONRPC_PREFIX", "/rpc"),
+            )
         )
         self.system_prefix = (
             system_prefix
             if system_prefix is not None
-            else getattr(self, "SYSTEM_PREFIX", "/system")
+            else getattr(
+                self,
+                "system_prefix",
+                getattr(self, "SYSTEM_PREFIX", "/system"),
+            )
         )
 
         # public containers (mirrors used by bindings.router)
@@ -397,6 +405,7 @@ class TigrblApp(_App):
                 mount_prefix = prefix if prefix is not None else _default_prefix(table)
                 self.include_router(router, prefix=mount_prefix)
         self._sync_default_router_namespaces()
+        self._auto_mount_jsonrpc_if_bound()
         return result
 
     def include_tables(
@@ -429,7 +438,18 @@ class TigrblApp(_App):
                 )
                 self.include_router(router, prefix=mount_prefix)
         self._sync_default_router_namespaces()
+        self._auto_mount_jsonrpc_if_bound()
         return result
+
+    def _auto_mount_jsonrpc_if_bound(self) -> None:
+        has_rpc_binding = any(
+            getattr(binding, "proto", "") == "http.jsonrpc"
+            for table in tuple(getattr(self, "tables", {}).values())
+            for op_spec in tuple(getattr(getattr(table, "ops", None), "all", ()) or ())
+            for binding in tuple(getattr(op_spec, "bindings", ()) or ())
+        )
+        if has_rpc_binding:
+            self.mount_jsonrpc()
 
     def _ensure_system_route_model(self) -> type:
         model_name = "__tigrbl_system_routes__"

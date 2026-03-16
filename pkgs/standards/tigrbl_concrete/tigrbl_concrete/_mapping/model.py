@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any, Optional, Set, Tuple
 
 from tigrbl_concrete._concrete._router import Router
 from tigrbl_core._spec import OpSpec
-from tigrbl_core._spec.binding_spec import HttpRestBindingSpec
+from tigrbl_core._spec.binding_spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
 from tigrbl_core.config.constants import CANON
 
 from tigrbl_concrete._mapping.op_resolver import resolve as resolve_ops
@@ -39,6 +40,7 @@ def bind(
     only_keys: Optional[Set[MappingKey]] = None,
 ) -> Tuple[OpSpec, ...]:
     specs = tuple(_filter_specs(tuple(resolve_ops(model)), only_keys))
+    specs = _normalize_bindings(model, specs)
     _ensure_model_namespaces(model)
     all_specs, by_key, by_alias = _index_specs(specs)
     model.ops = SimpleNamespace(all=all_specs, by_key=by_key, by_alias=by_alias)
@@ -47,6 +49,33 @@ def bind(
     _materialize_rest_router(model, specs, router=router)
 
     return all_specs
+
+
+def _normalize_bindings(model: type, specs: Tuple[OpSpec, ...]) -> Tuple[OpSpec, ...]:
+    normalized: list[OpSpec] = []
+    for spec in specs:
+        merged = list(tuple(getattr(spec, "bindings", ()) or ()))
+        if spec.expose_routes:
+            for path, methods in _rest_bindings_for_spec(model, spec):
+                binding = HttpRestBindingSpec(
+                    proto="http.rest",
+                    methods=tuple(str(method).upper() for method in methods),
+                    path=path,
+                )
+                if binding not in merged:
+                    merged.append(binding)
+
+        if spec.expose_rpc:
+            rpc_binding = HttpJsonRpcBindingSpec(
+                proto="http.jsonrpc",
+                rpc_method=f"{model.__name__}.{spec.alias}",
+            )
+            if rpc_binding not in merged:
+                merged.append(rpc_binding)
+
+        normalized.append(replace(spec, bindings=tuple(merged)))
+
+    return tuple(normalized)
 
 
 def _default_path_suffix(spec: OpSpec) -> str | None:
