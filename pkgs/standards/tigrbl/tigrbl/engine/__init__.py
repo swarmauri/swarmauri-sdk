@@ -98,7 +98,7 @@ def engine(*args, **kwargs):
 
 def __getattr__(name: str):
     if name == "resolver":
-        from tigrbl_canon.mapping import engine_resolver as resolver
+        from tigrbl_concrete._concrete import engine_resolver as resolver
 
         return resolver
     if name == "EngineSpec":
