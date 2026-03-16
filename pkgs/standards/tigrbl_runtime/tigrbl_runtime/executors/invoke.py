@@ -129,6 +129,34 @@ async def _invoke(
         obj = getattr(ctx, "obj", None)
         if obj is not None:
             ctx.model = type(obj)
+    if getattr(ctx, "opview", None) is None:
+        model = getattr(ctx, "model", None)
+        alias = getattr(ctx, "op", None)
+        specs = ctx.get("specs")
+        if (
+            isinstance(model, type)
+            and isinstance(alias, str)
+            and isinstance(specs, Mapping)
+        ):
+            try:
+                from types import SimpleNamespace
+                from tigrbl_kernel.opview_compiler import compile_opview_from_specs
+
+                op_spec = next(
+                    (
+                        sp
+                        for sp in tuple(
+                            getattr(getattr(model, "ops", None), "all", ()) or ()
+                        )
+                        if getattr(sp, "alias", None) == alias
+                    ),
+                    None,
+                )
+                if op_spec is None:
+                    op_spec = SimpleNamespace(alias=alias)
+                ctx.opview = compile_opview_from_specs(specs, op_spec)
+            except Exception:
+                pass
     skip_persist: bool = bool(ctx.get(CTX_SKIP_PERSIST_FLAG) or ctx.get("skip_persist"))
     skip_egress: bool = bool(ctx.get("skip_egress"))
     if not callable(ctx.get("rpc_error_builder")):

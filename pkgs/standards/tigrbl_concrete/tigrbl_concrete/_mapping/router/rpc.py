@@ -16,16 +16,60 @@ logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/rpc")
 
 
-def _jsonify_ids(value: Any) -> Any:
-    if isinstance(value, UUID):
-        return str(value)
-    if isinstance(value, Mapping):
-        return {k: _jsonify_ids(v) for k, v in value.items()}
-    if isinstance(value, list):
-        return [_jsonify_ids(v) for v in value]
-    if isinstance(value, tuple):
-        return tuple(_jsonify_ids(v) for v in value)
-    return value
+def _unwrap_runtime_result(value: Any) -> Any:
+    current = value
+    seen: set[int] = set()
+    for _ in range(64):
+        marker = id(current)
+        if marker in seen:
+            break
+        seen.add(marker)
+
+        if isinstance(current, Mapping):
+            if "result" in current:
+                current = current.get("result")
+                continue
+            if "item" in current:
+                current = current.get("item")
+                continue
+            if "items" in current and isinstance(current.get("items"), list):
+                return current
+            break
+
+        payload = getattr(current, "response_payload", None)
+        if payload is not None:
+            current = payload
+            continue
+
+        next_result = getattr(current, "result", None)
+        if next_result is not None:
+            current = next_result
+            continue
+
+        transport = getattr(current, "transport_response", None)
+        if transport is not None:
+            current = transport
+            continue
+
+        break
+
+    if isinstance(current, (str, int, float, bool)) or current is None:
+        return current
+    if isinstance(current, Mapping):
+        return current
+
+    model_dump = getattr(current, "model_dump", None)
+    if callable(model_dump):
+        try:
+            return model_dump()
+        except Exception:
+            pass
+
+    obj_dict = getattr(current, "__dict__", None)
+    if isinstance(obj_dict, dict):
+        return {k: v for k, v in obj_dict.items() if not k.startswith("_")}
+
+    return current
 
 
 def _fallback_resolution(
@@ -173,54 +217,30 @@ async def rpc_call(
                 alias=result["alias"],
                 ctx=invoke_ctx,
             )
+        elif type(result).__name__.endswith("Ctx"):
+            invoke_ctx = dict(ctx_dict)
+            invoke_ctx.setdefault("payload", payload)
+            invoke_ctx.setdefault("db", db)
+            invoke_ctx.setdefault("model", mdl)
+            invoke_ctx.setdefault("op", method)
+            invoke_ctx.setdefault("method", method)
+            invoke_ctx.setdefault("target", getattr(resolution, "target", method))
+            final = await invoke_op(
+                request=request,
+                db=db,
+                model=mdl,
+                alias=method,
+                ctx=invoke_ctx,
+            )
+        else:
+            final = result
 
-            if not isinstance(
-                final, (Mapping, list, tuple, str, int, float, bool, type(None))
-            ):
-                inner = getattr(final, "result", None)
-                if inner is not None and inner is not final:
-                    final = inner
-
-            serializer = result.get("serialize")
-            if callable(serializer):
-                try:
-                    final = serializer(final)
-                except Exception:
-                    logger.debug("rpc output serialization fallback", exc_info=True)
-
-            if (
-                isinstance(final, Mapping)
-                and {"status_code", "headers", "body"}.issubset(final)
-                and final.get("body") is None
-                and method in {"read", "update", "replace"}
-                and pk_name
-            ):
-                ident = (
-                    (ctx_dict.get("path_params") or {}).get(pk_name)
-                    if isinstance(ctx_dict.get("path_params"), Mapping)
-                    else None
-                )
-                if ident is None and isinstance(payload, Mapping):
-                    ident = payload.get(pk_name)
-                ident = _coerce_pk_value(mdl, ident)
-                if method == "read":
-                    recovered = await _crud_ops.read(mdl, ident, db)
-                elif method == "update":
-                    recovered = await _crud_ops.update(mdl, ident, payload or {}, db)
-                else:
-                    recovered = await _crud_ops.replace(mdl, ident, payload or {}, db)
-                if callable(serializer):
-                    return _jsonify_ids(serializer(recovered))
-                return _jsonify_ids(recovered)
-
-            if getattr(resolution, "target", None) == "list" and isinstance(
-                final, Mapping
-            ):
-                items = final.get("items")
-                if isinstance(items, list):
-                    return items
-            return _jsonify_ids(final)
-        return result
+        final = _unwrap_runtime_result(final)
+        if getattr(resolution, "target", None) == "list" and isinstance(final, Mapping):
+            items = final.get("items")
+            if isinstance(items, list):
+                return items
+        return final
     finally:
         if _release_db is not None:
             try:
