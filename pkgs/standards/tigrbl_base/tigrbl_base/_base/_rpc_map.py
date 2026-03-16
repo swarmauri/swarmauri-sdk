@@ -374,6 +374,13 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         base_ctx.setdefault("op", alias)
         base_ctx.setdefault("method", alias)
         base_ctx.setdefault("target", target)
+        # Runtime atoms can synthesize schema metadata from column specs when
+        # an opview has not been materialized on the invocation context.
+        # Keep this in base so RPC calls stay independent from deprecated canon
+        # opview builders.
+        specs = base_ctx.get("specs")
+        if not isinstance(specs, Mapping) or not specs:
+            base_ctx["specs"] = getattr(model, "__tigrbl_cols__", {}) or {}
         # helpful env metadata
         base_ctx.setdefault(
             "env",

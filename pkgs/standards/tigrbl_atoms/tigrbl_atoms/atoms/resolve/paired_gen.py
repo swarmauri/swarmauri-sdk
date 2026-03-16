@@ -55,7 +55,13 @@ def _run(obj: Optional[object], ctx: Any) -> None:
         return
 
     logger.debug("Running resolve:paired_gen")
-    ov = _ensure_ov(ctx)
+    try:
+        ov = _ensure_ov(ctx)
+    except RuntimeError as exc:
+        if str(exc) != "ctx_missing:opview":
+            raise
+        logger.debug("Skipping resolve:paired_gen; ctx missing opview")
+        return
     temp = _ensure_temp(ctx)
     assembled = _ensure_dict(temp, "assembled_values")
     virtual_in = _ensure_dict(temp, "virtual_in")
