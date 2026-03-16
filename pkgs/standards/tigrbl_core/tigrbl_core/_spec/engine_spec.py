@@ -95,6 +95,28 @@ class EngineSpec(SerdeMixin):
         spec = getattr(x, "spec", None)
         if isinstance(spec, EngineSpec):
             return spec
+        if spec is not None:
+            # Accept EngineSpec-like instances coming from alternate import
+            # paths (for example ``tigrbl._spec.engine_spec.EngineSpec`` vs
+            # ``tigrbl_core._spec.engine_spec.EngineSpec``).
+            if hasattr(spec, "kind") and hasattr(spec, "async_"):
+                return EngineSpec.from_any(
+                    {
+                        "kind": getattr(spec, "kind", None),
+                        "async": getattr(spec, "async_", False),
+                        "dsn": getattr(spec, "dsn", None),
+                        "path": getattr(spec, "path", None),
+                        "memory": getattr(spec, "memory", False),
+                        "pool": getattr(spec, "pool", None),
+                        "user": getattr(spec, "user", None),
+                        "pwd": getattr(spec, "pwd", None),
+                        "host": getattr(spec, "host", None),
+                        "port": getattr(spec, "port", None),
+                        "name": getattr(spec, "name", None),
+                        "pool_size": getattr(spec, "pool_size", 10),
+                        "max": getattr(spec, "max", 20),
+                    }
+                )
 
         # DSN string
         if isinstance(x, str):
@@ -144,7 +166,12 @@ class EngineSpec(SerdeMixin):
             raise ValueError(f"Unsupported DSN: {s}")
 
         # Mapping
-        m = x  # type: ignore[assignment]
+        if not isinstance(x, Mapping):
+            raise ValueError(
+                "Engine config must be a DSN string, mapping, or EngineSpec-like object"
+            )
+
+        m = x
 
         # Helpers
         def _get_bool(key: str, *aliases: str, default: bool = False) -> bool:
@@ -236,6 +263,67 @@ class EngineSpec(SerdeMixin):
         if reg:
             mapping = self.mapping or {}
             return reg.build(mapping=mapping, spec=self, dsn=self.dsn)
+
+        # Workspace/dev runs can bypass installed entry point metadata.
+        # Fall back to explicit concrete plugin registration when available.
+        try:
+            from tigrbl_concrete.engine.plugins import register as _register_concrete
+            from .registry import get_engine_registration, register_engine
+            from tigrbl_core._spec.registry import (
+                get_engine_registration as _get_core_engine_registration,
+            )
+
+            _register_concrete()
+            # Some import paths alias this module as ``tigrbl._spec`` while the
+            # concrete plugin may register against ``tigrbl_core._spec``.
+            # Mirror concrete registrations into this module's local registry.
+            for kind in ("sqlite", "postgres"):
+                core_reg = _get_core_engine_registration(kind)
+                if core_reg is not None:
+                    register_engine(kind, core_reg)
+            reg = get_engine_registration(self.kind or "")
+        except Exception:
+            reg = None
+        if reg:
+            mapping = self.mapping or {}
+            return reg.build(mapping=mapping, spec=self, dsn=self.dsn)
+
+        # Legacy fallback for environments that provide concrete builders but
+        # do not expose plugin registrations.
+        try:
+            import importlib
+            import sys
+
+            _builders = sys.modules.get("tigrbl_concrete.engine.builders")
+            if _builders is None:
+                _builders = importlib.import_module("tigrbl_concrete.engine.builders")
+
+            if self.kind == "sqlite":
+                if self.async_:
+                    return _builders.async_sqlite_engine(path=self.path, pool=self.pool)
+                return _builders.blocking_sqlite_engine(path=self.path, pool=self.pool)
+            if self.kind == "postgres":
+                if self.async_:
+                    return _builders.async_postgres_engine(
+                        user=self.user,
+                        pwd=self.pwd,
+                        host=self.host,
+                        port=self.port,
+                        db=self.name,
+                        pool_size=self.pool_size,
+                        max_size=self.max,
+                    )
+                return _builders.blocking_postgres_engine(
+                    user=self.user,
+                    pwd=self.pwd,
+                    host=self.host,
+                    port=self.port,
+                    db=self.name,
+                    pool_size=self.pool_size,
+                    max_overflow=self.max,
+                )
+        except Exception:
+            pass
 
         # No registration found: helpful error
         try:

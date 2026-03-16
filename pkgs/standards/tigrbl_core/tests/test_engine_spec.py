@@ -67,6 +67,32 @@ def test_provider_from_any_wraps_spec_property() -> None:
     assert provider.spec is inner
 
 
+def test_from_any_accepts_engine_like_spec_object() -> None:
+    class ForeignSpec:
+        kind = "sqlite"
+        async_ = False
+        dsn = None
+        path = None
+        memory = True
+        pool = None
+        user = None
+        pwd = None
+        host = None
+        port = None
+        name = None
+        pool_size = 10
+        max = 20
+
+    class ForeignEngine:
+        spec = ForeignSpec()
+
+    parsed = EngineSpec.from_any(ForeignEngine())
+
+    assert parsed is not None
+    assert parsed.kind == "sqlite"
+    assert parsed.memory is True
+
+
 def test_repr_redacts_passwords() -> None:
     spec = EngineSpec(
         kind="postgres",
