@@ -7,7 +7,7 @@ from typing import Any, Callable
 from types import SimpleNamespace
 
 from tigrbl_core._spec.router_spec import RouterSpec
-from tigrbl_canon.mapping import engine_resolver as _resolver
+from tigrbl_concrete._concrete import engine_resolver as _resolver
 from tigrbl_core._spec.app_spec import _seqify
 from tigrbl_core._spec.engine_spec import EngineCfg
 from ._table_registry import TableRegistry

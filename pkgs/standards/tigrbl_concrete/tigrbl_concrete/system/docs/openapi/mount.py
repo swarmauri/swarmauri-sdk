@@ -6,7 +6,7 @@ from typing import Any
 from tigrbl_concrete._concrete._response import Response
 from tigrbl_core._spec.binding_spec import HttpRestBindingSpec
 from tigrbl_core._spec.op_spec import OpSpec
-from tigrbl_canon.mapping.model_helpers import _OpSpecGroup
+from tigrbl_concrete._mapping.model_helpers import _OpSpecGroup
 from .schema import openapi
 
 

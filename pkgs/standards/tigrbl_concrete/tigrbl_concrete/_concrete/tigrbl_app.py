@@ -24,14 +24,14 @@ from ._routing import add_route as _add_route_impl
 from tigrbl_core._spec.op_spec import OpSpec
 from tigrbl_core._spec.binding_spec import HttpRestBindingSpec
 from tigrbl_core._spec.engine_spec import EngineCfg
-from tigrbl_canon.mapping import engine_resolver as _resolver
+from tigrbl_concrete._concrete import engine_resolver as _resolver
 from tigrbl.ddl import initialize as _ddl_initialize
-from tigrbl_canon.mapping.router.common import (
+from tigrbl_concrete._mapping.router.common import (
     AttrDict,
     _default_prefix,
 )
-from tigrbl_canon.mapping.router.rpc import rpc_call as _rpc_call
-from tigrbl_canon.mapping.table import rebind as _rebind, bind as _bind
+from tigrbl_concrete._mapping.router.rpc import rpc_call as _rpc_call
+from tigrbl_concrete._mapping.model import rebind as _rebind, bind as _bind
 from tigrbl.system import mount_diagnostics as _mount_diagnostics
 from tigrbl.system import mount_lens as _mount_lens
 from tigrbl.system import mount_openapi as _mount_openapi
@@ -42,10 +42,9 @@ from tigrbl.system.docs import build_openapi as _build_openapi
 from tigrbl.op import get_registry
 from ._table_registry import TableRegistry
 from tigrbl_core._spec.app_spec import AppSpec
-from .runtime_route_binding import register_runtime_route
 from tigrbl_core._spec.app_spec import _seqify, normalize_app_spec
 from tigrbl.system.favicon import FAVICON_PATH, mount_favicon
-from tigrbl_canon.mapping.model_helpers import _OpSpecGroup
+from tigrbl_concrete._mapping.model_helpers import _OpSpecGroup
 
 
 # optional compat: legacy transactional decorator
@@ -615,10 +614,7 @@ class TigrblApp(_App):
 
         if not mount_router:
             return router
-        initial_route_count = len(self.routes)
         super().include_router(router, prefix=prefix)
-        for mounted_route in self.routes[initial_route_count:]:
-            register_runtime_route(self, mounted_route)
         return router
 
     def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
@@ -626,10 +622,8 @@ class TigrblApp(_App):
         _add_route_impl(self, path, endpoint, **kwargs)
 
     def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
-        """Register a route and mirror it into runtime op metadata."""
+        """Register a route directly on this app instance."""
         _add_route_impl(self, path, endpoint, **kwargs)
-        if self.routes:
-            register_runtime_route(self, self.routes[-1])
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""

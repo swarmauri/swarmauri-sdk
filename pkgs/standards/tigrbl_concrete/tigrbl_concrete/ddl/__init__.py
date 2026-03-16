@@ -5,7 +5,7 @@ import inspect
 from pathlib import Path
 from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
 
-from tigrbl_canon.mapping import engine_resolver as _resolver
+from tigrbl_concrete._concrete import engine_resolver as _resolver
 
 try:  # pragma: no cover
     from sqlalchemy import event, text
