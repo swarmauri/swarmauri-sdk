@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from httpx import ASGITransport, AsyncClient
 from tigrbl.types import Integer, Mapped, String
 from tigrbl import TigrblApp, TigrblRouter
-from tigrbl.core import crud
+from tigrbl_ops_oltp import crud
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.tables import TableBase as Base3
 from tigrbl._spec import IO, F, S
