@@ -156,6 +156,9 @@ def _rest_bindings_for_spec(
     if bindings:
         return tuple(bindings)
 
+    if not spec.expose_routes:
+        return ()
+
     methods = tuple(spec.http_methods or _DEFAULT_METHODS.get(spec.target, ("POST",)))
     return (
         (_path_for_spec(model, spec), tuple(str(method).upper() for method in methods)),
