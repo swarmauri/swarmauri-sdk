@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import sys
-import types
-
 import pytest
 
 from tigrbl_core._spec.engine_spec import EngineProviderSpec, EngineSpec
@@ -40,19 +37,14 @@ def test_from_any_rejects_unknown_dsn() -> None:
         EngineSpec.from_any("oracle://local")
 
 
-def test_build_uses_builder_module_for_sqlite() -> None:
-    module = types.ModuleType("tigrbl_concrete.engine.builders")
-    module.async_sqlite_engine = lambda **kw: ("async_sqlite", kw)
-    module.blocking_sqlite_engine = lambda **kw: ("sync_sqlite", kw)
-    module.async_postgres_engine = lambda **kw: ("async_pg", kw)
-    module.blocking_postgres_engine = lambda **kw: ("sync_pg", kw)
-    sys.modules[module.__name__] = module
+def test_build_requires_registered_engine_provider(monkeypatch) -> None:
+    from tigrbl_core._spec import plugins, registry
 
-    result = EngineSpec(
-        kind="sqlite", async_=False, memory=False, path="db.sqlite"
-    ).build()
+    monkeypatch.setattr(plugins, "load_engine_plugins", lambda: None)
+    registry._ENGINE_REGISTRY.clear()
 
-    assert result == ("sync_sqlite", {"path": "db.sqlite", "pool": None})
+    with pytest.raises(RuntimeError, match="Unknown or unavailable engine kind"):
+        EngineSpec(kind="sqlite", async_=False, memory=False, path="db.sqlite").build()
 
 
 def test_provider_from_any_wraps_spec_property() -> None:
