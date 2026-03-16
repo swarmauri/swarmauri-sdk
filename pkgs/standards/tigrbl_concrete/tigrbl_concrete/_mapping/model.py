@@ -3,7 +3,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from typing import Any, Optional, Set, Tuple
 
-from tigrbl.op import resolve as resolve_ops
+from tigrbl_concrete._mapping.op_resolver import resolve as resolve_ops
 from tigrbl_core._spec import OpSpec
 
 from .model_helpers import _ensure_model_namespaces, _filter_specs, _index_specs

@@ -22,6 +22,8 @@ dependencies = [
     "tigrbl-core",
     "tigrbl-typing",
     "jinja2>=3.1",
+    "sqlalchemy>=2.0",
+    "typing-extensions>=4.0",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 

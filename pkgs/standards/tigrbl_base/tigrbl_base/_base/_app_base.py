@@ -90,6 +90,31 @@ class AppBase(AppSpec):
         return target
 
     @classmethod
+    def collect_spec(cls, app: type) -> AppSpec:
+        """Collect and normalize an ``AppSpec`` snapshot from an app type."""
+
+        spec = AppSpec.collect(app)
+        routers = tuple(dict.fromkeys(tuple(spec.routers or ())))
+        return AppSpec(
+            title=spec.title,
+            description=spec.description,
+            version=spec.version,
+            engine=spec.engine,
+            routers=routers,
+            ops=tuple(spec.ops or ()),
+            tables=tuple(spec.tables or ()),
+            schemas=tuple(spec.schemas or ()),
+            hooks=tuple(spec.hooks or ()),
+            security_deps=tuple(spec.security_deps or ()),
+            deps=tuple(spec.deps or ()),
+            response=spec.response,
+            jsonrpc_prefix=spec.jsonrpc_prefix,
+            system_prefix=spec.system_prefix,
+            middlewares=tuple(spec.middlewares or ()),
+            lifespan=spec.lifespan,
+        )
+
+    @classmethod
     def _bind_mapped_children(
         cls, children: Sequence[Any] | None, *, parent: object | None
     ) -> tuple[Any, ...]:
