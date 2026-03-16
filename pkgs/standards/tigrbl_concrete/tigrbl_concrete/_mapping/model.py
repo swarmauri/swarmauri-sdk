@@ -228,7 +228,7 @@ def _materialize_rest_router(
                 name=f"{model.__name__}.{spec.alias}",
                 tigrbl_model=model,
                 tigrbl_alias=spec.alias,
-                include_in_schema=False,
+                include_in_schema=True,
             )
             existing_routes.add(route_key)
 
