@@ -70,8 +70,7 @@ async def test_end_tx_commit_is_allowed_when_runtime_owns_transaction() -> None:
 
     result = await _invoke(request=None, db=db, phases=phases, ctx={})
 
-    assert isinstance(result, dict)
-    assert result.get("phase") == "END_TX"
+    assert result is None
     assert db.commit_calls == 1
     assert db.rollback_calls == 0
 
