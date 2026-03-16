@@ -92,11 +92,11 @@ class PhaseDb:
         return getattr(self._db, name)
 
 
-def bind_phase_db(ctx: Any) -> Any:
+def bind_phase_db(ctx: Any) -> None:
     raw_db = getattr(ctx, "_raw_db", None)
     if raw_db is None:
         ctx.db = None
-        return ctx
+        return None
 
     phase = getattr(ctx, "phase", None)
     if not isinstance(phase, str) or not phase:
@@ -105,10 +105,10 @@ def bind_phase_db(ctx: Any) -> Any:
     caps = phase_db_capabilities(phase)
     owns_tx = bool(getattr(ctx, "owns_tx", False))
     ctx.db = PhaseDb(raw_db, phase=phase, caps=caps, owns_tx=owns_tx)
-    return ctx
+    return None
 
 
-def run(ctx: Any) -> Any:
+def run(ctx: Any) -> None:
     return bind_phase_db(ctx)
 
 
