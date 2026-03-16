@@ -99,6 +99,16 @@ def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
             return await cast(Any, rv)
         return rv
 
+    step_name = getattr(run, "__name__", "") or ""
+    if step_name.startswith("_"):
+        step_name = step_name.lstrip("_")
+    if not step_name:
+        step_name = "step"
+    domain, subject = _infer_domain_subject(run)
+    if domain == "sys" and isinstance(subject, str) and subject.startswith("handler_"):
+        step_name = subject.removeprefix("handler_") or step_name
+    _step.__name__ = step_name
+
     label = getattr(run, "__tigrbl_label", None)
     if not isinstance(label, str):
         label = _make_label(anchor, run)

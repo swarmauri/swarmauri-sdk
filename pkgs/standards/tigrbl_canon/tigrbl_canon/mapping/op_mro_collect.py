@@ -107,7 +107,7 @@ def mro_collect_decorated_ops(table: type) -> list[OpSpec]:
                 persist=_normalize_persist(op_spec.persist),
                 handler=_wrap_ctx_core(table, func),
                 http_methods=getattr(op_spec, "http_methods", None),
-                path_suffix=getattr(op_spec, "path_suffix", ""),
+                path_suffix=getattr(op_spec, "path_suffix", None),
                 tags=tuple(getattr(op_spec, "tags", ()) or ()),
                 request_model=getattr(op_spec, "request_model", None),
                 response_model=getattr(op_spec, "response_model", None),

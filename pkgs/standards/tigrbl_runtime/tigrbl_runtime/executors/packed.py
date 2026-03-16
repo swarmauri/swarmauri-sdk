@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Any, ClassVar, Mapping
 
 from tigrbl_kernel.models import KernelPlan, OpKey, PackedKernel
@@ -87,6 +88,26 @@ class PackedPlanExecutor(ExecutorBase):
     def _resolve_program_id_from_request(ctx: _Ctx, plan: KernelPlan) -> int:
         method = getattr(ctx, "method", None)
         path = getattr(ctx, "path", None)
+
+        # JSON-RPC requests are routed by rpc method selector, not HTTP path.
+        # Packed execution resolves program id before ingress parse atoms run, so
+        # decode a lightweight selector directly from the request body when
+        # available.
+        body = getattr(ctx, "body", None)
+        if isinstance(body, (bytes, bytearray)) and body:
+            try:
+                payload = json.loads(body.decode("utf-8"))
+            except Exception:
+                payload = None
+            if isinstance(payload, Mapping):
+                rpc_method = payload.get("method")
+                if isinstance(rpc_method, str) and rpc_method:
+                    for proto in ("http.jsonrpc", "https.jsonrpc"):
+                        maybe = plan.opkey_to_meta.get(
+                            OpKey(proto=proto, selector=rpc_method)
+                        )
+                        if isinstance(maybe, int):
+                            return maybe
 
         if not (isinstance(method, str) and isinstance(path, str) and path):
             raw = getattr(ctx, "raw", None)

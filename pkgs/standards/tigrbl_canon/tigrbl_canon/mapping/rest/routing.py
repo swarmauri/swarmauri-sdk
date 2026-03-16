@@ -82,12 +82,13 @@ def _default_path_suffix(sp: OpSpec) -> str | None:
     if sp.target.startswith("bulk_"):
         return None
 
-    # Mount explicit aliases as dedicated REST suffixes so canonical endpoints
-    # and aliased endpoints can coexist for both member and collection ops.
-    if sp.alias != sp.target and sp.target in CANON:
-        return f"/{sp.alias}"
+    # Canonical CRUD targets always keep their canonical route shape even when
+    # declared through ``@op_ctx(alias=..., target=<canon>)``.
+    if sp.target in CANON and sp.target != "custom":
+        return None
 
-    return None
+    # Non-canonical/custom targets default to a dedicated alias suffix.
+    return f"/{sp.alias}" if sp.alias else None
 
 
 def _path_for_spec(

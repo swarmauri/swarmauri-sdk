@@ -121,9 +121,9 @@ def _normalize_bindings(model: type, specs: Tuple[OpSpec, ...]) -> Tuple[OpSpec,
 
 
 def _default_path_suffix(spec: OpSpec) -> str | None:
-    if spec.alias != spec.target and spec.target in CANON:
-        return f"/{spec.alias}"
-    return None
+    if spec.target in CANON and spec.target != "custom":
+        return None
+    return f"/{spec.alias}" if spec.alias else None
 
 
 def _path_for_spec(model: type, spec: OpSpec) -> str:

@@ -103,9 +103,10 @@ def _mro_collect_decorated_hooks_cached(
                 for op in _resolve_ops(d.ops):
                     if op not in visible_aliases:
                         continue
-                    ph = d.phase
-                    mapping.setdefault(op, {}).setdefault(ph, []).append(
-                        _wrap_ctx_hook(table, d.fn, ph)
+                    ph = getattr(d.phase, "value", d.phase)
+                    ph_str = str(ph)
+                    mapping.setdefault(op, {}).setdefault(ph_str, []).append(
+                        _wrap_ctx_hook(table, d.fn, ph_str)
                     )
     logger.debug("Collected hooks for aliases: %s", list(mapping.keys()))
     return mapping

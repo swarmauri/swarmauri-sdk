@@ -14,6 +14,20 @@ from tigrbl.schema import namely_model
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/schemas/utils")
 
+
+def _lookup_alias_ns(ns: Any, alias: str) -> Any | None:
+    if ns is None:
+        return None
+    direct = getattr(ns, alias, None)
+    if direct is not None:
+        return direct
+    target = alias.casefold()
+    for name, value in vars(ns).items():
+        if str(name).casefold() == target:
+            return value
+    return None
+
+
 _Key = Tuple[str, str]  # (alias, target)
 
 
@@ -144,10 +158,10 @@ def _resolve_schema_arg(model: type, arg: SchemaArg) -> Optional[Type[BaseModel]
                 f"Unsupported SchemaRef kind '{arg.kind}'. Use 'in' or 'out'.",
             )
         ns = getattr(model, "schemas", None)
-        if ns is None or getattr(ns, arg.alias, None) is None:
+        alias_ns = _lookup_alias_ns(ns, arg.alias)
+        if alias_ns is None:
             logger.debug("Unknown schema alias '%s' on %s", arg.alias, model.__name__)
             raise KeyError(f"Unknown schema alias '{arg.alias}' on {model.__name__}")
-        alias_ns = getattr(ns, arg.alias)
         attr = "in_" if arg.kind == "in" else "out"
         res = getattr(alias_ns, attr, None)
         if res is None:
@@ -167,10 +181,10 @@ def _resolve_schema_arg(model: type, arg: SchemaArg) -> Optional[Type[BaseModel]
     if isinstance(arg, str):
         alias, kind = _parse_str_ref(arg)
         ns = getattr(model, "schemas", None)
-        if ns is None or getattr(ns, alias, None) is None:
+        alias_ns = _lookup_alias_ns(ns, alias)
+        if alias_ns is None:
             logger.debug("Unknown schema alias '%s' on %s", alias, model.__name__)
             raise KeyError(f"Unknown schema alias '{alias}' on {model.__name__}")
-        alias_ns = getattr(ns, alias)
         attr = "in_" if kind == "in" else "out"
         res = getattr(alias_ns, attr, None)
         if res is None:
