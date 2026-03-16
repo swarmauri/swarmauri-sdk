@@ -33,6 +33,44 @@ _DEFAULT_METHODS: dict[str, tuple[str, ...]] = {
 }
 
 
+def _has_rpc_binding(specs: Tuple[OpSpec, ...]) -> bool:
+    for spec in specs:
+        for binding in tuple(getattr(spec, "bindings", ()) or ()):
+            if isinstance(binding, HttpJsonRpcBindingSpec):
+                return True
+    return False
+
+
+def _attach_model_rpc_call(model: type, specs: Tuple[OpSpec, ...]) -> None:
+    """Attach ``model.rpc_call(...)`` when the model exposes RPC bindings."""
+    if hasattr(model, "rpc_call") and callable(getattr(model, "rpc_call")):
+        return
+    if not _has_rpc_binding(specs):
+        return
+
+    async def _model_rpc_call(
+        method: str,
+        payload: Any = None,
+        *,
+        db: Any | None = None,
+        request: Any = None,
+        ctx: dict[str, Any] | None = None,
+    ) -> Any:
+        from .router.rpc import rpc_call as _rpc_call
+
+        return await _rpc_call(
+            model,
+            model,
+            method,
+            payload,
+            db=db,
+            request=request,
+            ctx=ctx,
+        )
+
+    setattr(model, "rpc_call", _model_rpc_call)
+
+
 def bind(
     model: type,
     *,
@@ -47,6 +85,7 @@ def bind(
     model.opspecs = model.ops
 
     _materialize_rest_router(model, specs, router=router)
+    _attach_model_rpc_call(model, specs)
 
     return all_specs
 

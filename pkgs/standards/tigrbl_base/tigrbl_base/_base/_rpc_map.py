@@ -419,6 +419,31 @@ def _attach_one(model: type, sp: OpSpec) -> None:
 # ───────────────────────────────────────────────────────────────────────────────
 
 
+def _attach_model_rpc_call(model: type) -> None:
+    if hasattr(model, "rpc_call") and callable(getattr(model, "rpc_call")):
+        return
+
+    async def _model_rpc_call(
+        method: str,
+        payload: Any = None,
+        *,
+        db: Any | None = None,
+        request: Any = None,
+        ctx: Optional[Dict[str, Any]] = None,
+    ) -> Any:
+        return await rpc_call(
+            model,
+            model,
+            method,
+            payload,
+            db=db,
+            request=request,
+            ctx=ctx,
+        )
+
+    setattr(model, "rpc_call", _model_rpc_call)
+
+
 def register_and_attach(
     model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
 ) -> None:
@@ -427,11 +452,16 @@ def register_and_attach(
     If `only_keys` is provided, limit work to those (alias,target) pairs.
     """
     wanted = set(only_keys or ())
+    attached_any = False
     for sp in specs:
         key = (sp.alias, sp.target)
         if wanted and key not in wanted:
             continue
         _attach_one(model, sp)
+        attached_any = True
+
+    if attached_any:
+        _attach_model_rpc_call(model)
 
 
 async def rpc_call(
