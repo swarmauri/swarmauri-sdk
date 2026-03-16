@@ -7,8 +7,8 @@ from typing import Any, Callable
 from ._engine import AsyncSession, Session
 from tigrbl.ddl import initialize as _ddl_initialize
 from ._engine import Engine  # reuse the collector
-from tigrbl_canon.mapping import engine_resolver as _resolver
-from tigrbl_canon.mapping.model_helpers import _ensure_model_namespaces
+from tigrbl_concrete._concrete import engine_resolver as _resolver
+from tigrbl_concrete._mapping.model_helpers import _ensure_model_namespaces
 from tigrbl_core._spec.table_spec import TableSpec
 from tigrbl_base._base._table_base import TableBase
 

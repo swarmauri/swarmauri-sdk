@@ -11,7 +11,6 @@ PACKAGE_DIR = Path(__file__).resolve().parents[1] / PACKAGE_NAME
 ALLOWED_TOP_LEVEL_IMPORTS = {
     "tigrbl_runtime",
     "tigrbl_base",
-    "tigrbl_canon",
     "tigrbl_core",
 }
 

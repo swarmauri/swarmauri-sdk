@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import sys
-import types
-
 from tigrbl_core._spec.op_spec import OpSpec
 
 
@@ -11,19 +8,23 @@ def test_apply_alias_returns_override_or_original() -> None:
     assert OpSpec.apply_alias("delete", {"read": "fetch"}) == "delete"
 
 
-def test_collect_uses_mro_collect_helper() -> None:
-    module = types.ModuleType("tigrbl_canon.mapping.op_mro_collect")
-    module.mro_collect_decorated_ops = lambda table: [
-        OpSpec(alias="list", target="list"),
-        OpSpec(alias=f"{table.__name__.lower()}_get", target="read"),
-    ]
-    sys.modules[module.__name__] = module
+def test_collect_returns_decorated_op_specs() -> None:
+    class DecoratedSpec:
+        alias = "demotable_get"
+        target = "read"
+        arity = "member"
+        persist = "default"
+
+    def handler(ctx=None):
+        return ctx
+
+    handler.__tigrbl_op_spec__ = DecoratedSpec()
 
     class DemoTable:
-        pass
+        get = handler
 
     ops = OpSpec.collect(DemoTable)
 
-    assert len(ops) == 2
-    assert ops[0].alias == "list"
-    assert ops[1].alias == "demotable_get"
+    assert len(ops) == 1
+    assert ops[0].alias == "demotable_get"
+    assert ops[0].target == "read"

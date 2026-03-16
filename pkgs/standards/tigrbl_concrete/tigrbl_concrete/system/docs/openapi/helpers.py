@@ -6,7 +6,7 @@ import inspect
 from typing import Any, Iterable, get_args, get_origin
 
 from tigrbl_ops_oltp.crud.params import Param
-from tigrbl_canon.mapping.core_resolver import (
+from tigrbl_concrete._mapping.core_resolver import (
     annotation_marker as _annotation_marker,
     split_annotated as _split_annotated,
 )

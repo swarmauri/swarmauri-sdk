@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from typing import Type
-
-from tigrbl_concrete._concrete._table import Table
 from tigrbl_core.config.constants import (
     ALL_VERBS,
     TIGRBL_DEFAULTS_EXCLUDE_ATTR,
@@ -10,7 +8,15 @@ from tigrbl_core.config.constants import (
     TIGRBL_DEFAULTS_MODE_ATTR,
 )
 
-DEFAULT_CANON_VERBS = Table.DEFAULT_CANON_VERBS
+DEFAULT_CANON_VERBS = {
+    "create",
+    "read",
+    "update",
+    "replace",
+    "delete",
+    "list",
+    "clear",
+}
 
 
 def should_wire_canonical(table: Type, op: str) -> bool:

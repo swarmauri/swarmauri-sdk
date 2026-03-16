@@ -182,7 +182,7 @@ def _as_specs(value: Any, table: type) -> List["OpSpec"]:
 
 
 def _generate_canonical(table: type) -> List["OpSpec"]:
-    from tigrbl.op.canonical import should_wire_canonical
+    from tigrbl_core.op.canonical import should_wire_canonical
 
     specs: List[OpSpec] = []
     targets: List[Tuple[str, TargetOp]] = [

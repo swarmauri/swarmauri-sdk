@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional
 
 from tigrbl_core._spec.binding_spec import HttpRestBindingSpec
 from tigrbl_core._spec.op_spec import OpSpec
-from tigrbl_canon.mapping.model_helpers import _OpSpecGroup
+from tigrbl_concrete._mapping.model_helpers import _OpSpecGroup
 from tigrbl_concrete._concrete._router import Router
 from .healthz import build_healthz_endpoint
 from .hookz import build_hookz_endpoint

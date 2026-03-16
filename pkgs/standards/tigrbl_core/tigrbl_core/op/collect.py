@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Mapping
 
-from tigrbl_concrete._concrete._op import Op as OpSpec
+from tigrbl_core._spec.op_spec import OpSpec
 
 
 def apply_alias(verb: str, alias_map: Mapping[str, str]) -> str:
