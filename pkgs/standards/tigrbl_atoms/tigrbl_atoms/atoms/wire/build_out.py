@@ -22,7 +22,11 @@ def _run(obj: Optional[object], ctx: Any) -> None:
     # prefer that canonical payload and avoid reconstructing per-field output
     # from ``obj``. Rebuilding from ``obj`` can produce null-filled payloads
     # for RPC routes where ``obj`` is absent or list-shaped.
-    if getattr(ctx, "result", None) is not None:
+    current_result = getattr(ctx, "result", None)
+    response_result = getattr(getattr(ctx, "response", None), "result", None)
+    if current_result is not None or response_result is not None:
+        if current_result is None and response_result is not None:
+            setattr(ctx, "result", response_result)
         temp = _ensure_temp(ctx)
         temp.pop("out_values", None)
         temp.pop("out_missing", None)
@@ -96,6 +100,14 @@ def _read_current_value(obj: Optional[object], ctx: Any, field: str) -> Optional
     )  # type: ignore
     if isinstance(hv, Mapping):
         return hv.get(field)
+    result = getattr(ctx, "result", None)
+    if isinstance(result, Mapping):
+        return result.get(field)
+    if result is not None and hasattr(result, field):
+        try:
+            return getattr(result, field)
+        except Exception:
+            return None
     return None
 
 

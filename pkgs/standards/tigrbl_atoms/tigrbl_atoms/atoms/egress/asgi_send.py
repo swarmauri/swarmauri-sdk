@@ -61,9 +61,38 @@ def finalize_transport_response(
 
 
 async def _send_json(env: Any, status: int, payload: Any) -> None:
+    scope = getattr(env, "scope", {}) or {}
+    path = scope.get("path") if isinstance(scope, Mapping) else None
+    is_jsonrpc = False
+    if isinstance(path, str):
+        normalized = path.rstrip("/") or "/"
+        if normalized == "/rpc":
+            is_jsonrpc = True
+    if isinstance(payload, Mapping) and payload.get("jsonrpc") == "2.0":
+        is_jsonrpc = True
+    if is_jsonrpc and isinstance(payload, Mapping) and "error" not in payload:
+        from tigrbl_typing.status.mappings import ERROR_MESSAGES, _HTTP_TO_RPC
+
+        rpc_code = _HTTP_TO_RPC.get(int(status), -32603)
+        detail = payload.get("detail")
+        rpc_payload: dict[str, Any] = {
+            "jsonrpc": "2.0",
+            "error": {
+                "code": rpc_code,
+                "message": ERROR_MESSAGES.get(rpc_code, "Internal error"),
+            },
+            "id": None,
+        }
+        if isinstance(detail, Mapping):
+            rpc_payload["error"]["data"] = dict(detail)
+        elif detail is not None:
+            rpc_payload["error"]["data"] = {"detail": detail}
+        payload = rpc_payload
+        status = 200
+
     body = json.dumps(payload).encode("utf-8")
     headers = [(b"content-type", b"application/json")]
-    headers, body = finalize_transport_response(env.scope, status, headers, body)
+    headers, body = finalize_transport_response(scope, status, headers, body)
     await env.send(
         {
             "type": "http.response.start",

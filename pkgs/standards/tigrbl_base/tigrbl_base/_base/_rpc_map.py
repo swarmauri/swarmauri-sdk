@@ -233,6 +233,19 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
     ):
         return _ensure_jsonable(result)
 
+    def _dump_with_extras(value: Any) -> Any:
+        raw_value = _ensure_jsonable(value)
+        if isinstance(raw_value, Mapping):
+            raw_mapping = dict(raw_value)
+            normalized = out_model.model_validate(raw_mapping).model_dump(
+                exclude_none=False, by_alias=True
+            )
+            normalized.update(raw_mapping)
+            return normalized
+        return out_model.model_validate(raw_value).model_dump(
+            exclude_none=False, by_alias=True
+        )
+
     try:
         if isinstance(result, Mapping):
             if "item" in result and isinstance(result.get("item"), Mapping):
@@ -244,43 +257,21 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
             if isinstance(result, Mapping):
                 items = result.get("items")
                 if isinstance(items, (list, tuple)):
-                    return [
-                        out_model.model_validate(x).model_dump(
-                            exclude_none=False, by_alias=True
-                        )
-                        for x in items
-                    ]
+                    return [_dump_with_extras(x) for x in items]
                 wrapped = result.get("result")
                 if isinstance(wrapped, (list, tuple)):
-                    return [
-                        out_model.model_validate(x).model_dump(
-                            exclude_none=False, by_alias=True
-                        )
-                        for x in wrapped
-                    ]
+                    return [_dump_with_extras(x) for x in wrapped]
             if isinstance(result, (list, tuple)):
-                return [
-                    out_model.model_validate(x).model_dump(
-                        exclude_none=False, by_alias=True
-                    )
-                    for x in result
-                ]
+                return [_dump_with_extras(x) for x in result]
         if target in {
             "bulk_create",
             "bulk_update",
             "bulk_replace",
             "bulk_merge",
         } and isinstance(result, (list, tuple)):
-            return [
-                out_model.model_validate(x).model_dump(
-                    exclude_none=False, by_alias=True
-                )
-                for x in result
-            ]
+            return [_dump_with_extras(x) for x in result]
         # Single object case
-        return out_model.model_validate(result).model_dump(
-            exclude_none=False, by_alias=True
-        )
+        return _dump_with_extras(result)
     except Exception as e:
         # If serialization fails, let raw result through rather than failing the call
         logger.debug(
@@ -327,6 +318,9 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
             and isinstance(raw_payload.get("params"), Mapping)
         ):
             raw_payload = dict(raw_payload["params"])
+
+        allowed_wrapper_keys = _allowed_wrapper_keys(model, alias, target)
+        _reject_wrapper_keys(raw_payload, allowed_keys=allowed_wrapper_keys)
 
         if target == "bulk_delete" and not isinstance(raw_payload, Mapping):
             raw_payload = {"ids": raw_payload}
@@ -390,6 +384,8 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         )
 
         def serialize(result: Any) -> Any:
+            if result is None and target in {"update", "replace", "merge"}:
+                return _ensure_jsonable(merged_payload)
             return _serialize_output(model, alias, target, result)
 
         base_ctx["response_serializer"] = serialize
