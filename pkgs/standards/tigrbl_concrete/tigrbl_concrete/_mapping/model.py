@@ -10,6 +10,7 @@ from tigrbl_core._spec.binding_spec import HttpJsonRpcBindingSpec, HttpRestBindi
 from tigrbl_core.config.constants import CANON
 
 from tigrbl_concrete._mapping.op_resolver import resolve as resolve_ops
+from tigrbl_base._base._rpc_map import register_and_attach as register_rpc
 
 from .model_helpers import _ensure_model_namespaces, _filter_specs, _index_specs
 
@@ -33,6 +34,44 @@ _DEFAULT_METHODS: dict[str, tuple[str, ...]] = {
 }
 
 
+def _has_rpc_binding(specs: Tuple[OpSpec, ...]) -> bool:
+    for spec in specs:
+        for binding in tuple(getattr(spec, "bindings", ()) or ()):
+            if isinstance(binding, HttpJsonRpcBindingSpec):
+                return True
+    return False
+
+
+def _attach_model_rpc_call(model: type, specs: Tuple[OpSpec, ...]) -> None:
+    """Attach ``model.rpc_call(...)`` when the model exposes RPC bindings."""
+    if hasattr(model, "rpc_call") and callable(getattr(model, "rpc_call")):
+        return
+    if not _has_rpc_binding(specs):
+        return
+
+    async def _model_rpc_call(
+        method: str,
+        payload: Any = None,
+        *,
+        db: Any | None = None,
+        request: Any = None,
+        ctx: dict[str, Any] | None = None,
+    ) -> Any:
+        from .router.rpc import rpc_call as _rpc_call
+
+        return await _rpc_call(
+            model,
+            model,
+            method,
+            payload,
+            db=db,
+            request=request,
+            ctx=ctx,
+        )
+
+    setattr(model, "rpc_call", _model_rpc_call)
+
+
 def bind(
     model: type,
     *,
@@ -46,7 +85,10 @@ def bind(
     model.ops = SimpleNamespace(all=all_specs, by_key=by_key, by_alias=by_alias)
     model.opspecs = model.ops
 
+    register_rpc(model, specs)
+
     _materialize_rest_router(model, specs, router=router)
+    _attach_model_rpc_call(model, specs)
 
     return all_specs
 
@@ -79,10 +121,6 @@ def _normalize_bindings(model: type, specs: Tuple[OpSpec, ...]) -> Tuple[OpSpec,
 
 
 def _default_path_suffix(spec: OpSpec) -> str | None:
-    if spec.target.startswith("bulk_"):
-        # Keep bulk operations addressable but avoid colliding with the
-        # collection CRUD path (e.g. create/list on /resource).
-        return f"/{spec.alias}"
     if spec.alias != spec.target and spec.target in CANON:
         return f"/{spec.alias}"
     return None
@@ -148,13 +186,27 @@ def _materialize_rest_router(
                     for method in getattr(route, "methods", ()) or ()
                 )
             ),
+            (
+                getattr(route, "name", "").split(".", 1)[1]
+                if "." in str(getattr(route, "name", ""))
+                else getattr(route, "name", "")
+            ),
         )
         for route in tuple(getattr(model_router, "routes", ()) or ())
     }
 
+    aliases = {spec.alias for spec in specs}
+    suppressed_aliases = set()
+    if "bulk_create" in aliases:
+        suppressed_aliases.add("create")
+    if "bulk_delete" in aliases:
+        suppressed_aliases.add("clear")
+
     for spec in specs:
+        if spec.alias in suppressed_aliases:
+            continue
         for path, methods in _rest_bindings_for_spec(model, spec):
-            route_key = (path, tuple(sorted(methods)))
+            route_key = (path, tuple(sorted(methods)), spec.alias)
             if route_key in existing_routes:
                 continue
 
@@ -170,6 +222,7 @@ def _materialize_rest_router(
                 path=path,
                 endpoint=_placeholder_endpoint,
                 methods=list(methods),
+                name=f"{model.__name__}.{spec.alias}",
                 tigrbl_model=model,
                 tigrbl_alias=spec.alias,
                 include_in_schema=False,
