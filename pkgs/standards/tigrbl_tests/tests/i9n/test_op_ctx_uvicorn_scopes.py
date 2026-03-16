@@ -47,6 +47,11 @@ def _collection_path(resource: str, alias: str) -> str:
     return f"/{resource}/{alias}"
 
 
+def _table_name(prefix: str, arity: str, persist: str, schema_tag: str) -> str:
+    """Build a unique table name to avoid collisions across parallel test workers."""
+    return f"{prefix}_{arity}_{persist}_{schema_tag}_{uuid.uuid4().hex[:8]}"
+
+
 def _build_table_app(
     arity: str, response_schema, persist: str
 ) -> tuple[TigrblApp, str]:
@@ -54,7 +59,9 @@ def _build_table_app(
     schema_tag = "with_schema" if response_schema is not None else "no_schema"
 
     class InventoryTable(TableBase, GUIDPk):
-        __tablename__ = f"inventory_table_op_ctx_uvicorn_{arity}_{persist}_{schema_tag}"
+        __tablename__ = _table_name(
+            "inventory_table_op_ctx_uvicorn", arity, persist, schema_tag
+        )
         __resource__ = "inventory"
         name = Column(String)
 
@@ -85,8 +92,8 @@ async def _build_router_app(
     schema_tag = "with_schema" if response_schema is not None else "no_schema"
 
     class InventoryTable(TableBase, GUIDPk):
-        __tablename__ = (
-            f"inventory_router_op_ctx_uvicorn_{arity}_{persist}_{schema_tag}"
+        __tablename__ = _table_name(
+            "inventory_router_op_ctx_uvicorn", arity, persist, schema_tag
         )
         __resource__ = "inventory"
         name = Column(String)
