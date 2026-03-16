@@ -206,11 +206,16 @@ def _inject_atoms(
         else:
             continue
 
+        domain, _subject = _infer_domain_subject(run)
         if not persistent and persist_tied:
-            continue
+            if not (
+                domain == "sys"
+                and isinstance(_subject, str)
+                and _subject.startswith("handler_")
+            ):
+                continue
         if anchor == _ev.SYS_HANDLER_PERSISTENCE and chains.get("HANDLER"):
             continue
-        domain, _subject = _infer_domain_subject(run)
         if (
             domain == "sys"
             and isinstance(_subject, str)

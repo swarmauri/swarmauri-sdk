@@ -69,6 +69,35 @@ def _build_router_rpc_namespace(router: RouterLike, model: type) -> SimpleNamesp
     return router_rpc_ns
 
 
+def _attach_rpc_dispatcher(host: Any) -> None:
+    """Attach ``host.rpc_call(...)`` for Router-like facades when missing."""
+    if hasattr(host, "rpc_call") and callable(getattr(host, "rpc_call")):
+        return
+
+    async def _rpc_call_attached(
+        model_or_name: type | str,
+        method: str,
+        payload: Any = None,
+        *,
+        db: Any = None,
+        request: Any = None,
+        ctx: Dict[str, Any] | None = None,
+    ) -> Any:
+        from .rpc import rpc_call as _rpc_call
+
+        return await _rpc_call(
+            host,
+            model_or_name,
+            method,
+            payload,
+            db=db,
+            request=request,
+            ctx=ctx,
+        )
+
+    setattr(host, "rpc_call", _rpc_call_attached)
+
+
 def _coerce_model_columns(columns: Any) -> Tuple[str, ...]:
     if isinstance(columns, SimpleNamespace):
         return tuple(columns.__dict__.keys())
@@ -374,6 +403,9 @@ def include_model(
 
     # 4) Attach all namespaces onto router
     _attach_to_router(router, model)
+    _attach_rpc_dispatcher(router)
+    if app is not None:
+        _attach_rpc_dispatcher(app)
 
     logger.debug("mapping.router: included %s at prefix %s", model.__name__, prefix)
     return model, model_router
