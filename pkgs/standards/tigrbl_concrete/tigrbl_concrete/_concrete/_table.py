@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from typing import Any, Callable
 
 from ._engine import AsyncSession, Session
-from tigrbl.ddl import initialize as _ddl_initialize
+from tigrbl_concrete.ddl import initialize as _ddl_initialize
 from ._engine import Engine  # reuse the collector
 from tigrbl_concrete._concrete import engine_resolver as _resolver
 from tigrbl_concrete._mapping.model_helpers import _ensure_model_namespaces

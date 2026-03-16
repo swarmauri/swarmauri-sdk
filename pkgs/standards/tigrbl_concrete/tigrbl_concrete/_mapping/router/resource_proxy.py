@@ -8,7 +8,7 @@ from tigrbl_base._base._rpc_map import (
     _serialize_output,
     _validate_input,
 )
-from ...mapping import engine_resolver as _resolver
+from ..._concrete import engine_resolver as _resolver
 from tigrbl_runtime.runtime import executor as _executor
 
 logger = logging.getLogger("uvicorn")
