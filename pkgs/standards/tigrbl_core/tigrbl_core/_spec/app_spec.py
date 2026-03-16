@@ -116,6 +116,16 @@ class AppSpec(SerdeMixin):
     lifespan: Optional[Callable[..., Any]] = None
 
     @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "AppSpec":
+        routers = payload.get("routers", ())
+        for router in _seqify(routers):
+            if isinstance(router, str):
+                raise TypeError(
+                    "AppSpec.routers entries must be nested router specs, not strings."
+                )
+        return super().from_dict(payload)
+
+    @classmethod
     def collect(cls, app: type) -> "AppSpec":
         sentinel = object()
         title: Any = sentinel

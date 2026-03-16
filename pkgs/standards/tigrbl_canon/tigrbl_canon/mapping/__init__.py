@@ -1,6 +1,11 @@
 from __future__ import annotations
 
 from importlib import import_module
+import warnings
+
+from tigrbl_canon import _DEPRECATION_MESSAGE
+
+warnings.warn(_DEPRECATION_MESSAGE, DeprecationWarning, stacklevel=2)
 
 __all__ = [
     "bind",
@@ -31,7 +36,7 @@ def __getattr__(name: str):
     if name == "build_schemas":
         return import_module(".schemas", __name__).build_and_attach
     if name == "build_hooks":
-        return import_module(".hooks", __name__).build_and_attach
+        return import_module(".hooks", __name__).normalize_and_attach
     if name == "build_handlers":
         return import_module(".handlers", __name__).build_and_attach
     if name == "register_rpc":

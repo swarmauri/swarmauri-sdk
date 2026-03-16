@@ -36,6 +36,7 @@ _EXPORTS = {
     "HookPhase": "hook_spec",
     "TemplateSpec": "response_spec",
     "ResponseSpec": "response_spec",
+    "resolve_response_spec": "response_resolver",
     "RequestSpec": "request_spec",
     "RouterSpec": "router_spec",
     "SchemaSpec": "schema_spec",
@@ -61,7 +62,7 @@ __all__ = list(_EXPORTS)
 
 def __getattr__(name: str) -> Any:
     if name in {"PHASE", "PHASES"}:
-        from tigrbl_atoms import HookPhase, HookPhases
+        from .hook_types import HookPhase, HookPhases
 
         value = HookPhase if name == "PHASE" else HookPhases
         globals()[name] = value

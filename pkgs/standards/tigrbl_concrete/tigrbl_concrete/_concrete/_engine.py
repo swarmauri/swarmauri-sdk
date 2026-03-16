@@ -132,15 +132,23 @@ class Engine(EngineBase):
         router: Any | None = None,
         tables: tuple[Any, ...] = (),
     ) -> dict[str, Any]:
-        from tigrbl_canon.mapping.traversal import collect
+        from tigrbl_core.config.engine_traversal import collect_engine_bindings
 
-        return collect(app=app, router=router, tables=tables)
+        return collect_engine_bindings(app=app, router=router, tables=tables)
 
     @staticmethod
     def install(collected: dict[str, Any]) -> None:
-        from tigrbl_canon.mapping.traversal import install
+        from tigrbl_concrete._concrete import engine_resolver as _resolver
 
-        install(collected)
+        default_db = collected.get("default")
+        if default_db is not None:
+            _resolver.set_default(default_db)
+        for router_obj, db in (collected.get("router") or {}).items():
+            _resolver.register_router(router_obj, db)
+        for table_obj, db in (collected.get("tables") or {}).items():
+            _resolver.register_table(table_obj, db)
+        for (model, alias), db in (collected.get("ops") or {}).items():
+            _resolver.register_op(model, alias, db)
 
     @staticmethod
     def install_from_objects(

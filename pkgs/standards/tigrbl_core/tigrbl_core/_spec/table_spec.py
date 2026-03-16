@@ -92,6 +92,17 @@ class TableSpec(SerdeMixin):
             self.model = self.model_ref
 
     @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "TableSpec":
+        columns = payload.get("columns", ())
+        if isinstance(columns, Sequence) and not isinstance(columns, Mapping):
+            for column in columns:
+                if isinstance(column, str):
+                    raise TypeError(
+                        "TableSpec.columns entries must be nested column specs, not strings."
+                    )
+        return super().from_dict(payload)
+
+    @classmethod
     def collect(cls, model: type) -> "TableSpec":
         return cls(
             model=model,

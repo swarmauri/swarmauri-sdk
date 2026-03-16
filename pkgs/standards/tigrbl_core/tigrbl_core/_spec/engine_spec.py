@@ -218,48 +218,13 @@ class EngineSpec(SerdeMixin):
     # ---------- realization ----------
 
     def build(self) -> Tuple[Any, SessionFactory]:
-        """Construct the engine and sessionmaker for this spec."""
-        from tigrbl_concrete.engine.builders import (
-            async_postgres_engine,
-            async_sqlite_engine,
-            blocking_postgres_engine,
-            blocking_sqlite_engine,
-        )
+        """Construct the engine/sessionmaker via registered providers.
 
-        if self.kind == "sqlite":
-            if self.memory:
-                if self.async_:
-                    return async_sqlite_engine(path=None, pool=self.pool)
-                return blocking_sqlite_engine(path=None, pool=self.pool)
-            if not self.path:
-                raise ValueError("sqlite file requires 'path'")
-            if self.async_:
-                return async_sqlite_engine(path=self.path, pool=self.pool)
-            return blocking_sqlite_engine(path=self.path, pool=self.pool)
+        Core does not ship concrete engine implementations.
+        """
 
-        if self.kind == "postgres":
-            if self.dsn:
-                if self.async_:
-                    return async_postgres_engine(dsn=self.dsn)
-                return blocking_postgres_engine(dsn=self.dsn)
-            # keyword build
-            kwargs: dict[str, Any] = {
-                "user": self.user or "app",
-                "host": self.host or "localhost",
-                "port": self.port or 5432,
-                "db": self.name or "app_db",
-                "pool_size": int(self.pool_size or 10),
-            }
-            if self.pwd is not None:
-                kwargs["pwd"] = self.pwd
-            if self.async_:
-                kwargs["max_size"] = int(self.max or 20)
-                return async_postgres_engine(**kwargs)
-            else:
-                kwargs["max_overflow"] = int(self.max or 20)
-                return blocking_postgres_engine(**kwargs)
-
-        # External/registered engines
+        # External/registered engines (including sqlite/postgres when provided
+        # by concrete runtime extensions).
         try:
             from .plugins import load_engine_plugins
             from .registry import get_engine_registration, known_engine_kinds

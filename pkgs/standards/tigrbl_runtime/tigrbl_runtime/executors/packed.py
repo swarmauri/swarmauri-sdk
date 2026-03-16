@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Mapping
 
-from tigrbl_kernel.models import KernelPlan, PackedKernel
+from tigrbl_kernel.models import KernelPlan, OpKey, PackedKernel
 
 from .base import ExecutorBase
 from .types import _Ctx
@@ -34,6 +34,96 @@ class PackedPlanExecutor(ExecutorBase):
         value = self._coerce_int(temp.get("program_id"))
         if value is not None:
             return value
+
+        return -1
+
+    def _resolve_program_id_from_dispatch(self, ctx: _Ctx, packed: PackedKernel) -> int:
+        temp = getattr(ctx, "temp", None)
+        if not isinstance(temp, dict):
+            return -1
+
+        dispatch = temp.get("dispatch")
+        if not isinstance(dispatch, dict):
+            return -1
+
+        selector = dispatch.get("binding_selector")
+        protocol = dispatch.get("binding_protocol")
+        if not (isinstance(selector, str) and isinstance(protocol, str)):
+            return -1
+
+        selector_to_id = getattr(packed, "selector_to_id", None)
+        proto_to_id = getattr(packed, "proto_to_id", None)
+        route_to_program = getattr(packed, "route_to_program", None)
+        if not (
+            isinstance(selector_to_id, Mapping)
+            and isinstance(proto_to_id, Mapping)
+            and route_to_program is not None
+        ):
+            return -1
+
+        selector_id = self._coerce_int(selector_to_id.get(selector))
+        proto_id = self._coerce_int(proto_to_id.get(protocol))
+        if selector_id is None or proto_id is None:
+            return -1
+        if not (0 <= proto_id < len(route_to_program)):
+            return -1
+
+        row = route_to_program[proto_id]
+        if not (0 <= selector_id < len(row)):
+            return -1
+
+        program_id = self._coerce_int(row[selector_id])
+        if program_id is None or program_id < 0:
+            return -1
+
+        route = temp.setdefault("route", {})
+        if isinstance(route, dict):
+            route.setdefault("program_id", program_id)
+            route.setdefault("opmeta_index", program_id)
+        temp["program_id"] = program_id
+        return program_id
+
+    @staticmethod
+    def _resolve_program_id_from_request(ctx: _Ctx, plan: KernelPlan) -> int:
+        method = getattr(ctx, "method", None)
+        path = getattr(ctx, "path", None)
+
+        if not (isinstance(method, str) and isinstance(path, str) and path):
+            raw = getattr(ctx, "raw", None)
+            scope = getattr(raw, "scope", None) if raw is not None else None
+            if isinstance(scope, Mapping):
+                method = method or scope.get("method")
+                path = path or scope.get("path")
+
+        if not (isinstance(method, str) and isinstance(path, str) and path):
+            return -1
+
+        method = method.upper()
+        selector = f"{method} {path}"
+        for proto in ("http.rest", "https.rest"):
+            maybe = plan.opkey_to_meta.get(OpKey(proto=proto, selector=selector))
+            if isinstance(maybe, int):
+                return maybe
+
+        for proto in ("http.rest", "https.rest"):
+            bucket = plan.proto_indices.get(proto)
+            templated = bucket.get("templated") if isinstance(bucket, Mapping) else None
+            if not isinstance(templated, list):
+                continue
+            for entry in templated:
+                if not isinstance(entry, Mapping):
+                    continue
+                entry_method = str(entry.get("method", "") or "").upper()
+                if entry_method and entry_method != method:
+                    continue
+                pattern = entry.get("pattern")
+                if pattern is None or not hasattr(pattern, "match"):
+                    continue
+                if pattern.match(path) is None:
+                    continue
+                meta_index = entry.get("meta_index")
+                if isinstance(meta_index, int):
+                    return meta_index
 
         return -1
 
@@ -69,6 +159,10 @@ class PackedPlanExecutor(ExecutorBase):
 
         program_id = self._require_program_id_from_ctx(ctx)
         if program_id < 0:
+            program_id = self._resolve_program_id_from_dispatch(ctx, packed)
+        if program_id < 0:
+            program_id = self._resolve_program_id_from_request(ctx, plan)
+        if program_id < 0:
             route = temp.get("route", {})
             if isinstance(route, dict) and route.get("method_not_allowed") is True:
                 await _send_json(env, 405, {"detail": "Method Not Allowed"})
@@ -84,6 +178,14 @@ class PackedPlanExecutor(ExecutorBase):
                 env, 404, {"detail": "No runtime operation matched request."}
             )
             return
+
+        meta = plan.opmeta[program_id]
+        ctx.model = getattr(meta, "model", None)
+        ctx.op = getattr(meta, "alias", None)
+        ctx.target = getattr(meta, "target", None)
+        app = getattr(ctx, "app", None)
+        if app is not None and ctx.model is not None and isinstance(ctx.op, str):
+            ctx.opview = self.runtime.kernel.get_opview(app, ctx.model, ctx.op)
 
         seg_offset = packed.op_segment_offsets[program_id]
         seg_length = packed.op_segment_lengths[program_id]
@@ -174,8 +276,8 @@ class PackedPlanExecutor(ExecutorBase):
             raise TypeError("PackedPlanExecutor requires a PackedKernel instance")
 
         base_ctx = _Ctx.ensure(
-            request=ctx.get("request") if isinstance(ctx, dict) else None,
-            db=ctx.get("db") if isinstance(ctx, dict) else None,
+            request=ctx.get("request") if isinstance(ctx, Mapping) else None,
+            db=ctx.get("db") if isinstance(ctx, Mapping) else None,
             seed=ctx,
         )
         await self._execute_packed(env, base_ctx, plan, packed_plan)

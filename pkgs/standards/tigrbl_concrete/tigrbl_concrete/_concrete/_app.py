@@ -4,9 +4,9 @@ from typing import Any
 
 from ._table_registry import TableRegistry
 from tigrbl_base._base import AppBase
-from tigrbl.ddl import initialize as _ddl_initialize
+from tigrbl_concrete.ddl import initialize as _ddl_initialize
 from ._engine import Engine
-from tigrbl_canon.mapping import engine_resolver as _resolver
+from tigrbl_concrete._concrete import engine_resolver as _resolver
 from tigrbl_core._spec.app_spec import AppSpec
 from tigrbl_core._spec.engine_spec import EngineCfg
 from ._routing import (
@@ -22,7 +22,7 @@ class App(AppBase):
     @classmethod
     def collect(cls) -> AppSpec:
         """Collect and normalize AppSpec configuration for this App class."""
-        return cls.collect_spec(cls)
+        return AppSpec.collect(cls)
 
     @classmethod
     def _collect_mro_spec(cls) -> AppSpec:
@@ -49,6 +49,7 @@ class App(AppBase):
 
     def __init__(self, *, engine: EngineCfg | None = None, **asgi_kwargs: Any) -> None:
         collected_spec = self.__class__._collect_mro_spec()
+        collected_spec = self.__class__.bind_spec(collected_spec, parent=self)
 
         title = asgi_kwargs.pop("title", None)
         if title is not None:

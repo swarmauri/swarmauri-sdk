@@ -27,3 +27,23 @@ pip install tigrbl-concrete
 ## Usage
 
 Import from the shared package-specific module namespaces after installation in your environment.
+
+### Runtime-visible operation metadata
+
+Runtime-visible operations are defined by collected specs (`RouterSpec.collect(...)`,
+`OpSpec.collect(...)`) and then installed through binding on the live graph.
+Mounted routes are not backfilled into runtime metadata after the fact.
+
+```python
+from tigrbl_concrete import TigrblApp, TigrblRouter
+
+app = TigrblApp()
+router = TigrblRouter()
+
+@router.get("/health")
+def health_check():
+    return {"ok": True}
+
+# include_router(...) mounts already-bound operations
+app.include_router(router, prefix="/api")
+```

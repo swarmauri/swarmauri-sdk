@@ -182,6 +182,7 @@ def _inject_atoms(
     atoms: Iterable[_DiscoveredAtom],
     *,
     persistent: bool,
+    target: str | None = None,
 ) -> None:
     order = {name: i for i, name in enumerate(_ev.all_events_ordered())}
 
@@ -210,6 +211,14 @@ def _inject_atoms(
         if anchor == _ev.SYS_HANDLER_PERSISTENCE and chains.get("HANDLER"):
             continue
         domain, _subject = _infer_domain_subject(run)
+        if (
+            domain == "sys"
+            and isinstance(_subject, str)
+            and _subject.startswith("handler_")
+        ):
+            handler_target = _subject.removeprefix("handler_")
+            if handler_target != "persistence" and target and handler_target != target:
+                continue
         if domain == "dep":
             continue
 

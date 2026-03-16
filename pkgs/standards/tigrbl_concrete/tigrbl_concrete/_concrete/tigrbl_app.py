@@ -24,28 +24,27 @@ from ._routing import add_route as _add_route_impl
 from tigrbl_core._spec.op_spec import OpSpec
 from tigrbl_core._spec.binding_spec import HttpRestBindingSpec
 from tigrbl_core._spec.engine_spec import EngineCfg
-from tigrbl_canon.mapping import engine_resolver as _resolver
-from tigrbl.ddl import initialize as _ddl_initialize
-from tigrbl_canon.mapping.router.common import (
+from tigrbl_concrete._concrete import engine_resolver as _resolver
+from tigrbl_concrete.ddl import initialize as _ddl_initialize
+from tigrbl_concrete._mapping.router.common import (
     AttrDict,
     _default_prefix,
 )
-from tigrbl_canon.mapping.router.rpc import rpc_call as _rpc_call
-from tigrbl_canon.mapping.table import rebind as _rebind, bind as _bind
-from tigrbl.system import mount_diagnostics as _mount_diagnostics
-from tigrbl.system import mount_lens as _mount_lens
-from tigrbl.system import mount_openapi as _mount_openapi
-from tigrbl.system import mount_openrpc as _mount_openrpc
-from tigrbl.system import mount_swagger as _mount_swagger
-from tigrbl.system import build_openrpc_spec as _build_openrpc_spec
-from tigrbl.system.docs import build_openapi as _build_openapi
-from tigrbl.op import get_registry
+from tigrbl_concrete._mapping.router.rpc import rpc_call as _rpc_call
+from tigrbl_concrete._mapping.model import rebind as _rebind, bind as _bind
+from tigrbl_concrete.system import mount_diagnostics as _mount_diagnostics
+from tigrbl_concrete.system import mount_lens as _mount_lens
+from tigrbl_concrete.system import mount_openapi as _mount_openapi
+from tigrbl_concrete.system import mount_openrpc as _mount_openrpc
+from tigrbl_concrete.system import mount_swagger as _mount_swagger
+from tigrbl_concrete.system import build_openrpc_spec as _build_openrpc_spec
+from tigrbl_concrete.system.docs import build_openapi as _build_openapi
+from ._op_registry import get_registry
 from ._table_registry import TableRegistry
 from tigrbl_core._spec.app_spec import AppSpec
-from tigrbl_canon.mapping.runtime_routes import register_runtime_route
 from tigrbl_core._spec.app_spec import _seqify, normalize_app_spec
-from tigrbl.system.favicon import FAVICON_PATH, mount_favicon
-from tigrbl_canon.mapping.model_helpers import _OpSpecGroup
+from tigrbl_concrete.system.favicon import FAVICON_PATH, mount_favicon
+from tigrbl_concrete._mapping.model_helpers import _OpSpecGroup
 
 
 # optional compat: legacy transactional decorator
@@ -191,12 +190,20 @@ class TigrblApp(_App):
         self.jsonrpc_prefix = (
             jsonrpc_prefix
             if jsonrpc_prefix is not None
-            else getattr(self, "JSONRPC_PREFIX", "/rpc")
+            else getattr(
+                self,
+                "jsonrpc_prefix",
+                getattr(self, "JSONRPC_PREFIX", "/rpc"),
+            )
         )
         self.system_prefix = (
             system_prefix
             if system_prefix is not None
-            else getattr(self, "SYSTEM_PREFIX", "/system")
+            else getattr(
+                self,
+                "system_prefix",
+                getattr(self, "SYSTEM_PREFIX", "/system"),
+            )
         )
 
         # public containers (mirrors used by bindings.router)
@@ -398,6 +405,7 @@ class TigrblApp(_App):
                 mount_prefix = prefix if prefix is not None else _default_prefix(table)
                 self.include_router(router, prefix=mount_prefix)
         self._sync_default_router_namespaces()
+        self._auto_mount_jsonrpc_if_bound()
         return result
 
     def include_tables(
@@ -430,7 +438,18 @@ class TigrblApp(_App):
                 )
                 self.include_router(router, prefix=mount_prefix)
         self._sync_default_router_namespaces()
+        self._auto_mount_jsonrpc_if_bound()
         return result
+
+    def _auto_mount_jsonrpc_if_bound(self) -> None:
+        has_rpc_binding = any(
+            getattr(binding, "proto", "") == "http.jsonrpc"
+            for table in tuple(getattr(self, "tables", {}).values())
+            for op_spec in tuple(getattr(getattr(table, "ops", None), "all", ()) or ())
+            for binding in tuple(getattr(op_spec, "bindings", ()) or ())
+        )
+        if has_rpc_binding:
+            self.mount_jsonrpc()
 
     def _ensure_system_route_model(self) -> type:
         model_name = "__tigrbl_system_routes__"
@@ -475,7 +494,7 @@ class TigrblApp(_App):
         prefix: str | None = None,
         mount_router: bool = True,
     ) -> Any:
-        """Mount a Tigrbl Router router onto this app and track it."""
+        """Mount a Router and mirror mounted routes into runtime op metadata."""
 
         def _normalize_mount_prefix(value: str | None) -> str:
             if not value:
@@ -615,10 +634,7 @@ class TigrblApp(_App):
 
         if not mount_router:
             return router
-        initial_route_count = len(self.routes)
         super().include_router(router, prefix=prefix)
-        for mounted_route in self.routes[initial_route_count:]:
-            register_runtime_route(self, mounted_route)
         return router
 
     def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
@@ -628,8 +644,6 @@ class TigrblApp(_App):
     def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
         """Register a route directly on this app instance."""
         _add_route_impl(self, path, endpoint, **kwargs)
-        if self.routes:
-            register_runtime_route(self, self.routes[-1])
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""
@@ -804,6 +818,13 @@ class TigrblApp(_App):
             include_other = getattr(app, "include_router", None)
             if callable(include_other):
                 include_other(router, prefix=px)
+        runtime = getattr(self, "runtime", None)
+        kernel = getattr(runtime, "kernel", None)
+        invalidate = getattr(kernel, "invalidate_kernelz_payload", None)
+        if callable(invalidate):
+            invalidate(self)
+            if app is not None and app is not self:
+                invalidate(app)
         if app is None:
             self._base_routes = list(self._routes)
         return router

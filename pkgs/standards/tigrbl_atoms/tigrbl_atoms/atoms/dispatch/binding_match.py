@@ -40,7 +40,27 @@ def _rpc_method(dispatch: Mapping[str, object], ctx: Any) -> str | None:
         method = body_json.get("method")
         if isinstance(method, str):
             return method
+    temp = getattr(ctx, "temp", None)
+    if isinstance(temp, Mapping):
+        ingress = temp.get("ingress")
+        if isinstance(ingress, Mapping):
+            ingress_body_json = ingress.get("body_json")
+            if isinstance(ingress_body_json, Mapping):
+                method = ingress_body_json.get("method")
+                if isinstance(method, str):
+                    return method
     body = getattr(ctx, "body", None)
+    if isinstance(body, (bytes, bytearray)):
+        try:
+            import json
+
+            decoded = json.loads(bytes(body).decode("utf-8"))
+        except Exception:
+            decoded = None
+        if isinstance(decoded, Mapping):
+            method = decoded.get("method")
+            if isinstance(method, str):
+                return method
     if isinstance(body, Mapping):
         method = body.get("method")
         if isinstance(method, str):

@@ -4,7 +4,7 @@ from typing import Any
 
 from tigrbl_kernel import Kernel, _default_kernel
 
-from tigrbl_runtime.executors import ExecutorBase, PackedPlanExecutor, PhaseExecutor
+from tigrbl_runtime.executors import ExecutorBase, PackedPlanExecutor
 from .base import RuntimeBase
 
 
@@ -19,7 +19,6 @@ class Runtime(RuntimeBase):
     ) -> None:
         super().__init__(kernel=kernel or _default_kernel)
         self.default_executor = default_executor
-        self.register_executor(PhaseExecutor())
         self.register_executor(PackedPlanExecutor())
 
     def register_executor(self, executor: ExecutorBase) -> None:

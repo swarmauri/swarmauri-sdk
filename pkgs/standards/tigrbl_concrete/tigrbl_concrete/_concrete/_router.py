@@ -7,7 +7,7 @@ from typing import Any, Callable
 from types import SimpleNamespace
 
 from tigrbl_core._spec.router_spec import RouterSpec
-from tigrbl_canon.mapping import engine_resolver as _resolver
+from tigrbl_concrete._concrete import engine_resolver as _resolver
 from tigrbl_core._spec.app_spec import _seqify
 from tigrbl_core._spec.engine_spec import EngineCfg
 from ._table_registry import TableRegistry
@@ -22,7 +22,7 @@ from ._routing import (
 from ._httpx import ensure_httpx_sync_transport
 
 from ._route import Route
-from tigrbl.system.docs.openapi.metadata import (
+from tigrbl_concrete.system.docs.openapi.metadata import (
     is_metadata_route as _is_metadata_route_impl,
 )
 
@@ -134,6 +134,8 @@ class Router(RouterSpec):
         self.tables = TableRegistry(
             tables=self._collect_declared_tables(self.__class__)
         )
+        self._table_registry = self.tables
+        self._table_regsitry = self.tables
 
         default_dependencies = list(self.security_deps) + list(self.deps)
         self.dependencies = list(
