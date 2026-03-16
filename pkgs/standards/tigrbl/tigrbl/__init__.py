@@ -110,6 +110,7 @@ from tigrbl_base._base import (  # noqa: E402
     AppBase,
     ForeignKeyBase,
     HookBase,
+    RouterBase,
     TableBase,
     TableRegistryBase,
 )
@@ -149,7 +150,6 @@ build_hooks = canon.build_hooks
 build_handlers = canon.build_handlers
 register_rpc = canon.register_rpc
 build_rest = canon.build_rest
-include_table = canon.include_table
 include_tables = canon.include_tables
 rpc_call = canon.rpc_call
 
@@ -169,6 +169,7 @@ __all__ = [
     "Depends",
     "HTTPException",
     "TableBase",
+    "RouterBase",
     "Op",
     "op",
     "HTTPBearer",
@@ -204,7 +205,6 @@ __all__ = [
     "build_handlers",
     "register_rpc",
     "build_rest",
-    "include_table",
     "include_tables",
     "rpc_call",
     "_invoke",
