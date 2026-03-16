@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import logging
+from uuid import UUID
 from types import SimpleNamespace
 from typing import Any, Dict, Mapping, Optional, Union
 
 from .common import RouterLike, _ensure_router_ns
 from ..._concrete import engine_resolver as _resolver
-from tigrbl_ops_oltp.crud.helpers.model import _single_pk_name
+from tigrbl_ops_oltp.crud.helpers.model import _coerce_pk_value, _single_pk_name
+from tigrbl_ops_oltp.crud import ops as _crud_ops
 from ..._mapping.op_resolver import resolve as resolve_ops
 from tigrbl_runtime.runtime.executor.invoke import invoke_op
 
@@ -157,15 +159,43 @@ async def rpc_call(
     # test code invokes ``rpc_call`` directly with the id embedded in the
     # payload.  Normalizing here preserves backwards compatibility and keeps
     # default CRUD handlers happy.
-    if isinstance(payload, Mapping):
-        try:
-            pk_name = _single_pk_name(mdl)
-        except Exception:  # model may not be bound to a table
-            pk_name = None
-        if pk_name and pk_name in payload:
-            pp = dict(ctx_dict.get("path_params", {}))
-            pp.setdefault(pk_name, payload[pk_name])
+    try:
+        pk_name = _single_pk_name(mdl)
+    except Exception:  # model may not be bound to a table
+        pk_name = None
+
+    if pk_name and isinstance(payload, Mapping) and pk_name in payload:
+        payload = dict(payload)
+        payload[pk_name] = _coerce_pk_value(mdl, payload[pk_name])
+
+    if pk_name and isinstance(payload, (list, tuple)):
+        normalized_payload: list[Any] = []
+        changed = False
+        for item in payload:
+            if isinstance(item, Mapping) and pk_name in item:
+                row = dict(item)
+                row[pk_name] = _coerce_pk_value(mdl, row[pk_name])
+                normalized_payload.append(row)
+                changed = True
+            else:
+                normalized_payload.append(item)
+        if changed:
+            payload = normalized_payload
+
+    if pk_name and isinstance(payload, Mapping) and pk_name in payload:
+        coerced_pk = _coerce_pk_value(mdl, payload[pk_name])
+        pp = dict(ctx_dict.get("path_params", {}))
+        pp.setdefault(pk_name, coerced_pk)
+        ctx_dict["path_params"] = pp
+
+    if pk_name and isinstance(ctx_dict.get("path_params"), Mapping):
+        pp = dict(ctx_dict.get("path_params", {}))
+        if pk_name in pp:
+            pp[pk_name] = _coerce_pk_value(mdl, pp[pk_name])
             ctx_dict["path_params"] = pp
+
+    if method == "bulk_delete" and pk_name and isinstance(payload, (list, tuple)):
+        payload = [_coerce_pk_value(mdl, ident) for ident in payload]
 
     try:
         logger.debug("Executing rpc_call %s.%s", getattr(mdl, "__name__", mdl), method)
