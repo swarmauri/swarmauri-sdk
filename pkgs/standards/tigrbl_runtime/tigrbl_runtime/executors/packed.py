@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, ClassVar, Mapping
 
+from tigrbl_concrete._concrete import engine_resolver as _resolver
 from tigrbl_kernel.models import KernelPlan, OpKey, PackedKernel
 
 from .base import ExecutorBase
@@ -127,6 +128,33 @@ class PackedPlanExecutor(ExecutorBase):
 
         return -1
 
+    async def _probe_ingress_for_program(
+        self, ctx: _Ctx, plan: KernelPlan, packed: PackedKernel
+    ) -> int:
+        if not getattr(plan, "opmeta", None):
+            return -1
+
+        seed_program_id = 0
+        seg_offset = packed.op_segment_offsets[seed_program_id]
+        seg_length = packed.op_segment_lengths[seed_program_id]
+        for i in range(seg_offset, seg_offset + seg_length):
+            seg_id = packed.op_to_segment_ids[i]
+            phase = str(packed.segment_phases[seg_id])
+            if not phase.startswith("INGRESS_"):
+                break
+            await self._run_segment_python(ctx, packed, seg_id)
+
+        temp = getattr(ctx, "temp", None)
+        if isinstance(temp, dict):
+            temp["ingress_probed"] = True
+
+        program_id = self._require_program_id_from_ctx(ctx)
+        if program_id < 0:
+            program_id = self._resolve_program_id_from_dispatch(ctx, packed)
+        if program_id < 0:
+            program_id = self._resolve_program_id_from_request(ctx, plan)
+        return program_id
+
     async def _run_segment_python(
         self, ctx: _Ctx, packed: PackedKernel, seg_id: int
     ) -> None:
@@ -163,6 +191,8 @@ class PackedPlanExecutor(ExecutorBase):
         if program_id < 0:
             program_id = self._resolve_program_id_from_request(ctx, plan)
         if program_id < 0:
+            program_id = await self._probe_ingress_for_program(ctx, plan, packed)
+        if program_id < 0:
             route = temp.get("route", {})
             if isinstance(route, dict) and route.get("method_not_allowed") is True:
                 await _send_json(env, 405, {"detail": "Method Not Allowed"})
@@ -183,50 +213,73 @@ class PackedPlanExecutor(ExecutorBase):
         ctx.model = getattr(meta, "model", None)
         ctx.op = getattr(meta, "alias", None)
         ctx.target = getattr(meta, "target", None)
+        release_db = None
+        if getattr(ctx, "_raw_db", None) is None:
+            try:
+                db, release_db = _resolver.acquire(
+                    router=getattr(ctx, "router", None) or getattr(ctx, "app", None),
+                    model=ctx.model,
+                    op_alias=ctx.op if isinstance(ctx.op, str) else None,
+                )
+                ctx._raw_db = db
+                ctx.owns_tx = True
+            except Exception:
+                release_db = None
         app = getattr(ctx, "app", None)
         if app is not None and ctx.model is not None and isinstance(ctx.op, str):
             ctx.opview = self.runtime.kernel.get_opview(app, ctx.model, ctx.op)
 
-        seg_offset = packed.op_segment_offsets[program_id]
-        seg_length = packed.op_segment_lengths[program_id]
         try:
-            for i in range(seg_offset, seg_offset + seg_length):
-                seg_id = packed.op_to_segment_ids[i]
-                await self._run_segment_python(ctx, packed, seg_id)
-        except StatusDetailError as exc:
-            detail = (
-                exc.detail
-                if getattr(exc, "detail", None) not in (None, "")
-                else str(exc)
-            )
-            await _send_json(
-                env, int(getattr(exc, "status_code", 500) or 500), {"detail": detail}
-            )
-            return
-        except Exception as exc:
-            std = create_standardized_error(exc)
-            detail = (
-                std.detail
-                if getattr(std, "detail", None) not in (None, "")
-                else str(std)
-            )
-            await _send_json(
-                env, int(getattr(std, "status_code", 500) or 500), {"detail": detail}
-            )
-            return
+            seg_offset = packed.op_segment_offsets[program_id]
+            seg_length = packed.op_segment_lengths[program_id]
+            try:
+                for i in range(seg_offset, seg_offset + seg_length):
+                    seg_id = packed.op_to_segment_ids[i]
+                    await self._run_segment_python(ctx, packed, seg_id)
+            except StatusDetailError as exc:
+                detail = (
+                    exc.detail
+                    if getattr(exc, "detail", None) not in (None, "")
+                    else str(exc)
+                )
+                await _send_json(
+                    env,
+                    int(getattr(exc, "status_code", 500) or 500),
+                    {"detail": detail},
+                )
+                return
+            except Exception as exc:
+                std = create_standardized_error(exc)
+                detail = (
+                    std.detail
+                    if getattr(std, "detail", None) not in (None, "")
+                    else str(std)
+                )
+                await _send_json(
+                    env,
+                    int(getattr(std, "status_code", 500) or 500),
+                    {"detail": detail},
+                )
+                return
 
-        route = temp.get("route", {}) if isinstance(temp, dict) else {}
-        egress = temp.get("egress", {}) if isinstance(temp, dict) else {}
-        if (
-            isinstance(route, dict)
-            and route.get("short_circuit") is True
-            and isinstance(egress, dict)
-            and egress.get("transport_response")
-        ):
+            route = temp.get("route", {}) if isinstance(temp, dict) else {}
+            egress = temp.get("egress", {}) if isinstance(temp, dict) else {}
+            if (
+                isinstance(route, dict)
+                and route.get("short_circuit") is True
+                and isinstance(egress, dict)
+                and egress.get("transport_response")
+            ):
+                await _send_transport_response(env, ctx)
+                return
+
             await _send_transport_response(env, ctx)
-            return
-
-        await _send_transport_response(env, ctx)
+        finally:
+            if callable(release_db):
+                try:
+                    release_db()
+                except Exception:
+                    pass
 
     def _build_python_packed_executor(self, packed: PackedKernel):
         async def _executor(kernel: Any, env: Any, ctx: _Ctx, plan: KernelPlan) -> None:
