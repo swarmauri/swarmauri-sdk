@@ -118,7 +118,17 @@ def _attach_to_router(router: RouterLike, table: type) -> None:
     router.tables[tname] = table
 
     # Direct references to model namespaces
-    setattr(router.schemas, tname, getattr(table, "schemas", SimpleNamespace()))
+    schema_ns = getattr(table, "schemas", SimpleNamespace())
+    ops_ns = getattr(table, "ops", None)
+    by_alias = getattr(ops_ns, "by_alias", None)
+    if isinstance(by_alias, dict):
+        for alias in by_alias.keys():
+            # Back-compat: expose operation namespaces even when schema
+            # materialization is deferred, so callers can still introspect
+            # supported verbs via ``app.schemas.<Model>.<alias>``.
+            if not hasattr(schema_ns, alias):
+                setattr(schema_ns, alias, SimpleNamespace())
+    setattr(router.schemas, tname, schema_ns)
     setattr(router.handlers, tname, getattr(table, "handlers", SimpleNamespace()))
     setattr(router.hooks, tname, getattr(table, "hooks", SimpleNamespace()))
     rpc_ns = _build_router_rpc_namespace(router, table)
