@@ -114,8 +114,8 @@ async def _run(obj: object | None, ctx: Any) -> None:
 
     method = str(scope.get("method", getattr(request, "method", "") or "")).upper()
     path = str(scope.get("path", getattr(request, "path", "/") or "/"))
-    query = _normalize_query(getattr(request, "query_params", None)) or _parse_query(
-        scope.get("query_string", b"")
+    query = _parse_query(scope.get("query_string", b"")) or _normalize_query(
+        getattr(request, "query_params", None)
     )
     headers = dict(getattr(request, "headers", {}) or {}) or _decode_headers_multi(
         scope.get("headers")

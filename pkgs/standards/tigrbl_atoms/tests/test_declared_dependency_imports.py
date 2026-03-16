@@ -13,6 +13,8 @@ ALLOWED_TOP_LEVEL_IMPORTS = {
     "tigrbl_ops_oltp",
     "jinja2",
     "tigrbl_core",
+    "sqlalchemy",
+    "typing_extensions",
 }
 
 
