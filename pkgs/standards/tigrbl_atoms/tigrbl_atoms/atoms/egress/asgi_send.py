@@ -80,7 +80,12 @@ async def _send_transport_response(env: Any, ctx: Any) -> None:
             if v is not None
         ]
 
-    body_obj = transport.get("body", b"")
+    body_obj = transport.get("body", None)
+    if body_obj is None:
+        body_obj = getattr(ctx, "result", None)
+        if body_obj is None and status == 200:
+            status = 204
+
     if isinstance(body_obj, (bytes, bytearray)):
         body = bytes(body_obj)
     elif body_obj is None:
@@ -162,6 +167,10 @@ async def _run(obj: object | None, ctx: Any) -> None:
         status = int(tr.get("status_code", 200)) if isinstance(tr, dict) else 200
         headers = tr.get("headers", {}) if isinstance(tr, dict) else {}
         body_obj = tr.get("body", None) if isinstance(tr, dict) else None
+        if body_obj is None:
+            body_obj = getattr(ctx, "result", None)
+            if body_obj is None and status == 200:
+                status = 204
 
         if isinstance(body_obj, (bytes, bytearray)):
             body = bytes(body_obj)
