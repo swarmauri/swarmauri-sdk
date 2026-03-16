@@ -85,7 +85,9 @@ def _load_toml(toml_str: str) -> Any:
     try:
         import tomllib
     except ModuleNotFoundError:  # pragma: no cover - Python 3.10 fallback
-        import tomli as tomllib  # type: ignore
+        from importlib import import_module
+
+        tomllib = import_module("tomli")  # type: ignore[assignment]
     return tomllib.loads(toml_str)
 
 
