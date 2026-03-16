@@ -241,6 +241,82 @@ def _ensure_instrumented_attr_accessors() -> None:
         InstrumentedAttribute.read_producer = property(_read_producer)  # type: ignore[attr-defined]
 
 
+async def _maybe_await(value: Any) -> Any:
+    if hasattr(value, "__await__"):
+        return await value
+    return value
+
+
+def _ctx_compat_ident(ctx: dict[str, Any]) -> Any:
+    path = ctx.get("path_params") if isinstance(ctx, dict) else None
+    if isinstance(path, dict):
+        if "id" in path:
+            return path["id"]
+        if "item_id" in path:
+            return path["item_id"]
+    if isinstance(ctx, dict):
+        return ctx.get("id", ctx.get("item_id", ctx.get("ident")))
+    return None
+
+
+def _attach_ctx_compat_core_raw(model: type) -> None:
+    ops = getattr(getattr(model, "ops", None), "all", ()) or ()
+    for spec in ops:
+        handler = getattr(spec, "handler", None)
+        if handler is None:
+            continue
+
+        target = getattr(spec, "target", "custom")
+
+        if target in {"read", "delete"}:
+
+            async def _core(ctx, *, _t=target):
+                import tigrbl.core as _core_mod
+
+                ctx_copy = dict(ctx or {})
+                fn = getattr(_core_mod, _t)
+                return await fn(
+                    model, _ctx_compat_ident(ctx_copy), db=ctx_copy.get("db")
+                )
+
+            object.__setattr__(spec, "core_raw", _core)
+            continue
+
+        if target in {"create"}:
+
+            async def _core(ctx, *, _t=target):
+                import tigrbl.core as _core_mod
+
+                ctx_copy = dict(ctx or {})
+                fn = getattr(_core_mod, _t)
+                return await fn(model, ctx_copy.get("payload"), db=ctx_copy.get("db"))
+
+            object.__setattr__(spec, "core_raw", _core)
+            continue
+
+        if target in {"update", "replace", "merge"}:
+
+            async def _core(ctx, *, _t=target):
+                import tigrbl.core as _core_mod
+
+                ctx_copy = dict(ctx or {})
+                fn = getattr(_core_mod, _t)
+                return await fn(
+                    model,
+                    _ctx_compat_ident(ctx_copy),
+                    ctx_copy.get("payload"),
+                    db=ctx_copy.get("db"),
+                )
+
+            object.__setattr__(spec, "core_raw", _core)
+            continue
+
+        async def _custom(ctx, *, _h=handler):
+            return await _maybe_await(_h(dict(ctx or {})))
+
+        object.__setattr__(spec, "core_raw", _custom)
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Declarative Base
 # ──────────────────────────────────────────────────────────────────────────────
@@ -378,12 +454,25 @@ class TableBase(DeclarativeBase):
         super().__init_subclass__(**kw)
 
         # 2.5) Surface ctx-only op declarations for lightweight introspection.
+        has_decorated_ops = False
         if not hasattr(cls, "__tigrbl_ops__"):
             for attr in cls.__dict__.values():
                 target = getattr(attr, "__func__", attr)
                 if getattr(target, "__tigrbl_op_spec__", None) is not None:
                     cls.__tigrbl_ops__ = tuple()
+                    has_decorated_ops = True
                     break
+
+        # 2.7) Keep TableBase-only models aligned with Table behavior by
+        # materializing op namespaces for decorated operations.
+        if has_decorated_ops and not hasattr(cls, "ops"):
+            try:
+                from tigrbl_canon.mapping import bind as _bind_model
+
+                _bind_model(cls)
+                _attach_ctx_compat_core_raw(cls)
+            except Exception:
+                pass
 
         # 2.6) Collect response specs declared via @response_ctx.
         responses = {}
