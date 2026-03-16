@@ -311,14 +311,18 @@ def _apply_alias_ctx_to_canon(specs: List["OpSpec"], model: type) -> List["OpSpe
 
 
 def resolve(model: type) -> List["OpSpec"]:
-    canon = _generate_canonical(model)
-    canon = _apply_alias_ctx_to_canon(canon, model)
+    decorated = _mro_collect_decorated_ops(model)
+    canon: List[OpSpec] = []
+    if not decorated:
+        canon = _generate_canonical(model)
+        canon = _apply_alias_ctx_to_canon(canon, model)
 
     class_specs = _collect_class_declared(model)
     reg_specs = _collect_registry(model)
 
     merged: Dict[Tuple[str, str], OpSpec] = {}
     _dedupe(merged, canon)
+    _dedupe(merged, decorated)
     _dedupe(merged, class_specs)
     _dedupe(merged, reg_specs)
 
