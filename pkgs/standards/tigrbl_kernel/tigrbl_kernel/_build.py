@@ -158,7 +158,10 @@ def _plan_labels(self, model: type, alias: str) -> list[str]:
         if phase in {"START_TX", "END_TX"}:
             continue
         for step in chains.get(phase, ()) or ():
-            labels.append(f"{phase}:{_label_step(step, phase)}")
+            step_label = _label_step(step, phase)
+            if "SYS_PHASE_DB_BIND" in str(step_label):
+                continue
+            labels.append(f"{phase}:{step_label}")
 
     if persist:
         labels.append(tx_end)
