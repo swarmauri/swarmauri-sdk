@@ -4,7 +4,7 @@ from typing import Any
 
 from ._table_registry import TableRegistry
 from tigrbl_base._base import AppBase
-from tigrbl.ddl import initialize as _ddl_initialize
+from tigrbl_concrete.ddl import initialize as _ddl_initialize
 from ._engine import Engine
 from tigrbl_concrete._concrete import engine_resolver as _resolver
 from tigrbl_core._spec.app_spec import AppSpec

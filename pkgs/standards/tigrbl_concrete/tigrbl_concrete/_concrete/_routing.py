@@ -5,7 +5,9 @@ from __future__ import annotations
 from typing import Any, Callable, Sequence
 
 from ._route import Route, compile_path
-from tigrbl.system.docs.openapi.metadata import is_metadata_route as _is_metadata_route
+from tigrbl_concrete.system.docs.openapi.metadata import (
+    is_metadata_route as _is_metadata_route,
+)
 
 Handler = Callable[..., Any]
 
