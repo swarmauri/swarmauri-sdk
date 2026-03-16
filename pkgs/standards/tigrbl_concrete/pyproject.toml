@@ -54,3 +54,6 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.9",
 ]
+
+[project.entry-points."tigrbl.engine_plugins"]
+concrete = "tigrbl_concrete.engine.plugins:register"
