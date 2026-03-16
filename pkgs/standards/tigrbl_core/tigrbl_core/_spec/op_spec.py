@@ -11,9 +11,7 @@ from typing import (
     Literal,
     Mapping,
     Optional,
-    Sequence,
     Tuple,
-    cast,
 )
 
 from .binding_spec import TransportBindingSpec
@@ -21,7 +19,7 @@ from .binding_spec import TransportBindingSpec
 from .._spec.hook_spec import HookSpec as OpHook
 
 from .serde import SerdeMixin
-from tigrbl_atoms import StepFn
+from .hook_types import StepFn
 from .op_utils import _maybe_await, _normalize_persist, _unwrap
 
 PersistPolicy = Literal["default", "prepend", "append", "override", "skip"]
@@ -232,7 +230,7 @@ def _generate_canonical(table: type) -> List["OpSpec"]:
 
 
 def _collect_class_declared(model: type) -> List["OpSpec"]:
-    from tigrbl.config.constants import TIGRBL_OPS_ATTR
+    from tigrbl_core.config.constants import TIGRBL_OPS_ATTR
 
     out: List[OpSpec] = []
     raw = getattr(model, TIGRBL_OPS_ATTR, None)
@@ -242,12 +240,12 @@ def _collect_class_declared(model: type) -> List["OpSpec"]:
 
 
 def _collect_registry(model: type) -> List["OpSpec"]:
-    try:
-        from tigrbl.op.model_registry import get_registered_ops
-    except Exception:  # pragma: no cover
-        return []
+    """Core spec resolution is intentionally package-local.
 
-    return list(cast(Sequence[OpSpec], get_registered_ops(model)))
+    Runtime registry integrations belong in concrete/runtime layers.
+    """
+
+    return []
 
 
 def _dedupe(

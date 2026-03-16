@@ -18,7 +18,7 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-
+    "pydantic>=2.10,<3",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 

@@ -62,7 +62,7 @@ __all__ = list(_EXPORTS)
 
 def __getattr__(name: str) -> Any:
     if name in {"PHASE", "PHASES"}:
-        from tigrbl_atoms import HookPhase, HookPhases
+        from .hook_types import HookPhase, HookPhases
 
         value = HookPhase if name == "PHASE" else HookPhases
         globals()[name] = value

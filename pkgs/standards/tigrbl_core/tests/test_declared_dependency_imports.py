@@ -8,7 +8,15 @@ PACKAGE_NAME = "tigrbl_core"
 PACKAGE_DIR = Path(__file__).resolve().parents[1] / PACKAGE_NAME
 
 # Static snapshot from pyproject.toml [project.dependencies].
-ALLOWED_TOP_LEVEL_IMPORTS = {"tigrbl_typing", "tomli_w", "yaml", "tigrbl_atoms"}
+ALLOWED_TOP_LEVEL_IMPORTS = {
+    "tigrbl_typing",
+    "tomli_w",
+    "tomli",
+    "yaml",
+    "tigrbl_atoms",
+    "pydantic",
+    "pydantic_core",
+}
 
 
 def _collect_top_level_imports(package_dir: Path) -> set[str]:
