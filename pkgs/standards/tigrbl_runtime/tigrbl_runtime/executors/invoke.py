@@ -47,6 +47,44 @@ def _normalize_result_payload(payload: Any) -> Any:
     return str(payload)
 
 
+def _unwrap_ctx_result(value: Any) -> Any:
+    """Return user-facing payload when runtime atoms return context objects."""
+    current = value
+    for _ in range(8):
+        if current is None or isinstance(
+            current, (str, int, float, bool, Mapping, list, tuple, set)
+        ):
+            return current
+
+        direct = getattr(current, "result", None)
+        if direct is not None and direct is not current:
+            current = direct
+            continue
+
+        payload = getattr(current, "response_payload", None)
+        if payload is not None and payload is not current:
+            current = payload
+            continue
+
+        response = getattr(current, "response", None)
+        if response is not None:
+            response_result = getattr(response, "result", None)
+            if response_result is not None and response_result is not current:
+                current = response_result
+                continue
+
+        bag = getattr(current, "bag", None)
+        if isinstance(bag, Mapping) and bag.get("result") is not None:
+            nested = bag.get("result")
+            if nested is not current:
+                current = nested
+                continue
+
+        return current
+
+    return current
+
+
 async def _maybe_await(value: Any) -> Any:
     if hasattr(value, "__await__"):
         return await value
@@ -92,6 +130,7 @@ async def _invoke(
         if obj is not None:
             ctx.model = type(obj)
     skip_persist: bool = bool(ctx.get(CTX_SKIP_PERSIST_FLAG) or ctx.get("skip_persist"))
+    skip_egress: bool = bool(ctx.get("skip_egress"))
     if not callable(ctx.get("rpc_error_builder")):
         ctx["rpc_error_builder"] = lambda exc: to_rpc_error_payload(
             create_standardized_error(exc)
@@ -212,6 +251,9 @@ async def _invoke(
         current_result = getattr(response_state, "result", None)
     if current_result is None:
         current_result = getattr(ctx, "obj", None)
+
+    current_result = _unwrap_ctx_result(current_result)
+
     if isinstance(rpc_error, Mapping):
         ctx["result"] = None
     elif callable(serializer):
@@ -231,20 +273,25 @@ async def _invoke(
     else:
         setattr(response_obj, "result", ctx.get("result"))
 
+    pre_egress_result = ctx.get("result")
+
     await _run_phase("POST_COMMIT", allow_flush=True, allow_commit=False, in_tx=False)
 
-    await _run_phase(
-        "POST_RESPONSE",
-        allow_flush=False,
-        allow_commit=False,
-        in_tx=False,
-        nonfatal=True,
-    )
+    if not skip_egress:
+        await _run_phase(
+            "POST_RESPONSE",
+            allow_flush=False,
+            allow_commit=False,
+            in_tx=False,
+            nonfatal=True,
+        )
 
-    await _run_phase("EGRESS_SHAPE", allow_flush=False, allow_commit=False, in_tx=False)
-    await _run_phase(
-        "EGRESS_FINALIZE", allow_flush=False, allow_commit=False, in_tx=False
-    )
+        await _run_phase(
+            "EGRESS_SHAPE", allow_flush=False, allow_commit=False, in_tx=False
+        )
+        await _run_phase(
+            "EGRESS_FINALIZE", allow_flush=False, allow_commit=False, in_tx=False
+        )
     if ctx.get("result") is not None and getattr(ctx, "response", None) is not None:
         setattr(ctx.response, "result", ctx.get("result"))
 
@@ -254,9 +301,39 @@ async def _invoke(
     if callable(release):
         release()
 
+    if skip_egress:
+        result = _unwrap_ctx_result(pre_egress_result)
+        result = _normalize_result_payload(result)
+        if result is not None:
+            ctx["result"] = result
+            if getattr(ctx, "response", None) is not None:
+                setattr(ctx.response, "result", result)
+        return result
+
     if getattr(ctx, "response", None) is not None:
-        return getattr(ctx.response, "result", ctx.get("result"))
-    return ctx.get("result")
+        result = getattr(ctx.response, "result", ctx.get("result"))
+        result = _unwrap_ctx_result(result)
+        if isinstance(result, Mapping) and {"status_code", "headers", "body"}.issubset(
+            result
+        ):
+            body = result.get("body")
+            if body is None and pre_egress_result is not None:
+                result = pre_egress_result
+        if result is not None:
+            ctx["result"] = result
+            setattr(ctx.response, "result", result)
+        return result
+
+    result = _unwrap_ctx_result(ctx.get("result"))
+    if isinstance(result, Mapping) and {"status_code", "headers", "body"}.issubset(
+        result
+    ):
+        body = result.get("body")
+        if body is None and pre_egress_result is not None:
+            result = pre_egress_result
+    if result is not None:
+        ctx["result"] = result
+    return result
 
 
 __all__ = ["_invoke"]

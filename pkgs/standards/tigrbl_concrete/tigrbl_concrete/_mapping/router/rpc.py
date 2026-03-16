@@ -1,17 +1,31 @@
 from __future__ import annotations
 
 import logging
+from uuid import UUID
 from types import SimpleNamespace
 from typing import Any, Dict, Mapping, Optional, Union
 
 from .common import RouterLike, _ensure_router_ns
 from ..._concrete import engine_resolver as _resolver
-from tigrbl_ops_oltp.crud.helpers.model import _single_pk_name
+from tigrbl_ops_oltp.crud.helpers.model import _coerce_pk_value, _single_pk_name
+from tigrbl_ops_oltp.crud import ops as _crud_ops
 from ..._mapping.op_resolver import resolve as resolve_ops
 from tigrbl_runtime.runtime.executor.invoke import invoke_op
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/rpc")
+
+
+def _jsonify_ids(value: Any) -> Any:
+    if isinstance(value, UUID):
+        return str(value)
+    if isinstance(value, Mapping):
+        return {k: _jsonify_ids(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_jsonify_ids(v) for v in value]
+    if isinstance(value, tuple):
+        return tuple(_jsonify_ids(v) for v in value)
+    return value
 
 
 def _fallback_resolution(
@@ -101,15 +115,43 @@ async def rpc_call(
     # test code invokes ``rpc_call`` directly with the id embedded in the
     # payload.  Normalizing here preserves backwards compatibility and keeps
     # default CRUD handlers happy.
-    if isinstance(payload, Mapping):
-        try:
-            pk_name = _single_pk_name(mdl)
-        except Exception:  # model may not be bound to a table
-            pk_name = None
-        if pk_name and pk_name in payload:
-            pp = dict(ctx_dict.get("path_params", {}))
-            pp.setdefault(pk_name, payload[pk_name])
+    try:
+        pk_name = _single_pk_name(mdl)
+    except Exception:  # model may not be bound to a table
+        pk_name = None
+
+    if pk_name and isinstance(payload, Mapping) and pk_name in payload:
+        payload = dict(payload)
+        payload[pk_name] = _coerce_pk_value(mdl, payload[pk_name])
+
+    if pk_name and isinstance(payload, (list, tuple)):
+        normalized_payload: list[Any] = []
+        changed = False
+        for item in payload:
+            if isinstance(item, Mapping) and pk_name in item:
+                row = dict(item)
+                row[pk_name] = _coerce_pk_value(mdl, row[pk_name])
+                normalized_payload.append(row)
+                changed = True
+            else:
+                normalized_payload.append(item)
+        if changed:
+            payload = normalized_payload
+
+    if pk_name and isinstance(payload, Mapping) and pk_name in payload:
+        coerced_pk = _coerce_pk_value(mdl, payload[pk_name])
+        pp = dict(ctx_dict.get("path_params", {}))
+        pp.setdefault(pk_name, coerced_pk)
+        ctx_dict["path_params"] = pp
+
+    if pk_name and isinstance(ctx_dict.get("path_params"), Mapping):
+        pp = dict(ctx_dict.get("path_params", {}))
+        if pk_name in pp:
+            pp[pk_name] = _coerce_pk_value(mdl, pp[pk_name])
             ctx_dict["path_params"] = pp
+
+    if method == "bulk_delete" and pk_name and isinstance(payload, (list, tuple)):
+        payload = [_coerce_pk_value(mdl, ident) for ident in payload]
 
     try:
         logger.debug("Executing rpc_call %s.%s", getattr(mdl, "__name__", mdl), method)
@@ -131,13 +173,53 @@ async def rpc_call(
                 alias=result["alias"],
                 ctx=invoke_ctx,
             )
+
+            if not isinstance(
+                final, (Mapping, list, tuple, str, int, float, bool, type(None))
+            ):
+                inner = getattr(final, "result", None)
+                if inner is not None and inner is not final:
+                    final = inner
+
+            serializer = result.get("serialize")
+            if callable(serializer):
+                try:
+                    final = serializer(final)
+                except Exception:
+                    logger.debug("rpc output serialization fallback", exc_info=True)
+
+            if (
+                isinstance(final, Mapping)
+                and {"status_code", "headers", "body"}.issubset(final)
+                and final.get("body") is None
+                and method in {"read", "update", "replace"}
+                and pk_name
+            ):
+                ident = (
+                    (ctx_dict.get("path_params") or {}).get(pk_name)
+                    if isinstance(ctx_dict.get("path_params"), Mapping)
+                    else None
+                )
+                if ident is None and isinstance(payload, Mapping):
+                    ident = payload.get(pk_name)
+                ident = _coerce_pk_value(mdl, ident)
+                if method == "read":
+                    recovered = await _crud_ops.read(mdl, ident, db)
+                elif method == "update":
+                    recovered = await _crud_ops.update(mdl, ident, payload or {}, db)
+                else:
+                    recovered = await _crud_ops.replace(mdl, ident, payload or {}, db)
+                if callable(serializer):
+                    return _jsonify_ids(serializer(recovered))
+                return _jsonify_ids(recovered)
+
             if getattr(resolution, "target", None) == "list" and isinstance(
                 final, Mapping
             ):
                 items = final.get("items")
                 if isinstance(items, list):
                     return items
-            return final
+            return _jsonify_ids(final)
         return result
     finally:
         if _release_db is not None:
