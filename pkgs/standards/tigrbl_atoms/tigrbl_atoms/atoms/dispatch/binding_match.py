@@ -41,6 +41,17 @@ def _rpc_method(dispatch: Mapping[str, object], ctx: Any) -> str | None:
         if isinstance(method, str):
             return method
     body = getattr(ctx, "body", None)
+    if isinstance(body, (bytes, bytearray)):
+        try:
+            import json
+
+            decoded = json.loads(bytes(body).decode("utf-8"))
+        except Exception:
+            decoded = None
+        if isinstance(decoded, Mapping):
+            method = decoded.get("method")
+            if isinstance(method, str):
+                return method
     if isinstance(body, Mapping):
         method = body.get("method")
         if isinstance(method, str):
