@@ -15,6 +15,33 @@ ANCHOR = _ev.EGRESS_ASGI_SEND
 NO_BODY_STATUS = set(range(100, 200)) | {204, 205, 304}
 
 
+def _json_default(value: Any) -> Any:
+    model_dump = getattr(value, "model_dump", None)
+    if callable(model_dump):
+        return model_dump()
+
+    table = getattr(value, "__table__", None)
+    columns = getattr(table, "columns", None)
+    if columns is not None:
+        serialized: dict[str, Any] = {}
+        for column in columns:
+            key = getattr(column, "key", None)
+            if isinstance(key, str) and key:
+                serialized[key] = getattr(value, key, None)
+        if serialized:
+            return serialized
+
+    obj_dict = getattr(value, "__dict__", None)
+    if isinstance(obj_dict, dict):
+        return {
+            key: val
+            for key, val in obj_dict.items()
+            if not key.startswith("_") and not callable(val)
+        }
+
+    return str(value)
+
+
 def finalize_transport_response(
     scope: Mapping[str, Any],
     status: int,
@@ -91,7 +118,11 @@ async def _send_transport_response(env: Any, ctx: Any) -> None:
     elif body_obj is None:
         body = b""
     else:
-        body = json.dumps(body_obj, separators=(",", ":"), default=str).encode("utf-8")
+        body = json.dumps(
+            body_obj,
+            separators=(",", ":"),
+            default=_json_default,
+        ).encode("utf-8")
         if not any(k.lower() == b"content-type" for k, _ in headers):
             headers.append((b"content-type", b"application/json; charset=utf-8"))
 
@@ -115,7 +146,10 @@ def _headers_to_asgi(headers: Mapping[str, Any]) -> list[tuple[bytes, bytes]]:
 
 def _json_bytes(obj: Any) -> bytes:
     return json.dumps(
-        obj, separators=(",", ":"), ensure_ascii=False, default=str
+        obj,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        default=_json_default,
     ).encode("utf-8")
 
 
