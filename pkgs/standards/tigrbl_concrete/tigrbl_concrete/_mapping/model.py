@@ -80,7 +80,9 @@ def _normalize_bindings(model: type, specs: Tuple[OpSpec, ...]) -> Tuple[OpSpec,
 
 def _default_path_suffix(spec: OpSpec) -> str | None:
     if spec.target.startswith("bulk_"):
-        return None
+        # Keep bulk operations addressable but avoid colliding with the
+        # collection CRUD path (e.g. create/list on /resource).
+        return f"/{spec.alias}"
     if spec.alias != spec.target and spec.target in CANON:
         return f"/{spec.alias}"
     return None

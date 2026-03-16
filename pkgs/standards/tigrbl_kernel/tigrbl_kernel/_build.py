@@ -69,7 +69,12 @@ def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
     ) or _is_persistent(chains)
 
     try:
-        _inject_atoms(chains, self._atoms() or (), persistent=persistent)
+        _inject_atoms(
+            chains,
+            self._atoms() or (),
+            persistent=persistent,
+            target=target,
+        )
     except Exception:
         logger.exception(
             "kernel: atom injection failed for %s.%s",
