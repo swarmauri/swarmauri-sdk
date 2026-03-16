@@ -22,7 +22,6 @@ dependencies = [
     "tigrbl-base",
     "tigrbl-core",
     "tigrbl-runtime",
-    "tigrbl-kernel",
     "tigrbl-atoms",
     "tigrbl",
 ]
@@ -33,7 +32,6 @@ keywords = ["tigrbl", "sdk", "standards", "framework"]
 "tigrbl-base" = { workspace = true }
 "tigrbl-core" = { workspace = true }
 "tigrbl-runtime" = { workspace = true }
-"tigrbl-kernel" = { workspace = true }
 "tigrbl-atoms" = { workspace = true }
 "tigrbl" = { workspace = true }
 

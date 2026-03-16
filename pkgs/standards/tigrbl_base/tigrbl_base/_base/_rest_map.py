@@ -1,0 +1,122 @@
+from __future__ import annotations
+
+import logging
+from types import SimpleNamespace
+from typing import Any, Awaitable, Callable, Dict, Mapping, Sequence, Tuple
+
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/mapping/rest/helpers")
+
+_Key = Tuple[str, str]  # (alias, target)
+
+
+def _ensure_jsonable(obj: Any) -> Any:
+    """Best-effort conversion of DB rows, row-mappings, or ORM objects to dicts."""
+    if isinstance(obj, (list, tuple)):
+        return [_ensure_jsonable(x) for x in obj]
+
+    if isinstance(obj, Mapping):
+        try:
+            return {k: _ensure_jsonable(v) for k, v in dict(obj).items()}
+        except Exception:  # pragma: no cover - fall back to original object
+            pass
+
+    try:
+        data = vars(obj)
+    except TypeError:
+        return obj
+
+    return {k: _ensure_jsonable(v) for k, v in data.items() if not k.startswith("_")}
+
+
+def _req_state_db(request: Any) -> Any:
+    return getattr(request.state, "db", None)
+
+
+def _pk_name(model: type) -> str:
+    """
+    Single primary key name (fallback 'id'). For composite keys, still returns 'id'.
+    Used for backward-compat path-param aliasing and handler resolution.
+    """
+    table = getattr(model, "__table__", None)
+    if table is None:
+        return "id"
+    pk = getattr(table, "primary_key", None)
+    if pk is None:
+        return "id"
+    try:
+        cols = list(pk.columns)
+    except Exception:
+        return "id"
+    if len(cols) != 1:
+        return "id"
+    return getattr(cols[0], "name", "id")
+
+
+def _pk_names(model: type) -> set[str]:
+    """All PK column names (fallback {'id'})."""
+    table = getattr(model, "__table__", None)
+    try:
+        cols = getattr(getattr(table, "primary_key", None), "columns", None)
+        if cols is None:
+            return {"id"}
+        out = {getattr(c, "name", None) for c in cols}
+        out.discard(None)
+        return out or {"id"}
+    except Exception:
+        return {"id"}
+
+
+def _get_phase_chains(
+    model: type, alias: str
+) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
+    """Resolve phase chains from bound hook namespaces without runtime imports."""
+    hooks_root = getattr(model, "hooks", None) or SimpleNamespace()
+    alias_ns = getattr(hooks_root, alias, None)
+    if alias_ns is None:
+        return {}
+
+    out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
+    for phase in (
+        "INGRESS_BEGIN",
+        "INGRESS_PARSE",
+        "INGRESS_ROUTE",
+        "PRE_TX_BEGIN",
+        "START_TX",
+        "PRE_HANDLER",
+        "HANDLER",
+        "POST_HANDLER",
+        "PRE_COMMIT",
+        "END_TX",
+        "POST_COMMIT",
+        "POST_RESPONSE",
+        "EGRESS_SHAPE",
+        "EGRESS_FINALIZE",
+        "ON_ERROR",
+        "ON_ROLLBACK",
+    ):
+        steps = getattr(alias_ns, phase, None)
+        if steps:
+            out[phase] = list(steps)
+    return out
+
+
+def _coerce_parent_kw(model: type, parent_kw: Dict[str, Any]) -> None:
+    for name, val in list(parent_kw.items()):
+        col = getattr(model, name, None)
+        try:
+            parent_kw[name] = col.type.python_type(val)  # type: ignore[attr-defined]
+        except Exception:
+            pass
+
+
+__all__ = [
+    "_Key",
+    "_ensure_jsonable",
+    "_req_state_db",
+    "_pk_name",
+    "_pk_names",
+    "_get_phase_chains",
+    "_coerce_parent_kw",
+]

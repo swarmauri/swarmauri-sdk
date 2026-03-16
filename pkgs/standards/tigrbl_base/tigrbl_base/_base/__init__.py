@@ -23,6 +23,7 @@ _EXPORTS = {
     "TigrblSessionBase": "_session_base",
     "TableBase": "_table_base",
     "TableRegistryBase": "_table_registry_base",
+    "AttrDict": "_mapping_access",
 }
 
 __all__ = list(_EXPORTS)

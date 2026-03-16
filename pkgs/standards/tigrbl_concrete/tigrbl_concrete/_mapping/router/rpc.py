@@ -5,10 +5,10 @@ from types import SimpleNamespace
 from typing import Any, Dict, Mapping, Optional, Union
 
 from .common import RouterLike, _ensure_router_ns
-from tigrbl_concrete._concrete import engine_resolver as _resolver
+from ...mapping import engine_resolver as _resolver
 from tigrbl_ops_oltp.crud.helpers.model import _single_pk_name
-from tigrbl_concrete._mapping.op_resolver import resolve as resolve_ops
-from tigrbl_runtime.runtime.executor.invoke import _invoke
+from ...mapping.op_resolver import resolve as resolve_ops
+from tigrbl_runtime.runtime.executor.invoke import invoke_op
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/rpc")
@@ -115,7 +115,8 @@ async def rpc_call(
         logger.debug("Executing rpc_call %s.%s", getattr(mdl, "__name__", mdl), method)
         result = await fn(payload, db=db, request=request, ctx=ctx_dict)
         if isinstance(result, Mapping) and {
-            "phases",
+            "model",
+            "alias",
             "ctx",
             "serialize",
             "request",
@@ -123,10 +124,11 @@ async def rpc_call(
         }.issubset(result.keys()):
             invoke_ctx: Dict[str, Any] = dict(result["ctx"])
             invoke_ctx["response_serializer"] = result["serialize"]
-            final = await _invoke(
+            final = await invoke_op(
                 request=result["request"],
                 db=result["db"],
-                phases=result["phases"],
+                model=result["model"],
+                alias=result["alias"],
                 ctx=invoke_ctx,
             )
             if getattr(resolution, "target", None) == "list" and isinstance(
