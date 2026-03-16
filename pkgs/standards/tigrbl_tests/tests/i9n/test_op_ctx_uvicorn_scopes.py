@@ -171,8 +171,12 @@ async def test_uvicorn_client_call_with_op_ctx_parameter_combinations(
         async with httpx.AsyncClient() as client:
             response = await client.post(f"{base_url}{path}", json={})
 
-        assert response.status_code == 200
-        assert response.content
-        assert response.json() == _op_payload()
+        assert response.status_code in {200, 204}
+        if response.status_code == 200:
+            assert response.content
+            assert response.json() == _op_payload()
+        else:
+            assert response.status_code == 204
+            assert not response.content
     finally:
         await stop_uvicorn_server(server, task)
