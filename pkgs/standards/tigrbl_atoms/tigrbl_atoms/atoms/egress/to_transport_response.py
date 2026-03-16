@@ -89,6 +89,12 @@ def _run(obj: object | None, ctx: Any) -> None:
     body = egress.get("enveloped")
     if body is None:
         body = egress.get("wire_payload")
+    if body is None:
+        body = getattr(ctx, "result", None)
+    if body is None:
+        response_ns = getattr(ctx, "response", None)
+        if response_ns is not None:
+            body = getattr(response_ns, "result", None)
 
     headers_obj = egress.get("headers", getattr(ctx, "response_headers", {})) or {}
     if isinstance(headers_obj, dict):
