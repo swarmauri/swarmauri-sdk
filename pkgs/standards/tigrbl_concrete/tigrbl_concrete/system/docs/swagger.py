@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from tigrbl_concrete._concrete._response import Response
+from tigrbl_concrete.system.docs.runtime_ops import register_runtime_get_route
 
 
 def _resolve_docs_owner(target: Any) -> Any:
@@ -65,6 +66,13 @@ def mount_swagger(
 
     def _docs_handler(request: Any) -> Response:
         return Response.html(build_swagger_html(router, request))
+
+    register_runtime_get_route(
+        router,
+        path=path,
+        alias=name,
+        endpoint=_docs_handler,
+    )
 
     router.add_route(
         path,
