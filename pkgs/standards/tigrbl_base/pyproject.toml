@@ -21,6 +21,7 @@ dependencies = [
     "tigrbl-core",
     "tigrbl-atoms",
     "sqlalchemy>=2.0",
+    "pydantic>=2.0",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
