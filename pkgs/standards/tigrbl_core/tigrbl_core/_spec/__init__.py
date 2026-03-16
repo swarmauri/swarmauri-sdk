@@ -36,6 +36,7 @@ _EXPORTS = {
     "HookPhase": "hook_spec",
     "TemplateSpec": "response_spec",
     "ResponseSpec": "response_spec",
+    "resolve_response_spec": "response_resolver",
     "RequestSpec": "request_spec",
     "RouterSpec": "router_spec",
     "SchemaSpec": "schema_spec",
