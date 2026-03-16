@@ -27,7 +27,7 @@ _PHASE_DB_CAPABILITIES: dict[PhaseName, DbCapabilities] = {
     "PRE_TX_BEGIN": DbCapabilities(False, False, True, False),
     "START_TX": DbCapabilities(False, False, True, False),
     "PRE_HANDLER": DbCapabilities(True, False, True, False),
-    "HANDLER": DbCapabilities(True, False, True, False),
+    "HANDLER": DbCapabilities(True, True, True, False),
     "POST_HANDLER": DbCapabilities(True, False, True, False),
     "PRE_COMMIT": DbCapabilities(False, False, True, False),
     "END_TX": DbCapabilities(True, True, True, False),

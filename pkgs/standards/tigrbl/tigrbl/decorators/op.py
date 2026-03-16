@@ -176,8 +176,12 @@ def op_ctx(
         ):
             inferred_arity = "collection"
 
+        resolved_alias = alias or (
+            resolved_target if resolved_target != "custom" else ""
+        )
+
         spec = OpSpec(
-            alias=alias or "",
+            alias=resolved_alias,
             target=resolved_target,
             arity=inferred_arity,
             http_methods=tuple(http_methods) if http_methods else None,

@@ -258,9 +258,22 @@ def acquire(
     if p is None and model is not None:
         get_db = getattr(model, "__tigrbl_get_db__", None)
         if callable(get_db):
-            db = get_db()
+            db_or_gen = get_db()
+            gen = None
+            db = db_or_gen
+
+            if inspect.isgenerator(db_or_gen):
+                gen = db_or_gen
+                db = next(gen)
 
             def _release() -> None:
+                if gen is not None:
+                    try:
+                        next(gen)
+                    except StopIteration:
+                        pass
+                    except Exception:
+                        pass
                 close = getattr(db, "close", None)
                 if callable(close):
                     try:

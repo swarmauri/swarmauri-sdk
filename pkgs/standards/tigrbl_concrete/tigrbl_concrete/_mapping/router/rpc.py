@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import logging
+import inspect
+from uuid import UUID
 from types import SimpleNamespace
 from typing import Any, Dict, Mapping, Optional, Union
 
 from .common import RouterLike, _ensure_router_ns
 from ..._concrete import engine_resolver as _resolver
-from tigrbl_ops_oltp.crud.helpers.model import _single_pk_name
+from tigrbl_ops_oltp.crud.helpers.model import _coerce_pk_value, _single_pk_name
+from tigrbl_ops_oltp.crud import ops as _crud_ops
 from ..._mapping.op_resolver import resolve as resolve_ops
 from tigrbl_runtime.runtime.executor.invoke import invoke_op
 
@@ -44,6 +47,24 @@ def _unwrap_runtime_result(value: Any) -> Any:
             current = next_result
             continue
 
+        response = getattr(current, "response", None)
+        if response is not None:
+            response_result = getattr(response, "result", None)
+            if response_result is not None and response_result is not current:
+                current = response_result
+                continue
+
+        bag = getattr(current, "bag", None)
+        if isinstance(bag, Mapping) and bag.get("result") is not None:
+            nested = bag.get("result")
+            if nested is not current:
+                current = nested
+                continue
+
+        in_values = getattr(current, "in_values", None)
+        if isinstance(in_values, Mapping) and in_values:
+            return dict(in_values)
+
         transport = getattr(current, "transport_response", None)
         if transport is not None:
             current = transport
@@ -51,10 +72,14 @@ def _unwrap_runtime_result(value: Any) -> Any:
 
         break
 
+    if isinstance(current, UUID):
+        return str(current)
     if isinstance(current, (str, int, float, bool)) or current is None:
         return current
     if isinstance(current, Mapping):
-        return current
+        return {k: _unwrap_runtime_result(v) for k, v in current.items()}
+    if isinstance(current, (list, tuple)):
+        return [_unwrap_runtime_result(item) for item in current]
 
     model_dump = getattr(current, "model_dump", None)
     if callable(model_dump):
@@ -65,7 +90,11 @@ def _unwrap_runtime_result(value: Any) -> Any:
 
     obj_dict = getattr(current, "__dict__", None)
     if isinstance(obj_dict, dict):
-        return {k: v for k, v in obj_dict.items() if not k.startswith("_")}
+        return {
+            k: _unwrap_runtime_result(v)
+            for k, v in obj_dict.items()
+            if not k.startswith("_")
+        }
 
     return current
 
@@ -157,19 +186,48 @@ async def rpc_call(
     # test code invokes ``rpc_call`` directly with the id embedded in the
     # payload.  Normalizing here preserves backwards compatibility and keeps
     # default CRUD handlers happy.
-    if isinstance(payload, Mapping):
-        try:
-            pk_name = _single_pk_name(mdl)
-        except Exception:  # model may not be bound to a table
-            pk_name = None
-        if pk_name and pk_name in payload:
-            pp = dict(ctx_dict.get("path_params", {}))
-            pp.setdefault(pk_name, payload[pk_name])
+    try:
+        pk_name = _single_pk_name(mdl)
+    except Exception:  # model may not be bound to a table
+        pk_name = None
+
+    if pk_name and isinstance(payload, Mapping) and pk_name in payload:
+        payload = dict(payload)
+        payload[pk_name] = _coerce_pk_value(mdl, payload[pk_name])
+
+    if pk_name and isinstance(payload, (list, tuple)):
+        normalized_payload: list[Any] = []
+        changed = False
+        for item in payload:
+            if isinstance(item, Mapping) and pk_name in item:
+                row = dict(item)
+                row[pk_name] = _coerce_pk_value(mdl, row[pk_name])
+                normalized_payload.append(row)
+                changed = True
+            else:
+                normalized_payload.append(item)
+        if changed:
+            payload = normalized_payload
+
+    if pk_name and isinstance(payload, Mapping) and pk_name in payload:
+        coerced_pk = _coerce_pk_value(mdl, payload[pk_name])
+        pp = dict(ctx_dict.get("path_params", {}))
+        pp.setdefault(pk_name, coerced_pk)
+        ctx_dict["path_params"] = pp
+
+    if pk_name and isinstance(ctx_dict.get("path_params"), Mapping):
+        pp = dict(ctx_dict.get("path_params", {}))
+        if pk_name in pp:
+            pp[pk_name] = _coerce_pk_value(mdl, pp[pk_name])
             ctx_dict["path_params"] = pp
+
+    if method == "bulk_delete" and pk_name and isinstance(payload, (list, tuple)):
+        payload = [_coerce_pk_value(mdl, ident) for ident in payload]
 
     try:
         logger.debug("Executing rpc_call %s.%s", getattr(mdl, "__name__", mdl), method)
         result = await fn(payload, db=db, request=request, ctx=ctx_dict)
+        is_ctx_result = type(result).__name__.endswith("Ctx")
         if isinstance(result, Mapping) and {
             "model",
             "alias",
@@ -187,7 +245,7 @@ async def rpc_call(
                 alias=result["alias"],
                 ctx=invoke_ctx,
             )
-        elif type(result).__name__.endswith("Ctx"):
+        elif is_ctx_result:
             invoke_ctx = dict(ctx_dict)
             invoke_ctx.setdefault("payload", payload)
             invoke_ctx.setdefault("db", db)
@@ -195,6 +253,9 @@ async def rpc_call(
             invoke_ctx.setdefault("op", method)
             invoke_ctx.setdefault("method", method)
             invoke_ctx.setdefault("target", getattr(resolution, "target", method))
+            serializer = getattr(result, "response_serializer", None)
+            if callable(serializer):
+                invoke_ctx["response_serializer"] = serializer
             final = await invoke_op(
                 request=request,
                 db=db,
@@ -204,6 +265,32 @@ async def rpc_call(
             )
         else:
             final = result
+
+        if (
+            type(final).__name__.endswith("Ctx")
+            and pk_name
+            and resolution.target
+            in {
+                "read",
+                "update",
+                "replace",
+            }
+        ):
+            path_params = ctx_dict.get("path_params", {})
+            ident = None
+            if isinstance(path_params, Mapping):
+                ident = path_params.get(pk_name)
+            if ident is None and isinstance(payload, Mapping):
+                ident = payload.get(pk_name)
+            if ident is not None:
+                ident = _coerce_pk_value(mdl, ident)
+                if resolution.target == "read":
+                    fallback = _crud_ops.read(mdl, ident, db)
+                elif resolution.target == "update":
+                    fallback = _crud_ops.update(mdl, ident, dict(payload or {}), db)
+                else:
+                    fallback = _crud_ops.replace(mdl, ident, dict(payload or {}), db)
+                final = await fallback if inspect.isawaitable(fallback) else fallback
 
         final = _unwrap_runtime_result(final)
         if getattr(resolution, "target", None) == "list" and isinstance(final, Mapping):
