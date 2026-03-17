@@ -142,44 +142,54 @@ from tigrbl_core._spec import (  # noqa: E402
 from tigrbl_runtime.runtime.executor import _invoke  # noqa: E402
 
 
-def _mapping_attr(name: str):
-    return getattr(import_module("tigrbl.mapping"), name)
-
-
 def bind(*args, **kwargs):
-    return _mapping_attr("bind")(*args, **kwargs)
+    return import_module("tigrbl_concrete._mapping.model").bind(*args, **kwargs)
 
 
 def rebind(*args, **kwargs):
-    return _mapping_attr("rebind")(*args, **kwargs)
+    return import_module("tigrbl_concrete._mapping.model").rebind(*args, **kwargs)
 
 
 def build_schemas(*args, **kwargs):
-    return _mapping_attr("build_schemas")(*args, **kwargs)
+    return import_module("tigrbl_concrete._mapping.model")._materialize_schemas(
+        *args, **kwargs
+    )
 
 
 def build_hooks(*args, **kwargs):
-    return _mapping_attr("build_hooks")(*args, **kwargs)
+    return import_module("tigrbl_concrete._mapping.model")._bind_model_hooks(
+        *args, **kwargs
+    )
 
 
 def build_handlers(*args, **kwargs):
-    return _mapping_attr("build_handlers")(*args, **kwargs)
+    return import_module("tigrbl_concrete._mapping.model")._bind_model_hooks(
+        *args, **kwargs
+    )
 
 
 def register_rpc(*args, **kwargs):
-    return _mapping_attr("register_rpc")(*args, **kwargs)
+    return import_module("tigrbl_base._base._rpc_map").register_and_attach(
+        *args, **kwargs
+    )
 
 
 def build_rest(*args, **kwargs):
-    return _mapping_attr("build_rest")(*args, **kwargs)
+    return import_module("tigrbl_concrete._mapping.model")._materialize_rest_router(
+        *args, **kwargs
+    )
 
 
 def include_tables(*args, **kwargs):
-    return _mapping_attr("include_tables")(*args, **kwargs)
+    return import_module("tigrbl_concrete._mapping.router.include").include_tables(
+        *args, **kwargs
+    )
 
 
 async def rpc_call(*args, **kwargs):
-    return await _mapping_attr("rpc_call")(*args, **kwargs)
+    return await import_module("tigrbl_concrete._mapping.router.rpc").rpc_call(
+        *args, **kwargs
+    )
 
 
 __all__ = [
