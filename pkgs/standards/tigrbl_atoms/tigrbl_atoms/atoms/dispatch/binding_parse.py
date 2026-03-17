@@ -70,8 +70,23 @@ def _run(obj: object | None, ctx: Any) -> None:
         path_params = dispatch.get("path_params")
         if isinstance(path_params, Mapping):
             payload.update({str(k): v for k, v in path_params.items()})
-        if isinstance(body, Mapping):
-            payload.update({str(k): v for k, v in body.items()})
+
+        rest_body = body
+        if isinstance(rest_body, (bytes, bytearray)):
+            try:
+                rest_body = json.loads(bytes(rest_body).decode("utf-8"))
+            except Exception:
+                rest_body = None
+
+        if rest_body is None:
+            ingress = temp.get("ingress") if isinstance(temp, dict) else None
+            if isinstance(ingress, Mapping):
+                candidate = ingress.get("body_json")
+                if isinstance(candidate, Mapping):
+                    rest_body = candidate
+
+        if isinstance(rest_body, Mapping):
+            payload.update({str(k): v for k, v in rest_body.items()})
         dispatch["parsed_payload"] = payload
         if isinstance(route, dict):
             route["payload"] = payload
