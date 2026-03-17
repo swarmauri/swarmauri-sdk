@@ -23,6 +23,14 @@ from .model_helpers import _ensure_model_namespaces, _filter_specs, _index_specs
 
 MappingKey = tuple[str, str]
 
+_BULK_ROW_TARGETS = set()
+
+
+def _bulk_rows_verb(spec: OpSpec) -> str:
+    """Return the canonical verb key used for request/response model naming."""
+    return spec.alias
+
+
 _DEFAULT_METHODS: dict[str, tuple[str, ...]] = {
     "create": ("POST",),
     "read": ("GET",),
@@ -177,6 +185,19 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
         if spec.response_model is not None:
             setattr(alias_ns, "out", _resolve_schema_arg(model, spec.response_model))
 
+        # Bulk routes keep explicit object request/response models produced by
+        # ``_build_schema`` so OpenAPI component names remain stable.
+
+
+def _is_array_schema_model(schema_model: Any) -> bool:
+    if not hasattr(schema_model, "model_json_schema"):
+        return False
+    try:
+        schema = schema_model.model_json_schema()
+    except Exception:
+        return False
+    return schema.get("type") == "array"
+
 
 def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
     visible_aliases = {spec.alias for spec in specs}
@@ -211,22 +232,22 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
             op_handler = (
                 getattr(op_spec, "handler", None) if op_spec is not None else None
             )
+            label = f"hook:wire:tigrbl:core:crud:ops:{alias}@HANDLER"
 
             if callable(op_handler):
-
-                async def _default_handler_step(ctx: Any, _h: Any = op_handler) -> None:
-                    await _maybe_await(_h(ctx))
+                setattr(op_handler, "__tigrbl_label", label)
+                _default_handler_step = op_handler
 
             else:
 
                 async def _default_handler_step(ctx: Any) -> None:
                     del ctx
 
-            setattr(
-                _default_handler_step,
-                "__tigrbl_label",
-                f"hook:wire:tigrbl:core:crud:ops:{alias}@HANDLER",
-            )
+                if op_spec is not None and getattr(op_spec, "target", None):
+                    _default_handler_step.__qualname__ = str(op_spec.target)
+
+                setattr(_default_handler_step, "__tigrbl_label", label)
+
             alias_ns.HANDLER = (_default_handler_step,)
 
 

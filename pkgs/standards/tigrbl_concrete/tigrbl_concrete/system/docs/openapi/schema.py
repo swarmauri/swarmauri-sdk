@@ -115,11 +115,7 @@ def openapi(router: Any) -> dict[str, Any]:
             if request_schema is None:
                 request_schema = _request_schema_from_handler(route, components_schemas)
 
-            if (
-                isinstance(request_schema, dict)
-                and alias.startswith("bulk_")
-                and "$ref" in request_schema
-            ):
+            if isinstance(request_schema, dict) and alias.startswith("bulk_"):
                 request_schema = _resolve_component_schema_ref(
                     request_schema,
                     components_schemas,
