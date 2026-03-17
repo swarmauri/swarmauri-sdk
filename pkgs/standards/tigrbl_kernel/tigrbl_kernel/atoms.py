@@ -214,8 +214,6 @@ def _inject_atoms(
                 and _subject.startswith("handler_")
             ):
                 continue
-        if anchor == _ev.SYS_HANDLER_PERSISTENCE and chains.get("HANDLER"):
-            continue
         if (
             domain == "sys"
             and isinstance(_subject, str)
