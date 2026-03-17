@@ -210,6 +210,14 @@ class PackedPlanExecutor(ExecutorBase):
         if program_id < 0:
             program_id = await self._probe_ingress_for_program(ctx, plan, packed)
         if program_id < 0:
+            egress = temp.get("egress") if isinstance(temp, dict) else None
+            transport = (
+                egress.get("transport_response") if isinstance(egress, dict) else None
+            )
+            if isinstance(transport, dict):
+                await _send_transport_response(env, ctx)
+                return
+
             route = temp.get("route", {})
             if isinstance(route, dict) and route.get("method_not_allowed") is True:
                 await _send_json(env, 405, {"detail": "Method Not Allowed"})
