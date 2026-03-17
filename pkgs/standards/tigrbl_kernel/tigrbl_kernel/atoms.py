@@ -207,6 +207,11 @@ def _inject_atoms(
         elif anchor in _ev.PHASES:
             phase = anchor
             persist_tied = False
+        elif anchor == "INGRESS_ROUTE":
+            # Compatibility alias retained for tests and legacy direct callers.
+            # Canonical runtime ingress routing phase is INGRESS_DISPATCH.
+            phase = anchor
+            persist_tied = False
         else:
             continue
 
