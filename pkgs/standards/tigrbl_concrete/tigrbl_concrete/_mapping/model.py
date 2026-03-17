@@ -720,6 +720,26 @@ def _materialize_rest_router(
     if "bulk_delete" in aliases:
         suppressed_aliases.add("clear")
 
+    # Remove REST bindings from suppressed specs so the kernel plan
+    # does not create templated route entries that shadow bulk ops.
+    if suppressed_aliases:
+        ops_ns = getattr(model, "ops", None)
+        if ops_ns is not None:
+            updated_all: list[Any] = []
+            for sp in getattr(ops_ns, "all", ()) or ():
+                if sp.alias in suppressed_aliases:
+                    stripped = replace(
+                        sp,
+                        bindings=tuple(
+                            b for b in (sp.bindings or ())
+                            if not isinstance(b, HttpRestBindingSpec)
+                        ),
+                    )
+                    updated_all.append(stripped)
+                else:
+                    updated_all.append(sp)
+            ops_ns.all = tuple(updated_all)
+
     for spec in specs:
         if spec.alias in suppressed_aliases:
             continue
@@ -752,6 +772,25 @@ def _materialize_rest_router(
                 spec.alias,
                 SimpleNamespace(),
             )
+            # For GET endpoints (list), expose request fields as query params
+            is_get_only = methods == ("GET",)
+            in_model = getattr(alias_ns, "in_", None)
+            query_schemas = None
+            if is_get_only and in_model is not None and hasattr(in_model, "model_fields"):
+                query_schemas = {}
+                for fname, finfo in in_model.model_fields.items():
+                    qs: dict[str, Any] = {"type": "string"}
+                    anno = finfo.annotation
+                    if anno is int:
+                        qs["type"] = "integer"
+                    elif anno is bool:
+                        qs["type"] = "boolean"
+                    elif anno is float:
+                        qs["type"] = "number"
+                    # List/read filters are always optional query params
+                    qs["required"] = False
+                    query_schemas[fname] = qs
+
             model_router.add_route(
                 path=path,
                 endpoint=_placeholder_endpoint,
@@ -760,8 +799,9 @@ def _materialize_rest_router(
                 tags=[model.__name__],
                 tigrbl_model=model,
                 tigrbl_alias=spec.alias,
-                request_model=getattr(alias_ns, "in_", None),
+                request_model=None if is_get_only else getattr(alias_ns, "in_", None),
                 response_model=getattr(alias_ns, "out", None),
+                query_param_schemas=query_schemas,
                 include_in_schema=True,
                 status_code=201 if spec.target == "create" else None,
             )
