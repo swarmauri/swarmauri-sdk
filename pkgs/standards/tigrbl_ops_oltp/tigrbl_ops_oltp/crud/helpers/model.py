@@ -72,22 +72,31 @@ def _model_columns(model: type) -> Tuple[str, ...]:
 
 
 def _colspecs(model: type) -> Mapping[str, Any]:
-    logger.info("_colspecs called with model=%s", model)
+    logger.debug("_colspecs called with model=%s", model)
+    table = getattr(model, "__table__", None)
+    cols = getattr(table, "columns", None) if table is not None else None
+    try:
+        col_count = len(tuple(cols)) if cols is not None else 0
+    except Exception:
+        col_count = 0
+
     cache_bust = hash(
         (
             id(getattr(model, "__tigrbl_colspecs__", None)),
             id(getattr(model, "__tigrbl_cols__", None)),
+            id(table),
+            col_count,
         )
     )
     specs = mro_collect_columns(model, _cache_bust=cache_bust)
-    logger.info("_colspecs returning %s", specs)
+    logger.debug("_colspecs returning %s", specs)
     return specs
 
 
 def _filter_in_values(
     model: type, data: Mapping[str, Any], verb: str
 ) -> Dict[str, Any]:
-    logger.info("_filter_in_values called with data=%s verb=%s", data, verb)
+    logger.debug("_filter_in_values called with data=%s verb=%s", data, verb)
     specs = _colspecs(model)
     if not specs:
         result = dict(data)
@@ -102,7 +111,9 @@ def _filter_in_values(
             schema_cls = getattr(getattr(model, "schemas", None), verb, None)
             schema_in = getattr(schema_cls, "in_", None) if schema_cls else None
             field_info = (
-                schema_in.model_fields.get(k) if schema_in and hasattr(schema_in, "model_fields") else None
+                schema_in.model_fields.get(k)
+                if schema_in and hasattr(schema_in, "model_fields")
+                else None
             )
             if field_info is not None and getattr(field_info, "exclude", False):
                 continue
@@ -132,7 +143,7 @@ def _filter_in_values(
             except Exception:
                 # Best effort coercion only; preserve original value on failure.
                 out[k] = v
-    logger.info("_filter_in_values returning %s", out)
+    logger.debug("_filter_in_values returning %s", out)
     return out
 
 
