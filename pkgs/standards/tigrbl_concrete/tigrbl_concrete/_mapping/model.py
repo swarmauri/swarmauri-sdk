@@ -20,7 +20,7 @@ from tigrbl_core.config.constants import HOOK_DECLS_ATTR
 from tigrbl_core._spec.op_utils import _maybe_await, _unwrap
 from tigrbl_core.schema.builder import _build_schema
 from tigrbl_core.schema.builder import _strip_parent_fields
-from tigrbl_core.schema.utils import _make_bulk_rows_model
+from tigrbl_core.schema.utils import _make_bulk_rows_model, _make_deleted_response_model
 from tigrbl_base._base._schema_base import SchemaBase
 from tigrbl_typing.phases import HOOK_PHASES
 
@@ -283,12 +283,15 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
             setattr(alias_ns, "in_", request_model)
 
         if not hasattr(alias_ns, "out"):
-            response_verb = "read" if spec.target == "create" else spec.target
-            response_item_model = _build_schema(
-                model,
-                verb=response_verb,
-                name=f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Response",
-            )
+            if spec.target in ("clear", "delete"):
+                response_item_model = _make_deleted_response_model(model, spec.alias)
+            else:
+                response_verb = "read" if spec.target == "create" else spec.target
+                response_item_model = _build_schema(
+                    model,
+                    verb=response_verb,
+                    name=f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Response",
+                )
             setattr(alias_ns, "out", response_item_model)
 
         if spec.request_model is not None:
@@ -304,6 +307,10 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
                 _strip_nested_parent_fields(model, spec.target, in_model, nested_vars),
             )
 
+    _specs_by_alias: dict[str, OpSpec] = {}
+    for spec in specs:
+        _specs_by_alias[spec.alias] = spec
+
     for spec in specs:
         if spec.alias == spec.target:
             continue
@@ -311,16 +318,26 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
         target_ns = getattr(schemas, spec.target, None)
         if not isinstance(alias_ns, SimpleNamespace):
             continue
+        # Find the target spec to check if it has explicit schema overrides
+        target_spec = _specs_by_alias.get(spec.target)
+        target_has_req_override = (
+            target_spec is not None and getattr(target_spec, "request_model", None) is not None
+        )
+        target_has_resp_override = (
+            target_spec is not None and getattr(target_spec, "response_model", None) is not None
+        )
         if (
             isinstance(target_ns, SimpleNamespace)
             and spec.request_model is None
             and getattr(target_ns, "in_", None) is not None
+            and (getattr(alias_ns, "in_", None) is None or target_has_req_override)
         ):
             setattr(alias_ns, "in_", getattr(target_ns, "in_"))
         if (
             isinstance(target_ns, SimpleNamespace)
             and spec.response_model is None
             and getattr(target_ns, "out", None) is not None
+            and (getattr(alias_ns, "out", None) is None or target_has_resp_override)
         ):
             setattr(alias_ns, "out", getattr(target_ns, "out"))
 
@@ -409,9 +426,9 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
             )
             label = f"hook:wire:tigrbl:core:crud:ops:{alias}@HANDLER"
 
-            async def _default_handler_step(ctx: Any) -> Any:
-                if callable(op_handler):
-                    result = op_handler(ctx)
+            async def _default_handler_step(ctx: Any, _handler=op_handler) -> Any:
+                if callable(_handler):
+                    result = _handler(ctx)
                     if inspect.isawaitable(result):
                         return await result
                     return result
