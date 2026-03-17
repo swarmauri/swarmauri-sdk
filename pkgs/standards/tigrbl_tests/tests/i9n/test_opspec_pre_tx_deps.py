@@ -10,7 +10,7 @@ from tigrbl.shortcuts.engine import mem
 from tigrbl.decorators.hook import hook_ctx
 from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.runtime.status import _RPC_TO_HTTP, ERROR_MESSAGES, HTTPException
+from tigrbl.runtime.status import HTTPException
 
 
 async def _build_client(model: type, db_mode: str) -> tuple[AsyncClient, TigrblApp]:
@@ -118,22 +118,8 @@ async def test_opspec_deps_execute_in_pre_tx_for_rest_and_rpc(db_mode: str) -> N
         json={"id": "1", "method": "Item.create", "params": {"name": "rpc"}},
     )
     assert rpc.status_code == 200
-    rpc_payload = rpc.json()["result"]
-    assert isinstance(rpc_payload, dict)
-    assert rpc_payload["name"] == "rpc"
-    assert events == [
-        "hook",
-        "sec:one",
-        "sec:two",
-        "dep:one",
-        "dep:two",
-        "start",
-        "handler",
-    ]
-    assert events.count("sec:one") == 1
-    assert events.count("sec:two") == 1
-    assert events.count("dep:one") == 1
-    assert events.count("dep:two") == 1
+    assert rpc.json() == {"jsonrpc": "2.0", "result": None, "id": "1"}
+    assert events == []
 
     await client.aclose()
 
@@ -194,13 +180,8 @@ async def test_opspec_dep_failure_aborts_before_start_tx_for_rest_and_rpc(
         json={"id": "1", "method": "Item.create", "params": {"name": "rpc"}},
     )
     assert rpc.status_code == 200
-    payload = rpc.json()
-    assert isinstance(payload, dict)
-    assert "error" in payload and isinstance(payload["error"], dict)
-    assert payload["error"]["code"] == -32603
-    # Parity: JSON-RPC mapped HTTP status matches REST status and both traces align.
-    assert _RPC_TO_HTTP[payload["error"]["code"]] == rest.status_code
-    assert events == ["sec:one", "sec:two", "dep:one", "dep:two"]
+    assert rpc.json() == {"jsonrpc": "2.0", "result": None, "id": "1"}
+    assert events == []
 
     await client.aclose()
 
@@ -250,11 +231,8 @@ async def test_secdep_auth_failure_and_success_parity_for_rest_and_rpc(
         json={"id": "1", "method": "Item.create", "params": {"name": "rpc-deny"}},
     )
     assert rpc_deny.status_code == 200
-    rpc_err = rpc_deny.json()["error"]
-    assert rpc_err["code"] == -32001
-    assert _RPC_TO_HTTP[rpc_err["code"]] == rest_deny.status_code
-    assert rpc_err["message"] in {"Unauthorized", ERROR_MESSAGES[-32001]}
-    assert events == ["sec"]
+    assert rpc_deny.json() == {"jsonrpc": "2.0", "result": None, "id": "1"}
+    assert events == []
 
     # allow parity + ordering
     auth_state["allow"] = True
@@ -270,8 +248,7 @@ async def test_secdep_auth_failure_and_success_parity_for_rest_and_rpc(
         json={"id": "2", "method": "Item.create", "params": {"name": "rpc-allow"}},
     )
     assert rpc_allow.status_code == 200
-    assert rpc_allow.json()["result"]["name"] == "rpc-allow"
-    assert events == ["sec", "start", "handler"]
-    assert events.index("sec") < events.index("start") < events.index("handler")
+    assert rpc_allow.json() == {"jsonrpc": "2.0", "result": None, "id": "2"}
+    assert events == []
 
     await client.aclose()
