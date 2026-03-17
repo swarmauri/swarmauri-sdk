@@ -16,12 +16,10 @@ _ALIAS_MODULES = {
     "_base": "tigrbl_base._base",
     "_concrete": "tigrbl_concrete._concrete",
     "core": "tigrbl_ops_oltp",
-    "mapping": "tigrbl_canon.mapping",
     "orm": "tigrbl_orm.orm",
     "runtime": "tigrbl_runtime.runtime",
     "executors": "tigrbl_runtime.executors",
     "atoms": "tigrbl_atoms.atoms",
-    "kernel": "tigrbl_kernel.kernel",
 }
 
 
@@ -41,11 +39,11 @@ for alias, target in _ALIAS_MODULES.items():
 _spec = import_module("tigrbl_core._spec")
 _base = import_module("tigrbl_base._base")
 _concrete = import_module("tigrbl_concrete._concrete")
-canon = import_module("tigrbl_canon.mapping")
+canon = None
 orm = import_module("tigrbl_orm.orm")
 runtime = _optional_import("tigrbl_runtime.runtime")
 atoms = _optional_import("tigrbl_atoms.atoms")
-kernel = _optional_import("tigrbl_kernel.kernel")
+kernel = None
 core = _optional_import("tigrbl_ops_oltp")
 
 # Backward-compatible names requested for top-level facade access.
@@ -143,15 +141,46 @@ from tigrbl_core._spec import (  # noqa: E402
 )
 from tigrbl_runtime.runtime.executor import _invoke  # noqa: E402
 
-bind = canon.bind
-rebind = canon.rebind
-build_schemas = canon.build_schemas
-build_hooks = canon.build_hooks
-build_handlers = canon.build_handlers
-register_rpc = canon.register_rpc
-build_rest = canon.build_rest
-include_tables = canon.include_tables
-rpc_call = canon.rpc_call
+
+def _mapping_attr(name: str):
+    return getattr(import_module("tigrbl.mapping"), name)
+
+
+def bind(*args, **kwargs):
+    return _mapping_attr("bind")(*args, **kwargs)
+
+
+def rebind(*args, **kwargs):
+    return _mapping_attr("rebind")(*args, **kwargs)
+
+
+def build_schemas(*args, **kwargs):
+    return _mapping_attr("build_schemas")(*args, **kwargs)
+
+
+def build_hooks(*args, **kwargs):
+    return _mapping_attr("build_hooks")(*args, **kwargs)
+
+
+def build_handlers(*args, **kwargs):
+    return _mapping_attr("build_handlers")(*args, **kwargs)
+
+
+def register_rpc(*args, **kwargs):
+    return _mapping_attr("register_rpc")(*args, **kwargs)
+
+
+def build_rest(*args, **kwargs):
+    return _mapping_attr("build_rest")(*args, **kwargs)
+
+
+def include_tables(*args, **kwargs):
+    return _mapping_attr("include_tables")(*args, **kwargs)
+
+
+async def rpc_call(*args, **kwargs):
+    return await _mapping_attr("rpc_call")(*args, **kwargs)
+
 
 __all__ = [
     "specs",
