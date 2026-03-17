@@ -43,6 +43,7 @@ from ._op_registry import get_registry
 from ._table_registry import TableRegistry
 from tigrbl_core._spec.app_spec import AppSpec
 from tigrbl_core._spec.app_spec import _seqify, normalize_app_spec
+from tigrbl_core.config.constants import TIGRBL_GET_DB_ATTR
 from tigrbl_concrete.system.favicon import FAVICON_PATH, mount_favicon
 from tigrbl_concrete._mapping.model_helpers import _OpSpecGroup
 
@@ -614,6 +615,17 @@ class TigrblApp(_App):
                 for name, table in resolved_tables.items():
                     self._default_router.tables.setdefault(name, table)
 
+        if self._default_router is not None and self._default_router is not router:
+            incoming_get_db = getattr(router, "get_db", None)
+            default_get_db = getattr(self._default_router, "get_db", None)
+            if callable(incoming_get_db) and not callable(default_get_db):
+                self._default_router.get_db = incoming_get_db
+                for model in tuple(getattr(self, "tables", {}).values()):
+                    if not isinstance(model, type):
+                        continue
+                    if not callable(getattr(model, TIGRBL_GET_DB_ATTR, None)):
+                        setattr(model, TIGRBL_GET_DB_ATTR, incoming_get_db)
+
         route_models: Dict[str, type] = {}
         for route in getattr(router, "routes", ()):
             model = getattr(route, "tigrbl_model", None)
@@ -739,7 +751,7 @@ class TigrblApp(_App):
         method: str,
         payload: Any = None,
         *,
-        db: Any,
+        db: Any | None = None,
         request: Any = None,
         ctx: Optional[Dict[str, Any]] = None,
     ) -> Any:

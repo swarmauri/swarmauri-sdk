@@ -14,8 +14,8 @@ and exposed via REST + JSON-RPC.)
 from __future__ import annotations
 
 from tigrbl import TableBase
-from tigrbl.mapping import collect as collect_ctx
-from tigrbl.mapping import plan as mapping_plan
+from tests.conftest import collect_ctx
+from tests.conftest import mapping_plan
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 

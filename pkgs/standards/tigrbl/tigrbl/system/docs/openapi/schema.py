@@ -7,7 +7,6 @@ from typing import Any
 from ....runtime.status.mappings import status
 from .helpers import (
     _request_schema_from_handler,
-    _resolve_component_schema_ref,
     _schema_from_model,
     _security_from_dependencies,
     _security_schemes_from_dependencies,
@@ -29,7 +28,13 @@ def openapi(router: Any) -> dict[str, Any]:
 
         path_item = paths.setdefault(canonical_path, {})
         for method in sorted(route.methods):
-            status_code = route.status_code or status.HTTP_200_OK
+            alias = (
+                getattr(route, "tigrbl_alias", None)
+                or route.name.rsplit(".", maxsplit=1)[-1]
+            )
+            status_code = route.status_code or (
+                status.HTTP_201_CREATED if alias == "create" else status.HTTP_200_OK
+            )
             responses: dict[str, Any] = {}
             if route.responses:
                 for code, meta in route.responses.items():
@@ -106,15 +111,8 @@ def openapi(router: Any) -> dict[str, Any]:
                     components_schemas,
                 )
 
-            alias = route.name.rsplit(".", maxsplit=1)[-1]
             if request_schema is None:
                 request_schema = _request_schema_from_handler(route, components_schemas)
-
-            if isinstance(request_schema, dict) and alias.startswith("bulk_"):
-                request_schema = _resolve_component_schema_ref(
-                    request_schema,
-                    components_schemas,
-                )
 
             if request_schema is not None:
                 op["requestBody"] = {

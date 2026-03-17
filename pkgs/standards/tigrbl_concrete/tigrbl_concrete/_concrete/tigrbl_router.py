@@ -268,7 +268,7 @@ class TigrblRouter(_Router):
         method: str,
         payload: Any = None,
         *,
-        db: Any,
+        db: Any | None = None,
         request: Any = None,
         ctx: Optional[Dict[str, Any]] = None,
     ) -> Any:

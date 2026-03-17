@@ -17,6 +17,7 @@ from typing import (
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
+from tigrbl_base._base import AttrDict
 from tigrbl_atoms.types import BaseCtx
 from tigrbl_concrete._concrete._request import Request
 
@@ -53,6 +54,12 @@ class _ResponseState:
         del object.__getattribute__(self, "bag")[key]
 
     def __setattr__(self, name: str, value: Any) -> None:
+        if (
+            name == "result"
+            and isinstance(value, Mapping)
+            and not isinstance(value, AttrDict)
+        ):
+            value = AttrDict(value)
         data = object.__getattribute__(self, "_data")
         data[name] = value
         if name == "result":
@@ -106,12 +113,18 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
     def __getitem__(self, key: str) -> Any:
         if key in self._FIELD_NAMES:
             return object.__getattribute__(self, key)
-        return object.__getattribute__(self, "bag")[key]
+        bag = object.__getattribute__(self, "bag")
+        if key == "response" and key not in bag:
+            bag[key] = _ResponseState(self)
+        return bag[key]
 
     def get(self, key: str, default: Any = None) -> Any:
         if key in self._FIELD_NAMES:
             return object.__getattribute__(self, key)
-        return object.__getattribute__(self, "bag").get(key, default)
+        bag = object.__getattribute__(self, "bag")
+        if key == "response" and key not in bag:
+            bag[key] = _ResponseState(self)
+        return bag.get(key, default)
 
     def items(self):
         merged = {

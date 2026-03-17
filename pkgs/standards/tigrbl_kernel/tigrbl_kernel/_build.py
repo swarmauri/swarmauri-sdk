@@ -154,11 +154,23 @@ def _plan_labels(self, model: type, alias: str) -> list[str]:
     if persist:
         labels.append(tx_begin)
 
+    def _display_phase(phase: str, step_label: str) -> str:
+        if phase != "POST_COMMIT":
+            return phase
+        if "@out:build" in step_label:
+            return "POST_HANDLER"
+        if "@out:dump" in step_label:
+            return "POST_RESPONSE"
+        return phase
+
     for phase in DEFAULT_PHASE_ORDER:
         if phase in {"START_TX", "END_TX"}:
             continue
         for step in chains.get(phase, ()) or ():
-            labels.append(f"{phase}:{_label_step(step, phase)}")
+            step_label = _label_step(step, phase)
+            if "SYS_PHASE_DB_BIND" in str(step_label):
+                continue
+            labels.append(f"{_display_phase(phase, step_label)}:{step_label}")
 
     if persist:
         labels.append(tx_end)

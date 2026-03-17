@@ -6,7 +6,7 @@ import pytest
 from httpx import ASGITransport, Client
 
 from tigrbl import TigrblApp
-from tigrbl.mapping import rpc_call
+from tigrbl_concrete._mapping.router.rpc import rpc_call
 from tigrbl.system.diagnostics import _build_kernelz_endpoint
 from tigrbl_kernel import _default_kernel as K
 from tigrbl_atoms.atoms.response.templates import render_template

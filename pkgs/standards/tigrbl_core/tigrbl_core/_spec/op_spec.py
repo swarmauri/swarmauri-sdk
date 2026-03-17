@@ -116,8 +116,8 @@ class OpSpec(SerdeMixin):
 
     @classmethod
     def collect(cls, table: type) -> tuple["OpSpec", ...]:
-        """Collect decorated operations declared across ``table`` MRO."""
-        return tuple(_mro_collect_decorated_ops(table))
+        """Collect resolved operations for ``table`` (canonical + declared + registry)."""
+        return tuple(resolve(table))
 
 
 _ALIAS_RE = __import__("re").compile(r"^[a-z][a-z0-9_]*$")
@@ -311,7 +311,11 @@ def _apply_alias_ctx_to_canon(specs: List["OpSpec"], model: type) -> List["OpSpe
 
 
 def resolve(model: type) -> List["OpSpec"]:
-    canon = _generate_canonical(model)
+    decorated = _mro_collect_decorated_ops(model)
+    # Canonical CRUD specs should always be present so ctx-only decorated
+    # operations can either override canonical behavior (same alias/target)
+    # or expose additional aliases that still delegate through canonical core.
+    canon: List[OpSpec] = _generate_canonical(model)
     canon = _apply_alias_ctx_to_canon(canon, model)
 
     class_specs = _collect_class_declared(model)
@@ -319,6 +323,7 @@ def resolve(model: type) -> List["OpSpec"]:
 
     merged: Dict[Tuple[str, str], OpSpec] = {}
     _dedupe(merged, canon)
+    _dedupe(merged, decorated)
     _dedupe(merged, class_specs)
     _dedupe(merged, reg_specs)
 

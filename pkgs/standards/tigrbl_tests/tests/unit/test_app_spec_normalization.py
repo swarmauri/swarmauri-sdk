@@ -15,7 +15,7 @@ from tigrbl_core._spec.router_spec import RouterSpec
 from tigrbl_core._spec.schema_spec import SchemaSpec
 from tigrbl_core._spec.storage_spec import ForeignKeySpec, StorageSpec
 from tigrbl_core._spec.table_spec import TableSpec
-from tigrbl.mapping.responses_resolver import resolve_response_spec
+from tigrbl_core._spec.response_resolver import resolve_response_spec
 
 
 def _noop(*_args: object, **_kwargs: object) -> object:

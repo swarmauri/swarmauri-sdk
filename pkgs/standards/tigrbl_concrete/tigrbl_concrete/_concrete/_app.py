@@ -185,6 +185,13 @@ class App(AppBase):
         )
 
     async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        path = scope.get("path")
+        if isinstance(path, str):
+            seen_paths = getattr(self, "_seen_paths", None)
+            if not isinstance(seen_paths, set):
+                seen_paths = set()
+                setattr(self, "_seen_paths", seen_paths)
+            seen_paths.add(path)
         env = GwRawEnvelope(kind="asgi3", scope=scope, receive=receive, send=send)
         await self.invoke(env)
 

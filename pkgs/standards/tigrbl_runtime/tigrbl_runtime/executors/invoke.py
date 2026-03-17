@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from types import SimpleNamespace
 from typing import Any, Mapping, MutableMapping, Optional, Union
 
 from .types import _Ctx, PhaseChains, Request, Session, AsyncSession
@@ -9,16 +10,22 @@ from tigrbl_kernel.helpers import _run_chain, _g
 from tigrbl_atoms.atoms.sys._db import _in_transaction
 from ..runtime.status import create_standardized_error, to_rpc_error_payload
 from ..config.constants import CTX_SKIP_PERSIST_FLAG
+from tigrbl_ops_oltp.crud import ops as _crud_ops
+from tigrbl_ops_oltp.crud.helpers.model import _coerce_pk_value, _single_pk_name
 
 logger = logging.getLogger(__name__)
 
 
-def _default_status_for_alias(alias: Any) -> int:
-    return 201 if alias in {"create", "bulk_create"} else 200
+def _default_status_for_alias(alias: Any, target: Any = None) -> int:
+    verb = target if isinstance(target, str) and target else alias
+    return 201 if verb in {"create", "bulk_create"} else 200
 
 
 def _normalize_result_payload(payload: Any) -> Any:
-    if isinstance(payload, (str, int, float, bool)) or payload is None:
+    if (
+        isinstance(payload, (str, int, float, bool, bytes, bytearray))
+        or payload is None
+    ):
         return payload
     if hasattr(payload, "status_code") and hasattr(payload, "body"):
         return payload
@@ -47,10 +54,96 @@ def _normalize_result_payload(payload: Any) -> Any:
     return str(payload)
 
 
+def _unwrap_ctx_result(value: Any) -> Any:
+    """Return user-facing payload when runtime atoms return context objects."""
+    current = value
+    for _ in range(8):
+        if current is None or isinstance(
+            current, (str, int, float, bool, Mapping, list, tuple, set)
+        ):
+            return current
+
+        direct = getattr(current, "result", None)
+        if direct is not None and direct is not current:
+            current = direct
+            continue
+
+        payload = getattr(current, "response_payload", None)
+        if payload is not None and payload is not current:
+            current = payload
+            continue
+
+        response = getattr(current, "response", None)
+        if response is not None:
+            response_result = getattr(response, "result", None)
+            if response_result is not None and response_result is not current:
+                current = response_result
+                continue
+
+        bag = getattr(current, "bag", None)
+        if isinstance(bag, Mapping) and bag.get("result") is not None:
+            nested = bag.get("result")
+            if nested is not current:
+                current = nested
+                continue
+
+        return current
+
+    return current
+
+
 async def _maybe_await(value: Any) -> Any:
     if hasattr(value, "__await__"):
         return await value
     return value
+
+
+async def _crud_result_fallback(ctx: _Ctx, current_result: Any) -> Any:
+    alias = str(ctx.get("op") or "").lower()
+    if alias not in {"read", "update", "replace"}:
+        return current_result
+
+    model = ctx.get("model")
+    db = ctx.get("db")
+    if not isinstance(model, type) or db is None:
+        return current_result
+
+    try:
+        pk_name = _single_pk_name(model)
+    except Exception:
+        return current_result
+
+    payload = ctx.get("payload")
+    path_params = ctx.get("path_params")
+    ident = None
+    if isinstance(path_params, Mapping) and pk_name in path_params:
+        ident = path_params.get(pk_name)
+    elif isinstance(payload, Mapping) and pk_name in payload:
+        ident = payload.get(pk_name)
+    if ident is None:
+        return current_result
+
+    ident = _coerce_pk_value(model, ident)
+
+    if alias == "read":
+        needs_fallback = current_result is None
+        if isinstance(current_result, Mapping):
+            if pk_name not in current_result:
+                needs_fallback = True
+            else:
+                data_keys = [k for k in current_result.keys() if k != pk_name]
+                if data_keys and all(current_result.get(k) is None for k in data_keys):
+                    needs_fallback = True
+        if not needs_fallback:
+            return current_result
+        return await _crud_ops.read(model, ident, db)
+
+    if current_result is None and isinstance(payload, Mapping):
+        if alias == "update":
+            return await _crud_ops.update(model, ident, dict(payload), db)
+        return await _crud_ops.replace(model, ident, dict(payload), db)
+
+    return current_result
 
 
 async def _rollback_if_owned(
@@ -87,11 +180,48 @@ async def _invoke(
         ctx.app = ctx.router
     if getattr(ctx, "op", None) is None and getattr(ctx, "method", None) is not None:
         ctx.op = ctx.method
+    env = ctx.get("env")
+    op_name = getattr(ctx, "op", None) or getattr(ctx, "method", None)
+    if env is None:
+        ctx["env"] = SimpleNamespace(method=op_name)
+    elif getattr(env, "method", None) in (None, "", "unknown"):
+        try:
+            setattr(env, "method", op_name)
+        except Exception:
+            ctx["env"] = SimpleNamespace(method=op_name)
     if getattr(ctx, "model", None) is None:
         obj = getattr(ctx, "obj", None)
         if obj is not None:
             ctx.model = type(obj)
+    if getattr(ctx, "opview", None) is None:
+        model = getattr(ctx, "model", None)
+        alias = getattr(ctx, "op", None)
+        specs = ctx.get("specs")
+        if (
+            isinstance(model, type)
+            and isinstance(alias, str)
+            and isinstance(specs, Mapping)
+        ):
+            try:
+                from tigrbl_kernel.opview_compiler import compile_opview_from_specs
+
+                op_spec = next(
+                    (
+                        sp
+                        for sp in tuple(
+                            getattr(getattr(model, "ops", None), "all", ()) or ()
+                        )
+                        if getattr(sp, "alias", None) == alias
+                    ),
+                    None,
+                )
+                if op_spec is None:
+                    op_spec = SimpleNamespace(alias=alias)
+                ctx.opview = compile_opview_from_specs(specs, op_spec)
+            except Exception:
+                pass
     skip_persist: bool = bool(ctx.get(CTX_SKIP_PERSIST_FLAG) or ctx.get("skip_persist"))
+    skip_egress: bool = bool(ctx.get("skip_egress"))
     if not callable(ctx.get("rpc_error_builder")):
         ctx["rpc_error_builder"] = lambda exc: to_rpc_error_payload(
             create_standardized_error(exc)
@@ -212,6 +342,10 @@ async def _invoke(
         current_result = getattr(response_state, "result", None)
     if current_result is None:
         current_result = getattr(ctx, "obj", None)
+
+    current_result = _unwrap_ctx_result(current_result)
+    current_result = await _crud_result_fallback(ctx, current_result)
+
     if isinstance(rpc_error, Mapping):
         ctx["result"] = None
     elif callable(serializer):
@@ -223,7 +357,9 @@ async def _invoke(
         ctx["result"] = _normalize_result_payload(current_result)
 
     if getattr(ctx, "status_code", None) is None:
-        ctx.status_code = _default_status_for_alias(getattr(ctx, "op", None))
+        ctx.status_code = _default_status_for_alias(
+            getattr(ctx, "op", None), getattr(ctx, "target", None)
+        )
 
     response_obj = getattr(ctx, "response", None)
     if response_obj is None:
@@ -231,20 +367,25 @@ async def _invoke(
     else:
         setattr(response_obj, "result", ctx.get("result"))
 
+    pre_egress_result = ctx.get("result")
+
     await _run_phase("POST_COMMIT", allow_flush=True, allow_commit=False, in_tx=False)
 
-    await _run_phase(
-        "POST_RESPONSE",
-        allow_flush=False,
-        allow_commit=False,
-        in_tx=False,
-        nonfatal=True,
-    )
+    if not skip_egress:
+        await _run_phase(
+            "POST_RESPONSE",
+            allow_flush=False,
+            allow_commit=False,
+            in_tx=False,
+            nonfatal=True,
+        )
 
-    await _run_phase("EGRESS_SHAPE", allow_flush=False, allow_commit=False, in_tx=False)
-    await _run_phase(
-        "EGRESS_FINALIZE", allow_flush=False, allow_commit=False, in_tx=False
-    )
+        await _run_phase(
+            "EGRESS_SHAPE", allow_flush=False, allow_commit=False, in_tx=False
+        )
+        await _run_phase(
+            "EGRESS_FINALIZE", allow_flush=False, allow_commit=False, in_tx=False
+        )
     if ctx.get("result") is not None and getattr(ctx, "response", None) is not None:
         setattr(ctx.response, "result", ctx.get("result"))
 
@@ -254,9 +395,39 @@ async def _invoke(
     if callable(release):
         release()
 
+    if skip_egress:
+        result = _unwrap_ctx_result(pre_egress_result)
+        result = _normalize_result_payload(result)
+        if result is not None:
+            ctx["result"] = result
+            if getattr(ctx, "response", None) is not None:
+                setattr(ctx.response, "result", result)
+        return result
+
     if getattr(ctx, "response", None) is not None:
-        return getattr(ctx.response, "result", ctx.get("result"))
-    return ctx.get("result")
+        result = getattr(ctx.response, "result", ctx.get("result"))
+        result = _unwrap_ctx_result(result)
+        if isinstance(result, Mapping) and {"status_code", "headers", "body"}.issubset(
+            result
+        ):
+            body = result.get("body")
+            if body is None and pre_egress_result is not None:
+                result = pre_egress_result
+        if result is not None:
+            ctx["result"] = result
+            setattr(ctx.response, "result", result)
+        return result
+
+    result = _unwrap_ctx_result(ctx.get("result"))
+    if isinstance(result, Mapping) and {"status_code", "headers", "body"}.issubset(
+        result
+    ):
+        body = result.get("body")
+        if body is None and pre_egress_result is not None:
+            result = pre_egress_result
+    if result is not None:
+        ctx["result"] = result
+    return result
 
 
 __all__ = ["_invoke"]
