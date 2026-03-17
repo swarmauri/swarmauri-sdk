@@ -25,6 +25,7 @@ from .helpers import (
     _maybe_execute,
     _maybe_flush,
     _maybe_get,
+    _maybe_rollback,
     _normalize_list_call,
     _set_attrs,
     _single_pk_name,
@@ -97,6 +98,7 @@ async def create(
     except OperationalError as exc:
         if "no such table" not in str(exc).lower():
             raise
+        await _maybe_rollback(db)
         _ensure_model_table(model, db)
         obj = model(**data)
         db.add(obj)
