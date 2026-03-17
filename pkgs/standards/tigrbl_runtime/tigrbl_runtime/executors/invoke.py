@@ -9,6 +9,8 @@ from tigrbl_kernel.helpers import _run_chain, _g
 from tigrbl_atoms.atoms.sys._db import _in_transaction
 from ..runtime.status import create_standardized_error, to_rpc_error_payload
 from ..config.constants import CTX_SKIP_PERSIST_FLAG
+from tigrbl_ops_oltp.crud import ops as _crud_ops
+from tigrbl_ops_oltp.crud.helpers.model import _coerce_pk_value, _single_pk_name
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +91,54 @@ async def _maybe_await(value: Any) -> Any:
     if hasattr(value, "__await__"):
         return await value
     return value
+
+
+async def _crud_result_fallback(ctx: _Ctx, current_result: Any) -> Any:
+    alias = str(ctx.get("op") or "").lower()
+    if alias not in {"read", "update", "replace"}:
+        return current_result
+
+    model = ctx.get("model")
+    db = ctx.get("db")
+    if not isinstance(model, type) or db is None:
+        return current_result
+
+    try:
+        pk_name = _single_pk_name(model)
+    except Exception:
+        return current_result
+
+    payload = ctx.get("payload")
+    path_params = ctx.get("path_params")
+    ident = None
+    if isinstance(path_params, Mapping) and pk_name in path_params:
+        ident = path_params.get(pk_name)
+    elif isinstance(payload, Mapping) and pk_name in payload:
+        ident = payload.get(pk_name)
+    if ident is None:
+        return current_result
+
+    ident = _coerce_pk_value(model, ident)
+
+    if alias == "read":
+        needs_fallback = current_result is None
+        if isinstance(current_result, Mapping):
+            if pk_name not in current_result:
+                needs_fallback = True
+            else:
+                data_keys = [k for k in current_result.keys() if k != pk_name]
+                if data_keys and all(current_result.get(k) is None for k in data_keys):
+                    needs_fallback = True
+        if not needs_fallback:
+            return current_result
+        return await _crud_ops.read(model, ident, db)
+
+    if current_result is None and isinstance(payload, Mapping):
+        if alias == "update":
+            return await _crud_ops.update(model, ident, dict(payload), db)
+        return await _crud_ops.replace(model, ident, dict(payload), db)
+
+    return current_result
 
 
 async def _rollback_if_owned(
@@ -281,6 +331,7 @@ async def _invoke(
         current_result = getattr(ctx, "obj", None)
 
     current_result = _unwrap_ctx_result(current_result)
+    current_result = await _crud_result_fallback(ctx, current_result)
 
     if isinstance(rpc_error, Mapping):
         ctx["result"] = None

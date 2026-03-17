@@ -58,6 +58,11 @@ def _run(obj: object | None, ctx: Any) -> None:
         if isinstance(route, dict):
             route["payload"] = body
     elif protocol.endswith(".rest"):
+        if isinstance(body, (bytes, bytearray)):
+            try:
+                body = json.loads(bytes(body).decode("utf-8"))
+            except Exception:
+                body = None
         payload: dict[str, object] = {}
         query = getattr(ctx, "query", None)
         if isinstance(query, Mapping):

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+import inspect
 from types import SimpleNamespace
 from typing import Any, Optional, Set, Tuple
 
@@ -8,6 +9,9 @@ from tigrbl_concrete._concrete._router import Router
 from tigrbl_core._spec import OpSpec
 from tigrbl_core._spec.binding_spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
 from tigrbl_core.config.constants import CANON
+from tigrbl_core.config.constants import HOOK_DECLS_ATTR
+from tigrbl_core._spec.op_utils import _maybe_await, _unwrap
+from tigrbl_typing.phases import HOOK_PHASES
 
 from tigrbl_concrete._mapping.op_resolver import resolve as resolve_ops
 from tigrbl_base._base._rpc_map import register_and_attach as register_rpc
@@ -84,6 +88,7 @@ def bind(
     all_specs, by_key, by_alias = _index_specs(specs)
     model.ops = SimpleNamespace(all=all_specs, by_key=by_key, by_alias=by_alias)
     model.opspecs = model.ops
+    _bind_model_hooks(model, specs)
 
     register_rpc(model, specs)
 
@@ -91,6 +96,160 @@ def bind(
     _attach_model_rpc_call(model, specs)
 
     return all_specs
+
+
+def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
+    visible_aliases = {spec.alias for spec in specs}
+    if not visible_aliases:
+        return
+
+    hooks_root = getattr(model, "hooks", None)
+    if hooks_root is None:
+        hooks_root = SimpleNamespace()
+        model.hooks = hooks_root
+
+    alias_map = _mro_alias_map(model)
+    collected = _collect_decorated_hooks(model, visible_aliases, alias_map)
+    _merge_hooks_map(collected, getattr(model, "__tigrbl_hooks__", {}) or {})
+    _merge_hooks_map(collected, getattr(model, "__tigrbl_router_hooks__", {}) or {})
+
+    for alias in visible_aliases:
+        alias_ns = getattr(hooks_root, alias, None)
+        if alias_ns is None:
+            alias_ns = SimpleNamespace()
+            setattr(hooks_root, alias, alias_ns)
+        phase_map = collected.get(alias, {})
+        for phase in HOOK_PHASES:
+            setattr(alias_ns, phase, tuple(phase_map.get(phase, ())))
+
+
+def _mro_alias_map(model: type) -> dict[str, str]:
+    merged: dict[str, str] = {}
+    for base in reversed(model.__mro__):
+        merged.update(getattr(base, "__tigrbl_aliases__", {}) or {})
+    return merged
+
+
+def _collect_decorated_hooks(
+    model: type,
+    visible_aliases: set[str],
+    alias_map: dict[str, str],
+) -> dict[str, dict[str, list[Any]]]:
+    out: dict[str, dict[str, list[Any]]] = {}
+    for base in reversed(model.__mro__):
+        for attr in vars(base).values():
+            func = _unwrap(attr)
+            decls = getattr(func, HOOK_DECLS_ATTR, None)
+            if not decls:
+                continue
+            for decl in decls:
+                phase_name = _phase_name(decl.phase)
+                for op in _resolve_hook_ops(decl.ops, visible_aliases, alias_map):
+                    out.setdefault(op, {}).setdefault(phase_name, []).append(
+                        _wrap_ctx_hook(model, decl.fn, phase_name)
+                    )
+    return out
+
+
+def _resolve_hook_ops(
+    ops: Any,
+    visible_aliases: set[str],
+    alias_map: dict[str, str],
+) -> tuple[str, ...]:
+    if ops == "*":
+        return tuple(visible_aliases)
+    if isinstance(ops, str):
+        values = (ops,)
+    else:
+        values = tuple(ops or ())
+    resolved: list[str] = []
+    for value in values:
+        alias = value if value in visible_aliases else alias_map.get(value, value)
+        if alias in visible_aliases:
+            resolved.append(alias)
+    return tuple(resolved)
+
+
+def _wrap_ctx_hook(model: type, fn: Any, phase: str):
+    async def _step(ctx: Any) -> Any:
+        if phase == "POST_RESPONSE":
+            response = ctx.get("response")
+            if response is None:
+                ctx["response"] = {"result": None}
+                response = ctx.get("response")
+            if getattr(response, "result", None) is None:
+                seeded = ctx.get("result")
+                if seeded is None:
+                    seeded = ctx.get("obj")
+                if seeded is None:
+                    seeded = ctx.get("objs")
+                if seeded is None:
+                    seeded = {}
+                response.result = seeded
+        bound = fn.__get__(model, model)
+        if inspect.iscoroutinefunction(bound):
+            return await bound(ctx)
+        return await _maybe_await(bound(ctx))
+
+    return _step
+
+
+def _merge_hooks_map(target: dict[str, dict[str, list[Any]]], source: Any) -> None:
+    if not isinstance(source, dict):
+        return
+    for alias, phase_map in source.items():
+        if alias == "*":
+            aliases = tuple(target.keys())
+        else:
+            aliases = (str(alias),)
+        if not isinstance(phase_map, dict):
+            continue
+        for resolved_alias in aliases:
+            phases = target.setdefault(resolved_alias, {})
+            for phase, hooks in phase_map.items():
+                phase_name = _phase_name(phase)
+                bucket = phases.setdefault(phase_name, [])
+                for hook in tuple(hooks or ()):
+                    fn = getattr(hook, "fn", hook)
+                    if callable(fn):
+                        bucket.append(_adapt_hook_callable(fn, phase_name))
+
+
+def _phase_name(phase: Any) -> str:
+    value = getattr(phase, "value", phase)
+    return str(value)
+
+
+def _adapt_hook_callable(fn: Any, phase: str):
+    async def _step(ctx: Any) -> Any:
+        sig = inspect.signature(fn)
+        positional = [
+            p
+            for p in sig.parameters.values()
+            if p.kind
+            in (
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            )
+        ]
+        if len(positional) <= 1 and not any(
+            p.kind == inspect.Parameter.VAR_POSITIONAL for p in sig.parameters.values()
+        ):
+            return await _maybe_await(fn(ctx))
+
+        io_key = "payload" if phase.startswith("PRE_") else "result"
+        if phase.startswith("ON_"):
+            io_key = "error"
+        return await _maybe_await(
+            fn(
+                ctx.get(io_key),
+                db=ctx.get("db"),
+                request=ctx.get("request"),
+                ctx=ctx,
+            )
+        )
+
+    return _step
 
 
 def _normalize_bindings(model: type, specs: Tuple[OpSpec, ...]) -> Tuple[OpSpec, ...]:
