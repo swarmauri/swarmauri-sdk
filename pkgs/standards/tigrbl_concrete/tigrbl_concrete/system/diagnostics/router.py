@@ -49,7 +49,7 @@ def _register_runtime_diagnostics_op(
     else:
         op = OpSpec(
             alias=alias,
-            target="read",
+            target="custom",
             arity="collection",
             persist="skip",
             expose_routes=False,
