@@ -26,6 +26,7 @@ from .helpers import (
     _maybe_execute,
     _maybe_flush,
     _maybe_get,
+    _maybe_rollback,
     _normalize_list_call,
     _set_attrs,
     _single_pk_name,

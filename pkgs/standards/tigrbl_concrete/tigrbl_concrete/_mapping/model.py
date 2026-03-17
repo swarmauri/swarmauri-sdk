@@ -238,6 +238,7 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
                 setattr(op_handler, "__tigrbl_label", label)
                 _default_handler_step = op_handler
 
+                qualname = getattr(op_handler, "__qualname__", alias)
             else:
 
                 async def _default_handler_step(ctx: Any) -> None:

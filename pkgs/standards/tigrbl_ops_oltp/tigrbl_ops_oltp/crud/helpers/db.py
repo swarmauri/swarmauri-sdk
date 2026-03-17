@@ -44,6 +44,17 @@ async def _maybe_flush(db: Union[Session, AsyncSession]) -> None:
     logger.debug("_maybe_flush completed")
 
 
+async def _maybe_rollback(db: Union[Session, AsyncSession]) -> None:
+    logger.debug("_maybe_rollback called")
+    if not hasattr(db, "rollback"):
+        logger.debug("_maybe_rollback skipping rollback; no attribute")
+        return
+    result = db.rollback()  # type: ignore[attr-defined]
+    if inspect.isawaitable(result):
+        await result
+    logger.debug("_maybe_rollback completed")
+
+
 async def _maybe_delete(db: Union[Session, AsyncSession], obj: Any) -> None:
     logger.debug("_maybe_delete called with obj=%s", obj)
     if not hasattr(db, "delete"):
