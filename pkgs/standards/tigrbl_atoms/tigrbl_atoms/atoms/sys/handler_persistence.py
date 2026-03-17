@@ -21,11 +21,14 @@ async def _run(obj: object | None, ctx: Any) -> None:
     if getattr(ctx, "result", None) is not None:
         return
 
+    target = str(getattr(ctx, "target", None) or getattr(ctx, "op", None) or "").lower()
+
     model = obj if isinstance(obj, type) else getattr(ctx, "model", None)
     if not isinstance(model, type):
-        raise TypeError("handler_persistence requires a model type")
+        if target:
+            raise TypeError("handler_persistence requires a model type")
+        return
 
-    target = str(getattr(ctx, "target", None) or getattr(ctx, "op", None) or "").lower()
     db = _ctx.db(ctx)
 
     if target == "create":

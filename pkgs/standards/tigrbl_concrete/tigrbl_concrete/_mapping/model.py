@@ -19,6 +19,7 @@ from tigrbl_core._spec.binding_spec import (
 from tigrbl_core.config.constants import HOOK_DECLS_ATTR
 from tigrbl_core._spec.op_utils import _maybe_await, _unwrap
 from tigrbl_core.schema.builder import _build_schema
+from tigrbl_core.schema.builder.list_params import _build_list_params
 from tigrbl_core.schema.builder import _strip_parent_fields
 from tigrbl_core.schema.utils import _make_bulk_rows_model
 from tigrbl_base._base._schema_base import SchemaBase
@@ -580,6 +581,30 @@ def _rest_bindings_for_spec(
     )
 
 
+def _query_param_schemas_for_spec(
+    model: type, spec: OpSpec
+) -> dict[str, dict[str, Any]] | None:
+    if spec.target != "list":
+        return None
+
+    params_model = _build_list_params(model)
+    schema = params_model.model_json_schema()
+    props = schema.get("properties", {})
+    required = set(schema.get("required", ()))
+    if not isinstance(props, dict):
+        return None
+
+    query_params: dict[str, dict[str, Any]] = {}
+    for name, meta in props.items():
+        if not isinstance(meta, dict):
+            continue
+        entry = {k: v for k, v in meta.items() if k != "title"}
+        if name in required:
+            entry["required"] = True
+        query_params[name] = entry
+    return query_params or None
+
+
 def _materialize_rest_router(
     model: type,
     specs: Tuple[OpSpec, ...],
@@ -661,6 +686,7 @@ def _materialize_rest_router(
                 tigrbl_alias=spec.alias,
                 request_model=getattr(alias_ns, "in_", None),
                 response_model=getattr(alias_ns, "out", None),
+                query_param_schemas=_query_param_schemas_for_spec(model, spec),
                 include_in_schema=True,
                 status_code=201 if spec.target == "create" else None,
             )

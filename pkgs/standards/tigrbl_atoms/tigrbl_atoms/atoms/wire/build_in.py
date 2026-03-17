@@ -227,12 +227,13 @@ def _apply_header_in_requirements(
         header_name = entry.get("header_in")
         if not isinstance(header_name, str) or not header_name:
             continue
+        has_body_value = field in present_fields
         header_value = headers.get(header_name.lower())
-        if header_value not in (None, ""):
+        if header_value not in (None, "") and not has_body_value:
             in_values[field] = header_value
             present_fields.add(field)
             continue
-        if bool(entry.get("header_required_in", False)):
+        if bool(entry.get("header_required_in", False)) and not has_body_value:
             missing.append(header_name)
 
     if missing:

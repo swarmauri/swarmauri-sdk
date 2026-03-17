@@ -76,7 +76,11 @@ def _run(obj: object | None, ctx: Any) -> None:
         route["binding"] = op_index
     setattr(ctx, "binding", op_index)
     setattr(ctx, "opmeta_index", op_index)
+    setattr(ctx, "opmeta", meta)
     setattr(ctx, "model", getattr(meta, "model", None))
+    opview = getattr(meta, "opview", None)
+    if opview is not None:
+        setattr(ctx, "opview", opview)
     alias = getattr(meta, "alias", None)
     setattr(ctx, "op", alias)
     setattr(ctx, "target", getattr(meta, "target", None))

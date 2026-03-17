@@ -14,28 +14,16 @@ def _ensure_temp(ctx: Any) -> dict[str, Any]:
 
 def _ensure_ov(ctx: Any):
     ov = getattr(ctx, "opview", None)
-    if ov is None:
-        app = getattr(ctx, "app", None)
-        model = getattr(ctx, "model", None)
-        alias = getattr(ctx, "op", None)
-        if app is not None and model is not None and isinstance(alias, str) and alias:
-            try:
-                from tigrbl_kernel import _default_kernel as _kernel
+    if ov is not None:
+        return ov
 
-                opviews = getattr(_kernel, "_opviews", None)
-                by_app = opviews.get(app, {}) if hasattr(opviews, "get") else {}
-                candidate = (
-                    by_app.get((model, alias)) if hasattr(by_app, "get") else None
-                )
-                if candidate is not None:
-                    setattr(ctx, "opview", candidate)
-                    ov = candidate
-            except Exception:
-                ov = None
+    opmeta = getattr(ctx, "opmeta", None)
+    candidate = getattr(opmeta, "opview", None)
+    if candidate is not None:
+        setattr(ctx, "opview", candidate)
+        return candidate
 
-    if ov is None:
-        raise RuntimeError("ctx_missing:opview")
-    return ov
+    raise RuntimeError("ctx_missing:opview")
 
 
 def _normalize_schema_from_specs(ctx: Any) -> None:
@@ -58,8 +46,12 @@ def _normalize_schema_from_specs(ctx: Any) -> None:
 
         in_verbs = set(getattr(io, "in_verbs", ()) or ())
         out_verbs = set(getattr(io, "out_verbs", ()) or ())
+        filter_ops = tuple(getattr(io, "filter_ops", ()) or ())
+        sortable = bool(getattr(io, "sortable", False))
 
-        if op in in_verbs:
+        allow_in = op in in_verbs or (op == "list" and (filter_ops or sortable))
+
+        if allow_in:
             in_fields.append(field_name)
             in_meta: dict[str, Any] = {"in_enabled": True}
             if storage is None:
@@ -84,6 +76,10 @@ def _normalize_schema_from_specs(ctx: Any) -> None:
             in_meta["nullable"] = (
                 True if storage is None else bool(getattr(storage, "nullable", True))
             )
+            if filter_ops:
+                in_meta["filter_ops"] = filter_ops
+            if sortable:
+                in_meta["sortable"] = True
             by_field_in[field_name] = in_meta
 
         if op in out_verbs:
