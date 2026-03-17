@@ -7,7 +7,6 @@ from typing import Any
 from ....runtime.status.mappings import status
 from .helpers import (
     _request_schema_from_handler,
-    _resolve_component_schema_ref,
     _schema_from_model,
     _security_from_dependencies,
     _security_schemes_from_dependencies,
@@ -115,25 +114,6 @@ def openapi(router: Any) -> dict[str, Any]:
             if request_schema is None:
                 request_schema = _request_schema_from_handler(route, components_schemas)
 
-            if isinstance(request_schema, dict) and alias.startswith("bulk_"):
-                request_schema = _bulk_schema(
-                    request_schema,
-                    components_schemas,
-                )
-
-            if alias.startswith("bulk_"):
-                for response_entry in responses.values():
-                    content = response_entry.get("content")
-                    if not isinstance(content, dict):
-                        continue
-                    app_json = content.get("application/json")
-                    if not isinstance(app_json, dict):
-                        continue
-                    schema = app_json.get("schema")
-                    if not isinstance(schema, dict):
-                        continue
-                    app_json["schema"] = _bulk_schema(schema, components_schemas)
-
             if request_schema is not None:
                 op["requestBody"] = {
                     "required": True,
@@ -176,33 +156,3 @@ def openapi(router: Any) -> dict[str, Any]:
     if router.description:
         doc["info"]["description"] = router.description
     return doc
-
-
-def _bulk_schema(
-    schema: dict[str, Any],
-    components_schemas: dict[str, Any],
-) -> dict[str, Any]:
-    item_schema = _resolve_component_schema_ref(schema, components_schemas)
-    wrapped: dict[str, Any] = {"type": "array", "items": item_schema}
-    if isinstance(item_schema, dict):
-        example = _object_example(item_schema)
-        if example:
-            wrapped["examples"] = [[example]]
-    return wrapped
-
-
-def _object_example(schema: dict[str, Any]) -> dict[str, Any]:
-    out: dict[str, Any] = {}
-    properties = schema.get("properties")
-    if not isinstance(properties, dict):
-        return out
-    for name, prop in properties.items():
-        if not isinstance(prop, dict):
-            continue
-        examples = prop.get("examples")
-        if isinstance(examples, list) and examples:
-            out[name] = examples[0]
-            continue
-        if "default" in prop and prop["default"] is not None:
-            out[name] = prop["default"]
-    return out
