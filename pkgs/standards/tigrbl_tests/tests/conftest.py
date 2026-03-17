@@ -25,7 +25,8 @@ from tigrbl_concrete import (
     build_rest_router as _materialize_rest_router,
     build_schemas as _materialize_schemas,
 )
-from tigrbl_core._spec import AppSpec, RouterSpec, TableSpec
+from tigrbl_core._spec import AppSpec, TableSpec
+from tigrbl_core.config.constants import TIGRBL_ROUTER_HOOKS_ATTR
 from tigrbl_core._spec.column_spec import mro_collect_columns
 from tigrbl_core._spec.op_spec import (
     _mro_alias_map_for,
@@ -48,7 +49,18 @@ def mro_collect_app_spec(app: type):
 
 @lru_cache(maxsize=None)
 def mro_collect_router_hooks(router: type):
-    return tuple(RouterSpec.collect(router).hooks or ())
+    merged: dict[str, dict[str, list[Any]]] = {}
+    for base in reversed(router.__mro__):
+        hooks = getattr(base, TIGRBL_ROUTER_HOOKS_ATTR, None)
+        if not isinstance(hooks, dict):
+            continue
+        for op_name, phase_map in hooks.items():
+            if not isinstance(phase_map, dict):
+                continue
+            op_hooks = merged.setdefault(op_name, {})
+            for phase, funcs in phase_map.items():
+                op_hooks.setdefault(phase, []).extend(list(funcs or ()))
+    return merged
 
 
 @lru_cache(maxsize=None)
@@ -608,7 +620,9 @@ def merge_op_specs(base_specs, override_specs):
 
 
 def infer_hints(*_args, **_kwargs):
-    return {}
+    from tigrbl_runtime.runtime.response import infer_hints as _infer_hints
+
+    return _infer_hints(*_args, **_kwargs)
 
 
 def resolve_response_spec(*candidates):
