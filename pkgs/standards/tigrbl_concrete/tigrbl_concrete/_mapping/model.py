@@ -13,6 +13,7 @@ from tigrbl_core.config.constants import CANON
 from tigrbl_core.config.constants import HOOK_DECLS_ATTR
 from tigrbl_core._spec.op_utils import _maybe_await, _unwrap
 from tigrbl_core.schema.builder import _build_schema
+from tigrbl_base._base._schema_base import SchemaBase
 from tigrbl_typing.phases import HOOK_PHASES
 
 from tigrbl_concrete._mapping.op_resolver import resolve as resolve_ops
@@ -106,11 +107,46 @@ def _materialize_handlers(model: type, specs: Tuple[OpSpec, ...]) -> Tuple[OpSpe
     return all_specs
 
 
+def _resolve_schema_arg(model: type, arg: Any) -> Any:
+    if arg is None:
+        return None
+    if isinstance(arg, str):
+        alias, _, kind = arg.partition(".")
+        kind = kind or "out"
+        ns = getattr(getattr(model, "schemas", SimpleNamespace()), alias, None)
+        if ns is None:
+            raise KeyError(f"Unknown schema alias '{alias}' on {model.__name__}")
+        return getattr(ns, "in_" if kind == "in" else "out", None)
+    if inspect.isclass(arg):
+        return arg
+    alias = getattr(arg, "alias", None)
+    kind = getattr(arg, "kind", "out")
+    if alias:
+        ns = getattr(getattr(model, "schemas", SimpleNamespace()), alias, None)
+        if ns is None:
+            raise KeyError(f"Unknown schema alias '{alias}' on {model.__name__}")
+        return getattr(ns, "in_" if kind == "in" else "out", None)
+    if callable(arg):
+        return arg(model)
+    return arg
+
+
 def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
     schemas = getattr(model, "schemas", None)
     if not isinstance(schemas, SimpleNamespace):
         schemas = SimpleNamespace()
         setattr(model, "schemas", schemas)
+
+    declared = SchemaBase.collect(model)
+    for alias, kinds in (declared or {}).items():
+        alias_ns = getattr(schemas, alias, None)
+        if not isinstance(alias_ns, SimpleNamespace):
+            alias_ns = SimpleNamespace()
+            setattr(schemas, alias, alias_ns)
+        if "in" in kinds:
+            setattr(alias_ns, "in_", kinds["in"])
+        if "out" in kinds:
+            setattr(alias_ns, "out", kinds["out"])
 
     for spec in specs:
         alias_ns = getattr(schemas, spec.alias, None)
@@ -123,7 +159,7 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
             if spec.target != "custom":
                 request_model = _build_schema(
                     model,
-                    verb=spec.alias,
+                    verb=spec.target,
                     name=f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Request",
                 )
             setattr(alias_ns, "in_", request_model)
@@ -131,10 +167,15 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
         if not hasattr(alias_ns, "out"):
             response_model = _build_schema(
                 model,
-                verb="read",
+                verb=spec.target,
                 name=f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Response",
             )
             setattr(alias_ns, "out", response_model)
+
+        if spec.request_model is not None:
+            setattr(alias_ns, "in_", _resolve_schema_arg(model, spec.request_model))
+        if spec.response_model is not None:
+            setattr(alias_ns, "out", _resolve_schema_arg(model, spec.response_model))
 
 
 def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:

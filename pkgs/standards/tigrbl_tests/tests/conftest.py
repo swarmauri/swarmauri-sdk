@@ -18,11 +18,11 @@ from tigrbl.runtime import kernel as runtime_kernel
 from tigrbl.runtime import system as runtime_system
 from tigrbl.shortcuts.engine import mem, sqlitef
 from tigrbl import resolver as _resolver
-from tigrbl_concrete._mapping.model import (
-    _bind_model_hooks,
-    _materialize_handlers,
-    _materialize_rest_router,
-    _materialize_schemas,
+from tigrbl_concrete import (
+    build_handlers as _materialize_handlers,
+    build_hooks as _bind_model_hooks,
+    build_rest_router as _materialize_rest_router,
+    build_schemas as _materialize_schemas,
 )
 from tigrbl_core._spec import AppSpec, RouterSpec, TableSpec
 from tigrbl_core._spec.column_spec import mro_collect_columns
