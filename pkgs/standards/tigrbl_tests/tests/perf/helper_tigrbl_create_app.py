@@ -10,17 +10,20 @@ from tigrbl.shortcuts.engine import sqlitef
 from tigrbl.types import Column, String
 
 
-class TigrblBenchmarkItem(TableBase, GUIDPk):
-    __tablename__ = "benchmark_tigrbl_item"
-    __allow_unmapped__ = True
+def _build_benchmark_item_model() -> type[TableBase]:
+    class TigrblBenchmarkItem(TableBase, GUIDPk):
+        __tablename__ = "benchmark_tigrbl_item"
+        __allow_unmapped__ = True
 
-    name = Column(String, nullable=False)
+        name = Column(String, nullable=False)
+
+    return TigrblBenchmarkItem
 
 
 def create_tigrbl_app(db_path: Path) -> TigrblApp:
     """Build a Tigrbl app with a single create command endpoint."""
     app = TigrblApp(engine=sqlitef(str(db_path), async_=False))
-    app.include_table(TigrblBenchmarkItem)
+    app.include_table(_build_benchmark_item_model())
     app.attach_diagnostics(prefix="", app=app)
     return app
 
