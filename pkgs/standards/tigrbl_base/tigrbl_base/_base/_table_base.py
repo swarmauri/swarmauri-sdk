@@ -477,12 +477,17 @@ class TableBase(DeclarativeBase):
         # 2.5) Surface ctx-only op declarations for lightweight introspection.
         has_decorated_ops = False
         if not hasattr(cls, "__tigrbl_ops__"):
-            for attr in cls.__dict__.values():
-                target = getattr(attr, "__func__", attr)
-                if getattr(target, "__tigrbl_op_spec__", None) is not None:
-                    cls.__tigrbl_ops__ = tuple()
-                    has_decorated_ops = True
-                    break
+            decorated_specs = tuple()
+            try:
+                from tigrbl_core._spec.op_spec import _mro_collect_decorated_ops
+
+                decorated_specs = tuple(_mro_collect_decorated_ops(cls))
+            except Exception:
+                decorated_specs = tuple()
+
+            if decorated_specs:
+                cls.__tigrbl_ops__ = decorated_specs
+                has_decorated_ops = True
 
         # 2.7) Keep TableBase-only models aligned with Table behavior by
         # materializing op namespaces for decorated operations.
