@@ -4,8 +4,8 @@ from types import SimpleNamespace
 import pytest
 
 from tigrbl import op_ctx
-from tigrbl.mapping import handlers
-from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
+from tigrbl_concrete._mapping.model import _bind_model_hooks, _materialize_handlers
+from tigrbl_core._spec.op_spec import _mro_collect_decorated_ops
 from tigrbl.types import BaseModel
 
 
@@ -52,9 +52,10 @@ def _build_custom_model(arity: str, response_schema, persist: str):
         ):  # pragma: no cover - runtime execution not needed
             return TokenInventorySchema(access_tokens=1, refresh_tokens=2)
 
-    specs = mro_collect_decorated_ops(Model)
+    specs = tuple(_mro_collect_decorated_ops(Model))
     Model.opspecs = SimpleNamespace(all=tuple(specs))
-    handlers.build_and_attach(Model, specs)
+    _materialize_handlers(Model, specs)
+    _bind_model_hooks(Model, specs)
     return Model, specs[0]
 
 
@@ -74,6 +75,6 @@ def test_op_ctx_custom_target_parameter_cross_product(
     assert spec.response_model is response_schema
     assert spec.persist == _normalize_persist(persist)
 
-    # For custom targets, persist controls transaction behavior elsewhere, not handler order.
+    # Custom-target handlers are wrapped by the default handler atom pipeline.
     handler_names = [fn.__name__ for fn in model.hooks.token_inventory.HANDLER]
-    assert handler_names == ["token_inventory"]
+    assert handler_names == ["_default_handler_step"]
