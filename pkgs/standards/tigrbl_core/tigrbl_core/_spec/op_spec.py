@@ -418,6 +418,7 @@ def _mro_collect_decorated_ops(table: type) -> List["OpSpec"]:
                 continue
 
             resolved_alias = op_spec.alias or op_spec.target or name
+            wrapped_core = _wrap_ctx_core(table, func)
             out.append(
                 OpSpec(
                     table=table,
@@ -425,7 +426,7 @@ def _mro_collect_decorated_ops(table: type) -> List["OpSpec"]:
                     target=op_spec.target,
                     arity=op_spec.arity,
                     persist=_normalize_persist(op_spec.persist),
-                    handler=_wrap_ctx_core(table, func),
+                    handler=wrapped_core,
                     http_methods=getattr(op_spec, "http_methods", None),
                     path_suffix=getattr(op_spec, "path_suffix", ""),
                     tags=tuple(getattr(op_spec, "tags", ()) or ()),
@@ -439,8 +440,8 @@ def _mro_collect_decorated_ops(table: type) -> List["OpSpec"]:
                     engine=getattr(op_spec, "engine", None),
                     response=getattr(op_spec, "response", None),
                     returns=getattr(op_spec, "returns", None),
-                    core=getattr(op_spec, "core", None),
-                    core_raw=getattr(op_spec, "core_raw", None),
+                    core=getattr(op_spec, "core", None) or wrapped_core,
+                    core_raw=getattr(op_spec, "core_raw", None) or wrapped_core,
                     extra=dict(getattr(op_spec, "extra", {}) or {}),
                     deps=tuple(getattr(op_spec, "deps", ()) or ()),
                     secdeps=tuple(getattr(op_spec, "secdeps", ()) or ()),

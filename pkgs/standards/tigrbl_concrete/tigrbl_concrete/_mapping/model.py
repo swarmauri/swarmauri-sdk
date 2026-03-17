@@ -16,7 +16,6 @@ from tigrbl_core._spec.binding_spec import (
     HttpRestBindingSpec,
     resolve_rest_nested_prefix,
 )
-from tigrbl_core.config.constants import CANON
 from tigrbl_core.config.constants import HOOK_DECLS_ATTR
 from tigrbl_core._spec.op_utils import _maybe_await, _unwrap
 from tigrbl_core.schema.builder import _build_schema
@@ -522,7 +521,7 @@ def _normalize_bindings(model: type, specs: Tuple[OpSpec, ...]) -> Tuple[OpSpec,
 
 
 def _default_path_suffix(spec: OpSpec) -> str | None:
-    if spec.alias != spec.target and spec.target in CANON:
+    if spec.alias != spec.target:
         return f"/{spec.alias}"
     return None
 

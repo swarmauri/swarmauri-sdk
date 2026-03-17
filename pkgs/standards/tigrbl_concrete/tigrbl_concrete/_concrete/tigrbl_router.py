@@ -318,6 +318,16 @@ class TigrblRouter(_Router):
             include_other = getattr(app, "include_router", None)
             if callable(include_other):
                 include_other(router, prefix=px)
+            app_tables = getattr(app, "tables", None)
+            if isinstance(app_tables, dict):
+                for name, model in getattr(self, "tables", {}).items():
+                    app_tables.setdefault(name, model)
+                default_router = getattr(app, "_default_router", None)
+                if default_router is not None and isinstance(
+                    getattr(default_router, "tables", None), dict
+                ):
+                    for name, model in getattr(self, "tables", {}).items():
+                        default_router.tables.setdefault(name, model)
         return router
 
     def openapi(self) -> Dict[str, Any]:
