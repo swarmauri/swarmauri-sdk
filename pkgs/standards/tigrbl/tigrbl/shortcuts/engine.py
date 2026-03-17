@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Union
 
-from .._spec.engine_spec import EngineSpec
+from tigrbl_core._spec import EngineSpec
 from .._concrete._engine import Provider, Engine, provider_from_spec
 
 EngineCfg = Union[str, Mapping[str, object]]  # DSN string or structured mapping
