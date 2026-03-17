@@ -29,7 +29,13 @@ def openapi(router: Any) -> dict[str, Any]:
 
         path_item = paths.setdefault(canonical_path, {})
         for method in sorted(route.methods):
-            status_code = route.status_code or status.HTTP_200_OK
+            alias = (
+                getattr(route, "tigrbl_alias", None)
+                or route.name.rsplit(".", maxsplit=1)[-1]
+            )
+            status_code = route.status_code or (
+                status.HTTP_201_CREATED if alias == "create" else status.HTTP_200_OK
+            )
             responses: dict[str, Any] = {}
             if route.responses:
                 for code, meta in route.responses.items():
@@ -106,15 +112,27 @@ def openapi(router: Any) -> dict[str, Any]:
                     components_schemas,
                 )
 
-            alias = route.name.rsplit(".", maxsplit=1)[-1]
             if request_schema is None:
                 request_schema = _request_schema_from_handler(route, components_schemas)
 
             if isinstance(request_schema, dict) and alias.startswith("bulk_"):
-                request_schema = _resolve_component_schema_ref(
+                request_schema = _bulk_schema(
                     request_schema,
                     components_schemas,
                 )
+
+            if alias.startswith("bulk_"):
+                for response_entry in responses.values():
+                    content = response_entry.get("content")
+                    if not isinstance(content, dict):
+                        continue
+                    app_json = content.get("application/json")
+                    if not isinstance(app_json, dict):
+                        continue
+                    schema = app_json.get("schema")
+                    if not isinstance(schema, dict):
+                        continue
+                    app_json["schema"] = _bulk_schema(schema, components_schemas)
 
             if request_schema is not None:
                 op["requestBody"] = {
@@ -158,3 +176,33 @@ def openapi(router: Any) -> dict[str, Any]:
     if router.description:
         doc["info"]["description"] = router.description
     return doc
+
+
+def _bulk_schema(
+    schema: dict[str, Any],
+    components_schemas: dict[str, Any],
+) -> dict[str, Any]:
+    item_schema = _resolve_component_schema_ref(schema, components_schemas)
+    wrapped: dict[str, Any] = {"type": "array", "items": item_schema}
+    if isinstance(item_schema, dict):
+        example = _object_example(item_schema)
+        if example:
+            wrapped["examples"] = [[example]]
+    return wrapped
+
+
+def _object_example(schema: dict[str, Any]) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    properties = schema.get("properties")
+    if not isinstance(properties, dict):
+        return out
+    for name, prop in properties.items():
+        if not isinstance(prop, dict):
+            continue
+        examples = prop.get("examples")
+        if isinstance(examples, list) and examples:
+            out[name] = examples[0]
+            continue
+        if "default" in prop and prop["default"] is not None:
+            out[name] = prop["default"]
+    return out
