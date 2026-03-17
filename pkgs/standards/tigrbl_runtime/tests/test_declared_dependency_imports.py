@@ -9,11 +9,13 @@ PACKAGE_DIR = Path(__file__).resolve().parents[1] / PACKAGE_NAME
 
 # Static snapshot from pyproject.toml [project.dependencies].
 ALLOWED_TOP_LEVEL_IMPORTS = {
+    "tigrbl_base",
     "tigrbl_kernel",
     "tigrbl_typing",
     "tigrbl_atoms",
     "tigrbl_concrete",
     "tigrbl_core",
+    "tigrbl_ops_oltp",
     "sqlalchemy",
     "numba",
 }
