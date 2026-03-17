@@ -2,7 +2,7 @@ import inspect
 
 from tigrbl._concrete._engine import Engine, Provider
 from tigrbl.decorators.engine import engine_ctx
-from tigrbl._spec import EngineSpec
+from tigrbl._spec import EngineSpec, EngineProviderSpec
 from tigrbl.shortcuts.engine import engine, mem
 from tigrbl.shortcuts.engine import engine_spec, prov
 
@@ -28,7 +28,7 @@ def test_engine_spec_to_provider_roundtrip():
     spec = EngineSpec.from_any("sqlite://:memory:")
     assert spec is not None
     provider = spec.to_provider()
-    assert isinstance(provider, Provider)
+    assert isinstance(provider, EngineProviderSpec)
     assert provider.spec is spec
 
 
