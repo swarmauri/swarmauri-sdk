@@ -10,6 +10,11 @@ from .base import ExecutorBase
 from .types import _Ctx
 
 
+_PROGRAM_SEGMENT_CACHE: dict[
+    int, dict[int, tuple[tuple[int, ...], dict[str, tuple[int, ...]]]]
+] = {}
+
+
 class PackedPlanExecutor(ExecutorBase):
     """Executes packed kernel plans via kernel-attached packed execution hooks."""
 
@@ -265,31 +270,43 @@ class PackedPlanExecutor(ExecutorBase):
         try:
             seg_offset = packed.op_segment_offsets[program_id]
             seg_length = packed.op_segment_lengths[program_id]
-            ordered_segments: list[int] = []
-            by_phase: dict[str, list[int]] = {}
-            remaining: list[int] = []
-            seen_segment_ids: set[int] = set()
-            for i in range(seg_offset, seg_offset + seg_length):
-                seg_id = packed.op_to_segment_ids[i]
-                phase = str(packed.segment_phases[seg_id])
-                by_phase.setdefault(phase, []).append(seg_id)
+            packed_cache = _PROGRAM_SEGMENT_CACHE.setdefault(id(packed), {})
+            cached = packed_cache.get(program_id)
+            if cached is None:
+                ordered_segments: list[int] = []
+                by_phase_working: dict[str, list[int]] = {}
+                remaining: list[int] = []
+                seen_segment_ids: set[int] = set()
+                for i in range(seg_offset, seg_offset + seg_length):
+                    seg_id = packed.op_to_segment_ids[i]
+                    phase = str(packed.segment_phases[seg_id])
+                    by_phase_working.setdefault(phase, []).append(seg_id)
 
-            for phase in self._PHASE_EXECUTION_ORDER:
-                for seg_id in by_phase.pop(phase, ()):  # pragma: no branch
+                for phase in self._PHASE_EXECUTION_ORDER:
+                    for seg_id in by_phase_working.pop(phase, ()):  # pragma: no branch
+                        if seg_id in seen_segment_ids:
+                            continue
+                        seen_segment_ids.add(seg_id)
+                        ordered_segments.append(seg_id)
+
+                for i in range(seg_offset, seg_offset + seg_length):
+                    seg_id = packed.op_to_segment_ids[i]
                     if seg_id in seen_segment_ids:
                         continue
                     seen_segment_ids.add(seg_id)
-                    ordered_segments.append(seg_id)
+                    remaining.append(seg_id)
 
-            for i in range(seg_offset, seg_offset + seg_length):
-                seg_id = packed.op_to_segment_ids[i]
-                if seg_id in seen_segment_ids:
-                    continue
-                seen_segment_ids.add(seg_id)
-                remaining.append(seg_id)
+                ordered = tuple((*ordered_segments, *remaining))
+                by_phase = {
+                    phase: tuple(segment_ids)
+                    for phase, segment_ids in by_phase_working.items()
+                }
+                cached = (ordered, by_phase)
+                packed_cache[program_id] = cached
+            ordered, by_phase = cached
 
             try:
-                for seg_id in (*ordered_segments, *remaining):
+                for seg_id in ordered:
                     await self._run_segment_python(ctx, packed, seg_id)
             except StatusDetailError as exc:
                 detail = (

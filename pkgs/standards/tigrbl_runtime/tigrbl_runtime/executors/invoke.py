@@ -14,6 +14,50 @@ from tigrbl_ops_oltp.crud import ops as _crud_ops
 from tigrbl_ops_oltp.crud.helpers.model import _coerce_pk_value, _single_pk_name
 
 logger = logging.getLogger(__name__)
+_OPVIEW_CACHE_ATTR = "__tigrbl_opview_cache__"
+
+
+def _resolve_cached_opview(ctx: MutableMapping[str, Any]) -> Any:
+    """Resolve and cache compiled opviews for hot invoke paths."""
+    model = getattr(ctx, "model", None)
+    alias = getattr(ctx, "op", None)
+    specs = ctx.get("specs")
+    if not (
+        isinstance(model, type)
+        and isinstance(alias, str)
+        and isinstance(specs, Mapping)
+    ):
+        return None
+
+    app_ref = getattr(ctx, "app", None) or getattr(ctx, "router", None) or model
+    cache_key = (model, alias)
+
+    cache = None
+    app_dict = getattr(app_ref, "__dict__", None)
+    if isinstance(app_dict, dict):
+        cache = app_dict.setdefault(_OPVIEW_CACHE_ATTR, {})
+    if isinstance(cache, MutableMapping):
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+    from tigrbl_kernel.opview_compiler import compile_opview_from_specs
+
+    op_spec = next(
+        (
+            sp
+            for sp in tuple(getattr(getattr(model, "ops", None), "all", ()) or ())
+            if getattr(sp, "alias", None) == alias
+        ),
+        None,
+    )
+    if op_spec is None:
+        op_spec = SimpleNamespace(alias=alias)
+
+    compiled = compile_opview_from_specs(specs, op_spec)
+    if isinstance(cache, MutableMapping):
+        cache[cache_key] = compiled
+    return compiled
 
 
 def _default_status_for_alias(alias: Any, target: Any = None) -> int:
@@ -194,32 +238,12 @@ async def _invoke(
         if obj is not None:
             ctx.model = type(obj)
     if getattr(ctx, "opview", None) is None:
-        model = getattr(ctx, "model", None)
-        alias = getattr(ctx, "op", None)
-        specs = ctx.get("specs")
-        if (
-            isinstance(model, type)
-            and isinstance(alias, str)
-            and isinstance(specs, Mapping)
-        ):
-            try:
-                from tigrbl_kernel.opview_compiler import compile_opview_from_specs
-
-                op_spec = next(
-                    (
-                        sp
-                        for sp in tuple(
-                            getattr(getattr(model, "ops", None), "all", ()) or ()
-                        )
-                        if getattr(sp, "alias", None) == alias
-                    ),
-                    None,
-                )
-                if op_spec is None:
-                    op_spec = SimpleNamespace(alias=alias)
-                ctx.opview = compile_opview_from_specs(specs, op_spec)
-            except Exception:
-                pass
+        try:
+            opview = _resolve_cached_opview(ctx)
+            if opview is not None:
+                ctx.opview = opview
+        except Exception:
+            pass
     skip_persist: bool = bool(ctx.get(CTX_SKIP_PERSIST_FLAG) or ctx.get("skip_persist"))
     skip_egress: bool = bool(ctx.get("skip_egress"))
     if not callable(ctx.get("rpc_error_builder")):
