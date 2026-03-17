@@ -37,6 +37,7 @@ def test_assemble_separates_virtual_and_persisted() -> None:
         app=app,
         model=Model,
         op=alias,
+        opview=ov,
         persist=True,
         temp={"in_values": {"name": "Alice", "v": "x"}},
     )
