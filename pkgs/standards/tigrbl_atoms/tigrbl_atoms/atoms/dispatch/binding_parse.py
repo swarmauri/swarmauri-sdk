@@ -36,7 +36,7 @@ def _run(obj: object | None, ctx: Any) -> None:
         except Exception:
             body = None
 
-    if not protocol and isinstance(body, Mapping) and body.get("jsonrpc"):
+    if not protocol and isinstance(body, Mapping) and body.get("jsonrpc") == "2.0":
         dispatch["rpc"] = dict(body)
         dispatch["rpc_method"] = body.get("method")
         dispatch["parsed_payload"] = body.get("params", {})
@@ -64,8 +64,10 @@ def _run(obj: object | None, ctx: Any) -> None:
             if isinstance(route, dict):
                 route["rpc_envelope"] = dict(body)
         elif isinstance(body, list):
-            dispatch["rpc_batch"] = body
-            dispatch["parsed_payload"] = body
+            dispatch["rpc_batch"] = [
+                dict(item) if isinstance(item, Mapping) else item for item in body
+            ]
+            dispatch["parsed_payload"] = dispatch["rpc_batch"]
         if isinstance(route, dict):
             route["payload"] = body
     elif protocol.endswith(".rest"):
