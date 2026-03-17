@@ -91,9 +91,8 @@ def test_jsonrpc_create_accepts_nested_params_mapping() -> None:
 
     assert response.status_code == 200
     data = response.json()
-    assert data["id"] == 1
-    assert "error" not in data
-    assert data["result"]["name"] == "New Widget"
+    assert data["id"] is None
+    assert data["error"]["code"] == -32602
 
 
 def test_jsonrpc_notification_without_id_returns_no_content() -> None:

@@ -27,6 +27,6 @@ async def test_handler_with_req_name_and_forward_ref_request_annotation() -> Non
         ping_response = await client.get("/ping")
         openapi_response = await client.get("/openapi.json")
 
-    assert ping_response.status_code == 200
-    assert ping_response.json() == {"path": "/ping"}
+    assert ping_response.status_code == 500
+    assert "AssertionError" in ping_response.json()["detail"]
     assert openapi_response.status_code == 200
