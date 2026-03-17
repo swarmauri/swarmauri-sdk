@@ -339,8 +339,14 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
             label = f"hook:wire:tigrbl:core:crud:ops:{alias}@HANDLER"
 
             if callable(op_handler):
-                setattr(op_handler, "__tigrbl_label", label)
-                _default_handler_step = op_handler
+
+                async def _default_handler_step(ctx: Any) -> None:
+                    await _maybe_await(op_handler(ctx))
+
+                if op_spec is not None and getattr(op_spec, "target", None):
+                    _default_handler_step.__qualname__ = str(op_spec.target)
+
+                setattr(_default_handler_step, "__tigrbl_label", label)
 
             else:
 

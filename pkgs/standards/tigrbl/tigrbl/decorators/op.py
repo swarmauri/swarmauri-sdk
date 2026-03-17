@@ -172,7 +172,7 @@ def op_ctx(
             inferred_arity = "collection"
 
         resolved_alias = alias or (
-            resolved_target if resolved_target != "custom" else ""
+            resolved_target if resolved_target != "custom" else f.__name__
         )
 
         spec = OpSpec(
@@ -198,6 +198,10 @@ def op_ctx(
             )
             for obj in targets:
                 setattr(obj, f.__name__, cm)
+                if hasattr(obj, "ops"):
+                    from tigrbl_concrete._mapping.model import rebind
+
+                    rebind(obj)
 
         return cm
 
