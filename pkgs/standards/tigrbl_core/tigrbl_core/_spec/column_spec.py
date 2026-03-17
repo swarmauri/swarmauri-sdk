@@ -122,6 +122,19 @@ class ColumnSpec(SerdeMixin):
                 if not isinstance(name, str):
                     continue
                 out.setdefault(name, ColumnSpec(storage=S(), io=ColumnSpec._DEFAULT_IO))
+        else:
+            # Declarative models can be inspected before SQLAlchemy finishes
+            # materializing ``__table__``. In that transient state plain
+            # ``Column(...)`` declarations still exist on the class body and
+            # should participate in schema inference.
+            for base in reversed(mro):
+                for attr_name, value in vars(base).items():
+                    if attr_name.startswith("_") or attr_name in out:
+                        continue
+                    if hasattr(value, "type") and hasattr(value, "nullable"):
+                        out[attr_name] = ColumnSpec(
+                            storage=S(), io=ColumnSpec._DEFAULT_IO
+                        )
 
         logger.info(
             "Collected %d columns for %s", len(out), ColumnSpec._model_label(model)

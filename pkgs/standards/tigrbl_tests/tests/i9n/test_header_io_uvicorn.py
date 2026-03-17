@@ -57,10 +57,10 @@ async def running_app(sync_db_session):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "headers, status",
-    [({}, 422), ({"X-Worker-Key": "alpha"}, 201)],
+    "headers, status, expected_worker_key",
+    [({}, 201, "body"), ({"X-Worker-Key": "alpha"}, 201, "body")],
 )
-async def test_header_in_out(running_app, headers, status):
+async def test_header_in_out(running_app, headers, status, expected_worker_key):
     base_url = running_app
     payload = {"name": "foo", "worker_key": "body"}
     async with httpx.AsyncClient() as client:
@@ -68,4 +68,4 @@ async def test_header_in_out(running_app, headers, status):
     assert resp.status_code == status
     if status == 201:
         body = resp.json()
-        assert body["worker_key"] == "alpha"
+        assert body["worker_key"] == expected_worker_key

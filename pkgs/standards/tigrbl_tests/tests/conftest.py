@@ -14,9 +14,9 @@ from tigrbl.orm.mixins import BulkCapable, GUIDPk
 from tigrbl_core._spec import F, IO, S
 from tigrbl_base.column import acol
 from tigrbl_core._spec import StorageTransform
-from tigrbl.schema import builder as v3_builder
-from tigrbl.runtime import kernel as runtime_kernel
-from tigrbl.runtime import system as runtime_system
+from tigrbl_core.schema import builder as v3_builder
+from tigrbl_runtime.runtime import kernel as runtime_kernel
+from tigrbl_runtime.runtime import system as runtime_system
 from tigrbl.shortcuts.engine import mem, sqlitef
 from tigrbl_concrete._concrete import engine_resolver as _resolver
 from tigrbl_concrete import (

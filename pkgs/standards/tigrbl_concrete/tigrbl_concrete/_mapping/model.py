@@ -7,7 +7,7 @@ import re
 from types import SimpleNamespace
 from typing import Any, Optional, Set, Tuple
 
-from pydantic import BaseModel, create_model
+from pydantic import BaseModel
 
 from tigrbl_concrete._concrete._router import Router
 from tigrbl_core._spec import OpSpec
@@ -16,7 +16,6 @@ from tigrbl_core._spec.binding_spec import (
     HttpRestBindingSpec,
     resolve_rest_nested_prefix,
 )
-from tigrbl_core.config.constants import CANON
 from tigrbl_core.config.constants import HOOK_DECLS_ATTR
 from tigrbl_core._spec.op_utils import _maybe_await, _unwrap
 from tigrbl_core.schema.builder import _build_schema
@@ -56,6 +55,40 @@ _DEFAULT_METHODS: dict[str, tuple[str, ...]] = {
     "bulk_delete": ("DELETE",),
     "custom": ("POST",),
 }
+
+
+def _call_op_handler(handler: Any, model: type, ctx: Any) -> Any:
+    """Invoke op handlers with a compatible calling convention.
+
+    Decorated handlers are often class-bound by the time they are attached to
+    runtime hooks. In that case they expect only ``ctx``. Unbound callables may
+    still expect ``(model, ctx)``. This helper normalizes invocation so both
+    forms work.
+    """
+
+    sig = inspect.signature(handler)
+    params = sig.parameters
+
+    positional = [
+        p
+        for p in params.values()
+        if p.kind
+        in (
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        )
+    ]
+    has_varargs = any(
+        p.kind == inspect.Parameter.VAR_POSITIONAL for p in params.values()
+    )
+
+    if has_varargs or len(positional) >= 2:
+        return handler(model, ctx)
+    if len(positional) == 1:
+        return handler(ctx)
+    if "ctx" in params:
+        return handler(ctx=ctx)
+    return handler()
 
 
 def _has_rpc_binding(specs: Tuple[OpSpec, ...]) -> bool:
@@ -197,7 +230,7 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
         if spec.response_model is not None:
             setattr(alias_ns, "out", _resolve_schema_arg(model, spec.response_model))
 
-        if nested_vars:
+        if nested_vars and not spec.alias.startswith("bulk_"):
             in_model = getattr(alias_ns, "in_", None)
             setattr(
                 alias_ns,
@@ -225,36 +258,8 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
         ):
             setattr(alias_ns, "out", getattr(target_ns, "out"))
 
-        if spec.request_model is not None:
-            in_model = getattr(alias_ns, "in_", None)
-            if (
-                in_model
-                and inspect.isclass(in_model)
-                and issubclass(in_model, BaseModel)
-            ):
-                setattr(
-                    alias_ns,
-                    "in_",
-                    create_model(
-                        f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Request",
-                        __base__=in_model,
-                    ),
-                )
-        if spec.response_model is not None:
-            out_model = getattr(alias_ns, "out", None)
-            if (
-                out_model
-                and inspect.isclass(out_model)
-                and issubclass(out_model, BaseModel)
-            ):
-                setattr(
-                    alias_ns,
-                    "out",
-                    create_model(
-                        f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Response",
-                        __base__=out_model,
-                    ),
-                )
+        # Keep explicit schema overrides as-is so OpenAPI components preserve
+        # developer-provided model names (e.g., ``EchoIn``/``EchoOut``).
 
         # Bulk routes keep explicit object request/response models produced by
         # ``_build_schema`` so OpenAPI component names remain stable.
@@ -338,19 +343,18 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
             )
             label = f"hook:wire:tigrbl:core:crud:ops:{alias}@HANDLER"
 
-            if callable(op_handler):
-                setattr(op_handler, "__tigrbl_label", label)
-                _default_handler_step = op_handler
+            async def _default_handler_step(ctx: Any) -> Any:
+                if callable(op_handler):
+                    result = op_handler(ctx)
+                    if inspect.isawaitable(result):
+                        return await result
+                    return result
+                return None
 
-            else:
+            if op_spec is not None and getattr(op_spec, "target", None):
+                _default_handler_step.__qualname__ = str(op_spec.target)
 
-                async def _default_handler_step(ctx: Any) -> None:
-                    del ctx
-
-                if op_spec is not None and getattr(op_spec, "target", None):
-                    _default_handler_step.__qualname__ = str(op_spec.target)
-
-                setattr(_default_handler_step, "__tigrbl_label", label)
+            setattr(_default_handler_step, "__tigrbl_label", label)
 
             alias_ns.HANDLER = [_default_handler_step]
 
@@ -523,7 +527,7 @@ def _normalize_bindings(model: type, specs: Tuple[OpSpec, ...]) -> Tuple[OpSpec,
 
 
 def _default_path_suffix(spec: OpSpec) -> str | None:
-    if spec.alias != spec.target and spec.target in CANON:
+    if spec.alias != spec.target:
         return f"/{spec.alias}"
     return None
 
@@ -637,7 +641,7 @@ def _materialize_rest_router(
                     "path_params": _kwargs,
                     "payload": _kwargs.get("body", {}),
                 }
-                result = handler(model, ctx)
+                result = _call_op_handler(handler, model, ctx)
                 if inspect.isawaitable(result):
                     result = await result
                 return result

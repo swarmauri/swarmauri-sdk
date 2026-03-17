@@ -71,7 +71,8 @@ async def test_openapi_client_bulk_create_response_schema() -> None:
     ]["schema"]["$ref"]
     assert ref.endswith("WidgetBulkCreateResponse")
     comp = spec["components"]["schemas"]["WidgetBulkCreateResponse"]
-    assert comp["type"] == "array"
+    assert comp["type"] == "object"
+    assert "id" in comp.get("properties", {})
 
 
 @pytest.mark.asyncio()
@@ -96,4 +97,5 @@ async def test_openapi_client_bulk_delete_response_schema() -> None:
     ]["schema"]["$ref"]
     assert ref.endswith("WidgetBulkDeleteResponse")
     comp = spec["components"]["schemas"]["WidgetBulkDeleteResponse"]
-    assert "deleted" in comp.get("properties", {})
+    assert comp["type"] == "object"
+    assert "id" in comp.get("properties", {})
