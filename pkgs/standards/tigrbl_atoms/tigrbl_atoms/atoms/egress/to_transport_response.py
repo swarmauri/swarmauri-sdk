@@ -23,6 +23,32 @@ def _jsonrpc_request_id(ctx: Any) -> Any:
     rpc = getattr(raw, "rpc", None)
     if isinstance(rpc, Mapping):
         return rpc.get("id")
+
+    temp = getattr(ctx, "temp", None)
+    dispatch = temp.get("dispatch", {}) if isinstance(temp, dict) else {}
+    if isinstance(dispatch, Mapping):
+        rpc_dispatch = dispatch.get("rpc")
+        if isinstance(rpc_dispatch, Mapping):
+            return rpc_dispatch.get("id")
+
+    body = getattr(ctx, "body", None)
+    if isinstance(body, (bytes, bytearray)):
+        try:
+            body = json.loads(bytes(body).decode("utf-8"))
+        except Exception:
+            body = None
+    if isinstance(body, Mapping) and body.get("jsonrpc") == "2.0":
+        return body.get("id")
+
+    if isinstance(dispatch, Mapping):
+        parsed_payload = dispatch.get("parsed_payload")
+        if isinstance(parsed_payload, Mapping) and "id" in parsed_payload:
+            return parsed_payload.get("id")
+
+    request = getattr(ctx, "request", None)
+    req_body = getattr(request, "_json", None)
+    if isinstance(req_body, Mapping) and req_body.get("jsonrpc") == "2.0":
+        return req_body.get("id")
     return None
 
 
@@ -66,7 +92,26 @@ def _normalize_jsonrpc_transport_response(
             body = bytes(body).decode("utf-8", errors="replace")
 
     if not (isinstance(body, Mapping) and body.get("jsonrpc") == "2.0"):
-        body = {"jsonrpc": "2.0", "result": body, "id": request_id}
+        status_code = int(normalized.get("status_code", 200) or 200)
+        if status_code >= 400:
+            from tigrbl_typing.status.mappings import ERROR_MESSAGES, _HTTP_TO_RPC
+
+            rpc_code = _HTTP_TO_RPC.get(status_code, -32603)
+            message = ERROR_MESSAGES.get(rpc_code, "Internal error")
+            if isinstance(body, Mapping):
+                detail = body.get("detail")
+                if isinstance(detail, str) and detail:
+                    message = detail
+                data = dict(body)
+            else:
+                data = {"detail": body}
+            body = {
+                "jsonrpc": "2.0",
+                "error": {"code": rpc_code, "message": message, "data": data},
+                "id": request_id,
+            }
+        else:
+            body = {"jsonrpc": "2.0", "result": body, "id": request_id}
 
     normalized["status_code"] = 200
     normalized["body"] = body

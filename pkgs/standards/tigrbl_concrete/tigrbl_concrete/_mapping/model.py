@@ -57,6 +57,40 @@ _DEFAULT_METHODS: dict[str, tuple[str, ...]] = {
 }
 
 
+def _call_op_handler(handler: Any, model: type, ctx: Any) -> Any:
+    """Invoke op handlers with a compatible calling convention.
+
+    Decorated handlers are often class-bound by the time they are attached to
+    runtime hooks. In that case they expect only ``ctx``. Unbound callables may
+    still expect ``(model, ctx)``. This helper normalizes invocation so both
+    forms work.
+    """
+
+    sig = inspect.signature(handler)
+    params = sig.parameters
+
+    positional = [
+        p
+        for p in params.values()
+        if p.kind
+        in (
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        )
+    ]
+    has_varargs = any(
+        p.kind == inspect.Parameter.VAR_POSITIONAL for p in params.values()
+    )
+
+    if has_varargs or len(positional) >= 2:
+        return handler(model, ctx)
+    if len(positional) == 1:
+        return handler(ctx)
+    if "ctx" in params:
+        return handler(ctx=ctx)
+    return handler()
+
+
 def _has_rpc_binding(specs: Tuple[OpSpec, ...]) -> bool:
     for spec in specs:
         for binding in tuple(getattr(spec, "bindings", ()) or ()):
@@ -607,7 +641,7 @@ def _materialize_rest_router(
                     "path_params": _kwargs,
                     "payload": _kwargs.get("body", {}),
                 }
-                result = handler(model, ctx)
+                result = _call_op_handler(handler, model, ctx)
                 if inspect.isawaitable(result):
                     result = await result
                 return result
