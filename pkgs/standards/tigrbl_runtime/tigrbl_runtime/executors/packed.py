@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, ClassVar, Mapping
+from types import SimpleNamespace
 
 from tigrbl_concrete._concrete import engine_resolver as _resolver
 from tigrbl_kernel.models import KernelPlan, OpKey, PackedKernel
@@ -229,6 +230,14 @@ class PackedPlanExecutor(ExecutorBase):
         ctx.model = getattr(meta, "model", None)
         ctx.op = getattr(meta, "alias", None)
         ctx.target = getattr(meta, "target", None)
+        env_ref = ctx.get("env")
+        if env_ref is None:
+            ctx["env"] = SimpleNamespace(method=ctx.op)
+        elif getattr(env_ref, "method", None) in (None, "", "unknown"):
+            try:
+                setattr(env_ref, "method", ctx.op)
+            except Exception:
+                ctx["env"] = SimpleNamespace(method=ctx.op)
         release_db = None
         if getattr(ctx, "_raw_db", None) is None:
             try:
@@ -280,6 +289,16 @@ class PackedPlanExecutor(ExecutorBase):
                     if getattr(exc, "detail", None) not in (None, "")
                     else str(exc)
                 )
+                error_phase = f"ON_{getattr(ctx, 'phase', '')}_ERROR"
+                fallback_phase = "ON_ERROR"
+                for seg_id in (
+                    *by_phase.get(error_phase, ()),
+                    *by_phase.get(fallback_phase, ()),
+                ):
+                    try:
+                        await self._run_segment_python(ctx, packed, seg_id)
+                    except Exception:
+                        pass
                 await _send_json(
                     env,
                     int(getattr(exc, "status_code", 500) or 500),
@@ -293,6 +312,16 @@ class PackedPlanExecutor(ExecutorBase):
                     if getattr(std, "detail", None) not in (None, "")
                     else str(std)
                 )
+                error_phase = f"ON_{getattr(ctx, 'phase', '')}_ERROR"
+                fallback_phase = "ON_ERROR"
+                for seg_id in (
+                    *by_phase.get(error_phase, ()),
+                    *by_phase.get(fallback_phase, ()),
+                ):
+                    try:
+                        await self._run_segment_python(ctx, packed, seg_id)
+                    except Exception:
+                        pass
                 await _send_json(
                     env,
                     int(getattr(std, "status_code", 500) or 500),

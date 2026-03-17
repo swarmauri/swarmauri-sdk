@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, Mapping, MutableMapping, Optional
+from types import SimpleNamespace
 
 from tigrbl_runtime.executors.invoke import _invoke
 from tigrbl_runtime.runtime.kernel import (
@@ -30,6 +31,8 @@ async def invoke_op(
     seed_ctx.setdefault("model", model)
     seed_ctx.setdefault("op", alias)
     seed_ctx.setdefault("method", alias)
+    if seed_ctx.get("env") is None:
+        seed_ctx["env"] = SimpleNamespace(method=alias)
     seed_ctx.setdefault("skip_egress", True)
 
     app_ref = (
