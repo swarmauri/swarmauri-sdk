@@ -14,10 +14,13 @@ def test_dependency_invoke_is_runtime_event_anchor():
 
 
 def test_runtime_gateway_owns_runtime_entrypoint_and_send():
-    invoke_source = (RUNTIME_PKG / "runtime" / "gw" / "invoke.py").read_text()
-    assert "kernel.kernel_plan(app)" in invoke_source
-    assert "await _invoke(" in invoke_source
-    assert "_send_transport_response" in invoke_source
+    runtime_source = (RUNTIME_PKG / "runtime" / "runtime.py").read_text()
+    executor_source = (RUNTIME_PKG / "executors" / "kernel_executor.py").read_text()
+    packed_source = (RUNTIME_PKG / "executors" / "packed.py").read_text()
+
+    assert "kernel.kernel_plan(app)" in runtime_source
+    assert "await _invoke(" in executor_source
+    assert "_send_transport_response" in packed_source
 
 
 def test_docs_generation_reads_secdeps_metadata():
