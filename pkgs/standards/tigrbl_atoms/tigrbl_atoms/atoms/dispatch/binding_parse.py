@@ -30,11 +30,11 @@ def _run(obj: object | None, ctx: Any) -> None:
     protocol = str(dispatch.get("binding_protocol", "") or "")
     body = getattr(ctx, "body", None)
 
-    if not protocol and isinstance(body, (bytes, bytearray)):
+    if isinstance(body, (bytes, bytearray)):
         try:
             body = json.loads(bytes(body).decode("utf-8"))
         except Exception:
-            pass
+            body = None
 
     if not protocol and isinstance(body, Mapping) and body.get("jsonrpc"):
         dispatch["rpc"] = dict(body)
@@ -46,11 +46,6 @@ def _run(obj: object | None, ctx: Any) -> None:
         return
 
     if protocol.endswith(".jsonrpc"):
-        if isinstance(body, (bytes, bytearray)):
-            try:
-                body = json.loads(bytes(body).decode("utf-8"))
-            except Exception:
-                body = None
         if isinstance(body, Mapping):
             dispatch["rpc"] = dict(body)
             dispatch["rpc_method"] = body.get("method")

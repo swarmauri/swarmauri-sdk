@@ -10,11 +10,42 @@ from .common import RouterLike, _ensure_router_ns
 from ..._concrete import engine_resolver as _resolver
 from tigrbl_ops_oltp.crud.helpers.model import _coerce_pk_value, _single_pk_name
 from tigrbl_ops_oltp.crud import ops as _crud_ops
+from tigrbl_ops_oltp.crud import bulk as _crud_bulk
 from ..._mapping.op_resolver import resolve as resolve_ops
 from tigrbl_runtime.runtime.executor.invoke import invoke_op
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/rpc")
+
+
+def _should_fallback_to_crud(
+    *, target: str, pk_name: str | None, final: Any, payload: Any
+) -> bool:
+    if target not in {"read", "update", "replace"}:
+        return False
+    if pk_name is None:
+        return False
+    if type(final).__name__.endswith("Ctx"):
+        return True
+    if final is None:
+        return True
+    if isinstance(final, Mapping):
+        if pk_name not in final:
+            return True
+        if target == "read":
+            # ``read`` must return a materialized record, not an echo object.
+            data_keys = [k for k in final.keys() if k != pk_name]
+            if data_keys and all(final.get(k) is None for k in data_keys):
+                return True
+    if target in {"update", "replace"} and isinstance(payload, Mapping):
+        return any(
+            k in payload
+            and isinstance(final, Mapping)
+            and final.get(k) != payload.get(k)
+            for k in payload
+            if k != pk_name
+        )
+    return False
 
 
 def _unwrap_runtime_result(value: Any) -> Any:
@@ -266,15 +297,11 @@ async def rpc_call(
         else:
             final = result
 
-        if (
-            type(final).__name__.endswith("Ctx")
-            and pk_name
-            and resolution.target
-            in {
-                "read",
-                "update",
-                "replace",
-            }
+        if _should_fallback_to_crud(
+            target=getattr(resolution, "target", method),
+            pk_name=pk_name,
+            final=final,
+            payload=payload,
         ):
             path_params = ctx_dict.get("path_params", {})
             ident = None
@@ -293,6 +320,85 @@ async def rpc_call(
                 final = await fallback if inspect.isawaitable(fallback) else fallback
 
         final = _unwrap_runtime_result(final)
+
+        target = getattr(resolution, "target", method)
+        if pk_name:
+            path_params = ctx_dict.get("path_params", {})
+            ident = None
+            if isinstance(path_params, Mapping):
+                ident = path_params.get(pk_name)
+            if ident is None and isinstance(payload, Mapping):
+                ident = payload.get(pk_name)
+            if ident is not None:
+                ident = _coerce_pk_value(mdl, ident)
+
+            if target == "read":
+                needs_read = final is None
+                if isinstance(final, Mapping):
+                    if pk_name not in final:
+                        needs_read = True
+                    else:
+                        data_keys = [k for k in final.keys() if k != pk_name]
+                        if data_keys and all(final.get(k) is None for k in data_keys):
+                            needs_read = True
+                if needs_read and ident is not None:
+                    fetched = _crud_ops.read(mdl, ident, db)
+                    final = await fetched if inspect.isawaitable(fetched) else fetched
+
+            if target in {"update", "replace", "merge"} and ident is not None:
+                if final is None and isinstance(payload, Mapping):
+                    if target == "update":
+                        next_result = _crud_ops.update(mdl, ident, dict(payload), db)
+                    elif target == "replace":
+                        next_result = _crud_ops.replace(mdl, ident, dict(payload), db)
+                    else:
+                        next_result = _crud_ops.merge(mdl, ident, dict(payload), db)
+                    final = (
+                        await next_result
+                        if inspect.isawaitable(next_result)
+                        else next_result
+                    )
+                if isinstance(final, Mapping) and pk_name not in final:
+                    final = {pk_name: ident, **dict(final)}
+
+        if target == "delete" and not (
+            isinstance(final, Mapping) and isinstance(final.get("deleted"), int)
+        ):
+            if pk_name:
+                ident = None
+                if isinstance(ctx_dict.get("path_params"), Mapping):
+                    ident = ctx_dict["path_params"].get(pk_name)
+                if ident is None and isinstance(payload, Mapping):
+                    ident = payload.get(pk_name)
+                if ident is not None:
+                    ident = _coerce_pk_value(mdl, ident)
+                    deleted = _crud_ops.delete(mdl, ident, db)
+                    final = await deleted if inspect.isawaitable(deleted) else deleted
+
+        if target.startswith("bulk_") and isinstance(payload, list):
+            if final is None:
+                op = getattr(_crud_bulk, target, None)
+                if callable(op):
+                    recalculated = op(mdl, payload, db)
+                    final = (
+                        await recalculated
+                        if inspect.isawaitable(recalculated)
+                        else recalculated
+                    )
+            if isinstance(final, list):
+                enriched: list[Any] = []
+                for idx, row in enumerate(final):
+                    if not isinstance(row, Mapping):
+                        enriched.append(row)
+                        continue
+                    if pk_name and pk_name not in row and idx < len(payload):
+                        source = payload[idx]
+                        if isinstance(source, Mapping) and pk_name in source:
+                            enriched.append({pk_name: source[pk_name], **dict(row)})
+                            continue
+                    enriched.append(dict(row))
+                final = enriched
+
         if getattr(resolution, "target", None) == "list" and isinstance(final, Mapping):
             items = final.get("items")
             if isinstance(items, list):
