@@ -7,12 +7,11 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
 
-class Widget(TableBase, GUIDPk):
-    __tablename__ = "widgets_req_schema"
-    name = Column(String, nullable=False)
-
-
 def test_request_body_uses_schema_model():
+    class Widget(TableBase, GUIDPk):
+        __tablename__ = "widgets_req_schema"
+        name = Column(String, nullable=False)
+
     sp = OpSpec(alias="create", target="create")
     router = _build_router(Widget, [sp])
     app = TigrblApp()
