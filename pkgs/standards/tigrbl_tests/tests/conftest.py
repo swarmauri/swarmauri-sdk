@@ -8,11 +8,12 @@ import os
 import tempfile
 from types import SimpleNamespace
 from typing import Any, AsyncIterator, Iterator
-from tigrbl import TigrblApp, TableBase
+from tigrbl_concrete._concrete import TigrblApp
+from tigrbl_base._base import TableBase
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
-from tigrbl._spec import F, IO, S
+from tigrbl_core._spec import F, IO, S
 from tigrbl.shortcuts import acol
-from tigrbl._spec import StorageTransform
+from tigrbl_core._spec import StorageTransform
 from tigrbl.schema import builder as v3_builder
 from tigrbl.runtime import kernel as runtime_kernel
 from tigrbl.runtime import system as runtime_system
