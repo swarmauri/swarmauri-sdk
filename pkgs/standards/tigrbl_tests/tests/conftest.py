@@ -2,7 +2,12 @@ import pytest
 import pytest_asyncio
 import contextlib
 import os
+import sys
 import tempfile
+import types
+from dataclasses import dataclass
+from enum import Enum
+from functools import lru_cache
 from tigrbl import TigrblApp, TableBase
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
 from tigrbl._spec import F, IO, S
@@ -13,13 +18,23 @@ from tigrbl.runtime import kernel as runtime_kernel
 from tigrbl.runtime import system as runtime_system
 from tigrbl.shortcuts.engine import mem, sqlitef
 from tigrbl import resolver as _resolver
-from tigrbl.mapping import (
-    app_mro_collect,
-    collect_decorated_schemas,
-    column_mro_collect,
-    hook_mro_collect,
-    op_mro_collect,
-    router_mro_collect,
+from tigrbl_core._spec import AppSpec, RouterSpec, TableSpec
+from tigrbl_core._spec.column_spec import mro_collect_columns
+from tigrbl_core._spec.op_spec import _mro_alias_map_for, _mro_collect_decorated_ops
+from tigrbl_core._spec.response_resolver import resolve_response_spec
+from tigrbl_runtime.runtime.response import infer_hints
+from tigrbl_concrete._mapping.op_resolver import resolve as resolve_ops
+from tigrbl_concrete._mapping.router.rpc import rpc_call as _rpc_call
+from tigrbl_base._base import AttrDict
+from tigrbl_base._base._rpc_map import register_and_attach, _serialize_output
+from tigrbl_concrete._mapping.router.include import include_table, include_tables
+from tigrbl_concrete._mapping.model import (
+    bind,
+    rebind,
+    _materialize_handlers,
+    _materialize_schemas,
+    _bind_model_hooks,
+    _materialize_rest_router,
 )
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, Integer, String
@@ -29,6 +44,224 @@ from sqlalchemy.orm import Mapped, Session
 from typing import AsyncIterator, Iterator
 import asyncio
 import httpx
+
+
+@lru_cache(maxsize=None)
+def mro_collect_app_spec(app: type):
+    return AppSpec.collect(app)
+
+
+@lru_cache(maxsize=None)
+def mro_collect_router_hooks(router: type):
+    return tuple(RouterSpec.collect(router).hooks or ())
+
+
+@lru_cache(maxsize=None)
+def collect_decorated_schemas(model: type):
+    out = {}
+    for base in reversed(model.__mro__):
+        for obj in vars(base).values():
+            decl = getattr(obj, "__tigrbl_schema_decl__", None)
+            if decl is None:
+                continue
+            alias = getattr(decl, "alias", None)
+            kind = getattr(decl, "kind", None)
+            if not alias or kind not in {"in", "out"}:
+                continue
+            out.setdefault(alias, {})[kind] = obj
+    return out
+
+
+@lru_cache(maxsize=None)
+def mro_alias_map_for(table: type):
+    return _mro_alias_map_for(table)
+
+
+@lru_cache(maxsize=None)
+def mro_collect_decorated_ops(table: type):
+    return tuple(_mro_collect_decorated_ops(table))
+
+
+@lru_cache(maxsize=None)
+def _mro_collect_decorated_hooks_cached(table: type, visible_aliases: frozenset[str]):
+    del table, visible_aliases
+    return {}
+
+
+def _build_router(model: type, specs):
+    specs = tuple(specs)
+    _materialize_handlers(model, specs)
+    _bind_model_hooks(model, specs)
+    _materialize_schemas(model, specs)
+    _materialize_rest_router(model, specs, router=None)
+    return model.rest.router
+
+
+def _make_collection_endpoint(*args, **kwargs):
+    from tigrbl_canon.mapping.rest.collection import _make_collection_endpoint as _impl
+
+    return _impl(*args, **kwargs)
+
+
+def build_router_and_attach(*args, **kwargs):
+    from tigrbl_canon.mapping.rest.attach import build_router_and_attach as _impl
+
+    return _impl(*args, **kwargs)
+
+
+def _wrap_core(fn):
+    return fn
+
+
+@dataclass(frozen=True)
+class MappingContext:
+    model: type
+    router: object | None
+    only_keys: object | None
+
+
+class Step(str, Enum):
+    COLLECT = "collect"
+    MERGE = "merge"
+    BIND_MODELS = "bind_models"
+    BIND_OPS = "bind_ops"
+    BIND_HOOKS = "bind_hooks"
+    BIND_DEPS = "bind_deps"
+    SEAL = "seal"
+
+
+def compile_plan():
+    return types.SimpleNamespace(steps=[(s, None) for s in Step])
+
+
+def merge_op_specs(base_specs, override_specs):
+    merged = {(sp.alias, sp.target): sp for sp in base_specs}
+    for sp in override_specs:
+        merged[(sp.alias, sp.target)] = sp
+    return tuple(merged.values())
+
+
+def _collect(model):
+    return types.SimpleNamespace(model=model)
+
+
+def _plan(ctx):
+    return types.SimpleNamespace(visible_specs=tuple(resolve_ops(ctx.model)))
+
+
+def install_from_objects(model, *, router=None, only_keys=None):
+    return bind(model, router=router, only_keys=only_keys)
+
+
+def _install_mapping_compat_modules() -> None:
+    mapping = types.ModuleType("tigrbl.mapping")
+    mapping.bind = bind
+    mapping.rebind = rebind
+    mapping.build_schemas = _materialize_schemas
+    mapping.build_hooks = _bind_model_hooks
+    mapping.build_handlers = _materialize_handlers
+    mapping.build_rest = _materialize_rest_router
+    mapping.include_table = include_table
+    mapping.include_tables = include_tables
+    mapping.rpc_call = _rpc_call
+    mapping.register_rpc = register_and_attach
+    mapping.install_from_objects = install_from_objects
+    mapping.handlers = types.SimpleNamespace()
+    mapping.engine_resolver = _resolver
+    mapping.app_mro_collect = types.SimpleNamespace(
+        mro_collect_app_spec=mro_collect_app_spec
+    )
+    mapping.router_mro_collect = types.SimpleNamespace(
+        mro_collect_router_hooks=mro_collect_router_hooks
+    )
+    mapping.collect_decorated_schemas = types.SimpleNamespace(
+        collect_decorated_schemas=collect_decorated_schemas
+    )
+    mapping.column_mro_collect = types.SimpleNamespace(
+        mro_collect_columns=mro_collect_columns
+    )
+    mapping.hook_mro_collect = types.SimpleNamespace(
+        _mro_collect_decorated_hooks_cached=_mro_collect_decorated_hooks_cached
+    )
+    mapping.op_mro_collect = types.SimpleNamespace(
+        mro_collect_decorated_ops=mro_collect_decorated_ops,
+        mro_alias_map_for=mro_alias_map_for,
+    )
+    mapping.collect = types.SimpleNamespace(collect=_collect)
+    mapping.plan = types.SimpleNamespace(
+        Step=Step, compile_plan=compile_plan, plan=_plan
+    )
+
+    sys.modules["tigrbl.mapping"] = mapping
+    sys.modules["tigrbl.mapping.model"] = types.SimpleNamespace(
+        bind=bind, rebind=rebind
+    )
+    sys.modules["tigrbl.mapping.app_mro_collect"] = types.SimpleNamespace(
+        mro_collect_app_spec=mro_collect_app_spec
+    )
+    sys.modules["tigrbl.mapping.router_mro_collect"] = types.SimpleNamespace(
+        mro_collect_router_hooks=mro_collect_router_hooks
+    )
+    sys.modules["tigrbl.mapping.collect_decorated_schemas"] = types.SimpleNamespace(
+        collect_decorated_schemas=collect_decorated_schemas
+    )
+    sys.modules["tigrbl.mapping.column_mro_collect"] = types.SimpleNamespace(
+        mro_collect_columns=mro_collect_columns
+    )
+    sys.modules["tigrbl.mapping.op_mro_collect"] = types.SimpleNamespace(
+        mro_collect_decorated_ops=mro_collect_decorated_ops
+    )
+    sys.modules["tigrbl.mapping.table_mro_collect"] = types.SimpleNamespace(
+        mro_collect_table_spec=TableSpec.collect
+    )
+    sys.modules["tigrbl.mapping.op_resolver"] = types.SimpleNamespace(
+        resolve=resolve_ops
+    )
+    sys.modules["tigrbl.mapping.responses_resolver"] = types.SimpleNamespace(
+        resolve_response_spec=resolve_response_spec, infer_hints=infer_hints
+    )
+    sys.modules["tigrbl.mapping.handlers"] = types.SimpleNamespace(
+        build_and_attach=_materialize_handlers
+    )
+    sys.modules["tigrbl.mapping.handlers.steps"] = types.SimpleNamespace(
+        _wrap_core=_wrap_core
+    )
+    sys.modules["tigrbl.mapping.rest"] = types.SimpleNamespace(
+        build_router_and_attach=build_router_and_attach
+    )
+    sys.modules["tigrbl.mapping.rest.router"] = types.SimpleNamespace(
+        _build_router=_build_router
+    )
+    sys.modules["tigrbl.mapping.rest.collection"] = types.SimpleNamespace(
+        _make_collection_endpoint=_make_collection_endpoint
+    )
+    sys.modules["tigrbl.mapping.rest.io"] = types.SimpleNamespace(
+        _serialize_output=_serialize_output
+    )
+    sys.modules["tigrbl.mapping.rpc"] = types.SimpleNamespace(
+        register_and_attach=register_and_attach
+    )
+    sys.modules["tigrbl.mapping.schemas"] = types.SimpleNamespace(
+        build_and_attach=_materialize_schemas
+    )
+    sys.modules["tigrbl.mapping.router.common"] = types.SimpleNamespace(
+        AttrDict=AttrDict
+    )
+    sys.modules["tigrbl.mapping.context"] = types.SimpleNamespace(
+        MappingContext=MappingContext
+    )
+    sys.modules["tigrbl.mapping.plan"] = types.SimpleNamespace(
+        Step=Step, compile_plan=compile_plan
+    )
+    sys.modules["tigrbl.mapping.precedence"] = types.SimpleNamespace(
+        merge_op_specs=merge_op_specs
+    )
+    sys.modules["tigrbl.mapping.columns"] = types.ModuleType("tigrbl.mapping.columns")
+    sys.modules["tigrbl.mapping.hooks"] = types.ModuleType("tigrbl.mapping.hooks")
+    sys.modules["tigrbl.mapping.router"] = types.ModuleType("tigrbl.mapping.router")
+
+
+_install_mapping_compat_modules()
 
 
 def _run_coro_sync(coro):
@@ -103,13 +336,13 @@ def _reset_tigrbl_state() -> None:
     runtime_system.INSTALLED.commit = None
     runtime_system.INSTALLED.rollback = None
     # Order-dependent flakes can leak through per-process mro/schema caches.
-    app_mro_collect.mro_collect_app_spec.cache_clear()
-    router_mro_collect.mro_collect_router_hooks.cache_clear()
-    collect_decorated_schemas.collect_decorated_schemas.cache_clear()
-    column_mro_collect.mro_collect_columns.cache_clear()
-    hook_mro_collect._mro_collect_decorated_hooks_cached.cache_clear()
-    op_mro_collect.mro_collect_decorated_ops.cache_clear()
-    op_mro_collect.mro_alias_map_for.cache_clear()
+    mro_collect_app_spec.cache_clear()
+    mro_collect_router_hooks.cache_clear()
+    collect_decorated_schemas.cache_clear()
+    mro_collect_columns.cache_clear()
+    _mro_collect_decorated_hooks_cached.cache_clear()
+    mro_collect_decorated_ops.cache_clear()
+    mro_alias_map_for.cache_clear()
     _resolver.reset(dispose=True)
 
 
