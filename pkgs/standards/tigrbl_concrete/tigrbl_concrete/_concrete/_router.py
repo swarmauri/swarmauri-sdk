@@ -132,7 +132,7 @@ class Router(RouterBase):
         self.rpc_prefix = getattr(self, "RPC_PREFIX", "/rpc")
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
         self.tables = TableRegistry(
-            tables=self._collect_declared_tables(self.__class__)
+            tables=Router._collect_declared_tables(self.__class__)
         )
         self._table_registry = self.tables
         self._table_regsitry = self.tables

@@ -147,6 +147,53 @@ def bind(
     return all_specs
 
 
+def _build_raw_handler(model: type, spec: OpSpec):
+    target = getattr(spec, "target", "custom")
+
+    if target == "custom" and callable(getattr(spec, "handler", None)):
+        handler = spec.handler
+
+        @wraps(handler)
+        async def _raw(ctx: Any):
+            result = _call_op_handler(handler, model, dict(ctx or {}))
+            if inspect.isawaitable(result):
+                return await result
+            return result
+
+        return _raw
+
+    import tigrbl.core as _core
+
+    core_fn = getattr(_core, target)
+
+    @wraps(core_fn)
+    async def _raw(ctx: Any):
+        ctx_dict = dict(ctx or {})
+        db = ctx_dict.get("db")
+        payload = ctx_dict.get("payload")
+        params = ctx_dict.get("path_params")
+        ident = None
+        if isinstance(params, dict):
+            ident = params.get("id", params.get("item_id"))
+
+        if target in {"read", "delete"}:
+            return await core_fn(model, ident, db=db)
+        if target in {"create", "list", "clear", "bulk_create", "bulk_delete"}:
+            return await core_fn(model, payload, db=db)
+        if target in {
+            "update",
+            "replace",
+            "merge",
+            "bulk_update",
+            "bulk_replace",
+            "bulk_merge",
+        }:
+            return await core_fn(model, ident, payload, db=db)
+        return await core_fn(model, payload, db=db)
+
+    return _raw
+
+
 def _materialize_handlers(model: type, specs: Tuple[OpSpec, ...]) -> Tuple[OpSpec, ...]:
     specs = _normalize_bindings(model, tuple(specs))
     _ensure_model_namespaces(model)
