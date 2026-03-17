@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 import inspect
+from functools import wraps
 from types import SimpleNamespace
 from typing import Any, Optional, Set, Tuple
 
@@ -216,21 +217,27 @@ def _resolve_hook_ops(
 
 
 def _wrap_ctx_hook(model: type, fn: Any, phase: str):
+    @wraps(fn)
     async def _step(ctx: Any) -> Any:
+        if phase in {"POST_COMMIT", "POST_RESPONSE"}:
+            seeded = ctx.get("result")
+            if seeded is None:
+                seeded = ctx.get("obj")
+            if seeded is None:
+                seeded = ctx.get("objs")
+            if seeded is None:
+                seeded = {}
+            elif hasattr(seeded, "__table__"):
+                seeded = {
+                    col.name: getattr(seeded, col.name)
+                    for col in seeded.__table__.columns
+                }
+            ctx["result"] = seeded
+
         if phase == "POST_RESPONSE":
             response = ctx.get("response")
-            if response is None:
-                ctx["response"] = {"result": None}
-                response = ctx.get("response")
-            if getattr(response, "result", None) is None:
-                seeded = ctx.get("result")
-                if seeded is None:
-                    seeded = ctx.get("obj")
-                if seeded is None:
-                    seeded = ctx.get("objs")
-                if seeded is None:
-                    seeded = {}
-                response.result = seeded
+            if response is not None and getattr(response, "result", None) is None:
+                response.result = ctx.get("result")
         bound = fn.__get__(model, model)
         if inspect.iscoroutinefunction(bound):
             return await bound(ctx)
@@ -266,6 +273,7 @@ def _phase_name(phase: Any) -> str:
 
 
 def _adapt_hook_callable(fn: Any, phase: str):
+    @wraps(fn)
     async def _step(ctx: Any) -> Any:
         sig = inspect.signature(fn)
         positional = [
