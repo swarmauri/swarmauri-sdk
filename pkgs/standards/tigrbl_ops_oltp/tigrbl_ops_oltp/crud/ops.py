@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, Mapping, Optional, Union
+import inspect
 
 import builtins as _builtins
 import logging
@@ -97,6 +98,10 @@ async def create(
     except OperationalError as exc:
         if "no such table" not in str(exc).lower():
             raise
+        if hasattr(db, "rollback"):
+            rollback_result = db.rollback()
+            if inspect.isawaitable(rollback_result):
+                await rollback_result
         _ensure_model_table(model, db)
         obj = model(**data)
         db.add(obj)
