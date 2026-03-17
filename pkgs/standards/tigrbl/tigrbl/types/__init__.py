@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from tigrbl.column import F, IO, S, acol
+from tigrbl.shortcuts.column import acol
+from tigrbl_core._spec import F, IO, S
 from tigrbl_concrete.decorators import allow_anon
 from tigrbl_typing import types as _typing_types
 from tigrbl_typing.types import __all__ as _typing_all

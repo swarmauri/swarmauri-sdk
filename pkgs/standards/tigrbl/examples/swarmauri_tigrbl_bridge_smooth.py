@@ -15,7 +15,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 from tigrbl import Base, TigrblApp, engine_ctx, hook_ctx, op_ctx
-from tigrbl.column import F, IO, S, acol
+from tigrbl.shortcuts.column import acol
+from tigrbl_core._spec import F, IO, S
 from tigrbl.specs.storage_spec import ForeignKeySpec
 from tigrbl.types import JSON, Mapped, String, relationship
 
