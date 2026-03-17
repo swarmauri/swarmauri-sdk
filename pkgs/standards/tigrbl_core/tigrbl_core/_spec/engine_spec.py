@@ -245,7 +245,12 @@ class EngineSpec(SerdeMixin):
     # ---------- realization ----------
 
     def to_provider(self) -> Any:
-        """Return a concrete provider when available, else a lightweight wrapper."""
+        """Return a concrete-agnostic provider wrapper.
+
+        ``tigrbl_core`` must remain independent from ``tigrbl_concrete``.
+        Concrete and base runtimes can override this contract to provide
+        framework/runtime-specific provider implementations.
+        """
         return EngineProviderSpec(spec=self)
 
     def build(self) -> Tuple[Any, SessionFactory]:
