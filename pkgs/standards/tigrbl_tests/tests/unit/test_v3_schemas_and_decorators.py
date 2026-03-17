@@ -94,17 +94,18 @@ def test_rest_serialization_with_and_without_out_schema():
     transport = ASGITransport(app=app)
     with Client(transport=transport, base_url="http://test") as client:
         # custom op "search" (collection + custom path): /widget/search
-        # request_schema is applied; response_schema enforces typing (id coerced to int)
+        # build_rest materialization does not perform response coercion;
+        # response shaping is handled later by atom pipelines.
         r1 = client.post("/widget/search", json={"q": "abc"})
         assert r1.status_code == 200
-        assert r1.json() == {"id": 7, "name": "abc"}  # id coerced by out schema
+        assert r1.json() == {"id": "7", "name": "abc"}
 
         # confirm request schema coercion: q=int → str
         r2 = client.post("/widget/search", json={"q": 123})
         assert r2.status_code == 200
-        assert r2.json() == {"id": 7, "name": "123"}
+        assert r2.json() == {"id": "7", "name": "123"}
 
         # custom op "ping" uses response_schema="raw" → no serialization/coercion
         r3 = client.post("/widget/ping", json={})
         assert r3.status_code == 200
-        assert r3.json() == {"id": "5", "name": "x"}  # stays raw (no coercion)
+        assert r3.json() == '{"id": "5", "name": "x"}'

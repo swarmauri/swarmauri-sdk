@@ -161,6 +161,8 @@ def _resolve_schema_arg(model: type, arg: Any) -> Any:
     if arg is None:
         return None
     if isinstance(arg, str):
+        if arg == "raw":
+            return None
         alias, _, kind = arg.partition(".")
         kind = kind or "out"
         ns = getattr(getattr(model, "schemas", SimpleNamespace()), alias, None)
