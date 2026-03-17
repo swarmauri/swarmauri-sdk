@@ -76,7 +76,7 @@ def test_file_response_ops(tmp_path):
 def test_file_response_table(tmp_path):
     file_path = tmp_path / "table.txt"
     file_path.write_text("table")
-    Widget = _build_model(Table, file_path, bind=False)
+    Widget = _build_model(Table, file_path, bind=True)
 
     resp = asyncio.run(Widget.ops.by_alias["download"][0].core_raw({}))
     assert resp.path == str(file_path)
