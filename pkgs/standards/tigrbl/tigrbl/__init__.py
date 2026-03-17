@@ -45,6 +45,19 @@ def _install_alias(alias: str, target: str) -> None:
             suffix = name[len(target_prefix) :]
             sys.modules.setdefault(f"{alias_prefix}{suffix}", loaded)
 
+    module_path = getattr(module, "__path__", None)
+    if not module_path:
+        return
+
+    from pkgutil import walk_packages
+
+    for info in walk_packages(module_path, target_prefix):
+        submodule = _optional_import(info.name)
+        if submodule is None:
+            continue
+        suffix = info.name[len(target_prefix) :]
+        sys.modules.setdefault(f"{alias_prefix}{suffix}", submodule)
+
 
 for alias, target in _ALIAS_MODULES.items():
     _install_alias(alias, target)
@@ -177,9 +190,14 @@ def build_hooks(*args, **kwargs):
 
 
 def build_handlers(*args, **kwargs):
-    return import_module("tigrbl_concrete._mapping.model")._materialize_handlers(
-        *args, **kwargs
-    )
+    mod = import_module("tigrbl_concrete._mapping.model")
+    specs = mod._materialize_handlers(*args, **kwargs)
+    model = args[0] if args else kwargs.get("model")
+    spec_arg = args[1] if len(args) > 1 else kwargs.get("specs", ())
+    spec_tuple = tuple(spec_arg or ())
+    if model is not None:
+        mod._bind_model_hooks(model, spec_tuple)
+    return specs
 
 
 def register_rpc(*args, **kwargs):
