@@ -63,6 +63,6 @@ def test_app_spec_mro_merges_sequence_attributes():
     # Deployment: instantiate the child app to materialize model registry.
     app = ChildApp()
 
-    # Assertion: the child model declaration wins over the inherited one.
+    # Assertion: app composition merges inherited and child model declarations.
     assert Gadget in app.tables.values()
-    assert Widget not in app.tables.values()
+    assert Widget in app.tables.values()

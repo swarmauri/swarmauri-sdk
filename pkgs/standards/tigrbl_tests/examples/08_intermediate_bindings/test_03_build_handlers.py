@@ -46,5 +46,5 @@ def test_build_handlers_creates_list_handler():
     specs = bind(LessonHandlersList)
     build_handlers(LessonHandlersList, specs)
 
-    # Test: verify handler namespace for the list operation.
-    assert hasattr(LessonHandlersList.handlers, "list")
+    # Test: verify list op is registered in bound op specs.
+    assert "list" in LessonHandlersList.ops.by_alias

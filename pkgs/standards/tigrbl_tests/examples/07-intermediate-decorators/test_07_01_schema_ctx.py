@@ -1,8 +1,6 @@
-from __future__ import annotations
+from pydantic import BaseModel
 
-from tigrbl.decorators import schema_ctx
-from tigrbl import TableBase
-from tigrbl.types import BaseModel
+from tigrbl import TableBase, TigrblApp, bind, schema_ctx
 
 
 def test_schema_ctx_attaches_schemas() -> None:
@@ -17,4 +15,12 @@ def test_schema_ctx_attaches_schemas() -> None:
         class PingOut(BaseModel):
             message: str
 
-    assert hasattr(Widget, "SCHEMAS")
+    app = TigrblApp()
+    app.include_table(Widget)
+    app.initialize()
+    bind(Widget)
+
+    assert hasattr(Widget, "schemas")
+    assert hasattr(Widget.schemas, "Ping")
+    assert getattr(Widget.schemas.Ping, "in_", None) is Widget.PingIn
+    assert getattr(Widget.schemas.Ping, "out", None) is Widget.PingOut
