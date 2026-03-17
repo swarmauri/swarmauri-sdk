@@ -30,7 +30,15 @@ def _call_maybe_async(fn: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
     return rv
 
 
-async def _sys_tx_begin(_obj: object | None, ctx: Any) -> None:
+async def _await_tx_begin(begin_result: Any, temp: dict[str, Any]) -> None:
+    try:
+        await begin_result
+        temp["__sys_tx_open__"] = True
+    except Exception as exc:
+        raise SystemStepError("txn begin failed", cause=exc) from exc
+
+
+def _sys_tx_begin(_obj: object | None, ctx: Any) -> Any:
     temp = _ensure_temp(ctx)
     begin = getattr(INSTALLED, "begin", None)
     if begin is None:
@@ -39,10 +47,11 @@ async def _sys_tx_begin(_obj: object | None, ctx: Any) -> None:
     try:
         rv = begin(ctx)
         if hasattr(rv, "__await__"):
-            await rv
+            return _await_tx_begin(rv, temp)
         temp["__sys_tx_open__"] = True
     except Exception as exc:
         raise SystemStepError("txn begin failed", cause=exc) from exc
+    return None
 
 
 async def _sys_tx_commit(_obj: object | None, ctx: Any) -> None:
