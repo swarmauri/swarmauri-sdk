@@ -22,8 +22,8 @@ _MAX_SCALAR_LEN = 256
 
 @dataclass
 class _TraceState:
-    enabled: bool = True
-    sampled: bool = True
+    enabled: bool = False
+    sampled: bool = False
     started_at: _dt.datetime = field(
         default_factory=lambda: _dt.datetime.now(_dt.timezone.utc)
     )
@@ -56,8 +56,8 @@ def init(ctx: Any, *, plan_labels: Optional[Sequence[str]] = None) -> None:
 
     # Read config (tolerant to missing cfg/attrs)
     cfg = getattr(ctx, "cfg", None)
-    enabled = True
-    sample_rate = 1.0
+    enabled = False
+    sample_rate = 0.0
     tr = getattr(cfg, "trace", None)
     if tr is not None:
         en = getattr(tr, "enabled", None)

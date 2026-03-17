@@ -115,9 +115,17 @@ def _run(obj: Optional[object], ctx: Any) -> None:
     present_fields: set[str] = set()
     unknown_keys: Dict[str, Any] = {}
 
+    keep_unknown = not _reject_unknown(ctx)
+
     # First pass: direct field-name matches win
     for key, val in payload.items():
         if key in by_field:
+            in_values[key] = val
+            present_fields.add(key)
+        elif keep_unknown:
+            # Keep permissive passthrough payloads when unknown-field rejection is
+            # disabled. This avoids dropping valid ORM attributes during transient
+            # schema collection windows and removes an extra map copy on hot paths.
             in_values[key] = val
             present_fields.add(key)
         else:
@@ -195,6 +203,12 @@ def _coerce_payload(ctx: Any) -> Mapping[str, Any] | Any:
 
 def _safe_str(v: Any) -> Optional[str]:
     return v if isinstance(v, str) and v else None
+
+
+def _reject_unknown(ctx: Any) -> bool:
+    cfg = getattr(ctx, "cfg", None)
+    val = getattr(cfg, "reject_unknown_fields", None)
+    return bool(val) if isinstance(val, bool) else False
 
 
 def _headers_lower_map(ctx: Any) -> dict[str, str]:
