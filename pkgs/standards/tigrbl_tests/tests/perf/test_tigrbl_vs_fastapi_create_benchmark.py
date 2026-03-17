@@ -27,6 +27,7 @@ from tests.perf.helper_tigrbl_create_app import (
 
 RESULTS_PATH = Path(__file__).with_name("benchmark_results_create_uvicorn.json")
 OPS_COUNT = 25
+TIGRBL_MIN_SPEEDUP_OVER_FASTAPI = 1.75
 
 
 def _summarize(values: list[float]) -> dict[str, float]:
@@ -151,6 +152,18 @@ async def test_tigrbl_and_fastapi_create_benchmark_and_db_integrity() -> None:
     assert RESULTS_PATH.exists()
     for scenario in payload["results"]:
         assert scenario["ops_per_second"] > 0
+
+    tigrbl_ops_per_second = tigrbl_result["ops_per_second"]
+    fastapi_ops_per_second = fastapi_result["ops_per_second"]
+
+    assert tigrbl_ops_per_second >= (
+        fastapi_ops_per_second * TIGRBL_MIN_SPEEDUP_OVER_FASTAPI
+    ), (
+        "Expected tigrbl to be at least 75% faster than FastAPI "
+        f"(>= {TIGRBL_MIN_SPEEDUP_OVER_FASTAPI:.2f}x throughput), "
+        f"but got tigrbl={tigrbl_ops_per_second:.4f} ops/s and "
+        f"fastapi={fastapi_ops_per_second:.4f} ops/s."
+    )
 
 
 if __name__ == "__main__":
