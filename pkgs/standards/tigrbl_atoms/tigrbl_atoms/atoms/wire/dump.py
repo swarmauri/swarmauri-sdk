@@ -50,6 +50,21 @@ def _run(obj: Optional[object], ctx: Any) -> None:
     temp = _ensure_temp(ctx)
     out_values = temp.get("out_values")
 
+    raw_result = getattr(ctx, "result", None)
+    if hasattr(raw_result, "status_code") and hasattr(raw_result, "body"):
+        _set_response_payload(ctx, getattr(raw_result, "body", None))
+        egress = temp.setdefault("egress", {})
+        if isinstance(egress, MutableMapping):
+            egress["transport_response"] = {
+                "status_code": int(getattr(raw_result, "status_code", 200) or 200),
+                "headers": {
+                    k.decode("latin-1"): v.decode("latin-1")
+                    for k, v in getattr(raw_result, "raw_headers", ())
+                },
+                "body": getattr(raw_result, "body", None),
+            }
+        return
+
     if not out_values:
         logger.debug("No out_values available; syncing transport from ctx.result")
         extras = temp.get("response_extras")

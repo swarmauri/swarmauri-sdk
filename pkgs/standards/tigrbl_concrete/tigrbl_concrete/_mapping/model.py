@@ -85,19 +85,24 @@ def bind(
     only_keys: Optional[Set[MappingKey]] = None,
 ) -> Tuple[OpSpec, ...]:
     specs = tuple(_filter_specs(tuple(resolve_ops(model)), only_keys))
-    specs = _normalize_bindings(model, specs)
-    _ensure_model_namespaces(model)
-    all_specs, by_key, by_alias = _index_specs(specs)
-    model.ops = SimpleNamespace(all=all_specs, by_key=by_key, by_alias=by_alias)
-    model.opspecs = model.ops
+    all_specs = _materialize_handlers(model, specs)
     _bind_model_hooks(model, specs)
     _materialize_schemas(model, specs)
 
     register_rpc(model, specs)
 
     _materialize_rest_router(model, specs, router=router)
-    _attach_model_rpc_call(model, specs)
 
+    return all_specs
+
+
+def _materialize_handlers(model: type, specs: Tuple[OpSpec, ...]) -> Tuple[OpSpec, ...]:
+    specs = _normalize_bindings(model, tuple(specs))
+    _ensure_model_namespaces(model)
+    all_specs, by_key, by_alias = _index_specs(specs)
+    model.ops = SimpleNamespace(all=all_specs, by_key=by_key, by_alias=by_alias)
+    model.opspecs = model.ops
+    _attach_model_rpc_call(model, specs)
     return all_specs
 
 
@@ -426,11 +431,22 @@ def _materialize_rest_router(
                 continue
 
             async def _placeholder_endpoint(
-                *_args: Any, **_kwargs: Any
-            ) -> dict[str, str]:
-                return {
-                    "detail": "Route materialized; handler unavailable in concrete binder.",
+                *_args: Any, _alias: str = spec.alias, **_kwargs: Any
+            ) -> Any:
+                handler = getattr(model, _alias, None)
+                if not callable(handler):
+                    return {
+                        "detail": "Route materialized; handler unavailable in concrete binder.",
+                    }
+                ctx = {
+                    "request": _kwargs.get("request"),
+                    "path_params": _kwargs,
+                    "payload": _kwargs.get("body", {}),
                 }
+                result = handler(model, ctx)
+                if inspect.isawaitable(result):
+                    result = await result
+                return result
 
             _placeholder_endpoint.__name__ = f"{model.__name__}_{spec.alias}_route"
             alias_ns = getattr(
@@ -461,4 +477,4 @@ def rebind(
     return bind(model, router=router, only_keys=changed_keys)
 
 
-__all__ = ["bind", "rebind"]
+__all__ = ["bind", "rebind", "_materialize_handlers"]

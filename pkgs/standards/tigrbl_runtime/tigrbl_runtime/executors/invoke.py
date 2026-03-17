@@ -20,7 +20,10 @@ def _default_status_for_alias(alias: Any) -> int:
 
 
 def _normalize_result_payload(payload: Any) -> Any:
-    if isinstance(payload, (str, int, float, bool)) or payload is None:
+    if (
+        isinstance(payload, (str, int, float, bool, bytes, bytearray))
+        or payload is None
+    ):
         return payload
     if hasattr(payload, "status_code") and hasattr(payload, "body"):
         return payload
