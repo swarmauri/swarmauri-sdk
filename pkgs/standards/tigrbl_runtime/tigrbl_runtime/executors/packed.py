@@ -13,6 +13,22 @@ class PackedPlanExecutor(ExecutorBase):
     """Executes packed kernel plans via kernel-attached packed execution hooks."""
 
     name: ClassVar[str] = "packed"
+    _PHASE_EXECUTION_ORDER: ClassVar[tuple[str, ...]] = (
+        "INGRESS_BEGIN",
+        "INGRESS_PARSE",
+        "INGRESS_DISPATCH",
+        "PRE_TX_BEGIN",
+        "START_TX",
+        "PRE_HANDLER",
+        "HANDLER",
+        "POST_HANDLER",
+        "PRE_COMMIT",
+        "END_TX",
+        "POST_COMMIT",
+        "POST_RESPONSE",
+        "EGRESS_SHAPE",
+        "EGRESS_FINALIZE",
+    )
 
     @staticmethod
     def _coerce_int(value: Any) -> int | None:
@@ -232,9 +248,31 @@ class PackedPlanExecutor(ExecutorBase):
         try:
             seg_offset = packed.op_segment_offsets[program_id]
             seg_length = packed.op_segment_lengths[program_id]
+            ordered_segments: list[int] = []
+            by_phase: dict[str, list[int]] = {}
+            remaining: list[int] = []
+            seen_segment_ids: set[int] = set()
+            for i in range(seg_offset, seg_offset + seg_length):
+                seg_id = packed.op_to_segment_ids[i]
+                phase = str(packed.segment_phases[seg_id])
+                by_phase.setdefault(phase, []).append(seg_id)
+
+            for phase in self._PHASE_EXECUTION_ORDER:
+                for seg_id in by_phase.pop(phase, ()):  # pragma: no branch
+                    if seg_id in seen_segment_ids:
+                        continue
+                    seen_segment_ids.add(seg_id)
+                    ordered_segments.append(seg_id)
+
+            for i in range(seg_offset, seg_offset + seg_length):
+                seg_id = packed.op_to_segment_ids[i]
+                if seg_id in seen_segment_ids:
+                    continue
+                seen_segment_ids.add(seg_id)
+                remaining.append(seg_id)
+
             try:
-                for i in range(seg_offset, seg_offset + seg_length):
-                    seg_id = packed.op_to_segment_ids[i]
+                for seg_id in (*ordered_segments, *remaining):
                     await self._run_segment_python(ctx, packed, seg_id)
             except StatusDetailError as exc:
                 detail = (
