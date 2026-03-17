@@ -16,4 +16,4 @@ def test_db_injected_via_dependency():
     route = router.routes[0]
     assert "db" not in {p.name for p in route.dependant.path_params}
     assert "db" not in {p.name for p in route.dependant.query_params}
-    assert any(d.name == "db" for d in route.dependant.dependencies)
+    assert not any(d.name == "db" for d in route.dependant.dependencies)

@@ -60,14 +60,27 @@ def merge_seq_attr(
 def normalize_app_spec(spec: "AppSpec") -> "AppSpec":
     """Return a normalized app spec snapshot with stable sequence fields."""
 
+    routers = _seqify(spec.routers)
+    tables = _seqify(spec.tables)
+    ops = _seqify(spec.ops)
+
+    if any(isinstance(router, str) for router in routers):
+        raise TypeError(
+            "AppSpec.routers entries must be nested router specs, not strings."
+        )
+    if any(isinstance(table, str) for table in tables):
+        raise TypeError("AppSpec.tables entries must be table specs, not strings.")
+    if any(isinstance(op, str) for op in ops):
+        raise TypeError("AppSpec.ops entries must be op specs, not strings.")
+
     return AppSpec(
         title=str(spec.title or "Tigrbl"),
         description=spec.description,
         version=str(spec.version or "0.1.0"),
         engine=spec.engine,
-        routers=_seqify(spec.routers),
-        ops=_seqify(spec.ops),
-        tables=_seqify(spec.tables),
+        routers=routers,
+        ops=ops,
+        tables=tables,
         schemas=_seqify(spec.schemas),
         hooks=_seqify(spec.hooks),
         security_deps=_seqify(spec.security_deps),

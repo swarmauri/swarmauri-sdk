@@ -86,7 +86,12 @@ def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
 
     for phase in DEFAULT_PHASE_ORDER:
         chains.setdefault(phase, [])
-    _prepend_phase_db_binding(chains, list(DEFAULT_PHASE_ORDER))
+    phase_db_phases = list(DEFAULT_PHASE_ORDER)
+    if not persistent:
+        phase_db_phases = [
+            phase for phase in phase_db_phases if phase not in {"START_TX", "END_TX"}
+        ]
+    _prepend_phase_db_binding(chains, phase_db_phases)
     return chains
 
 
