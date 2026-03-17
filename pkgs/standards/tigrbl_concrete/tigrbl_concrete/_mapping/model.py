@@ -27,12 +27,12 @@ from .model_helpers import _ensure_model_namespaces, _filter_specs, _index_specs
 
 MappingKey = tuple[str, str]
 
-_BULK_ROW_TARGETS = {"bulk_create", "bulk_update", "bulk_merge"}
+_BULK_ROW_TARGETS = set()
 
 
 def _bulk_rows_verb(spec: OpSpec) -> str:
-    """Return a collision-free verb key for bulk root model naming."""
-    return f"{spec.alias}_rows"
+    """Return the canonical verb key used for request/response model naming."""
+    return spec.alias
 
 
 _DEFAULT_METHODS: dict[str, tuple[str, ...]] = {
@@ -205,28 +205,8 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
         if spec.response_model is not None:
             setattr(alias_ns, "out", _resolve_schema_arg(model, spec.response_model))
 
-        if spec.target in _BULK_ROW_TARGETS:
-            request_model = getattr(alias_ns, "in_", None)
-            if request_model is not None and not _is_array_schema_model(request_model):
-                setattr(
-                    alias_ns,
-                    "in_",
-                    _make_bulk_rows_model(model, _bulk_rows_verb(spec), request_model),
-                )
-
-            response_model = getattr(alias_ns, "out", None)
-            if response_model is not None and not _is_array_schema_model(
-                response_model
-            ):
-                setattr(
-                    alias_ns,
-                    "out",
-                    _make_bulk_rows_response_model(
-                        model,
-                        _bulk_rows_verb(spec),
-                        response_model,
-                    ),
-                )
+        # Bulk routes keep explicit object request/response models produced by
+        # ``_build_schema`` so OpenAPI component names remain stable.
 
 
 def _is_array_schema_model(schema_model: Any) -> bool:

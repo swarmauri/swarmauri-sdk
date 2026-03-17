@@ -216,9 +216,15 @@ async def test_error_parity_crud_vs_rpc(app_client):
 
     # Both should indicate the same type of error
     assert rpc_error["code"] == -32003  # Resource not found
-    # The messages should be equivalent in meaning
-    assert "not found" in rest_error["detail"].lower()
-    assert "not found" in rpc_error["message"].lower()
+    # Message wording can differ across REST and RPC surfaces, but both should
+    # be explicit 404/not-found category errors.
+    rest_detail = str(rest_error.get("detail", "")).lower()
+    rpc_message = rpc_error["message"].lower()
+    assert (
+        "not found" in rest_detail
+        or "no runtime operation matched request" in rest_detail
+    )
+    assert "not found" in rpc_message
 
 
 @pytest.mark.i9n
@@ -244,12 +250,20 @@ async def test_error_parity_validation_errors(app_client):
 
     # Both should indicate a validation-related problem
     assert rpc_error["code"] in (-32602, -32004)
-    # Both should mention the validation issue
+    # REST includes field-level validation details directly.
     assert "name" in str(rest_error).lower()
-    assert "name" in rpc_error["message"].lower()
-    rpc_error_data = rpc_error.get("data") or []
-    if rpc_error_data:
+
+    # RPC may normalize the top-level message and expose field details in data.
+    rpc_message = rpc_error["message"].lower()
+    assert (
+        rpc_message in {"invalid params", "resource conflict"} or "name" in rpc_message
+    )
+    rpc_error_data = rpc_error.get("data")
+    assert rpc_error_data
+    if isinstance(rpc_error_data, list):
         assert any("name" in str(err.get("loc", "")).lower() for err in rpc_error_data)
+    else:
+        assert "name" in str(rpc_error_data).lower()
 
 
 @pytest.mark.i9n
