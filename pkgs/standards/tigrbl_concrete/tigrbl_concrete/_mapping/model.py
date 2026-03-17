@@ -3,16 +3,25 @@ from __future__ import annotations
 from dataclasses import replace
 import inspect
 from functools import wraps
+import re
 from types import SimpleNamespace
 from typing import Any, Optional, Set, Tuple
 
+from pydantic import BaseModel, create_model
+
 from tigrbl_concrete._concrete._router import Router
 from tigrbl_core._spec import OpSpec
-from tigrbl_core._spec.binding_spec import HttpJsonRpcBindingSpec, HttpRestBindingSpec
+from tigrbl_core._spec.binding_spec import (
+    HttpJsonRpcBindingSpec,
+    HttpRestBindingSpec,
+    resolve_rest_nested_prefix,
+)
 from tigrbl_core.config.constants import CANON
 from tigrbl_core.config.constants import HOOK_DECLS_ATTR
 from tigrbl_core._spec.op_utils import _maybe_await, _unwrap
 from tigrbl_core.schema.builder import _build_schema
+from tigrbl_core.schema.builder import _strip_parent_fields
+from tigrbl_core.schema.utils import _make_bulk_rows_model
 from tigrbl_base._base._schema_base import SchemaBase
 from tigrbl_typing.phases import HOOK_PHASES
 
@@ -156,6 +165,9 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
         if "out" in kinds:
             setattr(alias_ns, "out", kinds["out"])
 
+    raw_nested = resolve_rest_nested_prefix(model) or ""
+    nested_vars = set(re.findall(r"{(\w+)}", raw_nested))
+
     for spec in specs:
         alias_ns = getattr(schemas, spec.alias, None)
         if not isinstance(alias_ns, SimpleNamespace):
@@ -185,6 +197,65 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
         if spec.response_model is not None:
             setattr(alias_ns, "out", _resolve_schema_arg(model, spec.response_model))
 
+        if nested_vars:
+            in_model = getattr(alias_ns, "in_", None)
+            setattr(
+                alias_ns,
+                "in_",
+                _strip_nested_parent_fields(model, spec.target, in_model, nested_vars),
+            )
+
+    for spec in specs:
+        if spec.alias == spec.target:
+            continue
+        alias_ns = getattr(schemas, spec.alias, None)
+        target_ns = getattr(schemas, spec.target, None)
+        if not isinstance(alias_ns, SimpleNamespace):
+            continue
+        if (
+            isinstance(target_ns, SimpleNamespace)
+            and spec.request_model is None
+            and getattr(target_ns, "in_", None) is not None
+        ):
+            setattr(alias_ns, "in_", getattr(target_ns, "in_"))
+        if (
+            isinstance(target_ns, SimpleNamespace)
+            and spec.response_model is None
+            and getattr(target_ns, "out", None) is not None
+        ):
+            setattr(alias_ns, "out", getattr(target_ns, "out"))
+
+        if spec.request_model is not None:
+            in_model = getattr(alias_ns, "in_", None)
+            if (
+                in_model
+                and inspect.isclass(in_model)
+                and issubclass(in_model, BaseModel)
+            ):
+                setattr(
+                    alias_ns,
+                    "in_",
+                    create_model(
+                        f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Request",
+                        __base__=in_model,
+                    ),
+                )
+        if spec.response_model is not None:
+            out_model = getattr(alias_ns, "out", None)
+            if (
+                out_model
+                and inspect.isclass(out_model)
+                and issubclass(out_model, BaseModel)
+            ):
+                setattr(
+                    alias_ns,
+                    "out",
+                    create_model(
+                        f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Response",
+                        __base__=out_model,
+                    ),
+                )
+
         # Bulk routes keep explicit object request/response models produced by
         # ``_build_schema`` so OpenAPI component names remain stable.
 
@@ -197,6 +268,33 @@ def _is_array_schema_model(schema_model: Any) -> bool:
     except Exception:
         return False
     return schema.get("type") == "array"
+
+
+def _strip_nested_parent_fields(
+    model: type,
+    verb: str,
+    schema_model: Any,
+    drop: set[str],
+) -> Any:
+    if not (
+        schema_model
+        and inspect.isclass(schema_model)
+        and issubclass(schema_model, BaseModel)
+    ):
+        return schema_model
+
+    if _is_array_schema_model(schema_model):
+        root = getattr(schema_model, "model_fields", {}).get("root")
+        ann = getattr(root, "annotation", None) if root is not None else None
+        origin = getattr(ann, "__origin__", None)
+        args = getattr(ann, "__args__", ())
+        if origin is list and args:
+            inner = args[0]
+            if inspect.isclass(inner) and issubclass(inner, BaseModel):
+                pruned = _strip_parent_fields(inner, drop=drop)
+                return _make_bulk_rows_model(model, verb, pruned)
+
+    return _strip_parent_fields(schema_model, drop=drop)
 
 
 def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
@@ -215,8 +313,14 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
 
     alias_map = _mro_alias_map(model)
     collected = _collect_decorated_hooks(model, visible_aliases, alias_map)
-    _merge_hooks_map(collected, getattr(model, "__tigrbl_hooks__", {}) or {})
-    _merge_hooks_map(collected, getattr(model, "__tigrbl_router_hooks__", {}) or {})
+    _merge_hooks_map(
+        collected, getattr(model, "__tigrbl_hooks__", {}) or {}, visible_aliases
+    )
+    _merge_hooks_map(
+        collected,
+        getattr(model, "__tigrbl_router_hooks__", {}) or {},
+        visible_aliases,
+    )
 
     for alias in visible_aliases:
         alias_ns = getattr(hooks_root, alias, None)
@@ -225,7 +329,7 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
             setattr(hooks_root, alias, alias_ns)
         phase_map = collected.get(alias, {})
         for phase in HOOK_PHASES:
-            setattr(alias_ns, phase, tuple(phase_map.get(phase, ())))
+            setattr(alias_ns, phase, list(phase_map.get(phase, ())))
 
         if not getattr(alias_ns, "HANDLER", ()):
             op_spec = spec_by_alias.get(alias)
@@ -238,7 +342,6 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
                 setattr(op_handler, "__tigrbl_label", label)
                 _default_handler_step = op_handler
 
-                qualname = getattr(op_handler, "__qualname__", alias)
             else:
 
                 async def _default_handler_step(ctx: Any) -> None:
@@ -249,7 +352,7 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
 
                 setattr(_default_handler_step, "__tigrbl_label", label)
 
-            alias_ns.HANDLER = (_default_handler_step,)
+            alias_ns.HANDLER = [_default_handler_step]
 
 
 def _mro_alias_map(model: type) -> dict[str, str]:
@@ -329,12 +432,16 @@ def _wrap_ctx_hook(model: type, fn: Any, phase: str):
     return _step
 
 
-def _merge_hooks_map(target: dict[str, dict[str, list[Any]]], source: Any) -> None:
+def _merge_hooks_map(
+    target: dict[str, dict[str, list[Any]]],
+    source: Any,
+    visible_aliases: set[str],
+) -> None:
     if not isinstance(source, dict):
         return
     for alias, phase_map in source.items():
         if alias == "*":
-            aliases = tuple(target.keys())
+            aliases = tuple(visible_aliases)
         else:
             aliases = (str(alias),)
         if not isinstance(phase_map, dict):
@@ -425,6 +532,7 @@ def _path_for_spec(model: type, spec: OpSpec) -> str:
     resource = getattr(model, "resource_name", None) or getattr(
         model, "__resource__", model.__name__.lower()
     )
+    nested_prefix = (resolve_rest_nested_prefix(model) or "").rstrip("/")
     suffix = (
         spec.path_suffix if spec.path_suffix is not None else _default_path_suffix(spec)
     )
@@ -433,6 +541,14 @@ def _path_for_spec(model: type, spec: OpSpec) -> str:
         suffix = f"/{suffix}"
 
     member_target = {"read", "update", "replace", "merge", "delete"}
+    if nested_prefix:
+        base = nested_prefix
+        if not base.endswith(f"/{resource}"):
+            base = f"{base}/{resource}"
+        if spec.arity == "member" or spec.target in member_target:
+            return f"{base}/{{item_id}}{suffix}"
+        return f"{base}{suffix}"
+
     if spec.arity == "member" or spec.target in member_target:
         return f"/{resource}/{{item_id}}{suffix}"
     return f"/{resource}{suffix}"
