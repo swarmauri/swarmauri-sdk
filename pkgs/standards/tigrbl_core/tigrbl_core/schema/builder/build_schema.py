@@ -86,7 +86,7 @@ def _build_schema(
                 in_verbs = set(getattr(io, "in_verbs", ()) or ())
                 out_verbs = set(getattr(io, "out_verbs", ()) or ())
                 is_primary_key = bool(getattr(storage, "primary_key", False))
-                if not (is_primary_key and verb in {"update", "replace", "delete"}):
+                if not (is_primary_key and verb in {"update", "delete"}):
                     if not in_verbs:
                         if out_verbs:
                             continue
@@ -163,7 +163,6 @@ def _build_schema(
 
             if getattr(col, "primary_key", False) and verb in {
                 "update",
-                "replace",
                 "delete",
             }:
                 # Always expose the PK for mutating operations even when the
