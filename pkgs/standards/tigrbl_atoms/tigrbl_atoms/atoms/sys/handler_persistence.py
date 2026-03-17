@@ -15,6 +15,13 @@ ANCHOR = _ev.SYS_HANDLER_PERSISTENCE
 
 
 async def _run(obj: object | None, ctx: Any) -> None:
+    # Some compiled plans include both verb-specific persistence atoms
+    # (e.g. ``handler_create``) and this generic fallback atom anchored at the
+    # same stage. If a prior atom already produced a result, do not execute
+    # persistence again.
+    if getattr(ctx, "result", None) is not None:
+        return
+
     model = obj if isinstance(obj, type) else getattr(ctx, "model", None)
     if not isinstance(model, type):
         raise TypeError("handler_persistence requires a model type")
