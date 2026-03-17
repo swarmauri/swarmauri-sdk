@@ -13,10 +13,6 @@ from tigrbl_core.config.constants import CANON
 from tigrbl_core.config.constants import HOOK_DECLS_ATTR
 from tigrbl_core._spec.op_utils import _maybe_await, _unwrap
 from tigrbl_core.schema.builder import _build_schema
-from tigrbl_core.schema.utils import (
-    _make_bulk_rows_model,
-    _make_bulk_rows_response_model,
-)
 from tigrbl_base._base._schema_base import SchemaBase
 from tigrbl_typing.phases import HOOK_PHASES
 
@@ -169,19 +165,11 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
         if not hasattr(alias_ns, "in_"):
             request_model = None
             if spec.target != "custom":
-                request_item_model = _build_schema(
+                request_model = _build_schema(
                     model,
                     verb=spec.target,
                     name=f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Request",
                 )
-                if spec.target in _BULK_ROW_TARGETS:
-                    request_model = _make_bulk_rows_model(
-                        model,
-                        _bulk_rows_verb(spec),
-                        request_item_model,
-                    )
-                else:
-                    request_model = request_item_model
             setattr(alias_ns, "in_", request_model)
 
         if not hasattr(alias_ns, "out"):
@@ -190,15 +178,7 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
                 verb=spec.target,
                 name=f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Response",
             )
-            if spec.target in _BULK_ROW_TARGETS:
-                response_model = _make_bulk_rows_response_model(
-                    model,
-                    _bulk_rows_verb(spec),
-                    response_item_model,
-                )
-            else:
-                response_model = response_item_model
-            setattr(alias_ns, "out", response_model)
+            setattr(alias_ns, "out", response_item_model)
 
         if spec.request_model is not None:
             setattr(alias_ns, "in_", _resolve_schema_arg(model, spec.request_model))
@@ -252,22 +232,22 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
             op_handler = (
                 getattr(op_spec, "handler", None) if op_spec is not None else None
             )
+            label = f"hook:wire:tigrbl:core:crud:ops:{alias}@HANDLER"
 
             if callable(op_handler):
-
-                async def _default_handler_step(ctx: Any, _h: Any = op_handler) -> None:
-                    await _maybe_await(_h(ctx))
+                setattr(op_handler, "__tigrbl_label", label)
+                _default_handler_step = op_handler
 
             else:
 
                 async def _default_handler_step(ctx: Any) -> None:
                     del ctx
 
-            setattr(
-                _default_handler_step,
-                "__tigrbl_label",
-                f"hook:wire:tigrbl:core:crud:ops:{alias}@HANDLER",
-            )
+                if op_spec is not None and getattr(op_spec, "target", None):
+                    _default_handler_step.__qualname__ = str(op_spec.target)
+
+                setattr(_default_handler_step, "__tigrbl_label", label)
+
             alias_ns.HANDLER = (_default_handler_step,)
 
 
