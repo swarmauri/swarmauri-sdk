@@ -3,7 +3,7 @@
 Aggregates per-model REST routers into a single Router.
 
 This does not build endpoints by itself — it simply collects the routers that
-`tigrbl.mapping.rest` attached to each model at `model.rest.router`.
+`tigrbl_concrete._mapping.rest` attached to each model at `model.rest.router`.
 
 Recommended workflow:
   1) Include models with `mount_router=False` so you don't double-mount:
