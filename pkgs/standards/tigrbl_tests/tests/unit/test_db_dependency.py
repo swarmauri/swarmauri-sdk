@@ -1,4 +1,4 @@
-from tigrbl.mapping.rest.router import _build_router
+from tests.conftest import _build_router
 from tigrbl._spec import OpSpec
 from tigrbl.orm.tables import TableBase
 from tigrbl.orm.mixins import GUIDPk

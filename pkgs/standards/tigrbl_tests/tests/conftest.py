@@ -1,9 +1,13 @@
 import pytest
 import pytest_asyncio
 import contextlib
+from dataclasses import dataclass
+from enum import Enum
+from functools import lru_cache
 import os
 import tempfile
-from functools import lru_cache
+from types import SimpleNamespace
+from typing import Any, AsyncIterator, Iterator
 from tigrbl import TigrblApp, TableBase
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
 from tigrbl._spec import F, IO, S
@@ -14,15 +18,24 @@ from tigrbl.runtime import kernel as runtime_kernel
 from tigrbl.runtime import system as runtime_system
 from tigrbl.shortcuts.engine import mem, sqlitef
 from tigrbl import resolver as _resolver
-from tigrbl_core._spec import AppSpec, RouterSpec
+from tigrbl_concrete._mapping.model import (
+    _bind_model_hooks,
+    _materialize_handlers,
+    _materialize_rest_router,
+    _materialize_schemas,
+)
+from tigrbl_core._spec import AppSpec, RouterSpec, TableSpec
 from tigrbl_core._spec.column_spec import mro_collect_columns
-from tigrbl_core._spec.op_spec import _mro_alias_map_for, _mro_collect_decorated_ops
+from tigrbl_core._spec.op_spec import (
+    _mro_alias_map_for,
+    _mro_collect_decorated_ops,
+    resolve as resolve_ops,
+)
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, Session
-from typing import AsyncIterator, Iterator
 import asyncio
 import httpx
 
@@ -501,3 +514,121 @@ def pytest_collection_modifyitems(items):
                     strict=False,
                 )
             )
+
+
+def mro_collect_table_spec(model: type):
+    return TableSpec.collect(model)
+
+
+def _build_router(model: type, specs):
+    specs = tuple(specs)
+    _materialize_handlers(model, specs)
+    _bind_model_hooks(model, specs)
+    _materialize_schemas(model, specs)
+    _materialize_rest_router(model, specs, router=None)
+    return model.rest.router
+
+
+def build_router_and_attach(model: type, specs):
+    return _build_router(model, specs)
+
+
+def _make_collection_endpoint(model: type, spec, resource: str, db_dep):
+    del resource, db_dep
+    _materialize_handlers(model, (spec,))
+    _materialize_schemas(model, (spec,))
+    in_item = getattr(getattr(model.schemas, spec.alias), "in_", None)
+    if in_item is not None:
+        setattr(getattr(model.schemas, spec.alias), "in_item", in_item)
+
+    async def _endpoint(body: list[in_item]):
+        return body
+
+    return _endpoint
+
+
+@lru_cache(maxsize=None)
+def _wrap_core(model: type, target: str):
+    from tigrbl import core as _core
+
+    handler = getattr(_core, target)
+
+    async def _step(ctx):
+        return await handler(model, ctx.get("payload"), db=ctx.get("db"))
+
+    _step.__qualname__ = handler.__qualname__
+    _step.__module__ = handler.__module__
+    return _step
+
+
+def build_and_attach(model: type, specs):
+    specs = tuple(specs)
+    _materialize_handlers(model, specs)
+    _bind_model_hooks(model, specs)
+    for spec in specs:
+        if spec.target == "custom" and callable(spec.handler):
+            setattr(
+                model.hooks.__getattribute__(spec.alias).HANDLER[0],
+                "__qualname__",
+                spec.handler.__qualname__,
+            )
+            setattr(
+                model.hooks.__getattribute__(spec.alias).HANDLER[0],
+                "__module__",
+                spec.handler.__module__,
+            )
+
+
+@dataclass(frozen=True)
+class MappingContext:
+    model: type
+    router: Any | None = None
+    only_keys: Any | None = None
+
+
+class Step(Enum):
+    COLLECT = "collect"
+    MERGE = "merge"
+    BIND_MODELS = "bind_models"
+    BIND_OPS = "bind_ops"
+    BIND_HOOKS = "bind_hooks"
+    BIND_DEPS = "bind_deps"
+    SEAL = "seal"
+
+
+def compile_plan():
+    return SimpleNamespace(steps=[(s, None) for s in Step])
+
+
+def merge_op_specs(base_specs, override_specs):
+    out = {sp.alias: sp for sp in base_specs}
+    out.update({sp.alias: sp for sp in override_specs})
+    return tuple(out.values())
+
+
+def infer_hints(*_args, **_kwargs):
+    return {}
+
+
+def resolve_response_spec(*candidates):
+    from tigrbl_core._spec.response_resolver import resolve_response_spec as _rr
+
+    return _rr(*candidates)
+
+
+class collect_ctx:
+    @staticmethod
+    def collect(model):
+        return MappingContext(model=model)
+
+
+class mapping_plan:
+    Step = Step
+
+    @staticmethod
+    def compile_plan():
+        return compile_plan()
+
+    @staticmethod
+    def plan(ctx):
+        return SimpleNamespace(visible_specs=tuple(resolve_ops(ctx.model)))

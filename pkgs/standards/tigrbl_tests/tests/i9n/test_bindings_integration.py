@@ -4,11 +4,11 @@ from types import SimpleNamespace
 from sqlalchemy import String
 from tigrbl_core.config.constants import TIGRBL_GET_DB_ATTR
 from tigrbl import resolver as _resolver
+from tigrbl_concrete._mapping.router.include import include_table
 from tigrbl.shortcuts.engine import engine as engine_factory
 from tigrbl.shortcuts.engine import mem
-from tigrbl.mapping import (
+from tigrbl import (
     bind,
-    include_table,
     include_tables,
     rebind,
     rpc_call,

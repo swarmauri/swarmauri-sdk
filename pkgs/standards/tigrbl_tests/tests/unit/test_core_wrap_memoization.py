@@ -2,7 +2,7 @@ import time
 import pytest
 
 from tigrbl import core as _core
-from tigrbl.mapping.handlers.steps import _wrap_core
+from tests.conftest import _wrap_core
 
 
 @pytest.mark.asyncio

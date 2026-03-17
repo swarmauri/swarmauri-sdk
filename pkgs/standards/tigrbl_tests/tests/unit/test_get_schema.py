@@ -1,8 +1,8 @@
 import pytest
 
 from tigrbl import get_schema
-from tigrbl.mapping import build_schemas
-from tigrbl.mapping.model import bind
+from tigrbl import build_schemas
+from tigrbl_concrete._mapping.model import bind
 from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase

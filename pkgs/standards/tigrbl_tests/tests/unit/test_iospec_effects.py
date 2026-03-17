@@ -9,8 +9,8 @@ from tigrbl.types import (
 )
 from sqlalchemy.orm import DeclarativeBase
 
-from tigrbl.mapping.model import bind
-from tigrbl.mapping.rest.router import _build_router
+from tigrbl_concrete._mapping.model import bind
+from tests.conftest import _build_router
 from tigrbl._spec import OpSpec
 from tigrbl_atoms.atoms.resolve import assemble
 from tigrbl_atoms.atoms.schema.collect_in import _run as collect_in_run

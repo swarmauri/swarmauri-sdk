@@ -4,10 +4,10 @@ from unittest.mock import AsyncMock, patch
 from pydantic import BaseModel
 
 from tigrbl import op_ctx
-from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
+from tests.conftest import mro_collect_decorated_ops
 from tigrbl.decorators.schema import schema_ctx
-from tigrbl.mapping.op_resolver import resolve
-from tigrbl.mapping import build_schemas, build_hooks, build_handlers, build_rest
+from tigrbl_core._spec.op_spec import resolve
+from tigrbl import build_schemas, build_hooks, build_handlers, build_rest
 
 
 def _build_all(model):

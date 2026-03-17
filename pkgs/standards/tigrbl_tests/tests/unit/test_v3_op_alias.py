@@ -3,8 +3,8 @@ import tigrbl.core as core
 from pydantic import BaseModel
 
 from tigrbl import alias_ctx, alias, schema_ctx
-from tigrbl.mapping.op_resolver import resolve
-from tigrbl.mapping import build_schemas, build_handlers
+from tigrbl_core._spec.op_spec import resolve
+from tigrbl import build_schemas, build_handlers
 from tigrbl.orm.tables import TableBase
 
 
