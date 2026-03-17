@@ -35,12 +35,22 @@ def __getattr__(name: str):
         return getattr(import_module("tigrbl_concrete._mapping.model"), name)
     if name == "build_schemas":
         return import_module("tigrbl_concrete._mapping.model")._materialize_schemas
-    if name in {"build_hooks", "build_handlers"}:
+    if name == "build_hooks":
         return import_module("tigrbl_concrete._mapping.model")._bind_model_hooks
+    if name == "build_handlers":
+        return import_module("tigrbl_concrete._mapping.model")._materialize_handlers
     if name == "register_rpc":
         return import_module("tigrbl_base._base._rpc_map").register_and_attach
     if name == "build_rest":
-        return import_module("tigrbl_concrete._mapping.model")._materialize_rest_router
+
+        def _build_rest(*args, **kwargs):
+            if "router" not in kwargs:
+                kwargs["router"] = None
+            return import_module(
+                "tigrbl_concrete._mapping.model"
+            )._materialize_rest_router(*args, **kwargs)
+
+        return _build_rest
     if name == "bind_response":
         return import_module(".responses_resolver", __name__).resolve_response_spec
     if name in {"include_table", "include_tables"}:

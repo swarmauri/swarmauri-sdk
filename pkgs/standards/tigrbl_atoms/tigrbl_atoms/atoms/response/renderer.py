@@ -178,6 +178,8 @@ def render(
         )
 
     if isinstance(payload, str):
+        if payload.startswith("b'") and payload.endswith("'"):
+            payload = payload[2:-1]
         if payload.lstrip().startswith("<") or chosen == "text/html":
             return _as_html(payload, status=hints.status_code, headers=hints.headers)
         return _as_text(payload, status=hints.status_code, headers=hints.headers)
