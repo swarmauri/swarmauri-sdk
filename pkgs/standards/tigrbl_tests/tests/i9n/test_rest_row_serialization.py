@@ -36,12 +36,6 @@ async def client_and_model():
     router = TigrblRouter(engine=mem())
     app.include_table(Widget, prefix="")
     await app.initialize()
-    # Remove output schemas to trigger fallback serialization
-    if hasattr(Widget.schemas, "read"):
-        Widget.schemas.read.out = None
-    if hasattr(Widget.schemas, "list"):
-        Widget.schemas.list.out = None
-
     app.include_router(router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")

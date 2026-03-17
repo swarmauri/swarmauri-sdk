@@ -171,9 +171,9 @@ def _build_raw_handler(model: type, spec: OpSpec):
         _noop_raw.__name__ = f"{model.__name__}_custom_noop"
         return _noop_raw
 
-    import tigrbl.core as _core
+    import tigrbl_ops_oltp as _core_ops
 
-    core_fn = getattr(_core, target)
+    core_fn = getattr(_core_ops, target)
 
     @wraps(core_fn)
     async def _raw(ctx: Any):
@@ -330,10 +330,12 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
         # Find the target spec to check if it has explicit schema overrides
         target_spec = _specs_by_alias.get(spec.target)
         target_has_req_override = (
-            target_spec is not None and getattr(target_spec, "request_model", None) is not None
+            target_spec is not None
+            and getattr(target_spec, "request_model", None) is not None
         )
         target_has_resp_override = (
-            target_spec is not None and getattr(target_spec, "response_model", None) is not None
+            target_spec is not None
+            and getattr(target_spec, "response_model", None) is not None
         )
         if (
             isinstance(target_ns, SimpleNamespace)
@@ -445,9 +447,9 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
 
             if op_spec is not None and getattr(op_spec, "target", None):
                 try:
-                    from tigrbl import core as _core
+                    import tigrbl_ops_oltp as _core_ops
 
-                    core_handler = getattr(_core, str(op_spec.target), None)
+                    core_handler = getattr(_core_ops, str(op_spec.target), None)
                 except Exception:
                     core_handler = None
 
@@ -740,7 +742,8 @@ def _materialize_rest_router(
                     stripped = replace(
                         sp,
                         bindings=tuple(
-                            b for b in (sp.bindings or ())
+                            b
+                            for b in (sp.bindings or ())
                             if not isinstance(b, HttpRestBindingSpec)
                         ),
                     )
@@ -785,7 +788,11 @@ def _materialize_rest_router(
             is_get_only = methods == ("GET",)
             in_model = getattr(alias_ns, "in_", None)
             query_schemas = None
-            if is_get_only and in_model is not None and hasattr(in_model, "model_fields"):
+            if (
+                is_get_only
+                and in_model is not None
+                and hasattr(in_model, "model_fields")
+            ):
                 query_schemas = {}
                 for fname, finfo in in_model.model_fields.items():
                     qs: dict[str, Any] = {"type": "string"}

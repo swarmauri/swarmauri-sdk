@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional, Mapping, Union, Any, Tuple
 from urllib.parse import urlsplit, urlunsplit
+import importlib
 
 from .serde import SerdeMixin
 
@@ -247,11 +248,13 @@ class EngineSpec(SerdeMixin):
     def to_provider(self) -> Any:
         """Return a concrete provider when available, else a lightweight wrapper."""
         try:
-            from tigrbl._concrete._engine import provider_from_spec
-
-            return provider_from_spec(self)
+            provider_mod = importlib.import_module("tigrbl_concrete._concrete._engine")
+            provider_from_spec = getattr(provider_mod, "provider_from_spec", None)
+            if callable(provider_from_spec):
+                return provider_from_spec(self)
         except Exception:
-            return EngineProviderSpec(spec=self)
+            pass
+        return EngineProviderSpec(spec=self)
 
     def build(self) -> Tuple[Any, SessionFactory]:
         """Construct the engine/sessionmaker via registered providers.

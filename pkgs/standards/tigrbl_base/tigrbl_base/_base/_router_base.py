@@ -8,6 +8,18 @@ from tigrbl_core._spec.router_spec import RouterSpec
 class RouterBase(RouterSpec):
     """Base router behaviors shared by concrete router implementations."""
 
+    def _include_table_impl(
+        self,
+        table: type,
+        *,
+        app: Any | None = None,
+        prefix: str | None = None,
+        mount_router: bool = True,
+    ) -> Tuple[type, Any]:
+        raise NotImplementedError(
+            "RouterBase._include_table_impl must be provided by concrete runtime."
+        )
+
     def include_table(
         self,
         table: type,
@@ -16,14 +28,23 @@ class RouterBase(RouterSpec):
         prefix: str | None = None,
         mount_router: bool = True,
     ) -> Tuple[type, Any]:
-        from tigrbl_concrete._mapping.router.include import include_table
-
-        return include_table(
-            self,
+        return self._include_table_impl(
             table,
             app=app,
             prefix=prefix,
             mount_router=mount_router,
+        )
+
+    def _include_tables_impl(
+        self,
+        tables: Sequence[type],
+        *,
+        app: Any | None = None,
+        base_prefix: str | None = None,
+        mount_router: bool = True,
+    ) -> Dict[str, Any]:
+        raise NotImplementedError(
+            "RouterBase._include_tables_impl must be provided by concrete runtime."
         )
 
     def include_tables(
@@ -34,10 +55,7 @@ class RouterBase(RouterSpec):
         base_prefix: str | None = None,
         mount_router: bool = True,
     ) -> Dict[str, Any]:
-        from tigrbl_concrete._mapping.router.include import include_tables
-
-        return include_tables(
-            self,
+        return self._include_tables_impl(
             tables,
             app=app,
             base_prefix=base_prefix,
