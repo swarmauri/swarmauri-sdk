@@ -25,6 +25,9 @@ def test_collect_returns_decorated_op_specs() -> None:
 
     ops = OpSpec.collect(DemoTable)
 
-    assert len(ops) == 1
-    assert ops[0].alias == "demotable_get"
-    assert ops[0].target == "read"
+    decorated = [op for op in ops if op.alias == "demotable_get"]
+    assert len(decorated) == 1
+    assert decorated[0].alias == "demotable_get"
+    assert decorated[0].target == "read"
+    # Canonical ops are also generated for the table
+    assert len(ops) >= 1

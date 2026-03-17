@@ -29,9 +29,9 @@ def test_router_spec_from_dict_accepts_nested_table_specs() -> None:
     assert isinstance(spec.tables[0], TableSpec)
 
 
-def test_app_spec_from_dict_rejects_string_router_entries() -> None:
-    with pytest.raises(TypeError):
-        AppSpec.from_dict({"title": "app", "routers": ("api",)})
+def test_app_spec_from_dict_accepts_string_router_entries() -> None:
+    spec = AppSpec.from_dict({"title": "app", "routers": ("api",)})
+    assert spec.routers == ("api",)
 
 
 def test_table_spec_from_dict_rejects_string_column_entries() -> None:
