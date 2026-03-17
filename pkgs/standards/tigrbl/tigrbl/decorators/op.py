@@ -171,9 +171,14 @@ def op_ctx(
         ):
             inferred_arity = "collection"
 
-        resolved_alias = alias or (
-            resolved_target if resolved_target != "custom" else ""
-        )
+        if alias is not None:
+            resolved_alias = alias
+        elif resolved_target != "custom":
+            resolved_alias = resolved_target
+        elif bind is not None:
+            resolved_alias = f.__name__
+        else:
+            resolved_alias = "custom"
 
         spec = OpSpec(
             alias=resolved_alias,
@@ -198,6 +203,8 @@ def op_ctx(
             )
             for obj in targets:
                 setattr(obj, f.__name__, cm)
+                if isinstance(obj, type):
+                    _refresh_bound_ops(obj)
 
         return cm
 
@@ -229,6 +236,22 @@ def _infer_arity(target: str) -> str:
 
 def _normalize_persist(p) -> str:
     return _core_normalize_persist(p)
+
+
+def _refresh_bound_ops(model: type) -> None:
+    try:
+        from tigrbl_core._spec.op_spec import _mro_collect_decorated_ops
+        from tigrbl_concrete._mapping.model import (
+            _bind_model_hooks,
+            _materialize_handlers,
+        )
+
+        specs = tuple(_mro_collect_decorated_ops(model))
+        _materialize_handlers(model, specs)
+        _bind_model_hooks(model, specs)
+    except Exception:
+        # Best-effort refresh for dynamic binds.
+        return
 
 
 __all__ = ["alias", "alias_ctx", "op_alias", "op_ctx"]
