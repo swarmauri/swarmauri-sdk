@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from importlib import import_module
 from typing import Any, Dict, Sequence, Tuple
 
 from tigrbl_core._spec.router_spec import RouterSpec
@@ -8,6 +7,18 @@ from tigrbl_core._spec.router_spec import RouterSpec
 
 class RouterBase(RouterSpec):
     """Base router behaviors shared by concrete router implementations."""
+
+    def _include_table_impl(
+        self,
+        table: type,
+        *,
+        app: Any | None = None,
+        prefix: str | None = None,
+        mount_router: bool = True,
+    ) -> Tuple[type, Any]:
+        raise NotImplementedError(
+            "RouterBase._include_table_impl must be provided by concrete runtime."
+        )
 
     def include_table(
         self,
@@ -17,12 +28,7 @@ class RouterBase(RouterSpec):
         prefix: str | None = None,
         mount_router: bool = True,
     ) -> Tuple[type, Any]:
-        include_table = import_module(
-            "tigrbl_concrete._mapping.router.include"
-        ).include_table
-
-        return include_table(
-            self,
+        return self._include_table_impl(
             table,
             app=app,
             prefix=prefix,
@@ -37,17 +43,18 @@ class RouterBase(RouterSpec):
         base_prefix: str | None = None,
         mount_router: bool = True,
     ) -> Dict[str, Any]:
-        include_tables = import_module(
-            "tigrbl_concrete._mapping.router.include"
-        ).include_tables
+        included: Dict[str, Any] = {}
+        for table in tables:
+            table_name = getattr(table, "__name__", str(table))
+            _, router = self.include_table(
+                table,
+                app=app,
+                prefix=base_prefix,
+                mount_router=mount_router,
+            )
+            included[table_name] = router
 
-        return include_tables(
-            self,
-            tables,
-            app=app,
-            base_prefix=base_prefix,
-            mount_router=mount_router,
-        )
+        return included
 
 
 __all__ = ["RouterBase"]
