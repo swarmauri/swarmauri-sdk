@@ -18,6 +18,15 @@ logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/rpc")
 
 
+async def _maybe_commit_session(db: Any) -> None:
+    commit = getattr(db, "commit", None)
+    if not callable(commit):
+        return
+    result = commit()
+    if inspect.isawaitable(result):
+        await result
+
+
 def _should_fallback_to_crud(
     *, target: str, pk_name: str | None, final: Any, payload: Any
 ) -> bool:
@@ -184,6 +193,7 @@ async def rpc_call(
 
     # Acquire DB if not explicitly provided (op > model > router > app)
     _release_db = None
+    owns_db_session = db is None
     if db is None:
         try:
             logger.debug(
@@ -399,10 +409,46 @@ async def rpc_call(
                     enriched.append(dict(row))
                 final = enriched
 
+        if target == "read" and not isinstance(final, Mapping):
+            core_ns = getattr(router, "core", None)
+            core_resource = None
+            if core_ns is not None:
+                core_resource = getattr(core_ns, getattr(mdl, "__name__", ""), None)
+            if core_resource is not None and pk_name:
+                ident = None
+                if isinstance(ctx_dict.get("path_params"), Mapping):
+                    ident = ctx_dict["path_params"].get(pk_name)
+                if ident is None and isinstance(payload, Mapping):
+                    ident = payload.get(pk_name)
+                if ident is not None:
+                    serialized = getattr(core_resource, method, None)
+                    if callable(serialized):
+                        final = await serialized({pk_name: ident}, db=db)
+
         if getattr(resolution, "target", None) == "list" and isinstance(final, Mapping):
             items = final.get("items")
             if isinstance(items, list):
                 return items
+        target = getattr(resolution, "target", method)
+        if (
+            target
+            in {
+                "create",
+                "update",
+                "replace",
+                "merge",
+                "delete",
+                "clear",
+                "bulk_create",
+                "bulk_update",
+                "bulk_replace",
+                "bulk_merge",
+                "bulk_delete",
+            }
+            and not owns_db_session
+        ):
+            await _maybe_commit_session(db)
+
         return final
     finally:
         if _release_db is not None:

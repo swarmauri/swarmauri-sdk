@@ -104,12 +104,27 @@ def _coerce(ctx: Optional[EngineCfg]) -> Optional[Provider]:
     if ctx is None:
         logger.debug("_coerce: ctx is None")
         return None
+    # Handle Engine/Provider look-alikes imported through compatibility facades
+    # that may not share class identity with local concrete types.
+    provider = getattr(ctx, "provider", None)
+    if isinstance(provider, Provider):
+        logger.debug("_coerce: ctx exposes Provider via provider attribute")
+        return provider
     if isinstance(ctx, Provider):
         logger.debug("_coerce: ctx is already a Provider")
-        return _intern_provider(ctx.spec, provider=ctx)
+        return ctx
+    if provider is not None and hasattr(provider, "session") and hasattr(provider, "spec"):
+        logger.debug("_coerce: ctx has provider-like attribute")
+        return provider
+    if hasattr(ctx, "session") and hasattr(ctx, "spec") and hasattr(ctx, "ensure"):
+        logger.debug("_coerce: ctx is provider-like")
+        return ctx
+    if isinstance(ctx, Provider):
+        logger.debug("_coerce: ctx is already a Provider")
+        return ctx
     if isinstance(ctx, Engine):
         logger.debug("_coerce: ctx is an Engine; returning provider")
-        return _intern_provider(ctx.spec, provider=ctx.provider)
+        return ctx.provider
     if isinstance(ctx, EngineSpec):
         logger.debug("_coerce: ctx is an EngineSpec; converting to provider")
         return _intern_provider(ctx)

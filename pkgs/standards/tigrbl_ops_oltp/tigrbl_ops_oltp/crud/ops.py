@@ -76,6 +76,7 @@ async def create(
     """
     logger.debug("create called with model=%s data=%s", model, data)
     _ensure_model_mapped(model)
+    _ensure_model_table(model, db)
     data = _filter_in_values(model, data or {}, "create")
     _validate_enum_values(model, data)
     obj = model(**data)
@@ -111,6 +112,7 @@ async def read(model: type, ident: Any, db: Union[Session, AsyncSession]) -> Any
     """
     logger.debug("read called with model=%s ident=%s", model, ident)
     _ensure_model_mapped(model)
+    ident = _coerce_pk_value(model, ident)
     obj = await _maybe_get(db, model, ident)
     if obj is None:
         logger.debug("read did not find model=%s ident=%s", model, ident)
@@ -128,6 +130,7 @@ async def update(
     """
     logger.debug("update called with model=%s ident=%s data=%s", model, ident, data)
     _ensure_model_mapped(model)
+    ident = _coerce_pk_value(model, ident)
     data = _filter_in_values(model, data or {}, "update")
     _validate_enum_values(model, data)
     obj = await read(model, ident, db)
@@ -150,6 +153,7 @@ async def replace(
     """
     logger.debug("replace called with model=%s ident=%s data=%s", model, ident, data)
     _ensure_model_mapped(model)
+    ident = _coerce_pk_value(model, ident)
     data = _filter_in_values(model, data or {}, "replace")
     _validate_enum_values(model, data)
     pk = _single_pk_name(model)
@@ -201,6 +205,7 @@ async def delete(
     """
     logger.debug("delete called with model=%s ident=%s", model, ident)
     _ensure_model_mapped(model)
+    ident = _coerce_pk_value(model, ident)
     obj = await read(model, ident, db)
     await _maybe_delete(db, obj)
     await _maybe_flush(db)
