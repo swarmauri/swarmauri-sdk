@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from tigrbl import TigrblApp
-from tigrbl.mapping import include_table
+from tigrbl_concrete._mapping.router.include import include_table
 
 from .response_utils import (
     RESPONSE_KINDS,
