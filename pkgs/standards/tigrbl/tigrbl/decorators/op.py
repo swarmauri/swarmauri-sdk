@@ -82,12 +82,7 @@ def alias_ctx(**verb_to_alias_or_decl: Union[str, AliasDecl]):
 
         setattr(cls, "__tigrbl_aliases__", amap)
         setattr(cls, "__tigrbl_alias_overrides__", overrides)
-        try:  # clear cached alias maps so late-applied decorators take effect
-            from tigrbl_canon.mapping.op_mro_collect import mro_alias_map_for
-
-            mro_alias_map_for.cache_clear()
-        except Exception:  # pragma: no cover - best effort
-            pass
+        # Alias maps are rebuilt from class metadata at bind-time.
         return cls
 
     return deco
