@@ -7,7 +7,7 @@ import re
 from types import SimpleNamespace
 from typing import Any, Optional, Set, Tuple
 
-from pydantic import BaseModel, create_model
+from pydantic import BaseModel
 
 from tigrbl_concrete._concrete._router import Router
 from tigrbl_core._spec import OpSpec
@@ -230,7 +230,7 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
         if spec.response_model is not None:
             setattr(alias_ns, "out", _resolve_schema_arg(model, spec.response_model))
 
-        if nested_vars:
+        if nested_vars and not spec.alias.startswith("bulk_"):
             in_model = getattr(alias_ns, "in_", None)
             setattr(
                 alias_ns,
@@ -258,36 +258,8 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
         ):
             setattr(alias_ns, "out", getattr(target_ns, "out"))
 
-        if spec.request_model is not None:
-            in_model = getattr(alias_ns, "in_", None)
-            if (
-                in_model
-                and inspect.isclass(in_model)
-                and issubclass(in_model, BaseModel)
-            ):
-                setattr(
-                    alias_ns,
-                    "in_",
-                    create_model(
-                        f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Request",
-                        __base__=in_model,
-                    ),
-                )
-        if spec.response_model is not None:
-            out_model = getattr(alias_ns, "out", None)
-            if (
-                out_model
-                and inspect.isclass(out_model)
-                and issubclass(out_model, BaseModel)
-            ):
-                setattr(
-                    alias_ns,
-                    "out",
-                    create_model(
-                        f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Response",
-                        __base__=out_model,
-                    ),
-                )
+        # Keep explicit schema overrides as-is so OpenAPI components preserve
+        # developer-provided model names (e.g., ``EchoIn``/``EchoOut``).
 
         # Bulk routes keep explicit object request/response models produced by
         # ``_build_schema`` so OpenAPI component names remain stable.
@@ -371,13 +343,9 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
             )
             label = f"hook:wire:tigrbl:core:crud:ops:{alias}@HANDLER"
 
-            async def _default_handler_step(
-                ctx: Any,
-                _op_handler: Any = op_handler,
-                _model: type = model,
-            ) -> Any:
-                if callable(_op_handler):
-                    result = _call_op_handler(_op_handler, _model, ctx)
+            async def _default_handler_step(ctx: Any) -> Any:
+                if callable(op_handler):
+                    result = op_handler(ctx)
                     if inspect.isawaitable(result):
                         return await result
                     return result
