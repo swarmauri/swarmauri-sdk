@@ -13,6 +13,7 @@ from tigrbl_ops_oltp.crud import ops as _crud_ops
 from tigrbl_ops_oltp.crud import bulk as _crud_bulk
 from ..._mapping.op_resolver import resolve as resolve_ops
 from tigrbl_runtime.runtime.executor.invoke import invoke_op
+from tigrbl_base._base._rpc_map import _serialize_output
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/mapping/router/rpc")
@@ -399,7 +400,9 @@ async def rpc_call(
                     enriched.append(dict(row))
                 final = enriched
 
-        if getattr(resolution, "target", None) == "list" and isinstance(final, Mapping):
+        target = getattr(resolution, "target", method)
+        final = _serialize_output(mdl, method, target, final)
+        if target == "list" and isinstance(final, Mapping):
             items = final.get("items")
             if isinstance(items, list):
                 return items
