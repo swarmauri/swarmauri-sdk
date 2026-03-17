@@ -13,6 +13,10 @@ from tigrbl_core.config.constants import CANON
 from tigrbl_core.config.constants import HOOK_DECLS_ATTR
 from tigrbl_core._spec.op_utils import _maybe_await, _unwrap
 from tigrbl_core.schema.builder import _build_schema
+from tigrbl_core.schema.utils import (
+    _make_bulk_rows_model,
+    _make_bulk_rows_response_model,
+)
 from tigrbl_base._base._schema_base import SchemaBase
 from tigrbl_typing.phases import HOOK_PHASES
 
@@ -22,6 +26,14 @@ from tigrbl_base._base._rpc_map import register_and_attach as register_rpc
 from .model_helpers import _ensure_model_namespaces, _filter_specs, _index_specs
 
 MappingKey = tuple[str, str]
+
+_BULK_ROW_TARGETS = {"bulk_create", "bulk_update", "bulk_merge"}
+
+
+def _bulk_rows_verb(spec: OpSpec) -> str:
+    """Return a collision-free verb key for bulk root model naming."""
+    return f"{spec.alias}_rows"
+
 
 _DEFAULT_METHODS: dict[str, tuple[str, ...]] = {
     "create": ("POST",),
@@ -157,25 +169,74 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
         if not hasattr(alias_ns, "in_"):
             request_model = None
             if spec.target != "custom":
-                request_model = _build_schema(
+                request_item_model = _build_schema(
                     model,
                     verb=spec.target,
                     name=f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Request",
                 )
+                if spec.target in _BULK_ROW_TARGETS:
+                    request_model = _make_bulk_rows_model(
+                        model,
+                        _bulk_rows_verb(spec),
+                        request_item_model,
+                    )
+                else:
+                    request_model = request_item_model
             setattr(alias_ns, "in_", request_model)
 
         if not hasattr(alias_ns, "out"):
-            response_model = _build_schema(
+            response_item_model = _build_schema(
                 model,
                 verb=spec.target,
                 name=f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Response",
             )
+            if spec.target in _BULK_ROW_TARGETS:
+                response_model = _make_bulk_rows_response_model(
+                    model,
+                    _bulk_rows_verb(spec),
+                    response_item_model,
+                )
+            else:
+                response_model = response_item_model
             setattr(alias_ns, "out", response_model)
 
         if spec.request_model is not None:
             setattr(alias_ns, "in_", _resolve_schema_arg(model, spec.request_model))
         if spec.response_model is not None:
             setattr(alias_ns, "out", _resolve_schema_arg(model, spec.response_model))
+
+        if spec.target in _BULK_ROW_TARGETS:
+            request_model = getattr(alias_ns, "in_", None)
+            if request_model is not None and not _is_array_schema_model(request_model):
+                setattr(
+                    alias_ns,
+                    "in_",
+                    _make_bulk_rows_model(model, _bulk_rows_verb(spec), request_model),
+                )
+
+            response_model = getattr(alias_ns, "out", None)
+            if response_model is not None and not _is_array_schema_model(
+                response_model
+            ):
+                setattr(
+                    alias_ns,
+                    "out",
+                    _make_bulk_rows_response_model(
+                        model,
+                        _bulk_rows_verb(spec),
+                        response_model,
+                    ),
+                )
+
+
+def _is_array_schema_model(schema_model: Any) -> bool:
+    if not hasattr(schema_model, "model_json_schema"):
+        return False
+    try:
+        schema = schema_model.model_json_schema()
+    except Exception:
+        return False
+    return schema.get("type") == "array"
 
 
 def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
@@ -520,6 +581,7 @@ def _materialize_rest_router(
                 request_model=getattr(alias_ns, "in_", None),
                 response_model=getattr(alias_ns, "out", None),
                 include_in_schema=True,
+                status_code=201 if spec.target == "create" else None,
             )
             existing_routes.add(route_key)
 
