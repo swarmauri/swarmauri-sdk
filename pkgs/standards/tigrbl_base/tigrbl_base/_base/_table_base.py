@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import warnings
+from types import SimpleNamespace
 from typing import Any, Optional, Union, get_args, get_origin
 from enum import Enum as PyEnum
 
@@ -317,6 +318,26 @@ def _attach_ctx_compat_core_raw(model: type) -> None:
         object.__setattr__(spec, "core_raw", _custom)
 
 
+def _attach_model_ops_namespace(model: type) -> None:
+    specs = tuple(getattr(model, "__tigrbl_ops__", ()) or ())
+    by_key: dict[tuple[str, str], tuple[Any, ...]] = {}
+    by_alias: dict[str, tuple[Any, ...]] = {}
+
+    for spec in specs:
+        arity = str(getattr(spec, "arity", ""))
+        alias = str(getattr(spec, "alias", ""))
+
+        key = (arity, alias)
+        by_key[key] = (*by_key.get(key, ()), spec)
+
+        if alias:
+            by_alias[alias] = (*by_alias.get(alias, ()), spec)
+
+    ops_ns = SimpleNamespace(all=specs, by_key=by_key, by_alias=by_alias)
+    model.ops = ops_ns
+    model.opspecs = ops_ns
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Declarative Base
 # ──────────────────────────────────────────────────────────────────────────────
@@ -467,9 +488,7 @@ class TableBase(DeclarativeBase):
         # materializing op namespaces for decorated operations.
         if has_decorated_ops and not hasattr(cls, "ops"):
             try:
-                from tigrbl_canon.mapping import bind as _bind_model
-
-                _bind_model(cls)
+                _attach_model_ops_namespace(cls)
                 _attach_ctx_compat_core_raw(cls)
             except Exception:
                 pass
