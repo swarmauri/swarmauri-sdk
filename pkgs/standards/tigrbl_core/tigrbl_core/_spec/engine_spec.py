@@ -246,12 +246,7 @@ class EngineSpec(SerdeMixin):
 
     def to_provider(self) -> Any:
         """Return a concrete provider when available, else a lightweight wrapper."""
-        try:
-            from tigrbl._concrete._engine import provider_from_spec
-
-            return provider_from_spec(self)
-        except Exception:
-            return EngineProviderSpec(spec=self)
+        return EngineProviderSpec(spec=self)
 
     def build(self) -> Tuple[Any, SessionFactory]:
         """Construct the engine/sessionmaker via registered providers.

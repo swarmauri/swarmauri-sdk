@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from importlib import import_module
 from typing import Any, Dict, Sequence, Tuple
 
 from tigrbl_core._spec.router_spec import RouterSpec
@@ -16,7 +17,9 @@ class RouterBase(RouterSpec):
         prefix: str | None = None,
         mount_router: bool = True,
     ) -> Tuple[type, Any]:
-        from tigrbl_concrete._mapping.router.include import include_table
+        include_table = import_module(
+            "tigrbl_concrete._mapping.router.include"
+        ).include_table
 
         return include_table(
             self,
@@ -34,7 +37,9 @@ class RouterBase(RouterSpec):
         base_prefix: str | None = None,
         mount_router: bool = True,
     ) -> Dict[str, Any]:
-        from tigrbl_concrete._mapping.router.include import include_tables
+        include_tables = import_module(
+            "tigrbl_concrete._mapping.router.include"
+        ).include_tables
 
         return include_tables(
             self,
