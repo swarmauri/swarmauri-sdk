@@ -15,25 +15,6 @@ def _ensure_temp(ctx: Any) -> dict[str, Any]:
 def _ensure_ov(ctx: Any):
     ov = getattr(ctx, "opview", None)
     if ov is None:
-        app = getattr(ctx, "app", None)
-        model = getattr(ctx, "model", None)
-        alias = getattr(ctx, "op", None)
-        if app is not None and model is not None and isinstance(alias, str) and alias:
-            try:
-                from tigrbl_kernel import _default_kernel as _kernel
-
-                opviews = getattr(_kernel, "_opviews", None)
-                by_app = opviews.get(app, {}) if hasattr(opviews, "get") else {}
-                candidate = (
-                    by_app.get((model, alias)) if hasattr(by_app, "get") else None
-                )
-                if candidate is not None:
-                    setattr(ctx, "opview", candidate)
-                    ov = candidate
-            except Exception:
-                ov = None
-
-    if ov is None:
         raise RuntimeError("ctx_missing:opview")
     return ov
 
