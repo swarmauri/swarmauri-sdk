@@ -142,6 +142,34 @@ async def _send_transport_response(env: Any, ctx: Any) -> None:
         if body_obj is None and status == 200:
             status = 204
 
+    if isinstance(body_obj, Mapping) and set(body_obj.keys()) == {"body"}:
+        nested = body_obj.get("body")
+        if isinstance(nested, (bytes, bytearray)):
+            body_obj = nested
+
+    if not isinstance(
+        body_obj, (bytes, bytearray, str, Mapping, list, tuple, set)
+    ) and hasattr(body_obj, "body"):
+        body_obj = getattr(body_obj, "body")
+
+    if (
+        isinstance(body_obj, Mapping)
+        and "body" in body_obj
+        and "status_code" not in body_obj
+        and "headers" not in body_obj
+    ):
+        body_obj = body_obj.get("body")
+
+    if (
+        isinstance(body_obj, str)
+        and body_obj.startswith("b'")
+        and body_obj.endswith("'")
+    ):
+        try:
+            body_obj = body_obj[2:-1].encode("latin-1", errors="ignore")
+        except Exception:
+            pass
+
     if isinstance(body_obj, (bytes, bytearray)):
         body = bytes(body_obj)
     elif body_obj is None:
