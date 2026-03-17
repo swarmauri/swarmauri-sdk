@@ -1,4 +1,4 @@
-from tigrbl.column import F
+from tigrbl_base.column import F
 
 
 def test_field_spec_defaults_and_constraints():
