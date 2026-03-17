@@ -30,10 +30,24 @@ def _optional_import(path: str):
         return None
 
 
-for alias, target in _ALIAS_MODULES.items():
+def _install_alias(alias: str, target: str) -> None:
     module = _optional_import(target)
-    if module is not None:
-        sys.modules.setdefault(f"{__name__}.{alias}", module)
+    if module is None:
+        return
+
+    alias_name = f"{__name__}.{alias}"
+    sys.modules.setdefault(alias_name, module)
+
+    target_prefix = f"{target}."
+    alias_prefix = f"{alias_name}."
+    for name, loaded in tuple(sys.modules.items()):
+        if name.startswith(target_prefix):
+            suffix = name[len(target_prefix) :]
+            sys.modules.setdefault(f"{alias_prefix}{suffix}", loaded)
+
+
+for alias, target in _ALIAS_MODULES.items():
+    _install_alias(alias, target)
 
 
 _spec = import_module("tigrbl_core._spec")
