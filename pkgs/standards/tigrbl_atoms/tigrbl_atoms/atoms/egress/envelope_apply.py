@@ -63,6 +63,12 @@ def _run(obj: object | None, ctx: Any) -> None:
         return
 
     if _is_jsonrpc(ctx, egress):
+        if isinstance(payload, list) and all(
+            isinstance(item, dict) and item.get("jsonrpc") == "2.0" for item in payload
+        ):
+            egress["enveloped"] = payload
+            return
+
         request_rpc = getattr(getattr(ctx, "gw_raw", None), "rpc", None)
         if not isinstance(request_rpc, dict) and isinstance(temp, dict):
             route = temp.get("route")

@@ -210,6 +210,14 @@ class PackedPlanExecutor(ExecutorBase):
         if program_id < 0:
             program_id = await self._probe_ingress_for_program(ctx, plan, packed)
         if program_id < 0:
+            from tigrbl_atoms.atoms.dispatch.jsonrpc_batch import (
+                execute_if_jsonrpc_batch,
+            )
+
+            batch_response = await execute_if_jsonrpc_batch(ctx)
+            if isinstance(batch_response, list):
+                await _send_json(env, 200, batch_response)
+                return
             route = temp.get("route", {})
             if isinstance(route, dict) and route.get("method_not_allowed") is True:
                 await _send_json(env, 405, {"detail": "Method Not Allowed"})

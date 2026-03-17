@@ -65,6 +65,13 @@ def _normalize_jsonrpc_transport_response(
         except Exception:
             body = bytes(body).decode("utf-8", errors="replace")
 
+    if isinstance(body, list) and all(
+        isinstance(item, Mapping) and item.get("jsonrpc") == "2.0" for item in body
+    ):
+        normalized["status_code"] = 200
+        normalized["body"] = body
+        return normalized
+
     if not (isinstance(body, Mapping) and body.get("jsonrpc") == "2.0"):
         body = {"jsonrpc": "2.0", "result": body, "id": request_id}
 
