@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from types import SimpleNamespace
 from typing import Any, Mapping, MutableMapping, Optional, Union
 
 from .types import _Ctx, PhaseChains, Request, Session, AsyncSession
@@ -179,6 +180,15 @@ async def _invoke(
         ctx.app = ctx.router
     if getattr(ctx, "op", None) is None and getattr(ctx, "method", None) is not None:
         ctx.op = ctx.method
+    env = ctx.get("env")
+    op_name = getattr(ctx, "op", None) or getattr(ctx, "method", None)
+    if env is None:
+        ctx["env"] = SimpleNamespace(method=op_name)
+    elif getattr(env, "method", None) in (None, "", "unknown"):
+        try:
+            setattr(env, "method", op_name)
+        except Exception:
+            ctx["env"] = SimpleNamespace(method=op_name)
     if getattr(ctx, "model", None) is None:
         obj = getattr(ctx, "obj", None)
         if obj is not None:
@@ -193,7 +203,6 @@ async def _invoke(
             and isinstance(specs, Mapping)
         ):
             try:
-                from types import SimpleNamespace
                 from tigrbl_kernel.opview_compiler import compile_opview_from_specs
 
                 op_spec = next(
