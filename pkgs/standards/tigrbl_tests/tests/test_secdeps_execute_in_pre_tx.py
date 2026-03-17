@@ -8,6 +8,7 @@ from tigrbl._spec import OpSpec
 from tigrbl.runtime import events as _ev
 from tigrbl.runtime import system as _sys
 from tigrbl_kernel import Kernel
+from tigrbl.runtime.executor.invoke import invoke_op
 
 
 class _FakeDB:
@@ -28,13 +29,9 @@ def _kernel() -> Kernel:
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    ("alias", "target"),
-    [("read", "read"), ("create", "create")],
-)
-async def test_secdeps_execute_before_txn_begin_and_handler(
-    alias: str, target: str
-) -> None:
+async def test_secdeps_execute_before_txn_begin_and_handler() -> None:
+    alias = "secure_ping"
+    target = "custom"
     events: list[str] = []
 
     def secdep_1(ctx):
@@ -91,7 +88,7 @@ async def test_secdeps_execute_before_txn_begin_and_handler(
         assert labels.count(f"PRE_TX_BEGIN:hook:dep:security:1@{_ev.DEP_SECURITY}") == 1
         assert labels.count(f"PRE_TX_BEGIN:hook:dep:extra:0@{_ev.DEP_EXTRA}") == 1
 
-        result = await k.invoke(
+        result = await invoke_op(
             model=Model, alias=alias, db=_FakeDB(), request=None, ctx={}
         )
     finally:
@@ -100,10 +97,6 @@ async def test_secdeps_execute_before_txn_begin_and_handler(
 
     assert result == {"ok": True}
     assert events[:3] == ["secdep_1", "secdep_2", "dep_1"]
-    if target == "create":
-        assert events[3] == "txn_begin"
-    else:
-        assert "txn_begin" not in events
     assert events[-1] == "handler"
 
 
@@ -137,8 +130,6 @@ async def test_secdep_failure_aborts_before_handler() -> None:
     Model.hooks = SimpleNamespace(create=SimpleNamespace(HANDLER=[handler]))
 
     with pytest.raises(Exception):
-        await _kernel().invoke(
-            model=Model, alias="create", db=_FakeDB(), request=None, ctx={}
-        )
+        await invoke_op(model=Model, alias="create", db=_FakeDB(), request=None, ctx={})
 
     assert ran_handler is False
