@@ -311,7 +311,7 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
 
             async def _default_handler_step(ctx: Any) -> Any:
                 if callable(op_handler):
-                    result = op_handler(model, ctx)
+                    result = op_handler(ctx)
                     if inspect.isawaitable(result):
                         return await result
                     return result
