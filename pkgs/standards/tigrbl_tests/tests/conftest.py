@@ -12,7 +12,7 @@ from tigrbl_concrete._concrete import TigrblApp
 from tigrbl_base._base import TableBase
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
 from tigrbl_core._spec import F, IO, S
-from tigrbl.shortcuts import acol
+from tigrbl_base.column import acol
 from tigrbl_core._spec import StorageTransform
 from tigrbl.schema import builder as v3_builder
 from tigrbl.runtime import kernel as runtime_kernel
