@@ -74,7 +74,7 @@ def mro_alias_map_for(table: type):
 
 @lru_cache(maxsize=None)
 def mro_collect_decorated_ops(table: type):
-    return tuple(_mro_collect_decorated_ops(table))
+    return list(_mro_collect_decorated_ops(table))
 
 
 @lru_cache(maxsize=None)
