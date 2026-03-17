@@ -33,7 +33,7 @@ def test_model_hooks_bind_on_rebind():
     app.bind(LessonHook)
 
     # Test: read the bound hook registry for the create op and phase.
-    hooks = LessonHook.__tigrbl_hooks__["create"]["POST_COMMIT"]
+    hooks = LessonHook.hooks.create.POST_COMMIT
 
     # Assertion: one hook is registered for the create/POST_COMMIT slot.
     assert len(hooks) == 1
@@ -65,9 +65,9 @@ def test_model_hook_scopes_do_not_leak_to_other_ops():
     app.bind(LessonHookScopeIsolation)
 
     # Test: check hook registries for create vs update ops.
-    create_hooks = LessonHookScopeIsolation.__tigrbl_hooks__["create"]["PRE_HANDLER"]
-    update_hooks = LessonHookScopeIsolation.__tigrbl_hooks__.get("update", {}).get(
-        "PRE_HANDLER", []
+    create_hooks = LessonHookScopeIsolation.hooks.create.PRE_HANDLER
+    update_hooks = getattr(
+        getattr(LessonHookScopeIsolation.hooks, "update", None), "PRE_HANDLER", []
     )
 
     # Assertion: create has a hook, update remains untouched.

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tigrbl.mapping.app_mro_collect import mro_collect_app_spec
+from tests.conftest import mro_collect_app_spec
 from tigrbl.shortcuts.app import defineAppSpec
 
 

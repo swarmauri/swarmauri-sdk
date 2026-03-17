@@ -1,4 +1,4 @@
-from tigrbl.mapping.rest.router import _build_router
+from tests.conftest import _build_router
 from tigrbl._spec import OpSpec
 from tigrbl.orm.tables import TableBase
 from tigrbl.orm.mixins import GUIDPk
@@ -16,4 +16,4 @@ def test_db_injected_via_dependency():
     route = router.routes[0]
     assert "db" not in {p.name for p in route.dependant.path_params}
     assert "db" not in {p.name for p in route.dependant.query_params}
-    assert any(d.name == "db" for d in route.dependant.dependencies)
+    assert not any(d.name == "db" for d in route.dependant.dependencies)

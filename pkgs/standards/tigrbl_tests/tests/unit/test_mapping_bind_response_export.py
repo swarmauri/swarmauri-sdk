@@ -1,18 +1,14 @@
-from pathlib import Path
+import inspect
+
+from tigrbl_concrete._mapping import model as _model
 
 
 def test_mapping_bind_response_uses_responses_resolver() -> None:
-    mapping_init = (
-        Path(__file__).resolve().parents[3]
-        / "tigrbl"
-        / "tigrbl"
-        / "mapping"
-        / "__init__.py"
-    )
-    source = mapping_init.read_text(encoding="utf-8")
-
-    assert '"bind_response"' in source
-    assert (
-        'import_module(".responses_resolver", __name__).resolve_response_spec' in source
-    )
-    assert 'import_module("..responses.bind", __name__).bind' not in source
+    """Response schema resolution must live in tigrbl_concrete._mapping.model,
+    not in the removed tigrbl.mapping namespace."""
+    source = inspect.getsource(_model._resolve_schema_arg)
+    # Must resolve by alias/kind from model.schemas
+    assert "schemas" in source
+    assert "alias" in source
+    # Must NOT import from the removed tigrbl.mapping module
+    assert "tigrbl.mapping" not in source

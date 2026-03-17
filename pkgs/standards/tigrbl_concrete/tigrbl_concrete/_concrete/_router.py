@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from typing import Any, Callable
 from types import SimpleNamespace
 
-from tigrbl_core._spec.router_spec import RouterSpec
+from tigrbl_base._base import RouterBase
 from tigrbl_concrete._concrete import engine_resolver as _resolver
 from tigrbl_core._spec.app_spec import _seqify
 from tigrbl_core._spec.engine_spec import EngineCfg
@@ -54,7 +54,7 @@ async def _default_lifespan_context(app: Any):
     yield
 
 
-class Router(RouterSpec):
+class Router(RouterBase):
     """API router with transport, dependency, and model/table registry support."""
 
     TABLES: tuple[Any, ...] = ()
@@ -132,7 +132,7 @@ class Router(RouterSpec):
         self.rpc_prefix = getattr(self, "RPC_PREFIX", "/rpc")
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
         self.tables = TableRegistry(
-            tables=self._collect_declared_tables(self.__class__)
+            tables=Router._collect_declared_tables(self.__class__)
         )
         self._table_registry = self.tables
         self._table_regsitry = self.tables

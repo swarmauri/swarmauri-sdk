@@ -27,7 +27,7 @@ _PHASE_DB_CAPABILITIES: dict[PhaseName, DbCapabilities] = {
     "PRE_TX_BEGIN": DbCapabilities(False, False, True, False),
     "START_TX": DbCapabilities(False, False, True, False),
     "PRE_HANDLER": DbCapabilities(True, False, True, False),
-    "HANDLER": DbCapabilities(True, False, True, False),
+    "HANDLER": DbCapabilities(True, True, True, False),
     "POST_HANDLER": DbCapabilities(True, False, True, False),
     "PRE_COMMIT": DbCapabilities(False, False, True, False),
     "END_TX": DbCapabilities(True, True, True, False),
@@ -35,6 +35,17 @@ _PHASE_DB_CAPABILITIES: dict[PhaseName, DbCapabilities] = {
     "POST_RESPONSE": DbCapabilities(False, False, True, False),
     "EGRESS_SHAPE": DbCapabilities(False, False, True, False),
     "EGRESS_FINALIZE": DbCapabilities(False, False, True, False),
+    "ON_ERROR": DbCapabilities(False, False, True, False),
+    "ON_PRE_TX_BEGIN_ERROR": DbCapabilities(False, False, True, False),
+    "ON_START_TX_ERROR": DbCapabilities(False, False, True, False),
+    "ON_PRE_HANDLER_ERROR": DbCapabilities(False, False, True, False),
+    "ON_HANDLER_ERROR": DbCapabilities(False, False, True, False),
+    "ON_POST_HANDLER_ERROR": DbCapabilities(False, False, True, False),
+    "ON_PRE_COMMIT_ERROR": DbCapabilities(False, False, True, False),
+    "ON_END_TX_ERROR": DbCapabilities(False, False, True, False),
+    "ON_POST_COMMIT_ERROR": DbCapabilities(False, False, True, False),
+    "ON_POST_RESPONSE_ERROR": DbCapabilities(False, False, True, False),
+    "ON_ROLLBACK": DbCapabilities(False, False, True, False),
 }
 
 

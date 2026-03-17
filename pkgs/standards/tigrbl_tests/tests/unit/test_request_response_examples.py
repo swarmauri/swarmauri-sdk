@@ -1,11 +1,11 @@
-from tigrbl.mapping.rest.router import _build_router
-from tigrbl._spec import OpSpec
-from tigrbl.orm.tables import TableBase
+from tests.conftest import _build_router
+from tigrbl_core._spec import F, S
+from tigrbl_core._spec import OpSpec
+from tigrbl_base._base import TableBase
+from tigrbl_base.column import acol
 from tigrbl.orm.mixins import GUIDPk, BulkCapable, Mergeable
-from tigrbl._spec import F, S
-from tigrbl.shortcuts.column import acol
-from tigrbl import TigrblApp
 from tigrbl.types import Mapped, String
+from tigrbl_concrete._concrete import TigrblApp
 
 
 class Widget(TableBase, GUIDPk, Mergeable):
@@ -75,7 +75,7 @@ def test_bulk_request_model_examples():
         "schema"
     ]
     schema = _resolve_schema(spec, schema)
-    assert schema["items"]["properties"]["name"]["examples"][0] == "foo"
+    assert schema["properties"]["name"]["examples"][0] == "foo"
 
 
 def test_bulk_response_model_examples():
@@ -85,8 +85,7 @@ def test_bulk_response_model_examples():
         "application/json"
     ]["schema"]
     schema = _resolve_schema(spec, schema)
-    example = schema["examples"][0][0]
-    assert example["name"] == "foo"
+    assert schema["properties"]["name"]["examples"][0] == "foo"
 
 
 def test_merge_request_model_examples():
@@ -136,7 +135,7 @@ def test_bulk_update_request_model_examples():
         "schema"
     ]
     schema = _resolve_schema(spec, schema)
-    assert schema["items"]["properties"]["name"]["examples"][0] == "foo"
+    assert schema["properties"]["name"]["examples"][0] == "foo"
 
 
 def test_bulk_update_response_model_examples():
@@ -146,8 +145,7 @@ def test_bulk_update_response_model_examples():
         "application/json"
     ]["schema"]
     schema = _resolve_schema(spec, schema)
-    example = schema["examples"][0][0]
-    assert example["name"] == "foo"
+    assert schema["properties"]["name"]["examples"][0] == "foo"
 
 
 def test_bulk_merge_request_model_examples():
@@ -157,7 +155,7 @@ def test_bulk_merge_request_model_examples():
         "schema"
     ]
     schema = _resolve_schema(spec, schema)
-    assert schema["items"]["properties"]["name"]["examples"][0] == "foo"
+    assert schema["properties"]["name"]["examples"][0] == "foo"
 
 
 def test_bulk_merge_response_model_examples():
@@ -167,5 +165,4 @@ def test_bulk_merge_response_model_examples():
         "application/json"
     ]["schema"]
     schema = _resolve_schema(spec, schema)
-    example = schema["examples"][0][0]
-    assert example["name"] == "foo"
+    assert schema["properties"]["name"]["examples"][0] == "foo"

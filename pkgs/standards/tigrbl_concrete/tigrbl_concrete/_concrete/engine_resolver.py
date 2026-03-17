@@ -104,12 +104,14 @@ def _coerce(ctx: Optional[EngineCfg]) -> Optional[Provider]:
     if ctx is None:
         logger.debug("_coerce: ctx is None")
         return None
-    if isinstance(ctx, Provider):
-        logger.debug("_coerce: ctx is already a Provider")
-        return _intern_provider(ctx.spec, provider=ctx)
-    if isinstance(ctx, Engine):
-        logger.debug("_coerce: ctx is an Engine; returning provider")
-        return _intern_provider(ctx.spec, provider=ctx.provider)
+    if isinstance(ctx, Engine) or (hasattr(ctx, "provider") and hasattr(ctx, "spec")):
+        logger.debug("_coerce: ctx behaves like an Engine; returning provider")
+        provider = getattr(ctx, "provider", None)
+        if provider is not None:
+            return provider
+    if isinstance(ctx, Provider) or (hasattr(ctx, "get_db") and hasattr(ctx, "spec")):
+        logger.debug("_coerce: ctx behaves like a Provider")
+        return ctx  # type: ignore[return-value]
     if isinstance(ctx, EngineSpec):
         logger.debug("_coerce: ctx is an EngineSpec; converting to provider")
         return _intern_provider(ctx)
@@ -258,9 +260,22 @@ def acquire(
     if p is None and model is not None:
         get_db = getattr(model, "__tigrbl_get_db__", None)
         if callable(get_db):
-            db = get_db()
+            db_or_gen = get_db()
+            gen = None
+            db = db_or_gen
+
+            if inspect.isgenerator(db_or_gen):
+                gen = db_or_gen
+                db = next(gen)
 
             def _release() -> None:
+                if gen is not None:
+                    try:
+                        next(gen)
+                    except StopIteration:
+                        pass
+                    except Exception:
+                        pass
                 close = getattr(db, "close", None)
                 if callable(close):
                     try:

@@ -116,8 +116,8 @@ class OpSpec(SerdeMixin):
 
     @classmethod
     def collect(cls, table: type) -> tuple["OpSpec", ...]:
-        """Collect decorated operations declared across ``table`` MRO."""
-        return tuple(_mro_collect_decorated_ops(table))
+        """Collect resolved operations for ``table`` (canonical + declared + registry)."""
+        return tuple(resolve(table))
 
 
 _ALIAS_RE = __import__("re").compile(r"^[a-z][a-z0-9_]*$")
@@ -311,7 +311,11 @@ def _apply_alias_ctx_to_canon(specs: List["OpSpec"], model: type) -> List["OpSpe
 
 
 def resolve(model: type) -> List["OpSpec"]:
-    canon = _generate_canonical(model)
+    decorated = _mro_collect_decorated_ops(model)
+    # Canonical CRUD specs should always be present so ctx-only decorated
+    # operations can either override canonical behavior (same alias/target)
+    # or expose additional aliases that still delegate through canonical core.
+    canon: List[OpSpec] = _generate_canonical(model)
     canon = _apply_alias_ctx_to_canon(canon, model)
 
     class_specs = _collect_class_declared(model)
@@ -319,6 +323,7 @@ def resolve(model: type) -> List["OpSpec"]:
 
     merged: Dict[Tuple[str, str], OpSpec] = {}
     _dedupe(merged, canon)
+    _dedupe(merged, decorated)
     _dedupe(merged, class_specs)
     _dedupe(merged, reg_specs)
 
@@ -413,6 +418,7 @@ def _mro_collect_decorated_ops(table: type) -> List["OpSpec"]:
                 continue
 
             resolved_alias = op_spec.alias or op_spec.target or name
+            wrapped_core = _wrap_ctx_core(table, func)
             out.append(
                 OpSpec(
                     table=table,
@@ -420,7 +426,7 @@ def _mro_collect_decorated_ops(table: type) -> List["OpSpec"]:
                     target=op_spec.target,
                     arity=op_spec.arity,
                     persist=_normalize_persist(op_spec.persist),
-                    handler=_wrap_ctx_core(table, func),
+                    handler=wrapped_core,
                     http_methods=getattr(op_spec, "http_methods", None),
                     path_suffix=getattr(op_spec, "path_suffix", ""),
                     tags=tuple(getattr(op_spec, "tags", ()) or ()),
@@ -434,8 +440,8 @@ def _mro_collect_decorated_ops(table: type) -> List["OpSpec"]:
                     engine=getattr(op_spec, "engine", None),
                     response=getattr(op_spec, "response", None),
                     returns=getattr(op_spec, "returns", None),
-                    core=getattr(op_spec, "core", None),
-                    core_raw=getattr(op_spec, "core_raw", None),
+                    core=getattr(op_spec, "core", None) or wrapped_core,
+                    core_raw=getattr(op_spec, "core_raw", None) or wrapped_core,
                     extra=dict(getattr(op_spec, "extra", {}) or {}),
                     deps=tuple(getattr(op_spec, "deps", ()) or ()),
                     secdeps=tuple(getattr(op_spec, "secdeps", ()) or ()),

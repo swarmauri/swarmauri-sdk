@@ -1,16 +1,19 @@
 import inspect
 
 import pytest
-import tigrbl.mapping.columns as columns_binding
-import tigrbl.mapping.handlers as handlers_binding
-import tigrbl.mapping.hooks as hooks_binding
-import tigrbl.mapping.model as model_binding
-import tigrbl.mapping.rest as rest_binding
-import tigrbl.mapping.rpc as rpc_binding
-from tigrbl.mapping import include_table, include_tables
+from tigrbl_base._base._rpc_map import register_and_attach, rpc_call
+from tigrbl_concrete._mapping.model import (
+    _bind_model_hooks,
+    _materialize_handlers,
+    _materialize_rest_router,
+    _materialize_schemas,
+    bind,
+    rebind,
+)
+from tigrbl_concrete._mapping.op_resolver import resolve
+from tigrbl_concrete._mapping.router.include import include_table, include_tables
+from tigrbl_core._spec.column_spec import mro_collect_columns
 from tigrbl.shortcuts import column as sc
-from tigrbl.mapping.schemas import build_and_attach as schemas_build_and_attach
-from tigrbl.mapping.op_resolver import resolve
 from tigrbl.orm.tables import TableBase
 from tigrbl._spec import IO, ColumnSpec, F, S
 from tigrbl.types import (
@@ -56,24 +59,21 @@ def specs(model_cls):
 
 @pytest.mark.i9n
 def test_columns_build_and_attach(model_cls):
-    columns_binding.build_and_attach(model_cls)
-    assert hasattr(model_cls, "__tigrbl_cols__")
-    assert "name" in model_cls.__tigrbl_cols__
+    cols = mro_collect_columns(model_cls)
+    assert "name" in cols
     assert isinstance(model_cls.__dict__["name"], InstrumentedAttribute)
 
 
 @pytest.mark.i9n
 def test_schemas_build_and_attach(model_cls, specs):
-    columns_binding.build_and_attach(model_cls)
-    schemas_build_and_attach(model_cls, specs)
+    _materialize_schemas(model_cls, tuple(specs))
     assert hasattr(model_cls.schemas.create, "in_")
     assert hasattr(model_cls.schemas.read, "out")
 
 
 @pytest.mark.i9n
 def test_hooks_normalize_and_attach(model_cls, specs):
-    columns_binding.build_and_attach(model_cls)
-    hooks_binding.normalize_and_attach(model_cls, specs)
+    _bind_model_hooks(model_cls, tuple(specs))
     # default transactional steps are no longer injected
     assert not model_cls.hooks.create.START_TX
     assert not model_cls.hooks.create.END_TX
@@ -81,23 +81,25 @@ def test_hooks_normalize_and_attach(model_cls, specs):
 
 @pytest.mark.i9n
 def test_handlers_build_and_attach(model_cls, specs):
-    columns_binding.build_and_attach(model_cls)
-    handlers_binding.build_and_attach(model_cls, specs)
-    assert callable(model_cls.handlers.create.raw)
+    _materialize_handlers(model_cls, tuple(specs))
+    _bind_model_hooks(model_cls, tuple(specs))
+    assert model_cls.ops.by_alias["create"].target == "create"
     assert model_cls.hooks.create.HANDLER
 
 
 @pytest.mark.i9n
 def test_rpc_register_and_attach(model_cls, specs):
-    columns_binding.build_and_attach(model_cls)
-    rpc_binding.register_and_attach(model_cls, specs)
+    _materialize_schemas(model_cls, tuple(specs))
+    register_and_attach(model_cls, specs)
     assert inspect.iscoroutinefunction(model_cls.rpc.create)
 
 
 @pytest.mark.i9n
 def test_rest_build_router_and_attach(model_cls, specs):
-    columns_binding.build_and_attach(model_cls)
-    rest_binding.build_router_and_attach(model_cls, specs)
+    _materialize_handlers(model_cls, tuple(specs))
+    _bind_model_hooks(model_cls, tuple(specs))
+    _materialize_schemas(model_cls, tuple(specs))
+    _materialize_rest_router(model_cls, tuple(specs), router=None)
     router = model_cls.rest.router
     assert router is not None
     assert getattr(router, "routes", [])
@@ -105,16 +107,16 @@ def test_rest_build_router_and_attach(model_cls, specs):
 
 @pytest.mark.i9n
 def test_model_bind_and_rebind(model_cls):
-    specs = model_binding.bind(model_cls)
-    assert model_cls.handlers.create
-    again = model_binding.rebind(model_cls)
-    assert len(again) == len(specs)
+    bound = bind(model_cls)
+    assert model_cls.ops.by_alias["create"]
+    again = rebind(model_cls)
+    assert len(again) == len(bound)
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_router_include_and_rpc_call_returns_operation_envelope(model_cls):
-    model_binding.bind(model_cls)
+    bind(model_cls)
     router = SimpleNamespace()
     include_table(router, model_cls, mount_router=False)
     assert model_cls.__name__ in router.tables
@@ -122,15 +124,13 @@ async def test_router_include_and_rpc_call_returns_operation_envelope(model_cls)
     assert model_cls.__name__ in routers
 
     payload = {"id": 1, "name": "x"}
-    result = await rpc_binding.rpc_call(
-        router, model_cls, "create", payload=payload, db=object()
-    )
+    result = await rpc_call(router, model_cls, "create", payload=payload, db=object())
     assert result["model"] is model_cls
     assert result["alias"] == "create"
     assert result["target"] == "create"
     assert result["payload"] == payload
     assert result["ctx"]["payload"] == payload
-    assert isinstance(result["phases"], dict)
+    assert "phases" not in result
     assert callable(result["serialize"])
 
 

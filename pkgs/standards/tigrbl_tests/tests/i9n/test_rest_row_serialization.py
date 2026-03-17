@@ -4,6 +4,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 from tigrbl.types import Integer, Mapped, String
 from tigrbl import TigrblApp, TigrblRouter
+import tigrbl_ops_oltp as _oltp_pkg
 from tigrbl.core import crud
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.tables import TableBase as Base3
@@ -65,10 +66,15 @@ async def test_rest_read_and_list_with_row_results(client_and_model, monkeypatch
         res = await db.execute(stmt)
         return res.all()  # list[Row]
 
+    # Insert a row so DB-backed stubs return data
+    create_res = await client.post("/widget", json={"name": "A"})
+    assert create_res.status_code == 201
+    item_id = create_res.json()["id"]
+
     monkeypatch.setattr(crud, "read", read_row)
     monkeypatch.setattr(crud, "list", list_rows)
-
-    item_id = 1
+    monkeypatch.setattr(_oltp_pkg, "read", read_row)
+    monkeypatch.setattr(_oltp_pkg, "list", list_rows)
 
     resp = await client.get(f"/widget/{item_id}")
     assert resp.status_code == 200

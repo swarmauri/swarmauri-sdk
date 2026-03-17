@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional
 
 from ..._spec.binding_spec import HttpRestBindingSpec
 from ..._spec.op_spec import OpSpec
-from ...mapping.model_helpers import _OpSpecGroup
+from tigrbl_concrete._mapping.model_helpers import _OpSpecGroup
 from ..._concrete._router import Router
 from .healthz import build_healthz_endpoint
 from .hookz import build_hookz_endpoint
@@ -49,7 +49,7 @@ def _register_runtime_diagnostics_op(
     else:
         op = OpSpec(
             alias=alias,
-            target="read",
+            target="custom",
             arity="collection",
             persist="skip",
             expose_routes=False,

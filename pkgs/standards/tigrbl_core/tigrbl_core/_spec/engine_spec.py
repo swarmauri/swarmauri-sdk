@@ -95,6 +95,28 @@ class EngineSpec(SerdeMixin):
         spec = getattr(x, "spec", None)
         if isinstance(spec, EngineSpec):
             return spec
+        if spec is not None:
+            # Accept EngineSpec-like instances coming from alternate import
+            # paths (for example ``tigrbl._spec.engine_spec.EngineSpec`` vs
+            # ``tigrbl_core._spec.engine_spec.EngineSpec``).
+            if hasattr(spec, "kind") and hasattr(spec, "async_"):
+                return EngineSpec.from_any(
+                    {
+                        "kind": getattr(spec, "kind", None),
+                        "async": getattr(spec, "async_", False),
+                        "dsn": getattr(spec, "dsn", None),
+                        "path": getattr(spec, "path", None),
+                        "memory": getattr(spec, "memory", False),
+                        "pool": getattr(spec, "pool", None),
+                        "user": getattr(spec, "user", None),
+                        "pwd": getattr(spec, "pwd", None),
+                        "host": getattr(spec, "host", None),
+                        "port": getattr(spec, "port", None),
+                        "name": getattr(spec, "name", None),
+                        "pool_size": getattr(spec, "pool_size", 10),
+                        "max": getattr(spec, "max", 20),
+                    }
+                )
 
         # DSN string
         if isinstance(x, str):
@@ -144,7 +166,12 @@ class EngineSpec(SerdeMixin):
             raise ValueError(f"Unsupported DSN: {s}")
 
         # Mapping
-        m = x  # type: ignore[assignment]
+        if not isinstance(x, Mapping):
+            raise ValueError(
+                "Engine config must be a DSN string, mapping, or EngineSpec-like object"
+            )
+
+        m = x
 
         # Helpers
         def _get_bool(key: str, *aliases: str, default: bool = False) -> bool:
@@ -216,6 +243,15 @@ class EngineSpec(SerdeMixin):
         )
 
     # ---------- realization ----------
+
+    def to_provider(self) -> Any:
+        """Return a concrete provider when available, else a lightweight wrapper."""
+        try:
+            from tigrbl._concrete._engine import provider_from_spec
+
+            return provider_from_spec(self)
+        except Exception:
+            return EngineProviderSpec(spec=self)
 
     def build(self) -> Tuple[Any, SessionFactory]:
         """Construct the engine/sessionmaker via registered providers.

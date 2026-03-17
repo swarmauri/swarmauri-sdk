@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import logging
 from typing import Any, Callable, Optional
 
@@ -31,6 +32,11 @@ def build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
     if dep is not None:
 
         async def _healthz(db: Any = Depends(dep)):
+            if hasattr(db, "dependency") and callable(getattr(db, "dependency", None)):
+                resolved = db.dependency()
+                if inspect.isawaitable(resolved):
+                    resolved = await resolved
+                db = resolved
             db = _resolve_db(db)
             if db is None:
                 return {"ok": True, "warning": "no-db"}

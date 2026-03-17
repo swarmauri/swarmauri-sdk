@@ -34,7 +34,12 @@ class _ResourceProxy:
         logger.debug("Resolving core handler '%s' for %s", alias, self._model.__name__)
         handlers_root = getattr(self._model, "handlers", None)
         h_alias = getattr(handlers_root, alias, None) if handlers_root else None
-        if h_alias is None or not hasattr(h_alias, "core"):
+        has_core_handler = h_alias is not None and hasattr(h_alias, "core")
+        ops_root = getattr(self._model, "ops", None)
+        by_alias = getattr(ops_root, "by_alias", None)
+        has_op_alias = isinstance(by_alias, dict) and alias in by_alias
+
+        if not has_core_handler and not has_op_alias:
             logger.debug(
                 "No core handler '%s' found for %s", alias, self._model.__name__
             )
@@ -89,7 +94,14 @@ class _ResourceProxy:
                     seed_ctx["response_serializer"] = lambda result: _serialize_output(
                         self._model, alias, alias, result
                     )
-                return await _executor.invoke_op(
+                invoke_op = getattr(_executor, "invoke_op", None)
+                if not callable(invoke_op):
+                    from tigrbl_runtime.runtime.executor.invoke import (
+                        invoke_op as _invoke_op,
+                    )
+
+                    invoke_op = _invoke_op
+                return await invoke_op(
                     request=request,
                     db=db,
                     model=self._model,

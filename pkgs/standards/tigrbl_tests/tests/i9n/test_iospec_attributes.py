@@ -6,9 +6,9 @@ from sqlalchemy.pool import StaticPool
 from tigrbl import TigrblApp
 from tigrbl.shortcuts.engine import engine as engine_factory
 from tigrbl.shortcuts.engine import mem
-from tigrbl.mapping.model import bind
-from tigrbl.mapping.rest.router import _build_router
-from tigrbl.mapping.rpc import register_and_attach
+from tigrbl_concrete._mapping.model import bind
+from tests.conftest import _build_router
+from tigrbl_base._base._rpc_map import register_and_attach
 from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase

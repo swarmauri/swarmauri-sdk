@@ -97,6 +97,15 @@ def _filter_in_values(
     for k, v in data.items():
         sp = specs.get(k)
         if sp is None:
+            # Check if this is a request-extra field (marked exclude=True in schema).
+            # If the model's create schema excludes this field, skip it.
+            schema_cls = getattr(getattr(model, "schemas", None), verb, None)
+            schema_in = getattr(schema_cls, "in_", None) if schema_cls else None
+            field_info = (
+                schema_in.model_fields.get(k) if schema_in and hasattr(schema_in, "model_fields") else None
+            )
+            if field_info is not None and getattr(field_info, "exclude", False):
+                continue
             out[k] = v
             continue
         io = getattr(sp, "io", None)

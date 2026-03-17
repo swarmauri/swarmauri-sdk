@@ -1,7 +1,4 @@
-from __future__ import annotations
-
-from tigrbl.decorators import hook_ctx
-from tigrbl import TableBase
+from tigrbl import TableBase, TigrblApp, bind, hook_ctx
 
 
 def test_hook_ctx_registers_hook() -> None:
@@ -12,5 +9,10 @@ def test_hook_ctx_registers_hook() -> None:
         async def record(cls, ctx):
             ctx["hooked"] = True
 
-    hooks = getattr(Widget, "__tigrbl_hooks__", {})
-    assert "create" in hooks
+    app = TigrblApp()
+    app.include_table(Widget)
+    app.initialize()
+    bind(Widget)
+
+    hooks = Widget.hooks.create.PRE_HANDLER
+    assert any(getattr(h, "__name__", "") == "record" for h in hooks)

@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from tigrbl import TigrblApp
 from tigrbl import core as _core
 from tigrbl.decorators.hook import hook_ctx
-from tigrbl.mapping.model import bind
+from tigrbl_concrete._mapping.model import bind
 from tigrbl_atoms import HookPhases as PHASES
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase
@@ -240,12 +240,13 @@ def test_hook_execution():
         return orig.__func__(cls, *args, **kwargs)
 
     _Ctx.ensure = patched
+    ctx = {}
     try:
-        payload = asyncio.run(Hooked.hooks.create.PRE_HANDLER[0](ctx={}))
+        asyncio.run(Hooked.hooks.create.PRE_HANDLER[0](ctx=ctx))
     finally:
         _Ctx.ensure = orig
 
-    assert payload["name"] == "hooked"
+    assert ctx["payload"]["name"] == "hooked"
 
 
 @pytest.mark.i9n
