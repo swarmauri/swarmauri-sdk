@@ -162,6 +162,15 @@ def _build_raw_handler(model: type, spec: OpSpec):
 
         return _raw
 
+    if target == "custom":
+        # Custom target with no handler yet (e.g. op_alias before op_ctx bind).
+        # Return a noop that will be replaced once the handler is bound.
+        async def _noop_raw(ctx: Any):
+            return None
+
+        _noop_raw.__name__ = f"{model.__name__}_custom_noop"
+        return _noop_raw
+
     import tigrbl.core as _core
 
     core_fn = getattr(_core, target)
