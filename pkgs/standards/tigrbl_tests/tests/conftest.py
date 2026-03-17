@@ -18,7 +18,7 @@ from tigrbl.schema import builder as v3_builder
 from tigrbl.runtime import kernel as runtime_kernel
 from tigrbl.runtime import system as runtime_system
 from tigrbl.shortcuts.engine import mem, sqlitef
-from tigrbl import resolver as _resolver
+from tigrbl_concrete._concrete import engine_resolver as _resolver
 from tigrbl_concrete import (
     build_handlers as _materialize_handlers,
     build_hooks as _bind_model_hooks,
