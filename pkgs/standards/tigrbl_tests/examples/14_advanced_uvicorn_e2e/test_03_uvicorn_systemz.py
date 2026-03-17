@@ -12,7 +12,7 @@ from tigrbl.types import Column, String
 
 @pytest.mark.asyncio
 async def test_uvicorn_systemz_route():
-    """Test uvicorn systemz route."""
+    """Test uvicorn diagnostics health route."""
 
     class Widget(TableBase, GUIDPk):
         __tablename__ = "lesson_system"
@@ -26,12 +26,11 @@ async def test_uvicorn_systemz_route():
     if inspect.isawaitable(init_result):
         await init_result
     router = TigrblRouter()
-    router.add_route("/systemz", lambda: {"system": True}, methods=["GET"])
     app.include_router(router)
     app.attach_diagnostics(prefix="")
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
     async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
-        response = await client.get("/systemz")
+        response = await client.get("/healthz")
         assert response.status_code == 200
     await stop_uvicorn(server, task)

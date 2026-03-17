@@ -33,8 +33,8 @@ def test_hook_scopes_apply_to_specific_ops():
     app.bind(LessonHookScope)
 
     # Test: inspect the hook registries for read/update.
-    read_hooks = LessonHookScope.__tigrbl_hooks__["read"]["POST_RESPONSE"]
-    update_hooks = LessonHookScope.__tigrbl_hooks__["update"]["POST_RESPONSE"]
+    read_hooks = LessonHookScope.hooks.read.POST_RESPONSE
+    update_hooks = LessonHookScope.hooks.update.POST_RESPONSE
 
     # Assertion: both operations have a hook registered.
     assert len(read_hooks) == 1
@@ -68,8 +68,8 @@ def test_hook_scopes_exclude_unlisted_ops():
     app.bind(LessonHookScopeIsolation)
 
     # Test: check whether create has any PRE_HANDLER hooks.
-    create_hooks = LessonHookScopeIsolation.__tigrbl_hooks__.get("create", {}).get(
-        "PRE_HANDLER", []
+    create_hooks = getattr(
+        getattr(LessonHookScopeIsolation.hooks, "create", None), "PRE_HANDLER", []
     )
 
     # Assertion: create has no hooks because it was not listed.
