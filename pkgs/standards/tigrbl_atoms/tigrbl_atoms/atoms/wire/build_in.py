@@ -133,6 +133,10 @@ def _run(obj: Optional[object], ctx: Any) -> None:
             present_fields.add(target)
             unknown_keys.pop(key, None)
 
+    _apply_header_in_requirements(
+        ctx=ctx, schema_in=schema_in, in_values=in_values, present_fields=present_fields
+    )
+
     # Keep minimal diagnostics
     temp["in_values"] = in_values
     temp["in_present"] = tuple(sorted(present_fields))
@@ -191,6 +195,59 @@ def _coerce_payload(ctx: Any) -> Mapping[str, Any] | Any:
 
 def _safe_str(v: Any) -> Optional[str]:
     return v if isinstance(v, str) and v else None
+
+
+def _headers_lower_map(ctx: Any) -> dict[str, str]:
+    headers = getattr(ctx, "headers", None)
+    if isinstance(headers, Mapping):
+        out: dict[str, str] = {}
+        for key, value in headers.items():
+            if isinstance(value, list):
+                value = value[-1] if value else ""
+            out[str(key).lower()] = "" if value is None else str(value)
+        return out
+    return {}
+
+
+def _apply_header_in_requirements(
+    *,
+    ctx: Any,
+    schema_in: Mapping[str, Any],
+    in_values: Dict[str, Any],
+    present_fields: set[str],
+) -> None:
+    by_field = schema_in.get("by_field", {})
+    if not isinstance(by_field, Mapping):
+        return
+    headers = _headers_lower_map(ctx)
+    missing: list[str] = []
+    for field, entry in by_field.items():
+        if not isinstance(entry, Mapping):
+            continue
+        header_name = entry.get("header_in")
+        if not isinstance(header_name, str) or not header_name:
+            continue
+        header_value = headers.get(header_name.lower())
+        if header_value not in (None, ""):
+            in_values[field] = header_value
+            present_fields.add(field)
+            continue
+        if bool(entry.get("header_required_in", False)):
+            missing.append(header_name)
+
+    if missing:
+        detail = {"detail": "Missing required header(s)", "headers": missing}
+        if _is_jsonrpc(ctx):
+            _stage_rpc_error(
+                ctx,
+                code=-32602,
+                message="Invalid params",
+                data={"reason": "Missing required header(s)", "headers": missing},
+            )
+            return
+        raise HTTPException(
+            status_code=_status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail
+        )
 
 
 def _inject_path_params_for_bulk(payload: Any, ctx: Any) -> Any:
