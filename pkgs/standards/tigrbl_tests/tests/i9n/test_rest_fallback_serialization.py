@@ -36,12 +36,6 @@ async def client_and_model():
     router = TigrblRouter(engine=mem())
     app.include_table(Widget, prefix="")
     await app.initialize()
-    # Remove output schemas to trigger fallback serialization
-    if hasattr(Widget.schemas, "read"):
-        Widget.schemas.read.out = None
-    if hasattr(Widget.schemas, "list"):
-        Widget.schemas.list.out = None
-
     app.include_router(router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
@@ -53,7 +47,7 @@ async def client_and_model():
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_rest_read_and_list_without_out_schema(client_and_model, monkeypatch):
+async def test_rest_read_and_list_with_output_schema(client_and_model, monkeypatch):
     client, _ = client_and_model
 
     async def read_stub(model, ident, db):
@@ -70,12 +64,9 @@ async def test_rest_read_and_list_without_out_schema(client_and_model, monkeypat
     item_id = 1
     resp = await client.get(f"/widget/{item_id}")
     assert resp.status_code == 200
-    assert "id" in resp.json()
+    assert resp.json() == {"id": item_id, "name": "A"}
 
     resp_list = await client.get("/widget")
     assert resp_list.status_code == 200
     data = resp_list.json()
-    if isinstance(data, list):
-        assert "id" in data[0]
-    else:
-        assert "id" in data
+    assert data == [{"id": 1, "name": "A"}]
