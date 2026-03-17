@@ -64,15 +64,6 @@ def normalize_app_spec(spec: "AppSpec") -> "AppSpec":
     tables = _seqify(spec.tables)
     ops = _seqify(spec.ops)
 
-    if any(isinstance(router, str) for router in routers):
-        raise TypeError(
-            "AppSpec.routers entries must be nested router specs, not strings."
-        )
-    if any(isinstance(table, str) for table in tables):
-        raise TypeError("AppSpec.tables entries must be table specs, not strings.")
-    if any(isinstance(op, str) for op in ops):
-        raise TypeError("AppSpec.ops entries must be op specs, not strings.")
-
     return AppSpec(
         title=str(spec.title or "Tigrbl"),
         description=spec.description,
@@ -130,12 +121,6 @@ class AppSpec(SerdeMixin):
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> "AppSpec":
-        routers = payload.get("routers", ())
-        for router in _seqify(routers):
-            if isinstance(router, str):
-                raise TypeError(
-                    "AppSpec.routers entries must be nested router specs, not strings."
-                )
         return super().from_dict(payload)
 
     @classmethod

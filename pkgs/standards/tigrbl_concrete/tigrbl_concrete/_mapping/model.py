@@ -200,8 +200,22 @@ def _materialize_handlers(model: type, specs: Tuple[OpSpec, ...]) -> Tuple[OpSpe
     all_specs, by_key, by_alias = _index_specs(specs)
     model.ops = SimpleNamespace(all=all_specs, by_key=by_key, by_alias=by_alias)
     model.opspecs = model.ops
+
+    handlers = SimpleNamespace()
+    for spec in all_specs:
+        alias_ns = getattr(handlers, spec.alias, None)
+        if not isinstance(alias_ns, SimpleNamespace):
+            alias_ns = SimpleNamespace()
+            setattr(handlers, spec.alias, alias_ns)
+
+        raw = _build_raw_handler(model, spec)
+        setattr(alias_ns, "raw", raw)
+        setattr(alias_ns, "handler", raw)
+        setattr(alias_ns, "core", getattr(spec, "core", None) or raw)
+        setattr(alias_ns, "core_raw", getattr(spec, "core_raw", None) or raw)
+
     # Compatibility alias used by tests and older mapping helpers.
-    model.handlers = model.ops
+    model.handlers = handlers
     _attach_model_rpc_call(model, specs)
     return all_specs
 
@@ -423,10 +437,9 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
             alias_ns.HANDLER = [_default_handler_step]
 
         handlers_root = getattr(model, "handlers", None)
-        if handlers_root is None:
-            handlers_root = SimpleNamespace()
-            setattr(model, "handlers", handlers_root)
-        setattr(handlers_root, alias, alias_ns)
+        handler_ns = getattr(handlers_root, alias, None) if handlers_root else None
+        if isinstance(handler_ns, SimpleNamespace):
+            setattr(handler_ns, "hooks", alias_ns)
 
 
 def _mro_alias_map(model: type) -> dict[str, str]:
