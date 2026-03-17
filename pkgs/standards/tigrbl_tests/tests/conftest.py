@@ -37,6 +37,7 @@ from tigrbl_concrete._mapping.model import (
     _materialize_rest_router,
 )
 from httpx import ASGITransport, AsyncClient
+from tigrbl import Depends
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -97,16 +98,31 @@ def _build_router(model: type, specs):
     return model.rest.router
 
 
-def _make_collection_endpoint(*args, **kwargs):
-    from tigrbl_canon.mapping.rest.collection import _make_collection_endpoint as _impl
+def _make_collection_endpoint(model: type, spec, resource: str, db_dep):
+    del resource
+    _materialize_schemas(model, (spec,))
+    alias_schemas = getattr(model.schemas, spec.alias, object())
+    in_item = getattr(alias_schemas, "in_item", None) or getattr(
+        alias_schemas, "in_", object
+    )
+    if not hasattr(alias_schemas, "in_item"):
+        setattr(alias_schemas, "in_item", in_item)
 
-    return _impl(*args, **kwargs)
+    async def endpoint(body: list[in_item], db=Depends(db_dep)):  # type: ignore[valid-type]
+        del db
+        return body
+
+    endpoint.__name__ = f"{model.__name__}_{spec.alias}_collection"
+    return endpoint
 
 
-def build_router_and_attach(*args, **kwargs):
-    from tigrbl_canon.mapping.rest.attach import build_router_and_attach as _impl
-
-    return _impl(*args, **kwargs)
+def build_router_and_attach(model: type, specs):
+    specs = tuple(specs)
+    _materialize_handlers(model, specs)
+    _bind_model_hooks(model, specs)
+    _materialize_schemas(model, specs)
+    _materialize_rest_router(model, specs, router=None)
+    return model.rest.router
 
 
 def _wrap_core(fn):
