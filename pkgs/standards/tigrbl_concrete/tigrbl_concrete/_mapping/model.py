@@ -11,6 +11,7 @@ from tigrbl_core._spec.binding_spec import HttpJsonRpcBindingSpec, HttpRestBindi
 from tigrbl_core.config.constants import CANON
 from tigrbl_core.config.constants import HOOK_DECLS_ATTR
 from tigrbl_core._spec.op_utils import _maybe_await, _unwrap
+from tigrbl_core.schema.builder import _build_schema
 from tigrbl_typing.phases import HOOK_PHASES
 
 from tigrbl_concrete._mapping.op_resolver import resolve as resolve_ops
@@ -89,6 +90,7 @@ def bind(
     model.ops = SimpleNamespace(all=all_specs, by_key=by_key, by_alias=by_alias)
     model.opspecs = model.ops
     _bind_model_hooks(model, specs)
+    _materialize_schemas(model, specs)
 
     register_rpc(model, specs)
 
@@ -96,6 +98,37 @@ def bind(
     _attach_model_rpc_call(model, specs)
 
     return all_specs
+
+
+def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
+    schemas = getattr(model, "schemas", None)
+    if not isinstance(schemas, SimpleNamespace):
+        schemas = SimpleNamespace()
+        setattr(model, "schemas", schemas)
+
+    for spec in specs:
+        alias_ns = getattr(schemas, spec.alias, None)
+        if not isinstance(alias_ns, SimpleNamespace):
+            alias_ns = SimpleNamespace()
+            setattr(schemas, spec.alias, alias_ns)
+
+        if not hasattr(alias_ns, "in_"):
+            request_model = None
+            if spec.target != "custom":
+                request_model = _build_schema(
+                    model,
+                    verb=spec.alias,
+                    name=f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Request",
+                )
+            setattr(alias_ns, "in_", request_model)
+
+        if not hasattr(alias_ns, "out"):
+            response_model = _build_schema(
+                model,
+                verb="read",
+                name=f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Response",
+            )
+            setattr(alias_ns, "out", response_model)
 
 
 def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
@@ -121,6 +154,18 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
         phase_map = collected.get(alias, {})
         for phase in HOOK_PHASES:
             setattr(alias_ns, phase, tuple(phase_map.get(phase, ())))
+
+        if not getattr(alias_ns, "HANDLER", ()):
+
+            async def _default_handler_step(ctx: Any) -> None:
+                del ctx
+
+            setattr(
+                _default_handler_step,
+                "__tigrbl_label",
+                f"hook:wire:tigrbl:core:crud:ops:{alias}@HANDLER",
+            )
+            alias_ns.HANDLER = (_default_handler_step,)
 
 
 def _mro_alias_map(model: type) -> dict[str, str]:
@@ -380,6 +425,11 @@ def _materialize_rest_router(
                 }
 
             _placeholder_endpoint.__name__ = f"{model.__name__}_{spec.alias}_route"
+            alias_ns = getattr(
+                getattr(model, "schemas", SimpleNamespace()),
+                spec.alias,
+                SimpleNamespace(),
+            )
             model_router.add_route(
                 path=path,
                 endpoint=_placeholder_endpoint,
@@ -387,6 +437,8 @@ def _materialize_rest_router(
                 name=f"{model.__name__}.{spec.alias}",
                 tigrbl_model=model,
                 tigrbl_alias=spec.alias,
+                request_model=getattr(alias_ns, "in_", None),
+                response_model=getattr(alias_ns, "out", None),
                 include_in_schema=True,
             )
             existing_routes.add(route_key)
