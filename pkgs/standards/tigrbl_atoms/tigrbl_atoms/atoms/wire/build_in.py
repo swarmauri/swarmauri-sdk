@@ -115,17 +115,9 @@ def _run(obj: Optional[object], ctx: Any) -> None:
     present_fields: set[str] = set()
     unknown_keys: Dict[str, Any] = {}
 
-    keep_unknown = not _reject_unknown(ctx)
-
     # First pass: direct field-name matches win
     for key, val in payload.items():
         if key in by_field:
-            in_values[key] = val
-            present_fields.add(key)
-        elif keep_unknown:
-            # Keep permissive passthrough payloads when unknown-field rejection is
-            # disabled. This avoids dropping valid ORM attributes during transient
-            # schema collection windows and removes an extra map copy on hot paths.
             in_values[key] = val
             present_fields.add(key)
         else:
