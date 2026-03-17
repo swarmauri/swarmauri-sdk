@@ -147,12 +147,61 @@ def bind(
     return all_specs
 
 
+def _build_raw_handler(model: type, spec: OpSpec):
+    target = getattr(spec, "target", "custom")
+
+    if target == "custom" and callable(getattr(spec, "handler", None)):
+        handler = spec.handler
+
+        @wraps(handler)
+        async def _raw(ctx: Any):
+            result = _call_op_handler(handler, model, dict(ctx or {}))
+            if inspect.isawaitable(result):
+                return await result
+            return result
+
+        return _raw
+
+    import tigrbl.core as _core
+
+    core_fn = getattr(_core, target)
+
+    @wraps(core_fn)
+    async def _raw(ctx: Any):
+        ctx_dict = dict(ctx or {})
+        db = ctx_dict.get("db")
+        payload = ctx_dict.get("payload")
+        params = ctx_dict.get("path_params")
+        ident = None
+        if isinstance(params, dict):
+            ident = params.get("id", params.get("item_id"))
+
+        if target in {"read", "delete"}:
+            return await core_fn(model, ident, db=db)
+        if target in {"create", "list", "clear", "bulk_create", "bulk_delete"}:
+            return await core_fn(model, payload, db=db)
+        if target in {
+            "update",
+            "replace",
+            "merge",
+            "bulk_update",
+            "bulk_replace",
+            "bulk_merge",
+        }:
+            return await core_fn(model, ident, payload, db=db)
+        return await core_fn(model, payload, db=db)
+
+    return _raw
+
+
 def _materialize_handlers(model: type, specs: Tuple[OpSpec, ...]) -> Tuple[OpSpec, ...]:
     specs = _normalize_bindings(model, tuple(specs))
     _ensure_model_namespaces(model)
     all_specs, by_key, by_alias = _index_specs(specs)
     model.ops = SimpleNamespace(all=all_specs, by_key=by_key, by_alias=by_alias)
     model.opspecs = model.ops
+    # Compatibility alias used by tests and older mapping helpers.
+    model.handlers = model.ops
     _attach_model_rpc_call(model, specs)
     return all_specs
 
@@ -161,6 +210,8 @@ def _resolve_schema_arg(model: type, arg: Any) -> Any:
     if arg is None:
         return None
     if isinstance(arg, str):
+        if arg == "raw":
+            return None
         alias, _, kind = arg.partition(".")
         kind = kind or "out"
         ns = getattr(getattr(model, "schemas", SimpleNamespace()), alias, None)
@@ -218,9 +269,10 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
             setattr(alias_ns, "in_", request_model)
 
         if not hasattr(alias_ns, "out"):
+            response_verb = "read" if spec.target == "create" else spec.target
             response_item_model = _build_schema(
                 model,
-                verb=spec.target,
+                verb=response_verb,
                 name=f"{model.__name__}{spec.alias.replace('_', ' ').title().replace(' ', '')}Response",
             )
             setattr(alias_ns, "out", response_item_model)
@@ -352,11 +404,29 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
                 return None
 
             if op_spec is not None and getattr(op_spec, "target", None):
-                _default_handler_step.__qualname__ = str(op_spec.target)
+                try:
+                    from tigrbl import core as _core
+
+                    core_handler = getattr(_core, str(op_spec.target), None)
+                except Exception:
+                    core_handler = None
+
+                if callable(core_handler):
+                    _default_handler_step.__name__ = core_handler.__name__
+                    _default_handler_step.__qualname__ = core_handler.__qualname__
+                    _default_handler_step.__module__ = core_handler.__module__
+                else:
+                    _default_handler_step.__qualname__ = str(op_spec.target)
 
             setattr(_default_handler_step, "__tigrbl_label", label)
 
             alias_ns.HANDLER = [_default_handler_step]
+
+        handlers_root = getattr(model, "handlers", None)
+        if handlers_root is None:
+            handlers_root = SimpleNamespace()
+            setattr(model, "handlers", handlers_root)
+        setattr(handlers_root, alias, alias_ns)
 
 
 def _mro_alias_map(model: type) -> dict[str, str]:
@@ -657,6 +727,7 @@ def _materialize_rest_router(
                 endpoint=_placeholder_endpoint,
                 methods=list(methods),
                 name=f"{model.__name__}.{spec.alias}",
+                tags=[model.__name__],
                 tigrbl_model=model,
                 tigrbl_alias=spec.alias,
                 request_model=getattr(alias_ns, "in_", None),

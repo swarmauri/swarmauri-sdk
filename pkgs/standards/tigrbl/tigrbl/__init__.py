@@ -190,9 +190,14 @@ def build_hooks(*args, **kwargs):
 
 
 def build_handlers(*args, **kwargs):
-    return import_module("tigrbl_concrete._mapping.model")._materialize_handlers(
-        *args, **kwargs
-    )
+    mod = import_module("tigrbl_concrete._mapping.model")
+    specs = mod._materialize_handlers(*args, **kwargs)
+    model = args[0] if args else kwargs.get("model")
+    spec_arg = args[1] if len(args) > 1 else kwargs.get("specs", ())
+    spec_tuple = tuple(spec_arg or ())
+    if model is not None:
+        mod._bind_model_hooks(model, spec_tuple)
+    return specs
 
 
 def register_rpc(*args, **kwargs):

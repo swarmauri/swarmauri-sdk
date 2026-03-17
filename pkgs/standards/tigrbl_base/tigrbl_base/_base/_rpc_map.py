@@ -209,11 +209,19 @@ def _validate_input(
     return payload
 
 
-def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
+def _serialize_output(
+    model: type,
+    alias: str,
+    target: str,
+    result: Any,
+    sp: OpSpec | None = None,
+) -> Any:
     """Serialize result(s) if an OUT schema is available for the op.
 
     For 'list', the OUT schema represents the element shape.
     """
+    del sp  # backward-compatible kwarg accepted by older callers/tests
+
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
         return _ensure_jsonable(result)
