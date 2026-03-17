@@ -33,7 +33,9 @@ def test_validate_in_missing_required() -> None:
     K._opviews[app] = {(Model, alias): ov}
     K._primed[app] = True
 
-    ctx = SimpleNamespace(app=app, model=Model, op=alias, temp={"in_values": {}})
+    ctx = SimpleNamespace(
+        app=app, model=Model, op=alias, opview=ov, temp={"in_values": {}}
+    )
     with pytest.raises(HTTPException) as exc:
         validate_in._run(None, ctx)
     assert exc.value.status_code == 422
@@ -62,7 +64,7 @@ def test_validate_in_coerces_types() -> None:
     K._primed[app] = True
 
     ctx = SimpleNamespace(
-        app=app, model=Model, op=alias, temp={"in_values": {"age": "5"}}
+        app=app, model=Model, op=alias, opview=ov, temp={"in_values": {"age": "5"}}
     )
     validate_in._run(None, ctx)
     assert ctx.temp["in_values"]["age"] == 5

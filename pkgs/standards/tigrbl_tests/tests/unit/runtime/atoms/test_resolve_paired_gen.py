@@ -30,7 +30,9 @@ def test_generate_paired_value() -> None:
     K._opviews[app] = {(Model, alias): ov}
     K._primed[app] = True
 
-    ctx = SimpleNamespace(app=app, model=Model, op=alias, persist=True, temp={})
+    ctx = SimpleNamespace(
+        app=app, model=Model, op=alias, opview=ov, persist=True, temp={}
+    )
     paired_gen._run(None, ctx)
     pv = ctx.temp["paired_values"]
     pf = ctx.temp["persist_from_paired"]
@@ -59,7 +61,9 @@ def test_generate_paired_value_from_io() -> None:
     K._opviews[app] = {(Model, alias): ov}
     K._primed[app] = True
 
-    ctx = SimpleNamespace(app=app, model=Model, op=alias, persist=True, temp={})
+    ctx = SimpleNamespace(
+        app=app, model=Model, op=alias, opview=ov, persist=True, temp={}
+    )
     paired_gen._run(None, ctx)
     pv = ctx.temp["paired_values"]
     assert pv["secret"]["raw"] == "r"

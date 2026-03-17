@@ -34,7 +34,7 @@ def test_build_out_reads_and_produces() -> None:
     K._opviews[app] = {(Model, alias): ov}
     K._primed[app] = True
 
-    ctx = SimpleNamespace(app=app, model=Model, op=alias, temp={})
+    ctx = SimpleNamespace(app=app, model=Model, op=alias, opview=ov, temp={})
     obj = SimpleNamespace(id=1)
     build_out._run(obj, ctx)
     assert ctx.temp["out_values"] == {"id": 1, "virtual": "v"}

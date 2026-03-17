@@ -34,6 +34,7 @@ def test_refresh_demand_marks_need() -> None:
         app=app,
         model=Model,
         op=alias,
+        opview=ov,
         persist=True,
         temp={},
         cfg=SimpleNamespace(),
