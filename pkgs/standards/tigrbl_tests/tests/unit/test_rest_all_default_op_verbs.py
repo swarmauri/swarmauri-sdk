@@ -39,7 +39,7 @@ def _route_map(router) -> dict[str, tuple[str, set[str]]]:
         ("bulk_replace", "bulk_replace", "/item", {"PUT"}),
         ("bulk_merge", "bulk_merge", "/item", {"PATCH"}),
         ("bulk_delete", "bulk_delete", "/item", {"DELETE"}),
-        ("custom_op", "custom", "/item/custom_op", {"POST"}),
+        pytest.param("custom_op", "custom", "/item/custom_op", {"POST"}, id="custom_op"),
     ],
 )
 def test_rest_default_op_verbs(alias, target, path, methods):
@@ -49,7 +49,12 @@ def test_rest_default_op_verbs(alias, target, path, methods):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
-    build_router_and_attach(Item, [OpSpec(alias=alias, target=target)])
+    handler = None
+    if target == "custom":
+        async def _noop(ctx):
+            return None
+        handler = _noop
+    build_router_and_attach(Item, [OpSpec(alias=alias, target=target, handler=handler)])
 
     routes = _route_map(Item.rest.router)
     assert alias in routes

@@ -194,8 +194,8 @@ async def test_op_ctx_preserves_canon_schemas(sync_db_session):
     schemas = spec["components"]["schemas"].keys()
     assert "WidgetCreateRequest" in schemas
     assert "WidgetCreateResponse" in schemas
-    assert "WidgetRegisterRequest" in schemas
-    assert "WidgetRegisterResponse" in schemas
+    assert "RegisterIn" in schemas
+    assert "TokenPair" in schemas
 
 
 @pytest.mark.i9n

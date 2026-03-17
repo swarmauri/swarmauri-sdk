@@ -12,6 +12,7 @@ ALLOWED_TOP_LEVEL_IMPORTS = {
     "orjson",
     "pydantic",
     "sqlalchemy",
+    "tigrbl",
     "tigrbl_atoms",
     "tigrbl_base",
     "tigrbl_core",

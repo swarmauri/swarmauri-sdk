@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from httpx import ASGITransport, AsyncClient
 from tigrbl.types import Integer, Mapped, String
 from tigrbl import TigrblApp, TigrblRouter
+import tigrbl_ops_oltp as _oltp_pkg
 from tigrbl_ops_oltp import crud
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.tables import TableBase as Base3
@@ -63,6 +64,8 @@ async def test_rest_read_and_list_without_out_schema(client_and_model, monkeypat
 
     monkeypatch.setattr(crud, "read", read_stub)
     monkeypatch.setattr(crud, "list", list_stub)
+    monkeypatch.setattr(_oltp_pkg, "read", read_stub)
+    monkeypatch.setattr(_oltp_pkg, "list", list_stub)
 
     item_id = 1
     resp = await client.get(f"/widget/{item_id}")

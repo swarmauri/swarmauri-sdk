@@ -36,7 +36,7 @@ async def test_op_ctx_persist_options(
 ) -> None:
     Model = _build_model(persist)
     chain = [fn.__name__ for fn in Model.hooks.create.HANDLER]
-    assert chain == ["_default_handler_step"]
+    assert chain == ["create"]
 
     def fake_build(model, alias):
         return {"HANDLER": Model.hooks.create.HANDLER}

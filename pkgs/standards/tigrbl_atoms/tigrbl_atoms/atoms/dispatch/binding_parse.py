@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 from typing import Any, Mapping
 
 from ... import events as _ev
@@ -85,15 +86,45 @@ def _run(obj: object | None, ctx: Any) -> None:
         payload: dict[str, object] = {}
         query = getattr(ctx, "query", None)
         if isinstance(query, Mapping):
-            payload.update({str(k): v for k, v in query.items()})
+            for k, v in query.items():
+                # parse_qs returns lists; unwrap single-element lists
+                if isinstance(v, list) and len(v) == 1:
+                    payload[str(k)] = v[0]
+                else:
+                    payload[str(k)] = v
         path_params = dispatch.get("path_params")
         if isinstance(path_params, Mapping):
             payload.update({str(k): v for k, v in path_params.items()})
-        if isinstance(body, Mapping):
+        if isinstance(body, list):
+            # Bulk operation: inject path params into each item
+            coerced_params = {}
+            if isinstance(path_params, Mapping):
+                for pk, pv in path_params.items():
+                    if isinstance(pv, str):
+                        try:
+                            coerced_params[pk] = uuid.UUID(pv)
+                        except (ValueError, AttributeError):
+                            coerced_params[pk] = pv
+                    else:
+                        coerced_params[pk] = pv
+            for idx, item in enumerate(body):
+                if isinstance(item, Mapping):
+                    merged = dict(coerced_params)
+                    merged.update(item)
+                    body[idx] = merged
+            dispatch["parsed_payload"] = body
+            if isinstance(route, dict):
+                route["payload"] = body
+                route["path_params"] = dict(path_params) if isinstance(path_params, Mapping) else {}
+        elif isinstance(body, Mapping):
             payload.update({str(k): v for k, v in body.items()})
-        dispatch["parsed_payload"] = payload
-        if isinstance(route, dict):
-            route["payload"] = payload
+            dispatch["parsed_payload"] = payload
+            if isinstance(route, dict):
+                route["payload"] = payload
+        else:
+            dispatch["parsed_payload"] = payload
+            if isinstance(route, dict):
+                route["payload"] = payload
     else:
         dispatch["parsed_payload"] = body
         if isinstance(route, dict):

@@ -240,12 +240,13 @@ def test_hook_execution():
         return orig.__func__(cls, *args, **kwargs)
 
     _Ctx.ensure = patched
+    ctx = {}
     try:
-        payload = asyncio.run(Hooked.hooks.create.PRE_HANDLER[0](ctx={}))
+        asyncio.run(Hooked.hooks.create.PRE_HANDLER[0](ctx=ctx))
     finally:
         _Ctx.ensure = orig
 
-    assert payload["name"] == "hooked"
+    assert ctx["payload"]["name"] == "hooked"
 
 
 @pytest.mark.i9n
