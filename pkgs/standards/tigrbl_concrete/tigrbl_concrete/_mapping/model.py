@@ -139,6 +139,10 @@ def _materialize_schemas(model: type, specs: Tuple[OpSpec, ...]) -> None:
 
 def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
     visible_aliases = {spec.alias for spec in specs}
+    spec_by_alias: dict[str, OpSpec] = {}
+    for spec in specs:
+        spec_by_alias.setdefault(spec.alias, spec)
+
     if not visible_aliases:
         return
 
@@ -162,9 +166,20 @@ def _bind_model_hooks(model: type, specs: Tuple[OpSpec, ...]) -> None:
             setattr(alias_ns, phase, tuple(phase_map.get(phase, ())))
 
         if not getattr(alias_ns, "HANDLER", ()):
+            op_spec = spec_by_alias.get(alias)
+            op_handler = (
+                getattr(op_spec, "handler", None) if op_spec is not None else None
+            )
 
-            async def _default_handler_step(ctx: Any) -> None:
-                del ctx
+            if callable(op_handler):
+
+                async def _default_handler_step(ctx: Any, _h: Any = op_handler) -> None:
+                    await _maybe_await(_h(ctx))
+
+            else:
+
+                async def _default_handler_step(ctx: Any) -> None:
+                    del ctx
 
             setattr(
                 _default_handler_step,

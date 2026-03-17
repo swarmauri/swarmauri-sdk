@@ -15,8 +15,9 @@ from tigrbl_ops_oltp.crud.helpers.model import _coerce_pk_value, _single_pk_name
 logger = logging.getLogger(__name__)
 
 
-def _default_status_for_alias(alias: Any) -> int:
-    return 201 if alias in {"create", "bulk_create"} else 200
+def _default_status_for_alias(alias: Any, target: Any = None) -> int:
+    verb = target if isinstance(target, str) and target else alias
+    return 201 if verb in {"create", "bulk_create"} else 200
 
 
 def _normalize_result_payload(payload: Any) -> Any:
@@ -347,7 +348,9 @@ async def _invoke(
         ctx["result"] = _normalize_result_payload(current_result)
 
     if getattr(ctx, "status_code", None) is None:
-        ctx.status_code = _default_status_for_alias(getattr(ctx, "op", None))
+        ctx.status_code = _default_status_for_alias(
+            getattr(ctx, "op", None), getattr(ctx, "target", None)
+        )
 
     response_obj = getattr(ctx, "response", None)
     if response_obj is None:
