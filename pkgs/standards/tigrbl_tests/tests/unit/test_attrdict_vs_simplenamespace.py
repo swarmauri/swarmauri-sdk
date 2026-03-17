@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from tigrbl.mapping.router.common import AttrDict
+from tigrbl_concrete._mapping.router.common import AttrDict
 
 
 def test_attrdict_and_simplenamespace_similarity_attribute_reads() -> None:

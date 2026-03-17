@@ -3,7 +3,7 @@ from itertools import product
 import pytest
 
 from tigrbl import op_ctx
-from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
+from tests.conftest import mro_collect_decorated_ops
 from tigrbl.types import BaseModel
 
 

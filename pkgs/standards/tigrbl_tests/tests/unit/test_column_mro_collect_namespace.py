@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tigrbl.mapping.column_mro_collect import mro_collect_columns
+from tigrbl_core._spec.column_spec import mro_collect_columns
 
 
 def test_mro_collect_columns_accepts_namespace_columns() -> None:

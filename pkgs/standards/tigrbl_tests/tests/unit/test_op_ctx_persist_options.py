@@ -1,9 +1,9 @@
 import pytest
 from types import SimpleNamespace
 
-from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
+from tests.conftest import mro_collect_decorated_ops
 from tigrbl.decorators.op import op_ctx
-from tigrbl.mapping import handlers
+from tigrbl_concrete import _mapping as handlers
 from tigrbl.system import diagnostics as _diag
 
 

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-from tigrbl.mapping.model import bind
+from tigrbl_concrete._mapping.model import bind
 from tigrbl_atoms.atoms.schema.collect_in import _run as collect_in_run
 from tigrbl_atoms.atoms.schema.collect_out import _run as collect_out_run
 from tigrbl_kernel import _default_kernel as K

@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 from pydantic import BaseModel
 
-from tigrbl.mapping.rest.io import _serialize_output
+from tigrbl_base._base._rpc_map import _serialize_output
 from tigrbl._spec import OpSpec
 
 

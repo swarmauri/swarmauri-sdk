@@ -1,6 +1,6 @@
 from tigrbl import TigrblApp, op_ctx
-from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
-from tigrbl.mapping.rest.router import _build_router
+from tests.conftest import mro_collect_decorated_ops
+from tests.conftest import _build_router
 from tigrbl.orm.tables import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
