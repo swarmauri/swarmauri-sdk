@@ -99,9 +99,9 @@ PRE_COMMIT = PhaseStep("PRE_COMMIT", Operated, Operated, in_tx=True)
 END_TX = PhaseStep("END_TX", Operated, Operated, in_tx=True)
 
 POST_COMMIT = PhaseStep("POST_COMMIT", Operated, Encoded)
+POST_RESPONSE = PhaseStep("POST_RESPONSE", Encoded, Encoded)
 EGRESS_SHAPE = PhaseStep("EGRESS_SHAPE", Encoded, Encoded)
 EGRESS_FINALIZE = PhaseStep("EGRESS_FINALIZE", Encoded, Egressed)
-POST_RESPONSE = PhaseStep("POST_RESPONSE", Egressed, Egressed)
 
 
 ON_ERROR = PhaseStep("ON_ERROR", Failed, Failed, is_error=True)
@@ -145,9 +145,9 @@ PHASES: Final[Tuple[PhaseName, ...]] = (
     "PRE_COMMIT",
     "END_TX",
     "POST_COMMIT",
+    "POST_RESPONSE",
     "EGRESS_SHAPE",
     "EGRESS_FINALIZE",
-    "POST_RESPONSE",
     "ON_ERROR",
     "ON_PRE_TX_BEGIN_ERROR",
     "ON_START_TX_ERROR",

@@ -312,6 +312,18 @@ def legend() -> Dict[str, object]:
 
 
 def label_callable(fn: Any) -> str:
+    hook_name = getattr(fn, "__tigrbl_hook_name", None)
+    hook_module = getattr(fn, "__tigrbl_hook_module", None)
+    hook_qualname = getattr(fn, "__tigrbl_hook_qualname", None)
+    if isinstance(hook_name, str) and hook_name:
+        name = (
+            hook_qualname
+            if isinstance(hook_qualname, str) and hook_qualname
+            else hook_name
+        )
+        if isinstance(hook_module, str) and hook_module:
+            return f"{hook_module}.{name}"
+        return name
     n = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
     m = getattr(fn, "__module__", None)
     return f"{m}.{n}" if m else n

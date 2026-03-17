@@ -191,6 +191,9 @@ def _wrap_ctx_hook(model: type, fn: Any, phase: str):
             return await bound(ctx)
         return await _maybe_await(bound(ctx))
 
+    setattr(_step, "__tigrbl_hook_name", getattr(fn, "__name__", None))
+    setattr(_step, "__tigrbl_hook_qualname", getattr(fn, "__qualname__", None))
+    setattr(_step, "__tigrbl_hook_module", getattr(fn, "__module__", None))
     return _step
 
 

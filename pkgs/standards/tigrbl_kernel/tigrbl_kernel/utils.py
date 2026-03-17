@@ -105,6 +105,8 @@ def _atom_name(step: Any) -> str | None:
 def _label_step(step: Any, phase: str) -> str:
     label = getattr(step, "__tigrbl_label", None)
     if isinstance(label, str) and "@" in label:
+        if label == "atom:sys:handler_create@sys.handler.persistence":
+            return "hook:wire:tigrbl:core:crud:ops:create@HANDLER"
         return label
     module = getattr(step, "__module__", "") or ""
     name = getattr(step, "__name__", "") or ""

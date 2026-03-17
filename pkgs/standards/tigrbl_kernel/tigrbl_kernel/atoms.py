@@ -185,6 +185,14 @@ def _inject_atoms(
     target: str | None = None,
 ) -> None:
     order = {name: i for i, name in enumerate(_ev.all_events_ordered())}
+    available_sys_handlers = {
+        subject
+        for _anchor, run in atoms
+        for domain, subject in (_infer_domain_subject(run),)
+        if domain == "sys"
+        and isinstance(subject, str)
+        and subject.startswith("handler_")
+    }
 
     def _sort_key(item: _DiscoveredAtom) -> tuple[int, int]:
         anchor, run = item
@@ -220,6 +228,12 @@ def _inject_atoms(
             and _subject.startswith("handler_")
         ):
             handler_target = _subject.removeprefix("handler_")
+            if (
+                handler_target == "persistence"
+                and target
+                and f"handler_{target}" in available_sys_handlers
+            ):
+                continue
             if handler_target != "persistence" and target and handler_target != target:
                 continue
         if domain == "dep":
