@@ -227,6 +227,9 @@ def _apply_header_in_requirements(
         header_name = entry.get("header_in")
         if not isinstance(header_name, str) or not header_name:
             continue
+        if field in in_values:
+            # Body/input payload takes precedence over optional header projection.
+            continue
         header_value = headers.get(header_name.lower())
         if header_value not in (None, ""):
             in_values[field] = header_value
