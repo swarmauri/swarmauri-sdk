@@ -42,7 +42,7 @@ def register_runtime_get_route(
 
     op = OpSpec(
         alias=alias,
-        target="read",
+        target="custom",
         arity="collection",
         persist="skip",
         expose_routes=False,
