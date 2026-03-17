@@ -11,6 +11,7 @@ Usage:
     python triage_tests.py -m unit          # only unit tests
     python triage_tests.py --no-color       # plain output for CI
 """
+
 from __future__ import annotations
 
 import json
@@ -26,23 +27,43 @@ from pathlib import Path
 # ── Priority Definitions ────────────────────────────────────────────────
 
 PRIORITIES = [
-    ("P0", "COLLECTION ERRORS", "These tests could not even be imported/collected. Fix these first."),
-    ("P1", "UNIT TEST FAILURES", "Core logic is broken. These indicate bugs in tigrbl internals."),
-    ("P2", "INTEGRATION TEST FAILURES", "End-to-end flows are broken (HTTP, DB, uvicorn)."),
-    ("P3", "ARCHITECTURE / HARNESS FAILURES", "Design constraints or compilation contracts violated."),
+    (
+        "P0",
+        "COLLECTION ERRORS",
+        "These tests could not even be imported/collected. Fix these first.",
+    ),
+    (
+        "P1",
+        "UNIT TEST FAILURES",
+        "Core logic is broken. These indicate bugs in tigrbl internals.",
+    ),
+    (
+        "P2",
+        "INTEGRATION TEST FAILURES",
+        "End-to-end flows are broken (HTTP, DB, uvicorn).",
+    ),
+    (
+        "P3",
+        "ARCHITECTURE / HARNESS FAILURES",
+        "Design constraints or compilation contracts violated.",
+    ),
     ("P4", "ACCEPTANCE / PERF / OTHER", "Non-critical. Address after P0\u2013P3."),
-    ("P5", "EXPECTED FAILURES", "xfail tests that unexpectedly passed (investigate marker removal)."),
+    (
+        "P5",
+        "EXPECTED FAILURES",
+        "xfail tests that unexpectedly passed (investigate marker removal).",
+    ),
 ]
 
 # ── ANSI Colors ─────────────────────────────────────────────────────────
 
 _COLOR = {
-    "P0": "\033[1;31m",   # bold red
-    "P1": "\033[0;31m",   # red
-    "P2": "\033[0;33m",   # yellow
-    "P3": "\033[0;36m",   # cyan
-    "P4": "\033[0;37m",   # white
-    "P5": "\033[2m",      # dim
+    "P0": "\033[1;31m",  # bold red
+    "P1": "\033[0;31m",  # red
+    "P2": "\033[0;33m",  # yellow
+    "P3": "\033[0;36m",  # cyan
+    "P4": "\033[0;37m",  # white
+    "P5": "\033[2m",  # dim
     "reset": "\033[0m",
     "bold": "\033[1m",
     "dim": "\033[2m",
@@ -58,6 +79,7 @@ def _colors(use_color: bool) -> dict[str, str]:
 
 
 # ── Data Structures ─────────────────────────────────────────────────────
+
 
 @dataclass
 class FailureRecord:
@@ -120,11 +142,11 @@ def _classify_test(nodeid: str, markers: list[str], outcome: str) -> str:
 
 # Patterns to normalize away variable parts
 _NORMALIZE_PATTERNS = [
-    (re.compile(r"0x[0-9a-fA-F]+"), "0x..."),           # memory addresses
-    (re.compile(r"\b[0-9a-f]{8,}\b"), "<id>"),           # hex IDs
-    (re.compile(r"'/.+?'"), "'<path>'"),                  # file paths
-    (re.compile(r"\b\d{4,}\b"), "<num>"),                 # large numbers
-    (re.compile(r"\bport \d+\b"), "port <N>"),            # port numbers
+    (re.compile(r"0x[0-9a-fA-F]+"), "0x..."),  # memory addresses
+    (re.compile(r"\b[0-9a-f]{8,}\b"), "<id>"),  # hex IDs
+    (re.compile(r"'/.+?'"), "'<path>'"),  # file paths
+    (re.compile(r"\b\d{4,}\b"), "<num>"),  # large numbers
+    (re.compile(r"\bport \d+\b"), "port <N>"),  # port numbers
 ]
 
 
@@ -170,6 +192,7 @@ def _make_signature(error_type: str, error_message: str) -> str:
 
 # ── JSON Report Parsing ─────────────────────────────────────────────────
 
+
 def _get_markers(test_entry: dict) -> list[str]:
     """Extract marker names from a test entry."""
     markers = []
@@ -211,12 +234,14 @@ def parse_report(report: dict) -> dict[str, list[ErrorGroup]]:
         if outcome == "xpassed":
             markers = _get_markers(t)
             priority = _classify_test(nodeid, markers, outcome)
-            buckets[priority].append(FailureRecord(
-                nodeid=nodeid,
-                error_type="UnexpectedPass",
-                error_message="xfail test unexpectedly passed",
-                longrepr="",
-            ))
+            buckets[priority].append(
+                FailureRecord(
+                    nodeid=nodeid,
+                    error_type="UnexpectedPass",
+                    error_message="xfail test unexpectedly passed",
+                    longrepr="",
+                )
+            )
             continue
 
         if outcome not in ("failed", "error"):
@@ -228,12 +253,14 @@ def parse_report(report: dict) -> dict[str, list[ErrorGroup]]:
         error_message = _extract_error_message(longrepr, error_type)
         priority = _classify_test(nodeid, markers, outcome)
 
-        buckets[priority].append(FailureRecord(
-            nodeid=nodeid,
-            error_type=error_type,
-            error_message=error_message,
-            longrepr=longrepr,
-        ))
+        buckets[priority].append(
+            FailureRecord(
+                nodeid=nodeid,
+                error_type=error_type,
+                error_message=error_message,
+                longrepr=longrepr,
+            )
+        )
 
     # Process collection errors
     for c in collectors:
@@ -245,12 +272,14 @@ def parse_report(report: dict) -> dict[str, list[ErrorGroup]]:
         error_type = _extract_error_type(longrepr)
         error_message = _extract_error_message(longrepr, error_type)
 
-        buckets["P0"].append(FailureRecord(
-            nodeid=nodeid,
-            error_type=error_type,
-            error_message=error_message,
-            longrepr=longrepr,
-        ))
+        buckets["P0"].append(
+            FailureRecord(
+                nodeid=nodeid,
+                error_type=error_type,
+                error_message=error_message,
+                longrepr=longrepr,
+            )
+        )
 
     # Group failures by error signature within each bucket
     grouped: dict[str, list[ErrorGroup]] = {}
@@ -259,11 +288,17 @@ def parse_report(report: dict) -> dict[str, list[ErrorGroup]]:
         for rec in buckets.get(priority, []):
             sig = _make_signature(rec.error_type, rec.error_message)
             if sig not in sig_map:
-                display = f"{rec.error_type}: {rec.error_message}" if rec.error_message else rec.error_type
+                display = (
+                    f"{rec.error_type}: {rec.error_message}"
+                    if rec.error_message
+                    else rec.error_type
+                )
                 sig_map[sig] = ErrorGroup(signature=sig, display_message=display)
             sig_map[sig].tests.append(rec.nodeid)
         # Sort groups by number of tests (largest first)
-        grouped[priority] = sorted(sig_map.values(), key=lambda g: len(g.tests), reverse=True)
+        grouped[priority] = sorted(
+            sig_map.values(), key=lambda g: len(g.tests), reverse=True
+        )
 
     return grouped
 
@@ -313,8 +348,12 @@ def render_report(
 
     # Priority icons
     icons = {
-        "P0": "\U0001f534", "P1": "\U0001f534", "P2": "\U0001f7e1",
-        "P3": "\U0001f535", "P4": "\u26aa", "P5": "\u2b1c",
+        "P0": "\U0001f534",
+        "P1": "\U0001f534",
+        "P2": "\U0001f7e1",
+        "P3": "\U0001f535",
+        "P4": "\u26aa",
+        "P5": "\u2b1c",
     }
 
     total_failures = 0
@@ -385,7 +424,11 @@ def render_report(
     for priority, label, test_count, root_causes in bucket_summaries:
         # Pad label to align counts
         padded_label = f"{label} ".ljust(26, ".")
-        rc_text = f"  ({root_causes} root cause{'s' if root_causes != 1 else ''})" if root_causes else ""
+        rc_text = (
+            f"  ({root_causes} root cause{'s' if root_causes != 1 else ''})"
+            if root_causes
+            else ""
+        )
         lines.append(f"  {priority}  {padded_label} {test_count}{rc_text}")
 
     lines.append(f"{'─' * W}")
@@ -410,6 +453,7 @@ def render_report(
 
 
 # ── Main ────────────────────────────────────────────────────────────────
+
 
 def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
@@ -446,7 +490,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         # Build pytest command
         pytest_args = [
-            sys.executable, "-m", "pytest",
+            sys.executable,
+            "-m",
+            "pytest",
             f"--json-report-file={report_path}",
             "--json-report",
             "--tb=long",
@@ -465,7 +511,9 @@ def main(argv: list[str] | None = None) -> int:
                 report = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError) as exc:
             print(f"\n{c['red']}Error: Could not read JSON report: {exc}{c['reset']}")
-            print("Make sure pytest-json-report is installed: pip install pytest-json-report")
+            print(
+                "Make sure pytest-json-report is installed: pip install pytest-json-report"
+            )
             return 1
 
         # Build summary stats
@@ -489,11 +537,17 @@ def main(argv: list[str] | None = None) -> int:
         if report_file:
             plain_c = _colors(False)
             full_output = render_report(
-                grouped, summary, plain_c, max_tests=0, box_width=120,
+                grouped,
+                summary,
+                plain_c,
+                max_tests=0,
+                box_width=120,
             )
             out_path = Path(report_file)
             out_path.write_text(full_output + "\n", encoding="utf-8")
-            print(f"\n{c['bold']}Full report written to: {out_path.resolve()}{c['reset']}")
+            print(
+                f"\n{c['bold']}Full report written to: {out_path.resolve()}{c['reset']}"
+            )
 
         # Exit code = number of P0 + P1 failures (capped at 125 for POSIX)
         p0_count = sum(len(g.tests) for g in grouped.get("P0", []))
