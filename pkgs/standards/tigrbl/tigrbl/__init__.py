@@ -163,7 +163,7 @@ def build_hooks(*args, **kwargs):
 
 
 def build_handlers(*args, **kwargs):
-    return import_module("tigrbl_concrete._mapping.model")._bind_model_hooks(
+    return import_module("tigrbl_concrete._mapping.model")._materialize_handlers(
         *args, **kwargs
     )
 
@@ -175,6 +175,8 @@ def register_rpc(*args, **kwargs):
 
 
 def build_rest(*args, **kwargs):
+    if "router" not in kwargs:
+        kwargs["router"] = None
     return import_module("tigrbl_concrete._mapping.model")._materialize_rest_router(
         *args, **kwargs
     )

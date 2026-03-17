@@ -21,8 +21,9 @@ def _dispatch_dict(ctx: Any) -> dict[str, object]:
     return temp["dispatch"]
 
 
-def _default_status(op_alias: str) -> int:
-    return 201 if op_alias.lower() in {"create", "bulk_create"} else 200
+def _default_status(op_alias: str, target: str | None = None) -> int:
+    verb = (target or op_alias).lower()
+    return 201 if verb in {"create", "bulk_create"} else 200
 
 
 def _run(obj: object | None, ctx: Any) -> None:
@@ -79,8 +80,9 @@ def _run(obj: object | None, ctx: Any) -> None:
     alias = getattr(meta, "alias", None)
     setattr(ctx, "op", alias)
     setattr(ctx, "target", getattr(meta, "target", None))
+    target = getattr(meta, "target", None)
     if isinstance(alias, str):
-        status = _default_status(alias)
+        status = _default_status(alias, target if isinstance(target, str) else None)
         if isinstance(route, dict):
             route["status_code"] = status
         setattr(ctx, "status_code", status)
