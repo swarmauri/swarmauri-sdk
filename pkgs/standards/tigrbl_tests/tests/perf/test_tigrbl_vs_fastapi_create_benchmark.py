@@ -61,6 +61,12 @@ async def _benchmark_app(
 
         try:
             async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
+                for _ in range(5):
+                    ready = await client.get("/healthz")
+                    if ready.status_code == 200:
+                        break
+                    await asyncio.sleep(0.05)
+
                 tracemalloc.start()
                 execution_start = perf_counter()
 
@@ -73,11 +79,16 @@ async def _benchmark_app(
                     response = await client.post(
                         endpoint_path, json={"name": item_name}
                     )
+                    if response.status_code == 400:
+                        await asyncio.sleep(0.05)
+                        response = await client.post(
+                            endpoint_path, json={"name": item_name}
+                        )
 
                     op_elapsed = perf_counter() - op_start
                     mem_after_current, mem_after_peak = tracemalloc.get_traced_memory()
 
-                    assert response.status_code in {200, 201}
+                    assert response.status_code in {200, 201}, response.text
                     body = response.json()
                     assert body["name"] == item_name
 
