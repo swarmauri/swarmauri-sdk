@@ -15,6 +15,24 @@ from tigrbl_ops_oltp.crud.helpers.model import _coerce_pk_value, _single_pk_name
 
 logger = logging.getLogger(__name__)
 
+_OPVIEW_CACHE_ATTR = "__tigrbl_cached_opviews__"
+_LOG_NOISE_REDUCED = False
+_NOISY_TIGRBL_LOGGERS = (
+    "tigrbl_ops_oltp.crud.helpers.model",
+    "tigrbl_core._spec.column_spec",
+)
+
+
+def _reduce_log_noise() -> None:
+    global _LOG_NOISE_REDUCED
+    if _LOG_NOISE_REDUCED:
+        return
+    _LOG_NOISE_REDUCED = True
+    for logger_name in _NOISY_TIGRBL_LOGGERS:
+        target_logger = logging.getLogger(logger_name)
+        if target_logger.getEffectiveLevel() <= logging.INFO:
+            target_logger.setLevel(logging.WARNING)
+
 
 def _default_status_for_alias(alias: Any, target: Any = None) -> int:
     verb = target if isinstance(target, str) and target else alias
@@ -175,6 +193,8 @@ async def _invoke(
 ) -> Any:
     """Execute an operation through explicit phases with strict write policies."""
 
+    _reduce_log_noise()
+
     ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
     if getattr(ctx, "app", None) is None and getattr(ctx, "router", None) is not None:
         ctx.app = ctx.router
@@ -203,21 +223,32 @@ async def _invoke(
             and isinstance(specs, Mapping)
         ):
             try:
-                from tigrbl_kernel.opview_compiler import compile_opview_from_specs
+                cached_views = getattr(model, _OPVIEW_CACHE_ATTR, None)
+                if not isinstance(cached_views, dict):
+                    cached_views = {}
+                    setattr(model, _OPVIEW_CACHE_ATTR, cached_views)
 
-                op_spec = next(
-                    (
-                        sp
-                        for sp in tuple(
-                            getattr(getattr(model, "ops", None), "all", ()) or ()
-                        )
-                        if getattr(sp, "alias", None) == alias
-                    ),
-                    None,
-                )
-                if op_spec is None:
-                    op_spec = SimpleNamespace(alias=alias)
-                ctx.opview = compile_opview_from_specs(specs, op_spec)
+                cached_view = cached_views.get(alias)
+                if cached_view is not None:
+                    ctx.opview = cached_view
+                else:
+                    from tigrbl_kernel.opview_compiler import compile_opview_from_specs
+
+                    op_spec = next(
+                        (
+                            sp
+                            for sp in (
+                                getattr(getattr(model, "ops", None), "all", ()) or ()
+                            )
+                            if getattr(sp, "alias", None) == alias
+                        ),
+                        None,
+                    )
+                    if op_spec is None:
+                        op_spec = SimpleNamespace(alias=alias)
+                    compiled_view = compile_opview_from_specs(specs, op_spec)
+                    cached_views[alias] = compiled_view
+                    ctx.opview = compiled_view
             except Exception:
                 pass
     skip_persist: bool = bool(ctx.get(CTX_SKIP_PERSIST_FLAG) or ctx.get("skip_persist"))
