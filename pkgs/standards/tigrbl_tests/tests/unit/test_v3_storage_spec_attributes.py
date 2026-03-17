@@ -192,6 +192,7 @@ def test_transform_applied_during_persist():
         model=Thing,
         op=alias,
         persist=True,
+        opview=ov,
         temp={"assembled_values": {"name": "abc"}},
     )
     to_stored._run(None, ctx)

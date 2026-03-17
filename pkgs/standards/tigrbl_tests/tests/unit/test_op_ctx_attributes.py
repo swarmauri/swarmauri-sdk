@@ -10,7 +10,7 @@ from tigrbl import build_schemas, build_hooks, build_handlers, build_rest
 def _build_all(model):
     canon = tuple(resolve(model))
     custom = mro_collect_decorated_ops(model)
-    specs = canon + custom
+    specs = canon + tuple(custom)
     build_schemas(model, specs)
     build_hooks(model, specs)
     build_handlers(model, custom)

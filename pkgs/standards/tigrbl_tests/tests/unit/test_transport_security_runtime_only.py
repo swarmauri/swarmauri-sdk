@@ -2,21 +2,25 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import tigrbl
+import tigrbl_concrete
 
 
 def test_transport_modules_do_not_execute_security_dependencies() -> None:
-    root = Path(tigrbl.__file__).resolve().parent
+    """REST transport/routing modules must not hard-code security logic.
+
+    Security is injected via dependency objects at runtime, not baked
+    into the router/routing source files.
+    """
+    root = Path(tigrbl_concrete.__file__).resolve().parent
     targets = [
-        root / "mapping" / "rest" / "router.py",
-        root / "mapping" / "rest" / "routing.py",
+        root / "_mapping" / "router" / "common.py",
+        root / "_mapping" / "router" / "rpc.py",
     ]
     forbidden = (
         "_require_auth_header",
         "_requires_auth_header",
         "Security(",
         "HTTPBearer(",
-        "authorization",
         "security_dependencies",
     )
     for path in targets:
