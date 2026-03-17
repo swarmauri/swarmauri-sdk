@@ -147,6 +147,42 @@ class Router(RouterBase):
             _resolver.register_router(self, _engine_ctx)
             _resolver.resolve_provider(router=self)
 
+    def _include_table_impl(
+        self,
+        table: type,
+        *,
+        app: Any | None = None,
+        prefix: str | None = None,
+        mount_router: bool = True,
+    ) -> tuple[type, Any]:
+        from tigrbl_concrete._mapping.router.include import include_table
+
+        return include_table(
+            self,
+            table,
+            app=app,
+            prefix=prefix,
+            mount_router=mount_router,
+        )
+
+    def _include_tables_impl(
+        self,
+        tables: tuple[type, ...] | list[type],
+        *,
+        app: Any | None = None,
+        base_prefix: str | None = None,
+        mount_router: bool = True,
+    ) -> dict[str, Any]:
+        from tigrbl_concrete._mapping.router.include import include_tables
+
+        return include_tables(
+            self,
+            tables,
+            app=app,
+            base_prefix=base_prefix,
+            mount_router=mount_router,
+        )
+
     def _normalize_prefix(self, prefix: str) -> str:
         return normalize_prefix(prefix)
 
