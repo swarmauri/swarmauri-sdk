@@ -64,11 +64,11 @@ def test_kernel_compiles_bootstrap_plan_with_required_anchors() -> None:
     # Contract: bootstrap includes ingress phases.
     assert ev.INGRESS_BEGIN in bootstrap
     assert ev.INGRESS_PARSE in bootstrap
-    assert ev.INGRESS_ROUTE in bootstrap
+    assert "INGRESS_DISPATCH" in bootstrap
 
     # Contract: required anchors appear in step labels.
     labels = []
-    for phase in ("INGRESS_BEGIN", "INGRESS_PARSE", "INGRESS_ROUTE"):
+    for phase in ("INGRESS_BEGIN", "INGRESS_PARSE", "INGRESS_DISPATCH"):
         for step in bootstrap.get(phase, ()) or ():
             lbl = getattr(step, "__tigrbl_label", None)
             if isinstance(lbl, str):
@@ -76,13 +76,11 @@ def test_kernel_compiles_bootstrap_plan_with_required_anchors() -> None:
 
     # Minimal anchor coverage.
     required = {
-        ev.INGRESS_CTX_INIT,
-        ev.INGRESS_RAW_FROM_SCOPE,
-        ev.ROUTE_PROTOCOL_DETECT,
-        ev.ROUTE_BINDING_MATCH,
-        ev.ROUTE_OP_RESOLVE,
-        ev.ROUTE_PLAN_SELECT,
-        ev.ROUTE_CTX_FINALIZE,
+        "ingress.ctx.init",
+        "ingress.transport.extract",
+        "dispatch.binding.match",
+        "dispatch.binding.parse",
+        "dispatch.op.resolve",
     }
 
     missing = [a for a in sorted(required) if not any(a in lab for lab in labels)]
