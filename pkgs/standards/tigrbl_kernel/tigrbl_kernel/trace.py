@@ -39,6 +39,9 @@ class _TraceState:
     ] = ()  # optional: the full ordered plan (for diagnostics)
 
 
+_INERT_TRACE_STATE = _TraceState(enabled=False, sampled=False)
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Public API
 # ──────────────────────────────────────────────────────────────────────────────
@@ -240,14 +243,11 @@ def _get_state(ctx: Any, *, create: bool = False) -> _TraceState:
     st = tmp.get("__trace__")
     if isinstance(st, _TraceState):
         return st
-    if create or st is None:
+    if create:
         st = _TraceState()
         tmp["__trace__"] = st
         return st
-    # If someone stuffed a dict there, replace with a fresh state.
-    st = _TraceState()
-    tmp["__trace__"] = st
-    return st
+    return _INERT_TRACE_STATE
 
 
 def _active(st: _TraceState) -> bool:
