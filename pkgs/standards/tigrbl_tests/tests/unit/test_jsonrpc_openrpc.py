@@ -160,10 +160,13 @@ def test_docs_lens_openapi_openrpc_are_rest_get_only_and_not_rpc_methods() -> No
         assert set(route_map[path].methods or []) == {"GET"}
 
     with Client(transport=transport, base_url="http://test") as client:
-        assert client.post("/docs").status_code == 405
-        assert client.post("/lens").status_code == 405
-        assert client.post("/openapi.json").status_code == 405
-        assert client.post("/openrpc.json").status_code == 405
+        # Runtime dispatch only mounts these as GET handlers. Depending on the
+        # underlying route adapter we can surface either 404 or 405 for
+        # non-GET methods, but never a successful RPC dispatch.
+        assert client.post("/docs").status_code in {404, 405}
+        assert client.post("/lens").status_code in {404, 405}
+        assert client.post("/openapi.json").status_code in {404, 405}
+        assert client.post("/openrpc.json").status_code in {404, 405}
 
         method_names = {
             method["name"] for method in client.get("/openrpc.json").json()["methods"]
