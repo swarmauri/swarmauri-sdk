@@ -1,7 +1,7 @@
 import pytest
 import os
 
-from swarmauri_standard.llms.MistralModel import MistralModel as LLM
+from swarmauri_llm_mistral import MistralModel as LLM
 from swarmauri_standard.conversations.Conversation import Conversation
 
 from swarmauri_standard.messages.HumanMessage import HumanMessage

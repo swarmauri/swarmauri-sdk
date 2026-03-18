@@ -508,6 +508,8 @@ swarmauri_llm_gemini = { workspace = true }
 swarmauri_llm_groq = { workspace = true }
 swarmauri_llm_hyperbolic = { workspace = true }
 swarmauri_llm_leptonai = { workspace = true }
+swarmauri_llm_llamacpp = { workspace = true }
+swarmauri_llm_mistral = { workspace = true }
 swarmauri_matrix_hamming74 = { workspace = true }
 swarmauri_measurement_mutualinformation = { workspace = true }
 swarmauri_measurement_tokencountestimator = { workspace = true }
