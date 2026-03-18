@@ -1,0 +1,24 @@
+{
+  "baseline_from_run": "targeted perf run before optimization",
+  "optimized_from_run": "targeted perf run after optimization",
+  "latest_suite_run": {
+    "tigrbl_ops_per_second": 16.188933557794904,
+    "fastapi_ops_per_second": 12.223333882830378
+  },
+  "baseline": {
+    "tigrbl_ops_per_second": 24.2332924562845,
+    "fastapi_ops_per_second": 28.502962956002712
+  },
+  "optimized": {
+    "tigrbl_ops_per_second": 24.78464775708308,
+    "fastapi_ops_per_second": 26.46090021480827
+  },
+  "delta_optimized_vs_baseline": {
+    "tigrbl_ops_per_second_abs": 0.5513553007985799,
+    "tigrbl_ops_per_second_pct": 2.2751976513021965,
+    "fastapi_ops_per_second_abs": -2.0420627411944423,
+    "fastapi_ops_per_second_pct": -7.164387591376298,
+    "tigrbl_vs_fastapi_ratio_baseline": 0.850202573454946,
+    "tigrbl_vs_fastapi_ratio_optimized": 0.936651722196998
+  }
+}
