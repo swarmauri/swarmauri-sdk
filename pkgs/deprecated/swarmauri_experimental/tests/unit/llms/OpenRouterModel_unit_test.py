@@ -68,7 +68,6 @@ def test_default_name(openrouter_model):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_no_system_context(openrouter_model, model_name):
-
     go_to_sleep()  # we sleep to prevent 429 errors
 
     model = openrouter_model
@@ -88,7 +87,6 @@ def test_no_system_context(openrouter_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_preamble_system_context(openrouter_model, model_name):
-
     go_to_sleep()  # we sleep to prevent 429 errors
 
     model = openrouter_model
@@ -117,7 +115,6 @@ def test_preamble_system_context(openrouter_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_stream(openrouter_model, model_name):
-
     go_to_sleep()
 
     model = openrouter_model
@@ -143,7 +140,6 @@ def test_stream(openrouter_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 async def test_apredict(openrouter_model, model_name):
-
     go_to_sleep()
 
     model = openrouter_model
@@ -164,7 +160,6 @@ async def test_apredict(openrouter_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 async def test_astream(openrouter_model, model_name):
-
     go_to_sleep()
 
     model = openrouter_model
@@ -189,7 +184,6 @@ async def test_astream(openrouter_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 def test_batch(openrouter_model, model_name):
-
     go_to_sleep()
 
     model = openrouter_model
@@ -212,7 +206,6 @@ def test_batch(openrouter_model, model_name):
 @pytest.mark.parametrize("model_name", get_allowed_models())
 @pytest.mark.unit
 async def test_abatch(openrouter_model, model_name):
-
     go_to_sleep()
 
     model = openrouter_model

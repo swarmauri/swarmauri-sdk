@@ -6,7 +6,7 @@ class ConsensusBuildingMessage(IMessage):
     def __init__(self, sender_id: str, content: str, message_type: str):
         self._sender_id = sender_id
         self._content = content
-        self._role = 'consensus_message'
+        self._role = "consensus_message"
         self._message_type = message_type
 
     @property
@@ -21,7 +21,7 @@ class ConsensusBuildingMessage(IMessage):
         return {
             "sender_id": self._sender_id,
             "content": self._content,
-            "message_type": self._message_type
+            "message_type": self._message_type,
         }
 
 
@@ -54,12 +54,16 @@ class ConsensusBuildingConversation(IConversation):
 
     def initiate_consensus(self, initiator_id: str, proposal=None):
         """Starts the conversation with an initial proposal, if any."""
-        initiate_message = ConsensusBuildingMessage(initiator_id, proposal, "InitiateConsensusMessage")
+        initiate_message = ConsensusBuildingMessage(
+            initiator_id, proposal, "InitiateConsensusMessage"
+        )
         self.add_message(initiate_message)
 
     def add_proposal(self, sender_id: str, proposal: str):
         """Adds a proposal to the conversation."""
-        proposal_message = ConsensusBuildingMessage(sender_id, proposal, "ProposalMessage")
+        proposal_message = ConsensusBuildingMessage(
+            sender_id, proposal, "ProposalMessage"
+        )
         self.add_message(proposal_message)
 
     def add_comment(self, sender_id: str, comment: str):
@@ -79,12 +83,17 @@ class ConsensusBuildingConversation(IConversation):
         Checks if there is a consensus on any proposal.
         A simple majority (>50% of the participants) is required for consensus.
         """
-        consensus_threshold = len(self.participants) / 2  # Define consensus as a simple majority
+        consensus_threshold = (
+            len(self.participants) / 2
+        )  # Define consensus as a simple majority
 
         for proposal, votes in self.proposal_votes.items():
             if votes > consensus_threshold:
                 # A consensus has been reached
-                return True, f"Consensus reached on proposal: {proposal} with {votes} votes."
+                return (
+                    True,
+                    f"Consensus reached on proposal: {proposal} with {votes} votes.",
+                )
 
         # If no consensus is reached
         return False, "No consensus reached."

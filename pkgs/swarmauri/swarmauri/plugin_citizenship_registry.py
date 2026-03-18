@@ -151,7 +151,7 @@ class PluginCitizenshipRegistry:
         ###
         # LLMS
         ##
-        "swarmauri.llms.AI21StudioModel": "swarmauri_standard.llms.AI21StudioModel",
+        "swarmauri.llms.AI21StudioModel": "swarmauri_llm_ai21.AI21StudioModel",
         "swarmauri.llms.AnthropicModel": "swarmauri_standard.llms.AnthropicModel",
         "swarmauri.llms.AnthropicToolModel": "swarmauri_standard.llms.AnthropicToolModel",
         "swarmauri.llms.CerebrasModel": "swarmauri_standard.llms.CerebrasModel",

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class IParser(ABC):
     """Abstract base class for all parsers."""
 
@@ -87,6 +88,7 @@ class IParser(ABC):
     def search(self, ast_tree, condition):
         """Searches the AST based on a condition."""
         pass
+
 
 # Example: Attempting to instantiate IParser will raise an error since it's abstract
 try:

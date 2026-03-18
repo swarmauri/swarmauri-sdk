@@ -10,7 +10,8 @@ from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 
-@ComponentBase.register_type(LLMBase, 'TogetherModel')
+
+@ComponentBase.register_type(LLMBase, "TogetherModel")
 class TogetherModel(LLMBase):
     """
     A class for interacting with Together.xyz's model API for text generation.
@@ -60,12 +61,8 @@ class TogetherModel(LLMBase):
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
         }
-        self._client = httpx.Client(
-            headers=headers, timeout=30
-        )
-        self._async_client = httpx.AsyncClient(
-            headers=headers, timeout=30
-        )
+        self._client = httpx.Client(headers=headers, timeout=30)
+        self._async_client = httpx.AsyncClient(headers=headers, timeout=30)
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]
@@ -79,7 +76,7 @@ class TogetherModel(LLMBase):
         Returns:
             List[Dict[str, str]]: Formatted message list.
         """
-        # The structure typically follows the OpenAI Chat format: 
+        # The structure typically follows the OpenAI Chat format:
         # each item => { "role": "user"/"assistant"/"system", "content": "..."}
         # If your internal messages differ, adjust accordingly.
         message_properties = ["content", "role", "name"]
@@ -107,7 +104,7 @@ class TogetherModel(LLMBase):
             formatted_messages (List[Dict[str, str]]): Formatted messages for the conversation.
             temperature (float): Sampling temperature for the response.
             max_tokens (int): Maximum number of tokens to generate.
-            enable_json (bool): Whether to request a JSON-like response. 
+            enable_json (bool): Whether to request a JSON-like response.
                                (Not specifically used in Together, but you could adjust the prompt accordingly.)
             stop (List[str], optional): Stop sequences.
             stream (bool): Whether to stream the response.
@@ -131,7 +128,7 @@ class TogetherModel(LLMBase):
             "stream": stream,
         }
 
-        # If you want a JSON-specific format in the response, 
+        # If you want a JSON-specific format in the response,
         # you might handle that at the prompt-level or with system instructions.
 
         return payload
@@ -230,7 +227,12 @@ class TogetherModel(LLMBase):
         """
         formatted_messages = self._format_messages(conversation.history)
         payload = self._create_request_payload(
-            formatted_messages, temperature, max_tokens, enable_json=False, stop=stop, stream=True
+            formatted_messages,
+            temperature,
+            max_tokens,
+            enable_json=False,
+            stop=stop,
+            stream=True,
         )
 
         with self._client.stream("POST", self._BASE_URL, json=payload) as response:
@@ -280,10 +282,17 @@ class TogetherModel(LLMBase):
         """
         formatted_messages = self._format_messages(conversation.history)
         payload = self._create_request_payload(
-            formatted_messages, temperature, max_tokens, enable_json=False, stop=stop, stream=True
+            formatted_messages,
+            temperature,
+            max_tokens,
+            enable_json=False,
+            stop=stop,
+            stream=True,
         )
 
-        async with self._async_client.stream("POST", self._BASE_URL, json=payload) as response:
+        async with self._async_client.stream(
+            "POST", self._BASE_URL, json=payload
+        ) as response:
             response.raise_for_status()
             collected_content = []
 

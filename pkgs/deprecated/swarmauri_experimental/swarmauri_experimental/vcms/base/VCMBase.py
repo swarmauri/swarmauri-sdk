@@ -3,6 +3,7 @@ from pydantic import ConfigDict, Field
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.vcms.IPredictVision import IPredictVision
 
+
 class VCMBase(IPredictVision, ComponentBase):
     resource: Optional[str] = Field(default=ResourceTypes.VCM.value, frozen=True)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
