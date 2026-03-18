@@ -178,9 +178,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.OpenAIAudioTTS": "swarmauri_llm_openai.OpenAIAudioTTS",
         "swarmauri.llms.OpenAIModel": "swarmauri_llm_openai.OpenAIModel",
         "swarmauri.llms.OpenAIToolModel": "swarmauri_llm_openai.OpenAIToolModel",
-        "swarmauri.llms.PerplexityModel": "swarmauri_standard.llms.PerplexityModel",
-        "swarmauri.llms.PlayHTModel": "swarmauri_standard.llms.PlayHTModel",
-        "swarmauri.llms.WhisperLargeModel": "swarmauri_standard.llms.WhisperLargeModel",
+        "swarmauri.llms.PerplexityModel": "swarmauri_llm_perplexity.PerplexityModel",
+        "swarmauri.llms.PlayHTModel": "swarmauri_llm_playht.PlayHTModel",
+        "swarmauri.llms.WhisperLargeModel": "swarmauri_llm_whisper.WhisperLargeModel",
         ###
         # Tool LLMS
         ###

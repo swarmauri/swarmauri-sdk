@@ -1,7 +1,7 @@
 import logging
 import pytest
 import os
-from swarmauri_standard.llms.WhisperLargeModel import WhisperLargeModel as LLM
+from swarmauri_llm_whisper import WhisperLargeModel as LLM
 from pathlib import Path
 from dotenv import load_dotenv
 

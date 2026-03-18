@@ -2,7 +2,7 @@ import logging
 import pytest
 import os
 
-from swarmauri_standard.llms.PlayHTModel import PlayHTModel as LLM
+from swarmauri_llm_playht import PlayHTModel as LLM
 from dotenv import load_dotenv
 
 from pathlib import Path
