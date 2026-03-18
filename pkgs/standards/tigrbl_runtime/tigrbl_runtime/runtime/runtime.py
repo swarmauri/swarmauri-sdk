@@ -4,7 +4,11 @@ from typing import Any
 
 from tigrbl_kernel import Kernel, _default_kernel
 
-from tigrbl_runtime.executors import ExecutorBase, PackedPlanExecutor
+from tigrbl_runtime.executors import (
+    ExecutorBase,
+    NumbaPackedPlanExecutor,
+    PackedPlanExecutor,
+)
 from .base import RuntimeBase
 
 
@@ -15,11 +19,12 @@ class Runtime(RuntimeBase):
         self,
         kernel: Kernel | None = None,
         *,
-        default_executor: str = "packed",
+        default_executor: str = "numba_packed",
     ) -> None:
         super().__init__(kernel=kernel or _default_kernel)
         self.default_executor = default_executor
         self.register_executor(PackedPlanExecutor())
+        self.register_executor(NumbaPackedPlanExecutor())
 
     def register_executor(self, executor: ExecutorBase) -> None:
         executor.attach_runtime(self)
