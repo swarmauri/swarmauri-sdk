@@ -152,8 +152,8 @@ class PluginCitizenshipRegistry:
         # LLMS
         ##
         "swarmauri.llms.AI21StudioModel": "swarmauri_llm_ai21.AI21StudioModel",
-        "swarmauri.llms.AnthropicModel": "swarmauri_standard.llms.AnthropicModel",
-        "swarmauri.llms.AnthropicToolModel": "swarmauri_standard.llms.AnthropicToolModel",
+        "swarmauri.llms.AnthropicModel": "swarmauri_llm_anthropic.AnthropicModel",
+        "swarmauri.llms.AnthropicToolModel": "swarmauri_llm_anthropic.AnthropicToolModel",
         "swarmauri.llms.CerebrasModel": "swarmauri_standard.llms.CerebrasModel",
         "swarmauri.llms.CohereModel": "swarmauri_standard.llms.CohereModel",
         "swarmauri.llms.CohereToolModel": "swarmauri_standard.llms.CohereToolModel",
@@ -183,7 +183,7 @@ class PluginCitizenshipRegistry:
         # Tool LLMS
         ###
         "swarmauri.tool_llms.OpenAIToolModel": "swarmauri_standard.tool_llms.OpenAIToolModel",
-        "swarmauri.tool_llms.AnthropicToolModel": "swarmauri_standard.tool_llms.AnthropicToolModel",
+        "swarmauri.tool_llms.AnthropicToolModel": "swarmauri_llm_anthropic.AnthropicToolModel",
         "swarmauri.tool_llms.CohereToolModel": "swarmauri_standard.tool_llms.CohereToolModel",
         "swarmauri.tool_llms.GeminiToolModel": "swarmauri_standard.tool_llms.GeminiToolModel",
         "swarmauri.tool_llms.GroqToolModel": "swarmauri_standard.tool_llms.GroqToolModel",
