@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from tigrbl_kernel import _default_kernel
+
 from ._table_registry import TableRegistry
 from tigrbl_base._base import AppBase
 from tigrbl_concrete.ddl import initialize as _ddl_initialize
@@ -142,8 +144,9 @@ class App(AppBase):
             _resolver.resolve_provider()
 
         self.runtime = Runtime(
-            default_executor=getattr(self, "DEFAULT_EXECUTOR", "packed")
+            default_executor=getattr(self, "DEFAULT_EXECUTOR", "numba_packed")
         )
+        self._compiled_plan: tuple[Any, Any | None] | None = None
 
     @property
     def router(self) -> "App":
@@ -166,7 +169,7 @@ class App(AppBase):
             )
 
     async def invoke(self, env: GwRawEnvelope) -> None:
-        plan, packed_plan = self.runtime.compile(self)
+        plan, packed_plan = self._get_compiled_plan()
         ctx: dict[str, Any] = {
             "app": self,
             "router": self,
@@ -183,6 +186,24 @@ class App(AppBase):
             plan=plan,
             packed_plan=packed_plan,
         )
+
+    def _invalidate_runtime_plan(self) -> None:
+        self._compiled_plan = None
+        try:
+            _default_kernel.invalidate_kernelz_payload(self)
+        except Exception:
+            pass
+
+    def _get_compiled_plan(self) -> tuple[Any, Any | None]:
+        compiled = self._compiled_plan
+        if compiled is not None:
+            return compiled
+        compiled = self.runtime.compile(self)
+        self._compiled_plan = compiled
+        return compiled
+
+    def warm_runtime(self) -> None:
+        self._compiled_plan = self.runtime.compile(self)
 
     async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
         path = scope.get("path")
@@ -204,6 +225,52 @@ class App(AppBase):
     def include_router(self, router: Any, *, prefix: str | None = None) -> Any:
         routed = getattr(router, "router", router)
         _include_router_impl(self, routed, prefix=prefix or "")
+        self._invalidate_runtime_plan()
         return router
+
+    def add_route(
+        self,
+        path: str,
+        endpoint: Any,
+        *,
+        methods: list[str] | tuple[str, ...],
+        **kwargs: Any,
+    ) -> None:
+        super().add_route(path, endpoint, methods=methods, **kwargs)
+        self._invalidate_runtime_plan()
+
+    def include_table(
+        self,
+        table: type,
+        *,
+        app: Any | None = None,
+        prefix: str | None = None,
+        mount_router: bool = True,
+    ) -> tuple[type, Any]:
+        result = super().include_table(
+            table,
+            app=app,
+            prefix=prefix,
+            mount_router=mount_router,
+        )
+        self._invalidate_runtime_plan()
+        return result
+
+    def include_tables(
+        self,
+        tables: tuple[type, ...] | list[type],
+        *,
+        app: Any | None = None,
+        base_prefix: str | None = None,
+        mount_router: bool = True,
+    ) -> dict[str, Any]:
+        result = super().include_tables(
+            tables,
+            app=app,
+            base_prefix=base_prefix,
+            mount_router=mount_router,
+        )
+        self._invalidate_runtime_plan()
+        return result
 
     initialize = _ddl_initialize

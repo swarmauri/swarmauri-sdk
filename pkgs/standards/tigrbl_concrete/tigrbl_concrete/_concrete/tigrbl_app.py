@@ -152,6 +152,8 @@ class TigrblApp(_App):
         engine: EngineCfg | None = None,
         routers: Sequence[Any] | None = None,
         mount_system: bool | None = None,
+        auto_mount_system: bool | None = None,
+        auto_mount_docs: bool | None = None,
         profile: str | None = None,
         jsonrpc_prefix: str | None = None,
         system_prefix: str | None = None,
@@ -208,7 +210,12 @@ class TigrblApp(_App):
         )
         if mount_system is None:
             mount_system = str(profile or "").lower() != "minimal"
-        self.mount_system = bool(mount_system)
+        if auto_mount_system is None:
+            auto_mount_system = bool(mount_system)
+        if auto_mount_docs is None:
+            auto_mount_docs = bool(mount_system)
+        self.mount_system = bool(auto_mount_system)
+        self.auto_mount_docs = bool(auto_mount_docs)
 
         # public containers (mirrors used by bindings.router)
         self.schemas = SimpleNamespace()
@@ -232,12 +239,13 @@ class TigrblApp(_App):
 
         # Router-level hooks map (merged into each table at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
-        if self.mount_system:
+        if self.auto_mount_docs:
             self.mount_openapi(path="/openapi.json")
             _mount_swagger(self, path="/docs")
-            self.attach_diagnostics(prefix=self.system_prefix)
             self.mount_openrpc(path="/openrpc.json")
             self.mount_lens(path="/lens", spec_path="/openrpc.json")
+        if self.mount_system:
+            self.attach_diagnostics(prefix=self.system_prefix)
         if routers:
             initial_routers.extend(list(routers))
         if initial_routers:
@@ -412,6 +420,7 @@ class TigrblApp(_App):
                 self.include_router(router, prefix=mount_prefix)
         self._sync_default_router_namespaces()
         self._auto_mount_jsonrpc_if_bound()
+        self._invalidate_runtime_plan()
         return result
 
     def include_tables(
@@ -445,6 +454,7 @@ class TigrblApp(_App):
                 self.include_router(router, prefix=mount_prefix)
         self._sync_default_router_namespaces()
         self._auto_mount_jsonrpc_if_bound()
+        self._invalidate_runtime_plan()
         return result
 
     def _auto_mount_jsonrpc_if_bound(self) -> None:
@@ -682,17 +692,21 @@ class TigrblApp(_App):
             )
 
         if not mount_router:
+            self._invalidate_runtime_plan()
             return router
         super().include_router(router, prefix=prefix)
+        self._invalidate_runtime_plan()
         return router
 
     def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
         """Register a route directly on this app instance."""
         _add_route_impl(self, path, endpoint, **kwargs)
+        self._invalidate_runtime_plan()
 
     def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
         """Register a route directly on this app instance."""
         _add_route_impl(self, path, endpoint, **kwargs)
+        self._invalidate_runtime_plan()
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""
@@ -778,9 +792,20 @@ class TigrblApp(_App):
             loop = asyncio.get_running_loop()
         except RuntimeError:
             asyncio.run(_inner())
+            self.warm_runtime()
             return None
 
-        return loop.create_task(_inner())
+        task = loop.create_task(_inner())
+
+        def _warm_after_init(done_task: asyncio.Task[Any]) -> None:
+            if done_task.cancelled():
+                return
+            if done_task.exception() is not None:
+                return
+            self.warm_runtime()
+
+        task.add_done_callback(_warm_after_init)
+        return task
 
     async def rpc_call(
         self,
@@ -822,7 +847,9 @@ class TigrblApp(_App):
         name: str = "__openapi__",
     ) -> Any:
         """Mount an OpenAPI JSON endpoint onto this instance."""
-        return _mount_openapi(self, path=path, name=name)
+        mounted = _mount_openapi(self, path=path, name=name)
+        self._invalidate_runtime_plan()
+        return mounted
 
     def mount_openrpc(
         self,
@@ -832,7 +859,9 @@ class TigrblApp(_App):
         tags: list[str] | None = None,
     ) -> Any:
         """Mount an OpenRPC JSON endpoint onto this instance."""
-        return _mount_openrpc(self, path=path, name=name, tags=tags)
+        mounted = _mount_openrpc(self, path=path, name=name, tags=tags)
+        self._invalidate_runtime_plan()
+        return mounted
 
     def openrpc(self) -> Dict[str, Any]:
         """Build and return the OpenRPC document for this app."""
@@ -850,7 +879,9 @@ class TigrblApp(_App):
         spec_path: str | None = None,
     ) -> Any:
         """Mount a tigrbl-lens HTML endpoint onto this instance."""
-        return _mount_lens(self, path=path, name=name, spec_path=spec_path)
+        mounted = _mount_lens(self, path=path, name=name, spec_path=spec_path)
+        self._invalidate_runtime_plan()
+        return mounted
 
     def attach_diagnostics(
         self, *, prefix: str | None = None, app: Any | None = None
@@ -876,6 +907,7 @@ class TigrblApp(_App):
                 invalidate(app)
         if app is None:
             self._base_routes = list(self._routes)
+        self._invalidate_runtime_plan()
         return router
 
     # ------------------------- registry passthroughs -------------------------

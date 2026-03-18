@@ -22,7 +22,11 @@ def _build_benchmark_item_model() -> type[TableBase]:
 
 def create_tigrbl_app(db_path: Path) -> TigrblApp:
     """Build a Tigrbl app with a single create command endpoint."""
-    app = TigrblApp(engine=sqlitef(str(db_path), async_=False))
+    app = TigrblApp(
+        engine=sqlitef(str(db_path), async_=False),
+        auto_mount_docs=False,
+        auto_mount_system=False,
+    )
     app.include_table(_build_benchmark_item_model())
     app.attach_diagnostics(prefix="", app=app)
     return app
@@ -32,6 +36,9 @@ async def initialize_tigrbl_app(app: TigrblApp) -> None:
     init_result = app.initialize()
     if inspect.isawaitable(init_result):
         await init_result
+    warm_runtime = getattr(app, "warm_runtime", None)
+    if callable(warm_runtime):
+        warm_runtime()
 
 
 def fetch_tigrbl_names(db_path: Path) -> list[str]:
