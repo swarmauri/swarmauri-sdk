@@ -81,6 +81,8 @@ class PackedPlanExecutor(ExecutorBase):
         for i in range(seg_offset, seg_offset + seg_length):
             seg_id = packed.op_to_segment_ids[i]
             phase = str(packed.segment_phases[seg_id])
+            if phase.startswith("ON_"):
+                continue
             by_phase.setdefault(phase, []).append(seg_id)
 
         for phase in self._PHASE_EXECUTION_ORDER:
@@ -314,8 +316,6 @@ class PackedPlanExecutor(ExecutorBase):
         self,
         packed: PackedKernel,
         program_id: int,
-        ordered_segments: tuple[int, ...],
-        remaining_segments: tuple[int, ...],
     ) -> Mapping[str, tuple[int, ...]]:
         cache_key = (id(packed), program_id)
         cached = self._program_error_segments_cache.get(cache_key)
@@ -323,14 +323,20 @@ class PackedPlanExecutor(ExecutorBase):
             return cached[1]
 
         grouped: dict[str, list[int]] = {}
-        for seg_id in (*ordered_segments, *remaining_segments):
+        seg_offset = packed.op_segment_offsets[program_id]
+        seg_length = packed.op_segment_lengths[program_id]
+        for i in range(seg_offset, seg_offset + seg_length):
+            seg_id = packed.op_to_segment_ids[i]
             phase_name = str(packed.segment_phases[seg_id])
             if phase_name.startswith("ON_"):
                 grouped.setdefault(phase_name, []).append(seg_id)
 
+        ordered_segments, remaining_segments = self._resolve_segments_for_program(
+            packed, program_id
+        )
         frozen = {phase: tuple(seg_ids) for phase, seg_ids in grouped.items()}
         self._program_error_segments_cache[cache_key] = (
-            ordered_segments,
+            (*ordered_segments, *remaining_segments),
             frozen,
         )
         return frozen
@@ -418,8 +424,6 @@ class PackedPlanExecutor(ExecutorBase):
             error_phase_segments = self._resolve_error_segments(
                 packed,
                 program_id,
-                ordered_segments,
-                remaining,
             )
 
             try:

@@ -22,6 +22,7 @@ dependencies = [
     "tigrbl-kernel",
     "tigrbl-concrete",
     "tigrbl-atoms",
+    "numba>=0.61.2",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
