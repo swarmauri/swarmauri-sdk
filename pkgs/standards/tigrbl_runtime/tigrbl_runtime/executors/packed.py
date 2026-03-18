@@ -437,27 +437,8 @@ class PackedPlanExecutor(ExecutorBase):
         all_segment_ids = (*ordered, *remaining)
 
         async def _runner(ctx: _Ctx) -> None:
-            temp = getattr(ctx, "temp", None)
-            skip_dispatch = bool(
-                isinstance(temp, dict) and temp.get("_tigrbl_hot_exact_route")
-            )
-            fast_direct_create = bool(
-                isinstance(temp, dict) and temp.get("_tigrbl_hot_direct_create")
-            )
             for seg_id in all_segment_ids:
                 phase_name = phase_names[seg_id]
-                if skip_dispatch and phase_name in {
-                    "INGRESS_BEGIN",
-                    "INGRESS_DISPATCH",
-                }:
-                    continue
-                if fast_direct_create and phase_name in {
-                    "POST_COMMIT",
-                    "EGRESS_SHAPE",
-                    "EGRESS_FINALIZE",
-                    "POST_RESPONSE",
-                }:
-                    continue
                 ctx.phase = phase_name
                 await runners[seg_id](ctx)
 
@@ -493,13 +474,15 @@ class PackedPlanExecutor(ExecutorBase):
         phase_names = packed.segment_phases
         all_segment_ids = (*ordered, *remaining)
 
-        skip_phases = set()
+        skip_phases: frozenset[str]
+        phases: list[str] = []
         if skip_dispatch:
-            skip_phases.update({"INGRESS_BEGIN", "INGRESS_DISPATCH"})
+            phases.extend(("INGRESS_BEGIN", "INGRESS_DISPATCH"))
         if fast_direct_create:
-            skip_phases.update(
+            phases.extend(
                 {"POST_COMMIT", "EGRESS_SHAPE", "EGRESS_FINALIZE", "POST_RESPONSE"}
             )
+        skip_phases = frozenset(phases)
 
         async def _runner(ctx: _Ctx) -> None:
             for seg_id in all_segment_ids:
