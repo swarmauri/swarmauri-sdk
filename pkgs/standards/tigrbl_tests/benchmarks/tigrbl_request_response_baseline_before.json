@@ -1,0 +1,8 @@
+{
+  "candidate": {
+    "ops": 250,
+    "warmup_ops": 30,
+    "total_execution_time_seconds": 1.3487259830000085,
+    "ops_per_second": 185.36011254407518
+  }
+}

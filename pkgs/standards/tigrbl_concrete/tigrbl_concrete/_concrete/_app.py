@@ -204,6 +204,9 @@ class App(AppBase):
     def include_router(self, router: Any, *, prefix: str | None = None) -> Any:
         routed = getattr(router, "router", router)
         _include_router_impl(self, routed, prefix=prefix or "")
+        bump = getattr(self, "_bump_runtime_plan_revision", None)
+        if callable(bump):
+            bump()
         return router
 
     initialize = _ddl_initialize

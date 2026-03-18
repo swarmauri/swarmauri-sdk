@@ -196,6 +196,13 @@ class Router(RouterBase):
     def router(self) -> "Router":
         return self
 
+    def _bump_runtime_plan_revision(self) -> None:
+        current = getattr(self, "_runtime_plan_revision", 0)
+        try:
+            self._runtime_plan_revision = int(current) + 1
+        except Exception:
+            self._runtime_plan_revision = 1
+
     def add_route(
         self,
         path: str,
@@ -205,6 +212,7 @@ class Router(RouterBase):
         **kwargs: Any,
     ) -> None:
         _add_route_impl(self, path, endpoint, methods=methods, **kwargs)
+        self._bump_runtime_plan_revision()
 
     def _merge_tags(self, tags: list[str] | None) -> list[str] | None:
         return merge_tags(self.tags, tags)
@@ -212,6 +220,7 @@ class Router(RouterBase):
     def include_router(self, router: Any, *, prefix: str | None = None) -> Any:
         routed = getattr(router, "router", router)
         _include_router_impl(self, routed, prefix=prefix or "")
+        self._bump_runtime_plan_revision()
         return router
 
     def route(
