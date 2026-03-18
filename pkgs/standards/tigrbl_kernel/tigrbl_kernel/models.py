@@ -92,11 +92,17 @@ class PackedSegment:
 
 @dataclass(frozen=True, slots=True)
 class HotOpPlan:
+    program_id: int = -1
+    model: type | None = None
+    alias: str = ""
+    target: str = ""
     opview: OpView | None = None
     ordered_segment_ids: tuple[int, ...] = ()
     remaining_segment_ids: tuple[int, ...] = ()
     error_segment_ids: Mapping[str, tuple[int, ...]] = field(default_factory=dict)
     fusible_sync_segment_ids: tuple[int, ...] = ()
+    nonfusible_segment_ids: tuple[int, ...] = ()
+    db_acquire_hint: str = "resolver"
 
 
 @dataclass(frozen=True, slots=True)

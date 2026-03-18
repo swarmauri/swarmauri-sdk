@@ -307,6 +307,7 @@ def _pack_kernel_plan(
 
     hot_op_plans: list[HotOpPlan] = []
     for program_id, _meta in enumerate(plan.opmeta):
+        meta = plan.opmeta[program_id]
         seg_offset = op_segment_offsets[program_id]
         seg_length = op_segment_lengths[program_id]
         by_phase: dict[str, list[int]] = {}
@@ -315,6 +316,7 @@ def _pack_kernel_plan(
         seen_segment_ids: set[int] = set()
         error_segment_ids: dict[str, list[int]] = {}
         fusible_sync_segment_ids: list[int] = []
+        nonfusible_segment_ids: list[int] = []
 
         for idx in range(seg_offset, seg_offset + seg_length):
             seg_id = op_to_segment_ids[idx]
@@ -344,9 +346,15 @@ def _pack_kernel_plan(
         for seg_id in (*ordered_segments, *remaining_segments):
             if segment_executor_kinds[seg_id] == LOWER_KIND_SYNC_EXTRACTABLE:
                 fusible_sync_segment_ids.append(seg_id)
+                continue
+            nonfusible_segment_ids.append(seg_id)
 
         hot_op_plans.append(
             HotOpPlan(
+                program_id=program_id,
+                model=getattr(meta, "model", None),
+                alias=str(getattr(meta, "alias", "") or ""),
+                target=str(getattr(meta, "target", "") or ""),
                 opview=opviews[program_id] if program_id < len(opviews) else None,
                 ordered_segment_ids=tuple(ordered_segments),
                 remaining_segment_ids=tuple(remaining_segments),
@@ -355,6 +363,14 @@ def _pack_kernel_plan(
                     for phase, seg_ids in error_segment_ids.items()
                 },
                 fusible_sync_segment_ids=tuple(fusible_sync_segment_ids),
+                nonfusible_segment_ids=tuple(nonfusible_segment_ids),
+                db_acquire_hint=(
+                    "model_get_db"
+                    if callable(
+                        getattr(getattr(meta, "model", None), "__tigrbl_get_db__", None)
+                    )
+                    else "resolver"
+                ),
             )
         )
 
