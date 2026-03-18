@@ -47,6 +47,7 @@ class PackedPlanExecutor(ExecutorBase):
             tuple[int, int], tuple[tuple[int, ...], Mapping[str, tuple[int, ...]]]
         ] = {}
         self._program_runner_cache: dict[tuple[int, int], Any] = {}
+        self._program_runner_mode_cache: dict[tuple[int, int, int], Any] = {}
         self._db_acquire_cache: dict[tuple[int, int], Any] = {}
         self._model_row_serializer_cache: dict[type[Any], tuple[str, ...]] = {}
 
@@ -360,27 +361,37 @@ class PackedPlanExecutor(ExecutorBase):
         async_flags = tuple(getattr(packed, "step_async_flags", ()) or ())
         executor_kinds = tuple(getattr(packed, "segment_executor_kinds", ()) or ())
 
+        step_table = packed.step_table
+
         def _make_fused_sync_runner(step_ids: tuple[int, ...]):
+            steps = tuple(step_table[step_id] for step_id in step_ids)
+
             async def _runner(ctx: _Ctx) -> None:
-                for step_id in step_ids:
-                    packed.step_table[step_id](ctx)
+                for step in steps:
+                    step(ctx)
 
             return _runner
 
         def _make_async_direct_runner(step_ids: tuple[int, ...]):
+            steps = tuple(step_table[step_id] for step_id in step_ids)
+
             async def _runner(ctx: _Ctx) -> None:
-                for step_id in step_ids:
-                    await packed.step_table[step_id](ctx)
+                for step in steps:
+                    await step(ctx)
 
             return _runner
 
         def _make_mixed_runner(step_ids: tuple[int, ...]):
+            steps = tuple(
+                (
+                    step_table[step_id],
+                    async_flags[step_id] if step_id < len(async_flags) else False,
+                )
+                for step_id in step_ids
+            )
+
             async def _runner(ctx: _Ctx) -> None:
-                for step_id in step_ids:
-                    step = packed.step_table[step_id]
-                    is_async = (
-                        async_flags[step_id] if step_id < len(async_flags) else False
-                    )
+                for step, is_async in steps:
                     if is_async:
                         await step(ctx)
                         continue
@@ -451,6 +462,54 @@ class PackedPlanExecutor(ExecutorBase):
                 await runners[seg_id](ctx)
 
         self._program_runner_cache[cache_key] = _runner
+        return _runner
+
+    def _resolve_program_runner_for_mode(
+        self,
+        packed: PackedKernel,
+        program_id: int,
+        hot_op_plan: Any | None,
+        *,
+        skip_dispatch: bool = False,
+        fast_direct_create: bool = False,
+    ) -> Any:
+        mode = (1 if skip_dispatch else 0) | (2 if fast_direct_create else 0)
+        cache_key = (id(packed), program_id, mode)
+        cached = self._program_runner_mode_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        base_runner = self._resolve_program_runner(packed, program_id, hot_op_plan)
+        if not skip_dispatch and not fast_direct_create:
+            self._program_runner_mode_cache[cache_key] = base_runner
+            return base_runner
+
+        runners = self._resolve_segment_runners(packed)
+        if hot_op_plan is not None:
+            ordered = tuple(getattr(hot_op_plan, "ordered_segment_ids", ()) or ())
+            remaining = tuple(getattr(hot_op_plan, "remaining_segment_ids", ()) or ())
+        else:
+            ordered, remaining = self._resolve_segments_for_program(packed, program_id)
+        phase_names = packed.segment_phases
+        all_segment_ids = (*ordered, *remaining)
+
+        skip_phases = set()
+        if skip_dispatch:
+            skip_phases.update({"INGRESS_BEGIN", "INGRESS_DISPATCH"})
+        if fast_direct_create:
+            skip_phases.update(
+                {"POST_COMMIT", "EGRESS_SHAPE", "EGRESS_FINALIZE", "POST_RESPONSE"}
+            )
+
+        async def _runner(ctx: _Ctx) -> None:
+            for seg_id in all_segment_ids:
+                phase_name = phase_names[seg_id]
+                if phase_name in skip_phases:
+                    continue
+                ctx.phase = phase_name
+                await runners[seg_id](ctx)
+
+        self._program_runner_mode_cache[cache_key] = _runner
         return _runner
 
     def _resolve_db_acquire(
@@ -668,7 +727,16 @@ class PackedPlanExecutor(ExecutorBase):
                 )
 
             try:
-                await self._resolve_program_runner(packed, program_id, hot_op_plan)(ctx)
+                await self._resolve_program_runner_for_mode(
+                    packed,
+                    program_id,
+                    hot_op_plan,
+                    skip_dispatch=resolved_from_exact_route,
+                    fast_direct_create=bool(
+                        isinstance(temp, dict)
+                        and temp.get("_tigrbl_hot_direct_create") is True
+                    ),
+                )(ctx)
             except StatusDetailError as exc:
                 detail = (
                     exc.detail
