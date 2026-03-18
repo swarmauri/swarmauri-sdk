@@ -151,6 +151,8 @@ class TigrblApp(_App):
         *,
         engine: EngineCfg | None = None,
         routers: Sequence[Any] | None = None,
+        mount_system: bool | None = None,
+        profile: str | None = None,
         jsonrpc_prefix: str | None = None,
         system_prefix: str | None = None,
         favicon_path: str | Path = FAVICON_PATH,
@@ -204,6 +206,9 @@ class TigrblApp(_App):
                 getattr(self, "SYSTEM_PREFIX", "/system"),
             )
         )
+        if mount_system is None:
+            mount_system = str(profile or "").lower() != "minimal"
+        self.mount_system = bool(mount_system)
 
         # public containers (mirrors used by bindings.router)
         self.schemas = SimpleNamespace()
@@ -227,11 +232,12 @@ class TigrblApp(_App):
 
         # Router-level hooks map (merged into each table at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
-        self.mount_openapi(path="/openapi.json")
-        _mount_swagger(self, path="/docs")
-        self.attach_diagnostics(prefix=self.system_prefix)
-        self.mount_openrpc(path="/openrpc.json")
-        self.mount_lens(path="/lens", spec_path="/openrpc.json")
+        if self.mount_system:
+            self.mount_openapi(path="/openapi.json")
+            _mount_swagger(self, path="/docs")
+            self.attach_diagnostics(prefix=self.system_prefix)
+            self.mount_openrpc(path="/openrpc.json")
+            self.mount_lens(path="/lens", spec_path="/openrpc.json")
         if routers:
             initial_routers.extend(list(routers))
         if initial_routers:
