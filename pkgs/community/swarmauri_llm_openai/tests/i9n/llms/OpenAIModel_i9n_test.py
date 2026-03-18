@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri_standard.llms.OpenAIModel import OpenAIModel as LLM
+from swarmauri_llm_openai import OpenAIModel as LLM
 from swarmauri_standard.conversations.Conversation import Conversation
 
 from swarmauri_standard.messages.HumanMessage import HumanMessage

@@ -2,7 +2,7 @@ import logging
 import pytest
 import os
 
-from swarmauri_standard.llms.OpenAIAudioTTS import OpenAIAudioTTS as LLM
+from swarmauri_llm_openai import OpenAIAudioTTS as LLM
 from dotenv import load_dotenv
 
 from pathlib import Path

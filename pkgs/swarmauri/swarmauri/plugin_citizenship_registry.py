@@ -174,17 +174,17 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.LlamaCppModel": "swarmauri_llm_llamacpp.LlamaCppModel",
         "swarmauri.llms.MistralModel": "swarmauri_llm_mistral.MistralModel",
         "swarmauri.llms.MistralToolModel": "swarmauri_llm_mistral.MistralToolModel",
-        "swarmauri.llms.OpenAIAudio": "swarmauri_standard.llms.OpenAIAudio",
-        "swarmauri.llms.OpenAIAudioTTS": "swarmauri_standard.llms.OpenAIAudioTTS",
-        "swarmauri.llms.OpenAIModel": "swarmauri_standard.llms.OpenAIModel",
-        "swarmauri.llms.OpenAIToolModel": "swarmauri_standard.llms.OpenAIToolModel",
+        "swarmauri.llms.OpenAIAudio": "swarmauri_llm_openai.OpenAIAudio",
+        "swarmauri.llms.OpenAIAudioTTS": "swarmauri_llm_openai.OpenAIAudioTTS",
+        "swarmauri.llms.OpenAIModel": "swarmauri_llm_openai.OpenAIModel",
+        "swarmauri.llms.OpenAIToolModel": "swarmauri_llm_openai.OpenAIToolModel",
         "swarmauri.llms.PerplexityModel": "swarmauri_standard.llms.PerplexityModel",
         "swarmauri.llms.PlayHTModel": "swarmauri_standard.llms.PlayHTModel",
         "swarmauri.llms.WhisperLargeModel": "swarmauri_standard.llms.WhisperLargeModel",
         ###
         # Tool LLMS
         ###
-        "swarmauri.tool_llms.OpenAIToolModel": "swarmauri_standard.tool_llms.OpenAIToolModel",
+        "swarmauri.tool_llms.OpenAIToolModel": "swarmauri_llm_openai.OpenAIToolModel",
         "swarmauri.tool_llms.AnthropicToolModel": "swarmauri_llm_anthropic.AnthropicToolModel",
         "swarmauri.tool_llms.CohereToolModel": "swarmauri_llm_cohere.CohereToolModel",
         "swarmauri.tool_llms.GeminiToolModel": "swarmauri_llm_gemini.GeminiToolModel",
