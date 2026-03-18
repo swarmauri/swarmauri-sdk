@@ -16,7 +16,7 @@ from .atoms import (
     _is_persistent,
     _wrap_atom,
 )
-from .models import KernelPlan, OpKey, PackedKernel
+from .models import HotOpPlan, KernelPlan, OpKey, OpView, PackedKernel
 from .types import (
     EGRESS_PHASES,
     INGRESS_PHASES,
@@ -35,6 +35,22 @@ logger = logging.getLogger(__name__)
 
 
 _PHASE_DB_LABEL = "atom:sys:phase_db@SYS_PHASE_DB_BIND"
+_RUNTIME_EXECUTION_ORDER = (
+    "INGRESS_BEGIN",
+    "INGRESS_PARSE",
+    "INGRESS_DISPATCH",
+    "PRE_TX_BEGIN",
+    "START_TX",
+    "PRE_HANDLER",
+    "HANDLER",
+    "POST_HANDLER",
+    "PRE_COMMIT",
+    "END_TX",
+    "POST_COMMIT",
+    "POST_RESPONSE",
+    "EGRESS_SHAPE",
+    "EGRESS_FINALIZE",
+)
 
 
 def _phase_db_step() -> StepFn:
@@ -202,7 +218,13 @@ def _build_route_matrix(
     return tuple(tuple(row) for row in matrix)
 
 
-def _pack_kernel_plan(self, plan: KernelPlan) -> PackedKernel:
+def _pack_kernel_plan(
+    self,
+    plan: KernelPlan,
+    *,
+    opviews: tuple[OpView | None, ...] = (),
+    rest_exact_route_to_program: Mapping[tuple[str, str], int] | None = None,
+) -> PackedKernel:
     from .core import DEFAULT_PHASE_ORDER
 
     selector_names = tuple(sorted({key.selector for key in plan.opkey_to_meta.keys()}))
@@ -221,6 +243,7 @@ def _pack_kernel_plan(self, plan: KernelPlan) -> PackedKernel:
     step_labels: list[str] = []
     effect_ids: list[int] = []
     effect_payloads: list[tuple[int, ...]] = []
+    step_async_flags: list[bool] = []
 
     segment_offsets: list[int] = []
     segment_lengths: list[int] = []
@@ -265,6 +288,11 @@ def _pack_kernel_plan(self, plan: KernelPlan) -> PackedKernel:
                     effect_id, payload = _effect_descriptor_for_step(step)
                     effect_ids.append(effect_id)
                     effect_payloads.append(payload)
+                    is_async = bool(getattr(step, "_tigrbl_is_async", False))
+                    if not is_async:
+                        marker = getattr(step, "__code__", None)
+                        is_async = bool(getattr(marker, "co_flags", 0) & 0x80)
+                    step_async_flags.append(is_async)
                 segment_step_ids.append(step_id)
 
             op_to_segment_ids.append(seg_id)
@@ -276,6 +304,59 @@ def _pack_kernel_plan(self, plan: KernelPlan) -> PackedKernel:
         selector_names=selector_names,
         opkey_to_meta=plan.opkey_to_meta,
     )
+
+    hot_op_plans: list[HotOpPlan] = []
+    for program_id, _meta in enumerate(plan.opmeta):
+        seg_offset = op_segment_offsets[program_id]
+        seg_length = op_segment_lengths[program_id]
+        by_phase: dict[str, list[int]] = {}
+        ordered_segments: list[int] = []
+        remaining_segments: list[int] = []
+        seen_segment_ids: set[int] = set()
+        error_segment_ids: dict[str, list[int]] = {}
+        fusible_sync_segment_ids: list[int] = []
+
+        for idx in range(seg_offset, seg_offset + seg_length):
+            seg_id = op_to_segment_ids[idx]
+            phase = str(segment_phases[seg_id])
+            if phase.startswith("ON_"):
+                error_segment_ids.setdefault(phase, []).append(seg_id)
+                continue
+            by_phase.setdefault(phase, []).append(seg_id)
+
+        for phase in _RUNTIME_EXECUTION_ORDER:
+            for seg_id in by_phase.pop(phase, ()):
+                if seg_id in seen_segment_ids:
+                    continue
+                seen_segment_ids.add(seg_id)
+                ordered_segments.append(seg_id)
+
+        for idx in range(seg_offset, seg_offset + seg_length):
+            seg_id = op_to_segment_ids[idx]
+            if seg_id in seen_segment_ids:
+                continue
+            phase = str(segment_phases[seg_id])
+            if phase.startswith("ON_"):
+                continue
+            seen_segment_ids.add(seg_id)
+            remaining_segments.append(seg_id)
+
+        for seg_id in (*ordered_segments, *remaining_segments):
+            if segment_executor_kinds[seg_id] == LOWER_KIND_SYNC_EXTRACTABLE:
+                fusible_sync_segment_ids.append(seg_id)
+
+        hot_op_plans.append(
+            HotOpPlan(
+                opview=opviews[program_id] if program_id < len(opviews) else None,
+                ordered_segment_ids=tuple(ordered_segments),
+                remaining_segment_ids=tuple(remaining_segments),
+                error_segment_ids={
+                    phase: tuple(seg_ids)
+                    for phase, seg_ids in error_segment_ids.items()
+                },
+                fusible_sync_segment_ids=tuple(fusible_sync_segment_ids),
+            )
+        )
 
     packed = PackedKernel(
         proto_names=proto_names,
@@ -297,6 +378,9 @@ def _pack_kernel_plan(self, plan: KernelPlan) -> PackedKernel:
         step_labels=tuple(step_labels),
         numba_effect_ids=tuple(effect_ids),
         numba_effect_payloads=tuple(effect_payloads),
+        step_async_flags=tuple(step_async_flags),
+        rest_exact_route_to_program=dict(rest_exact_route_to_program or {}),
+        hot_op_plans=tuple(hot_op_plans),
         executor_kind="python",
     )
     build_python_executor = getattr(self, "_build_python_packed_executor", None)
