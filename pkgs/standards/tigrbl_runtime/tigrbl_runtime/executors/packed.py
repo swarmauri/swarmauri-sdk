@@ -31,6 +31,70 @@ class PackedPlanExecutor(ExecutorBase):
         "EGRESS_FINALIZE",
     )
 
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._program_segments_cache: dict[
+            tuple[int, int], tuple[tuple[int, ...], tuple[int, ...]]
+        ] = {}
+        self._request_program_cache: dict[tuple[int, str, str], int] = {}
+        self._templated_route_cache: dict[int, tuple[tuple[str, Any, int], ...]] = {}
+        self._opview_cache: dict[tuple[int, int], Any] = {}
+
+    @classmethod
+    def _resolve_transport_senders(cls):
+        from tigrbl_atoms.atoms.egress.asgi_send import (
+            _send_json,
+            _send_transport_response,
+        )
+
+        return _send_json, _send_transport_response
+
+    @classmethod
+    def _resolve_error_helpers(cls):
+        from tigrbl_runtime.runtime.status import (
+            StatusDetailError,
+            create_standardized_error,
+        )
+
+        return StatusDetailError, create_standardized_error
+
+    def _resolve_segments_for_program(
+        self, packed: PackedKernel, program_id: int
+    ) -> tuple[tuple[int, ...], tuple[int, ...]]:
+        cache_key = (id(packed), program_id)
+        cached = self._program_segments_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        seg_offset = packed.op_segment_offsets[program_id]
+        seg_length = packed.op_segment_lengths[program_id]
+        ordered_segments: list[int] = []
+        by_phase: dict[str, list[int]] = {}
+        remaining: list[int] = []
+        seen_segment_ids: set[int] = set()
+        for i in range(seg_offset, seg_offset + seg_length):
+            seg_id = packed.op_to_segment_ids[i]
+            phase = str(packed.segment_phases[seg_id])
+            by_phase.setdefault(phase, []).append(seg_id)
+
+        for phase in self._PHASE_EXECUTION_ORDER:
+            for seg_id in by_phase.pop(phase, ()):  # pragma: no branch
+                if seg_id in seen_segment_ids:
+                    continue
+                seen_segment_ids.add(seg_id)
+                ordered_segments.append(seg_id)
+
+        for i in range(seg_offset, seg_offset + seg_length):
+            seg_id = packed.op_to_segment_ids[i]
+            if seg_id in seen_segment_ids:
+                continue
+            seen_segment_ids.add(seg_id)
+            remaining.append(seg_id)
+
+        resolved = (tuple(ordered_segments), tuple(remaining))
+        self._program_segments_cache[cache_key] = resolved
+        return resolved
+
     @staticmethod
     def _coerce_int(value: Any) -> int | None:
         return value if isinstance(value, int) else None
@@ -101,8 +165,50 @@ class PackedPlanExecutor(ExecutorBase):
         temp["program_id"] = program_id
         return program_id
 
-    @staticmethod
-    def _resolve_program_id_from_request(ctx: _Ctx, plan: KernelPlan) -> int:
+    def _resolve_request_caches(
+        self, plan: KernelPlan
+    ) -> tuple[dict[tuple[int, str, str], int], tuple[tuple[str, Any, int], ...]]:
+        plan_id = id(plan)
+        templated = self._templated_route_cache.get(plan_id)
+        if templated is None:
+            exact: dict[tuple[int, str, str], int] = {}
+            templated_routes: list[tuple[str, Any, int]] = []
+            for proto in ("http.rest", "https.rest"):
+                bucket = plan.proto_indices.get(proto)
+                if not isinstance(bucket, Mapping):
+                    continue
+                exact_bucket = bucket.get("exact")
+                if isinstance(exact_bucket, Mapping):
+                    for selector, meta_index in exact_bucket.items():
+                        if not (
+                            isinstance(selector, str) and isinstance(meta_index, int)
+                        ):
+                            continue
+                        method, _, path = selector.partition(" ")
+                        if not path:
+                            continue
+                        exact[(plan_id, method.upper(), path)] = meta_index
+                templated_bucket = bucket.get("templated")
+                if isinstance(templated_bucket, list):
+                    for entry in templated_bucket:
+                        if not isinstance(entry, Mapping):
+                            continue
+                        meta_index = entry.get("meta_index")
+                        pattern = entry.get("pattern")
+                        if (
+                            not isinstance(meta_index, int)
+                            or pattern is None
+                            or not hasattr(pattern, "match")
+                        ):
+                            continue
+                        method = str(entry.get("method", "") or "").upper()
+                        templated_routes.append((method, pattern, meta_index))
+            self._request_program_cache.update(exact)
+            templated = tuple(templated_routes)
+            self._templated_route_cache[plan_id] = templated
+        return self._request_program_cache, templated
+
+    def _resolve_program_id_from_request(self, ctx: _Ctx, plan: KernelPlan) -> int:
         method = getattr(ctx, "method", None)
         path = getattr(ctx, "path", None)
 
@@ -117,31 +223,25 @@ class PackedPlanExecutor(ExecutorBase):
             return -1
 
         method = method.upper()
+        exact_cache, templated_routes = self._resolve_request_caches(plan)
+        maybe = exact_cache.get((id(plan), method, path))
+        if isinstance(maybe, int):
+            return maybe
+
         selector = f"{method} {path}"
         for proto in ("http.rest", "https.rest"):
             maybe = plan.opkey_to_meta.get(OpKey(proto=proto, selector=selector))
             if isinstance(maybe, int):
+                exact_cache[(id(plan), method, path)] = maybe
                 return maybe
 
-        for proto in ("http.rest", "https.rest"):
-            bucket = plan.proto_indices.get(proto)
-            templated = bucket.get("templated") if isinstance(bucket, Mapping) else None
-            if not isinstance(templated, list):
+        for entry_method, pattern, meta_index in templated_routes:
+            if entry_method and entry_method != method:
                 continue
-            for entry in templated:
-                if not isinstance(entry, Mapping):
-                    continue
-                entry_method = str(entry.get("method", "") or "").upper()
-                if entry_method and entry_method != method:
-                    continue
-                pattern = entry.get("pattern")
-                if pattern is None or not hasattr(pattern, "match"):
-                    continue
-                if pattern.match(path) is None:
-                    continue
-                meta_index = entry.get("meta_index")
-                if isinstance(meta_index, int):
-                    return meta_index
+            if pattern.match(path) is None:
+                continue
+            exact_cache[(id(plan), method, path)] = meta_index
+            return meta_index
 
         return -1
 
@@ -188,14 +288,8 @@ class PackedPlanExecutor(ExecutorBase):
     async def _execute_packed(
         self, env: Any, ctx: _Ctx, plan: KernelPlan, packed: PackedKernel
     ) -> None:
-        from tigrbl_atoms.atoms.egress.asgi_send import (
-            _send_json,
-            _send_transport_response,
-        )
-        from tigrbl_runtime.runtime.status import (
-            StatusDetailError,
-            create_standardized_error,
-        )
+        _send_json, _send_transport_response = self._resolve_transport_senders()
+        StatusDetailError, create_standardized_error = self._resolve_error_helpers()
 
         temp = getattr(ctx, "temp", None)
         if not isinstance(temp, dict):
@@ -260,33 +354,22 @@ class PackedPlanExecutor(ExecutorBase):
                 release_db = None
         app = getattr(ctx, "app", None)
         if app is not None and ctx.model is not None and isinstance(ctx.op, str):
-            ctx.opview = self.runtime.kernel.get_opview(app, ctx.model, ctx.op)
+            opview_key = (id(plan), program_id)
+            opview = self._opview_cache.get(opview_key)
+            if opview is None:
+                opview = self.runtime.kernel.get_opview(app, ctx.model, ctx.op)
+                self._opview_cache[opview_key] = opview
+            ctx.opview = opview
 
         try:
-            seg_offset = packed.op_segment_offsets[program_id]
-            seg_length = packed.op_segment_lengths[program_id]
-            ordered_segments: list[int] = []
-            by_phase: dict[str, list[int]] = {}
-            remaining: list[int] = []
-            seen_segment_ids: set[int] = set()
-            for i in range(seg_offset, seg_offset + seg_length):
-                seg_id = packed.op_to_segment_ids[i]
-                phase = str(packed.segment_phases[seg_id])
-                by_phase.setdefault(phase, []).append(seg_id)
-
-            for phase in self._PHASE_EXECUTION_ORDER:
-                for seg_id in by_phase.pop(phase, ()):  # pragma: no branch
-                    if seg_id in seen_segment_ids:
-                        continue
-                    seen_segment_ids.add(seg_id)
-                    ordered_segments.append(seg_id)
-
-            for i in range(seg_offset, seg_offset + seg_length):
-                seg_id = packed.op_to_segment_ids[i]
-                if seg_id in seen_segment_ids:
-                    continue
-                seen_segment_ids.add(seg_id)
-                remaining.append(seg_id)
+            ordered_segments, remaining = self._resolve_segments_for_program(
+                packed, program_id
+            )
+            error_phase_segments: dict[str, list[int]] = {}
+            for seg_id in (*ordered_segments, *remaining):
+                phase_name = str(packed.segment_phases[seg_id])
+                if phase_name.startswith("ON_"):
+                    error_phase_segments.setdefault(phase_name, []).append(seg_id)
 
             try:
                 for seg_id in (*ordered_segments, *remaining):
@@ -300,8 +383,8 @@ class PackedPlanExecutor(ExecutorBase):
                 error_phase = f"ON_{getattr(ctx, 'phase', '')}_ERROR"
                 fallback_phase = "ON_ERROR"
                 for seg_id in (
-                    *by_phase.get(error_phase, ()),
-                    *by_phase.get(fallback_phase, ()),
+                    *error_phase_segments.get(error_phase, ()),
+                    *error_phase_segments.get(fallback_phase, ()),
                 ):
                     try:
                         await self._run_segment_python(ctx, packed, seg_id)
@@ -323,8 +406,8 @@ class PackedPlanExecutor(ExecutorBase):
                 error_phase = f"ON_{getattr(ctx, 'phase', '')}_ERROR"
                 fallback_phase = "ON_ERROR"
                 for seg_id in (
-                    *by_phase.get(error_phase, ()),
-                    *by_phase.get(fallback_phase, ()),
+                    *error_phase_segments.get(error_phase, ()),
+                    *error_phase_segments.get(fallback_phase, ()),
                 ):
                     try:
                         await self._run_segment_python(ctx, packed, seg_id)
