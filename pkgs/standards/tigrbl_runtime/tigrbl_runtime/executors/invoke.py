@@ -16,6 +16,7 @@ from tigrbl_ops_oltp.crud.helpers.model import _coerce_pk_value, _single_pk_name
 logger = logging.getLogger(__name__)
 
 _OPVIEW_CACHE_ATTR = "__tigrbl_cached_opviews__"
+_OPSPEC_BY_ALIAS_CACHE_ATTR = "__tigrbl_cached_opspec_by_alias__"
 _LOG_NOISE_REDUCED = False
 _NOISY_TIGRBL_LOGGERS = (
     "tigrbl_ops_oltp.crud.helpers.model",
@@ -108,6 +109,18 @@ def _unwrap_ctx_result(value: Any) -> Any:
         return current
 
     return current
+
+
+def _resolve_op_spec(model: type, alias: str) -> Any:
+    cached_by_alias = getattr(model, _OPSPEC_BY_ALIAS_CACHE_ATTR, None)
+    if not isinstance(cached_by_alias, dict):
+        cached_by_alias = {
+            str(getattr(spec, "alias", "")): spec
+            for spec in (getattr(getattr(model, "ops", None), "all", ()) or ())
+            if getattr(spec, "alias", None)
+        }
+        setattr(model, _OPSPEC_BY_ALIAS_CACHE_ATTR, cached_by_alias)
+    return cached_by_alias.get(alias)
 
 
 async def _maybe_await(value: Any) -> Any:
@@ -234,16 +247,7 @@ async def _invoke(
                 else:
                     from tigrbl_kernel.opview_compiler import compile_opview_from_specs
 
-                    op_spec = next(
-                        (
-                            sp
-                            for sp in (
-                                getattr(getattr(model, "ops", None), "all", ()) or ()
-                            )
-                            if getattr(sp, "alias", None) == alias
-                        ),
-                        None,
-                    )
+                    op_spec = _resolve_op_spec(model, alias)
                     if op_spec is None:
                         op_spec = SimpleNamespace(alias=alias)
                     compiled_view = compile_opview_from_specs(specs, op_spec)
