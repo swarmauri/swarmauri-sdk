@@ -2,7 +2,7 @@ import logging
 
 import pytest
 import os
-from swarmauri_standard.tool_llms.CohereToolModel import CohereToolModel as LLM
+from swarmauri_llm_cohere import CohereToolModel as LLM
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.tools.AdditionTool import AdditionTool
@@ -58,7 +58,7 @@ def conversation():
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(cohere_tool_model):
-    assert cohere_tool_model.resource == "ToolLLM"
+    assert cohere_tool_model.resource == "LLM"
 
 
 @timeout(5)
