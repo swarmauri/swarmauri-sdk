@@ -46,6 +46,8 @@ class App(AppBase):
     RESPONSE = None
     JSONRPC_PREFIX = "/rpc"
     SYSTEM_PREFIX = "/system"
+    DEFAULT_EXECUTOR = "numba_packed"
+    TRACK_SEEN_PATHS = False
 
     def __init__(self, *, engine: EngineCfg | None = None, **asgi_kwargs: Any) -> None:
         collected_spec = self.__class__._collect_mro_spec()
@@ -166,7 +168,22 @@ class App(AppBase):
             )
 
     async def invoke(self, env: GwRawEnvelope) -> None:
-        plan, packed_plan = self.runtime.compile(self)
+        revision = getattr(self, "_runtime_plan_revision", 0)
+        kernel_id = id(getattr(self.runtime, "kernel", None))
+        cache = getattr(self, "_runtime_invoke_compile_cache", None)
+        if (
+            not isinstance(cache, tuple)
+            or len(cache) != 4
+            or cache[0] != revision
+            or cache[1] != kernel_id
+        ):
+            plan, packed_plan = self.runtime.compile(self)
+            cache = (revision, kernel_id, plan, packed_plan)
+            self._runtime_invoke_compile_cache = cache
+        else:
+            plan = cache[2]
+            packed_plan = cache[3]
+
         ctx: dict[str, Any] = {
             "app": self,
             "router": self,
@@ -185,13 +202,14 @@ class App(AppBase):
         )
 
     async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
-        path = scope.get("path")
-        if isinstance(path, str):
-            seen_paths = getattr(self, "_seen_paths", None)
-            if not isinstance(seen_paths, set):
-                seen_paths = set()
-                setattr(self, "_seen_paths", seen_paths)
-            seen_paths.add(path)
+        if getattr(self, "TRACK_SEEN_PATHS", False):
+            path = scope.get("path")
+            if isinstance(path, str):
+                seen_paths = getattr(self, "_seen_paths", None)
+                if not isinstance(seen_paths, set):
+                    seen_paths = set()
+                    setattr(self, "_seen_paths", seen_paths)
+                seen_paths.add(path)
         env = GwRawEnvelope(kind="asgi3", scope=scope, receive=receive, send=send)
         await self.invoke(env)
 
