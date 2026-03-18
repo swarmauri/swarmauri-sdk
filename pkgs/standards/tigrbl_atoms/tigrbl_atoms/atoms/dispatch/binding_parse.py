@@ -115,7 +115,9 @@ def _run(obj: object | None, ctx: Any) -> None:
             dispatch["parsed_payload"] = body
             if isinstance(route, dict):
                 route["payload"] = body
-                route["path_params"] = dict(path_params) if isinstance(path_params, Mapping) else {}
+                route["path_params"] = (
+                    dict(path_params) if isinstance(path_params, Mapping) else {}
+                )
         elif isinstance(body, Mapping):
             payload.update({str(k): v for k, v in body.items()})
             dispatch["parsed_payload"] = payload
