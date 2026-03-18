@@ -48,6 +48,7 @@ class PackedPlanExecutor(ExecutorBase):
         ] = {}
         self._program_runner_cache: dict[tuple[int, int], Any] = {}
         self._db_acquire_cache: dict[tuple[int, int], Any] = {}
+        self._model_row_serializer_cache: dict[type[Any], tuple[str, ...]] = {}
 
     @classmethod
     def _resolve_transport_senders(cls):
@@ -114,19 +115,31 @@ class PackedPlanExecutor(ExecutorBase):
         return value if isinstance(value, int) else None
 
     @staticmethod
-    def _serialize_model_row(obj: Any) -> Any:
-        if obj is None or isinstance(obj, Mapping):
-            return obj
+    def _coerce_model_column_keys(obj: Any) -> tuple[str, ...] | None:
         table = getattr(obj, "__table__", None)
         columns = getattr(table, "columns", None)
         if columns is None:
-            return obj
-        out: dict[str, Any] = {}
+            return None
+        out: list[str] = []
         for col in columns:
             key = getattr(col, "key", None)
             if isinstance(key, str) and key:
-                out[key] = getattr(obj, key, None)
-        return out if out else obj
+                out.append(key)
+        return tuple(out)
+
+    def _serialize_model_row(self, obj: Any) -> Any:
+        if obj is None or isinstance(obj, Mapping):
+            return obj
+        model_type = type(obj)
+        keys = self._model_row_serializer_cache.get(model_type)
+        if keys is None:
+            keys = self._coerce_model_column_keys(obj)
+            if keys is None:
+                return obj
+            self._model_row_serializer_cache[model_type] = keys
+        if not keys:
+            return obj
+        return {key: getattr(obj, key, None) for key in keys}
 
     def _require_program_id_from_ctx(self, ctx: _Ctx) -> int:
         temp = getattr(ctx, "temp", None)
