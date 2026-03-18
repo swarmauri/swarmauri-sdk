@@ -1,7 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar, Mapping
+import asyncio
+import inspect
+from dataclasses import dataclass
 from types import SimpleNamespace
+from typing import Any, ClassVar, Mapping
 
 from tigrbl_concrete._concrete import engine_resolver as _resolver
 from tigrbl_kernel.models import KernelPlan, OpKey, PackedKernel
@@ -30,6 +33,25 @@ class PackedPlanExecutor(ExecutorBase):
         "EGRESS_SHAPE",
         "EGRESS_FINALIZE",
     )
+
+    @dataclass(frozen=True, slots=True)
+    class _ProgramSegments:
+        ordered: tuple[int, ...]
+        error_handlers: Mapping[str, tuple[int, ...]]
+
+    @dataclass(frozen=True, slots=True)
+    class _DbStrategy:
+        provider: Any | None
+        get_db: Any | None
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._segment_cache: dict[
+            tuple[int, int], PackedPlanExecutor._ProgramSegments
+        ] = {}
+        self._db_strategy_cache: dict[
+            tuple[int, Any, str | None], PackedPlanExecutor._DbStrategy
+        ] = {}
 
     @staticmethod
     def _coerce_int(value: Any) -> int | None:
@@ -185,6 +207,130 @@ class PackedPlanExecutor(ExecutorBase):
             if hasattr(rv, "__await__"):
                 await rv
 
+    def _program_segments(
+        self, packed: PackedKernel, program_id: int
+    ) -> _ProgramSegments:
+        key = (id(packed), int(program_id))
+        cached = self._segment_cache.get(key)
+        if cached is not None:
+            return cached
+
+        seg_offset = packed.op_segment_offsets[program_id]
+        seg_length = packed.op_segment_lengths[program_id]
+        by_phase: dict[str, list[int]] = {}
+        seen_segment_ids: set[int] = set()
+        ordered: list[int] = []
+        remaining: list[int] = []
+        for i in range(seg_offset, seg_offset + seg_length):
+            seg_id = packed.op_to_segment_ids[i]
+            phase = str(packed.segment_phases[seg_id])
+            by_phase.setdefault(phase, []).append(seg_id)
+
+        for phase in self._PHASE_EXECUTION_ORDER:
+            for seg_id in by_phase.get(phase, ()):  # pragma: no branch
+                if seg_id in seen_segment_ids:
+                    continue
+                seen_segment_ids.add(seg_id)
+                ordered.append(seg_id)
+
+        for i in range(seg_offset, seg_offset + seg_length):
+            seg_id = packed.op_to_segment_ids[i]
+            if seg_id in seen_segment_ids:
+                continue
+            seen_segment_ids.add(seg_id)
+            remaining.append(seg_id)
+
+        error_handlers = {
+            phase: tuple(seg_ids)
+            for phase, seg_ids in by_phase.items()
+            if phase.startswith("ON_") or phase == "ON_ERROR"
+        }
+        compiled = self._ProgramSegments(
+            ordered=(*ordered, *remaining),
+            error_handlers=error_handlers,
+        )
+        self._segment_cache[key] = compiled
+        return compiled
+
+    def _db_strategy(
+        self, router: Any, model: Any, op_alias: str | None
+    ) -> _DbStrategy:
+        key = (id(router), model, op_alias)
+        cached = self._db_strategy_cache.get(key)
+        if cached is not None:
+            return cached
+
+        provider = _resolver.resolve_provider(
+            router=router,
+            model=model,
+            op_alias=op_alias,
+        )
+        get_db = None
+        if provider is None and model is not None:
+            maybe_get_db = getattr(model, "__tigrbl_get_db__", None)
+            if callable(maybe_get_db):
+                get_db = maybe_get_db
+
+        strategy = self._DbStrategy(provider=provider, get_db=get_db)
+        self._db_strategy_cache[key] = strategy
+        return strategy
+
+    @staticmethod
+    def _acquire_db(strategy: _DbStrategy) -> tuple[Any | None, Any | None]:
+        if strategy.provider is not None:
+            db = strategy.provider.session()
+
+            def _release() -> None:
+                close = getattr(db, "close", None)
+                if not callable(close):
+                    return
+                try:
+                    rv = close()
+                    if inspect.isawaitable(rv):
+                        try:
+                            loop = asyncio.get_running_loop()
+                        except RuntimeError:
+                            asyncio.run(rv)
+                        else:
+                            loop.create_task(rv)
+                except Exception:
+                    pass
+
+            return db, _release
+
+        if callable(strategy.get_db):
+            db_or_gen = strategy.get_db()
+            gen = db_or_gen if inspect.isgenerator(db_or_gen) else None
+            db = next(gen) if gen is not None else db_or_gen
+
+            def _release() -> None:
+                if gen is not None:
+                    try:
+                        next(gen)
+                    except StopIteration:
+                        pass
+                    except Exception:
+                        pass
+
+                close = getattr(db, "close", None)
+                if not callable(close):
+                    return
+                try:
+                    rv = close()
+                    if inspect.isawaitable(rv):
+                        try:
+                            loop = asyncio.get_running_loop()
+                        except RuntimeError:
+                            asyncio.run(rv)
+                        else:
+                            loop.create_task(rv)
+                except Exception:
+                    pass
+
+            return db, _release
+
+        return None, None
+
     async def _execute_packed(
         self, env: Any, ctx: _Ctx, plan: KernelPlan, packed: PackedKernel
     ) -> None:
@@ -249,13 +395,16 @@ class PackedPlanExecutor(ExecutorBase):
         release_db = None
         if getattr(ctx, "_raw_db", None) is None:
             try:
-                db, release_db = _resolver.acquire(
-                    router=getattr(ctx, "router", None) or getattr(ctx, "app", None),
-                    model=ctx.model,
-                    op_alias=ctx.op if isinstance(ctx.op, str) else None,
+                router = getattr(ctx, "router", None) or getattr(ctx, "app", None)
+                strategy = self._db_strategy(
+                    router,
+                    ctx.model,
+                    ctx.op if isinstance(ctx.op, str) else None,
                 )
-                ctx._raw_db = db
-                ctx.owns_tx = True
+                db, release_db = self._acquire_db(strategy)
+                if db is not None:
+                    ctx._raw_db = db
+                    ctx.owns_tx = True
             except Exception:
                 release_db = None
         app = getattr(ctx, "app", None)
@@ -263,33 +412,10 @@ class PackedPlanExecutor(ExecutorBase):
             ctx.opview = self.runtime.kernel.get_opview(app, ctx.model, ctx.op)
 
         try:
-            seg_offset = packed.op_segment_offsets[program_id]
-            seg_length = packed.op_segment_lengths[program_id]
-            ordered_segments: list[int] = []
-            by_phase: dict[str, list[int]] = {}
-            remaining: list[int] = []
-            seen_segment_ids: set[int] = set()
-            for i in range(seg_offset, seg_offset + seg_length):
-                seg_id = packed.op_to_segment_ids[i]
-                phase = str(packed.segment_phases[seg_id])
-                by_phase.setdefault(phase, []).append(seg_id)
-
-            for phase in self._PHASE_EXECUTION_ORDER:
-                for seg_id in by_phase.pop(phase, ()):  # pragma: no branch
-                    if seg_id in seen_segment_ids:
-                        continue
-                    seen_segment_ids.add(seg_id)
-                    ordered_segments.append(seg_id)
-
-            for i in range(seg_offset, seg_offset + seg_length):
-                seg_id = packed.op_to_segment_ids[i]
-                if seg_id in seen_segment_ids:
-                    continue
-                seen_segment_ids.add(seg_id)
-                remaining.append(seg_id)
+            segments = self._program_segments(packed, program_id)
 
             try:
-                for seg_id in (*ordered_segments, *remaining):
+                for seg_id in segments.ordered:
                     await self._run_segment_python(ctx, packed, seg_id)
             except StatusDetailError as exc:
                 detail = (
@@ -300,8 +426,8 @@ class PackedPlanExecutor(ExecutorBase):
                 error_phase = f"ON_{getattr(ctx, 'phase', '')}_ERROR"
                 fallback_phase = "ON_ERROR"
                 for seg_id in (
-                    *by_phase.get(error_phase, ()),
-                    *by_phase.get(fallback_phase, ()),
+                    *segments.error_handlers.get(error_phase, ()),
+                    *segments.error_handlers.get(fallback_phase, ()),
                 ):
                     try:
                         await self._run_segment_python(ctx, packed, seg_id)
@@ -323,8 +449,8 @@ class PackedPlanExecutor(ExecutorBase):
                 error_phase = f"ON_{getattr(ctx, 'phase', '')}_ERROR"
                 fallback_phase = "ON_ERROR"
                 for seg_id in (
-                    *by_phase.get(error_phase, ()),
-                    *by_phase.get(fallback_phase, ()),
+                    *segments.error_handlers.get(error_phase, ()),
+                    *segments.error_handlers.get(fallback_phase, ()),
                 ):
                     try:
                         await self._run_segment_python(ctx, packed, seg_id)
