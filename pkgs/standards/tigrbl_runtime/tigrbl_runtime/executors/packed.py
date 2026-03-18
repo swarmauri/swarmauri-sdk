@@ -39,6 +39,12 @@ class PackedPlanExecutor(ExecutorBase):
         self._request_program_cache: dict[tuple[int, str, str], int] = {}
         self._templated_route_cache: dict[int, tuple[tuple[str, Any, int], ...]] = {}
         self._opview_cache: dict[tuple[int, int], Any] = {}
+        self._segment_steps_cache: dict[
+            int, tuple[tuple[tuple[Any, bool], ...], ...]
+        ] = {}
+        self._program_error_segments_cache: dict[
+            tuple[int, int], tuple[tuple[int, ...], Mapping[str, tuple[int, ...]]]
+        ] = {}
 
     @classmethod
     def _resolve_transport_senders(cls):
@@ -276,14 +282,58 @@ class PackedPlanExecutor(ExecutorBase):
         self, ctx: _Ctx, packed: PackedKernel, seg_id: int
     ) -> None:
         ctx.phase = packed.segment_phases[seg_id]
-        start = packed.segment_offsets[seg_id]
-        end = start + packed.segment_lengths[seg_id]
-        for idx in range(start, end):
-            step_id = packed.segment_step_ids[idx]
-            step = packed.step_table[step_id]
+        packed_id = id(packed)
+        cached_segments = self._segment_steps_cache.get(packed_id)
+        if cached_segments is None:
+            compiled: list[tuple[tuple[Any, bool], ...]] = []
+            for segment_index in range(len(packed.segment_offsets)):
+                start = packed.segment_offsets[segment_index]
+                end = start + packed.segment_lengths[segment_index]
+                segment_steps: list[tuple[Any, bool]] = []
+                for idx in range(start, end):
+                    step_id = packed.segment_step_ids[idx]
+                    step = packed.step_table[step_id]
+                    is_async = bool(getattr(step, "_tigrbl_is_async", False))
+                    if not is_async:
+                        marker = getattr(step, "__code__", None)
+                        is_async = bool(getattr(marker, "co_flags", 0) & 0x80)
+                    segment_steps.append((step, is_async))
+                compiled.append(tuple(segment_steps))
+            cached_segments = tuple(compiled)
+            self._segment_steps_cache[packed_id] = cached_segments
+
+        for step, is_async in cached_segments[seg_id]:
+            if is_async:
+                await step(ctx)
+                continue
             rv = step(ctx)
             if hasattr(rv, "__await__"):
                 await rv
+
+    def _resolve_error_segments(
+        self,
+        packed: PackedKernel,
+        program_id: int,
+        ordered_segments: tuple[int, ...],
+        remaining_segments: tuple[int, ...],
+    ) -> Mapping[str, tuple[int, ...]]:
+        cache_key = (id(packed), program_id)
+        cached = self._program_error_segments_cache.get(cache_key)
+        if cached is not None:
+            return cached[1]
+
+        grouped: dict[str, list[int]] = {}
+        for seg_id in (*ordered_segments, *remaining_segments):
+            phase_name = str(packed.segment_phases[seg_id])
+            if phase_name.startswith("ON_"):
+                grouped.setdefault(phase_name, []).append(seg_id)
+
+        frozen = {phase: tuple(seg_ids) for phase, seg_ids in grouped.items()}
+        self._program_error_segments_cache[cache_key] = (
+            ordered_segments,
+            frozen,
+        )
+        return frozen
 
     async def _execute_packed(
         self, env: Any, ctx: _Ctx, plan: KernelPlan, packed: PackedKernel
@@ -365,11 +415,12 @@ class PackedPlanExecutor(ExecutorBase):
             ordered_segments, remaining = self._resolve_segments_for_program(
                 packed, program_id
             )
-            error_phase_segments: dict[str, list[int]] = {}
-            for seg_id in (*ordered_segments, *remaining):
-                phase_name = str(packed.segment_phases[seg_id])
-                if phase_name.startswith("ON_"):
-                    error_phase_segments.setdefault(phase_name, []).append(seg_id)
+            error_phase_segments = self._resolve_error_segments(
+                packed,
+                program_id,
+                ordered_segments,
+                remaining,
+            )
 
             try:
                 for seg_id in (*ordered_segments, *remaining):
