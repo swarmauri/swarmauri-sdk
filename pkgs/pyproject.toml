@@ -503,6 +503,7 @@ swarmauri_llm_cerebras = { workspace = true }
 swarmauri_llm_cohere = { workspace = true }
 swarmauri_llm_deepinfra = { workspace = true }
 swarmauri_llm_deepseek = { workspace = true }
+swarmauri_llm_falai = { workspace = true }
 swarmauri_llm_leptonai = { workspace = true }
 swarmauri_matrix_hamming74 = { workspace = true }
 swarmauri_measurement_mutualinformation = { workspace = true }

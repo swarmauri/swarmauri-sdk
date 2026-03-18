@@ -159,7 +159,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.CohereToolModel": "swarmauri_llm_cohere.CohereToolModel",
         "swarmauri.llms.DeepInfraModel": "swarmauri_llm_deepinfra.DeepInfraModel",
         "swarmauri.llms.DeepSeekModel": "swarmauri_llm_deepseek.DeepSeekModel",
-        "swarmauri.llms.FalAIVisionModel": "swarmauri_standard.llms.FalAIVisionModel",
+        "swarmauri.llms.FalAIVisionModel": "swarmauri_llm_falai.FalAIVisionModel",
         "swarmauri.llms.GeminiProModel": "swarmauri_standard.llms.GeminiProModel",
         "swarmauri.llms.GeminiToolModel": "swarmauri_standard.llms.GeminiToolModel",
         "swarmauri.llms.GroqAIAudio": "swarmauri_standard.llms.GroqAIAudio",
