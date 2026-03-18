@@ -377,6 +377,7 @@ class PackedPlanExecutor(ExecutorBase):
         if cached is not None:
             return cached
         runners = self._resolve_segment_runners(packed)
+        step_ids_by_segment = self._resolve_segment_step_ids(packed)
         if hot_op_plan is not None:
             ordered = tuple(getattr(hot_op_plan, "ordered_segment_ids", ()) or ())
             remaining = tuple(getattr(hot_op_plan, "remaining_segment_ids", ()) or ())
@@ -384,10 +385,49 @@ class PackedPlanExecutor(ExecutorBase):
             ordered, remaining = self._resolve_segments_for_program(packed, program_id)
         phase_names = packed.segment_phases
         all_segment_ids = (*ordered, *remaining)
+        fusible_segments = frozenset(
+            tuple(getattr(hot_op_plan, "fusible_sync_segment_ids", ()) or ())
+        )
+        nonfusible_segments = tuple(
+            getattr(hot_op_plan, "nonfusible_segment_ids", ()) or ()
+        )
+
+        if hot_op_plan is not None and not nonfusible_segments:
+            seg_plan = tuple(
+                (
+                    phase_names[seg_id],
+                    step_ids_by_segment[seg_id]
+                    if seg_id < len(step_ids_by_segment)
+                    else (),
+                )
+                for seg_id in all_segment_ids
+            )
+            step_table = packed.step_table
+
+            async def _runner(ctx: _Ctx) -> None:
+                for phase_name, step_ids in seg_plan:
+                    ctx.phase = phase_name
+                    for step_id in step_ids:
+                        step_table[step_id](ctx)
+
+            self._program_runner_cache[cache_key] = _runner
+            return _runner
 
         async def _runner(ctx: _Ctx) -> None:
+            temp = getattr(ctx, "temp", None)
+            skip_dispatch = (
+                isinstance(temp, dict)
+                and temp.get("program_id_source") == "exact_route"
+            )
             for seg_id in all_segment_ids:
-                ctx.phase = phase_names[seg_id]
+                phase_name = phase_names[seg_id]
+                if skip_dispatch and phase_name == "INGRESS_DISPATCH":
+                    continue
+                ctx.phase = phase_name
+                if seg_id in fusible_segments and seg_id < len(step_ids_by_segment):
+                    for step_id in step_ids_by_segment[seg_id]:
+                        packed.step_table[step_id](ctx)
+                    continue
                 await runners[seg_id](ctx)
 
         self._program_runner_cache[cache_key] = _runner
@@ -505,6 +545,8 @@ class PackedPlanExecutor(ExecutorBase):
             temp = ctx.temp
 
         program_id = self._require_program_id_from_ctx(ctx)
+        if program_id >= 0:
+            temp["program_id_source"] = "ctx"
         if (
             program_id < 0
             and isinstance(getattr(ctx, "method", None), str)
@@ -513,12 +555,20 @@ class PackedPlanExecutor(ExecutorBase):
             program_id = self._resolve_program_id_from_exact_route(
                 packed, str(ctx.method), str(ctx.path)
             )
+            if program_id >= 0:
+                temp["program_id_source"] = "exact_route"
         if program_id < 0:
             program_id = self._resolve_program_id_from_dispatch(ctx, packed)
+            if program_id >= 0:
+                temp["program_id_source"] = "dispatch"
         if program_id < 0:
             program_id = self._resolve_program_id_from_request(ctx, plan)
+            if program_id >= 0:
+                temp["program_id_source"] = "request"
         if program_id < 0:
             program_id = await self._probe_ingress_for_program(ctx, plan, packed)
+            if program_id >= 0:
+                temp["program_id_source"] = "ingress_probe"
         if program_id < 0:
             egress = temp.get("egress") if isinstance(temp, dict) else None
             transport = (

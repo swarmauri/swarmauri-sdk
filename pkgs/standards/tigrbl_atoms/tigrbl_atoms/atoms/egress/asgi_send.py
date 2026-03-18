@@ -126,8 +126,31 @@ async def _send_transport_response(env: Any, ctx: Any) -> None:
             "body": getattr(ctx, "result", None),
         }
 
+    # Common REST JSON hot path:
+    # - simple dict payload
+    # - default/no headers
+    # - no special normalization required
+    body_obj = transport.get("body", None)
+    if body_obj is None:
+        body_obj = getattr(ctx, "result", None)
     status = int(transport.get("status_code", getattr(ctx, "status_code", 200) or 200))
     headers_obj = transport.get("headers", {})
+    if isinstance(body_obj, Mapping) and (not headers_obj):
+        body = json.dumps(
+            body_obj,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            default=_json_default,
+        ).encode("utf-8")
+        headers = [(b"content-type", b"application/json; charset=utf-8")]
+        headers, body = finalize_transport_response(env.scope, status, headers, body)
+        await env.send(
+            {"type": "http.response.start", "status": status, "headers": headers}
+        )
+        await env.send({"type": "http.response.body", "body": body, "more_body": False})
+        egress["response_sent"] = True
+        return
+
     headers: list[tuple[bytes, bytes]] = []
     if isinstance(headers_obj, dict):
         headers = [
