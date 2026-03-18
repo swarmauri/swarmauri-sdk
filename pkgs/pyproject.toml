@@ -499,6 +499,7 @@ swarmauri_keyprovider_vaulttransit = { workspace = true }
 swarmauri_keyproviders_mirrored = { workspace = true }
 swarmauri_llm_ai21 = { workspace = true }
 swarmauri_llm_anthropic = { workspace = true }
+swarmauri_llm_cerebras = { workspace = true }
 swarmauri_llm_leptonai = { workspace = true }
 swarmauri_matrix_hamming74 = { workspace = true }
 swarmauri_measurement_mutualinformation = { workspace = true }
