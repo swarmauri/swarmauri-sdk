@@ -113,6 +113,21 @@ class PackedPlanExecutor(ExecutorBase):
     def _coerce_int(value: Any) -> int | None:
         return value if isinstance(value, int) else None
 
+    @staticmethod
+    def _serialize_model_row(obj: Any) -> Any:
+        if obj is None or isinstance(obj, Mapping):
+            return obj
+        table = getattr(obj, "__table__", None)
+        columns = getattr(table, "columns", None)
+        if columns is None:
+            return obj
+        out: dict[str, Any] = {}
+        for col in columns:
+            key = getattr(col, "key", None)
+            if isinstance(key, str) and key:
+                out[key] = getattr(obj, key, None)
+        return out if out else obj
+
     def _require_program_id_from_ctx(self, ctx: _Ctx) -> int:
         temp = getattr(ctx, "temp", None)
         if not isinstance(temp, dict):
@@ -339,6 +354,13 @@ class PackedPlanExecutor(ExecutorBase):
 
             return _runner
 
+        def _make_async_direct_runner(step_ids: tuple[int, ...]):
+            async def _runner(ctx: _Ctx) -> None:
+                for step_id in step_ids:
+                    await packed.step_table[step_id](ctx)
+
+            return _runner
+
         def _make_mixed_runner(step_ids: tuple[int, ...]):
             async def _runner(ctx: _Ctx) -> None:
                 for step_id in step_ids:
@@ -362,6 +384,11 @@ class PackedPlanExecutor(ExecutorBase):
                 and executor_kinds[seg_id] == "sync.extractable"
             ):
                 runners.append(_make_fused_sync_runner(step_ids))
+            elif (
+                seg_id < len(executor_kinds)
+                and executor_kinds[seg_id] == "async.direct"
+            ):
+                runners.append(_make_async_direct_runner(step_ids))
             else:
                 runners.append(_make_mixed_runner(step_ids))
 
@@ -386,8 +413,28 @@ class PackedPlanExecutor(ExecutorBase):
         all_segment_ids = (*ordered, *remaining)
 
         async def _runner(ctx: _Ctx) -> None:
+            temp = getattr(ctx, "temp", None)
+            skip_dispatch = bool(
+                isinstance(temp, dict) and temp.get("_tigrbl_hot_exact_route")
+            )
+            fast_direct_create = bool(
+                isinstance(temp, dict) and temp.get("_tigrbl_hot_direct_create")
+            )
             for seg_id in all_segment_ids:
-                ctx.phase = phase_names[seg_id]
+                phase_name = phase_names[seg_id]
+                if skip_dispatch and phase_name in {
+                    "INGRESS_BEGIN",
+                    "INGRESS_DISPATCH",
+                }:
+                    continue
+                if fast_direct_create and phase_name in {
+                    "POST_COMMIT",
+                    "EGRESS_SHAPE",
+                    "EGRESS_FINALIZE",
+                    "POST_RESPONSE",
+                }:
+                    continue
+                ctx.phase = phase_name
                 await runners[seg_id](ctx)
 
         self._program_runner_cache[cache_key] = _runner
@@ -505,6 +552,7 @@ class PackedPlanExecutor(ExecutorBase):
             temp = ctx.temp
 
         program_id = self._require_program_id_from_ctx(ctx)
+        resolved_from_exact_route = False
         if (
             program_id < 0
             and isinstance(getattr(ctx, "method", None), str)
@@ -513,6 +561,7 @@ class PackedPlanExecutor(ExecutorBase):
             program_id = self._resolve_program_id_from_exact_route(
                 packed, str(ctx.method), str(ctx.path)
             )
+            resolved_from_exact_route = program_id >= 0
         if program_id < 0:
             program_id = self._resolve_program_id_from_dispatch(ctx, packed)
         if program_id < 0:
@@ -538,17 +587,26 @@ class PackedPlanExecutor(ExecutorBase):
             return
 
         temp["program_id"] = program_id
-        if program_id >= len(plan.opmeta):
-            await _send_json(
-                env, 404, {"detail": "No runtime operation matched request."}
-            )
-            return
+        if resolved_from_exact_route:
+            temp["_tigrbl_hot_exact_route"] = True
 
         hot_op_plan = (
             packed.hot_op_plans[program_id]
             if program_id < len(getattr(packed, "hot_op_plans", ()))
             else None
         )
+        if (
+            resolved_from_exact_route
+            and hot_op_plan is not None
+            and str(getattr(hot_op_plan, "target", "")).lower() == "create"
+        ):
+            temp["_tigrbl_hot_direct_create"] = True
+
+        if program_id >= len(plan.opmeta):
+            await _send_json(
+                env, 404, {"detail": "No runtime operation matched request."}
+            )
+            return
         if hot_op_plan is not None:
             ctx.model = hot_op_plan.model
             ctx.op = hot_op_plan.alias
@@ -646,6 +704,11 @@ class PackedPlanExecutor(ExecutorBase):
 
             route = temp.get("route", {}) if isinstance(temp, dict) else {}
             egress = temp.get("egress", {}) if isinstance(temp, dict) else {}
+            if isinstance(temp, dict) and temp.get("_tigrbl_hot_direct_create") is True:
+                status = int(getattr(ctx, "status_code", 201) or 201)
+                payload = self._serialize_model_row(getattr(ctx, "result", None))
+                await _send_json(env, status, payload)
+                return
             if (
                 isinstance(route, dict)
                 and route.get("short_circuit") is True

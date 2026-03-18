@@ -53,6 +53,33 @@ _RUNTIME_EXECUTION_ORDER = (
 )
 
 
+def _dedupe_consecutive_steps(steps: list[StepFn]) -> list[StepFn]:
+    """Remove adjacent duplicate callables introduced by chain composition."""
+    if len(steps) < 2:
+        return steps
+    deduped: list[StepFn] = [steps[0]]
+    last_id = id(steps[0])
+    for step in steps[1:]:
+        step_id = id(step)
+        if step_id == last_id:
+            continue
+        deduped.append(step)
+        last_id = step_id
+    if len(deduped) % 2 == 0:
+        half = len(deduped) // 2
+        lhs = tuple(
+            getattr(step, "__tigrbl_label", None) or _label_step(step, "")
+            for step in deduped[:half]
+        )
+        rhs = tuple(
+            getattr(step, "__tigrbl_label", None) or _label_step(step, "")
+            for step in deduped[half:]
+        )
+        if lhs == rhs:
+            return deduped[:half]
+    return deduped
+
+
 def _phase_db_step() -> StepFn:
     step = _wrap_atom(_bind_phase_db, anchor="SYS_PHASE_DB_BIND")
     setattr(step, "__tigrbl_label", _PHASE_DB_LABEL)
@@ -260,7 +287,7 @@ def _pack_kernel_plan(
         op_segment_offsets.append(len(op_to_segment_ids))
         seg_count = 0
         for phase in DEFAULT_PHASE_ORDER:
-            steps = list(chains.get(phase, ()) or ())
+            steps = _dedupe_consecutive_steps(list(chains.get(phase, ()) or ()))
             if not steps:
                 continue
 
