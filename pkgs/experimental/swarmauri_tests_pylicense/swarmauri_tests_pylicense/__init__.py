@@ -60,8 +60,8 @@ STANDARD_LICENSES = {
 # Dependencies with valid open-source licenses whose metadata omits
 # machine-readable license fields (no License header, no classifiers).
 _KNOWN_SAFE_UNKNOWN_DEPS = {
-    "markupsafe",   # BSD-3-Clause (bundled LICENSE.txt)
-    "click",        # BSD-3-Clause (bundled LICENSE.txt)
+    "markupsafe",  # BSD-3-Clause (bundled LICENSE.txt)
+    "click",  # BSD-3-Clause (bundled LICENSE.txt)
 }
 
 LICENSE_PATTERNS = [

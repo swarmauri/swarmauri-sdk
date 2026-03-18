@@ -22,8 +22,8 @@ _MAX_SCALAR_LEN = 256
 
 @dataclass
 class _TraceState:
-    enabled: bool = True
-    sampled: bool = True
+    enabled: bool = False
+    sampled: bool = False
     started_at: _dt.datetime = field(
         default_factory=lambda: _dt.datetime.now(_dt.timezone.utc)
     )
@@ -37,6 +37,9 @@ class _TraceState:
     plan_labels: Tuple[
         str, ...
     ] = ()  # optional: the full ordered plan (for diagnostics)
+
+
+_INERT_TRACE_STATE = _TraceState(enabled=False, sampled=False)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -53,8 +56,8 @@ def init(ctx: Any, *, plan_labels: Optional[Sequence[str]] = None) -> None:
 
     # Read config (tolerant to missing cfg/attrs)
     cfg = getattr(ctx, "cfg", None)
-    enabled = True
-    sample_rate = 1.0
+    enabled = False
+    sample_rate = 0.0
     tr = getattr(cfg, "trace", None)
     if tr is not None:
         en = getattr(tr, "enabled", None)
@@ -240,14 +243,11 @@ def _get_state(ctx: Any, *, create: bool = False) -> _TraceState:
     st = tmp.get("__trace__")
     if isinstance(st, _TraceState):
         return st
-    if create or st is None:
+    if create:
         st = _TraceState()
         tmp["__trace__"] = st
         return st
-    # If someone stuffed a dict there, replace with a fresh state.
-    st = _TraceState()
-    tmp["__trace__"] = st
-    return st
+    return _INERT_TRACE_STATE
 
 
 def _active(st: _TraceState) -> bool:

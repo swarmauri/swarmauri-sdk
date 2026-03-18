@@ -197,6 +197,12 @@ def _safe_str(v: Any) -> Optional[str]:
     return v if isinstance(v, str) and v else None
 
 
+def _reject_unknown(ctx: Any) -> bool:
+    cfg = getattr(ctx, "cfg", None)
+    val = getattr(cfg, "reject_unknown_fields", None)
+    return bool(val) if isinstance(val, bool) else False
+
+
 def _headers_lower_map(ctx: Any) -> dict[str, str]:
     headers = getattr(ctx, "headers", None)
     if isinstance(headers, Mapping):
