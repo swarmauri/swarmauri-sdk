@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Mapping, Optional, Union
 import inspect
-from weakref import WeakSet
+from weakref import WeakKeyDictionary, WeakSet
 
 import builtins as _builtins
 import logging
@@ -36,30 +36,51 @@ from .helpers import (
 logger = logging.getLogger("uvicorn")
 
 _MAPPED_MODELS: "WeakSet[type]" = WeakSet()
+_CREATE_FLUSH_HINTS: "WeakKeyDictionary[type, tuple[Optional[str], tuple[str, ...]]]" = WeakKeyDictionary()
 
 
-def _requires_create_flush(model: type, obj: Any) -> bool:
-    """Flush only when we need database-generated values immediately."""
+def _get_create_flush_hint(model: type) -> tuple[Optional[str], tuple[str, ...]]:
+    cached = _CREATE_FLUSH_HINTS.get(model)
+    if cached is not None:
+        return cached
+
+    pk_name: Optional[str] = None
     try:
         pk_cols = tuple(
             getattr(getattr(model, "__table__", None), "primary_key", ()).columns
         )
     except Exception:
         pk_cols = ()
-
     if len(pk_cols) == 1:
-        pk_name = getattr(pk_cols[0], "name", None)
-        if isinstance(pk_name, str) and pk_name and getattr(obj, pk_name, None) is None:
-            return True
+        name = getattr(pk_cols[0], "name", None)
+        if isinstance(name, str) and name:
+            pk_name = name
 
+    server_default_cols: list[str] = []
     table_cols = getattr(getattr(model, "__table__", None), "columns", ())
     for col in table_cols:
         name = getattr(col, "name", None)
-        if not isinstance(name, str) or not name:
-            continue
-        if getattr(obj, name, None) is not None:
-            continue
-        if getattr(col, "server_default", None) is not None:
+        if (
+            isinstance(name, str)
+            and name
+            and getattr(col, "server_default", None) is not None
+        ):
+            server_default_cols.append(name)
+
+    hint = (pk_name, tuple(server_default_cols))
+    _CREATE_FLUSH_HINTS[model] = hint
+    return hint
+
+
+def _requires_create_flush(model: type, obj: Any) -> bool:
+    """Flush only when we need database-generated values immediately."""
+    pk_name, server_default_cols = _get_create_flush_hint(model)
+
+    if pk_name and getattr(obj, pk_name, None) is None:
+        return True
+
+    for name in server_default_cols:
+        if getattr(obj, name, None) is None:
             return True
     return False
 
