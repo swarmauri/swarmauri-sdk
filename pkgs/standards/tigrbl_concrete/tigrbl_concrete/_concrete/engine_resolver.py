@@ -27,6 +27,7 @@ _ROUTER: dict[int, Provider] = {}
 _TAB: dict[Any, Provider] = {}
 _OP: dict[tuple[Any, str], Provider] = {}
 _PROV_BY_KEY: dict[tuple, Provider] = {}
+_RESOLVE_CACHE: dict[tuple[int | None, Any, str | None], Optional[Provider]] = {}
 _SECRET_KEYS = {
     "pwd",
     "password",
@@ -132,6 +133,7 @@ def set_default(ctx: EngineCfg | None) -> None:
     logger.debug("set_default: setting default provider to %r", prov)
     with _LOCK:
         _DEFAULT = prov
+        _RESOLVE_CACHE.clear()
 
 
 def register_router(router: Any, ctx: EngineCfg | None) -> None:
@@ -145,6 +147,7 @@ def register_router(router: Any, ctx: EngineCfg | None) -> None:
         return
     with _LOCK:
         _ROUTER[id(router)] = prov
+        _RESOLVE_CACHE.clear()
         logger.debug(
             "register_router: registered provider for router id %s", id(router)
         )
@@ -161,6 +164,7 @@ def register_table(model: Any, ctx: EngineCfg | None) -> None:
         return
     with _LOCK:
         _TAB[model] = prov
+        _RESOLVE_CACHE.clear()
         logger.debug("register_table: registered provider for model %r", model)
 
 
@@ -177,6 +181,7 @@ def register_op(model: Any, alias: str, ctx: EngineCfg | None) -> None:
         return
     with _LOCK:
         _OP[(model, alias)] = prov
+        _RESOLVE_CACHE.clear()
         logger.debug(
             "register_op: registered provider for model %r alias %s", model, alias
         )
@@ -201,7 +206,12 @@ def resolve_provider(
         model,
         op_alias,
     )
+    cache_key = (id(router) if router is not None else None, model, op_alias)
     with _LOCK:
+        cached = _RESOLVE_CACHE.get(cache_key)
+        if cached is not None or cache_key in _RESOLVE_CACHE:
+            return cached
+
         if model is not None and op_alias is not None:
             logger.debug("resolve_provider: checking op-level provider")
             for m in _with_class(model):
@@ -213,6 +223,7 @@ def resolve_provider(
                 p = _OP.get((m, op_alias))
                 if p:
                     logger.debug("resolve_provider: found op-level provider %r", p)
+                    _RESOLVE_CACHE[cache_key] = p
                     return p
         if model is not None:
             logger.debug("resolve_provider: checking model-level provider")
@@ -221,6 +232,7 @@ def resolve_provider(
                 p = _TAB.get(m)
                 if p:
                     logger.debug("resolve_provider: found model-level provider %r", p)
+                    _RESOLVE_CACHE[cache_key] = p
                     return p
         if router is not None:
             logger.debug("resolve_provider: checking router-level provider")
@@ -230,8 +242,10 @@ def resolve_provider(
                 p = _ROUTER.get(id(a))
                 if p:
                     logger.debug("resolve_provider: found router-level provider %r", p)
+                    _RESOLVE_CACHE[cache_key] = p
                     return p
         logger.debug("resolve_provider: returning default provider %r", _DEFAULT)
+        _RESOLVE_CACHE[cache_key] = _DEFAULT
         return _DEFAULT
 
 

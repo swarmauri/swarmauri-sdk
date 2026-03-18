@@ -308,9 +308,7 @@ class PackedPlanExecutor(ExecutorBase):
             if is_async:
                 await step(ctx)
                 continue
-            rv = step(ctx)
-            if hasattr(rv, "__await__"):
-                await rv
+            step(ctx)
 
     def _resolve_error_segments(
         self,
@@ -511,7 +509,7 @@ class PackedPlanExecutor(ExecutorBase):
 
         route_to_program = packed.route_to_program
 
-        @njit(cache=True)
+        @njit(cache=True, nogil=True, fastmath=True)
         def _dispatch(proto_id: int, selector_id: int) -> int:
             if proto_id < 0 or selector_id < 0:
                 return -1
@@ -521,6 +519,12 @@ class PackedPlanExecutor(ExecutorBase):
             if selector_id >= len(row):
                 return -1
             return row[selector_id]
+
+        # Eagerly compile once so first request latency is not dominated by JIT.
+        try:
+            _dispatch(0, 0)
+        except Exception:
+            return None
 
         def _executor(proto_id: int, selector_id: int) -> int:
             return int(_dispatch(int(proto_id), int(selector_id)))
