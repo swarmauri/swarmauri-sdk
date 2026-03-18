@@ -3,35 +3,35 @@
     {
       "scenario": "tigrbl",
       "ops": 25,
-      "first_start_seconds": 0.15648963600006027,
-      "execution_total_seconds": 0.9745428930000344,
-      "ops_per_second": 25.6530525024301,
+      "first_start_seconds": 0.34618854100006047,
+      "execution_total_seconds": 1.160564292999993,
+      "ops_per_second": 21.54124519493566,
       "time_per_op_seconds": {
-        "min": 0.036688759999833565,
-        "mean": 0.03890447912001946,
-        "max": 0.0438842260000456
+        "min": 0.026496607000012773,
+        "mean": 0.04615950115998658,
+        "max": 0.07786180100004003
       },
       "memory_peak_per_op_bytes": {
         "min": 0.0,
-        "mean": 19127.0,
-        "max": 309408.0
+        "mean": 20495.56,
+        "max": 331057.0
       }
     },
     {
       "scenario": "fastapi",
       "ops": 25,
-      "first_start_seconds": 0.08240129499995419,
-      "execution_total_seconds": 1.0265162100001817,
-      "ops_per_second": 24.354218429727062,
+      "first_start_seconds": 0.10791407800002162,
+      "execution_total_seconds": 1.6585403490000772,
+      "ops_per_second": 15.073495206235007,
       "time_per_op_seconds": {
-        "min": 0.036731643999928565,
-        "mean": 0.040976445919968685,
-        "max": 0.05229339099992103
+        "min": 0.03240305000008448,
+        "mean": 0.06595734531999824,
+        "max": 0.2118358199999193
       },
       "memory_peak_per_op_bytes": {
         "min": 0.0,
-        "mean": 20857.24,
-        "max": 402157.0
+        "mean": 22610.04,
+        "max": 419825.0
       }
     }
   ],

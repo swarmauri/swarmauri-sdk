@@ -1,20 +1,22 @@
 {
-  "baseline": {
-    "tigrbl_ops_per_second": 24.497845250378248,
-    "fastapi_ops_per_second": 30.843989691195837
-  },
-  "optimized": {
-    "tigrbl_ops_per_second": 5.730573752223489,
-    "fastapi_ops_per_second": 4.386592812253861
-  },
-  "delta_optimized_vs_baseline": {
-    "tigrbl_ops_per_second_abs": -18.76727149815476,
-    "tigrbl_ops_per_second_pct": -76.60784573641223,
-    "fastapi_ops_per_second_abs": -26.457396878941978,
-    "fastapi_ops_per_second_pct": -85.7781277449137,
-    "tigrbl_vs_fastapi_ratio_baseline": 0.7942502087325932,
-    "tigrbl_vs_fastapi_ratio_optimized": 1.3063837920436208,
-    "tigrbl_minus_fastapi_ops_per_second_baseline": -6.346144440817589,
-    "tigrbl_minus_fastapi_ops_per_second_optimized": 1.3439809399696285
+  "delta": {
+    "tigrbl": {
+      "ops_per_second": -0.32827495120029226,
+      "execution_total_seconds": 0.017420783999995137,
+      "first_start_seconds": -0.2679558669999551
+    },
+    "fastapi": {
+      "ops_per_second": -4.598351959810193,
+      "execution_total_seconds": 0.3876886700000739,
+      "first_start_seconds": -0.1551164289999747
+    },
+    "tigrbl_minus_fastapi": {
+      "baseline_ops_per_second": 2.1976729800907506,
+      "after_ops_per_second": 6.4677499887006515,
+      "delta_ops_per_second": 4.270077008609901,
+      "baseline_speedup_ratio": 1.1117166558656508,
+      "after_speedup_ratio": 1.429080972940193,
+      "delta_speedup_ratio": 0.31736431707454216
+    }
   }
 }
