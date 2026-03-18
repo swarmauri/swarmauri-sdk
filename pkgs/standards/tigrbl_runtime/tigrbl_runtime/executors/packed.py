@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import inspect
 from typing import Any, ClassVar, Mapping
 from types import SimpleNamespace
 
@@ -44,6 +46,8 @@ class PackedPlanExecutor(ExecutorBase):
         self._program_error_segments_cache: dict[
             tuple[int, int], tuple[tuple[int, ...], Mapping[str, tuple[int, ...]]]
         ] = {}
+        self._program_runners_cache: dict[tuple[int, int], Any] = {}
+        self._db_acquirer_cache: dict[tuple[int, int, int], Any] = {}
 
     @classmethod
     def _resolve_transport_senders(cls):
@@ -285,15 +289,15 @@ class PackedPlanExecutor(ExecutorBase):
         if isinstance(temp, dict):
             temp["ingress_probed"] = True
 
-        program_id = self._require_program_id_from_ctx(ctx)
-        if (
-            program_id < 0
-            and isinstance(getattr(ctx, "method", None), str)
-            and isinstance(getattr(ctx, "path", None), str)
+        program_id = -1
+        if isinstance(getattr(ctx, "method", None), str) and isinstance(
+            getattr(ctx, "path", None), str
         ):
             program_id = self._resolve_program_id_from_exact_route(
                 packed, str(ctx.method), str(ctx.path)
             )
+        if program_id < 0:
+            program_id = self._require_program_id_from_ctx(ctx)
         if program_id < 0:
             program_id = self._resolve_program_id_from_dispatch(ctx, packed)
         if program_id < 0:
@@ -367,6 +371,112 @@ class PackedPlanExecutor(ExecutorBase):
         self._segment_runners_cache[packed_id] = frozen
         return frozen
 
+    def _resolve_program_runner(
+        self, packed: PackedKernel, program_id: int, hot_plan: Any | None
+    ) -> Any:
+        cache_key = (id(packed), program_id)
+        cached = self._program_runners_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        if hot_plan is None:
+            ordered_segments, remaining = self._resolve_segments_for_program(
+                packed, program_id
+            )
+            segment_ids = (*ordered_segments, *remaining)
+            segment_runners = self._resolve_segment_runners(packed)
+            phases = packed.segment_phases
+
+            async def _runner(ctx: _Ctx) -> None:
+                for seg_id in segment_ids:
+                    ctx.phase = phases[seg_id]
+                    await segment_runners[seg_id](ctx)
+
+            self._program_runners_cache[cache_key] = _runner
+            return _runner
+
+        segment_ids = tuple(
+            (*hot_plan.ordered_segment_ids, *hot_plan.remaining_segment_ids)
+        )
+        segment_offsets = packed.segment_offsets
+        segment_lengths = packed.segment_lengths
+        segment_step_ids = packed.segment_step_ids
+        step_table = packed.step_table
+        step_async_flags = tuple(getattr(packed, "step_async_flags", ()) or ())
+        phase_groups: list[tuple[str, tuple[int, ...]]] = []
+        for seg_id in segment_ids:
+            start = segment_offsets[seg_id]
+            stop = start + segment_lengths[seg_id]
+            phase_groups.append(
+                (
+                    str(packed.segment_phases[seg_id]),
+                    tuple(segment_step_ids[idx] for idx in range(start, stop)),
+                )
+            )
+
+        async def _runner(ctx: _Ctx) -> None:
+            for phase, step_ids in phase_groups:
+                ctx.phase = phase
+                for step_id in step_ids:
+                    step = step_table[step_id]
+                    if step_id < len(step_async_flags) and step_async_flags[step_id]:
+                        await step(ctx)
+                    else:
+                        rv = step(ctx)
+                        if hasattr(rv, "__await__"):
+                            await rv
+
+        self._program_runners_cache[cache_key] = _runner
+        return _runner
+
+    def _resolve_db_acquirer(
+        self, packed: PackedKernel, ctx: _Ctx, hot_plan: Any | None
+    ) -> Any | None:
+        if hot_plan is None:
+            return None
+        cache_key = (
+            id(packed),
+            id(getattr(ctx, "app", None)),
+            int(getattr(hot_plan, "program_id", -1)),
+        )
+        cached = self._db_acquirer_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        model = getattr(hot_plan, "model", None)
+        alias = getattr(hot_plan, "alias", None)
+        provider = _resolver.resolve_provider(
+            router=getattr(ctx, "router", None) or getattr(ctx, "app", None),
+            model=model,
+            op_alias=alias if isinstance(alias, str) else None,
+        )
+        if provider is None:
+            self._db_acquirer_cache[cache_key] = None
+            return None
+
+        def _acquire() -> tuple[Any, Any]:
+            db = provider.session()
+
+            def _release() -> None:
+                close = getattr(db, "close", None)
+                if callable(close):
+                    try:
+                        rv = close()
+                        if inspect.isawaitable(rv):
+                            try:
+                                loop = asyncio.get_running_loop()
+                            except RuntimeError:
+                                asyncio.run(rv)
+                            else:
+                                loop.create_task(rv)
+                    except Exception:
+                        pass
+
+            return db, _release
+
+        self._db_acquirer_cache[cache_key] = _acquire
+        return _acquire
+
     async def _run_segment(self, ctx: _Ctx, packed: PackedKernel, seg_id: int) -> None:
         ctx.phase = packed.segment_phases[seg_id]
         await self._resolve_segment_runners(packed)[seg_id](ctx)
@@ -411,15 +521,15 @@ class PackedPlanExecutor(ExecutorBase):
             ctx.temp = {}
             temp = ctx.temp
 
-        program_id = self._require_program_id_from_ctx(ctx)
-        if (
-            program_id < 0
-            and isinstance(getattr(ctx, "method", None), str)
-            and isinstance(getattr(ctx, "path", None), str)
+        program_id = -1
+        if isinstance(getattr(ctx, "method", None), str) and isinstance(
+            getattr(ctx, "path", None), str
         ):
             program_id = self._resolve_program_id_from_exact_route(
                 packed, str(ctx.method), str(ctx.path)
             )
+        if program_id < 0:
+            program_id = self._require_program_id_from_ctx(ctx)
         if program_id < 0:
             program_id = self._resolve_program_id_from_dispatch(ctx, packed)
         if program_id < 0:
@@ -451,14 +561,24 @@ class PackedPlanExecutor(ExecutorBase):
             )
             return
 
-        meta = plan.opmeta[program_id]
-        ctx.model = getattr(meta, "model", None)
-        ctx.op = getattr(meta, "alias", None)
-        ctx.target = getattr(meta, "target", None)
+        hot_op_plan = (
+            packed.hot_op_plans[program_id]
+            if program_id < len(getattr(packed, "hot_op_plans", ()))
+            else None
+        )
+        if hot_op_plan is not None:
+            ctx.model = hot_op_plan.model
+            ctx.op = hot_op_plan.alias
+            ctx.target = hot_op_plan.target
+        else:
+            meta = plan.opmeta[program_id]
+            ctx.model = getattr(meta, "model", None)
+            ctx.op = getattr(meta, "alias", None)
+            ctx.target = getattr(meta, "target", None)
         env_ref = ctx.get("env")
         if env_ref is None:
             ctx["env"] = SimpleNamespace(method=ctx.op)
-        elif getattr(env_ref, "method", None) in (None, "", "unknown"):
+        elif isinstance(ctx.op, str) and ctx.op:
             try:
                 setattr(env_ref, "method", ctx.op)
             except Exception:
@@ -466,20 +586,20 @@ class PackedPlanExecutor(ExecutorBase):
         release_db = None
         if getattr(ctx, "_raw_db", None) is None:
             try:
-                db, release_db = _resolver.acquire(
-                    router=getattr(ctx, "router", None) or getattr(ctx, "app", None),
-                    model=ctx.model,
-                    op_alias=ctx.op if isinstance(ctx.op, str) else None,
-                )
+                acquirer = self._resolve_db_acquirer(packed, ctx, hot_op_plan)
+                if callable(acquirer):
+                    db, release_db = acquirer()
+                else:
+                    db, release_db = _resolver.acquire(
+                        router=getattr(ctx, "router", None)
+                        or getattr(ctx, "app", None),
+                        model=ctx.model,
+                        op_alias=ctx.op if isinstance(ctx.op, str) else None,
+                    )
                 ctx._raw_db = db
                 ctx.owns_tx = True
             except Exception:
                 release_db = None
-        hot_op_plan = (
-            packed.hot_op_plans[program_id]
-            if program_id < len(getattr(packed, "hot_op_plans", ()))
-            else None
-        )
         if hot_op_plan is not None and hot_op_plan.opview is not None:
             ctx.opview = hot_op_plan.opview
         else:
@@ -494,21 +614,18 @@ class PackedPlanExecutor(ExecutorBase):
 
         try:
             if hot_op_plan is not None:
-                ordered_segments = hot_op_plan.ordered_segment_ids
-                remaining = hot_op_plan.remaining_segment_ids
                 error_phase_segments = hot_op_plan.error_segment_ids
             else:
-                ordered_segments, remaining = self._resolve_segments_for_program(
-                    packed, program_id
-                )
                 error_phase_segments = self._resolve_error_segments(
                     packed,
                     program_id,
                 )
 
             try:
-                for seg_id in (*ordered_segments, *remaining):
-                    await self._run_segment(ctx, packed, seg_id)
+                program_runner = self._resolve_program_runner(
+                    packed, program_id, hot_op_plan
+                )
+                await program_runner(ctx)
             except StatusDetailError as exc:
                 detail = (
                     exc.detail
@@ -575,6 +692,11 @@ class PackedPlanExecutor(ExecutorBase):
                     pass
 
     def _build_python_packed_executor(self, packed: PackedKernel):
+        self._resolve_segment_runners(packed)
+        hot_plans = tuple(getattr(packed, "hot_op_plans", ()) or ())
+        for program_id, hot_plan in enumerate(hot_plans):
+            self._resolve_program_runner(packed, program_id, hot_plan)
+
         async def _executor(kernel: Any, env: Any, ctx: _Ctx, plan: KernelPlan) -> None:
             del kernel
             await self._execute_packed(env, ctx, plan, packed)

@@ -255,7 +255,7 @@ def _pack_kernel_plan(
     op_segment_lengths: list[int] = []
     op_to_segment_ids: list[int] = []
 
-    for program_id, _meta in enumerate(plan.opmeta):
+    for program_id, meta in enumerate(plan.opmeta):
         chains = dict(plan.phase_chains.get(program_id, {}) or {})
         op_segment_offsets.append(len(op_to_segment_ids))
         seg_count = 0
@@ -306,7 +306,7 @@ def _pack_kernel_plan(
     )
 
     hot_op_plans: list[HotOpPlan] = []
-    for program_id, _meta in enumerate(plan.opmeta):
+    for program_id, op_meta in enumerate(plan.opmeta):
         seg_offset = op_segment_offsets[program_id]
         seg_length = op_segment_lengths[program_id]
         by_phase: dict[str, list[int]] = {}
@@ -315,6 +315,7 @@ def _pack_kernel_plan(
         seen_segment_ids: set[int] = set()
         error_segment_ids: dict[str, list[int]] = {}
         fusible_sync_segment_ids: list[int] = []
+        non_fusible_segment_ids: list[int] = []
 
         for idx in range(seg_offset, seg_offset + seg_length):
             seg_id = op_to_segment_ids[idx]
@@ -344,9 +345,17 @@ def _pack_kernel_plan(
         for seg_id in (*ordered_segments, *remaining_segments):
             if segment_executor_kinds[seg_id] == LOWER_KIND_SYNC_EXTRACTABLE:
                 fusible_sync_segment_ids.append(seg_id)
+            else:
+                non_fusible_segment_ids.append(seg_id)
+
+        db_session_strategy = "resolver.acquire"
 
         hot_op_plans.append(
             HotOpPlan(
+                program_id=program_id,
+                model=op_meta.model,
+                alias=str(op_meta.alias),
+                target=str(op_meta.target),
                 opview=opviews[program_id] if program_id < len(opviews) else None,
                 ordered_segment_ids=tuple(ordered_segments),
                 remaining_segment_ids=tuple(remaining_segments),
@@ -355,6 +364,8 @@ def _pack_kernel_plan(
                     for phase, seg_ids in error_segment_ids.items()
                 },
                 fusible_sync_segment_ids=tuple(fusible_sync_segment_ids),
+                non_fusible_segment_ids=tuple(non_fusible_segment_ids),
+                db_session_strategy=db_session_strategy,
             )
         )
 

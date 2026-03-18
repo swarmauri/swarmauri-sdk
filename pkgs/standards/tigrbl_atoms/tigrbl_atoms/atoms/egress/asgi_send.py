@@ -127,6 +127,28 @@ async def _send_transport_response(env: Any, ctx: Any) -> None:
         }
 
     status = int(transport.get("status_code", getattr(ctx, "status_code", 200) or 200))
+    body_obj = transport.get("body", None)
+    if (
+        status in (200, 201)
+        and not transport.get("headers")
+        and isinstance(body_obj, dict)
+        and "status_code" not in body_obj
+        and "headers" not in body_obj
+    ):
+        body = json.dumps(
+            body_obj,
+            separators=(",", ":"),
+            default=_json_default,
+        ).encode("utf-8")
+        headers = [(b"content-type", b"application/json; charset=utf-8")]
+        headers, body = finalize_transport_response(env.scope, status, headers, body)
+        await env.send(
+            {"type": "http.response.start", "status": status, "headers": headers}
+        )
+        await env.send({"type": "http.response.body", "body": body, "more_body": False})
+        egress["response_sent"] = True
+        return
+
     headers_obj = transport.get("headers", {})
     headers: list[tuple[bytes, bytes]] = []
     if isinstance(headers_obj, dict):
