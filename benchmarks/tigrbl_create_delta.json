@@ -1,0 +1,19 @@
+{
+  "delta": {
+    "tigrbl": {
+      "ops_per_second_baseline": 27.727455588331633,
+      "ops_per_second_current": 27.983923840208238,
+      "ops_per_second_delta": 0.2564682518766048,
+      "ops_per_second_delta_pct": 0.9249613656744371
+    },
+    "fastapi": {
+      "ops_per_second_baseline": 41.781128575265114,
+      "ops_per_second_current": 36.95450656489463,
+      "ops_per_second_delta": -4.826622010370485,
+      "ops_per_second_delta_pct": -11.552158055462147
+    }
+  },
+  "ratio_baseline": 0.6636358694424207,
+  "ratio_current": 0.7572533485480739,
+  "ratio_delta": 0.09361747910565321
+}

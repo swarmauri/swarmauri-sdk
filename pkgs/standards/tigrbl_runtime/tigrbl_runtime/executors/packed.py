@@ -31,6 +31,14 @@ class PackedPlanExecutor(ExecutorBase):
         "EGRESS_FINALIZE",
     )
 
+    def __init__(self) -> None:
+        # Cache resolved request method/path to packed program index so repeated
+        # route lookups avoid ingress probing and regex dispatch scans.
+        self._route_program_cache: dict[int, dict[tuple[str, str], int]] = {}
+        self._program_segments_cache: dict[
+            int, dict[int, tuple[tuple[int, ...], dict[str, tuple[int, ...]]]]
+        ] = {}
+
     @staticmethod
     def _coerce_int(value: Any) -> int | None:
         return value if isinstance(value, int) else None
@@ -145,6 +153,27 @@ class PackedPlanExecutor(ExecutorBase):
 
         return -1
 
+    @staticmethod
+    def _request_route_key(ctx: _Ctx) -> tuple[str, str] | None:
+        method = getattr(ctx, "method", None)
+        path = getattr(ctx, "path", None)
+
+        if not (isinstance(method, str) and isinstance(path, str) and path):
+            raw = getattr(ctx, "raw", None)
+            scope = getattr(raw, "scope", None) if raw is not None else None
+            if isinstance(scope, Mapping):
+                method = method or scope.get("method")
+                path = path or scope.get("path")
+
+        if not (isinstance(method, str) and isinstance(path, str) and path):
+            return None
+
+        method = method.upper()
+        if method == "POST" and "rpc" in path:
+            return None
+
+        return (method, path)
+
     async def _probe_ingress_for_program(
         self, ctx: _Ctx, plan: KernelPlan, packed: PackedKernel
     ) -> int:
@@ -185,6 +214,44 @@ class PackedPlanExecutor(ExecutorBase):
             if hasattr(rv, "__await__"):
                 await rv
 
+    def _resolve_program_segments(
+        self, packed: PackedKernel, program_id: int
+    ) -> tuple[tuple[int, ...], dict[str, tuple[int, ...]]]:
+        plan_cache = self._program_segments_cache.setdefault(id(packed), {})
+        cached = plan_cache.get(program_id)
+        if cached is not None:
+            return cached
+
+        seg_offset = packed.op_segment_offsets[program_id]
+        seg_length = packed.op_segment_lengths[program_id]
+        by_phase: dict[str, list[int]] = {}
+        seen_segment_ids: set[int] = set()
+        ordered_segments: list[int] = []
+
+        for i in range(seg_offset, seg_offset + seg_length):
+            seg_id = packed.op_to_segment_ids[i]
+            phase = str(packed.segment_phases[seg_id])
+            by_phase.setdefault(phase, []).append(seg_id)
+
+        for phase in self._PHASE_EXECUTION_ORDER:
+            for seg_id in by_phase.get(phase, ()):  # pragma: no branch
+                if seg_id in seen_segment_ids:
+                    continue
+                seen_segment_ids.add(seg_id)
+                ordered_segments.append(seg_id)
+
+        for i in range(seg_offset, seg_offset + seg_length):
+            seg_id = packed.op_to_segment_ids[i]
+            if seg_id in seen_segment_ids:
+                continue
+            seen_segment_ids.add(seg_id)
+            ordered_segments.append(seg_id)
+
+        frozen = tuple(ordered_segments)
+        errors = {phase: tuple(seg_ids) for phase, seg_ids in by_phase.items()}
+        plan_cache[program_id] = (frozen, errors)
+        return frozen, errors
+
     async def _execute_packed(
         self, env: Any, ctx: _Ctx, plan: KernelPlan, packed: PackedKernel
     ) -> None:
@@ -202,13 +269,20 @@ class PackedPlanExecutor(ExecutorBase):
             ctx.temp = {}
             temp = ctx.temp
 
+        plan_cache = self._route_program_cache.setdefault(id(plan), {})
+        route_key = self._request_route_key(ctx)
+
         program_id = self._require_program_id_from_ctx(ctx)
+        if program_id < 0 and route_key is not None:
+            program_id = plan_cache.get(route_key, -1)
         if program_id < 0:
             program_id = self._resolve_program_id_from_dispatch(ctx, packed)
         if program_id < 0:
             program_id = self._resolve_program_id_from_request(ctx, plan)
         if program_id < 0:
             program_id = await self._probe_ingress_for_program(ctx, plan, packed)
+        if program_id >= 0 and route_key is not None:
+            plan_cache[route_key] = program_id
         if program_id < 0:
             egress = temp.get("egress") if isinstance(temp, dict) else None
             transport = (
@@ -263,33 +337,12 @@ class PackedPlanExecutor(ExecutorBase):
             ctx.opview = self.runtime.kernel.get_opview(app, ctx.model, ctx.op)
 
         try:
-            seg_offset = packed.op_segment_offsets[program_id]
-            seg_length = packed.op_segment_lengths[program_id]
-            ordered_segments: list[int] = []
-            by_phase: dict[str, list[int]] = {}
-            remaining: list[int] = []
-            seen_segment_ids: set[int] = set()
-            for i in range(seg_offset, seg_offset + seg_length):
-                seg_id = packed.op_to_segment_ids[i]
-                phase = str(packed.segment_phases[seg_id])
-                by_phase.setdefault(phase, []).append(seg_id)
-
-            for phase in self._PHASE_EXECUTION_ORDER:
-                for seg_id in by_phase.pop(phase, ()):  # pragma: no branch
-                    if seg_id in seen_segment_ids:
-                        continue
-                    seen_segment_ids.add(seg_id)
-                    ordered_segments.append(seg_id)
-
-            for i in range(seg_offset, seg_offset + seg_length):
-                seg_id = packed.op_to_segment_ids[i]
-                if seg_id in seen_segment_ids:
-                    continue
-                seen_segment_ids.add(seg_id)
-                remaining.append(seg_id)
+            ordered_segments, by_phase = self._resolve_program_segments(
+                packed, program_id
+            )
 
             try:
-                for seg_id in (*ordered_segments, *remaining):
+                for seg_id in ordered_segments:
                     await self._run_segment_python(ctx, packed, seg_id)
             except StatusDetailError as exc:
                 detail = (
