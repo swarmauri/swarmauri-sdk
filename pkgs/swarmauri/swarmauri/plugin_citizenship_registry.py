@@ -157,7 +157,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.CerebrasModel": "swarmauri_llm_cerebras.CerebrasModel",
         "swarmauri.llms.CohereModel": "swarmauri_llm_cohere.CohereModel",
         "swarmauri.llms.CohereToolModel": "swarmauri_llm_cohere.CohereToolModel",
-        "swarmauri.llms.DeepInfraModel": "swarmauri_standard.llms.DeepInfraModel",
+        "swarmauri.llms.DeepInfraModel": "swarmauri_llm_deepinfra.DeepInfraModel",
         "swarmauri.llms.DeepSeekModel": "swarmauri_standard.llms.DeepSeekModel",
         "swarmauri.llms.FalAIVisionModel": "swarmauri_standard.llms.FalAIVisionModel",
         "swarmauri.llms.GeminiProModel": "swarmauri_standard.llms.GeminiProModel",
