@@ -39,9 +39,8 @@ class PackedPlanExecutor(ExecutorBase):
         self._request_program_cache: dict[tuple[int, str, str], int] = {}
         self._templated_route_cache: dict[int, tuple[tuple[str, Any, int], ...]] = {}
         self._opview_cache: dict[tuple[int, int], Any] = {}
-        self._segment_steps_cache: dict[
-            int, tuple[tuple[tuple[Any, bool], ...], ...]
-        ] = {}
+        self._segment_steps_cache: dict[int, tuple[tuple[int, ...], ...]] = {}
+        self._segment_runners_cache: dict[int, tuple[Any, ...]] = {}
         self._program_error_segments_cache: dict[
             tuple[int, int], tuple[tuple[int, ...], Mapping[str, tuple[int, ...]]]
         ] = {}
@@ -95,6 +94,9 @@ class PackedPlanExecutor(ExecutorBase):
         for i in range(seg_offset, seg_offset + seg_length):
             seg_id = packed.op_to_segment_ids[i]
             if seg_id in seen_segment_ids:
+                continue
+            phase = str(packed.segment_phases[seg_id])
+            if phase.startswith("ON_"):
                 continue
             seen_segment_ids.add(seg_id)
             remaining.append(seg_id)
@@ -253,6 +255,16 @@ class PackedPlanExecutor(ExecutorBase):
 
         return -1
 
+    @staticmethod
+    def _resolve_program_id_from_exact_route(
+        packed: PackedKernel, method: str, path: str
+    ) -> int:
+        route = getattr(packed, "rest_exact_route_to_program", None)
+        if not isinstance(route, Mapping):
+            return -1
+        maybe = route.get((method.upper(), path))
+        return maybe if isinstance(maybe, int) else -1
+
     async def _probe_ingress_for_program(
         self, ctx: _Ctx, plan: KernelPlan, packed: PackedKernel
     ) -> int:
@@ -267,50 +279,97 @@ class PackedPlanExecutor(ExecutorBase):
             phase = str(packed.segment_phases[seg_id])
             if not phase.startswith("INGRESS_"):
                 break
-            await self._run_segment_python(ctx, packed, seg_id)
+            await self._run_segment(ctx, packed, seg_id)
 
         temp = getattr(ctx, "temp", None)
         if isinstance(temp, dict):
             temp["ingress_probed"] = True
 
         program_id = self._require_program_id_from_ctx(ctx)
+        if (
+            program_id < 0
+            and isinstance(getattr(ctx, "method", None), str)
+            and isinstance(getattr(ctx, "path", None), str)
+        ):
+            program_id = self._resolve_program_id_from_exact_route(
+                packed, str(ctx.method), str(ctx.path)
+            )
         if program_id < 0:
             program_id = self._resolve_program_id_from_dispatch(ctx, packed)
         if program_id < 0:
             program_id = self._resolve_program_id_from_request(ctx, plan)
         return program_id
 
-    async def _run_segment_python(
-        self, ctx: _Ctx, packed: PackedKernel, seg_id: int
-    ) -> None:
-        ctx.phase = packed.segment_phases[seg_id]
+    def _resolve_segment_step_ids(
+        self, packed: PackedKernel
+    ) -> tuple[tuple[int, ...], ...]:
         packed_id = id(packed)
-        cached_segments = self._segment_steps_cache.get(packed_id)
-        if cached_segments is None:
-            compiled: list[tuple[tuple[Any, bool], ...]] = []
-            for segment_index in range(len(packed.segment_offsets)):
-                start = packed.segment_offsets[segment_index]
-                end = start + packed.segment_lengths[segment_index]
-                segment_steps: list[tuple[Any, bool]] = []
-                for idx in range(start, end):
-                    step_id = packed.segment_step_ids[idx]
-                    step = packed.step_table[step_id]
-                    is_async = bool(getattr(step, "_tigrbl_is_async", False))
-                    if not is_async:
-                        marker = getattr(step, "__code__", None)
-                        is_async = bool(getattr(marker, "co_flags", 0) & 0x80)
-                    segment_steps.append((step, is_async))
-                compiled.append(tuple(segment_steps))
-            cached_segments = tuple(compiled)
-            self._segment_steps_cache[packed_id] = cached_segments
+        cached = self._segment_steps_cache.get(packed_id)
+        if cached is not None:
+            return cached
+        compiled = []
+        for segment_index in range(len(packed.segment_offsets)):
+            start = packed.segment_offsets[segment_index]
+            end = start + packed.segment_lengths[segment_index]
+            compiled.append(
+                tuple(packed.segment_step_ids[idx] for idx in range(start, end))
+            )
+        frozen = tuple(compiled)
+        self._segment_steps_cache[packed_id] = frozen
+        return frozen
 
-        for step, is_async in cached_segments[seg_id]:
-            if is_async:
-                await step(ctx)
-                continue
-            rv = step(ctx)
-            if hasattr(rv, "__await__"):
-                await rv
+    def _resolve_segment_runners(self, packed: PackedKernel) -> tuple[Any, ...]:
+        packed_id = id(packed)
+        cached = self._segment_runners_cache.get(packed_id)
+        if cached is not None:
+            return cached
+
+        step_ids_by_segment = self._resolve_segment_step_ids(packed)
+        async_flags = tuple(getattr(packed, "step_async_flags", ()) or ())
+        executor_kinds = tuple(getattr(packed, "segment_executor_kinds", ()) or ())
+
+        def _make_fused_sync_runner(step_ids: tuple[int, ...]):
+            async def _runner(ctx: _Ctx) -> None:
+                for step_id in step_ids:
+                    rv = packed.step_table[step_id](ctx)
+                    if hasattr(rv, "__await__"):
+                        await rv
+
+            return _runner
+
+        def _make_mixed_runner(step_ids: tuple[int, ...]):
+            async def _runner(ctx: _Ctx) -> None:
+                for step_id in step_ids:
+                    step = packed.step_table[step_id]
+                    is_async = (
+                        async_flags[step_id] if step_id < len(async_flags) else False
+                    )
+                    if is_async:
+                        await step(ctx)
+                        continue
+                    rv = step(ctx)
+                    if hasattr(rv, "__await__"):
+                        await rv
+
+            return _runner
+
+        runners: list[Any] = []
+        for seg_id, step_ids in enumerate(step_ids_by_segment):
+            if (
+                seg_id < len(executor_kinds)
+                and executor_kinds[seg_id] == "sync.extractable"
+            ):
+                runners.append(_make_fused_sync_runner(step_ids))
+            else:
+                runners.append(_make_mixed_runner(step_ids))
+
+        frozen = tuple(runners)
+        self._segment_runners_cache[packed_id] = frozen
+        return frozen
+
+    async def _run_segment(self, ctx: _Ctx, packed: PackedKernel, seg_id: int) -> None:
+        ctx.phase = packed.segment_phases[seg_id]
+        await self._resolve_segment_runners(packed)[seg_id](ctx)
 
     def _resolve_error_segments(
         self,
@@ -353,6 +412,14 @@ class PackedPlanExecutor(ExecutorBase):
             temp = ctx.temp
 
         program_id = self._require_program_id_from_ctx(ctx)
+        if (
+            program_id < 0
+            and isinstance(getattr(ctx, "method", None), str)
+            and isinstance(getattr(ctx, "path", None), str)
+        ):
+            program_id = self._resolve_program_id_from_exact_route(
+                packed, str(ctx.method), str(ctx.path)
+            )
         if program_id < 0:
             program_id = self._resolve_program_id_from_dispatch(ctx, packed)
         if program_id < 0:
@@ -408,27 +475,40 @@ class PackedPlanExecutor(ExecutorBase):
                 ctx.owns_tx = True
             except Exception:
                 release_db = None
-        app = getattr(ctx, "app", None)
-        if app is not None and ctx.model is not None and isinstance(ctx.op, str):
-            opview_key = (id(plan), program_id)
-            opview = self._opview_cache.get(opview_key)
-            if opview is None:
-                opview = self.runtime.kernel.get_opview(app, ctx.model, ctx.op)
-                self._opview_cache[opview_key] = opview
-            ctx.opview = opview
+        hot_op_plan = (
+            packed.hot_op_plans[program_id]
+            if program_id < len(getattr(packed, "hot_op_plans", ()))
+            else None
+        )
+        if hot_op_plan is not None and hot_op_plan.opview is not None:
+            ctx.opview = hot_op_plan.opview
+        else:
+            app = getattr(ctx, "app", None)
+            if app is not None and ctx.model is not None and isinstance(ctx.op, str):
+                opview_key = (id(plan), program_id)
+                opview = self._opview_cache.get(opview_key)
+                if opview is None:
+                    opview = self.runtime.kernel.get_opview(app, ctx.model, ctx.op)
+                    self._opview_cache[opview_key] = opview
+                ctx.opview = opview
 
         try:
-            ordered_segments, remaining = self._resolve_segments_for_program(
-                packed, program_id
-            )
-            error_phase_segments = self._resolve_error_segments(
-                packed,
-                program_id,
-            )
+            if hot_op_plan is not None:
+                ordered_segments = hot_op_plan.ordered_segment_ids
+                remaining = hot_op_plan.remaining_segment_ids
+                error_phase_segments = hot_op_plan.error_segment_ids
+            else:
+                ordered_segments, remaining = self._resolve_segments_for_program(
+                    packed, program_id
+                )
+                error_phase_segments = self._resolve_error_segments(
+                    packed,
+                    program_id,
+                )
 
             try:
                 for seg_id in (*ordered_segments, *remaining):
-                    await self._run_segment_python(ctx, packed, seg_id)
+                    await self._run_segment(ctx, packed, seg_id)
             except StatusDetailError as exc:
                 detail = (
                     exc.detail
@@ -442,7 +522,7 @@ class PackedPlanExecutor(ExecutorBase):
                     *error_phase_segments.get(fallback_phase, ()),
                 ):
                     try:
-                        await self._run_segment_python(ctx, packed, seg_id)
+                        await self._run_segment(ctx, packed, seg_id)
                     except Exception:
                         pass
                 await _send_json(
@@ -465,7 +545,7 @@ class PackedPlanExecutor(ExecutorBase):
                     *error_phase_segments.get(fallback_phase, ()),
                 ):
                     try:
-                        await self._run_segment_python(ctx, packed, seg_id)
+                        await self._run_segment(ctx, packed, seg_id)
                     except Exception:
                         pass
                 await _send_json(
