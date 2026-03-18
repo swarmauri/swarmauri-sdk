@@ -69,6 +69,12 @@ class PackedPlanExecutor(ExecutorBase):
 
         return StatusDetailError, create_standardized_error
 
+    @classmethod
+    def _resolve_create_op(cls):
+        from tigrbl_ops_oltp import create as create_op
+
+        return create_op
+
     def _resolve_segments_for_program(
         self, packed: PackedKernel, program_id: int
     ) -> tuple[tuple[int, ...], tuple[int, ...]]:
@@ -512,6 +518,50 @@ class PackedPlanExecutor(ExecutorBase):
         self._program_runner_mode_cache[cache_key] = _runner
         return _runner
 
+    def _resolve_segment_ids_by_phase(
+        self,
+        packed: PackedKernel,
+        program_id: int,
+        hot_op_plan: Any | None,
+    ) -> dict[str, int]:
+        if hot_op_plan is not None:
+            ordered = tuple(getattr(hot_op_plan, "ordered_segment_ids", ()) or ())
+            remaining = tuple(getattr(hot_op_plan, "remaining_segment_ids", ()) or ())
+        else:
+            ordered, remaining = self._resolve_segments_for_program(packed, program_id)
+        out: dict[str, int] = {}
+        for seg_id in (*ordered, *remaining):
+            out[str(packed.segment_phases[seg_id])] = seg_id
+        return out
+
+    def _eligible_fast_direct_create(
+        self,
+        packed: PackedKernel,
+        program_id: int,
+        hot_op_plan: Any | None,
+    ) -> bool:
+        if hot_op_plan is None:
+            return False
+        if str(getattr(hot_op_plan, "target", "")).lower() != "create":
+            return False
+        opview = getattr(hot_op_plan, "opview", None)
+        if opview is None:
+            return False
+        if (
+            getattr(opview, "paired_index", None)
+            or getattr(opview, "to_stored_transforms", None)
+            or getattr(opview, "virtual_producers", None)
+        ):
+            return False
+        phase_ids = self._resolve_segment_ids_by_phase(packed, program_id, hot_op_plan)
+        handler_seg = phase_ids.get("HANDLER")
+        if handler_seg is None:
+            return False
+        start = packed.segment_offsets[handler_seg]
+        end = start + packed.segment_lengths[handler_seg]
+        labels = {packed.step_labels[idx] for idx in range(start, end)}
+        return "atom:sys:handler_create@sys.handler.persistence" in labels
+
     def _resolve_db_acquire(
         self,
         plan: KernelPlan,
@@ -727,6 +777,31 @@ class PackedPlanExecutor(ExecutorBase):
                 )
 
             try:
+                if (
+                    isinstance(temp, dict)
+                    and temp.get("_tigrbl_hot_direct_create") is True
+                    and self._eligible_fast_direct_create(
+                        packed,
+                        program_id,
+                        hot_op_plan,
+                    )
+                ):
+                    create_op = self._resolve_create_op()
+                    payload = getattr(ctx, "payload", None)
+                    if not isinstance(payload, Mapping):
+                        payload = {}
+                    ctx.result = await create_op(ctx.model, payload, db=ctx._raw_db)
+                    commit = getattr(ctx._raw_db, "commit", None)
+                    if callable(commit):
+                        committed = commit()
+                        if inspect.isawaitable(committed):
+                            await committed
+                    status = int(getattr(ctx, "status_code", 201) or 201)
+                    payload_out = self._serialize_model_row(
+                        getattr(ctx, "result", None)
+                    )
+                    await _send_json(env, status, payload_out)
+                    return
                 await self._resolve_program_runner_for_mode(
                     packed,
                     program_id,

@@ -14,6 +14,11 @@ ANCHOR = _ev.EGRESS_ASGI_SEND
 
 NO_BODY_STATUS = set(range(100, 200)) | {204, 205, 304}
 
+try:  # pragma: no cover - optional fast path
+    import orjson as _orjson
+except Exception:  # pragma: no cover - fallback to stdlib json
+    _orjson = None
+
 
 def _json_default(value: Any) -> Any:
     model_dump = getattr(value, "model_dump", None)
@@ -90,7 +95,12 @@ async def _send_json(env: Any, status: int, payload: Any) -> None:
         payload = rpc_payload
         status = 200
 
-    body = json.dumps(payload).encode("utf-8")
+    if _orjson is not None:
+        body = _orjson.dumps(payload)
+    else:
+        body = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode(
+            "utf-8"
+        )
     headers = [(b"content-type", b"application/json")]
     headers, body = finalize_transport_response(scope, status, headers, body)
     await env.send(

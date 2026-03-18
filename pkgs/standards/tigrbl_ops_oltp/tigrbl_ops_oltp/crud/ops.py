@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import lru_cache
 from typing import Any, Dict, List, Mapping, Optional, Union
 import inspect
 from weakref import WeakSet
@@ -38,28 +39,40 @@ logger = logging.getLogger("uvicorn")
 _MAPPED_MODELS: "WeakSet[type]" = WeakSet()
 
 
-def _requires_create_flush(model: type, obj: Any) -> bool:
-    """Flush only when we need database-generated values immediately."""
+@lru_cache(maxsize=512)
+def _create_flush_plan(model: type) -> tuple[str | None, tuple[str, ...]]:
+    """Precompute model metadata used by create-time flush checks."""
+    pk_name: str | None = None
     try:
         pk_cols = tuple(
             getattr(getattr(model, "__table__", None), "primary_key", ()).columns
         )
     except Exception:
         pk_cols = ()
-
     if len(pk_cols) == 1:
-        pk_name = getattr(pk_cols[0], "name", None)
-        if isinstance(pk_name, str) and pk_name and getattr(obj, pk_name, None) is None:
-            return True
+        candidate = getattr(pk_cols[0], "name", None)
+        if isinstance(candidate, str) and candidate:
+            pk_name = candidate
 
+    server_default_cols: list[str] = []
     table_cols = getattr(getattr(model, "__table__", None), "columns", ())
     for col in table_cols:
         name = getattr(col, "name", None)
         if not isinstance(name, str) or not name:
             continue
-        if getattr(obj, name, None) is not None:
-            continue
         if getattr(col, "server_default", None) is not None:
+            server_default_cols.append(name)
+
+    return pk_name, tuple(server_default_cols)
+
+
+def _requires_create_flush(model: type, obj: Any) -> bool:
+    """Flush only when we need database-generated values immediately."""
+    pk_name, server_default_cols = _create_flush_plan(model)
+    if pk_name is not None and getattr(obj, pk_name, None) is None:
+        return True
+    for name in server_default_cols:
+        if getattr(obj, name, None) is None:
             return True
     return False
 

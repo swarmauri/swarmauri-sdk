@@ -80,6 +80,74 @@ def _dedupe_consecutive_steps(steps: list[StepFn]) -> list[StepFn]:
     return deduped
 
 
+def _prune_redundant_steps(phase: str, steps: list[StepFn]) -> list[StepFn]:
+    """Drop known no-op duplicates from compiled phase step lists."""
+    if not steps:
+        return steps
+
+    labels = [
+        getattr(step, "__tigrbl_label", None) or _label_step(step, phase)
+        for step in steps
+    ]
+
+    # Phase DB binding must run once per phase; chain composition can inject it
+    # multiple times (for example around dependency atoms).
+    seen_phase_db = False
+    pruned_steps: list[StepFn] = []
+    pruned_labels: list[str] = []
+    for step, label in zip(steps, labels):
+        if label == _PHASE_DB_LABEL:
+            if seen_phase_db:
+                continue
+            seen_phase_db = True
+        pruned_steps.append(step)
+        pruned_labels.append(label)
+
+    # When a concrete persistence atom (create/read/update/...) is present for
+    # a program, the generic fallback persistence atom is redundant.
+    if phase == "HANDLER":
+        has_specific_persistence = any(
+            label.startswith("atom:sys:handler_")
+            and label.endswith("@sys.handler.persistence")
+            and "handler_persistence@" not in label
+            for label in pruned_labels
+        )
+        if has_specific_persistence:
+            keep: list[StepFn] = []
+            for step, label in zip(pruned_steps, pruned_labels):
+                if label == "atom:sys:handler_persistence@sys.handler.persistence":
+                    continue
+                keep.append(step)
+            pruned_steps = keep
+            pruned_labels = [
+                getattr(step, "__tigrbl_label", None) or _label_step(step, phase)
+                for step in pruned_steps
+            ]
+
+        # The planner can include both the legacy CRUD wire hook and the
+        # concrete sys handler atom for the same target. The concrete handler
+        # already owns persistence execution, so the legacy hook is redundant.
+        direct_targets = {
+            label.split("atom:sys:handler_", 1)[1].split("@", 1)[0]
+            for label in pruned_labels
+            if label.startswith("atom:sys:handler_")
+            and label.endswith("@sys.handler.persistence")
+            and "handler_persistence@" not in label
+        }
+        if direct_targets:
+            keep = []
+            for step, label in zip(pruned_steps, pruned_labels):
+                if any(
+                    label == f"hook:wire:tigrbl:core:crud:ops:{target}@HANDLER"
+                    for target in direct_targets
+                ):
+                    continue
+                keep.append(step)
+            pruned_steps = keep
+
+    return pruned_steps
+
+
 def _phase_db_step() -> StepFn:
     step = _wrap_atom(_bind_phase_db, anchor="SYS_PHASE_DB_BIND")
     setattr(step, "__tigrbl_label", _PHASE_DB_LABEL)
@@ -288,6 +356,7 @@ def _pack_kernel_plan(
         seg_count = 0
         for phase in DEFAULT_PHASE_ORDER:
             steps = _dedupe_consecutive_steps(list(chains.get(phase, ()) or ()))
+            steps = _prune_redundant_steps(phase, steps)
             if not steps:
                 continue
 
