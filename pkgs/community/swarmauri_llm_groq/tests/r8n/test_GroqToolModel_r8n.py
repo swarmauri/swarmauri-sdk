@@ -2,7 +2,7 @@ import logging
 
 import pytest
 import os
-from swarmauri_standard.tool_llms.GroqToolModel import GroqToolModel as LLM
+from swarmauri_llm_groq import GroqToolModel as LLM
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.tools.AdditionTool import AdditionTool
@@ -61,7 +61,7 @@ def conversation():
 @timeout(5)
 @pytest.mark.unit
 def test_ubc_resource(groq_tool_model):
-    assert groq_tool_model.resource == "ToolLLM"
+    assert groq_tool_model.resource == "LLM"
 
 
 @timeout(5)
@@ -103,6 +103,7 @@ def test_predict(groq_tool_model, toolkit, conversation, model_name):
 
     conversation = groq_tool_model.predict(conversation=conversation, toolkit=toolkit)
     logging.info(conversation.get_last().content)
+
     assert type(conversation.get_last().content) is str
 
 
