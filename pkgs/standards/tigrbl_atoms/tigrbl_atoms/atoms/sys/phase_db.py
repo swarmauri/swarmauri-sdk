@@ -113,9 +113,40 @@ def bind_phase_db(ctx: Any) -> Any:
     if not isinstance(phase, str) or not phase:
         raise RuntimeError("ctx.phase must be set before PhaseDb binding")
 
-    caps = phase_db_capabilities(phase)
     owns_tx = bool(getattr(ctx, "owns_tx", False))
-    ctx.db = PhaseDb(raw_db, phase=phase, caps=caps, owns_tx=owns_tx)
+    temp = getattr(ctx, "temp", None)
+    cache_token = (id(raw_db), owns_tx)
+    cache: dict[str, PhaseDb] | None = None
+    if isinstance(temp, dict):
+        cached_token = temp.get("_phase_db_cache_token")
+        if cached_token == cache_token:
+            maybe_cache = temp.get("_phase_db_cache")
+            if isinstance(maybe_cache, dict):
+                cache = maybe_cache
+        else:
+            temp["_phase_db_cache_token"] = cache_token
+            temp["_phase_db_cache"] = {}
+            cache = temp["_phase_db_cache"]
+
+    if cache is not None:
+        wrapped = cache.get(phase)
+        if wrapped is None:
+            wrapped = PhaseDb(
+                raw_db,
+                phase=phase,
+                caps=phase_db_capabilities(phase),
+                owns_tx=owns_tx,
+            )
+            cache[phase] = wrapped
+        ctx.db = wrapped
+        return ctx
+
+    ctx.db = PhaseDb(
+        raw_db,
+        phase=phase,
+        caps=phase_db_capabilities(phase),
+        owns_tx=owns_tx,
+    )
     return ctx
 
 
