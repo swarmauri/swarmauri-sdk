@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+from functools import lru_cache
 from typing import Any, Dict, Mapping, Tuple
 
 import logging
@@ -14,6 +15,62 @@ except Exception:  # pragma: no cover
 
 
 logger = logging.getLogger("uvicorn")
+
+
+def _colspecs_cache_token(model: type) -> tuple[int, int, int, int]:
+    table = getattr(model, "__table__", None)
+    cols = getattr(table, "columns", None) if table is not None else None
+    try:
+        col_count = len(tuple(cols)) if cols is not None else 0
+    except Exception:
+        col_count = 0
+    return (
+        id(getattr(model, "__tigrbl_colspecs__", None)),
+        id(getattr(model, "__tigrbl_cols__", None)),
+        id(table),
+        col_count,
+    )
+
+
+@lru_cache(maxsize=256)
+def _colspecs_cached(
+    model: type, cache_token: tuple[int, int, int, int]
+) -> Mapping[str, Any]:
+    del cache_token
+    return mro_collect_columns(model, _cache_bust=hash(_colspecs_cache_token(model)))
+
+
+@lru_cache(maxsize=512)
+def _excluded_schema_fields(model: type, verb: str) -> frozenset[str]:
+    schema_cls = getattr(getattr(model, "schemas", None), verb, None)
+    schema_in = getattr(schema_cls, "in_", None) if schema_cls else None
+    model_fields = (
+        getattr(schema_in, "model_fields", None) if schema_in is not None else None
+    )
+    if not isinstance(model_fields, Mapping):
+        return frozenset()
+    return frozenset(
+        name
+        for name, field_info in model_fields.items()
+        if getattr(field_info, "exclude", False)
+    )
+
+
+@lru_cache(maxsize=256)
+def _table_python_types(model: type) -> Mapping[str, Any]:
+    table = getattr(model, "__table__", None)
+    columns = getattr(table, "columns", None)
+    if columns is None:
+        return {}
+    resolved: dict[str, Any] = {}
+    for col in columns:
+        try:
+            py_t = getattr(getattr(col, "type", None), "python_type", None)
+        except Exception:
+            py_t = None
+        if py_t is not None:
+            resolved[getattr(col, "name", "")] = py_t
+    return resolved
 
 
 def _pk_columns(model: type) -> Tuple[Any, ...]:
@@ -73,22 +130,7 @@ def _model_columns(model: type) -> Tuple[str, ...]:
 
 def _colspecs(model: type) -> Mapping[str, Any]:
     logger.debug("_colspecs called with model=%s", model)
-    table = getattr(model, "__table__", None)
-    cols = getattr(table, "columns", None) if table is not None else None
-    try:
-        col_count = len(tuple(cols)) if cols is not None else 0
-    except Exception:
-        col_count = 0
-
-    cache_bust = hash(
-        (
-            id(getattr(model, "__tigrbl_colspecs__", None)),
-            id(getattr(model, "__tigrbl_cols__", None)),
-            id(table),
-            col_count,
-        )
-    )
-    specs = mro_collect_columns(model, _cache_bust=cache_bust)
+    specs = _colspecs_cached(model, _colspecs_cache_token(model))
     logger.debug("_colspecs returning %s", specs)
     return specs
 
@@ -102,20 +144,13 @@ def _filter_in_values(
         result = dict(data)
         logger.debug("_filter_in_values returning %s", result)
         return result
+    excluded_fields = _excluded_schema_fields(model, verb)
+    column_types = _table_python_types(model)
     out: Dict[str, Any] = {}
     for k, v in data.items():
         sp = specs.get(k)
         if sp is None:
-            # Check if this is a request-extra field (marked exclude=True in schema).
-            # If the model's create schema excludes this field, skip it.
-            schema_cls = getattr(getattr(model, "schemas", None), verb, None)
-            schema_in = getattr(schema_cls, "in_", None) if schema_cls else None
-            field_info = (
-                schema_in.model_fields.get(k)
-                if schema_in and hasattr(schema_in, "model_fields")
-                else None
-            )
-            if field_info is not None and getattr(field_info, "exclude", False):
+            if k in excluded_fields:
                 continue
             out[k] = v
             continue
@@ -130,8 +165,7 @@ def _filter_in_values(
                 allowed = False
         if allowed:
             try:
-                col = getattr(getattr(model, "__table__", None), "columns", {}).get(k)
-                py_t = getattr(getattr(col, "type", None), "python_type", None)
+                py_t = column_types.get(k)
                 if py_t is not None and v is not None and not isinstance(v, py_t):
                     if py_t in (dt.datetime, dt.date) and isinstance(v, str):
                         parsed = py_t.fromisoformat(v)
@@ -148,7 +182,7 @@ def _filter_in_values(
 
 
 def _immutable_columns(model: type, verb: str) -> set[str]:
-    logger.info("_immutable_columns called with model=%s verb=%s", model, verb)
+    logger.debug("_immutable_columns called with model=%s verb=%s", model, verb)
     specs = _colspecs(model)
     if not specs:
         return set()
@@ -158,5 +192,5 @@ def _immutable_columns(model: type, verb: str) -> set[str]:
         mutable = getattr(io, "mutable_verbs", ()) if io else ()
         if mutable and verb not in mutable:
             imm.add(name)
-    logger.info("_immutable_columns returning %s", imm)
+    logger.debug("_immutable_columns returning %s", imm)
     return imm

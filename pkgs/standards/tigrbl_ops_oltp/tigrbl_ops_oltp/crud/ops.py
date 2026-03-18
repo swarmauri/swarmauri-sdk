@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Mapping, Optional, Union
 import inspect
+from weakref import WeakSet
 
 import builtins as _builtins
 import logging
@@ -34,10 +35,41 @@ from .helpers import (
 
 logger = logging.getLogger("uvicorn")
 
+_MAPPED_MODELS: "WeakSet[type]" = WeakSet()
+
+
+def _requires_create_flush(model: type, obj: Any) -> bool:
+    """Flush only when we need database-generated values immediately."""
+    try:
+        pk_cols = tuple(
+            getattr(getattr(model, "__table__", None), "primary_key", ()).columns
+        )
+    except Exception:
+        pk_cols = ()
+
+    if len(pk_cols) == 1:
+        pk_name = getattr(pk_cols[0], "name", None)
+        if isinstance(pk_name, str) and pk_name and getattr(obj, pk_name, None) is None:
+            return True
+
+    table_cols = getattr(getattr(model, "__table__", None), "columns", ())
+    for col in table_cols:
+        name = getattr(col, "name", None)
+        if not isinstance(name, str) or not name:
+            continue
+        if getattr(obj, name, None) is not None:
+            continue
+        if getattr(col, "server_default", None) is not None:
+            return True
+    return False
+
 
 def _ensure_model_mapped(model: type) -> None:
+    if model in _MAPPED_MODELS:
+        return
     try:
         _sa_inspect(model)
+        _MAPPED_MODELS.add(model)
         return
     except NoInspectionAvailable:
         pass
@@ -47,6 +79,7 @@ def _ensure_model_mapped(model: type) -> None:
 
     _materialize_colspecs_to_sqla(model)
     TableBase.registry.map_declaratively(model)
+    _MAPPED_MODELS.add(model)
 
 
 def _ensure_model_table(model: type, db: Union[Session, AsyncSession]) -> None:
@@ -93,8 +126,11 @@ async def create(
             TableBase.registry.map_declaratively(model)
             obj = model(**data)
             db.add(obj)
+    needs_flush = _requires_create_flush(model, obj)
+
     try:
-        await _maybe_flush(db)
+        if needs_flush:
+            await _maybe_flush(db)
     except OperationalError as exc:
         if "no such table" not in str(exc).lower():
             raise
@@ -105,7 +141,8 @@ async def create(
         _ensure_model_table(model, db)
         obj = model(**data)
         db.add(obj)
-        await _maybe_flush(db)
+        if needs_flush:
+            await _maybe_flush(db)
     logger.debug("create persisted obj=%s", obj)
     return obj
 
