@@ -50,6 +50,12 @@ class PackedPlanExecutor(ExecutorBase):
         self._program_runner_mode_cache: dict[tuple[int, int, int], Any] = {}
         self._db_acquire_cache: dict[tuple[int, int], Any] = {}
         self._model_row_serializer_cache: dict[type[Any], tuple[str, ...]] = {}
+        self._exact_route_entry_cache: dict[
+            int, dict[tuple[str, str], tuple[int, bool, Any]]
+        ] = {}
+        self._program_meta_cache: dict[
+            tuple[int, int], tuple[Any, Any, Any, Any | None, Any | None]
+        ] = {}
 
     @classmethod
     def _resolve_transport_senders(cls):
@@ -287,6 +293,79 @@ class PackedPlanExecutor(ExecutorBase):
             return meta_index
 
         return -1
+
+    def _resolve_compiled_exact_route_entries(
+        self, packed: PackedKernel
+    ) -> dict[tuple[str, str], tuple[int, bool, Any]]:
+        packed_id = id(packed)
+        cached = self._exact_route_entry_cache.get(packed_id)
+        if cached is not None:
+            return cached
+
+        route_to_program = getattr(packed, "rest_exact_route_to_program", None)
+        if not isinstance(route_to_program, Mapping):
+            compiled: dict[tuple[str, str], tuple[int, bool, Any]] = {}
+            self._exact_route_entry_cache[packed_id] = compiled
+            return compiled
+
+        hot_plans = tuple(getattr(packed, "hot_op_plans", ()) or ())
+        compiled: dict[tuple[str, str], tuple[int, bool, Any]] = {}
+        for route_key, program_id in route_to_program.items():
+            if (
+                not isinstance(route_key, tuple)
+                or len(route_key) != 2
+                or not isinstance(program_id, int)
+                or program_id < 0
+            ):
+                continue
+            method, path = route_key
+            if not (isinstance(method, str) and isinstance(path, str)):
+                continue
+            hot_op_plan = hot_plans[program_id] if program_id < len(hot_plans) else None
+            fast_direct_create = bool(
+                hot_op_plan is not None
+                and str(getattr(hot_op_plan, "target", "")).lower() == "create"
+            )
+            runner = self._resolve_program_runner_for_mode(
+                packed,
+                program_id,
+                hot_op_plan,
+                skip_dispatch=True,
+                fast_direct_create=fast_direct_create,
+            )
+            compiled[(method.upper(), path)] = (program_id, fast_direct_create, runner)
+
+        self._exact_route_entry_cache[packed_id] = compiled
+        return compiled
+
+    def _resolve_program_meta(
+        self, plan: KernelPlan, packed: PackedKernel, program_id: int
+    ) -> tuple[Any, Any, Any, Any | None, Any | None]:
+        cache_key = (id(plan), program_id)
+        cached = self._program_meta_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        hot_op_plan = (
+            packed.hot_op_plans[program_id]
+            if program_id < len(getattr(packed, "hot_op_plans", ()))
+            else None
+        )
+        if hot_op_plan is not None:
+            model = hot_op_plan.model
+            alias = hot_op_plan.alias
+            target = hot_op_plan.target
+            opview = hot_op_plan.opview
+        else:
+            meta = plan.opmeta[program_id]
+            model = getattr(meta, "model", None)
+            alias = getattr(meta, "alias", None)
+            target = getattr(meta, "target", None)
+            opview = None
+
+        resolved = (model, alias, target, opview, hot_op_plan)
+        self._program_meta_cache[cache_key] = resolved
+        return resolved
 
     @staticmethod
     def _resolve_program_id_from_exact_route(
@@ -623,16 +702,21 @@ class PackedPlanExecutor(ExecutorBase):
             ctx.temp = {}
             temp = ctx.temp
 
+        method = getattr(ctx, "method", None)
+        path = getattr(ctx, "path", None)
+        exact_entry = None
+        if isinstance(method, str) and isinstance(path, str):
+            exact_entry = self._resolve_compiled_exact_route_entries(packed).get(
+                (method.upper(), path)
+            )
+
         program_id = self._require_program_id_from_ctx(ctx)
         resolved_from_exact_route = False
-        if (
-            program_id < 0
-            and isinstance(getattr(ctx, "method", None), str)
-            and isinstance(getattr(ctx, "path", None), str)
-        ):
-            program_id = self._resolve_program_id_from_exact_route(
-                packed, str(ctx.method), str(ctx.path)
-            )
+        if program_id < 0 and exact_entry is not None:
+            program_id = exact_entry[0]
+            resolved_from_exact_route = True
+        elif program_id < 0 and isinstance(method, str) and isinstance(path, str):
+            program_id = self._resolve_program_id_from_exact_route(packed, method, path)
             resolved_from_exact_route = program_id >= 0
         if program_id < 0:
             program_id = self._resolve_program_id_from_dispatch(ctx, packed)
@@ -662,32 +746,24 @@ class PackedPlanExecutor(ExecutorBase):
         if resolved_from_exact_route:
             temp["_tigrbl_hot_exact_route"] = True
 
-        hot_op_plan = (
-            packed.hot_op_plans[program_id]
-            if program_id < len(getattr(packed, "hot_op_plans", ()))
-            else None
-        )
-        if (
-            resolved_from_exact_route
-            and hot_op_plan is not None
-            and str(getattr(hot_op_plan, "target", "")).lower() == "create"
-        ):
-            temp["_tigrbl_hot_direct_create"] = True
-
         if program_id >= len(plan.opmeta):
             await _send_json(
                 env, 404, {"detail": "No runtime operation matched request."}
             )
             return
-        if hot_op_plan is not None:
-            ctx.model = hot_op_plan.model
-            ctx.op = hot_op_plan.alias
-            ctx.target = hot_op_plan.target
-        else:
-            meta = plan.opmeta[program_id]
-            ctx.model = getattr(meta, "model", None)
-            ctx.op = getattr(meta, "alias", None)
-            ctx.target = getattr(meta, "target", None)
+        model, alias, target, hot_opview, hot_op_plan = self._resolve_program_meta(
+            plan, packed, program_id
+        )
+        ctx.model = model
+        ctx.op = alias
+        ctx.target = target
+
+        if (
+            resolved_from_exact_route
+            and exact_entry is not None
+            and exact_entry[1] is True
+        ):
+            temp["_tigrbl_hot_direct_create"] = True
         env_ref = ctx.get("env")
         if env_ref is None:
             ctx["env"] = SimpleNamespace(method=ctx.op)
@@ -705,8 +781,8 @@ class PackedPlanExecutor(ExecutorBase):
                 ctx.owns_tx = True
             except Exception:
                 release_db = None
-        if hot_op_plan is not None and hot_op_plan.opview is not None:
-            ctx.opview = hot_op_plan.opview
+        if hot_opview is not None:
+            ctx.opview = hot_opview
         else:
             app = getattr(ctx, "app", None)
             if app is not None and ctx.model is not None and isinstance(ctx.op, str):
@@ -727,16 +803,19 @@ class PackedPlanExecutor(ExecutorBase):
                 )
 
             try:
-                await self._resolve_program_runner_for_mode(
-                    packed,
-                    program_id,
-                    hot_op_plan,
-                    skip_dispatch=resolved_from_exact_route,
-                    fast_direct_create=bool(
-                        isinstance(temp, dict)
-                        and temp.get("_tigrbl_hot_direct_create") is True
-                    ),
-                )(ctx)
+                if exact_entry is not None and resolved_from_exact_route:
+                    await exact_entry[2](ctx)
+                else:
+                    await self._resolve_program_runner_for_mode(
+                        packed,
+                        program_id,
+                        hot_op_plan,
+                        skip_dispatch=resolved_from_exact_route,
+                        fast_direct_create=bool(
+                            isinstance(temp, dict)
+                            and temp.get("_tigrbl_hot_direct_create") is True
+                        ),
+                    )(ctx)
             except StatusDetailError as exc:
                 detail = (
                     exc.detail
