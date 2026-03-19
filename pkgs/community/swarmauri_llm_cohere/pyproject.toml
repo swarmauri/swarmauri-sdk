@@ -56,8 +56,10 @@ asyncio_default_fixture_loop_scope = "function"
 
 [project.entry-points.'swarmauri.llms']
 CohereModel = "swarmauri_llm_cohere.CohereModel:CohereModel"
-CohereToolModel = "swarmauri_llm_cohere.CohereToolModel:CohereToolModel"
 
+
+[project.entry-points.'swarmauri.tool_llms']
+CohereToolModel = "swarmauri_llm_cohere.CohereToolModel:CohereToolModel"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

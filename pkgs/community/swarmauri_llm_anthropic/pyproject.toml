@@ -56,8 +56,10 @@ asyncio_default_fixture_loop_scope = "function"
 
 [project.entry-points.'swarmauri.llms']
 AnthropicModel = "swarmauri_llm_anthropic.AnthropicModel:AnthropicModel"
-AnthropicToolModel = "swarmauri_llm_anthropic.AnthropicToolModel:AnthropicToolModel"
 
+
+[project.entry-points.'swarmauri.tool_llms']
+AnthropicToolModel = "swarmauri_llm_anthropic.AnthropicToolModel:AnthropicToolModel"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
