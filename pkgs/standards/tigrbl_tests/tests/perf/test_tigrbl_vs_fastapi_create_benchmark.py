@@ -5,7 +5,7 @@ import json
 import random
 import tracemalloc
 from pathlib import Path
-from statistics import mean, pstdev
+from statistics import mean, median, pstdev
 from tempfile import TemporaryDirectory
 from time import perf_counter
 from typing import Any, Callable
@@ -27,17 +27,10 @@ from tests.perf.helper_tigrbl_create_app import (
 )
 
 RESULTS_PATH = Path(__file__).with_name("benchmark_results_create_uvicorn.json")
-TIGRBL_ONLY_RESULTS_PATH = Path(__file__).with_name(
-    "benchmark_results_tigrbl_create_uvicorn.json"
-)
 SEQUENTIAL_RESULTS_PATH = Path(__file__).with_name(
     "benchmark_results_create_uvicorn_sequential_10_rounds.json"
 )
-SEQUENTIAL_STEPS_RESULTS_PATH = Path(__file__).with_name(
-    "benchmark_results_create_uvicorn_sequential_10_steps.json"
-)
 OPS_COUNT = 25
-BENCHMARK_ROUNDS = 3
 SEQUENTIAL_ROUNDS = 10
 THROUGHPUT_RATIO_TARGET = 1.25
 
@@ -47,6 +40,37 @@ def _summarize(values: list[float]) -> dict[str, float]:
         "min": min(values),
         "mean": mean(values),
         "max": max(values),
+    }
+
+
+def _quantile(values: list[float], q: float) -> float:
+    ordered = sorted(values)
+    if not ordered:
+        return 0.0
+    if len(ordered) == 1:
+        return ordered[0]
+    pos = (len(ordered) - 1) * q
+    lo = int(pos)
+    hi = min(lo + 1, len(ordered) - 1)
+    frac = pos - lo
+    return ordered[lo] * (1.0 - frac) + ordered[hi] * frac
+
+
+def _ops_summary(values: list[float]) -> dict[str, float | int]:
+    q1 = _quantile(values, 0.25)
+    q3 = _quantile(values, 0.75)
+    iqr = q3 - q1
+    low = q1 - 1.5 * iqr
+    high = q3 + 1.5 * iqr
+    outliers = sum(1 for value in values if value < low or value > high)
+    return {
+        "min": min(values),
+        "max": max(values),
+        "mean": mean(values),
+        "stddev": pstdev(values),
+        "median": median(values),
+        "iqr": iqr,
+        "outliers": outliers,
     }
 
 
@@ -135,62 +159,6 @@ async def _benchmark_app(
     }
 
 
-async def _run_pair_benchmark() -> dict[str, Any]:
-    tigrbl_result = await _benchmark_app(
-        scenario="tigrbl",
-        create_app=create_tigrbl_app,
-        endpoint_path=tigrbl_create_path(),
-        fetch_names=fetch_tigrbl_names,
-        initialize=initialize_tigrbl_app,
-    )
-    fastapi_result = await _benchmark_app(
-        scenario="fastapi",
-        create_app=create_fastapi_app,
-        endpoint_path=fastapi_create_path(),
-        fetch_names=fetch_fastapi_names,
-    )
-
-    return {
-        "results": [tigrbl_result, fastapi_result],
-        "units": {
-            "first_start_seconds": "seconds",
-            "execution_total_seconds": "seconds",
-            "ops_per_second": "operations/second",
-            "time_per_op_seconds": "seconds",
-            "memory_peak_per_op_bytes": "bytes",
-        },
-    }
-
-
-def _run_pair_benchmark_sync() -> dict[str, Any]:
-    return asyncio.run(_run_pair_benchmark())
-
-
-async def _run_tigrbl_benchmark() -> dict[str, Any]:
-    tigrbl_result = await _benchmark_app(
-        scenario="tigrbl",
-        create_app=create_tigrbl_app,
-        endpoint_path=tigrbl_create_path(),
-        fetch_names=fetch_tigrbl_names,
-        initialize=initialize_tigrbl_app,
-    )
-
-    return {
-        "results": [tigrbl_result],
-        "units": {
-            "first_start_seconds": "seconds",
-            "execution_total_seconds": "seconds",
-            "ops_per_second": "operations/second",
-            "time_per_op_seconds": "seconds",
-            "memory_peak_per_op_bytes": "bytes",
-        },
-    }
-
-
-def _run_tigrbl_benchmark_sync() -> dict[str, Any]:
-    return asyncio.run(_run_tigrbl_benchmark())
-
-
 async def _run_sequential_consistency_benchmark() -> dict[str, Any]:
     scenario_runner = {
         "tigrbl": dict(
@@ -267,18 +235,8 @@ async def _run_sequential_consistency_benchmark() -> dict[str, Any]:
             "step_count": SEQUENTIAL_ROUNDS,
             "throughput_ratio_target": THROUGHPUT_RATIO_TARGET,
             "ops_per_second": {
-                "tigrbl": {
-                    "min": min(per_scenario_ops["tigrbl"]),
-                    "mean": tigrbl_mean,
-                    "max": max(per_scenario_ops["tigrbl"]),
-                    "stddev": pstdev(per_scenario_ops["tigrbl"]),
-                },
-                "fastapi": {
-                    "min": min(per_scenario_ops["fastapi"]),
-                    "mean": fastapi_mean,
-                    "max": max(per_scenario_ops["fastapi"]),
-                    "stddev": pstdev(per_scenario_ops["fastapi"]),
-                },
+                "tigrbl": _ops_summary(per_scenario_ops["tigrbl"]),
+                "fastapi": _ops_summary(per_scenario_ops["fastapi"]),
             },
             "delta_ops_per_second_tigrbl_minus_fastapi": tigrbl_mean - fastapi_mean,
             "throughput_ratio_tigrbl_over_fastapi": throughput_ratio,
@@ -287,83 +245,47 @@ async def _run_sequential_consistency_benchmark() -> dict[str, Any]:
 
 
 @pytest.mark.perf
-@pytest.mark.benchmark(group="tigrbl_vs_fastapi_create")
-def test_tigrbl_and_fastapi_create_benchmark_and_db_integrity(benchmark: Any) -> None:
-    payload = benchmark.pedantic(
-        _run_pair_benchmark_sync,
-        iterations=1,
-        rounds=BENCHMARK_ROUNDS,
-    )
-
-    stats = getattr(benchmark, "stats", None)
-    stats_values = getattr(stats, "stats", stats)
-    payload["pytest_benchmark"] = {
-        "rounds": BENCHMARK_ROUNDS,
-        "benchmark_total_seconds": float(getattr(stats_values, "mean", 0.0)),
-        "benchmark_min_seconds": float(getattr(stats_values, "min", 0.0)),
-        "benchmark_max_seconds": float(getattr(stats_values, "max", 0.0)),
-    }
-    RESULTS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-
-    assert RESULTS_PATH.exists()
-    for scenario in payload["results"]:
-        assert scenario["ops_per_second"] > 0
-
-    assert len(payload["results"]) == 2
-
-
-@pytest.mark.perf
-@pytest.mark.benchmark(group="tigrbl_create")
-def test_tigrbl_create_benchmark_and_db_integrity(benchmark: Any) -> None:
-    payload = benchmark.pedantic(
-        _run_tigrbl_benchmark_sync,
-        iterations=1,
-        rounds=BENCHMARK_ROUNDS,
-    )
-
-    stats = getattr(benchmark, "stats", None)
-    stats_values = getattr(stats, "stats", stats)
-    payload["pytest_benchmark"] = {
-        "rounds": BENCHMARK_ROUNDS,
-        "benchmark_total_seconds": float(getattr(stats_values, "mean", 0.0)),
-        "benchmark_min_seconds": float(getattr(stats_values, "min", 0.0)),
-        "benchmark_max_seconds": float(getattr(stats_values, "max", 0.0)),
-    }
-    TIGRBL_ONLY_RESULTS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-
-    assert TIGRBL_ONLY_RESULTS_PATH.exists()
-    assert len(payload["results"]) == 1
-    assert payload["results"][0]["scenario"] == "tigrbl"
-    assert payload["results"][0]["ops_per_second"] > 0
-
-
-@pytest.mark.perf
-def test_tigrbl_vs_fastapi_sequential_10_rounds_consistency() -> None:
+def test_tigrbl_vs_fastapi_sequential_10_rounds_randomized_comparison() -> None:
     payload = asyncio.run(_run_sequential_consistency_benchmark())
+    RESULTS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     SEQUENTIAL_RESULTS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
+    summary = payload["summary"]
+    print(
+        (
+            "\n[perf] tigrbl ops/s min={t_min:.3f} max={t_max:.3f} "
+            "mean={t_mean:.3f} stddev={t_std:.3f} median={t_median:.3f} "
+            "iqr={t_iqr:.3f} outliers={t_out}\n"
+            "[perf] fastapi ops/s min={f_min:.3f} max={f_max:.3f} "
+            "mean={f_mean:.3f} stddev={f_std:.3f} median={f_median:.3f} "
+            "iqr={f_iqr:.3f} outliers={f_out}\n"
+            "[perf] delta_ops/s={delta:.3f} ratio_tigrbl_over_fastapi={ratio:.3f}"
+        ).format(
+            t_min=summary["ops_per_second"]["tigrbl"]["min"],
+            t_max=summary["ops_per_second"]["tigrbl"]["max"],
+            t_mean=summary["ops_per_second"]["tigrbl"]["mean"],
+            t_std=summary["ops_per_second"]["tigrbl"]["stddev"],
+            t_median=summary["ops_per_second"]["tigrbl"]["median"],
+            t_iqr=summary["ops_per_second"]["tigrbl"]["iqr"],
+            t_out=summary["ops_per_second"]["tigrbl"]["outliers"],
+            f_min=summary["ops_per_second"]["fastapi"]["min"],
+            f_max=summary["ops_per_second"]["fastapi"]["max"],
+            f_mean=summary["ops_per_second"]["fastapi"]["mean"],
+            f_std=summary["ops_per_second"]["fastapi"]["stddev"],
+            f_median=summary["ops_per_second"]["fastapi"]["median"],
+            f_iqr=summary["ops_per_second"]["fastapi"]["iqr"],
+            f_out=summary["ops_per_second"]["fastapi"]["outliers"],
+            delta=summary["delta_ops_per_second_tigrbl_minus_fastapi"],
+            ratio=summary["throughput_ratio_tigrbl_over_fastapi"],
+        )
+    )
+
+    assert RESULTS_PATH.exists()
     assert SEQUENTIAL_RESULTS_PATH.exists()
-    assert payload["summary"]["round_count"] == SEQUENTIAL_ROUNDS
-    assert (
-        payload["summary"]["throughput_ratio_tigrbl_over_fastapi"]
-        >= THROUGHPUT_RATIO_TARGET
-    )
-
-
-@pytest.mark.perf
-def test_tigrbl_vs_fastapi_sequential_10_steps_randomized_order() -> None:
-    payload = asyncio.run(_run_sequential_consistency_benchmark())
-    SEQUENTIAL_STEPS_RESULTS_PATH.write_text(
-        json.dumps(payload, indent=2), encoding="utf-8"
-    )
-
-    assert SEQUENTIAL_STEPS_RESULTS_PATH.exists()
-    assert payload["summary"]["step_count"] == SEQUENTIAL_ROUNDS
+    assert summary["round_count"] == SEQUENTIAL_ROUNDS
+    assert summary["step_count"] == SEQUENTIAL_ROUNDS
     assert len(payload["steps"]) == SEQUENTIAL_ROUNDS
     for step in payload["steps"]:
         assert step["order"] in (["tigrbl", "fastapi"], ["fastapi", "tigrbl"])
         assert step["throughput_ratio_tigrbl_over_fastapi"] > 0
-    assert (
-        payload["summary"]["throughput_ratio_tigrbl_over_fastapi"]
-        >= THROUGHPUT_RATIO_TARGET
-    )
+    assert summary["throughput_ratio_tigrbl_over_fastapi"] >= THROUGHPUT_RATIO_TARGET

@@ -53,6 +53,31 @@ _RUNTIME_EXECUTION_ORDER = (
 )
 
 
+def _phase_stamp(self: Any, model: type, alias: str) -> tuple[Any, ...]:
+    hooks_root = getattr(model, "hooks", None) or SimpleNamespace()
+    alias_ns = getattr(hooks_root, alias, None)
+    specs = getattr(getattr(model, "ops", SimpleNamespace()), "by_alias", {})
+    sp_list = specs.get(alias) or ()
+    sp = sp_list[0] if sp_list else None
+    phase_lists = tuple(
+        (
+            phase,
+            id(getattr(alias_ns, phase, None)),
+            len(getattr(alias_ns, phase, ()) or ()),
+        )
+        for phase in _ev.PHASES
+    )
+    return (
+        id(hooks_root),
+        id(alias_ns),
+        phase_lists,
+        id(specs),
+        id(sp_list),
+        id(sp),
+        id(self._atoms()),
+    )
+
+
 def _dedupe_consecutive_steps(steps: list[StepFn]) -> list[StepFn]:
     """Remove adjacent duplicate callables introduced by chain composition."""
     if len(steps) < 2:
@@ -101,6 +126,15 @@ def _prepend_phase_db_binding(
 def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
     from .core import DEFAULT_PHASE_ORDER
 
+    try:
+        cache = self._phase_chains.setdefault(model, {})
+    except TypeError:
+        cache = self._phase_chains_by_id.setdefault(id(model), {})
+    stamp = _phase_stamp(self, model, alias)
+    cached = cache.get(alias)
+    if cached is not None and cached[0] == stamp:
+        return cached[1]
+
     chains = _hook_phase_chains(model, alias)
     specs = getattr(getattr(model, "ops", SimpleNamespace()), "by_alias", {})
     sp_list = specs.get(alias) or ()
@@ -131,6 +165,7 @@ def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
         chains.setdefault(phase, [])
     phase_db_phases = list(DEFAULT_PHASE_ORDER)
     _prepend_phase_db_binding(chains, phase_db_phases)
+    cache[alias] = (stamp, chains)
     return chains
 
 

@@ -31,7 +31,15 @@ def model_iter(router: Any) -> Iterable[type]:
 
 
 def opspecs(model: type):
-    return getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ()) or ()
+    ops = getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ()) or ()
+    if ops:
+        return ops
+    try:
+        from tigrbl_core._spec.op_spec import _mro_collect_decorated_ops
+
+        return tuple(_mro_collect_decorated_ops(model))
+    except Exception:
+        return ()
 
 
 async def maybe_execute(db: Any, stmt: str):
