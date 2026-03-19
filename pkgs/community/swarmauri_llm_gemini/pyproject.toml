@@ -56,8 +56,10 @@ asyncio_default_fixture_loop_scope = "function"
 
 [project.entry-points.'swarmauri.llms']
 GeminiProModel = "swarmauri_llm_gemini.GeminiProModel:GeminiProModel"
-GeminiToolModel = "swarmauri_llm_gemini.GeminiToolModel:GeminiToolModel"
 
+
+[project.entry-points.'swarmauri.tool_llms']
+GeminiToolModel = "swarmauri_llm_gemini.GeminiToolModel:GeminiToolModel"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

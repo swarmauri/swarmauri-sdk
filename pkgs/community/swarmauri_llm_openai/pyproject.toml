@@ -59,8 +59,10 @@ OpenAIAudio = "swarmauri_llm_openai.OpenAIAudio:OpenAIAudio"
 OpenAIAudioTTS = "swarmauri_llm_openai.OpenAIAudioTTS:OpenAIAudioTTS"
 OpenAIModel = "swarmauri_llm_openai.OpenAIModel:OpenAIModel"
 OpenAIReasonModel = "swarmauri_llm_openai.OpenAIReasonModel:OpenAIReasonModel"
-OpenAIToolModel = "swarmauri_llm_openai.OpenAIToolModel:OpenAIToolModel"
 
+
+[project.entry-points.'swarmauri.tool_llms']
+OpenAIToolModel = "swarmauri_llm_openai.OpenAIToolModel:OpenAIToolModel"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

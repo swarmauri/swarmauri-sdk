@@ -56,8 +56,10 @@ asyncio_default_fixture_loop_scope = "function"
 
 [project.entry-points.'swarmauri.llms']
 MistralModel = "swarmauri_llm_mistral.MistralModel:MistralModel"
-MistralToolModel = "swarmauri_llm_mistral.MistralToolModel:MistralToolModel"
 
+
+[project.entry-points.'swarmauri.tool_llms']
+MistralToolModel = "swarmauri_llm_mistral.MistralToolModel:MistralToolModel"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
