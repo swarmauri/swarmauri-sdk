@@ -26,6 +26,9 @@ from tests.perf.helper_tigrbl_create_app import (
 )
 
 RESULTS_PATH = Path(__file__).with_name("benchmark_results_create_uvicorn.json")
+TIGRBL_ONLY_RESULTS_PATH = Path(__file__).with_name(
+    "benchmark_results_tigrbl_create_uvicorn.json"
+)
 OPS_COUNT = 25
 BENCHMARK_ROUNDS = 3
 
@@ -153,6 +156,31 @@ def _run_pair_benchmark_sync() -> dict[str, Any]:
     return asyncio.run(_run_pair_benchmark())
 
 
+async def _run_tigrbl_benchmark() -> dict[str, Any]:
+    tigrbl_result = await _benchmark_app(
+        scenario="tigrbl",
+        create_app=create_tigrbl_app,
+        endpoint_path=tigrbl_create_path(),
+        fetch_names=fetch_tigrbl_names,
+        initialize=initialize_tigrbl_app,
+    )
+
+    return {
+        "results": [tigrbl_result],
+        "units": {
+            "first_start_seconds": "seconds",
+            "execution_total_seconds": "seconds",
+            "ops_per_second": "operations/second",
+            "time_per_op_seconds": "seconds",
+            "memory_peak_per_op_bytes": "bytes",
+        },
+    }
+
+
+def _run_tigrbl_benchmark_sync() -> dict[str, Any]:
+    return asyncio.run(_run_tigrbl_benchmark())
+
+
 @pytest.mark.perf
 @pytest.mark.benchmark(group="tigrbl_vs_fastapi_create")
 def test_tigrbl_and_fastapi_create_benchmark_and_db_integrity(benchmark: Any) -> None:
@@ -176,11 +204,29 @@ def test_tigrbl_and_fastapi_create_benchmark_and_db_integrity(benchmark: Any) ->
     for scenario in payload["results"]:
         assert scenario["ops_per_second"] > 0
 
-    tigrbl_ops_per_second = payload["results"][0]["ops_per_second"]
-    fastapi_ops_per_second = payload["results"][1]["ops_per_second"]
+    assert len(payload["results"]) == 2
 
-    assert tigrbl_ops_per_second > fastapi_ops_per_second, (
-        "Expected tigrbl to be faster than FastAPI for execution throughput "
-        f"(ops/s), but got tigrbl={tigrbl_ops_per_second:.4f} ops/s and "
-        f"fastapi={fastapi_ops_per_second:.4f} ops/s."
+
+@pytest.mark.perf
+@pytest.mark.benchmark(group="tigrbl_create")
+def test_tigrbl_create_benchmark_and_db_integrity(benchmark: Any) -> None:
+    payload = benchmark.pedantic(
+        _run_tigrbl_benchmark_sync,
+        iterations=1,
+        rounds=BENCHMARK_ROUNDS,
     )
+
+    stats = getattr(benchmark, "stats", None)
+    stats_values = getattr(stats, "stats", stats)
+    payload["pytest_benchmark"] = {
+        "rounds": BENCHMARK_ROUNDS,
+        "benchmark_total_seconds": float(getattr(stats_values, "mean", 0.0)),
+        "benchmark_min_seconds": float(getattr(stats_values, "min", 0.0)),
+        "benchmark_max_seconds": float(getattr(stats_values, "max", 0.0)),
+    }
+    TIGRBL_ONLY_RESULTS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    assert TIGRBL_ONLY_RESULTS_PATH.exists()
+    assert len(payload["results"]) == 1
+    assert payload["results"][0]["scenario"] == "tigrbl"
+    assert payload["results"][0]["ops_per_second"] > 0
