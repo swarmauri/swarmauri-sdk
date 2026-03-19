@@ -98,7 +98,7 @@ class ColumnSpec(SerdeMixin):
         are populated with a default ColumnSpec so they participate in opviews
         and schema generation.
         """
-        logger.info("Collecting columns for %s", ColumnSpec._model_label(model))
+        logger.debug("Collecting columns for %s", ColumnSpec._model_label(model))
         out: Dict[str, ColumnSpec] = {}
         mro = getattr(model, "__mro__", ()) or ()
         for base in reversed(mro):
@@ -136,7 +136,7 @@ class ColumnSpec(SerdeMixin):
                             storage=S(), io=ColumnSpec._DEFAULT_IO
                         )
 
-        logger.info(
+        logger.debug(
             "Collected %d columns for %s", len(out), ColumnSpec._model_label(model)
         )
         return out
