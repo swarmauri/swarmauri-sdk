@@ -7,6 +7,7 @@ from ... import events as _ev
 from typing import Mapping
 
 from .._temp import _response_payload
+from .renderer import ResponseHints
 
 ANCHOR = _ev.OUT_BUILD  # run after payload is prepared, before render
 
@@ -18,8 +19,6 @@ def _run(_, ctx) -> None:
     - Honors op-specific exposure via ``io.out_verbs``.
     Complexity: O(#fields in opview).
     """
-    from tigrbl_atoms.atoms.response.renderer import ResponseHints
-
     resp = getattr(ctx, "response", None)
     if resp is None:
         return

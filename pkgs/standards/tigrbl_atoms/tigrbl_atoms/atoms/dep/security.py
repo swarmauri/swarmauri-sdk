@@ -4,6 +4,7 @@ from ...types import Atom, Ctx, GuardedCtx
 from ...stages import Planned, Guarded
 
 import inspect
+from functools import lru_cache
 from typing import Any, Callable
 
 from ._param_resolver import (
@@ -21,32 +22,81 @@ from ... import events as _ev
 ANCHOR = _ev.DEP_SECURITY
 
 
+@lru_cache(maxsize=512)
+def _signature_params(fn: Callable[..., Any]) -> tuple[tuple[Any, ...], ...]:
+    sig = inspect.signature(fn)
+    out: list[tuple[Any, ...]] = []
+    empty = inspect._empty
+    for name, param in sig.parameters.items():
+        base_annotation, extras = split_annotated(param.annotation)
+        out.append(
+            (
+                name,
+                base_annotation,
+                annotation_marker(extras, DependencyLike),
+                annotation_marker(extras, Param),
+                param.default,
+                base_annotation is empty and name.endswith("request"),
+                is_request_annotation(base_annotation)
+                or name == "request"
+                or name.lower().endswith("request"),
+            )
+        )
+    return tuple(out)
+
+
 async def invoke_dependency(router: Any, dep: Callable[..., Any], req: Any) -> Any:
     provider = getattr(router, "dependency_overrides_provider", None) or router
     overrides = getattr(provider, "dependency_overrides", {})
     dep = overrides.get(dep, dep)
+    params = _signature_params(dep)
+    if not params:
+        out = dep()
+        if inspect.isgenerator(out):
+            try:
+                value = next(out)
+            except StopIteration:
+                return None
+            cleanups = getattr(req.state, "_dependency_cleanups", None)
+            if isinstance(cleanups, list):
+                cleanups.append(out.close)
+            return value
+        if inspect.isasyncgen(out):
+            try:
+                value = await anext(out)
+            except StopAsyncIteration:
+                return None
+            cleanups = getattr(req.state, "_dependency_cleanups", None)
+            if isinstance(cleanups, list):
+                cleanups.append(out.aclose)
+            return value
+        if inspect.isawaitable(out):
+            return await out
+        return out
+
     kwargs: dict[str, Any] = {}
-
-    for name, param in inspect.signature(dep).parameters.items():
-        base_annotation, extras = split_annotated(param.annotation)
-        dependency_marker = annotation_marker(extras, DependencyLike)
-        param_marker = annotation_marker(extras, Param)
-
-        if (
-            is_request_annotation(base_annotation)
-            or name == "request"
-            or name.lower().endswith("request")
-        ):
+    path_params = req.path_params
+    query_params = req.query_params
+    for (
+        name,
+        _base_annotation,
+        dependency_marker,
+        param_marker,
+        default,
+        request_by_name,
+        request_annotation,
+    ) in params:
+        if request_annotation or request_by_name:
             kwargs[name] = req
-        elif is_dependency_like(param.default) or dependency_marker is not None:
+        elif is_dependency_like(default) or dependency_marker is not None:
             child = (
-                param.default.dependency
-                if is_dependency_like(param.default)
+                default.dependency
+                if is_dependency_like(default)
                 else dependency_marker.dependency
             )
             kwargs[name] = await invoke_dependency(router, child, req)
-        elif isinstance(param.default, Param) or param_marker is not None:
-            marker = param.default if isinstance(param.default, Param) else param_marker
+        elif isinstance(default, Param) or param_marker is not None:
+            marker = default if isinstance(default, Param) else param_marker
             value, found = extract_param_value(marker, req, name, None)
             if found:
                 kwargs[name] = value
@@ -57,12 +107,12 @@ async def invoke_dependency(router: Any, dep: Callable[..., Any], req: Any) -> A
                 )
             else:
                 kwargs[name] = marker.default
-        elif name in req.path_params:
-            kwargs[name] = req.path_params[name]
-        elif name in req.query_params:
-            kwargs[name] = req.query_params[name]
-        elif param.default is not inspect._empty:
-            kwargs[name] = param.default
+        elif name in path_params:
+            kwargs[name] = path_params[name]
+        elif name in query_params:
+            kwargs[name] = query_params[name]
+        elif default is not inspect._empty:
+            kwargs[name] = default
 
     out = dep(**kwargs)
     if inspect.isgenerator(out):

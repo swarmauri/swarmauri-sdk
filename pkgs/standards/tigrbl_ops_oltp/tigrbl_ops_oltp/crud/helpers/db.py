@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import lru_cache
 import inspect
 from typing import Any, Mapping, Sequence, Union
 
@@ -11,9 +12,14 @@ from .model import _model_columns, _single_pk_name
 logger = logging.getLogger("uvicorn")
 
 
+@lru_cache(maxsize=512)
+def _is_async_db_type(db_type: type[Any]) -> bool:
+    return db_type.__name__ == "AsyncSession" or hasattr(db_type, "run_sync")
+
+
 def _is_async_db(db: Any) -> bool:
     logger.debug("_is_async_db called with db=%s", db)
-    result = isinstance(db, AsyncSession) or hasattr(db, "run_sync")
+    result = _is_async_db_type(type(db))
     logger.debug("_is_async_db returning %s", result)
     return result
 

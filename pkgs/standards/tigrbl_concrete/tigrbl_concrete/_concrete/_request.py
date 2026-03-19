@@ -184,7 +184,24 @@ class Request(RequestBase):
         return cls(scope, app=app, state=state, receive=receive)
 
     def __post_init__(self) -> None:
-        self.headers = Headers(self.headers)
+        if not isinstance(self.headers, Headers):
+            self.headers = Headers(self.headers)
+
+    def with_path_params(self, path_params: dict[str, str]) -> "Request":
+        clone = object.__new__(type(self))
+        clone.method = self.method
+        clone.path = self.path
+        clone.headers = self.headers
+        clone.query = self.query
+        clone.path_params = path_params
+        clone.body = self.body
+        clone.script_name = self.script_name
+        clone.app = self.app
+        clone.state = self.state
+        clone.scope = self.scope
+        clone._json_cache = self._json_cache
+        clone._json_loaded = self._json_loaded
+        return clone
 
     def json(self) -> AwaitableValue:
         return AwaitableValue(self.json_sync())
