@@ -662,10 +662,16 @@ def _default_path_suffix(spec: OpSpec) -> str | None:
     return None
 
 
+def _model_resource_name(model: type) -> str:
+    model_dict = vars(model)
+    resource = model_dict.get("resource_name") or model_dict.get("__resource__")
+    if isinstance(resource, str) and resource:
+        return resource
+    return model.__name__.lower()
+
+
 def _path_for_spec(model: type, spec: OpSpec) -> str:
-    resource = getattr(model, "resource_name", None) or getattr(
-        model, "__resource__", model.__name__.lower()
-    )
+    resource = _model_resource_name(model)
     nested_prefix = (resolve_rest_nested_prefix(model) or "").rstrip("/")
     suffix = (
         spec.path_suffix if spec.path_suffix is not None else _default_path_suffix(spec)
