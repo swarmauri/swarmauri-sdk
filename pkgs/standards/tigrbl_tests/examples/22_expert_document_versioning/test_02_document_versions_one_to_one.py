@@ -95,7 +95,7 @@ async def test_document_versions_one_to_one_current_pointer() -> None:
             document.current_version = version_row
             document.version_history.append(version_row)
             db.add(version_row)
-            db.flush()
+            await db.flush()
 
         @hook_ctx(ops="update", phase="POST_HANDLER")
         async def _advance_current_version(cls, ctx) -> None:
@@ -114,7 +114,7 @@ async def test_document_versions_one_to_one_current_pointer() -> None:
             document.current_version = version_row
             document.version_history.append(version_row)
             db.add(version_row)
-            db.flush()
+            await db.flush()
 
     class DocumentVersion(TableBase, GUIDPk):
         """Version snapshots that also serve as the current pointer."""
