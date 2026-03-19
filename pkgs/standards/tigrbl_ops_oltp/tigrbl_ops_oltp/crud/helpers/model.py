@@ -68,6 +68,23 @@ def _table_python_types(model: type) -> Mapping[str, Any]:
     return resolved
 
 
+@lru_cache(maxsize=512)
+def _requires_filtering(model: type, verb: str) -> bool:
+    specs = _colspecs(model)
+    if not specs:
+        return False
+    excluded_fields = _excluded_schema_fields(model, verb)
+    if excluded_fields:
+        return True
+    for sp in specs.values():
+        io = getattr(sp, "io", None)
+        if io is None:
+            continue
+        if getattr(io, "in_verbs", ()) or getattr(io, "mutable_verbs", ()):
+            return True
+    return False
+
+
 def _pk_columns(model: type) -> Tuple[Any, ...]:
     table = getattr(model, "__table__", None)
     if table is None:
@@ -120,6 +137,8 @@ def _colspecs(model: type) -> Mapping[str, Any]:
 def _filter_in_values(
     model: type, data: Mapping[str, Any], verb: str
 ) -> Dict[str, Any]:
+    if not _requires_filtering(model, verb):
+        return dict(data)
     specs = _colspecs(model)
     if not specs:
         return dict(data)

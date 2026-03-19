@@ -26,7 +26,6 @@ from tests.perf.helper_tigrbl_create_app import (
     tigrbl_create_path,
 )
 
-RESULTS_PATH = Path(__file__).with_name("benchmark_results_create_uvicorn.json")
 SEQUENTIAL_RESULTS_PATH = Path(__file__).with_name(
     "benchmark_results_create_uvicorn_sequential_10_rounds.json"
 )
@@ -233,7 +232,6 @@ def test_tigrbl_vs_fastapi_sequential_10_rounds_randomized_comparison() -> None:
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     payload = asyncio.run(_run_sequential_consistency_benchmark())
-    RESULTS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     SEQUENTIAL_RESULTS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     summary = payload["summary"]
@@ -280,7 +278,22 @@ def test_tigrbl_vs_fastapi_sequential_10_rounds_randomized_comparison() -> None:
         )
     )
 
-    assert RESULTS_PATH.exists()
+    tigrbl_summary = summary["ops_per_second"]["tigrbl"]
+    fastapi_summary = summary["ops_per_second"]["fastapi"]
+    print(
+        (
+            "[perf] tigrbl-fastapi ops/s diffs min={min_d:.3f} max={max_d:.3f} "
+            "mean={mean_d:.3f} stddev={std_d:.3f} median={median_d:.3f} iqr={iqr_d:.3f}"
+        ).format(
+            min_d=tigrbl_summary["min"] - fastapi_summary["min"],
+            max_d=tigrbl_summary["max"] - fastapi_summary["max"],
+            mean_d=tigrbl_summary["mean"] - fastapi_summary["mean"],
+            std_d=tigrbl_summary["stddev"] - fastapi_summary["stddev"],
+            median_d=tigrbl_summary["median"] - fastapi_summary["median"],
+            iqr_d=tigrbl_summary["iqr"] - fastapi_summary["iqr"],
+        )
+    )
+
     assert SEQUENTIAL_RESULTS_PATH.exists()
     assert summary["round_count"] == SEQUENTIAL_ROUNDS
     assert summary["step_count"] == SEQUENTIAL_ROUNDS

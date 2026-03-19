@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum as _enum
+from functools import lru_cache
 from typing import Any, Mapping
 import builtins as _builtins
 import logging
@@ -10,10 +11,29 @@ from . import SAEnum
 logger = logging.getLogger("uvicorn")
 
 
+@lru_cache(maxsize=256)
+def _enum_column_names(model: type) -> frozenset[str]:
+    table = getattr(model, "__table__", None)
+    if table is None or SAEnum is None:
+        return frozenset()
+    names: set[str] = set()
+    for col in getattr(table, "columns", ()):
+        col_type = getattr(col, "type", None)
+        if col_type is not None and isinstance(col_type, SAEnum):
+            name = getattr(col, "name", None)
+            if isinstance(name, str) and name:
+                names.add(name)
+    return frozenset(names)
+
+
 def _validate_enum_values(model: type, values: Mapping[str, Any]) -> None:
     logger.debug("_validate_enum_values called with model=%s values=%s", model, values)
     if not values or SAEnum is None:
         logger.debug("_validate_enum_values no validation needed")
+        return
+
+    enum_names = _enum_column_names(model)
+    if not enum_names:
         return
 
     table = getattr(model, "__table__", None)
@@ -23,6 +43,8 @@ def _validate_enum_values(model: type, values: Mapping[str, Any]) -> None:
     get = getattr(table.c, "get", None)
 
     for key, v in values.items():
+        if key not in enum_names:
+            continue
         col = get(key) if get else None
         if col is None:
             try:
