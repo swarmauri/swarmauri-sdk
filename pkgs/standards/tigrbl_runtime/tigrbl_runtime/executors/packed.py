@@ -674,9 +674,21 @@ class PackedPlanExecutor(ExecutorBase):
             if program_id < len(getattr(packed, "hot_op_plans", ()))
             else None
         )
+        route_kind = getattr(getattr(ctx, "gw_raw", None), "kind", None)
+        if isinstance(temp, dict):
+            route_payload = temp.get("route")
+            if isinstance(route_payload, dict):
+                route_kind = route_payload.get("kind", route_kind)
+                rpc_envelope = route_payload.get("rpc_envelope")
+                if (
+                    isinstance(rpc_envelope, dict)
+                    and rpc_envelope.get("jsonrpc") == "2.0"
+                ):
+                    route_kind = "jsonrpc"
         if (
             hot_op_plan is not None
             and str(getattr(hot_op_plan, "target", "")).lower() == "create"
+            and route_kind != "jsonrpc"
         ):
             temp["_tigrbl_hot_direct_create"] = True
 
