@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+from functools import lru_cache
 from typing import Any, Callable
 
 
@@ -11,15 +12,23 @@ def _resolve_db_handle(ctx: Any) -> Any:
     return getattr(ctx, "session", None)
 
 
+@lru_cache(maxsize=64)
+def _type_is_async_db(db_type: type) -> bool:
+    for attr in ("commit", "begin", "rollback", "flush"):
+        try:
+            if inspect.iscoroutinefunction(getattr(db_type, attr, None)):
+                return True
+        except Exception:
+            continue
+    return False
+
+
 def _is_async_db(db: Any) -> bool:
     if db is None:
         return False
     if hasattr(db, "run_sync"):
         return True
-    for attr in ("commit", "begin", "rollback", "flush"):
-        if inspect.iscoroutinefunction(getattr(db, attr, None)):
-            return True
-    return False
+    return _type_is_async_db(type(db))
 
 
 def _bool_call(meth: Callable[..., Any]) -> bool:

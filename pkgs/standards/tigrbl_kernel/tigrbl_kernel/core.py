@@ -58,6 +58,7 @@ class Kernel:
         self._kernel_plans = _WeakMaybeDict()
         self._kernelz_payload = _WeakMaybeDict()
         self._primed = _WeakMaybeDict()
+        self._phase_chains = _WeakMaybeDict()
         self._lock = threading.Lock()
 
     def _atoms(self) -> list[_DiscoveredAtom]:
@@ -87,6 +88,7 @@ class Kernel:
             self._kernel_plans.pop(app, None)
             self._kernelz_payload.pop(app, None)
             self._opviews.pop(app, None)
+            self._phase_chains.pop(app, None)
             self._primed[app] = True
 
     def get_opview(self, app: Any, model: type, alias: str) -> OpView:
@@ -156,11 +158,13 @@ class Kernel:
                 self._kernelz_payload = _WeakMaybeDict()
                 self._opviews = _WeakMaybeDict()
                 self._primed = _WeakMaybeDict()
+                self._phase_chains = _WeakMaybeDict()
             else:
                 self._kernel_plans.pop(app, None)
                 self._kernelz_payload.pop(app, None)
                 self._opviews.pop(app, None)
                 self._primed.pop(app, None)
+                self._phase_chains.pop(app, None)
 
 
 Kernel._build_op = _build_op

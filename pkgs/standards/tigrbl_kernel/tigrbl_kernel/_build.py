@@ -86,6 +86,31 @@ def _phase_db_step() -> StepFn:
     return step
 
 
+def _phase_stamp(self, model: type, alias: str) -> tuple[Any, ...]:
+    hooks_root = getattr(model, "hooks", None) or SimpleNamespace()
+    alias_ns = getattr(hooks_root, alias, None)
+    specs = getattr(getattr(model, "ops", SimpleNamespace()), "by_alias", {})
+    sp_list = specs.get(alias) or ()
+    sp = sp_list[0] if sp_list else None
+    phase_lists = tuple(
+        (
+            phase,
+            id(getattr(alias_ns, phase, None)),
+            len(getattr(alias_ns, phase, ()) or ()),
+        )
+        for phase in _ev.PHASES
+    )
+    return (
+        id(hooks_root),
+        id(alias_ns),
+        phase_lists,
+        id(specs),
+        id(sp_list),
+        id(sp),
+        id(self._atoms()),
+    )
+
+
 def _prepend_phase_db_binding(
     chains: Dict[str, List[StepFn]],
     phases: tuple[str, ...] | list[str],
@@ -100,6 +125,17 @@ def _prepend_phase_db_binding(
 
 def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
     from .core import DEFAULT_PHASE_ORDER
+
+    cache: dict[str, tuple[tuple[Any, ...], Dict[str, List[StepFn]]]] | None = None
+    stamp: tuple[Any, ...] | None = None
+    try:
+        cache = self._phase_chains.setdefault(model, {})
+        stamp = _phase_stamp(self, model, alias)
+        cached = cache.get(alias)
+        if cached is not None and cached[0] == stamp:
+            return cached[1]
+    except TypeError:
+        cache = None
 
     chains = _hook_phase_chains(model, alias)
     specs = getattr(getattr(model, "ops", SimpleNamespace()), "by_alias", {})
@@ -131,6 +167,8 @@ def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
         chains.setdefault(phase, [])
     phase_db_phases = list(DEFAULT_PHASE_ORDER)
     _prepend_phase_db_binding(chains, phase_db_phases)
+    if cache is not None and stamp is not None:
+        cache[alias] = (stamp, chains)
     return chains
 
 

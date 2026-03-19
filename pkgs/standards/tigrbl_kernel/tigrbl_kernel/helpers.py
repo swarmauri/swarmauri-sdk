@@ -55,12 +55,19 @@ async def _run_chain(ctx: Any, chain: Optional[Iterable[Any]], *, phase: str) ->
     if not chain:
         return
 
+    isawaitable = inspect.isawaitable
+    trace_enabled = (
+        _trace is not None
+        and isinstance(getattr(ctx, "temp", None), dict)
+        and "__trace__" in getattr(ctx, "temp", {})
+    )
+
     for idx, step in enumerate(chain):
         label = getattr(step, "__tigrbl_label", None)
         if not isinstance(label, str) or not label:
             label = f"phase:{phase}:step:{idx}"
 
-        seq = _trace.start(ctx, label) if _trace is not None else None
+        seq = _trace.start(ctx, label) if trace_enabled else None
         before_post_response = None
         if phase == "POST_RESPONSE":
             response = getattr(ctx, "response", None)
@@ -71,10 +78,11 @@ async def _run_chain(ctx: Any, chain: Optional[Iterable[Any]], *, phase: str) ->
 
         try:
             rv = step(ctx)
-            rv = await _maybe_await(rv)
+            if isawaitable(rv):
+                rv = await rv  # type: ignore[func-returns-value]
             if rv is not None and rv is not ctx:
                 ctx.result = rv
-            if _trace is not None:
+            if trace_enabled:
                 _trace.end(ctx, seq, status=_trace.OK)
 
             if (
@@ -137,11 +145,11 @@ async def _run_chain(ctx: Any, chain: Optional[Iterable[Any]], *, phase: str) ->
                                 temp["rpc_error"] = {"message": str(exc)}
                         else:
                             temp["rpc_error"] = {"message": str(exc)}
-                if _trace is not None:
+                if trace_enabled:
                     _trace.attach_error(ctx, seq, exc)
                     _trace.end(ctx, seq, status=_trace.ERROR)
                 return
-            if _trace is not None:
+            if trace_enabled:
                 _trace.attach_error(ctx, seq, exc)
                 _trace.end(ctx, seq, status=_trace.ERROR)
             raise
