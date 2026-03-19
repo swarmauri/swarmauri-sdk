@@ -1,10 +1,15 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict
 
+
 class ISimilarityQuery(ABC):
-    
     @abstractmethod
-    def search_by_similarity_threshold(self, query_vector: List[float], similarity_threshold: float, space_name: str = None) -> List[Dict]:
+    def search_by_similarity_threshold(
+        self,
+        query_vector: List[float],
+        similarity_threshold: float,
+        space_name: str = None,
+    ) -> List[Dict]:
         """
         Search vectors exceeding a similarity threshold to a query vector within an optional vector space.
 

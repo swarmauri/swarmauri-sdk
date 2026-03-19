@@ -4,31 +4,37 @@ from functools import wraps
 from uuid import uuid4
 import inspect
 
+
 def remote_local_transport(cls):
     original_init = cls.__init__
+
     def init_wrapper(self, *args, **kwargs):
-        host = kwargs.pop('host', None)
-        resource = kwargs.get('resource', cls.__name__)
-        owner = kwargs.get('owner')
-        name = kwargs.get('name')
-        id = kwargs.get('id')
-        #path = kwargs.get('path')
+        host = kwargs.pop("host", None)
+        resource = kwargs.get("resource", cls.__name__)
+        owner = kwargs.get("owner")
+        name = kwargs.get("name")
+        id = kwargs.get("id")
+        # path = kwargs.get('path')
         if host:
-            #self.is_remote = True
+            # self.is_remote = True
             self.host = host
             self.resource = resource
             self.owner = owner
             self.id = id
-            #self.path = path
+            # self.path = path
             url = f"{host}/{owner}/{resource}/{id}"
             data = {"class_name": cls.__name__, "owner": owner, "name": name, **kwargs}
             response = requests.post(url, json=data)
             if not response.ok:
-                raise Exception(f"Failed to initialize remote {cls.__name__}: {response.text}")
+                raise Exception(
+                    f"Failed to initialize remote {cls.__name__}: {response.text}"
+                )
         else:
-            original_init(self, owner, name, **kwargs)  # Ensure proper passing of positional arguments
+            original_init(
+                self, owner, name, **kwargs
+            )  # Ensure proper passing of positional arguments
 
-    setattr(cls, '__init__', init_wrapper)
+    setattr(cls, "__init__", init_wrapper)
 
     for attr_name, attr_value in cls.__dict__.items():
         if callable(attr_value) and not attr_name.startswith("_"):
@@ -37,7 +43,11 @@ def remote_local_transport(cls):
             prop_get = attr_value.fget and method_wrapper(attr_value.fget)
             prop_set = attr_value.fset and method_wrapper(attr_value.fset)
             prop_del = attr_value.fdel and method_wrapper(attr_value.fdel)
-            setattr(cls, attr_name, property(prop_get, prop_set, prop_del, attr_value.__doc__))
+            setattr(
+                cls,
+                attr_name,
+                property(prop_get, prop_set, prop_del, attr_value.__doc__),
+            )
     return cls
 
 
@@ -45,8 +55,8 @@ def method_wrapper(method):
     @wraps(method)
     def wrapper(*args, **kwargs):
         self = args[0]
-        if getattr(self, 'host'):
-            print('[x] Executing remote call...')
+        if getattr(self, "host"):
+            print("[x] Executing remote call...")
             url = f"{self.path}".lower()
             response = requests.post(url, json={"args": args[1:], "kwargs": kwargs})
             if response.ok:
@@ -55,7 +65,9 @@ def method_wrapper(method):
                 raise Exception(f"Remote method call failed: {response.text}")
         else:
             return method(*args, **kwargs)
+
     return wrapper
+
 
 class RemoteLocalMeta(type):
     def __new__(metacls, name, bases, class_dict):
@@ -72,19 +84,22 @@ class RemoteLocalMeta(type):
                 sig = inspect.signature(attr_value)
                 sig_hash.update(str(sig).encode())
         return sig_hash.hexdigest()
-    
+
 
 class BaseComponent(metaclass=RemoteLocalMeta):
     version = "1.0.0"  # Semantic versioning initialized here
+
     def __init__(self, owner, name, host=None, members=[], resource=None):
         self.id = uuid4()
         self.owner = owner
         self.name = name
-        self.host = host  
-        #self.is_remote = bool(self.host) 
+        self.host = host
+        # self.is_remote = bool(self.host)
         self.members = members
         self.resource = resource if resource else self.__class__.__name__
-        self.path = f"{self.host if self.host else ''}/{self.owner}/{self.resource}/{self.id}"
+        self.path = (
+            f"{self.host if self.host else ''}/{self.owner}/{self.resource}/{self.id}"
+        )
 
     @property
     def is_remote(self):
@@ -97,7 +112,9 @@ class BaseComponent(metaclass=RemoteLocalMeta):
             # Retrieve the attribute
             attr_value = getattr(cls, attr_name)
             # Check if it's callable or a property and not a private method
-            if (callable(attr_value) and not attr_name.startswith("_")) or isinstance(attr_value, property):
+            if (callable(attr_value) and not attr_name.startswith("_")) or isinstance(
+                attr_value, property
+            ):
                 methods.append(attr_name)
         return methods
 
@@ -116,10 +133,10 @@ class BaseComponent(metaclass=RemoteLocalMeta):
     def method_with_signature(cls, input_signature):
         """
         Checks if there is a method with the given signature available in the class.
-        
+
         Args:
             input_signature (str): The string representation of the method signature to check.
-        
+
         Returns:
             bool: True if a method with the input signature exists, False otherwise.
         """

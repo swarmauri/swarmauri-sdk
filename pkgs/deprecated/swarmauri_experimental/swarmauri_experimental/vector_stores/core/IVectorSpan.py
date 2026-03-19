@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Any
 
+
 class IVectorSpan(ABC):
     """
     Interface for determining if a vector is within the span of a set of vectors.

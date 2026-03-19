@@ -5,14 +5,13 @@ from swarmauri.vcms.base.DeepFaceBase import DeepFaceBase
 from swarmauri.embeddings.base.VisionEmbeddingBase import VisionEmbeddingBase
 from pydantic import Field
 
+
 class DeepFaceEmbedder(DeepFaceBase, VisionEmbeddingBase):
     type: Literal["DeepFaceEmbedder"] = "DeepFaceEmbedder"
     resource: str = Field(default="Embedding", description="VCM resource")
 
     def represent(
-        self, 
-        img_path: Union[str, np.ndarray], 
-        max_faces: Optional[int] = None
+        self, img_path: Union[str, np.ndarray], max_faces: Optional[int] = None
     ) -> List[Dict[str, Any]]:
         """
         Generates embeddings for faces in the given image.
@@ -26,7 +25,7 @@ class DeepFaceEmbedder(DeepFaceBase, VisionEmbeddingBase):
         """
         try:
             result = DeepFace.represent(
-                img_path=img_path, 
+                img_path=img_path,
                 model_name=self.name,
                 detector_backend=self.detector_backend,
                 enforce_detection=self.enforce_detection,
@@ -34,7 +33,7 @@ class DeepFaceEmbedder(DeepFaceBase, VisionEmbeddingBase):
                 expand_percentage=self.expand_percentage,
                 normalization=self.normalization,
                 anti_spoofing=self.anti_spoofing,
-                max_faces=max_faces
+                max_faces=max_faces,
             )
             # Ensure the result is a list of dictionaries
             if isinstance(result, dict):

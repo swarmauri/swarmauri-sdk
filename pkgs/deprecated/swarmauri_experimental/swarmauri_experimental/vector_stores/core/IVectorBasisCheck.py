@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Any
 
+
 class IVectorBasisCheck(ABC):
     """
     Interface for checking if a given set of vectors forms a basis of the vector space.

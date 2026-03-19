@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class IChainNotifier(ABC):
     @abstractmethod
     def send_notification(self, message: str) -> None:

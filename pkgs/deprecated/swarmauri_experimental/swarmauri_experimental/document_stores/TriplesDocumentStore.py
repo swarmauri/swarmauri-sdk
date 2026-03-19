@@ -21,7 +21,7 @@ class TriplesDocumentStore(IDocumentStore, IRetriever):
         """
         self.graph = Graph()
         self.rdf_file_path = rdf_file_path
-        self.graph.parse(rdf_file_path, format='turtle')
+        self.graph.parse(rdf_file_path, format="turtle")
         self.documents = []
         self.vectorizer = AmpligraphVectorizer()
         self.model_path = model_path
@@ -42,10 +42,19 @@ class TriplesDocumentStore(IDocumentStore, IRetriever):
         triples = np.array([[str(s), str(p), str(o)] for s, p, o in self.graph])
         # Split data
         train, test = train_test_split_no_unseen(triples, test_size=0.1)
-        self.model = ComplEx(batches_count=100, seed=0, epochs=20, k=150, eta=1,
-                             optimizer='adam', optimizer_params={'lr': 1e-3},
-                             loss='pairwise', regularizer='LP', regularizer_params={'p': 3, 'lambda': 1e-5},
-                             verbose=True)
+        self.model = ComplEx(
+            batches_count=100,
+            seed=0,
+            epochs=20,
+            k=150,
+            eta=1,
+            optimizer="adam",
+            optimizer_params={"lr": 1e-3},
+            loss="pairwise",
+            regularizer="LP",
+            regularizer_params={"p": 3, "lambda": 1e-5},
+            verbose=True,
+        )
         self.model.fit(train)
         if self.model_path:
             save_model(self.model, self.model_path)
@@ -64,8 +73,16 @@ class TriplesDocumentStore(IDocumentStore, IRetriever):
         """
         Adds a single RDF triple document.
         """
-        subj, pred, obj = document.content.split()  # Splitting content into RDF components
-        self.graph.add((URIRef(subj), URIRef(pred), URIRef(obj) if obj.startswith('http') else Literal(obj)))
+        subj, pred, obj = (
+            document.content.split()
+        )  # Splitting content into RDF components
+        self.graph.add(
+            (
+                URIRef(subj),
+                URIRef(pred),
+                URIRef(obj) if obj.startswith("http") else Literal(obj),
+            )
+        )
         self.documents.append(document)
         self._train_model()
 
@@ -74,21 +91,39 @@ class TriplesDocumentStore(IDocumentStore, IRetriever):
         Adds multiple RDF triple documents.
         """
         for document in documents:
-            subj, pred, obj = document.content.split()  # Assuming each document's content is "subj pred obj"
-            self.graph.add((URIRef(subj), URIRef(pred), URIRef(obj) if obj.startswith('http') else Literal(obj)))
+            subj, pred, obj = (
+                document.content.split()
+            )  # Assuming each document's content is "subj pred obj"
+            self.graph.add(
+                (
+                    URIRef(subj),
+                    URIRef(pred),
+                    URIRef(obj) if obj.startswith("http") else Literal(obj),
+                )
+            )
         self.documents.extend(documents)
         self._train_model()
 
     # Implementation for get_document, get_all_documents, delete_document, update_document remains same as before
-    
+
     def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
         """
         Retrieve documents similar to the query string.
         """
         if not self.model:
             self._train_model()
-        query_vector = self.vectorizer.infer_vector(model=self.model, samples=[query])[0]
-        document_vectors = [self.vectorizer.infer_vector(model=self.model, samples=[doc.content])[0] for doc in self.documents]
-        similarities = self.metric.distances(SimpleVector(data=query_vector), [SimpleVector(vector) for vector in document_vectors])
-        top_k_indices = sorted(range(len(similarities)), key=lambda i: similarities[i])[:top_k]
+        query_vector = self.vectorizer.infer_vector(model=self.model, samples=[query])[
+            0
+        ]
+        document_vectors = [
+            self.vectorizer.infer_vector(model=self.model, samples=[doc.content])[0]
+            for doc in self.documents
+        ]
+        similarities = self.metric.distances(
+            SimpleVector(data=query_vector),
+            [SimpleVector(vector) for vector in document_vectors],
+        )
+        top_k_indices = sorted(range(len(similarities)), key=lambda i: similarities[i])[
+            :top_k
+        ]
         return [self.documents[i] for i in top_k_indices]

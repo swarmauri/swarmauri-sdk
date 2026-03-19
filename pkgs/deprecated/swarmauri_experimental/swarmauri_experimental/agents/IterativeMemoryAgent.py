@@ -11,7 +11,9 @@ from swarmauri.chunkers.MdSnippetChunker import MdSnippetChunker
 from swarmauri.distances.EuclideanDistance import EuclideanDistance
 
 from swarmauri.messages.HumanMessage import HumanMessage
-from swarmauri.conversations.MaxSystemContextConversation import MaxSystemContextConversation
+from swarmauri.conversations.MaxSystemContextConversation import (
+    MaxSystemContextConversation,
+)
 from swarmauri.conversations.SessionCacheConversation import SessionCacheConversation
 from swarmauri.messages.SystemMessage import SystemMessage
 from swarmauri.prompts.PromptTemplate import PromptTemplate
@@ -30,24 +32,35 @@ from swarmauri_base.agents.AgentSystemContextMixin import AgentSystemContextMixi
 from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase
 from swarmauri_core.messages.IMessage import IMessage
 
-@ComponentBase.register_type(AgentBase, 'IterativeMemoryAgent')
-class IterativeMemoryAgent(AgentRetrieveMixin, 
-                  AgentVectorStoreMixin, 
-                  AgentSystemContextMixin, 
-                  AgentConversationMixin, 
-                  AgentBase):
+
+@ComponentBase.register_type(AgentBase, "IterativeMemoryAgent")
+class IterativeMemoryAgent(
+    AgentRetrieveMixin,
+    AgentVectorStoreMixin,
+    AgentSystemContextMixin,
+    AgentConversationMixin,
+    AgentBase,
+):
     """
     A subclass of AgentBase that integrates the RAG workflow and additional capabilities.
     """
+
     llm: SubclassUnion[LLMBase]
     vector_store: SubclassUnion[VectorStoreBase]
-    conversation: Union[MaxSystemContextConversation, SessionCacheConversation] = MaxSystemContextConversation(max_size=3)
+    conversation: Union[MaxSystemContextConversation, SessionCacheConversation] = (
+        MaxSystemContextConversation(max_size=3)
+    )
     system_context: Union[SystemMessage, str] = SystemMessage(content="")
-    chunker: SubclassUnion[ChunkerBase] = MdSnippetChunker() 
+    chunker: SubclassUnion[ChunkerBase] = MdSnippetChunker()
     prompt_template: SubclassUnion[PromptTemplateBase] = PromptTemplate()
-    type: Literal['IterativeMemoryAgent'] = 'IterativeMemoryAgent'
+    type: Literal["IterativeMemoryAgent"] = "IterativeMemoryAgent"
 
-    def exec(self, input_data: Optional[Union[Dict, str]] = "", folder_path: str = "", llm_kwargs: Optional[Dict] = {}) -> Any:
+    def exec(
+        self,
+        input_data: Optional[Union[Dict, str]] = "",
+        folder_path: str = "",
+        llm_kwargs: Optional[Dict] = {},
+    ) -> Any:
         try:
             # Reload vector store and documents
             self.reload(folder_path)
@@ -56,7 +69,9 @@ class IterativeMemoryAgent(AgentRetrieveMixin,
             if isinstance(input_data, str):
                 input_data = json.loads(input_data)
             elif not isinstance(input_data, dict):
-                raise ValueError("Input must be a dictionary or a JSON string representing a dictionary.")
+                raise ValueError(
+                    "Input must be a dictionary or a JSON string representing a dictionary."
+                )
 
             # Propagate the template
             filled_prompt = self.propagate_template(input_data)
@@ -78,23 +93,24 @@ class IterativeMemoryAgent(AgentRetrieveMixin,
 
     def _create_preamble_context(self):
         substr = self.system_context.content
-        substr += '\n\n'
-        substr += '\n'.join([doc.content for doc in self.last_retrieved])
+        substr += "\n\n"
+        substr += "\n".join([doc.content for doc in self.last_retrieved])
         return substr
 
     def _create_post_context(self):
-        substr = '\n'.join([doc.content for doc in self.last_retrieved])
-        substr += '\n\n'
+        substr = "\n".join([doc.content for doc in self.last_retrieved])
+        substr += "\n\n"
         substr += self.system_context.content
         return substr
 
-    def _exec(self, 
-             input_data: Optional[Union[str, IMessage]] = "", 
-             top_k: int = 5, 
-             preamble: bool = True,
-             fixed: bool = False,
-             llm_kwargs: Optional[Dict] = {}
-             ) -> Any:
+    def _exec(
+        self,
+        input_data: Optional[Union[str, IMessage]] = "",
+        top_k: int = 5,
+        preamble: bool = True,
+        fixed: bool = False,
+        llm_kwargs: Optional[Dict] = {},
+    ) -> Any:
         try:
             # Check if the input is a string, then wrap it in a HumanMessage
             if isinstance(input_data, str):
@@ -102,14 +118,18 @@ class IterativeMemoryAgent(AgentRetrieveMixin,
             elif isinstance(input_data, IMessage):
                 human_message = input_data
             else:
-                raise TypeError("Input data must be a string or an instance of Message.")
-            
+                raise TypeError(
+                    "Input data must be a string or an instance of Message."
+                )
+
             # Add the human message to the conversation
             self.conversation.add_message(human_message)
 
             # Retrieval and set new substr for system context
             if top_k > 0 and len(self.vector_store.documents) > 0:
-                self.last_retrieved = self.vector_store.retrieve(query=input_data, top_k=top_k)
+                self.last_retrieved = self.vector_store.retrieve(
+                    query=input_data, top_k=top_k
+                )
 
                 if preamble:
                     substr = self._create_preamble_context()
@@ -125,18 +145,17 @@ class IterativeMemoryAgent(AgentRetrieveMixin,
                 else:
                     substr = self.system_context.content
                     self.last_retrieved = []
-                
+
             # Use substr to set system context
             system_context = SystemMessage(content=substr)
             self.conversation.system_context = system_context
-            
 
             # Retrieve the conversation history and predict a response
             if llm_kwargs:
                 self.llm.predict(conversation=self.conversation, **llm_kwargs)
             else:
                 self.llm.predict(conversation=self.conversation)
-                
+
             return self.conversation.get_last().content
 
         except Exception as e:
@@ -150,7 +169,7 @@ class IterativeMemoryAgent(AgentRetrieveMixin,
         self.vector_store = Doc2VecVectorStore()
         self.vector_store._distance = EuclideanDistance()
         self.vector_store._embedder = Doc2VecEmbedding()
-        
+
         self.load_documents_from_folder(folder_path)
 
     def propagate_template(self, input_data: Dict) -> str:
@@ -180,13 +199,13 @@ class IterativeMemoryAgent(AgentRetrieveMixin,
         Writes the content to a file at the specified location.
         """
         try:
-            filename = component['FILE_NAME']
+            filename = component["FILE_NAME"]
             os.makedirs(root_folder, exist_ok=True)
             file_path = os.path.join(root_folder, filename)
-            
+
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            
-            with open(file_path, 'w', encoding='utf-8') as file:
+
+            with open(file_path, "w", encoding="utf-8") as file:
                 file.write(content)
 
             print(f"File successfully written to {file_path}")
@@ -198,7 +217,7 @@ class IterativeMemoryAgent(AgentRetrieveMixin,
     def load_documents_from_folder(self, folder_path: str):
         """Recursively walks through a folder and loads documents from all files."""
         documents = []
-        
+
         # Traverse through all directories and files
         for root, _, files in os.walk(folder_path):
             for file_name in files:
@@ -206,10 +225,14 @@ class IterativeMemoryAgent(AgentRetrieveMixin,
                 try:
                     with open(file_path, "r", encoding="utf-8") as f:
                         file_content = f.read()
-                        document = Document(content=file_content, metadata={"filepath": file_path})
+                        document = Document(
+                            content=file_content, metadata={"filepath": file_path}
+                        )
                         documents.append(document)
                 except json.JSONDecodeError:
                     print(f"Skipping invalid JSON file: {file_name}")
         # Add all loaded documents to the vector store
         self.vector_store.add_documents(documents)
-        print(f"Successfully loaded {len(documents)} documents from folder into the vector store.")
+        print(
+            f"Successfully loaded {len(documents)} documents from folder into the vector store."
+        )

@@ -6,24 +6,32 @@ from deepface import DeepFace
 from swarmauri.vcms.base.DeepFaceBase import DeepFaceBase
 from swarmauri.vector_stores.base.VisionVectorStoreBase import VisionVectorStoreBase
 
+
 class DeepFaceVectorStore(DeepFaceBase, VisionVectorStoreBase):
     """
     A class to handle vector store operations using DeepFace models.
     Inherits common DeepFace settings from DeepFaceBase.
     """
-    
+
     type: Literal["DeepFaceVectorStore"] = "DeepFaceVectorStore"
     resource: str = Field(default="VectorStore", description="VCM resource")
+
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)  
+        super().__init__(**kwargs)
 
     distance_metric: str = Field(
         default=DeepFaceBase.DEFAULT_DISTANCE_METRIC,
-        description="Distance metric to use for comparison."
-        )
-    def find(self, img_path: Union[str, np.ndarray], db_path: str,
-             threshold: float = None, silent: bool = False,
-             refresh_database: bool = True) -> List[pd.DataFrame]:
+        description="Distance metric to use for comparison.",
+    )
+
+    def find(
+        self,
+        img_path: Union[str, np.ndarray],
+        db_path: str,
+        threshold: float = None,
+        silent: bool = False,
+        refresh_database: bool = True,
+    ) -> List[pd.DataFrame]:
         """
         Finds matching faces in the database for the given image.
 
@@ -37,7 +45,7 @@ class DeepFaceVectorStore(DeepFaceBase, VisionVectorStoreBase):
         Returns:
             List[pd.DataFrame]: List of DataFrames containing results.
         """
-        
+
         try:
             result = DeepFace.find(
                 img_path=img_path,
@@ -52,7 +60,7 @@ class DeepFaceVectorStore(DeepFaceBase, VisionVectorStoreBase):
                 threshold=threshold,
                 silent=silent,
                 refresh_database=refresh_database,
-                anti_spoofing=self.anti_spoofing
+                anti_spoofing=self.anti_spoofing,
             )
             return result
         except Exception as e:

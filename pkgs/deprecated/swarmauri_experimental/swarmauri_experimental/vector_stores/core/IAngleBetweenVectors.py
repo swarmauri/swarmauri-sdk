@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+
 class IAngleBetweenVectors(ABC):
     """
     Interface for calculating the angle between two vectors.

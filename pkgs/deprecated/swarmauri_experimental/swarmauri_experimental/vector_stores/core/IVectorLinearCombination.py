@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Any
 
+
 class ILinearCombination(ABC):
     """
     Interface for creating a vector as a linear combination of a set of vectors.
