@@ -1,0 +1,587 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "order": [
+        "tigrbl",
+        "fastapi"
+      ],
+      "results": [
+        {
+          "scenario": "tigrbl",
+          "ops": 25,
+          "first_start_seconds": 0.16597038300005806,
+          "execution_total_seconds": 0.6002019820000442,
+          "ops_per_second": 41.652644859140366,
+          "time_per_op_seconds": {
+            "min": 0.021924914000010176,
+            "mean": 0.02358429819997582,
+            "max": 0.026113484999996217
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 17854.04,
+            "max": 310635.0
+          }
+        },
+        {
+          "scenario": "fastapi",
+          "ops": 25,
+          "first_start_seconds": 0.054022200999952474,
+          "execution_total_seconds": 0.8698177979999855,
+          "ops_per_second": 28.741651478601288,
+          "time_per_op_seconds": {
+            "min": 0.021080235999988872,
+            "mean": 0.02364099731999886,
+            "max": 0.030021543999964706
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 19124.28,
+            "max": 357260.0
+          }
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "order": [
+        "tigrbl",
+        "fastapi"
+      ],
+      "results": [
+        {
+          "scenario": "tigrbl",
+          "ops": 25,
+          "first_start_seconds": 0.16034299800003282,
+          "execution_total_seconds": 0.6283017630000813,
+          "ops_per_second": 39.78979762945017,
+          "time_per_op_seconds": {
+            "min": 0.022755103999998028,
+            "mean": 0.024732327640058428,
+            "max": 0.02799885300009919
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 18643.56,
+            "max": 308187.0
+          }
+        },
+        {
+          "scenario": "fastapi",
+          "ops": 25,
+          "first_start_seconds": 0.05353930599994783,
+          "execution_total_seconds": 1.0315078669998456,
+          "ops_per_second": 24.23636387060511,
+          "time_per_op_seconds": {
+            "min": 0.02474394600017149,
+            "mean": 0.030086189240018938,
+            "max": 0.037396297999976014
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 19280.96,
+            "max": 346601.0
+          }
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "order": [
+        "fastapi",
+        "tigrbl"
+      ],
+      "results": [
+        {
+          "scenario": "fastapi",
+          "ops": 25,
+          "first_start_seconds": 0.05420135300005313,
+          "execution_total_seconds": 0.934503962000008,
+          "ops_per_second": 26.752160522139967,
+          "time_per_op_seconds": {
+            "min": 0.022394466000150715,
+            "mean": 0.026102099199970325,
+            "max": 0.03259386199988512
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 19545.28,
+            "max": 347273.0
+          }
+        },
+        {
+          "scenario": "tigrbl",
+          "ops": 25,
+          "first_start_seconds": 0.2480293779999556,
+          "execution_total_seconds": 0.6270637060001718,
+          "ops_per_second": 39.868357490288474,
+          "time_per_op_seconds": {
+            "min": 0.023269205000133297,
+            "mean": 0.024689172759999566,
+            "max": 0.026622766000173215
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 20158.12,
+            "max": 312194.0
+          }
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "order": [
+        "fastapi",
+        "tigrbl"
+      ],
+      "results": [
+        {
+          "scenario": "fastapi",
+          "ops": 25,
+          "first_start_seconds": 0.05369672000006176,
+          "execution_total_seconds": 0.9031641669998862,
+          "ops_per_second": 27.680460445020234,
+          "time_per_op_seconds": {
+            "min": 0.02285668399986207,
+            "mean": 0.024960495360001004,
+            "max": 0.029623997000044255
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 18677.88,
+            "max": 346978.0
+          }
+        },
+        {
+          "scenario": "tigrbl",
+          "ops": 25,
+          "first_start_seconds": 0.1519856150000578,
+          "execution_total_seconds": 0.6141047659998549,
+          "ops_per_second": 40.709666141893955,
+          "time_per_op_seconds": {
+            "min": 0.021735967000040546,
+            "mean": 0.024184651720006514,
+            "max": 0.027299982999920758
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 19954.52,
+            "max": 308362.0
+          }
+        }
+      ]
+    },
+    {
+      "round": 5,
+      "order": [
+        "fastapi",
+        "tigrbl"
+      ],
+      "results": [
+        {
+          "scenario": "fastapi",
+          "ops": 25,
+          "first_start_seconds": 0.05400667000003523,
+          "execution_total_seconds": 0.8843641199998729,
+          "ops_per_second": 28.268899014134128,
+          "time_per_op_seconds": {
+            "min": 0.021737323000024844,
+            "mean": 0.024308565000010277,
+            "max": 0.029565368000021408
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 18588.76,
+            "max": 346681.0
+          }
+        },
+        {
+          "scenario": "tigrbl",
+          "ops": 25,
+          "first_start_seconds": 0.15396926099992925,
+          "execution_total_seconds": 0.6395641320000323,
+          "ops_per_second": 39.08912140182173,
+          "time_per_op_seconds": {
+            "min": 0.023175728000069284,
+            "mean": 0.02517793647999497,
+            "max": 0.033445323000023564
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 20608.2,
+            "max": 312490.0
+          }
+        }
+      ]
+    },
+    {
+      "round": 6,
+      "order": [
+        "tigrbl",
+        "fastapi"
+      ],
+      "results": [
+        {
+          "scenario": "tigrbl",
+          "ops": 25,
+          "first_start_seconds": 0.15809495899998183,
+          "execution_total_seconds": 0.6052668560000711,
+          "ops_per_second": 41.30409546165049,
+          "time_per_op_seconds": {
+            "min": 0.021886391999942134,
+            "mean": 0.0238174782400165,
+            "max": 0.027054597999949692
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 17374.72,
+            "max": 310457.0
+          }
+        },
+        {
+          "scenario": "fastapi",
+          "ops": 25,
+          "first_start_seconds": 0.054002166999907786,
+          "execution_total_seconds": 0.8640501339998536,
+          "ops_per_second": 28.93350630509159,
+          "time_per_op_seconds": {
+            "min": 0.021072803999913958,
+            "mean": 0.02346434307997697,
+            "max": 0.028003650999835372
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 21542.56,
+            "max": 347097.0
+          }
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "order": [
+        "tigrbl",
+        "fastapi"
+      ],
+      "results": [
+        {
+          "scenario": "tigrbl",
+          "ops": 25,
+          "first_start_seconds": 0.16775674199993773,
+          "execution_total_seconds": 0.6040846149999197,
+          "ops_per_second": 41.38493081801681,
+          "time_per_op_seconds": {
+            "min": 0.021798784999873533,
+            "mean": 0.023753544600012902,
+            "max": 0.026579413000035856
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 18133.44,
+            "max": 312410.0
+          }
+        },
+        {
+          "scenario": "fastapi",
+          "ops": 25,
+          "first_start_seconds": 0.05428954000012709,
+          "execution_total_seconds": 0.8646764070001609,
+          "ops_per_second": 28.91255017207304,
+          "time_per_op_seconds": {
+            "min": 0.021465163000129905,
+            "mean": 0.023525290640018282,
+            "max": 0.02695922300017628
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 18278.16,
+            "max": 346761.0
+          }
+        }
+      ]
+    },
+    {
+      "round": 8,
+      "order": [
+        "tigrbl",
+        "fastapi"
+      ],
+      "results": [
+        {
+          "scenario": "tigrbl",
+          "ops": 25,
+          "first_start_seconds": 0.2530248399998527,
+          "execution_total_seconds": 0.610770508999849,
+          "ops_per_second": 40.93190426128807,
+          "time_per_op_seconds": {
+            "min": 0.02282037500003753,
+            "mean": 0.02402120255999762,
+            "max": 0.025785495000036462
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 24701.92,
+            "max": 352393.0
+          }
+        },
+        {
+          "scenario": "fastapi",
+          "ops": 25,
+          "first_start_seconds": 0.05401246299993545,
+          "execution_total_seconds": 0.8316711520001263,
+          "ops_per_second": 30.05995812151989,
+          "time_per_op_seconds": {
+            "min": 0.020908609000116485,
+            "mean": 0.022266738199996326,
+            "max": 0.026373006000085297
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 19709.12,
+            "max": 375898.0
+          }
+        }
+      ]
+    },
+    {
+      "round": 9,
+      "order": [
+        "fastapi",
+        "tigrbl"
+      ],
+      "results": [
+        {
+          "scenario": "fastapi",
+          "ops": 25,
+          "first_start_seconds": 0.05339623300005769,
+          "execution_total_seconds": 0.8414398229999733,
+          "ops_per_second": 29.710977917431883,
+          "time_per_op_seconds": {
+            "min": 0.0205345510000825,
+            "mean": 0.022604313200008618,
+            "max": 0.02606738199983738
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 18503.52,
+            "max": 346361.0
+          }
+        },
+        {
+          "scenario": "tigrbl",
+          "ops": 25,
+          "first_start_seconds": 0.1585520189998988,
+          "execution_total_seconds": 0.6134189650001645,
+          "ops_per_second": 40.755179455518295,
+          "time_per_op_seconds": {
+            "min": 0.02285272700009955,
+            "mean": 0.024144566920012947,
+            "max": 0.030993953999995938
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 23067.12,
+            "max": 307618.0
+          }
+        }
+      ]
+    },
+    {
+      "round": 10,
+      "order": [
+        "tigrbl",
+        "fastapi"
+      ],
+      "results": [
+        {
+          "scenario": "tigrbl",
+          "ops": 25,
+          "first_start_seconds": 0.1567630699998972,
+          "execution_total_seconds": 0.5917906920001315,
+          "ops_per_second": 42.24466578800879,
+          "time_per_op_seconds": {
+            "min": 0.02149352100013857,
+            "mean": 0.02328367343998252,
+            "max": 0.025926690000005692
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 17704.08,
+            "max": 310170.0
+          }
+        },
+        {
+          "scenario": "fastapi",
+          "ops": 25,
+          "first_start_seconds": 0.0540159219999623,
+          "execution_total_seconds": 0.8866449189999912,
+          "ops_per_second": 28.196180302027138,
+          "time_per_op_seconds": {
+            "min": 0.022390527999959886,
+            "mean": 0.024398560999979963,
+            "max": 0.0308609979999801
+          },
+          "memory_peak_per_op_bytes": {
+            "min": 0.0,
+            "mean": 17966.52,
+            "max": 346560.0
+          }
+        }
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "order": [
+        "tigrbl",
+        "fastapi"
+      ],
+      "ops_per_second": {
+        "tigrbl": 41.652644859140366,
+        "fastapi": 28.741651478601288
+      },
+      "delta_ops_per_second_tigrbl_minus_fastapi": 12.910993380539079,
+      "throughput_ratio_tigrbl_over_fastapi": 1.4492084732901156
+    },
+    {
+      "step": 2,
+      "order": [
+        "tigrbl",
+        "fastapi"
+      ],
+      "ops_per_second": {
+        "tigrbl": 39.78979762945017,
+        "fastapi": 24.23636387060511
+      },
+      "delta_ops_per_second_tigrbl_minus_fastapi": 15.55343375884506,
+      "throughput_ratio_tigrbl_over_fastapi": 1.6417395712443863
+    },
+    {
+      "step": 3,
+      "order": [
+        "fastapi",
+        "tigrbl"
+      ],
+      "ops_per_second": {
+        "tigrbl": 39.868357490288474,
+        "fastapi": 26.752160522139967
+      },
+      "delta_ops_per_second_tigrbl_minus_fastapi": 13.116196968148508,
+      "throughput_ratio_tigrbl_over_fastapi": 1.490285521324291
+    },
+    {
+      "step": 4,
+      "order": [
+        "fastapi",
+        "tigrbl"
+      ],
+      "ops_per_second": {
+        "tigrbl": 40.709666141893955,
+        "fastapi": 27.680460445020234
+      },
+      "delta_ops_per_second_tigrbl_minus_fastapi": 13.02920569687372,
+      "throughput_ratio_tigrbl_over_fastapi": 1.470700468395485
+    },
+    {
+      "step": 5,
+      "order": [
+        "fastapi",
+        "tigrbl"
+      ],
+      "ops_per_second": {
+        "tigrbl": 39.08912140182173,
+        "fastapi": 28.268899014134128
+      },
+      "delta_ops_per_second_tigrbl_minus_fastapi": 10.8202223876876,
+      "throughput_ratio_tigrbl_over_fastapi": 1.3827606580036107
+    },
+    {
+      "step": 6,
+      "order": [
+        "tigrbl",
+        "fastapi"
+      ],
+      "ops_per_second": {
+        "tigrbl": 41.30409546165049,
+        "fastapi": 28.93350630509159
+      },
+      "delta_ops_per_second_tigrbl_minus_fastapi": 12.3705891565589,
+      "throughput_ratio_tigrbl_over_fastapi": 1.4275523687352742
+    },
+    {
+      "step": 7,
+      "order": [
+        "tigrbl",
+        "fastapi"
+      ],
+      "ops_per_second": {
+        "tigrbl": 41.38493081801681,
+        "fastapi": 28.91255017207304
+      },
+      "delta_ops_per_second_tigrbl_minus_fastapi": 12.472380645943772,
+      "throughput_ratio_tigrbl_over_fastapi": 1.4313829313469202
+    },
+    {
+      "step": 8,
+      "order": [
+        "tigrbl",
+        "fastapi"
+      ],
+      "ops_per_second": {
+        "tigrbl": 40.93190426128807,
+        "fastapi": 30.05995812151989
+      },
+      "delta_ops_per_second_tigrbl_minus_fastapi": 10.871946139768177,
+      "throughput_ratio_tigrbl_over_fastapi": 1.361675358821773
+    },
+    {
+      "step": 9,
+      "order": [
+        "fastapi",
+        "tigrbl"
+      ],
+      "ops_per_second": {
+        "tigrbl": 40.755179455518295,
+        "fastapi": 29.710977917431883
+      },
+      "delta_ops_per_second_tigrbl_minus_fastapi": 11.044201538086412,
+      "throughput_ratio_tigrbl_over_fastapi": 1.3717212394953386
+    },
+    {
+      "step": 10,
+      "order": [
+        "tigrbl",
+        "fastapi"
+      ],
+      "ops_per_second": {
+        "tigrbl": 42.24466578800879,
+        "fastapi": 28.196180302027138
+      },
+      "delta_ops_per_second_tigrbl_minus_fastapi": 14.04848548598165,
+      "throughput_ratio_tigrbl_over_fastapi": 1.4982407310316301
+    }
+  ],
+  "summary": {
+    "round_count": 10,
+    "step_count": 10,
+    "throughput_ratio_target": 1.25,
+    "ops_per_second": {
+      "tigrbl": {
+        "min": 39.08912140182173,
+        "mean": 40.77303633070771,
+        "max": 42.24466578800879,
+        "stddev": 0.9080852598138235
+      },
+      "fastapi": {
+        "min": 24.23636387060511,
+        "mean": 28.149270814864426,
+        "max": 30.05995812151989,
+        "stddev": 1.5854728973859864
+      }
+    },
+    "delta_ops_per_second_tigrbl_minus_fastapi": 12.623765515843285,
+    "throughput_ratio_tigrbl_over_fastapi": 1.4484579937742903
+  }
+}

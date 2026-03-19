@@ -55,6 +55,7 @@ class Kernel:
         self._atoms_cache = list(atoms) if atoms else None
         self._specs_cache = _SpecsOnceCache()
         self._opviews = _WeakMaybeDict()
+        self._phase_chains = _WeakMaybeDict()
         self._kernel_plans = _WeakMaybeDict()
         self._kernelz_payload = _WeakMaybeDict()
         self._primed = _WeakMaybeDict()
@@ -76,6 +77,10 @@ class Kernel:
 
     def invalidate_specs(self, model: Optional[type] = None) -> None:
         self._specs_cache.invalidate(model)
+        if model is None:
+            self._phase_chains = _WeakMaybeDict()
+        else:
+            self._phase_chains.pop(model, None)
 
     def ensure_primed(self, app: Any) -> None:
         if self._primed.get(app):
@@ -87,6 +92,7 @@ class Kernel:
             self._kernel_plans.pop(app, None)
             self._kernelz_payload.pop(app, None)
             self._opviews.pop(app, None)
+            self._phase_chains.pop(app, None)
             self._primed[app] = True
 
     def get_opview(self, app: Any, model: type, alias: str) -> OpView:
@@ -155,11 +161,13 @@ class Kernel:
                 self._kernel_plans = _WeakMaybeDict()
                 self._kernelz_payload = _WeakMaybeDict()
                 self._opviews = _WeakMaybeDict()
+                self._phase_chains = _WeakMaybeDict()
                 self._primed = _WeakMaybeDict()
             else:
                 self._kernel_plans.pop(app, None)
                 self._kernelz_payload.pop(app, None)
                 self._opviews.pop(app, None)
+                self._phase_chains.pop(app, None)
                 self._primed.pop(app, None)
 
 

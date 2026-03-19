@@ -99,6 +99,17 @@ def _prepend_phase_db_binding(
 
 
 def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
+    cacheable = True
+    try:
+        cache_bucket = self._phase_chains.get(model)
+    except TypeError:
+        cache_bucket = None
+        cacheable = False
+    if isinstance(cache_bucket, dict):
+        cached = cache_bucket.get(alias)
+        if isinstance(cached, dict):
+            return {phase: list(steps) for phase, steps in cached.items()}
+
     from .core import DEFAULT_PHASE_ORDER
 
     chains = _hook_phase_chains(model, alias)
@@ -131,6 +142,13 @@ def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
         chains.setdefault(phase, [])
     phase_db_phases = list(DEFAULT_PHASE_ORDER)
     _prepend_phase_db_binding(chains, phase_db_phases)
+    if cacheable:
+        try:
+            self._phase_chains.setdefault(model, {})[alias] = {
+                phase: list(steps) for phase, steps in chains.items()
+            }
+        except TypeError:
+            pass
     return chains
 
 

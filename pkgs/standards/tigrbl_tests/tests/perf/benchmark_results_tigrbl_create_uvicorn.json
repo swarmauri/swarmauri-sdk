@@ -1,0 +1,34 @@
+{
+  "results": [
+    {
+      "scenario": "tigrbl",
+      "ops": 25,
+      "first_start_seconds": 0.14763069000014184,
+      "execution_total_seconds": 0.6516977810001663,
+      "ops_per_second": 38.36133976339812,
+      "time_per_op_seconds": {
+        "min": 0.023631696999927954,
+        "mean": 0.02553779623999617,
+        "max": 0.03666718799991031
+      },
+      "memory_peak_per_op_bytes": {
+        "min": 0.0,
+        "mean": 18145.16,
+        "max": 311971.0
+      }
+    }
+  ],
+  "units": {
+    "first_start_seconds": "seconds",
+    "execution_total_seconds": "seconds",
+    "ops_per_second": "operations/second",
+    "time_per_op_seconds": "seconds",
+    "memory_peak_per_op_bytes": "bytes"
+  },
+  "pytest_benchmark": {
+    "rounds": 3,
+    "benchmark_total_seconds": 0.9732782503332752,
+    "benchmark_min_seconds": 0.9394654599998375,
+    "benchmark_max_seconds": 1.018898795000041
+  }
+}
