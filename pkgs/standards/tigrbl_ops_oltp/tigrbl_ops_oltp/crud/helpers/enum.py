@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import lru_cache
 from typing import Any, Mapping
 import builtins as _builtins
 import logging
@@ -9,30 +10,37 @@ from . import SAEnum
 logger = logging.getLogger("uvicorn")
 
 
+@lru_cache(maxsize=512)
+def _enum_columns(model: type) -> dict[str, Any]:
+    table = getattr(model, "__table__", None)
+    if table is None:
+        return {}
+    columns = getattr(table, "c", None)
+    if columns is None:
+        return {}
+    out: dict[str, Any] = {}
+    for col in columns:
+        col_type = getattr(col, "type", None)
+        if col_type is not None and isinstance(col_type, SAEnum):
+            name = getattr(col, "name", None)
+            if isinstance(name, str) and name:
+                out[name] = col_type
+    return out
+
+
 def _validate_enum_values(model: type, values: Mapping[str, Any]) -> None:
     logger.debug("_validate_enum_values called with model=%s values=%s", model, values)
     if not values or SAEnum is None:
         logger.debug("_validate_enum_values no validation needed")
         return
 
-    table = getattr(model, "__table__", None)
-    if table is None:
+    enum_columns = _enum_columns(model)
+    if not enum_columns:
         return
 
-    get = getattr(table.c, "get", None)
-
     for key, v in values.items():
-        col = get(key) if get else None
-        if col is None:
-            try:
-                col = table.c[key]  # type: ignore[index]
-            except Exception:
-                col = None
-        if col is None:
-            continue
-
-        col_type = getattr(col, "type", None)
-        if col_type is None or not isinstance(col_type, SAEnum):
+        col_type = enum_columns.get(key)
+        if col_type is None:
             continue
 
         if v is None:
