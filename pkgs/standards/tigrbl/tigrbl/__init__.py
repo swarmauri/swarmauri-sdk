@@ -16,12 +16,10 @@ _ALIAS_MODULES = {
     "_base": "tigrbl_base._base",
     "_concrete": "tigrbl_concrete._concrete",
     "core": "tigrbl_ops_oltp",
-    "mapping": "tigrbl_canon.mapping",
     "orm": "tigrbl_orm.orm",
     "runtime": "tigrbl_runtime.runtime",
     "executors": "tigrbl_runtime.executors",
     "atoms": "tigrbl_atoms.atoms",
-    "kernel": "tigrbl_kernel.kernel",
 }
 
 
@@ -32,20 +30,47 @@ def _optional_import(path: str):
         return None
 
 
-for alias, target in _ALIAS_MODULES.items():
+def _install_alias(alias: str, target: str) -> None:
     module = _optional_import(target)
-    if module is not None:
-        sys.modules.setdefault(f"{__name__}.{alias}", module)
+    if module is None:
+        return
+
+    alias_name = f"{__name__}.{alias}"
+    sys.modules.setdefault(alias_name, module)
+
+    target_prefix = f"{target}."
+    alias_prefix = f"{alias_name}."
+    for name, loaded in tuple(sys.modules.items()):
+        if name.startswith(target_prefix):
+            suffix = name[len(target_prefix) :]
+            sys.modules.setdefault(f"{alias_prefix}{suffix}", loaded)
+
+    module_path = getattr(module, "__path__", None)
+    if not module_path:
+        return
+
+    from pkgutil import walk_packages
+
+    for info in walk_packages(module_path, target_prefix):
+        submodule = _optional_import(info.name)
+        if submodule is None:
+            continue
+        suffix = info.name[len(target_prefix) :]
+        sys.modules.setdefault(f"{alias_prefix}{suffix}", submodule)
+
+
+for alias, target in _ALIAS_MODULES.items():
+    _install_alias(alias, target)
 
 
 _spec = import_module("tigrbl_core._spec")
 _base = import_module("tigrbl_base._base")
 _concrete = import_module("tigrbl_concrete._concrete")
-canon = import_module("tigrbl_canon.mapping")
+canon = None
 orm = import_module("tigrbl_orm.orm")
 runtime = _optional_import("tigrbl_runtime.runtime")
 atoms = _optional_import("tigrbl_atoms.atoms")
-kernel = _optional_import("tigrbl_kernel.kernel")
+kernel = None
 core = _optional_import("tigrbl_ops_oltp")
 
 # Backward-compatible names requested for top-level facade access.
@@ -110,6 +135,7 @@ from tigrbl_base._base import (  # noqa: E402
     AppBase,
     ForeignKeyBase,
     HookBase,
+    RouterBase,
     TableBase,
     TableRegistryBase,
 )
@@ -142,16 +168,63 @@ from tigrbl_core._spec import (  # noqa: E402
 )
 from tigrbl_runtime.runtime.executor import _invoke  # noqa: E402
 
-bind = canon.bind
-rebind = canon.rebind
-build_schemas = canon.build_schemas
-build_hooks = canon.build_hooks
-build_handlers = canon.build_handlers
-register_rpc = canon.register_rpc
-build_rest = canon.build_rest
-include_table = canon.include_table
-include_tables = canon.include_tables
-rpc_call = canon.rpc_call
+
+def bind(*args, **kwargs):
+    return import_module("tigrbl_concrete._mapping.model").bind(*args, **kwargs)
+
+
+def rebind(*args, **kwargs):
+    return import_module("tigrbl_concrete._mapping.model").rebind(*args, **kwargs)
+
+
+def build_schemas(*args, **kwargs):
+    return import_module("tigrbl_concrete._mapping.model")._materialize_schemas(
+        *args, **kwargs
+    )
+
+
+def build_hooks(*args, **kwargs):
+    return import_module("tigrbl_concrete._mapping.model")._bind_model_hooks(
+        *args, **kwargs
+    )
+
+
+def build_handlers(*args, **kwargs):
+    mod = import_module("tigrbl_concrete._mapping.model")
+    specs = mod._materialize_handlers(*args, **kwargs)
+    model = args[0] if args else kwargs.get("model")
+    spec_arg = args[1] if len(args) > 1 else kwargs.get("specs", ())
+    spec_tuple = tuple(spec_arg or ())
+    if model is not None:
+        mod._bind_model_hooks(model, spec_tuple)
+    return specs
+
+
+def register_rpc(*args, **kwargs):
+    return import_module("tigrbl_base._base._rpc_map").register_and_attach(
+        *args, **kwargs
+    )
+
+
+def build_rest(*args, **kwargs):
+    if "router" not in kwargs:
+        kwargs["router"] = None
+    return import_module("tigrbl_concrete._mapping.model")._materialize_rest_router(
+        *args, **kwargs
+    )
+
+
+def include_tables(*args, **kwargs):
+    return import_module("tigrbl_concrete._mapping.router.include").include_tables(
+        *args, **kwargs
+    )
+
+
+async def rpc_call(*args, **kwargs):
+    return await import_module("tigrbl_concrete._mapping.router.rpc").rpc_call(
+        *args, **kwargs
+    )
+
 
 __all__ = [
     "specs",
@@ -169,6 +242,7 @@ __all__ = [
     "Depends",
     "HTTPException",
     "TableBase",
+    "RouterBase",
     "Op",
     "op",
     "HTTPBearer",
@@ -204,7 +278,6 @@ __all__ = [
     "build_handlers",
     "register_rpc",
     "build_rest",
-    "include_table",
     "include_tables",
     "rpc_call",
     "_invoke",

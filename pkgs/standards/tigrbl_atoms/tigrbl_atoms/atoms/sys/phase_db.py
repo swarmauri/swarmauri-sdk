@@ -27,7 +27,7 @@ _PHASE_DB_CAPABILITIES: dict[PhaseName, DbCapabilities] = {
     "PRE_TX_BEGIN": DbCapabilities(False, False, True, False),
     "START_TX": DbCapabilities(False, False, True, False),
     "PRE_HANDLER": DbCapabilities(True, False, True, False),
-    "HANDLER": DbCapabilities(True, False, True, False),
+    "HANDLER": DbCapabilities(True, True, True, False),
     "POST_HANDLER": DbCapabilities(True, False, True, False),
     "PRE_COMMIT": DbCapabilities(False, False, True, False),
     "END_TX": DbCapabilities(True, True, True, False),
@@ -35,6 +35,17 @@ _PHASE_DB_CAPABILITIES: dict[PhaseName, DbCapabilities] = {
     "POST_RESPONSE": DbCapabilities(False, False, True, False),
     "EGRESS_SHAPE": DbCapabilities(False, False, True, False),
     "EGRESS_FINALIZE": DbCapabilities(False, False, True, False),
+    "ON_ERROR": DbCapabilities(False, False, True, False),
+    "ON_PRE_TX_BEGIN_ERROR": DbCapabilities(False, False, True, False),
+    "ON_START_TX_ERROR": DbCapabilities(False, False, True, False),
+    "ON_PRE_HANDLER_ERROR": DbCapabilities(False, False, True, False),
+    "ON_HANDLER_ERROR": DbCapabilities(False, False, True, False),
+    "ON_POST_HANDLER_ERROR": DbCapabilities(False, False, True, False),
+    "ON_PRE_COMMIT_ERROR": DbCapabilities(False, False, True, False),
+    "ON_END_TX_ERROR": DbCapabilities(False, False, True, False),
+    "ON_POST_COMMIT_ERROR": DbCapabilities(False, False, True, False),
+    "ON_POST_RESPONSE_ERROR": DbCapabilities(False, False, True, False),
+    "ON_ROLLBACK": DbCapabilities(False, False, True, False),
 }
 
 
@@ -102,9 +113,40 @@ def bind_phase_db(ctx: Any) -> Any:
     if not isinstance(phase, str) or not phase:
         raise RuntimeError("ctx.phase must be set before PhaseDb binding")
 
-    caps = phase_db_capabilities(phase)
     owns_tx = bool(getattr(ctx, "owns_tx", False))
-    ctx.db = PhaseDb(raw_db, phase=phase, caps=caps, owns_tx=owns_tx)
+    temp = getattr(ctx, "temp", None)
+    cache_token = (id(raw_db), owns_tx)
+    cache: dict[str, PhaseDb] | None = None
+    if isinstance(temp, dict):
+        cached_token = temp.get("_phase_db_cache_token")
+        if cached_token == cache_token:
+            maybe_cache = temp.get("_phase_db_cache")
+            if isinstance(maybe_cache, dict):
+                cache = maybe_cache
+        else:
+            temp["_phase_db_cache_token"] = cache_token
+            temp["_phase_db_cache"] = {}
+            cache = temp["_phase_db_cache"]
+
+    if cache is not None:
+        wrapped = cache.get(phase)
+        if wrapped is None:
+            wrapped = PhaseDb(
+                raw_db,
+                phase=phase,
+                caps=phase_db_capabilities(phase),
+                owns_tx=owns_tx,
+            )
+            cache[phase] = wrapped
+        ctx.db = wrapped
+        return ctx
+
+    ctx.db = PhaseDb(
+        raw_db,
+        phase=phase,
+        caps=phase_db_capabilities(phase),
+        owns_tx=owns_tx,
+    )
     return ctx
 
 

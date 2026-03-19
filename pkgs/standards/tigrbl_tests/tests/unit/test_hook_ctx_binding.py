@@ -1,5 +1,5 @@
 from tigrbl.decorators.hook import hook_ctx
-from tigrbl.mapping.model import bind
+from tigrbl_concrete._mapping.model import bind
 from tigrbl.orm.tables import TableBase
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String

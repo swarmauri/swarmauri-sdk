@@ -60,14 +60,18 @@ def merge_seq_attr(
 def normalize_app_spec(spec: "AppSpec") -> "AppSpec":
     """Return a normalized app spec snapshot with stable sequence fields."""
 
+    routers = _seqify(spec.routers)
+    tables = _seqify(spec.tables)
+    ops = _seqify(spec.ops)
+
     return AppSpec(
         title=str(spec.title or "Tigrbl"),
         description=spec.description,
         version=str(spec.version or "0.1.0"),
         engine=spec.engine,
-        routers=_seqify(spec.routers),
-        ops=_seqify(spec.ops),
-        tables=_seqify(spec.tables),
+        routers=routers,
+        ops=ops,
+        tables=tables,
         schemas=_seqify(spec.schemas),
         hooks=_seqify(spec.hooks),
         security_deps=_seqify(spec.security_deps),
@@ -117,12 +121,6 @@ class AppSpec(SerdeMixin):
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> "AppSpec":
-        routers = payload.get("routers", ())
-        for router in _seqify(routers):
-            if isinstance(router, str):
-                raise TypeError(
-                    "AppSpec.routers entries must be nested router specs, not strings."
-                )
         return super().from_dict(payload)
 
     @classmethod

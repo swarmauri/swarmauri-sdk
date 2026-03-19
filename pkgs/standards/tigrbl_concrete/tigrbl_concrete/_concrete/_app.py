@@ -185,6 +185,13 @@ class App(AppBase):
         )
 
     async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        path = scope.get("path")
+        if isinstance(path, str):
+            seen_paths = getattr(self, "_seen_paths", None)
+            if not isinstance(seen_paths, set):
+                seen_paths = set()
+                setattr(self, "_seen_paths", seen_paths)
+            seen_paths.add(path)
         env = GwRawEnvelope(kind="asgi3", scope=scope, receive=receive, send=send)
         await self.invoke(env)
 
@@ -197,6 +204,9 @@ class App(AppBase):
     def include_router(self, router: Any, *, prefix: str | None = None) -> Any:
         routed = getattr(router, "router", router)
         _include_router_impl(self, routed, prefix=prefix or "")
+        bump = getattr(self, "_bump_runtime_plan_revision", None)
+        if callable(bump):
+            bump()
         return router
 
     initialize = _ddl_initialize

@@ -43,7 +43,9 @@ from ._op_registry import get_registry
 from ._table_registry import TableRegistry
 from tigrbl_core._spec.app_spec import AppSpec
 from tigrbl_core._spec.app_spec import _seqify, normalize_app_spec
+from tigrbl_core.config.constants import TIGRBL_GET_DB_ATTR
 from tigrbl_concrete.system.favicon import FAVICON_PATH, mount_favicon
+from tigrbl_concrete.system.docs.runtime_ops import register_runtime_route
 from tigrbl_concrete._mapping.model_helpers import _OpSpecGroup
 
 
@@ -149,6 +151,8 @@ class TigrblApp(_App):
         *,
         engine: EngineCfg | None = None,
         routers: Sequence[Any] | None = None,
+        mount_system: bool | None = None,
+        profile: str | None = None,
         jsonrpc_prefix: str | None = None,
         system_prefix: str | None = None,
         favicon_path: str | Path = FAVICON_PATH,
@@ -184,9 +188,6 @@ class TigrblApp(_App):
             mw_cls = getattr(mw, "cls", mw.__class__)
             self.add_middleware(mw_cls, **getattr(mw, "kwargs", {}))
         self._default_router: TigrblRouter | None = None
-        self._install_favicon()
-        # capture initial routes so refreshes retain ASGI defaults
-        self._base_routes = list(self._routes)
         self.jsonrpc_prefix = (
             jsonrpc_prefix
             if jsonrpc_prefix is not None
@@ -205,6 +206,9 @@ class TigrblApp(_App):
                 getattr(self, "SYSTEM_PREFIX", "/system"),
             )
         )
+        if mount_system is None:
+            mount_system = str(profile or "").lower() != "minimal"
+        self.mount_system = bool(mount_system)
 
         # public containers (mirrors used by bindings.router)
         self.schemas = SimpleNamespace()
@@ -219,6 +223,7 @@ class TigrblApp(_App):
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
         self.core_raw = SimpleNamespace()
+        self._install_favicon()
         initial_routers = list(_seqify(getattr(self, "ROUTERS", ())))
         self._event_handlers = {
             "startup": [],
@@ -227,11 +232,12 @@ class TigrblApp(_App):
 
         # Router-level hooks map (merged into each table at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
-        self.mount_openapi(path="/openapi.json")
-        _mount_swagger(self, path="/docs")
-        self.attach_diagnostics(prefix=self.system_prefix)
-        self.mount_openrpc(path="/openrpc.json")
-        self.mount_lens(path="/lens", spec_path="/openrpc.json")
+        if self.mount_system:
+            self.mount_openapi(path="/openapi.json")
+            _mount_swagger(self, path="/docs")
+            self.attach_diagnostics(prefix=self.system_prefix)
+            self.mount_openrpc(path="/openrpc.json")
+            self.mount_lens(path="/lens", spec_path="/openrpc.json")
         if routers:
             initial_routers.extend(list(routers))
         if initial_routers:
@@ -614,9 +620,22 @@ class TigrblApp(_App):
                 for name, table in resolved_tables.items():
                     self._default_router.tables.setdefault(name, table)
 
+        if self._default_router is not None and self._default_router is not router:
+            incoming_get_db = getattr(router, "get_db", None)
+            default_get_db = getattr(self._default_router, "get_db", None)
+            if callable(incoming_get_db) and not callable(default_get_db):
+                self._default_router.get_db = incoming_get_db
+                for model in tuple(getattr(self, "tables", {}).values()):
+                    if not isinstance(model, type):
+                        continue
+                    if not callable(getattr(model, TIGRBL_GET_DB_ATTR, None)):
+                        setattr(model, TIGRBL_GET_DB_ATTR, incoming_get_db)
+
         route_models: Dict[str, type] = {}
         for route in getattr(router, "routes", ()):
             model = getattr(route, "tigrbl_model", None)
+            if not isinstance(model, type):
+                continue
             if not isinstance(model, type):
                 continue
             model_name = getattr(model, "__name__", None)
@@ -631,6 +650,36 @@ class TigrblApp(_App):
             if self._default_router is not None and self._default_router is not router:
                 for name, table in route_models.items():
                     self._default_router.tables.setdefault(name, table)
+
+        for route in getattr(router, "routes", ()):
+            if getattr(route, "tigrbl_model", None) is not None:
+                continue
+            endpoint = getattr(route, "endpoint", None)
+            path = getattr(route, "path", None)
+            methods = tuple(
+                sorted(
+                    str(method).upper()
+                    for method in (getattr(route, "methods", ()) or ())
+                    if str(method).upper() not in {"HEAD", "OPTIONS"}
+                )
+            )
+            if not callable(endpoint) or not isinstance(path, str) or not methods:
+                continue
+            full_path = (
+                path
+                if not mount_prefix
+                else path
+                if path == mount_prefix or path.startswith(f"{mount_prefix}/")
+                else f"{mount_prefix}{path if path.startswith('/') else '/' + path}"
+            )
+            alias = f"route_{'_'.join(methods).lower()}_{full_path.strip('/').replace('/', '_').replace('{', '').replace('}', '') or 'root'}"
+            register_runtime_route(
+                self,
+                path=full_path,
+                methods=methods,
+                alias=alias,
+                endpoint=endpoint,
+            )
 
         if not mount_router:
             return router
@@ -739,7 +788,7 @@ class TigrblApp(_App):
         method: str,
         payload: Any = None,
         *,
-        db: Any,
+        db: Any | None = None,
         request: Any = None,
         ctx: Optional[Dict[str, Any]] = None,
     ) -> Any:

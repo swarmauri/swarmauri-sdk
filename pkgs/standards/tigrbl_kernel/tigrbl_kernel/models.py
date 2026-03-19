@@ -91,6 +91,21 @@ class PackedSegment:
 
 
 @dataclass(frozen=True, slots=True)
+class HotOpPlan:
+    program_id: int = -1
+    model: type | None = None
+    alias: str = ""
+    target: str = ""
+    opview: OpView | None = None
+    ordered_segment_ids: tuple[int, ...] = ()
+    remaining_segment_ids: tuple[int, ...] = ()
+    error_segment_ids: Mapping[str, tuple[int, ...]] = field(default_factory=dict)
+    fusible_sync_segment_ids: tuple[int, ...] = ()
+    nonfusible_segment_ids: tuple[int, ...] = ()
+    db_acquire_hint: str = "resolver"
+
+
+@dataclass(frozen=True, slots=True)
 class PackedKernel:
     proto_names: tuple[str, ...] = ()
     selector_names: tuple[str, ...] = ()
@@ -117,6 +132,11 @@ class PackedKernel:
 
     numba_effect_ids: tuple[int, ...] = ()
     numba_effect_payloads: tuple[tuple[int, ...], ...] = ()
+    step_async_flags: tuple[bool, ...] = ()
+    rest_exact_route_to_program: Mapping[tuple[str, str], int] = field(
+        default_factory=dict
+    )
+    hot_op_plans: tuple[HotOpPlan, ...] = ()
 
     ingress_program_id: int = -1
     egress_ok_program_id: int = -1

@@ -1,13 +1,16 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+
 class IDivergence(ABC):
     """
     Interface for calculating the divergence of a vector field.
     """
 
     @abstractmethod
-    def calculate_divergence(self, vector_field: List[List[float]], point: List[float]) -> float:
+    def calculate_divergence(
+        self, vector_field: List[List[float]], point: List[float]
+    ) -> float:
         """
         Calculate the divergence of a vector field at a specific point.
 

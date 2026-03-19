@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import MISSING, fields, is_dataclass
+from functools import lru_cache
 from typing import (
     Any,
     Awaitable,
@@ -17,6 +18,7 @@ from typing import (
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
+from tigrbl_base._base import AttrDict
 from tigrbl_atoms.types import BaseCtx
 from tigrbl_concrete._concrete._request import Request
 
@@ -53,6 +55,12 @@ class _ResponseState:
         del object.__getattribute__(self, "bag")[key]
 
     def __setattr__(self, name: str, value: Any) -> None:
+        if (
+            name == "result"
+            and isinstance(value, Mapping)
+            and not isinstance(value, AttrDict)
+        ):
+            value = AttrDict(value)
         data = object.__getattribute__(self, "_data")
         data[name] = value
         if name == "result":
@@ -71,6 +79,20 @@ HandlerStep = Union[
     Callable[["_Ctx"], Awaitable[Any]],
 ]
 PhaseChains = Mapping[str, Sequence[HandlerStep]]
+
+
+@lru_cache(maxsize=256)
+def _promotion_field_plan(
+    cls: type[Any],
+) -> tuple[tuple[str, ...], frozenset[str]]:
+    cls_fields = fields(cls)
+    names = tuple(f.name for f in cls_fields)
+    required = frozenset(
+        f.name
+        for f in cls_fields
+        if f.default is MISSING and f.default_factory is MISSING
+    )
+    return names, required
 
 
 class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
@@ -106,12 +128,18 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
     def __getitem__(self, key: str) -> Any:
         if key in self._FIELD_NAMES:
             return object.__getattribute__(self, key)
-        return object.__getattribute__(self, "bag")[key]
+        bag = object.__getattribute__(self, "bag")
+        if key == "response" and key not in bag:
+            bag[key] = _ResponseState(self)
+        return bag[key]
 
     def get(self, key: str, default: Any = None) -> Any:
         if key in self._FIELD_NAMES:
             return object.__getattribute__(self, key)
-        return object.__getattribute__(self, "bag").get(key, default)
+        bag = object.__getattribute__(self, "bag")
+        if key == "response" and key not in bag:
+            bag[key] = _ResponseState(self)
+        return bag.get(key, default)
 
     def items(self):
         merged = {
@@ -183,17 +211,22 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
         if not is_dataclass(cls):
             raise TypeError(f"promote target must be a dataclass type, got {cls!r}")
 
+        field_names, required_names = _promotion_field_plan(cls)
+        bag = object.__getattribute__(self, "bag")
         data: dict[str, object] = {}
         missing_required: list[str] = []
 
-        for f in fields(cls):
-            if f.name in updates:
+        for name in field_names:
+            if name in updates:
                 continue
-            if f.name in self:
-                data[f.name] = self[f.name]
+            if name in self._FIELD_NAMES:
+                data[name] = object.__getattribute__(self, name)
                 continue
-            if f.default is MISSING and f.default_factory is MISSING:
-                missing_required.append(f.name)
+            if name in bag:
+                data[name] = bag[name]
+                continue
+            if name in required_names:
+                missing_required.append(name)
 
         if missing_required:
             raise TypeError(

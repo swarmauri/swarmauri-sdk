@@ -72,7 +72,7 @@ async def _run_chain(ctx: Any, chain: Optional[Iterable[Any]], *, phase: str) ->
         try:
             rv = step(ctx)
             rv = await _maybe_await(rv)
-            if rv is not None:
+            if rv is not None and rv is not ctx:
                 ctx.result = rv
             if _trace is not None:
                 _trace.end(ctx, seq, status=_trace.OK)

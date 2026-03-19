@@ -1,4 +1,4 @@
-from tigrbl.column import makeVirtualColumn
+from tigrbl_base.column import makeVirtualColumn
 
 
 class TableBase:

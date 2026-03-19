@@ -1,4 +1,4 @@
-from tigrbl.column import F, S, acol, vcol
+from tigrbl_base.column import F, S, acol, vcol
 from tigrbl.orm.tables import TableBase
 from tigrbl.types import Integer, Mapped, String
 from sqlalchemy import create_engine, select

@@ -1,13 +1,12 @@
-
 # class Serializable:
 #     def serialize(self):
 #         raise NotImplementedError("Serialization method not implemented")
-    
+
 #     @classmethod
 #     def deserialize(cls, data):
 #         raise NotImplementedError("Deserialization method not implemented")
-        
-        
+
+
 # class ToolAgent(Serializable):
 #     def serialize(self):
 #         # Simplified example, adapt according to actual attributes

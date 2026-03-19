@@ -12,7 +12,7 @@ from .healthz import build_healthz_endpoint
 from .hookz import build_hookz_endpoint
 from .kernelz import build_kernelz_endpoint
 from .methodz import build_methodz_endpoint
-from .utils import opspecs, table_iter
+from .utils import maybe_execute, opspecs, table_iter
 
 
 def _register_runtime_diagnostics_op(
@@ -49,7 +49,7 @@ def _register_runtime_diagnostics_op(
     else:
         op = OpSpec(
             alias=alias,
-            target="read",
+            target="custom",
             arity="collection",
             persist="skip",
             expose_routes=False,
@@ -114,7 +114,16 @@ def mount_diagnostics(
     healthz_endpoint = build_healthz_endpoint(dep)
 
     async def _runtime_healthz(ctx: Any) -> Any:
-        del ctx
+        db = getattr(ctx, "db", None)
+        if db is None:
+            db = getattr(ctx, "_raw_db", None)
+        if db is None:
+            req = getattr(ctx, "request", None)
+            state = getattr(req, "state", None)
+            db = getattr(state, "db", None)
+        if db is None:
+            return {"ok": True}
+        await maybe_execute(db, "SELECT 1")
         return {"ok": True}
 
     _register_runtime_paths(

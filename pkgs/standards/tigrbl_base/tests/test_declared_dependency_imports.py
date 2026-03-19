@@ -8,7 +8,14 @@ PACKAGE_NAME = "tigrbl_base"
 PACKAGE_DIR = Path(__file__).resolve().parents[1] / PACKAGE_NAME
 
 # Static snapshot from pyproject.toml [project.dependencies].
-ALLOWED_TOP_LEVEL_IMPORTS = {"tigrbl_core", "sqlalchemy", "tigrbl_atoms", "pydantic"}
+
+ALLOWED_TOP_LEVEL_IMPORTS = {
+    "pydantic",
+    "sqlalchemy",
+    "tigrbl",
+    "tigrbl_atoms",
+    "tigrbl_core",
+}
 
 
 def _collect_top_level_imports(package_dir: Path) -> set[str]:

@@ -25,24 +25,43 @@ STANDARD_LICENSES = {
     "apache-2.0",
     "apache license",
     "apache license 2.0",
+    "apache license, version 2.0",
+    "apache software license",
+    "apache software license / bsd license",
+    "apache software license / mit license",
     "bsd",
     "bsd license",
     "bsd-2-clause",
     "bsd-3-clause",
+    "bsd 2-clause",
+    "bsd 3-clause",
     "bsd 2-clause license",
     "bsd 3-clause license",
     "bsd-3-clause license",
     "python software foundation license",
+    "python-2.0",
     "gpl",
     "gnu general public license",
     "lgpl",
+    "lgpl with exceptions",
     "gnu lesser general public license",
     "mpl",
     "mozilla public license",
+    "mozilla public license 2.0 (mpl 2.0)",
     "mpl-2.0",
     "isc license",
-    "apache software license",
+    "expat license",
     "dual license",
+    # SPDX compound expressions common in transitive dependencies
+    "mit and python-2.0",
+    "mit or apache-2.0",
+}
+
+# Dependencies with valid open-source licenses whose metadata omits
+# machine-readable license fields (no License header, no classifiers).
+_KNOWN_SAFE_UNKNOWN_DEPS = {
+    "markupsafe",  # BSD-3-Clause (bundled LICENSE.txt)
+    "click",  # BSD-3-Clause (bundled LICENSE.txt)
 }
 
 LICENSE_PATTERNS = [
@@ -222,6 +241,8 @@ class LicenseItem(pytest.Item):
         if dep_canon in accepted:
             return
         if lic == "UNKNOWN":
+            if dep_canon in _KNOWN_SAFE_UNKNOWN_DEPS:
+                return
             pytest.fail(
                 f"{self.dep}=={self.version} has unknown license", pytrace=False
             )
@@ -268,7 +289,8 @@ class LicenseAggregateItem(pytest.Item):
             lic = info.license
             ver = info.version
             if lic == "UNKNOWN":
-                failures.append(f"{dep}=={ver} has unknown license")
+                if canon not in _KNOWN_SAFE_UNKNOWN_DEPS:
+                    failures.append(f"{dep}=={ver} has unknown license")
             elif lic.lower() not in STANDARD_LICENSES:
                 failures.append(f"{dep}=={ver} uses non-standard license {lic}")
             elif disallow and lic in disallow:

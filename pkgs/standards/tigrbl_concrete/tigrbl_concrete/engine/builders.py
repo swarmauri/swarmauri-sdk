@@ -50,6 +50,9 @@ def blocking_sqlite_engine(path: str | None = None, *, pool: str | None = None):
     def _fk_pragma(dbapi_conn, _):
         try:
             dbapi_conn.execute("PRAGMA foreign_keys=ON")
+            dbapi_conn.execute("PRAGMA journal_mode=WAL")
+            dbapi_conn.execute("PRAGMA synchronous=NORMAL")
+            dbapi_conn.execute("PRAGMA temp_store=MEMORY")
         except Exception:
             pass
 
@@ -185,6 +188,9 @@ def async_sqlite_engine(path: str | None = None, *, pool: str | None = None):
     def _fk_pragma(dbapi_conn, _):
         try:
             dbapi_conn.execute("PRAGMA foreign_keys=ON")
+            dbapi_conn.execute("PRAGMA journal_mode=WAL")
+            dbapi_conn.execute("PRAGMA synchronous=NORMAL")
+            dbapi_conn.execute("PRAGMA temp_store=MEMORY")
         except Exception:
             pass
 

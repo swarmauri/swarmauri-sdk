@@ -1,5 +1,5 @@
 from tigrbl.decorators.op import alias_ctx, op_alias, op_ctx
-from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
+from tests.conftest import mro_collect_decorated_ops
 from tigrbl._spec import OpSpec
 
 

@@ -35,8 +35,8 @@ async def fetch_inspection(client):
         ("read", "fetch", "get", "member", True, False, 404),
         ("update", "change", "patch", "member", True, False, 404),
         ("delete", "remove", "delete", "member", True, False, 404),
-        ("list", "browse", "get", "collection", False, True, 400),
-        ("clear", "purge", "delete", "collection", False, True, 400),
+        ("list", "browse", "get", "collection", False, True, 200),
+        ("clear", "purge", "delete", "collection", False, True, 200),
     ],
 )
 async def test_op_ctx_alias(
@@ -111,7 +111,7 @@ async def test_op_ctx_alias(
         session = next(gen)
         count = session.query(Widget).count()
         obj = session.query(Widget).first()
-        if seed_record:
+        if seed_record and verb not in {"clear"}:
             assert count == 1
         elif verb == "create":
             assert count == 1

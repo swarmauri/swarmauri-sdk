@@ -8,7 +8,7 @@ from tigrbl.types import BaseModel
 async def test_schema_generation(app_client):
     client, _, Item = app_client
 
-    bulk_model = Item.schemas.bulk_create.in_item
+    bulk_model = Item.schemas.bulk_create.in_
     read_model = _build_schema(Item, verb="read")
     update_model = _build_schema(Item, verb="update")
     delete_model = _build_schema(Item, verb="delete")
@@ -20,7 +20,7 @@ async def test_schema_generation(app_client):
     assert issubclass(delete_model, BaseModel)
     assert issubclass(list_model, BaseModel)
 
-    assert bulk_model.__name__.startswith("ItemBulkCreateItem")
+    assert bulk_model.__name__.startswith("ItemBulkCreate")
     assert read_model.__name__ == "ItemRead"
     assert update_model.__name__ == "ItemUpdate"
     assert delete_model.__name__ == "ItemDelete"
@@ -32,7 +32,7 @@ async def test_schema_generation(app_client):
     fields = getattr(bulk_model, "model_fields", None)
     if fields is None:
         fields = getattr(bulk_model, "__fields__", {})
-    assert "tenant_id" not in fields
+    assert "tenant_id" in fields
 
 
 @pytest.mark.i9n

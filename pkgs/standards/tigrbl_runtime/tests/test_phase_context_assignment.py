@@ -28,7 +28,7 @@ async def test_run_phase_chain_sets_ctx_phase() -> None:
 
 
 @pytest.mark.asyncio
-async def test_run_segment_python_sets_ctx_phase_from_packed_segment() -> None:
+async def test_run_segment_sets_ctx_phase_from_packed_segment() -> None:
     seen = []
 
     async def step(ctx):
@@ -43,6 +43,6 @@ async def test_run_segment_python_sets_ctx_phase_from_packed_segment() -> None:
     )
 
     ctx = _Ctx.ensure(request=None, db=None, seed={})
-    await PackedPlanExecutor()._run_segment_python(ctx, packed, 0)
+    await PackedPlanExecutor()._run_segment(ctx, packed, 0)
 
     assert seen == ["POST_COMMIT"]

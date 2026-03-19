@@ -30,6 +30,7 @@ from .db import (
     _maybe_get,
     _maybe_execute,
     _maybe_flush,
+    _maybe_rollback,
     _maybe_delete,
     _set_attrs,
 )
@@ -59,6 +60,7 @@ __all__ = [
     "_maybe_delete",
     "_maybe_execute",
     "_maybe_flush",
+    "_maybe_rollback",
     "_maybe_get",
     "_model_columns",
     "_normalize_list_call",

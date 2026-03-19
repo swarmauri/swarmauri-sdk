@@ -46,6 +46,7 @@ DEP_SECURITY = "dep:security"
 DEP_EXTRA = "dep:extra"
 SCHEMA_COLLECT_IN = "schema:collect_in"
 RESOLVE_VALUES = "resolve:values"
+PRE_FLUSH = "pre:flush"
 OUT_BUILD = "out:build"
 OUT_DUMP = "out:dump"
 
@@ -54,6 +55,7 @@ _EVENT_ORDER = (
     DEP_EXTRA,
     SCHEMA_COLLECT_IN,
     RESOLVE_VALUES,
+    PRE_FLUSH,
     OUT_BUILD,
     OUT_DUMP,
 )
@@ -82,6 +84,7 @@ __all__ = [
     "DEP_EXTRA",
     "SCHEMA_COLLECT_IN",
     "RESOLVE_VALUES",
+    "PRE_FLUSH",
     "OUT_BUILD",
     "OUT_DUMP",
     "order_events",

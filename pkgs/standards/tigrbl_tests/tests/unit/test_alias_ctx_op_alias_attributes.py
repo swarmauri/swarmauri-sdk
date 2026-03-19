@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 
 from tigrbl import alias_ctx, alias, schema_ctx
-from tigrbl.mapping.op_resolver import resolve
-from tigrbl.mapping import build_schemas, build_handlers
+from tigrbl_core._spec.op_spec import resolve
+from tigrbl import build_schemas, build_handlers, build_hooks
 
 
 def _get_spec(model, target):
@@ -18,9 +18,10 @@ def test_alias_ctx_aliases_canonical_verb_and_preserves_core():
     spec = _get_spec(Thing, "create")
     assert spec.alias == "register"
 
-    # Build handlers to expose the alias and capture core step
+    # Build handlers and hooks to expose the alias and capture core step
     build_handlers(Thing, [spec])
-    handler_step = Thing.handlers.register.HANDLER[0]
+    build_hooks(Thing, [spec])
+    handler_step = Thing.hooks.register.HANDLER[0]
     assert handler_step.__name__ == "create"
 
 

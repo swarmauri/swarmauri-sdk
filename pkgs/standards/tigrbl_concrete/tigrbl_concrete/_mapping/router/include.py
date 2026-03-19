@@ -69,6 +69,35 @@ def _build_router_rpc_namespace(router: RouterLike, model: type) -> SimpleNamesp
     return router_rpc_ns
 
 
+def _attach_rpc_dispatcher(host: Any) -> None:
+    """Attach ``host.rpc_call(...)`` for Router-like facades when missing."""
+    if hasattr(host, "rpc_call") and callable(getattr(host, "rpc_call")):
+        return
+
+    async def _rpc_call_attached(
+        model_or_name: type | str,
+        method: str,
+        payload: Any = None,
+        *,
+        db: Any = None,
+        request: Any = None,
+        ctx: Dict[str, Any] | None = None,
+    ) -> Any:
+        from .rpc import rpc_call as _rpc_call
+
+        return await _rpc_call(
+            host,
+            model_or_name,
+            method,
+            payload,
+            db=db,
+            request=request,
+            ctx=ctx,
+        )
+
+    setattr(host, "rpc_call", _rpc_call_attached)
+
+
 def _coerce_model_columns(columns: Any) -> Tuple[str, ...]:
     if isinstance(columns, SimpleNamespace):
         return tuple(columns.__dict__.keys())
@@ -118,7 +147,17 @@ def _attach_to_router(router: RouterLike, table: type) -> None:
     router.tables[tname] = table
 
     # Direct references to model namespaces
-    setattr(router.schemas, tname, getattr(table, "schemas", SimpleNamespace()))
+    schema_ns = getattr(table, "schemas", SimpleNamespace())
+    ops_ns = getattr(table, "ops", None)
+    by_alias = getattr(ops_ns, "by_alias", None)
+    if isinstance(by_alias, dict):
+        for alias in by_alias.keys():
+            # Back-compat: expose operation namespaces even when schema
+            # materialization is deferred, so callers can still introspect
+            # supported verbs via ``app.schemas.<Model>.<alias>``.
+            if not hasattr(schema_ns, alias):
+                setattr(schema_ns, alias, SimpleNamespace())
+    setattr(router.schemas, tname, schema_ns)
     setattr(router.handlers, tname, getattr(table, "handlers", SimpleNamespace()))
     setattr(router.hooks, tname, getattr(table, "hooks", SimpleNamespace()))
     rpc_ns = _build_router_rpc_namespace(router, table)
@@ -374,6 +413,9 @@ def include_model(
 
     # 4) Attach all namespaces onto router
     _attach_to_router(router, model)
+    _attach_rpc_dispatcher(router)
+    if app is not None:
+        _attach_rpc_dispatcher(app)
 
     logger.debug("mapping.router: included %s at prefix %s", model.__name__, prefix)
     return model, model_router

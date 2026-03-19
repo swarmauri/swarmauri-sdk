@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+
 class IReflect(ABC):
     """
     Interface for reflecting a vector across a specified plane or axis.

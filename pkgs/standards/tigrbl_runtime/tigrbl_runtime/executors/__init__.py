@@ -9,6 +9,7 @@ _EXPORTS = {
     "ExecutorBase": "base",
     "PhaseExecutor": "phase",
     "PackedPlanExecutor": "packed",
+    "NumbaPackedPlanExecutor": "numba_packed",
     "_Ctx": "types",
     "_invoke": "invoke",
 }

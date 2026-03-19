@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_leptonai"
-version = "0.9.3.dev13"
+version = "0.9.3.dev14"
 description = "Swarmauri Lepton AI Model"
 license = "Apache-2.0"
 readme = "README.md"
@@ -57,7 +57,7 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [project.entry-points.'swarmauri.llms']
-LeptonAIModel = "swarmauri_llm_leptonai.LeptonAIImgGenModel:LeptonAIModel"
+LeptonAIModel = "swarmauri_llm_leptonai.LeptonAIModel:LeptonAIModel"
 
 [project.entry-points.'swarmauri.image_gens']
 LeptonAIImgGenModel = "swarmauri_llm_leptonai.LeptonAIImgGenModel:LeptonAIImgGenModel"

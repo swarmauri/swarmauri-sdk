@@ -98,7 +98,7 @@ class ColumnSpec(SerdeMixin):
         are populated with a default ColumnSpec so they participate in opviews
         and schema generation.
         """
-        logger.info("Collecting columns for %s", ColumnSpec._model_label(model))
+        logger.debug("Collecting columns for %s", ColumnSpec._model_label(model))
         out: Dict[str, ColumnSpec] = {}
         mro = getattr(model, "__mro__", ()) or ()
         for base in reversed(mro):
@@ -122,8 +122,21 @@ class ColumnSpec(SerdeMixin):
                 if not isinstance(name, str):
                     continue
                 out.setdefault(name, ColumnSpec(storage=S(), io=ColumnSpec._DEFAULT_IO))
+        else:
+            # Declarative models can be inspected before SQLAlchemy finishes
+            # materializing ``__table__``. In that transient state plain
+            # ``Column(...)`` declarations still exist on the class body and
+            # should participate in schema inference.
+            for base in reversed(mro):
+                for attr_name, value in vars(base).items():
+                    if attr_name.startswith("_") or attr_name in out:
+                        continue
+                    if hasattr(value, "type") and hasattr(value, "nullable"):
+                        out[attr_name] = ColumnSpec(
+                            storage=S(), io=ColumnSpec._DEFAULT_IO
+                        )
 
-        logger.info(
+        logger.debug(
             "Collected %d columns for %s", len(out), ColumnSpec._model_label(model)
         )
         return out

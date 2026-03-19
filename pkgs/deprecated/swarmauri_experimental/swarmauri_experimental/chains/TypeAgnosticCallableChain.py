@@ -1,6 +1,9 @@
 from typing import Any, Callable, List, Dict, Optional, Tuple, Union
 
-CallableDefinition = Tuple[Callable, List[Any], Dict[str, Any], Union[str, Callable, None]]
+CallableDefinition = Tuple[
+    Callable, List[Any], Dict[str, Any], Union[str, Callable, None]
+]
+
 
 class TypeAgnosticCallableChain:
     def __init__(self, callables: Optional[List[CallableDefinition]] = None):
@@ -39,20 +42,47 @@ class TypeAgnosticCallableChain:
         return args, {**previous_result, **kwargs}
 
     @staticmethod
-    def _use_all_args_all_kwargs_overwrite(previous_result_args, previous_result_kwargs, *args, **kwargs):
-        combined_args = list(previous_result_args) + list(args) if isinstance(previous_result_args, (list, tuple)) else list(args)
-        combined_kwargs = previous_result_kwargs if isinstance(previous_result_kwargs, dict) else {}
+    def _use_all_args_all_kwargs_overwrite(
+        previous_result_args, previous_result_kwargs, *args, **kwargs
+    ):
+        combined_args = (
+            list(previous_result_args) + list(args)
+            if isinstance(previous_result_args, (list, tuple))
+            else list(args)
+        )
+        combined_kwargs = (
+            previous_result_kwargs if isinstance(previous_result_kwargs, dict) else {}
+        )
         combined_kwargs.update(kwargs)
         return combined_args, combined_kwargs
 
     @staticmethod
-    def _use_all_args_all_kwargs_no_overwrite(previous_result_args, previous_result_kwargs, *args, **kwargs):
-        combined_args = list(previous_result_args) + list(args) if isinstance(previous_result_args, (list, tuple)) else list(args)
+    def _use_all_args_all_kwargs_no_overwrite(
+        previous_result_args, previous_result_kwargs, *args, **kwargs
+    ):
+        combined_args = (
+            list(previous_result_args) + list(args)
+            if isinstance(previous_result_args, (list, tuple))
+            else list(args)
+        )
         combined_kwargs = kwargs if isinstance(kwargs, dict) else {}
-        combined_kwargs = {**combined_kwargs, **(previous_result_kwargs if isinstance(previous_result_kwargs, dict) else {})}
+        combined_kwargs = {
+            **combined_kwargs,
+            **(
+                previous_result_kwargs
+                if isinstance(previous_result_kwargs, dict)
+                else {}
+            ),
+        }
         return combined_args, combined_kwargs
 
-    def add_callable(self, func: Callable, args: List[Any] = None, kwargs: Dict[str, Any] = None, input_handler: Union[str, Callable, None] = None) -> None:
+    def add_callable(
+        self,
+        func: Callable,
+        args: List[Any] = None,
+        kwargs: Dict[str, Any] = None,
+        input_handler: Union[str, Callable, None] = None,
+    ) -> None:
         if isinstance(input_handler, str):
             # Map the string to the corresponding static method
             input_handler_method = getattr(self, f"_{input_handler}", None)
@@ -74,14 +104,18 @@ class TypeAgnosticCallableChain:
                 input_handler = input_handler_method
             elif input_handler is None:
                 input_handler = self._ignore_previous
-                
-            args, kwargs = input_handler(result, *args, **kwargs) if result is not None else (args, kwargs)
+
+            args, kwargs = (
+                input_handler(result, *args, **kwargs)
+                if result is not None
+                else (args, kwargs)
+            )
             result = func(*args, **kwargs)
         return result
 
     def __or__(self, other: "TypeAgnosticCallableChain") -> "TypeAgnosticCallableChain":
         if not isinstance(other, TypeAgnosticCallableChain):
             raise TypeError("Operand must be an instance of TypeAgnosticCallableChain")
-        
+
         new_chain = TypeAgnosticCallableChain(self.callables + other.callables)
         return new_chain

@@ -28,26 +28,33 @@ def ensure_system_docs_model(router: Any) -> type | None:
     return model
 
 
-def register_runtime_get_route(
+def register_runtime_route(
     router: Any,
     *,
     path: str,
+    methods: tuple[str, ...],
     alias: str,
     endpoint: Callable[..., Any],
 ) -> None:
-    """Register a GET-only route endpoint as a runtime operation."""
+    """Register an HTTP route endpoint as a runtime operation."""
     model = ensure_system_docs_model(router)
     if model is None:
         return
 
     op = OpSpec(
         alias=alias,
-        target="read",
+        target="custom",
         arity="collection",
         persist="skip",
         expose_routes=False,
         expose_rpc=False,
-        bindings=(HttpRestBindingSpec(proto="http.rest", path=path, methods=("GET",)),),
+        bindings=(
+            HttpRestBindingSpec(
+                proto="http.rest",
+                path=path,
+                methods=tuple(str(m).upper() for m in methods),
+            ),
+        ),
     )
     model.ops.by_alias[alias] = _OpSpecGroup((op,))
     model.opspecs.all = tuple(
@@ -57,9 +64,9 @@ def register_runtime_get_route(
     async def _runtime_route_step(ctx: Any) -> None:
         request = getattr(ctx, "request", None)
         try:
-            response = endpoint(request)
-        except TypeError:
             response = endpoint()
+        except TypeError:
+            response = endpoint(request)
         if inspect.isawaitable(response):
             response = await response
 
@@ -89,4 +96,69 @@ def register_runtime_get_route(
     hooks_ns.HANDLER = [_runtime_route_step]
 
 
-__all__ = ["ensure_system_docs_model", "register_runtime_get_route"]
+def register_runtime_get_route(
+    router: Any,
+    *,
+    path: str,
+    alias: str,
+    endpoint: Callable[..., Any],
+) -> None:
+    """Register a GET-only route endpoint as a runtime operation."""
+    model = ensure_system_docs_model(router)
+    if model is None:
+        return
+
+    op = OpSpec(
+        alias=alias,
+        target="custom",
+        arity="collection",
+        persist="skip",
+        expose_routes=False,
+        expose_rpc=False,
+        bindings=(HttpRestBindingSpec(proto="http.rest", path=path, methods=("GET",)),),
+    )
+    model.ops.by_alias[alias] = _OpSpecGroup((op,))
+    model.opspecs.all = tuple(
+        spec for spec in model.opspecs.all if getattr(spec, "alias", None) != alias
+    ) + (op,)
+
+    async def _runtime_route_step(ctx: Any) -> None:
+        request = getattr(ctx, "request", None)
+        try:
+            response = endpoint()
+        except TypeError:
+            response = endpoint(request)
+        if inspect.isawaitable(response):
+            response = await response
+
+        if isinstance(response, Response):
+            payload = {
+                "status_code": int(getattr(response, "status_code", 200) or 200),
+                "headers": dict(getattr(response, "headers", ()) or ()),
+                "body": getattr(response, "body", b""),
+            }
+            temp = getattr(ctx, "temp", None)
+            if isinstance(temp, dict):
+                temp.setdefault("route", {})["short_circuit"] = True
+                temp.setdefault("egress", {})["transport_response"] = payload
+                temp["egress"]["suppress_asgi_send"] = True
+            setattr(ctx, "transport_response", payload)
+            return
+
+        setattr(ctx, "result", response)
+        temp = getattr(ctx, "temp", None)
+        if isinstance(temp, dict):
+            temp.setdefault("egress", {})["result"] = response
+
+    hooks_ns = getattr(model.hooks, alias, None)
+    if hooks_ns is None:
+        hooks_ns = SimpleNamespace()
+        setattr(model.hooks, alias, hooks_ns)
+    hooks_ns.HANDLER = [_runtime_route_step]
+
+
+__all__ = [
+    "ensure_system_docs_model",
+    "register_runtime_route",
+    "register_runtime_get_route",
+]

@@ -100,8 +100,14 @@ def test_kernel_build_injects_sys_steps_only_for_persistent_ops() -> None:
 
     assert create_chains[START_TX] != []
     assert create_chains[END_TX] != []
-    assert read_chains[START_TX] == []
-    assert read_chains[END_TX] == []
+    assert len(read_chains[START_TX]) == 1
+    assert len(read_chains[END_TX]) == 1
+    assert getattr(read_chains[START_TX][0], "__tigrbl_label", "").startswith(
+        "atom:sys:phase_db"
+    )
+    assert getattr(read_chains[END_TX][0], "__tigrbl_label", "").startswith(
+        "atom:sys:phase_db"
+    )
 
 
 @pytest.mark.asyncio
