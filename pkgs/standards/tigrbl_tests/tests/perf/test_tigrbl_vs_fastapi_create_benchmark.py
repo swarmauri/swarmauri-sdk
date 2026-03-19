@@ -32,7 +32,7 @@ SEQUENTIAL_RESULTS_PATH = Path(__file__).with_name(
 )
 OPS_COUNT = 25
 SEQUENTIAL_ROUNDS = 10
-THROUGHPUT_RATIO_TARGET = 1.5
+THROUGHPUT_RATIO_TARGET = 1.75
 
 
 def _summarize(values: list[float]) -> dict[str, float]:
@@ -98,8 +98,6 @@ async def _benchmark_app(
 
         try:
             async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
-                execution_start = perf_counter()
-
                 for _ in range(5):
                     ready = await client.get("/healthz")
                     if ready.status_code == 200:
@@ -107,6 +105,7 @@ async def _benchmark_app(
                     await asyncio.sleep(0.05)
 
                 tracemalloc.start()
+                execution_start = perf_counter()
 
                 for item_name in expected_names:
                     mem_before_current, mem_before_peak = (
