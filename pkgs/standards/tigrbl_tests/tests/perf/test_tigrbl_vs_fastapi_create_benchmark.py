@@ -32,7 +32,7 @@ SEQUENTIAL_RESULTS_PATH = Path(__file__).with_name(
 )
 OPS_COUNT = 25
 SEQUENTIAL_ROUNDS = 10
-THROUGHPUT_RATIO_TARGET = 1.5
+THROUGHPUT_RATIO_TARGET = 1.75
 
 
 def _summarize(values: list[float]) -> dict[str, float]:
