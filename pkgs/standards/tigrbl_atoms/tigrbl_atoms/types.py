@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import MISSING, dataclass, field, fields, is_dataclass
 from enum import Enum
+from functools import lru_cache
 from typing import Any, Awaitable, Callable, Final, Tuple, cast, final
 
 from collections.abc import Mapping
@@ -59,35 +60,22 @@ class BaseCtx(Generic[S, E]):
     current_phase: str | None = None
     error_phase: str | None = None
 
-    def __getattribute__(self, name: str) -> Any:
-        """
-        Keep core context methods callable even if runtime data shadows names.
-
-        Some adapters may attach arbitrary attributes to ctx instances. If one of
-        those attributes is named ``promote`` and set to ``None`` (or any
-        non-callable), ``ctx.promote(...)`` would fail with ``NoneType is not
-        callable``. Always resolving ``promote`` from ``BaseCtx`` preserves the
-        invariant that every ctx remains promotable.
-        """
-        if name == "promote":
-            return BaseCtx.promote.__get__(self, type(self))
-        return object.__getattribute__(self, name)
-
     def promote(self, cls: type[U], /, **updates: object) -> U:
         if not is_dataclass(cls):
             raise TypeError(f"promote target must be a dataclass type, got {cls!r}")
 
+        field_names, required_names = _promotion_field_plan(cls)
         data: dict[str, object] = {}
         missing_required: list[str] = []
 
-        for f in fields(cls):
-            if f.name in updates:
+        for name in field_names:
+            if name in updates:
                 continue
-            if hasattr(self, f.name):
-                data[f.name] = getattr(self, f.name)
+            if hasattr(self, name):
+                data[name] = getattr(self, name)
                 continue
-            if f.default is MISSING and f.default_factory is MISSING:
-                missing_required.append(f.name)
+            if name in required_names:
+                missing_required.append(name)
 
         if missing_required:
             raise TypeError(
@@ -154,6 +142,20 @@ class MappingProxy(Mapping[str, object]):
 
     def get(self, key: str, default: object = None) -> object:
         return self._d.get(key, default)
+
+
+@lru_cache(maxsize=256)
+def _promotion_field_plan(
+    cls: type[Any],
+) -> tuple[tuple[str, ...], frozenset[str]]:
+    cls_fields = fields(cls)
+    names = tuple(f.name for f in cls_fields)
+    required = frozenset(
+        f.name
+        for f in cls_fields
+        if f.default is MISSING and f.default_factory is MISSING
+    )
+    return names, required
 
 
 Ctx: TypeAlias = BaseCtx[S, E]

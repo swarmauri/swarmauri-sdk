@@ -109,13 +109,6 @@ class _Ctx(BaseCtx[Any, Any], MutableMapping[str, Any]):
         "error_phase",
     }
 
-    def __getattribute__(self, name: str) -> Any:
-        # Keep core context methods callable even when runtime data shadows
-        # method names (for example: ctx["promote"] = None).
-        if name == "promote":
-            return _Ctx.promote.__get__(self, type(self))
-        return object.__getattribute__(self, name)
-
     def __getattr__(self, name: str) -> Any:
         bag = object.__getattribute__(self, "bag")
         return bag.get(name)
