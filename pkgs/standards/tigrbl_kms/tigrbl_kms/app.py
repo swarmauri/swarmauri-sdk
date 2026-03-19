@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 from tigrbl import TigrblApp
-from tigrbl.engine import engine as build_engine
+from tigrbl.shortcuts.engine import engine as build_engine
 from swarmauri_crypto_paramiko import ParamikoCrypto
 from swarmauri_standard.key_providers import InMemoryKeyProvider
 from .orm import Key, KeyVersion
