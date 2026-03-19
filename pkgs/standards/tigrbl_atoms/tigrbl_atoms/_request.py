@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json as json_module
+import importlib.util as _importlib_util
 from dataclasses import dataclass, field
 from http.cookies import SimpleCookie
 from types import SimpleNamespace
@@ -12,6 +13,10 @@ from tigrbl_core._spec.request_spec import RequestSpec
 
 
 from tigrbl_typing.request import AwaitableValue, URL
+
+_HAS_ORJSON = _importlib_util.find_spec("orjson") is not None
+if _HAS_ORJSON:
+    import orjson as _orjson  # type: ignore[import-not-found]
 
 
 @dataclass(init=False)
@@ -112,7 +117,10 @@ class Request(RequestSpec):
             self._json_loaded = True
             self._json_cache = None
             return None
-        self._json_cache = json_module.loads(self.body.decode("utf-8"))
+        if _HAS_ORJSON:
+            self._json_cache = _orjson.loads(self.body)
+        else:
+            self._json_cache = json_module.loads(self.body.decode("utf-8"))
         self._json_loaded = True
         return self._json_cache
 

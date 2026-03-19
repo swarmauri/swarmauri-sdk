@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import importlib.util as _importlib_util
 from typing import Any
 
 from ... import events as _ev
@@ -9,6 +10,15 @@ from ...types import Atom, Ctx, IngressCtx
 from .._temp import _ensure_temp
 
 ANCHOR = _ev.INGRESS_INPUT_PREPARE
+_HAS_ORJSON = _importlib_util.find_spec("orjson") is not None
+if _HAS_ORJSON:
+    import orjson as _orjson  # type: ignore[import-not-found]
+
+
+def _loads_json_bytes(payload: bytes) -> Any:
+    if _HAS_ORJSON:
+        return _orjson.loads(payload)
+    return json.loads(payload.decode("utf-8"))
 
 
 def _run(obj: object | None, ctx: Any) -> None:
@@ -25,7 +35,7 @@ def _run(obj: object | None, ctx: Any) -> None:
         ).lower()
         if "json" in content_type:
             try:
-                ingress["body_json"] = json.loads(raw_bytes.decode("utf-8"))
+                ingress["body_json"] = _loads_json_bytes(raw_bytes)
             except Exception:
                 pass
     elif body is not None:

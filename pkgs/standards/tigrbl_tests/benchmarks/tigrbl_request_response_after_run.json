@@ -1,0 +1,20 @@
+{
+  "candidate": {
+    "ops": 250,
+    "warmup_ops": 30,
+    "total_execution_time_seconds": 0.9524451649999719,
+    "ops_per_second": 262.48230259009966
+  },
+  "baseline": {
+    "ops": 250,
+    "warmup_ops": 30,
+    "total_execution_time_seconds": 1.3487259830000085,
+    "ops_per_second": 185.36011254407518
+  },
+  "delta": {
+    "ops_per_second_delta": 77.12219004602449,
+    "ops_per_second_improvement_percent": 41.60668063237514,
+    "total_execution_time_delta_seconds": -0.39628081800003656,
+    "total_execution_time_reduction_percent": 29.38186280941798
+  }
+}

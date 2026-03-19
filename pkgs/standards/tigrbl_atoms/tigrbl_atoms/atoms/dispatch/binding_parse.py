@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import importlib.util as _importlib_util
 import uuid
 from typing import Any, Mapping
 
@@ -9,6 +10,9 @@ from ...stages import Bound
 from ...types import Atom, BoundCtx, Ctx
 
 ANCHOR = _ev.DISPATCH_BINDING_PARSE
+_HAS_ORJSON = _importlib_util.find_spec("orjson") is not None
+if _HAS_ORJSON:
+    import orjson as _orjson  # type: ignore[import-not-found]
 
 
 def _dispatch_dict(ctx: Any) -> dict[str, object]:
@@ -23,6 +27,12 @@ def _dispatch_dict(ctx: Any) -> dict[str, object]:
     return temp["dispatch"]
 
 
+def _loads_json_bytes(payload: bytes) -> Any:
+    if _HAS_ORJSON:
+        return _orjson.loads(payload)
+    return json.loads(payload.decode("utf-8"))
+
+
 def _run(obj: object | None, ctx: Any) -> None:
     del obj
     dispatch = _dispatch_dict(ctx)
@@ -30,12 +40,23 @@ def _run(obj: object | None, ctx: Any) -> None:
     route = temp.setdefault("route", {}) if isinstance(temp, dict) else {}
     protocol = str(dispatch.get("binding_protocol", "") or "")
     body = getattr(ctx, "body", None)
+    temp_ingress = (
+        temp.get("ingress")
+        if isinstance(temp, dict) and isinstance(temp.get("ingress"), dict)
+        else None
+    )
+    cached_body_json = (
+        temp_ingress.get("body_json") if isinstance(temp_ingress, dict) else None
+    )
 
     if isinstance(body, (bytes, bytearray)):
-        try:
-            body = json.loads(bytes(body).decode("utf-8"))
-        except Exception:
-            body = None
+        if isinstance(cached_body_json, (dict, list)):
+            body = cached_body_json
+        else:
+            try:
+                body = _loads_json_bytes(bytes(body))
+            except Exception:
+                body = None
 
     if not protocol and isinstance(body, Mapping) and body.get("jsonrpc") == "2.0":
         dispatch.setdefault("binding_protocol", "http.jsonrpc")
@@ -78,11 +99,6 @@ def _run(obj: object | None, ctx: Any) -> None:
         if isinstance(route, dict):
             route["payload"] = body
     elif protocol.endswith(".rest"):
-        if isinstance(body, (bytes, bytearray)):
-            try:
-                body = json.loads(bytes(body).decode("utf-8"))
-            except Exception:
-                body = None
         payload: dict[str, object] = {}
         query = getattr(ctx, "query", None)
         if isinstance(query, Mapping):

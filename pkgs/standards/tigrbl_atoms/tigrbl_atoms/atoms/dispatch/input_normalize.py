@@ -33,13 +33,32 @@ def _normalize(value: object) -> object:
     return value
 
 
+def _is_json_normalized(value: object) -> bool:
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return True
+    if isinstance(value, list):
+        return all(_is_json_normalized(v) for v in value)
+    if isinstance(value, tuple):
+        return all(_is_json_normalized(v) for v in value)
+    if isinstance(value, Mapping):
+        for key, item in value.items():
+            if not isinstance(key, str):
+                return False
+            if not _is_json_normalized(item):
+                return False
+        return True
+    return False
+
+
 def _run(obj: object | None, ctx: Any) -> None:
     del obj
     dispatch = _dispatch_dict(ctx)
     temp = getattr(ctx, "temp", None)
     route = temp.setdefault("route", {}) if isinstance(temp, dict) else {}
     parsed = dispatch.get("parsed_payload")
-    if isinstance(parsed, Mapping):
+    if _is_json_normalized(parsed):
+        normalized = parsed
+    elif isinstance(parsed, Mapping):
         normalized = {str(k): _normalize(v) for k, v in parsed.items()}
     else:
         normalized = _normalize(parsed)

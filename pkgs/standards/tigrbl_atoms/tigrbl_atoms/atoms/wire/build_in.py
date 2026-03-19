@@ -99,16 +99,20 @@ def _run(obj: Optional[object], ctx: Any) -> None:
         raise
 
     by_field: Mapping[str, Mapping[str, Any]] = schema_in.get("by_field", {})  # type: ignore[assignment]
-    # Build alias→field and ingress whitelist (field and alias forms)
-    alias_to_field: Dict[str, str] = {}
-    ingress_keys: set[str] = set()
-
-    for fname, entry in by_field.items():
-        alias = _safe_str(entry.get("alias_in"))
-        ingress_keys.add(fname)
-        if alias:
-            alias_to_field[alias] = fname
-            ingress_keys.add(alias)
+    # Build alias→field and ingress whitelist once per compiled schema.
+    alias_to_field = schema_in.get("__alias_to_field__")
+    ingress_keys = schema_in.get("__ingress_keys__")
+    if not isinstance(alias_to_field, dict) or not isinstance(ingress_keys, set):
+        alias_to_field = {}
+        ingress_keys = set()
+        for fname, entry in by_field.items():
+            alias = _safe_str(entry.get("alias_in"))
+            ingress_keys.add(fname)
+            if alias:
+                alias_to_field[alias] = fname
+                ingress_keys.add(alias)
+        schema_in["__alias_to_field__"] = alias_to_field
+        schema_in["__ingress_keys__"] = ingress_keys
 
     # Normalize
     in_values: Dict[str, Any] = {}
