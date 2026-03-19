@@ -57,9 +57,11 @@ asyncio_default_fixture_loop_scope = "function"
 [project.entry-points.'swarmauri.llms']
 GroqAIAudio = "swarmauri_llm_groq.GroqAIAudio:GroqAIAudio"
 GroqModel = "swarmauri_llm_groq.GroqModel:GroqModel"
-GroqToolModel = "swarmauri_llm_groq.GroqToolModel:GroqToolModel"
 GroqVisionModel = "swarmauri_llm_groq.GroqVisionModel:GroqVisionModel"
 
+
+[project.entry-points.'swarmauri.tool_llms']
+GroqToolModel = "swarmauri_llm_groq.GroqToolModel:GroqToolModel"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
