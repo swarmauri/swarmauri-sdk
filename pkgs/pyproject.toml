@@ -352,7 +352,9 @@ members = [
     "standards/tigrbl_billing",
     "standards/tigrbl_client",
     "standards/tigrbl_kms",
+    "standards/tigrbl_spec",
     "standards/tigrbl_tests",
+    "standards/tigrcorn",
     "swarmauri",
     "swarmauri_standard",
     "typing",
@@ -664,6 +666,8 @@ tigrbl_auth = { workspace = true }
 tigrbl_billing = { workspace = true }
 tigrbl_client = { workspace = true }
 tigrbl_kms = { workspace = true }
+tigrbl_spec = { workspace = true }
+tigrcorn = { workspace = true }
 tigrbl_spiffe = { workspace = true }
 tigrbl_tests = { workspace = true }
 tigrbl_api_cron = { workspace = true }
