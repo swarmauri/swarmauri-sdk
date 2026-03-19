@@ -46,8 +46,8 @@ class App(AppBase):
     RESPONSE = None
     JSONRPC_PREFIX = "/rpc"
     SYSTEM_PREFIX = "/system"
-    DEFAULT_EXECUTOR = "numba_packed"
-    TRACK_SEEN_PATHS = False
+    DEFAULT_EXECUTOR = "packed"
+    TRACK_SEEN_PATHS = True
 
     def __init__(self, *, engine: EngineCfg | None = None, **asgi_kwargs: Any) -> None:
         collected_spec = self.__class__._collect_mro_spec()
