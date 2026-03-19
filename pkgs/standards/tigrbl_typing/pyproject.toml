@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-typing"
-version = "0.1.0.dev1"
+version = "0.1.0.dev2"
 description = "Typing protocols and shared type helpers for the Tigrbl framework."
 license = "Apache-2.0"
 readme = "README.md"

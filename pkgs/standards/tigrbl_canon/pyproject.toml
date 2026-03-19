@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-canon"
-version = "0.1.0.dev1"
+version = "0.1.0.dev2"
 description = "Canonical mapping and routing resolution utilities for Tigrbl."
 license = "Apache-2.0"
 readme = "README.md"
