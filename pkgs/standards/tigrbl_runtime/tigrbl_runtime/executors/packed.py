@@ -690,7 +690,28 @@ class PackedPlanExecutor(ExecutorBase):
             and str(getattr(hot_op_plan, "target", "")).lower() == "create"
             and route_kind != "jsonrpc"
         ):
-            temp["_tigrbl_hot_direct_create"] = True
+            model_for_create = getattr(hot_op_plan, "model", None)
+            alias_for_create = str(getattr(hot_op_plan, "alias", "") or "")
+            allow_direct_create = True
+            if isinstance(model_for_create, type) and alias_for_create:
+                hooks_root = getattr(model_for_create, "hooks", None)
+                alias_hooks = (
+                    getattr(hooks_root, alias_for_create, None)
+                    if hooks_root is not None
+                    else None
+                )
+                if alias_hooks is not None:
+                    has_post_commit_hooks = bool(
+                        tuple(getattr(alias_hooks, "POST_COMMIT", ()) or ())
+                    )
+                    has_post_response_hooks = bool(
+                        tuple(getattr(alias_hooks, "POST_RESPONSE", ()) or ())
+                    )
+                    allow_direct_create = not (
+                        has_post_commit_hooks or has_post_response_hooks
+                    )
+            if allow_direct_create:
+                temp["_tigrbl_hot_direct_create"] = True
 
         if program_id >= len(plan.opmeta):
             await _send_json(
