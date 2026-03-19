@@ -78,7 +78,7 @@ async def test_document_versions_one_to_many() -> None:
             )
             document.version_history.append(version_row)
             db.add(version_row)
-            db.flush()
+            await db.flush()
 
         @hook_ctx(ops="update", phase="POST_HANDLER")
         async def _append_version(cls, ctx) -> None:
@@ -97,7 +97,7 @@ async def test_document_versions_one_to_many() -> None:
             )
             document.version_history.append(version_row)
             db.add(version_row)
-            db.flush()
+            await db.flush()
 
     class DocumentVersion(TableBase, GUIDPk):
         """Stored snapshots that belong to a parent document."""
