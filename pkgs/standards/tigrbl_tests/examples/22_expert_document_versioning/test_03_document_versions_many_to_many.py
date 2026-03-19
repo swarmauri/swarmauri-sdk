@@ -75,7 +75,7 @@ async def test_document_versions_many_to_many_links() -> None:
             )
             link = DocumentVersionLink(document=document, version=version_row)
             db.add_all([version_row, link])
-            db.flush()
+            await db.flush()
 
         @hook_ctx(ops="update", phase="POST_HANDLER")
         async def _append_version(cls, ctx) -> None:
@@ -92,7 +92,7 @@ async def test_document_versions_many_to_many_links() -> None:
             )
             link = DocumentVersionLink(document=document, version=version_row)
             db.add_all([version_row, link])
-            db.flush()
+            await db.flush()
 
     class DocumentVersion(TableBase, GUIDPk):
         """Snapshot rows that are shared through a join model."""

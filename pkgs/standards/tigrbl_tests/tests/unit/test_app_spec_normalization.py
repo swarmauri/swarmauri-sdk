@@ -151,7 +151,6 @@ def test_max_depth_response_spec_precedence_prefers_lower_scopes() -> None:
     assert merged.headers["x-level"] == "op"
 
 
-@pytest.mark.xfail(reason="Spec graph input validation not yet enforced")
 def test_normalize_app_spec_rejects_non_spec_router_entries() -> None:
     normalize_app_spec(AppSpec(routers=("not-a-router-spec",)))
 
