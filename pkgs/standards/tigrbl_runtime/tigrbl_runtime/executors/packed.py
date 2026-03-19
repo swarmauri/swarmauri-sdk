@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 from typing import Any, ClassVar, Mapping
+from operator import attrgetter
 from types import SimpleNamespace
 
 from tigrbl_concrete._concrete import engine_resolver as _resolver
@@ -132,15 +133,21 @@ class PackedPlanExecutor(ExecutorBase):
         if obj is None or isinstance(obj, Mapping):
             return obj
         model_type = type(obj)
-        keys = self._model_row_serializer_cache.get(model_type)
-        if keys is None:
+        serializer = self._model_row_serializer_cache.get(model_type)
+        if serializer is None:
             keys = self._coerce_model_column_keys(obj)
             if keys is None:
                 return obj
-            self._model_row_serializer_cache[model_type] = keys
+            getter = attrgetter(*keys)
+            serializer = (keys, getter)
+            self._model_row_serializer_cache[model_type] = serializer
+        keys, getter = serializer
         if not keys:
             return obj
-        return {key: getattr(obj, key, None) for key in keys}
+        values = getter(obj)
+        if len(keys) == 1:
+            values = (values,)
+        return dict(zip(keys, values))
 
     def _require_program_id_from_ctx(self, ctx: _Ctx) -> int:
         temp = getattr(ctx, "temp", None)

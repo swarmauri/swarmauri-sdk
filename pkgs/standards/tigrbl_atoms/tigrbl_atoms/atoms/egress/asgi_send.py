@@ -90,7 +90,12 @@ async def _send_json(env: Any, status: int, payload: Any) -> None:
         payload = rpc_payload
         status = 200
 
-    body = json.dumps(payload).encode("utf-8")
+    body = json.dumps(
+        payload,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        default=_json_default,
+    ).encode("utf-8")
     headers = [(b"content-type", b"application/json")]
     headers, body = finalize_transport_response(scope, status, headers, body)
     await env.send(
