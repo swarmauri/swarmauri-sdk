@@ -209,16 +209,15 @@ jobs:
           if ! git diff-index --quiet HEAD; then
             echo "::notice::Changes detected; committing and pushing..."
             git commit -m "chore: apply automatic formatting and lint fixes"
-            git pull --rebase origin "${{ github.ref }}"
-            git push origin HEAD:"${{ github.ref }}" --force
+            git push --force origin "HEAD:${{ github.ref_name }}"
           else
             echo "::notice::No changes to commit."
           fi
 
   # Environment-gated approval for publishing NEW packages
   pypi_approval_gate:
-    needs: [commit, package-info]
-    if: ${{ !cancelled() && needs.package-info.outputs.requires_approval == 'true' }}
+    needs: [test, commit, package-info]
+    if: ${{ !cancelled() && needs.test.result == 'success' && needs.commit.result == 'success' && needs.package-info.outputs.requires_approval == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15   # up to 15 minutes for manual approval
     environment:
@@ -328,5 +327,4 @@ jobs:
           prerelease: ${{ steps.prepare_release.outputs.prerelease }}
           files: |
             pkgs/${{ github.event.inputs.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
-
 
