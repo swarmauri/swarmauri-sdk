@@ -5,16 +5,16 @@ import sqlite3
 from pathlib import Path
 
 from tigrbl import TableBase, TigrblApp
-from tigrbl.orm.mixins import GUIDPk
 from tigrbl.shortcuts.engine import sqlitef
-from tigrbl.types import Column, String
+from tigrbl.types import Column, Integer, String
 
 
 def _build_benchmark_item_model() -> type[TableBase]:
-    class TigrblBenchmarkItem(TableBase, GUIDPk):
+    class TigrblBenchmarkItem(TableBase):
         __tablename__ = "benchmark_tigrbl_item"
         __allow_unmapped__ = True
 
+        id = Column(Integer, primary_key=True, autoincrement=True)
         name = Column(String, nullable=False)
 
     return TigrblBenchmarkItem

@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import asyncio
 import json
+import random
 import tracemalloc
 from pathlib import Path
-from statistics import mean
+from statistics import mean, pstdev
 from tempfile import TemporaryDirectory
 from time import perf_counter
 from typing import Any, Callable
@@ -29,8 +30,16 @@ RESULTS_PATH = Path(__file__).with_name("benchmark_results_create_uvicorn.json")
 TIGRBL_ONLY_RESULTS_PATH = Path(__file__).with_name(
     "benchmark_results_tigrbl_create_uvicorn.json"
 )
+SEQUENTIAL_RESULTS_PATH = Path(__file__).with_name(
+    "benchmark_results_create_uvicorn_sequential_10_rounds.json"
+)
+SEQUENTIAL_STEPS_RESULTS_PATH = Path(__file__).with_name(
+    "benchmark_results_create_uvicorn_sequential_10_steps.json"
+)
 OPS_COUNT = 25
 BENCHMARK_ROUNDS = 3
+SEQUENTIAL_ROUNDS = 10
+THROUGHPUT_RATIO_TARGET = 1.25
 
 
 def _summarize(values: list[float]) -> dict[str, float]:
@@ -65,6 +74,8 @@ async def _benchmark_app(
 
         try:
             async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
+                execution_start = perf_counter()
+
                 for _ in range(5):
                     ready = await client.get("/healthz")
                     if ready.status_code == 200:
@@ -72,7 +83,6 @@ async def _benchmark_app(
                     await asyncio.sleep(0.05)
 
                 tracemalloc.start()
-                execution_start = perf_counter()
 
                 for item_name in expected_names:
                     mem_before_current, mem_before_peak = (
@@ -181,6 +191,101 @@ def _run_tigrbl_benchmark_sync() -> dict[str, Any]:
     return asyncio.run(_run_tigrbl_benchmark())
 
 
+async def _run_sequential_consistency_benchmark() -> dict[str, Any]:
+    scenario_runner = {
+        "tigrbl": dict(
+            create_app=create_tigrbl_app,
+            endpoint_path=tigrbl_create_path(),
+            fetch_names=fetch_tigrbl_names,
+            initialize=initialize_tigrbl_app,
+        ),
+        "fastapi": dict(
+            create_app=create_fastapi_app,
+            endpoint_path=fastapi_create_path(),
+            fetch_names=fetch_fastapi_names,
+            initialize=None,
+        ),
+    }
+    order_rng = random.Random(20260319)
+    rounds: list[dict[str, Any]] = []
+    steps: list[dict[str, Any]] = []
+
+    for round_index in range(1, SEQUENTIAL_ROUNDS + 1):
+        order = ["tigrbl", "fastapi"]
+        order_rng.shuffle(order)
+        round_results: list[dict[str, Any]] = []
+
+        for scenario in order:
+            result = await _benchmark_app(
+                scenario=scenario,
+                create_app=scenario_runner[scenario]["create_app"],
+                endpoint_path=scenario_runner[scenario]["endpoint_path"],
+                fetch_names=scenario_runner[scenario]["fetch_names"],
+                initialize=scenario_runner[scenario]["initialize"],
+            )
+            round_results.append(result)
+
+        rounds.append(
+            {
+                "round": round_index,
+                "order": order,
+                "results": round_results,
+            }
+        )
+        indexed = {result["scenario"]: result for result in round_results}
+        tigrbl_ops = indexed["tigrbl"]["ops_per_second"]
+        fastapi_ops = indexed["fastapi"]["ops_per_second"]
+        steps.append(
+            {
+                "step": round_index,
+                "order": order,
+                "ops_per_second": {
+                    "tigrbl": tigrbl_ops,
+                    "fastapi": fastapi_ops,
+                },
+                "delta_ops_per_second_tigrbl_minus_fastapi": tigrbl_ops - fastapi_ops,
+                "throughput_ratio_tigrbl_over_fastapi": (
+                    tigrbl_ops / fastapi_ops if fastapi_ops else 0.0
+                ),
+            }
+        )
+
+    per_scenario_ops: dict[str, list[float]] = {"tigrbl": [], "fastapi": []}
+    for round_payload in rounds:
+        for result in round_payload["results"]:
+            per_scenario_ops[result["scenario"]].append(result["ops_per_second"])
+
+    tigrbl_mean = mean(per_scenario_ops["tigrbl"])
+    fastapi_mean = mean(per_scenario_ops["fastapi"])
+    throughput_ratio = tigrbl_mean / fastapi_mean if fastapi_mean else 0.0
+
+    return {
+        "rounds": rounds,
+        "steps": steps,
+        "summary": {
+            "round_count": SEQUENTIAL_ROUNDS,
+            "step_count": SEQUENTIAL_ROUNDS,
+            "throughput_ratio_target": THROUGHPUT_RATIO_TARGET,
+            "ops_per_second": {
+                "tigrbl": {
+                    "min": min(per_scenario_ops["tigrbl"]),
+                    "mean": tigrbl_mean,
+                    "max": max(per_scenario_ops["tigrbl"]),
+                    "stddev": pstdev(per_scenario_ops["tigrbl"]),
+                },
+                "fastapi": {
+                    "min": min(per_scenario_ops["fastapi"]),
+                    "mean": fastapi_mean,
+                    "max": max(per_scenario_ops["fastapi"]),
+                    "stddev": pstdev(per_scenario_ops["fastapi"]),
+                },
+            },
+            "delta_ops_per_second_tigrbl_minus_fastapi": tigrbl_mean - fastapi_mean,
+            "throughput_ratio_tigrbl_over_fastapi": throughput_ratio,
+        },
+    }
+
+
 @pytest.mark.perf
 @pytest.mark.benchmark(group="tigrbl_vs_fastapi_create")
 def test_tigrbl_and_fastapi_create_benchmark_and_db_integrity(benchmark: Any) -> None:
@@ -230,3 +335,35 @@ def test_tigrbl_create_benchmark_and_db_integrity(benchmark: Any) -> None:
     assert len(payload["results"]) == 1
     assert payload["results"][0]["scenario"] == "tigrbl"
     assert payload["results"][0]["ops_per_second"] > 0
+
+
+@pytest.mark.perf
+def test_tigrbl_vs_fastapi_sequential_10_rounds_consistency() -> None:
+    payload = asyncio.run(_run_sequential_consistency_benchmark())
+    SEQUENTIAL_RESULTS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    assert SEQUENTIAL_RESULTS_PATH.exists()
+    assert payload["summary"]["round_count"] == SEQUENTIAL_ROUNDS
+    assert (
+        payload["summary"]["throughput_ratio_tigrbl_over_fastapi"]
+        >= THROUGHPUT_RATIO_TARGET
+    )
+
+
+@pytest.mark.perf
+def test_tigrbl_vs_fastapi_sequential_10_steps_randomized_order() -> None:
+    payload = asyncio.run(_run_sequential_consistency_benchmark())
+    SEQUENTIAL_STEPS_RESULTS_PATH.write_text(
+        json.dumps(payload, indent=2), encoding="utf-8"
+    )
+
+    assert SEQUENTIAL_STEPS_RESULTS_PATH.exists()
+    assert payload["summary"]["step_count"] == SEQUENTIAL_ROUNDS
+    assert len(payload["steps"]) == SEQUENTIAL_ROUNDS
+    for step in payload["steps"]:
+        assert step["order"] in (["tigrbl", "fastapi"], ["fastapi", "tigrbl"])
+        assert step["throughput_ratio_tigrbl_over_fastapi"] > 0
+    assert (
+        payload["summary"]["throughput_ratio_tigrbl_over_fastapi"]
+        >= THROUGHPUT_RATIO_TARGET
+    )
