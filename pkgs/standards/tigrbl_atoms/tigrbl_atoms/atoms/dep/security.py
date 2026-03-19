@@ -45,11 +45,40 @@ def _signature_params(fn: Callable[..., Any]) -> tuple[tuple[Any, ...], ...]:
     return tuple(out)
 
 
+def _uncached_signature_params(fn: Callable[..., Any]) -> tuple[tuple[Any, ...], ...]:
+    sig = inspect.signature(fn)
+    out: list[tuple[Any, ...]] = []
+    empty = inspect._empty
+    for name, param in sig.parameters.items():
+        base_annotation, extras = split_annotated(param.annotation)
+        out.append(
+            (
+                name,
+                base_annotation,
+                annotation_marker(extras, DependencyLike),
+                annotation_marker(extras, Param),
+                param.default,
+                base_annotation is empty and name.endswith("request"),
+                is_request_annotation(base_annotation)
+                or name == "request"
+                or name.lower().endswith("request"),
+            )
+        )
+    return tuple(out)
+
+
 async def invoke_dependency(router: Any, dep: Callable[..., Any], req: Any) -> Any:
     provider = getattr(router, "dependency_overrides_provider", None) or router
     overrides = getattr(provider, "dependency_overrides", {})
-    dep = overrides.get(dep, dep)
-    params = _signature_params(dep)
+    try:
+        dep = overrides.get(dep, dep)
+    except TypeError:
+        dep = dep
+
+    try:
+        params = _signature_params(dep)
+    except TypeError:
+        params = _uncached_signature_params(dep)
     if not params:
         out = dep()
         if inspect.isgenerator(out):

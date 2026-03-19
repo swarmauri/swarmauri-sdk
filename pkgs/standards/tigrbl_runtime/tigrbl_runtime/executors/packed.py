@@ -675,8 +675,7 @@ class PackedPlanExecutor(ExecutorBase):
             else None
         )
         if (
-            resolved_from_exact_route
-            and hot_op_plan is not None
+            hot_op_plan is not None
             and str(getattr(hot_op_plan, "target", "")).lower() == "create"
         ):
             temp["_tigrbl_hot_direct_create"] = True
