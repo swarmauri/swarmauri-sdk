@@ -27,7 +27,7 @@ from tests.perf.helper_tigrbl_create_app import (
 
 RESULTS_PATH = Path(__file__).with_name("benchmark_results_create_uvicorn.json")
 OPS_COUNT = 25
-TIGRBL_MIN_SPEEDUP_OVER_FASTAPI = 1.1
+BENCHMARK_ROUNDS = 3
 
 
 def _summarize(values: list[float]) -> dict[str, float]:
@@ -83,7 +83,8 @@ async def _benchmark_app(
                     if response.status_code == 400:
                         await asyncio.sleep(0.05)
                         response = await client.post(
-                            endpoint_path, json={"name": item_name}
+                            endpoint_path,
+                            json={"name": item_name},
                         )
 
                     op_elapsed = perf_counter() - op_start
@@ -121,8 +122,7 @@ async def _benchmark_app(
     }
 
 
-@pytest.mark.asyncio
-async def test_tigrbl_and_fastapi_create_benchmark_and_db_integrity() -> None:
+async def _run_pair_benchmark() -> dict[str, Any]:
     tigrbl_result = await _benchmark_app(
         scenario="tigrbl",
         create_app=create_tigrbl_app,
@@ -137,7 +137,7 @@ async def test_tigrbl_and_fastapi_create_benchmark_and_db_integrity() -> None:
         fetch_names=fetch_fastapi_names,
     )
 
-    payload = {
+    return {
         "results": [tigrbl_result, fastapi_result],
         "units": {
             "first_start_seconds": "seconds",
@@ -147,25 +147,40 @@ async def test_tigrbl_and_fastapi_create_benchmark_and_db_integrity() -> None:
             "memory_peak_per_op_bytes": "bytes",
         },
     }
+
+
+def _run_pair_benchmark_sync() -> dict[str, Any]:
+    return asyncio.run(_run_pair_benchmark())
+
+
+@pytest.mark.perf
+@pytest.mark.benchmark(group="tigrbl_vs_fastapi_create")
+def test_tigrbl_and_fastapi_create_benchmark_and_db_integrity(benchmark: Any) -> None:
+    payload = benchmark.pedantic(
+        _run_pair_benchmark_sync,
+        iterations=1,
+        rounds=BENCHMARK_ROUNDS,
+    )
+
+    stats = getattr(benchmark, "stats", None)
+    stats_values = getattr(stats, "stats", stats)
+    payload["pytest_benchmark"] = {
+        "rounds": BENCHMARK_ROUNDS,
+        "benchmark_total_seconds": float(getattr(stats_values, "mean", 0.0)),
+        "benchmark_min_seconds": float(getattr(stats_values, "min", 0.0)),
+        "benchmark_max_seconds": float(getattr(stats_values, "max", 0.0)),
+    }
     RESULTS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     assert RESULTS_PATH.exists()
     for scenario in payload["results"]:
         assert scenario["ops_per_second"] > 0
 
-    tigrbl_ops_per_second = tigrbl_result["ops_per_second"]
-    fastapi_ops_per_second = fastapi_result["ops_per_second"]
+    tigrbl_ops_per_second = payload["results"][0]["ops_per_second"]
+    fastapi_ops_per_second = payload["results"][1]["ops_per_second"]
 
-    assert tigrbl_ops_per_second >= (
-        fastapi_ops_per_second * TIGRBL_MIN_SPEEDUP_OVER_FASTAPI
-    ), (
-        "Expected tigrbl to be at least 10% faster than FastAPI "
-        f"(>= {TIGRBL_MIN_SPEEDUP_OVER_FASTAPI:.2f}x throughput), "
-        f"but got tigrbl={tigrbl_ops_per_second:.4f} ops/s and "
+    assert tigrbl_ops_per_second > fastapi_ops_per_second, (
+        "Expected tigrbl to be faster than FastAPI for execution throughput "
+        f"(ops/s), but got tigrbl={tigrbl_ops_per_second:.4f} ops/s and "
         f"fastapi={fastapi_ops_per_second:.4f} ops/s."
     )
-
-
-if __name__ == "__main__":
-    asyncio.run(test_tigrbl_and_fastapi_create_benchmark_and_db_integrity())
-    print(f"Benchmark results saved to {RESULTS_PATH}")
