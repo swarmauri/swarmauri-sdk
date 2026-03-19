@@ -32,6 +32,11 @@ from .model_helpers import _ensure_model_namespaces, _filter_specs, _index_specs
 MappingKey = tuple[str, str]
 
 _BULK_ROW_TARGETS = set()
+_HANDLER_CALL_MODE_CACHE: dict[Any, int] = {}
+_CALL_MODEL_AND_CTX = 0
+_CALL_CTX_POSITIONAL = 1
+_CALL_CTX_KEYWORD = 2
+_CALL_NO_ARGS = 3
 
 
 def _bulk_rows_verb(spec: OpSpec) -> str:
@@ -66,27 +71,37 @@ def _call_op_handler(handler: Any, model: type, ctx: Any) -> Any:
     forms work.
     """
 
-    sig = inspect.signature(handler)
-    params = sig.parameters
-
-    positional = [
-        p
-        for p in params.values()
-        if p.kind
-        in (
-            inspect.Parameter.POSITIONAL_ONLY,
-            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+    cache_key = getattr(handler, "__func__", handler)
+    mode = _HANDLER_CALL_MODE_CACHE.get(cache_key)
+    if mode is None:
+        params = inspect.signature(handler).parameters
+        positional = [
+            p
+            for p in params.values()
+            if p.kind
+            in (
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            )
+        ]
+        has_varargs = any(
+            p.kind == inspect.Parameter.VAR_POSITIONAL for p in params.values()
         )
-    ]
-    has_varargs = any(
-        p.kind == inspect.Parameter.VAR_POSITIONAL for p in params.values()
-    )
+        if has_varargs or len(positional) >= 2:
+            mode = _CALL_MODEL_AND_CTX
+        elif len(positional) == 1:
+            mode = _CALL_CTX_POSITIONAL
+        elif "ctx" in params:
+            mode = _CALL_CTX_KEYWORD
+        else:
+            mode = _CALL_NO_ARGS
+        _HANDLER_CALL_MODE_CACHE[cache_key] = mode
 
-    if has_varargs or len(positional) >= 2:
+    if mode == _CALL_MODEL_AND_CTX:
         return handler(model, ctx)
-    if len(positional) == 1:
+    if mode == _CALL_CTX_POSITIONAL:
         return handler(ctx)
-    if "ctx" in params:
+    if mode == _CALL_CTX_KEYWORD:
         return handler(ctx=ctx)
     return handler()
 
@@ -518,6 +533,8 @@ def _resolve_hook_ops(
 
 
 def _wrap_ctx_hook(model: type, fn: Any, phase: str):
+    is_async_bound = inspect.iscoroutinefunction(fn)
+
     @wraps(fn)
     async def _step(ctx: Any) -> Any:
         if phase in {"POST_COMMIT", "POST_RESPONSE"}:
@@ -540,7 +557,7 @@ def _wrap_ctx_hook(model: type, fn: Any, phase: str):
             if response is not None and getattr(response, "result", None) is None:
                 response.result = ctx.get("result")
         bound = fn.__get__(model, model)
-        if inspect.iscoroutinefunction(bound):
+        if is_async_bound:
             return await bound(ctx)
         return await _maybe_await(bound(ctx))
 
@@ -578,26 +595,28 @@ def _phase_name(phase: Any) -> str:
 
 
 def _adapt_hook_callable(fn: Any, phase: str):
+    sig = inspect.signature(fn)
+    positional = [
+        p
+        for p in sig.parameters.values()
+        if p.kind
+        in (
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        )
+    ]
+    takes_ctx_only = len(positional) <= 1 and not any(
+        p.kind == inspect.Parameter.VAR_POSITIONAL for p in sig.parameters.values()
+    )
+    io_key = "payload" if phase.startswith("PRE_") else "result"
+    if phase.startswith("ON_"):
+        io_key = "error"
+
     @wraps(fn)
     async def _step(ctx: Any) -> Any:
-        sig = inspect.signature(fn)
-        positional = [
-            p
-            for p in sig.parameters.values()
-            if p.kind
-            in (
-                inspect.Parameter.POSITIONAL_ONLY,
-                inspect.Parameter.POSITIONAL_OR_KEYWORD,
-            )
-        ]
-        if len(positional) <= 1 and not any(
-            p.kind == inspect.Parameter.VAR_POSITIONAL for p in sig.parameters.values()
-        ):
+        if takes_ctx_only:
             return await _maybe_await(fn(ctx))
 
-        io_key = "payload" if phase.startswith("PRE_") else "result"
-        if phase.startswith("ON_"):
-            io_key = "error"
         return await _maybe_await(
             fn(
                 ctx.get(io_key),
