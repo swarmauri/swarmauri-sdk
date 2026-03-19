@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_cerebras"
-version = "0.1.0.dev1"
+version = "0.1.0.dev2"
 description = "Swarmauri Cerebras LLM adapters from swarmauri_standard."
 license = "Apache-2.0"
 readme = "README.md"
