@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List
-from swarmauri_core.vectors.IVector import IVector  # Assuming there's a base IVector interface for vector representations
+from swarmauri_core.vectors.IVector import (
+    IVector,
+)  # Assuming there's a base IVector interface for vector representations
+
 
 class IDecompose(ABC):
     """
@@ -18,7 +21,7 @@ class IDecompose(ABC):
         - basis_vectors (List[IVector]): A list of basis vectors along which to decompose the given vector.
 
         Returns:
-        - List[IVector]: A list of vectors, each representing the component of the decomposed vector along 
+        - List[IVector]: A list of vectors, each representing the component of the decomposed vector along
                          the corresponding basis vector in the `basis_vectors` list.
         """
         pass

@@ -16,6 +16,3 @@ def test_ubc_type():
 def test_serialization():
     dfvcm = DeepFaceVCM()
     assert dfvcm.id == DeepFaceVCM.model_validate_json(dfvcm.model_dump_json()).id
-
-
-

@@ -6,7 +6,7 @@ from swarmauri.plugin_manager import (
 
 FIRST_CLASS_PLUGINS = [
     "swarmauri.agents.QAAgent",
-    "swarmauri.llms.OpenAIModel",
+    "swarmauri.documents.Document",
     "swarmauri.chains.CallableChain",
 ]
 

@@ -13,7 +13,13 @@ class ScannVectorStore(IVectorStore, ISimilarityQuery):
     A vector store that utilizes ScaNN (Scalable Nearest Neighbors) for efficient similarity searches.
     """
 
-    def __init__(self, dimension: int, num_leaves: int = 100, num_leaves_to_search: int = 10, reordering_num_neighbors: int = 100):
+    def __init__(
+        self,
+        dimension: int,
+        num_leaves: int = 100,
+        num_leaves_to_search: int = 10,
+        reordering_num_neighbors: int = 100,
+    ):
         """
         Initialize the ScaNN vector store with given parameters.
 
@@ -28,19 +34,36 @@ class ScannVectorStore(IVectorStore, ISimilarityQuery):
         self.num_leaves_to_search = num_leaves_to_search
         self.reordering_num_neighbors = reordering_num_neighbors
 
-        self.searcher = None  # Placeholder for the ScaNN searcher initialized during building
+        self.searcher = (
+            None  # Placeholder for the ScaNN searcher initialized during building
+        )
         self.dataset_vectors = []
         self.id_to_metadata = {}
 
     def _build_scann_searcher(self):
         """Build the ScaNN searcher based on current dataset vectors."""
-        self.searcher = scann.ScannBuilder(np.array(self.dataset_vectors, dtype=np.float32), num_neighbors=self.reordering_num_neighbors, distance_measure="dot_product").tree(
-            num_leaves=self.num_leaves, num_leaves_to_search=self.num_leaves_to_search, training_sample_size=25000
-        ).score_ah(
-            dimensions_per_block=2
-        ).reorder(self.reordering_num_neighbors).build()
+        self.searcher = (
+            scann.ScannBuilder(
+                np.array(self.dataset_vectors, dtype=np.float32),
+                num_neighbors=self.reordering_num_neighbors,
+                distance_measure="dot_product",
+            )
+            .tree(
+                num_leaves=self.num_leaves,
+                num_leaves_to_search=self.num_leaves_to_search,
+                training_sample_size=25000,
+            )
+            .score_ah(dimensions_per_block=2)
+            .reorder(self.reordering_num_neighbors)
+            .build()
+        )
 
-    def add_vector(self, vector_id: str, vector: Union[np.ndarray, List[float]], metadata: Dict = None) -> None:
+    def add_vector(
+        self,
+        vector_id: str,
+        vector: Union[np.ndarray, List[float]],
+        metadata: Dict = None,
+    ) -> None:
         """
         Adds a vector along with its identifier and optional metadata to the store.
 
@@ -51,11 +74,13 @@ class ScannVectorStore(IVectorStore, ISimilarityQuery):
         """
         if not isinstance(vector, np.ndarray):
             vector = np.array(vector, dtype=np.float32)
-        
+
         if self.searcher is None:
             self.dataset_vectors.append(vector)
         else:
-            raise Exception("Cannot add vectors after building the index. Rebuild the index to include new vectors.")
+            raise Exception(
+                "Cannot add vectors after building the index. Rebuild the index to include new vectors."
+            )
 
         if metadata is None:
             metadata = {}
@@ -77,7 +102,7 @@ class ScannVectorStore(IVectorStore, ISimilarityQuery):
         """
         if vector_id in self.id_to_metadata:
             metadata = self.id_to_metadata[vector_id]
-            return SimpleVector(data=metadata.get('vector'), metadata=metadata)
+            return SimpleVector(data=metadata.get("vector"), metadata=metadata)
         return None
 
     def delete_vector(self, vector_id: str) -> None:
@@ -90,7 +115,7 @@ class ScannVectorStore(IVectorStore, ISimilarityQuery):
         """
         if vector_id in self.id_to_metadata:
             # Identify index of the vector to be deleted
-            vector = self.id_to_metadata[vector_id]['vector']
+            vector = self.id_to_metadata[vector_id]["vector"]
             index = self.dataset_vectors.index(vector)
 
             # Remove vector and its metadata
@@ -103,7 +128,12 @@ class ScannVectorStore(IVectorStore, ISimilarityQuery):
             # Handle case where vector_id is not found
             print(f"Vector ID {vector_id} not found.")
 
-    def update_vector(self, vector_id: str, new_vector: Union[np.ndarray, List[float]], new_metadata: Dict = None) -> None:
+    def update_vector(
+        self,
+        vector_id: str,
+        new_vector: Union[np.ndarray, List[float]],
+        new_metadata: Dict = None,
+    ) -> None:
         """
         Updates an existing vector in the ScannVectorStore and marks the index for rebuilding.
 
@@ -124,9 +154,12 @@ class ScannVectorStore(IVectorStore, ISimilarityQuery):
             # Handle case where vector_id is not found
             print(f"Vector ID {vector_id} not found.")
 
-
-
-    def search_by_similarity_threshold(self, query_vector: Union[np.ndarray, List[float]], similarity_threshold: float, space_name: str = None) -> List[Dict]:
+    def search_by_similarity_threshold(
+        self,
+        query_vector: Union[np.ndarray, List[float]],
+        similarity_threshold: float,
+        space_name: str = None,
+    ) -> List[Dict]:
         """
         Search vectors exceeding a similarity threshold to a query vector within an optional vector space.
 
@@ -140,10 +173,16 @@ class ScannVectorStore(IVectorStore, ISimilarityQuery):
         """
         if not isinstance(query_vector, np.ndarray):
             query_vector = np.array(query_vector, dtype=np.float32)
-        
+
         if self.searcher is None:
             self._build_scann_searcher()
-        
-        _, indices = self.searcher.search(query_vector, final_num_neighbors=self.reordering_num_neighbors)
-        results = [{"id": str(idx), "metadata": self.id_to_metadata.get(str(idx), {})} for idx in indices if idx < similarity_threshold]
+
+        _, indices = self.searcher.search(
+            query_vector, final_num_neighbors=self.reordering_num_neighbors
+        )
+        results = [
+            {"id": str(idx), "metadata": self.id_to_metadata.get(str(idx), {})}
+            for idx in indices
+            if idx < similarity_threshold
+        ]
         return results

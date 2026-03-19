@@ -21,5 +21,3 @@ def test_serialization():
 @pytest.mark.unit
 def test_default_name():
     assert DeepFaceDistance().name == "VGG-Face"
-
-

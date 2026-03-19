@@ -1,13 +1,16 @@
 from abc import ABC, abstractmethod
 from typing import List, Callable
 
+
 class IGradient(ABC):
     """
     Interface for calculating the gradient of a scalar field.
     """
 
     @abstractmethod
-    def calculate_gradient(self, scalar_field: Callable[[List[float]], float], point: List[float]) -> List[float]:
+    def calculate_gradient(
+        self, scalar_field: Callable[[List[float]], float], point: List[float]
+    ) -> List[float]:
         """
         Calculate the gradient of a scalar field at a specific point.
 

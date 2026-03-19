@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
+
 class IIndex(ABC):
     """
     An abstract interface class for generic indexing data structures.
@@ -30,7 +31,7 @@ class IIndex(ABC):
         """
         Build the index from an iterable of data items (documents, vectors, etc.).
         Some structures may do a batch build for efficiency.
-        
+
         :param data: An iterable of items to index.
         """
         pass
@@ -146,7 +147,9 @@ class IIndex(ABC):
         pass
 
     @abstractmethod
-    def knn_within_radius(self, query: Any, k: int, radius: float) -> List[Tuple[Any, float]]:
+    def knn_within_radius(
+        self, query: Any, k: int, radius: float
+    ) -> List[Tuple[Any, float]]:
         """
         A combined approach: retrieve up to k nearest neighbors,
         but only if they fall within 'radius'. If fewer than k
@@ -283,7 +286,7 @@ class IIndex(ABC):
     # --------------------- SHARDING / PARTITIONING ---------------------
 
     @abstractmethod
-    def split(self, shard_key: Callable[[Any], int]) -> List['IIndex']:
+    def split(self, shard_key: Callable[[Any], int]) -> List["IIndex"]:
         """
         Partition the index into multiple shards based on 'shard_key'.
         Each shard is returned as a separate index instance containing
@@ -295,7 +298,7 @@ class IIndex(ABC):
         pass
 
     @abstractmethod
-    def merge(self, other: 'IIndex') -> None:
+    def merge(self, other: "IIndex") -> None:
         """
         Merge another index (of the same type) into the current one, combining
         all items. This might be used after parallel indexing or in distributed
