@@ -101,6 +101,12 @@ def _prepend_phase_db_binding(
 def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
     from .core import DEFAULT_PHASE_ORDER
 
+    cache = self._phase_chains.setdefault(model, {})
+    stamp = self._phase_stamp(model, alias)
+    cached = cache.get(alias)
+    if cached is not None and cached[0] == stamp:
+        return cached[1]
+
     chains = _hook_phase_chains(model, alias)
     specs = getattr(getattr(model, "ops", SimpleNamespace()), "by_alias", {})
     sp_list = specs.get(alias) or ()
@@ -131,6 +137,7 @@ def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
         chains.setdefault(phase, [])
     phase_db_phases = list(DEFAULT_PHASE_ORDER)
     _prepend_phase_db_binding(chains, phase_db_phases)
+    cache[alias] = (stamp, chains)
     return chains
 
 

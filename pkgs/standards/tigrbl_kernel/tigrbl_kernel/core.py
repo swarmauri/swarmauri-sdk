@@ -58,6 +58,7 @@ class Kernel:
         self._kernel_plans = _WeakMaybeDict()
         self._kernelz_payload = _WeakMaybeDict()
         self._primed = _WeakMaybeDict()
+        self._phase_chains = _WeakMaybeDict()
         self._lock = threading.Lock()
 
     def _atoms(self) -> list[_DiscoveredAtom]:
@@ -77,6 +78,30 @@ class Kernel:
     def invalidate_specs(self, model: Optional[type] = None) -> None:
         self._specs_cache.invalidate(model)
 
+    def _phase_stamp(self, model: type, alias: str) -> tuple[Any, ...]:
+        hooks_root = getattr(model, "hooks", None) or SimpleNamespace()
+        alias_ns = getattr(hooks_root, alias, None)
+        specs = getattr(getattr(model, "ops", SimpleNamespace()), "by_alias", {})
+        sp_list = specs.get(alias) or ()
+        sp = sp_list[0] if sp_list else None
+        phase_lists = tuple(
+            (
+                phase,
+                id(getattr(alias_ns, phase, None)),
+                len(getattr(alias_ns, phase, ()) or ()),
+            )
+            for phase in DEFAULT_PHASE_ORDER
+        )
+        return (
+            id(hooks_root),
+            id(alias_ns),
+            phase_lists,
+            id(specs),
+            id(sp_list),
+            id(sp),
+            id(self._atoms()),
+        )
+
     def ensure_primed(self, app: Any) -> None:
         if self._primed.get(app):
             return
@@ -87,6 +112,7 @@ class Kernel:
             self._kernel_plans.pop(app, None)
             self._kernelz_payload.pop(app, None)
             self._opviews.pop(app, None)
+            self._phase_chains.pop(app, None)
             self._primed[app] = True
 
     def get_opview(self, app: Any, model: type, alias: str) -> OpView:
@@ -156,11 +182,13 @@ class Kernel:
                 self._kernelz_payload = _WeakMaybeDict()
                 self._opviews = _WeakMaybeDict()
                 self._primed = _WeakMaybeDict()
+                self._phase_chains = _WeakMaybeDict()
             else:
                 self._kernel_plans.pop(app, None)
                 self._kernelz_payload.pop(app, None)
                 self._opviews.pop(app, None)
                 self._primed.pop(app, None)
+                self._phase_chains.pop(app, None)
 
 
 Kernel._build_op = _build_op
