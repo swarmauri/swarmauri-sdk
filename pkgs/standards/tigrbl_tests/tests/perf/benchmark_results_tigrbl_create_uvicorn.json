@@ -3,18 +3,18 @@
     {
       "scenario": "tigrbl",
       "ops": 25,
-      "first_start_seconds": 0.14763069000014184,
-      "execution_total_seconds": 0.6516977810001663,
-      "ops_per_second": 38.36133976339812,
+      "first_start_seconds": 0.27196081800002503,
+      "execution_total_seconds": 1.9303048510000735,
+      "ops_per_second": 12.951322163982402,
       "time_per_op_seconds": {
-        "min": 0.023631696999927954,
-        "mean": 0.02553779623999617,
-        "max": 0.03666718799991031
+        "min": 0.04367205899984583,
+        "mean": 0.07593665819998932,
+        "max": 0.1326690470000358
       },
       "memory_peak_per_op_bytes": {
         "min": 0.0,
-        "mean": 18145.16,
-        "max": 311971.0
+        "mean": 18356.72,
+        "max": 310769.0
       }
     }
   ],
@@ -27,8 +27,8 @@
   },
   "pytest_benchmark": {
     "rounds": 3,
-    "benchmark_total_seconds": 0.9732782503332752,
-    "benchmark_min_seconds": 0.9394654599998375,
-    "benchmark_max_seconds": 1.018898795000041
+    "benchmark_total_seconds": 2.552942021999949,
+    "benchmark_min_seconds": 2.2127648309999586,
+    "benchmark_max_seconds": 3.060966394999923
   }
 }

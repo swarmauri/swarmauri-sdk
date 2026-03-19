@@ -82,6 +82,14 @@ class Kernel:
         else:
             self._phase_chains.pop(model, None)
 
+    def _evict_phase_chains_for_app(self, app: Any) -> None:
+        try:
+            models = tuple(_table_iter(app))
+        except Exception:
+            models = ()
+        for model in models:
+            self._phase_chains.pop(model, None)
+
     def ensure_primed(self, app: Any) -> None:
         if self._primed.get(app):
             return
@@ -92,7 +100,7 @@ class Kernel:
             self._kernel_plans.pop(app, None)
             self._kernelz_payload.pop(app, None)
             self._opviews.pop(app, None)
-            self._phase_chains.pop(app, None)
+            self._evict_phase_chains_for_app(app)
             self._primed[app] = True
 
     def get_opview(self, app: Any, model: type, alias: str) -> OpView:
@@ -167,7 +175,7 @@ class Kernel:
                 self._kernel_plans.pop(app, None)
                 self._kernelz_payload.pop(app, None)
                 self._opviews.pop(app, None)
-                self._phase_chains.pop(app, None)
+                self._evict_phase_chains_for_app(app)
                 self._primed.pop(app, None)
 
 
