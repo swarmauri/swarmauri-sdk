@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-runtime"
-version = "0.1.0.dev0"
+version = "0.1.0.dev1"
 description = "Runtime pipeline and executor components for Tigrbl."
 license = "Apache-2.0"
 readme = "README.md"
@@ -21,6 +21,8 @@ dependencies = [
     "tigrbl-typing",
     "tigrbl-kernel",
     "tigrbl-concrete",
+    "tigrbl-atoms",
+    "numba>=0.61.2",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
@@ -28,6 +30,7 @@ keywords = ["tigrbl", "sdk", "standards", "framework"]
 "tigrbl-typing" = { workspace = true }
 "tigrbl-kernel" = { workspace = true }
 "tigrbl-concrete" = { workspace = true }
+"tigrbl-atoms" = { workspace = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -42,5 +45,6 @@ packages = [
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    "pytest-asyncio>=0.23",
     "ruff>=0.9",
 ]

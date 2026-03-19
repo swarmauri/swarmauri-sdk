@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
-from ..config.constants import TIGRBL_SCHEMA_DECLS_ATTR
+from pydantic import BaseModel, create_model
+
+from tigrbl_core.config.constants import TIGRBL_SCHEMA_DECLS_ATTR
 
 logger = logging.getLogger("uvicorn")
 
@@ -14,6 +16,24 @@ logger = logging.getLogger("uvicorn")
 class _SchemaDecl:
     alias: str  # name under model.schemas.<alias>
     kind: str  # "in" | "out"
+
+
+def _coerce_schema_model(schema_cls: type, alias: str, kind: str) -> type:
+    """Promote plain classes to Pydantic models for schema declarations."""
+    del alias, kind
+    if isinstance(schema_cls, type) and issubclass(schema_cls, BaseModel):
+        return schema_cls
+
+    annotations = dict(getattr(schema_cls, "__annotations__", {}) or {})
+    fields: dict[str, tuple[Any, Any]] = {}
+    for field_name, field_type in annotations.items():
+        default = getattr(schema_cls, field_name, ...)
+        fields[field_name] = (field_type, default)
+
+    model_name = f"{schema_cls.__name__}Schema"
+    return create_model(
+        model_name, __base__=BaseModel, __module__=schema_cls.__module__, **fields
+    )
 
 
 def _register_schema_decl(
@@ -46,20 +66,29 @@ def schema_ctx(*, alias: str, kind: str = "out", for_: Optional[type] = None):
         if not isinstance(schema_cls, type):
             logger.debug("schema_ctx applied to non-class %r", schema_cls)
             raise TypeError("@schema_ctx must decorate a class")
+
+        normalized_schema = _coerce_schema_model(schema_cls, alias, kind)
+        setattr(
+            normalized_schema,
+            "__tigrbl_schema_decl__",
+            _SchemaDecl(alias=alias, kind=kind),
+        )
+
         if for_ is not None:
             logger.debug(
                 "Registering schema %s for model %s via decorator",
-                schema_cls,
+                normalized_schema,
                 for_.__name__,
             )
-            _register_schema_decl(for_, alias, kind, schema_cls)
-        setattr(
-            schema_cls, "__tigrbl_schema_decl__", _SchemaDecl(alias=alias, kind=kind)
-        )
+            _register_schema_decl(for_, alias, kind, normalized_schema)
+
         logger.debug(
-            "Attached schema decl to %s: alias=%s kind=%s", schema_cls, alias, kind
+            "Attached schema decl to %s: alias=%s kind=%s",
+            normalized_schema,
+            alias,
+            kind,
         )
-        return schema_cls
+        return normalized_schema
 
     return deco
 

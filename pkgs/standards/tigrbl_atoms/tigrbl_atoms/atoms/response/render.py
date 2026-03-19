@@ -72,12 +72,16 @@ def _run(obj: Optional[object], ctx: Any) -> Any:
             ):
                 return resp
             egress["transport_response"] = {
-                "status_code": int(resp.status_code),
+                "status_code": (
+                    204
+                    if int(resp.status_code) == 200 and not (resp.body or b"")
+                    else int(resp.status_code)
+                ),
                 "headers": {
                     k.decode("latin-1"): v.decode("latin-1")
                     for k, v in getattr(resp, "raw_headers", ())
                 },
-                "body": resp.body or b"",
+                "body": resp.body or None,
             }
     return resp
 

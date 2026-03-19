@@ -4,8 +4,8 @@ import pytest
 
 from tigrbl import TigrblApp
 from tigrbl.runtime import events as _ev
-from tigrbl.runtime.kernel import Kernel
-from tigrbl.runtime.kernel.payload import build_kernelz_payload
+from tigrbl_kernel import Kernel
+from tigrbl_kernel.payload import build_kernelz_payload
 from tigrbl.runtime.system import END_TX, START_TX
 
 
@@ -95,13 +95,19 @@ def test_kernel_build_injects_sys_steps_only_for_persistent_ops() -> None:
             }
         )
 
-    create_chains = kernel.build(Model, "create")
-    read_chains = kernel.build(Model, "read")
+    create_chains = kernel._build_op(Model, "create")
+    read_chains = kernel._build_op(Model, "read")
 
     assert create_chains[START_TX] != []
     assert create_chains[END_TX] != []
-    assert read_chains[START_TX] == []
-    assert read_chains[END_TX] == []
+    assert len(read_chains[START_TX]) == 1
+    assert len(read_chains[END_TX]) == 1
+    assert getattr(read_chains[START_TX][0], "__tigrbl_label", "").startswith(
+        "atom:sys:phase_db"
+    )
+    assert getattr(read_chains[END_TX][0], "__tigrbl_label", "").startswith(
+        "atom:sys:phase_db"
+    )
 
 
 @pytest.mark.asyncio
@@ -153,7 +159,7 @@ async def test_kernelz_payload_full_plan_ordering_for_app_router_and_table(monke
         }
 
     kernel = Kernel(atoms=[])
-    monkeypatch.setattr(kernel, "build", fake_build)
+    monkeypatch.setattr(kernel, "_build_op", fake_build)
     monkeypatch.setattr(kernel, "get_specs", lambda model: {})
 
     payload = build_kernelz_payload(kernel, app)

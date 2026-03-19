@@ -12,6 +12,10 @@ DISALLOWED_NAMES = {
     "star" + "lette",
 }
 
+DISALLOWED_NAME_EXCEPTIONS = {
+    Path("tests/perf/test_tigrbl_vs_fastapi_create_benchmark.py")
+}
+
 
 def _iter_test_files() -> list[Path]:
     return sorted(
@@ -63,10 +67,13 @@ def test_tigrbl_tests_do_not_use_disallowed_framework_names() -> None:
     violations: list[str] = []
 
     for path in _iter_test_files():
+        relpath = path.relative_to(ROOT.parent)
+        if relpath in DISALLOWED_NAME_EXCEPTIONS:
+            continue
+
         content = path.read_text(encoding="utf-8")
         for disallowed_name in DISALLOWED_NAMES:
             if disallowed_name in content:
-                relpath = path.relative_to(ROOT.parent)
                 violations.append(
                     f"{relpath} references disallowed '{disallowed_name}'"
                 )

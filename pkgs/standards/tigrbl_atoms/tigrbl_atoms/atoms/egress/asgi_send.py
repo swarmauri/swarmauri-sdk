@@ -15,6 +15,33 @@ ANCHOR = _ev.EGRESS_ASGI_SEND
 NO_BODY_STATUS = set(range(100, 200)) | {204, 205, 304}
 
 
+def _json_default(value: Any) -> Any:
+    model_dump = getattr(value, "model_dump", None)
+    if callable(model_dump):
+        return model_dump()
+
+    table = getattr(value, "__table__", None)
+    columns = getattr(table, "columns", None)
+    if columns is not None:
+        serialized: dict[str, Any] = {}
+        for column in columns:
+            key = getattr(column, "key", None)
+            if isinstance(key, str) and key:
+                serialized[key] = getattr(value, key, None)
+        if serialized:
+            return serialized
+
+    obj_dict = getattr(value, "__dict__", None)
+    if isinstance(obj_dict, dict):
+        return {
+            key: val
+            for key, val in obj_dict.items()
+            if not key.startswith("_") and not callable(val)
+        }
+
+    return str(value)
+
+
 def finalize_transport_response(
     scope: Mapping[str, Any],
     status: int,
@@ -34,9 +61,43 @@ def finalize_transport_response(
 
 
 async def _send_json(env: Any, status: int, payload: Any) -> None:
-    body = json.dumps(payload).encode("utf-8")
+    scope = getattr(env, "scope", {}) or {}
+    path = scope.get("path") if isinstance(scope, Mapping) else None
+    is_jsonrpc = False
+    if isinstance(path, str):
+        normalized = path.rstrip("/") or "/"
+        if normalized == "/rpc":
+            is_jsonrpc = True
+    if isinstance(payload, Mapping) and payload.get("jsonrpc") == "2.0":
+        is_jsonrpc = True
+    if is_jsonrpc and isinstance(payload, Mapping) and "error" not in payload:
+        from tigrbl_typing.status.mappings import ERROR_MESSAGES, _HTTP_TO_RPC
+
+        rpc_code = _HTTP_TO_RPC.get(int(status), -32603)
+        detail = payload.get("detail")
+        rpc_payload: dict[str, Any] = {
+            "jsonrpc": "2.0",
+            "error": {
+                "code": rpc_code,
+                "message": ERROR_MESSAGES.get(rpc_code, "Internal error"),
+            },
+            "id": None,
+        }
+        if isinstance(detail, Mapping):
+            rpc_payload["error"]["data"] = dict(detail)
+        elif detail is not None:
+            rpc_payload["error"]["data"] = {"detail": detail}
+        payload = rpc_payload
+        status = 200
+
+    body = json.dumps(
+        payload,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        default=_json_default,
+    ).encode("utf-8")
     headers = [(b"content-type", b"application/json")]
-    headers, body = finalize_transport_response(env.scope, status, headers, body)
+    headers, body = finalize_transport_response(scope, status, headers, body)
     await env.send(
         {
             "type": "http.response.start",
@@ -80,13 +141,50 @@ async def _send_transport_response(env: Any, ctx: Any) -> None:
             if v is not None
         ]
 
-    body_obj = transport.get("body", b"")
+    body_obj = transport.get("body", None)
+    if body_obj is None:
+        body_obj = getattr(ctx, "result", None)
+        if body_obj is None and status == 200:
+            status = 204
+
+    if isinstance(body_obj, Mapping) and set(body_obj.keys()) == {"body"}:
+        nested = body_obj.get("body")
+        if isinstance(nested, (bytes, bytearray)):
+            body_obj = nested
+
+    if not isinstance(
+        body_obj, (bytes, bytearray, str, Mapping, list, tuple, set)
+    ) and hasattr(body_obj, "body"):
+        body_obj = getattr(body_obj, "body")
+
+    if (
+        isinstance(body_obj, Mapping)
+        and "body" in body_obj
+        and "status_code" not in body_obj
+        and "headers" not in body_obj
+    ):
+        body_obj = body_obj.get("body")
+
+    if (
+        isinstance(body_obj, str)
+        and body_obj.startswith("b'")
+        and body_obj.endswith("'")
+    ):
+        try:
+            body_obj = body_obj[2:-1].encode("latin-1", errors="ignore")
+        except Exception:
+            pass
+
     if isinstance(body_obj, (bytes, bytearray)):
         body = bytes(body_obj)
     elif body_obj is None:
         body = b""
     else:
-        body = json.dumps(body_obj, separators=(",", ":"), default=str).encode("utf-8")
+        body = json.dumps(
+            body_obj,
+            separators=(",", ":"),
+            default=_json_default,
+        ).encode("utf-8")
         if not any(k.lower() == b"content-type" for k, _ in headers):
             headers.append((b"content-type", b"application/json; charset=utf-8"))
 
@@ -110,7 +208,10 @@ def _headers_to_asgi(headers: Mapping[str, Any]) -> list[tuple[bytes, bytes]]:
 
 def _json_bytes(obj: Any) -> bytes:
     return json.dumps(
-        obj, separators=(",", ":"), ensure_ascii=False, default=str
+        obj,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        default=_json_default,
     ).encode("utf-8")
 
 
@@ -162,6 +263,10 @@ async def _run(obj: object | None, ctx: Any) -> None:
         status = int(tr.get("status_code", 200)) if isinstance(tr, dict) else 200
         headers = tr.get("headers", {}) if isinstance(tr, dict) else {}
         body_obj = tr.get("body", None) if isinstance(tr, dict) else None
+        if body_obj is None:
+            body_obj = getattr(ctx, "result", None)
+            if body_obj is None and status == 200:
+                status = 204
 
         if isinstance(body_obj, (bytes, bytearray)):
             body = bytes(body_obj)

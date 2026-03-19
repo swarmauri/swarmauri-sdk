@@ -5,7 +5,7 @@ import warnings
 
 from typing import Any, Mapping, Sequence, Optional, Tuple
 from sqlalchemy import and_, inspect as sa_inspect
-from tigrbl_typing.types import Session
+from tigrbl_concrete._concrete._engine import Session
 
 
 class Upsertable:

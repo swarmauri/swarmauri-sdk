@@ -1,5 +1,5 @@
 from tigrbl.runtime import events as _ev
-from tigrbl.runtime.kernel import Kernel
+from tigrbl_kernel import Kernel
 
 
 def _mk_atom(module: str):

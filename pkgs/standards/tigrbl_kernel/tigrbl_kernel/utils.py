@@ -16,7 +16,7 @@ from .types import (
     LOWER_KIND_ASYNC_DIRECT,
     LOWER_KIND_SPLIT_EXTRACTABLE,
     LOWER_KIND_SYNC_EXTRACTABLE,
-    ROUTE_SPINE_ATOMS,
+    DISPATCH_SPINE_ATOMS,
 )
 
 
@@ -34,9 +34,32 @@ def _opspecs(model: Any) -> Sequence[Any]:
     if ops:
         return tuple(ops)
 
-    table_ops = getattr(model, "ops", ()) or ()
-    if table_ops:
-        return tuple(table_ops)
+    table_ops = getattr(model, "ops", None)
+    if table_ops is not None:
+        by_alias = getattr(table_ops, "by_alias", None)
+        if isinstance(by_alias, Mapping) and by_alias:
+            flattened: list[Any] = []
+            for specs in by_alias.values():
+                if specs is None:
+                    continue
+                if isinstance(specs, Sequence) and not isinstance(
+                    specs, (str, bytes, bytearray)
+                ):
+                    flattened.extend(tuple(specs))
+                    continue
+                alias = getattr(specs, "alias", None)
+                target = getattr(specs, "target", None)
+                if alias is not None and target is not None:
+                    flattened.append(specs)
+            if flattened:
+                return tuple(flattened)
+        all_ops = getattr(table_ops, "all", ()) or ()
+        if all_ops:
+            return tuple(all_ops)
+        if isinstance(table_ops, Sequence) and not isinstance(
+            table_ops, (str, bytes, bytearray)
+        ):
+            return tuple(table_ops)
 
     declared_ops = getattr(model, "__tigrbl_ops__", ()) or ()
     if declared_ops:
@@ -47,12 +70,12 @@ def _opspecs(model: Any) -> Sequence[Any]:
 
 def _canonicalize_app(app: Any) -> Any:
     try:
-        from tigrbl_canon.mapping.spec_normalization import normalize_app_spec
+        from tigrbl_core._spec.app_spec import normalize_app_spec
         from tigrbl_core._spec.app_spec import AppSpec
     except Exception:
         return app
 
-    if isinstance(app, AppSpec):
+    if type(app) is AppSpec:
         return normalize_app_spec(app)
     return app
 
@@ -99,16 +122,14 @@ def _label_step(step: Any, phase: str) -> str:
 
 def _classify_step_lowering(step: Any, phase: str) -> str:
     name = _atom_name(step)
-    if name in ROUTE_SPINE_ATOMS:
+    if name in DISPATCH_SPINE_ATOMS:
         return LOWER_KIND_SYNC_EXTRACTABLE
-    if name in {"ingress.method_extract", "ingress.path_extract"}:
+    if name in {"ingress.transport_extract"}:
         return LOWER_KIND_SYNC_EXTRACTABLE
     if name in {
-        "route.params_normalize",
-        "route.payload_select",
-        "route.rpc_envelope_parse",
-        "ingress.headers_parse",
-        "ingress.query_parse",
+        "dispatch.binding_parse",
+        "dispatch.input_normalize",
+        "ingress.input_prepare",
     }:
         return LOWER_KIND_SPLIT_EXTRACTABLE
     if phase in EGRESS_PHASES:

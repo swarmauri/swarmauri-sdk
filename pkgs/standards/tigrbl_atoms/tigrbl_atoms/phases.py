@@ -24,7 +24,7 @@ U = TypeVar("U")
 PhaseName = Literal[
     "INGRESS_BEGIN",
     "INGRESS_PARSE",
-    "INGRESS_ROUTE",
+    "INGRESS_DISPATCH",
     "PRE_TX_BEGIN",
     "START_TX",
     "PRE_HANDLER",
@@ -59,6 +59,22 @@ class PhaseStep(Generic[S, T]):
     is_error: bool = False
 
 
+INGRESS_BEGIN_PHASE: Final[PhaseName] = "INGRESS_BEGIN"
+INGRESS_PARSE_PHASE: Final[PhaseName] = "INGRESS_PARSE"
+INGRESS_DISPATCH_PHASE: Final[PhaseName] = "INGRESS_DISPATCH"
+PRE_TX_BEGIN_PHASE: Final[PhaseName] = "PRE_TX_BEGIN"
+START_TX_PHASE: Final[PhaseName] = "START_TX"
+PRE_HANDLER_PHASE: Final[PhaseName] = "PRE_HANDLER"
+HANDLER_PHASE: Final[PhaseName] = "HANDLER"
+POST_HANDLER_PHASE: Final[PhaseName] = "POST_HANDLER"
+PRE_COMMIT_PHASE: Final[PhaseName] = "PRE_COMMIT"
+END_TX_PHASE: Final[PhaseName] = "END_TX"
+POST_COMMIT_PHASE: Final[PhaseName] = "POST_COMMIT"
+EGRESS_SHAPE_PHASE: Final[PhaseName] = "EGRESS_SHAPE"
+EGRESS_FINALIZE_PHASE: Final[PhaseName] = "EGRESS_FINALIZE"
+POST_RESPONSE_PHASE: Final[PhaseName] = "POST_RESPONSE"
+
+
 def seq_phase(a: PhaseStep[S, T], b: PhaseStep[T, U]) -> PhaseStep[S, U]:
     return PhaseStep(
         name=f"{a.name}->{b.name}",  # type: ignore
@@ -71,7 +87,7 @@ def seq_phase(a: PhaseStep[S, T], b: PhaseStep[T, U]) -> PhaseStep[S, U]:
 
 INGRESS_BEGIN = PhaseStep("INGRESS_BEGIN", Boot, Ingress)
 INGRESS_PARSE = PhaseStep("INGRESS_PARSE", Ingress, Ingress)
-INGRESS_ROUTE = PhaseStep("INGRESS_ROUTE", Ingress, Planned)
+INGRESS_DISPATCH = PhaseStep("INGRESS_DISPATCH", Ingress, Planned)
 
 PRE_TX_BEGIN = PhaseStep("PRE_TX_BEGIN", Planned, Guarded)
 
@@ -120,7 +136,7 @@ ON_ROLLBACK = PhaseStep("ON_ROLLBACK", Failed, Failed, in_tx=True, is_error=True
 PHASES: Final[Tuple[PhaseName, ...]] = (
     "INGRESS_BEGIN",
     "INGRESS_PARSE",
-    "INGRESS_ROUTE",
+    "INGRESS_DISPATCH",
     "PRE_TX_BEGIN",
     "START_TX",
     "PRE_HANDLER",
@@ -151,7 +167,7 @@ PHASE_INFO: Final[Dict[PhaseName, PhaseStep]] = {
     for p in (
         INGRESS_BEGIN,
         INGRESS_PARSE,
-        INGRESS_ROUTE,
+        INGRESS_DISPATCH,
         PRE_TX_BEGIN,
         START_TX,
         PRE_HANDLER,
@@ -196,6 +212,20 @@ def phase_stage_out(name: PhaseName) -> Stage:
 __all__ = [
     "PhaseStep",
     "seq_phase",
+    "INGRESS_BEGIN_PHASE",
+    "INGRESS_PARSE_PHASE",
+    "INGRESS_DISPATCH_PHASE",
+    "PRE_TX_BEGIN_PHASE",
+    "START_TX_PHASE",
+    "PRE_HANDLER_PHASE",
+    "HANDLER_PHASE",
+    "POST_HANDLER_PHASE",
+    "PRE_COMMIT_PHASE",
+    "END_TX_PHASE",
+    "POST_COMMIT_PHASE",
+    "EGRESS_SHAPE_PHASE",
+    "EGRESS_FINALIZE_PHASE",
+    "POST_RESPONSE_PHASE",
     "PHASES",
     "PHASE_INFO",
     "phase_info",

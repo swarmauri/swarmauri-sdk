@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-atoms"
-version = "0.1.0.dev0"
+version = "0.1.0.dev1"
 description = "Runtime atom utilities and execution helpers for Tigrbl."
 license = "Apache-2.0"
 readme = "README.md"
@@ -19,15 +19,17 @@ classifiers = [
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "tigrbl-ops-oltp",
-    "tigrbl-base",
+    "tigrbl-core",
     "tigrbl-typing",
     "jinja2>=3.1",
+    "sqlalchemy>=2.0",
+    "typing-extensions>=4.0",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
 [tool.uv.sources]
 "tigrbl-ops-oltp" = { workspace = true }
-"tigrbl-base" = { workspace = true }
+"tigrbl-core" = { workspace = true }
 "tigrbl-typing" = { workspace = true }
 
 [build-system]

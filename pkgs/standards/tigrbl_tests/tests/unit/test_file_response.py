@@ -3,16 +3,16 @@ from pathlib import Path
 
 from httpx import ASGITransport, Client
 
-from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
+from tests.conftest import mro_collect_decorated_ops
+from tigrbl_concrete._mapping.router.include import include_table
 from tigrbl.decorators.op import op_ctx
 from tigrbl.shortcuts.responses import as_file
-from tigrbl.mapping import (
+from tigrbl import (
     build_hooks,
     build_handlers,
     build_rest,
     build_schemas,
     register_rpc,
-    include_table,
 )
 from tigrbl import TigrblApp
 from tigrbl.types import Integer, Mapped, mapped_column
@@ -65,7 +65,7 @@ def test_file_response_ops(tmp_path):
     file_path.write_text("content")
     Widget = _build_model(object, file_path)
 
-    resp = asyncio.run(Widget.handlers.download.handler({}))
+    resp = asyncio.run(Widget.ops.by_alias["download"][0].core_raw({}))
     assert resp.path == str(file_path)
 
     response = _server_client_roundtrip(Widget.rest.router)
@@ -76,9 +76,9 @@ def test_file_response_ops(tmp_path):
 def test_file_response_table(tmp_path):
     file_path = tmp_path / "table.txt"
     file_path.write_text("table")
-    Widget = _build_model(Table, file_path, bind=False)
+    Widget = _build_model(Table, file_path, bind=True)
 
-    resp = asyncio.run(Widget.handlers.download.handler({}))
+    resp = asyncio.run(Widget.ops.by_alias["download"][0].core_raw({}))
     assert resp.path == str(file_path)
 
     response = _server_client_roundtrip(Widget.rest.router)
@@ -100,7 +100,7 @@ def test_file_response_api(tmp_path):
     router.get_db = fake_db  # type: ignore[assignment]
     include_table(router, Widget)
 
-    resp = asyncio.run(Widget.handlers.download.handler({}))
+    resp = asyncio.run(Widget.ops.by_alias["download"][0].core_raw({}))
     assert resp.path == str(file_path)
 
     app = TigrblApp()

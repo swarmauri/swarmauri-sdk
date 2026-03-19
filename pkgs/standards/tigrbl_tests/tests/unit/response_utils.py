@@ -1,15 +1,16 @@
 from __future__ import annotations
 from tigrbl import TableBase, alias_ctx, op_ctx, schema_ctx
-from tigrbl.mapping import (
-    build_handlers,
-    build_hooks,
-    build_rest,
-    build_schemas,
-    register_rpc,
+from tigrbl_concrete._mapping.model import (
+    _bind_model_hooks as build_hooks,
+    _materialize_handlers as build_handlers,
+    _materialize_rest_router,
+    _materialize_schemas as build_schemas,
 )
-from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
+from tigrbl_base._base._rpc_map import register_and_attach as register_rpc
+from tigrbl_core._spec.op_spec import _mro_collect_decorated_ops
+
 from tigrbl import response_ctx
-from tigrbl.runtime.atoms.response.templates import render_template
+from tigrbl_atoms.atoms.response.templates import render_template
 from tigrbl.shortcuts.responses import (
     as_file,
     as_html,
@@ -21,6 +22,14 @@ from tigrbl.shortcuts.responses import (
 from pydantic import BaseModel
 from typing import get_args
 from tigrbl._spec.response_spec import ResponseKind
+
+
+def build_rest(model: type, specs):
+    return _materialize_rest_router(model, specs, router=None)
+
+
+def mro_collect_decorated_ops(table: type):
+    return tuple(_mro_collect_decorated_ops(table))
 
 
 RESPONSE_KINDS = get_args(ResponseKind)

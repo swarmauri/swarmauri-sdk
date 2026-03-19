@@ -4,9 +4,9 @@ from typing import Any
 
 from ._table_registry import TableRegistry
 from tigrbl_base._base import AppBase
-from tigrbl.ddl import initialize as _ddl_initialize
+from tigrbl_concrete.ddl import initialize as _ddl_initialize
 from ._engine import Engine
-from tigrbl_canon.mapping import engine_resolver as _resolver
+from tigrbl_concrete._concrete import engine_resolver as _resolver
 from tigrbl_core._spec.app_spec import AppSpec
 from tigrbl_core._spec.engine_spec import EngineCfg
 from ._routing import (
@@ -14,15 +14,15 @@ from ._routing import (
     merge_tags as _merge_tags_impl,
     normalize_prefix as _normalize_prefix_impl,
 )
-from tigrbl_runtime.runtime.gw.invoke import invoke
-from tigrbl_runtime.runtime.gw.raw import GwRawEnvelope
+from tigrbl_runtime.runtime import Runtime
+from tigrbl_typing.gw.raw import GwRawEnvelope
 
 
 class App(AppBase):
     @classmethod
     def collect(cls) -> AppSpec:
         """Collect and normalize AppSpec configuration for this App class."""
-        return cls.collect_spec(cls)
+        return AppSpec.collect(cls)
 
     @classmethod
     def _collect_mro_spec(cls) -> AppSpec:
@@ -49,6 +49,7 @@ class App(AppBase):
 
     def __init__(self, *, engine: EngineCfg | None = None, **asgi_kwargs: Any) -> None:
         collected_spec = self.__class__._collect_mro_spec()
+        collected_spec = self.__class__.bind_spec(collected_spec, parent=self)
 
         title = asgi_kwargs.pop("title", None)
         if title is not None:
@@ -140,6 +141,10 @@ class App(AppBase):
             _resolver.set_default(_engine_ctx)
             _resolver.resolve_provider()
 
+        self.runtime = Runtime(
+            default_executor=getattr(self, "DEFAULT_EXECUTOR", "packed")
+        )
+
     @property
     def router(self) -> "App":
         return self
@@ -161,9 +166,32 @@ class App(AppBase):
             )
 
     async def invoke(self, env: GwRawEnvelope) -> None:
-        await invoke(env, app=self)
+        plan, packed_plan = self.runtime.compile(self)
+        ctx: dict[str, Any] = {
+            "app": self,
+            "router": self,
+            "raw": env,
+            "env": env,
+            "kernel_plan": plan,
+            "plan": plan,
+            "packed_plan": packed_plan,
+            "temp": {},
+        }
+        await self.runtime.invoke(
+            env=env,
+            ctx=ctx,
+            plan=plan,
+            packed_plan=packed_plan,
+        )
 
     async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        path = scope.get("path")
+        if isinstance(path, str):
+            seen_paths = getattr(self, "_seen_paths", None)
+            if not isinstance(seen_paths, set):
+                seen_paths = set()
+                setattr(self, "_seen_paths", seen_paths)
+            seen_paths.add(path)
         env = GwRawEnvelope(kind="asgi3", scope=scope, receive=receive, send=send)
         await self.invoke(env)
 
@@ -176,6 +204,9 @@ class App(AppBase):
     def include_router(self, router: Any, *, prefix: str | None = None) -> Any:
         routed = getattr(router, "router", router)
         _include_router_impl(self, routed, prefix=prefix or "")
+        bump = getattr(self, "_bump_runtime_plan_revision", None)
+        if callable(bump):
+            bump()
         return router
 
     initialize = _ddl_initialize

@@ -1,5 +1,3 @@
-"""Security compatibility namespace."""
+"""Compatibility shim for relocated security module."""
 
-from .dependencies import Dependency, Depends, Security
-
-__all__ = ["Depends", "Security", "Dependency"]
+from tigrbl_concrete.security import *  # noqa: F403

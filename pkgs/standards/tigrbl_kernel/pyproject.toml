@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-kernel"
-version = "0.1.0.dev0"
+version = "0.1.0.dev1"
 description = "Kernel orchestration for Tigrbl runtime composition."
 license = "Apache-2.0"
 readme = "README.md"
@@ -20,14 +20,14 @@ authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "tigrbl-typing",
     "tigrbl-atoms",
-    "tigrbl-canon",
+    "tigrbl-core",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
 [tool.uv.sources]
 "tigrbl-typing" = { workspace = true }
 "tigrbl-atoms" = { workspace = true }
-"tigrbl-canon" = { workspace = true }
+"tigrbl-core" = { workspace = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -42,5 +42,7 @@ packages = [
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "pytest-timeout>=2.3",
     "ruff>=0.9",
 ]

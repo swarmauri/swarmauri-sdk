@@ -1,6 +1,6 @@
 from typing import get_args, get_origin
 
-from tigrbl.mapping.rest.collection import _make_collection_endpoint
+from tests.conftest import _make_collection_endpoint
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
 from tigrbl._spec import OpSpec
 from tigrbl.orm.tables import TableBase

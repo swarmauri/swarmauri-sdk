@@ -18,6 +18,7 @@ _EXPORTS = {
     "Router": "_router",
     "Schema": "_schema",
     "ForeignKey": "_storage",
+    "StorageTransform": "_storage",
     "Table": "_table",
     "Template": "_response",
     "TableRegistry": "_table_registry",
@@ -42,6 +43,7 @@ _EXPORTS = {
     "TigrblRouter": "tigrbl_router",
     "BackgroundTask": "_background",
     "wrap_sessionmaker": "_session",
+    "allow_anon": "_allow_anon",
 }
 
 __all__ = list(_EXPORTS)

@@ -1,8 +1,9 @@
 from tigrbl import TigrblApp
-from tigrbl.mapping.model import bind
+from tigrbl_concrete._mapping.model import bind
 from tigrbl.orm.tables import TableBase
-from tigrbl.runtime.kernel import _default_kernel as K
-from tigrbl._spec import IO, S, acol
+from tigrbl_kernel import _default_kernel as K
+from tigrbl._spec import IO, S
+from tigrbl.shortcuts.column import acol
 from tigrbl.types import Integer as IntType
 
 

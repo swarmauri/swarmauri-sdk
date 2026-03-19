@@ -97,5 +97,7 @@ class ResponseBase(ResponseSpec):
 class TemplateBase(TemplateSpec):
     """Template configuration base for response rendering."""
 
+    name: str = "default"
+
 
 __all__ = ["HeaderCookiesBase", "HeadersBase", "ResponseBase", "TemplateBase"]

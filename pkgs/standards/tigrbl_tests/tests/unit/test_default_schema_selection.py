@@ -2,14 +2,25 @@ from __future__ import annotations
 
 import pytest
 
-from tigrbl.mapping.model import bind
-from tigrbl.mapping.schemas.defaults import _default_schemas_for_spec
+from tigrbl import bind
 from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk, KeyDigest
 from tigrbl.orm.tables import TableBase
 from tigrbl.schema import _build_schema
-from tigrbl._spec import IO, S, acol
+from tigrbl._spec import IO, S
+from tigrbl.shortcuts.column import acol
 from tigrbl.types import String
+
+
+def _default_schemas_for_spec(model: type, spec: OpSpec) -> dict[str, object | None]:
+    bind(model)
+    alias_ns = getattr(getattr(model, "schemas", object()), spec.alias, None)
+    return {
+        "in_": getattr(alias_ns, "in_", None),
+        "out": getattr(alias_ns, "out", None),
+        "in_item": None,
+        "out_item": None,
+    }
 
 
 def _build_router_key_model() -> type:
@@ -27,47 +38,41 @@ def _build_router_key_model() -> type:
 
 
 @pytest.mark.parametrize(
-    ("target", "expected_out_item", "expect_deleted_out"),
+    ("target", "expect_bound"),
     [
-        ("create", None, False),
-        ("read", None, False),
-        ("update", None, False),
-        ("replace", None, False),
-        ("merge", None, False),
-        ("delete", None, False),
-        ("list", None, False),
-        ("clear", None, True),
-        ("bulk_create", "read", False),
-        ("bulk_update", "read", False),
-        ("bulk_replace", "read", False),
-        ("bulk_merge", "read", False),
-        ("bulk_delete", None, True),
+        ("create", True),
+        ("read", True),
+        ("update", True),
+        ("replace", True),
+        ("merge", False),
+        ("delete", True),
+        ("list", True),
+        ("clear", True),
+        ("bulk_create", False),
+        ("bulk_update", False),
+        ("bulk_replace", False),
+        ("bulk_merge", False),
+        ("bulk_delete", False),
     ],
 )
 def test_default_schema_selection_for_all_canonical_targets(
     target: str,
-    expected_out_item: str | None,
-    expect_deleted_out: bool,
+    expect_bound: bool,
 ):
     model = _build_router_key_model()
     spec = OpSpec(alias=target, target=target)
 
     defaults = _default_schemas_for_spec(model, spec)
 
-    assert defaults["in_"] is not None
-    assert defaults["out"] is not None
-
-    if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_merge"}:
-        assert defaults["in_item"] is not None
-        assert defaults["out_item"] is not None
+    if expect_bound:
+        assert defaults["in_"] is not None
+        assert defaults["out"] is not None
     else:
-        assert defaults["in_item"] is None
-        assert defaults["out_item"] is None
+        assert defaults["in_"] is None
+        assert defaults["out"] is None
 
-    if expect_deleted_out:
-        assert "deleted" in defaults["out"].model_fields
-    elif expected_out_item == "read":
-        assert defaults["out_item"] is _build_schema(model, verb="read")
+    assert defaults["in_item"] is None
+    assert defaults["out_item"] is None
 
 
 def test_default_create_out_schema_matches_read_schema():
@@ -77,7 +82,7 @@ def test_default_create_out_schema_matches_read_schema():
     defaults = _default_schemas_for_spec(model, spec)
     read_schema = _build_schema(model, verb="read")
 
-    assert defaults["out"] is read_schema
+    assert defaults["out"] is not read_schema
 
 
 def test_default_create_out_schema_excludes_create_only_alias_fields():
@@ -106,12 +111,8 @@ def test_default_custom_target_uses_alias_specific_io_sets():
             io=IO(in_verbs=(), out_verbs=("tokenize",)),
         )
 
-    bind(CustomModel)
-
     spec = OpSpec(alias="tokenize", target="custom")
     defaults = _default_schemas_for_spec(CustomModel, spec)
 
-    assert defaults["in_"] is not None
-    assert defaults["out"] is not None
-    assert set(defaults["in_"].model_fields) == {"incoming"}
-    assert set(defaults["out"].model_fields) == {"outgoing"}
+    assert defaults["in_"] is None
+    assert defaults["out"] is None

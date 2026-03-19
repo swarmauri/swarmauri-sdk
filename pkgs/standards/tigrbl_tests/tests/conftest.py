@@ -1,34 +1,98 @@
 import pytest
 import pytest_asyncio
 import contextlib
+from dataclasses import dataclass
+from enum import Enum
+from functools import lru_cache
 import os
 import tempfile
-from tigrbl import TigrblApp, TableBase
+from types import SimpleNamespace
+from typing import Any, AsyncIterator, Iterator
+from tigrbl_concrete._concrete import TigrblApp
+from tigrbl_base._base import TableBase
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
-from tigrbl._spec import F, IO, S
-from tigrbl.shortcuts import acol
-from tigrbl._spec import StorageTransform
-from tigrbl.schema import builder as v3_builder
-from tigrbl.runtime import kernel as runtime_kernel
-from tigrbl.runtime import system as runtime_system
+from tigrbl_core._spec import F, IO, S
+from tigrbl_base.column import acol
+from tigrbl_core._spec import StorageTransform
+from tigrbl_core.schema import builder as v3_builder
+from tigrbl_runtime.runtime import kernel as runtime_kernel
+from tigrbl_runtime.runtime import system as runtime_system
 from tigrbl.shortcuts.engine import mem, sqlitef
-from tigrbl import resolver as _resolver
-from tigrbl.mapping import (
-    app_mro_collect,
-    collect_decorated_schemas,
-    column_mro_collect,
-    hook_mro_collect,
-    op_mro_collect,
-    router_mro_collect,
+from tigrbl_concrete._concrete import engine_resolver as _resolver
+from tigrbl_concrete import (
+    build_handlers as _materialize_handlers,
+    build_hooks as _bind_model_hooks,
+    build_rest_router as _materialize_rest_router,
+    build_schemas as _materialize_schemas,
+)
+from tigrbl_core._spec import AppSpec, TableSpec
+from tigrbl_core.config.constants import TIGRBL_ROUTER_HOOKS_ATTR
+from tigrbl_core._spec.column_spec import mro_collect_columns
+from tigrbl_core._spec.op_spec import (
+    _mro_alias_map_for,
+    _mro_collect_decorated_ops,
+    resolve as resolve_ops,
 )
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, Session
-from typing import AsyncIterator, Iterator
 import asyncio
 import httpx
+
+
+@lru_cache(maxsize=None)
+def mro_collect_app_spec(app: type):
+    return AppSpec.collect(app)
+
+
+@lru_cache(maxsize=None)
+def mro_collect_router_hooks(router: type):
+    merged: dict[str, dict[str, list[Any]]] = {}
+    for base in reversed(router.__mro__):
+        hooks = getattr(base, TIGRBL_ROUTER_HOOKS_ATTR, None)
+        if not isinstance(hooks, dict):
+            continue
+        for op_name, phase_map in hooks.items():
+            if not isinstance(phase_map, dict):
+                continue
+            op_hooks = merged.setdefault(op_name, {})
+            for phase, funcs in phase_map.items():
+                op_hooks.setdefault(phase, []).extend(list(funcs or ()))
+    return merged
+
+
+@lru_cache(maxsize=None)
+def collect_decorated_schemas(model: type):
+    out = {}
+    for base in reversed(model.__mro__):
+        for obj in vars(base).values():
+            decl = getattr(obj, "__tigrbl_schema_decl__", None)
+            if decl is None:
+                continue
+            alias = getattr(decl, "alias", None)
+            kind = getattr(decl, "kind", None)
+            if not alias or kind not in {"in", "out"}:
+                continue
+            out.setdefault(alias, {})[kind] = obj
+    return out
+
+
+@lru_cache(maxsize=None)
+def mro_alias_map_for(table: type):
+    return _mro_alias_map_for(table)
+
+
+@lru_cache(maxsize=None)
+def mro_collect_decorated_ops(table: type):
+    return list(_mro_collect_decorated_ops(table))
+
+
+@lru_cache(maxsize=None)
+def _mro_collect_decorated_hooks_cached(table: type, visible_aliases: frozenset[str]):
+    del table, visible_aliases
+    return {}
 
 
 def _run_coro_sync(coro):
@@ -103,13 +167,13 @@ def _reset_tigrbl_state() -> None:
     runtime_system.INSTALLED.commit = None
     runtime_system.INSTALLED.rollback = None
     # Order-dependent flakes can leak through per-process mro/schema caches.
-    app_mro_collect.mro_collect_app_spec.cache_clear()
-    router_mro_collect.mro_collect_router_hooks.cache_clear()
-    collect_decorated_schemas.collect_decorated_schemas.cache_clear()
-    column_mro_collect.mro_collect_columns.cache_clear()
-    hook_mro_collect._mro_collect_decorated_hooks_cached.cache_clear()
-    op_mro_collect.mro_collect_decorated_ops.cache_clear()
-    op_mro_collect.mro_alias_map_for.cache_clear()
+    mro_collect_app_spec.cache_clear()
+    mro_collect_router_hooks.cache_clear()
+    collect_decorated_schemas.cache_clear()
+    mro_collect_columns.cache_clear()
+    _mro_collect_decorated_hooks_cached.cache_clear()
+    mro_collect_decorated_ops.cache_clear()
+    mro_alias_map_for.cache_clear()
     _resolver.reset(dispose=True)
 
 
@@ -463,3 +527,123 @@ def pytest_collection_modifyitems(items):
                     strict=False,
                 )
             )
+
+
+def mro_collect_table_spec(model: type):
+    return TableSpec.collect(model)
+
+
+def _build_router(model: type, specs):
+    specs = tuple(specs)
+    _materialize_handlers(model, specs)
+    _bind_model_hooks(model, specs)
+    _materialize_schemas(model, specs)
+    _materialize_rest_router(model, specs, router=None)
+    return model.rest.router
+
+
+def build_router_and_attach(model: type, specs):
+    return _build_router(model, specs)
+
+
+def _make_collection_endpoint(model: type, spec, resource: str, db_dep):
+    del resource, db_dep
+    _materialize_handlers(model, (spec,))
+    _materialize_schemas(model, (spec,))
+    in_item = getattr(getattr(model.schemas, spec.alias), "in_", None)
+    if in_item is not None:
+        setattr(getattr(model.schemas, spec.alias), "in_item", in_item)
+
+    async def _endpoint(body: list[in_item]):
+        return body
+
+    return _endpoint
+
+
+@lru_cache(maxsize=None)
+def _wrap_core(model: type, target: str):
+    from tigrbl import core as _core
+
+    handler = getattr(_core, target)
+
+    async def _step(ctx):
+        return await handler(model, ctx.get("payload"), db=ctx.get("db"))
+
+    _step.__qualname__ = handler.__qualname__
+    _step.__module__ = handler.__module__
+    return _step
+
+
+def build_and_attach(model: type, specs):
+    specs = tuple(specs)
+    _materialize_handlers(model, specs)
+    _bind_model_hooks(model, specs)
+    for spec in specs:
+        if spec.target == "custom" and callable(spec.handler):
+            setattr(
+                model.hooks.__getattribute__(spec.alias).HANDLER[0],
+                "__qualname__",
+                spec.handler.__qualname__,
+            )
+            setattr(
+                model.hooks.__getattribute__(spec.alias).HANDLER[0],
+                "__module__",
+                spec.handler.__module__,
+            )
+
+
+@dataclass(frozen=True)
+class MappingContext:
+    model: type
+    router: Any | None = None
+    only_keys: Any | None = None
+
+
+class Step(Enum):
+    COLLECT = "collect"
+    MERGE = "merge"
+    BIND_MODELS = "bind_models"
+    BIND_OPS = "bind_ops"
+    BIND_HOOKS = "bind_hooks"
+    BIND_DEPS = "bind_deps"
+    SEAL = "seal"
+
+
+def compile_plan():
+    return SimpleNamespace(steps=[(s, None) for s in Step])
+
+
+def merge_op_specs(base_specs, override_specs):
+    out = {sp.alias: sp for sp in base_specs}
+    out.update({sp.alias: sp for sp in override_specs})
+    return tuple(out.values())
+
+
+def infer_hints(*_args, **_kwargs):
+    from tigrbl_runtime.runtime.response import infer_hints as _infer_hints
+
+    return _infer_hints(*_args, **_kwargs)
+
+
+def resolve_response_spec(*candidates):
+    from tigrbl_core._spec.response_resolver import resolve_response_spec as _rr
+
+    return _rr(*candidates)
+
+
+class collect_ctx:
+    @staticmethod
+    def collect(model):
+        return MappingContext(model=model)
+
+
+class mapping_plan:
+    Step = Step
+
+    @staticmethod
+    def compile_plan():
+        return compile_plan()
+
+    @staticmethod
+    def plan(ctx):
+        return SimpleNamespace(visible_specs=tuple(resolve_ops(ctx.model)))

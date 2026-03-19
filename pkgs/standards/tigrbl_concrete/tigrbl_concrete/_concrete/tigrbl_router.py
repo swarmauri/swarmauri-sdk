@@ -18,26 +18,21 @@ from typing import (
 
 from ._router import Router as _Router
 from tigrbl_core._spec.engine_spec import EngineCfg
-from tigrbl.ddl import initialize as _ddl_initialize
-from tigrbl_canon.mapping.router.common import _default_prefix, _mount_router
-from tigrbl_canon.mapping.router.include import (
-    _seed_security_and_deps,
+from tigrbl_concrete.ddl import initialize as _ddl_initialize
+from tigrbl_concrete._mapping.router.include import (
     include_table as _include_table,
     include_tables as _include_tables,
 )
-from tigrbl_canon.mapping.router.rpc import rpc_call as _rpc_call
-from tigrbl_canon.mapping.model import rebind as _rebind, bind as _bind
-from tigrbl_canon.mapping.rest import (
-    build_router_and_attach as _build_router_and_attach,
-)
-from tigrbl.op import get_registry
+from tigrbl_concrete._mapping.router.rpc import rpc_call as _rpc_call
+from tigrbl_concrete._mapping.model import rebind as _rebind, bind as _bind
+from ._op_registry import get_registry
 from tigrbl_core._spec import OpSpec
 from ._table_registry import TableRegistry
 from ._routing import include_router as _include_router_impl
-from tigrbl.system import mount_openrpc as _mount_openrpc
-from tigrbl.system import mount_diagnostics as _mount_diagnostics
-from tigrbl.system.docs import build_openapi as _build_openapi
-from tigrbl_canon.mapping import engine_resolver as _resolver
+from tigrbl_concrete.system import mount_openrpc as _mount_openrpc
+from tigrbl_concrete.system import mount_diagnostics as _mount_diagnostics
+from tigrbl_concrete.system.docs import build_openapi as _build_openapi
+from tigrbl_concrete._concrete import engine_resolver as _resolver
 from ._engine import Engine
 
 
@@ -65,6 +60,21 @@ class TigrblRouter(_Router):
     _authorize: Any = None
     _optional_authn_dep: Any = None
     _allow_anon_ops: set[str] = set()
+
+    @staticmethod
+    def _collect_declared_tables(owner: type) -> tuple[Any, ...]:
+        collected: list[Any] = []
+        seen: set[int] = set()
+        for base in owner.__mro__:
+            if "TABLES" not in base.__dict__:
+                continue
+            for table in tuple(base.__dict__.get("TABLES", ()) or ()):
+                marker = id(table)
+                if marker in seen:
+                    continue
+                seen.add(marker)
+                collected.append(table)
+        return tuple(collected)
 
     def __init__(
         self,
@@ -105,7 +115,9 @@ class TigrblRouter(_Router):
         )
 
         # public containers (mirrors used by bindings.router)
-        self.tables = TableRegistry(tables=getattr(self, "TABLES", ()))
+        self.tables = TableRegistry(
+            tables=self._collect_declared_tables(self.__class__)
+        )
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
         self.hooks = SimpleNamespace()
@@ -256,7 +268,7 @@ class TigrblRouter(_Router):
         method: str,
         payload: Any = None,
         *,
-        db: Any,
+        db: Any | None = None,
         request: Any = None,
         ctx: Optional[Dict[str, Any]] = None,
     ) -> Any:
@@ -306,6 +318,16 @@ class TigrblRouter(_Router):
             include_other = getattr(app, "include_router", None)
             if callable(include_other):
                 include_other(router, prefix=px)
+            app_tables = getattr(app, "tables", None)
+            if isinstance(app_tables, dict):
+                for name, model in getattr(self, "tables", {}).items():
+                    app_tables.setdefault(name, model)
+                default_router = getattr(app, "_default_router", None)
+                if default_router is not None and isinstance(
+                    getattr(default_router, "tables", None), dict
+                ):
+                    for name, model in getattr(self, "tables", {}).items():
+                        default_router.tables.setdefault(name, model)
         return router
 
     def openapi(self) -> Dict[str, Any]:
@@ -369,21 +391,7 @@ class TigrblRouter(_Router):
             model = self._resolve_registered_model(name, registered)
             if not isinstance(model, type):
                 continue
-            _seed_security_and_deps(self, model)
-            specs = getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ())
-            if specs:
-                _build_router_and_attach(model, list(specs))
-            router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
-            if router is None:
-                continue
-            # update router-level references
-            mname = model.__name__
-            rest_ns = getattr(self.rest, mname, SimpleNamespace())
-            rest_ns.router = router
-            setattr(self.rest, mname, rest_ns)
-            self.routers[mname] = router
-            prefix = _default_prefix(model)
-            _mount_router(self, router, prefix=prefix)
+            self.include_table(model, mount_router=False)
 
     def _collect_tables(self):
         # dedupe; handle multiple DeclarativeBases (multiple metadatas)

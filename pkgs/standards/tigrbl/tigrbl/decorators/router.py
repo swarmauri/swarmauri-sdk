@@ -7,7 +7,7 @@ from typing import Any, Callable, Iterable, Optional, Sequence
 
 from ..decorators.op import _unwrap, op_ctx
 from .._spec.op_spec import Arity, PersistPolicy, TargetOp
-from ..schema.types import SchemaArg
+from .._spec.schema_spec import SchemaArg
 
 Handler = Callable[..., Any]
 

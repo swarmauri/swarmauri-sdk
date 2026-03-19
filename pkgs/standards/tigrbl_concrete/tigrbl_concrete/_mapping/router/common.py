@@ -1,0 +1,78 @@
+from __future__ import annotations
+
+import logging
+from types import SimpleNamespace
+from typing import Any
+
+from tigrbl_base._base import AttrDict
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/mapping/router/common")
+
+
+# Public type for the Router facade object users pass to include_table(...)
+RouterLike = Any
+
+
+def _default_prefix(model: type) -> str:
+    """Default mount prefix for a model router.
+
+    Historically routers were mounted under ``/{resource}``, resulting in
+    duplicated path segments such as ``/item/item``.  To expose REST endpoints
+    under ``/item`` we now mount routers at the application root by default.
+    """
+    logger.debug("Default prefix for %s is root '/'", model.__name__)
+    return ""
+
+
+def _has_include_router(obj: Any) -> bool:
+    has_router = hasattr(obj, "include_router") and callable(
+        getattr(obj, "include_router")
+    )
+    logger.debug("Object %s has include_router: %s", obj, has_router)
+    return has_router
+
+
+def _mount_router(app_or_router: Any, router: Any, *, prefix: str) -> None:
+    """
+    Best-effort mount onto a ASGI app or Router.
+    If not available, we still attach router under router.routers for later use.
+    """
+    if app_or_router is None:
+        logger.debug("No app/router; skipping mount for prefix %s", prefix)
+        return
+    try:
+        if _has_include_router(app_or_router):
+            logger.debug("Mounting router %s at prefix %s", router, prefix)
+            app_or_router.include_router(router, prefix=prefix)  # ASGI / Router
+        else:
+            logger.debug(
+                "Provided object %s lacks include_router; not mounting router",
+                app_or_router,
+            )
+    except Exception:
+        logger.exception("Failed to mount router at %s", prefix)
+
+
+def _ensure_router_ns(router: RouterLike) -> None:
+    """
+    Ensure containers exist on the router facade object.
+    """
+    for attr, default in (
+        ("tables", AttrDict()),
+        ("schemas", SimpleNamespace()),
+        ("handlers", SimpleNamespace()),
+        ("hooks", SimpleNamespace()),
+        ("rpc", SimpleNamespace()),
+        ("rest", SimpleNamespace()),
+        ("routers", {}),
+        ("columns", {}),
+        ("table_config", {}),
+        ("core", SimpleNamespace()),  # helper method proxies
+        ("core_raw", SimpleNamespace()),
+    ):
+        if not hasattr(router, attr):
+            setattr(router, attr, default)
+            logger.debug("Initialized router.%s", attr)
+        else:
+            logger.debug("router already has attribute %s", attr)

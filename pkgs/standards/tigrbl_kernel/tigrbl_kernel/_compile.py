@@ -40,6 +40,8 @@ def _compile_plan(self: Any, app: Any) -> KernelPlan:
     opmeta: list[OpMeta] = []
     opkey_to_meta: dict[OpKey, int] = {}
     phase_chains: dict[int, Mapping[str, list[StepFn]]] = {}
+    opviews: list[OpView | None] = []
+    rest_exact_route_to_program: dict[tuple[str, str], int] = {}
     ingress_chain = self._build_ingress(app)
     egress_chain = self._build_egress(app)
     phases, mainline_phases, error_phases = _phase_info_map(DEFAULT_PHASE_ORDER)
@@ -49,6 +51,12 @@ def _compile_plan(self: Any, app: Any) -> KernelPlan:
             meta_index = len(opmeta)
             target = (getattr(sp, "target", sp.alias) or sp.alias).lower()
             opmeta.append(OpMeta(model=model, alias=sp.alias, target=target))
+            try:
+                opviews.append(
+                    self._compile_opview_from_specs(self.get_specs(model), sp)
+                )
+            except Exception:
+                opviews.append(None)
             phase_chains[meta_index] = deepmerge_phase_chains(
                 ingress_chain,
                 self._build_op(model, sp.alias),
@@ -79,6 +87,11 @@ def _compile_plan(self: Any, app: Any) -> KernelPlan:
                             )
                         else:
                             bucket["exact"][selector] = meta_index
+                            method, _, path = selector.partition(" ")
+                            if path:
+                                rest_exact_route_to_program[(method.upper(), path)] = (
+                                    meta_index
+                                )
 
                 elif isinstance(binding, HttpJsonRpcBindingSpec):
                     opkey_to_meta[
@@ -123,4 +136,12 @@ def _compile_plan(self: Any, app: Any) -> KernelPlan:
         mainline_phases=mainline_phases,
         error_phases=error_phases,
     )
-    return replace(semantic, packed=self._pack_kernel_plan(semantic))
+    try:
+        packed = self._pack_kernel_plan(
+            semantic,
+            opviews=tuple(opviews),
+            rest_exact_route_to_program=rest_exact_route_to_program,
+        )
+    except TypeError:
+        packed = self._pack_kernel_plan(semantic)
+    return replace(semantic, packed=packed)

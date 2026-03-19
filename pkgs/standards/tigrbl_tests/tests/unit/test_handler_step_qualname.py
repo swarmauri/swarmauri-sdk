@@ -1,4 +1,4 @@
-from tigrbl.mapping.handlers import build_and_attach
+from tests.conftest import build_and_attach
 from tigrbl._spec import OpSpec
 from tigrbl import core as _core
 

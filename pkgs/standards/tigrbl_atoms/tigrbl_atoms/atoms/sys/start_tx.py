@@ -1,30 +1,30 @@
 from __future__ import annotations
 
+from typing import Any
+
 from ...types import Atom, Ctx, ExecutingCtx
 from ...stages import Guarded, Executing
 
-from typing import Any
-
 from ... import events as _ev
 from .._temp import _ensure_temp
+from ._db import _is_async_db, _resolve_db_handle
 
 ANCHOR = _ev.SYS_TX_BEGIN
-
-
-def _resolve_db_handle(ctx: Any) -> Any:
-    db = getattr(ctx, "db", None)
-    if db is not None:
-        return db
-    return getattr(ctx, "session", None)
 
 
 async def _run(obj: object | None, ctx: Any) -> None:
     del obj
     temp = _ensure_temp(ctx)
     db = _resolve_db_handle(ctx)
-    temp["__sys_tx_open__"] = db is not None
+    temp["__sys_tx_open__"] = False
 
     if db is None:
+        return
+
+    # Sync SQLAlchemy sessions auto-open transactions on first write.
+    # Avoid an explicit begin() call in hot paths to reduce per-request
+    # transaction setup overhead.
+    if not _is_async_db(db):
         return
 
     begin = getattr(db, "begin", None)
@@ -32,6 +32,7 @@ async def _run(obj: object | None, ctx: Any) -> None:
         rv = begin()
         if hasattr(rv, "__await__"):
             await rv
+        temp["__sys_tx_open__"] = True
 
 
 class AtomImpl(Atom[Guarded, Executing]):

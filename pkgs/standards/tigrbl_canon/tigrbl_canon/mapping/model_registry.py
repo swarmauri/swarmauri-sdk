@@ -6,8 +6,8 @@ from __future__ import annotations
 import logging
 from typing import Set
 
-from tigrbl.config.constants import TIGRBL_REGISTRY_LISTENER_ATTR
-from ..op import OpspecRegistry, get_registry
+from tigrbl_core.config.constants import TIGRBL_REGISTRY_LISTENER_ATTR
+from tigrbl.op import OpspecRegistry, get_registry
 
 from .model_helpers import _Key
 

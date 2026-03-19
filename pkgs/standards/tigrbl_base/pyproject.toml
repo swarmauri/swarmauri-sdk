@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-base"
-version = "0.1.0.dev0"
+version = "0.1.0.dev1"
 description = "Abstract base interfaces for Tigrbl APIs and runtime components."
 license = "Apache-2.0"
 readme = "README.md"
@@ -19,11 +19,15 @@ classifiers = [
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "tigrbl-core",
+    "tigrbl-atoms",
+    "sqlalchemy>=2.0",
+    "pydantic>=2.0",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
 [tool.uv.sources]
 "tigrbl-core" = { workspace = true }
+"tigrbl-atoms" = { workspace = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

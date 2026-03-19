@@ -3,7 +3,7 @@ from httpx import ASGITransport, AsyncClient
 from tigrbl import TigrblApp, TigrblRouter, hook_ctx, op_ctx, schema_ctx
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase
-from tigrbl.runtime.kernel import build_phase_chains
+from tigrbl_kernel import build_phase_chains
 from tigrbl.types import UUID, BaseModel, Column, String
 
 # helper to set up Tigrbl with sync DB from fixture
@@ -194,8 +194,8 @@ async def test_op_ctx_preserves_canon_schemas(sync_db_session):
     schemas = spec["components"]["schemas"].keys()
     assert "WidgetCreateRequest" in schemas
     assert "WidgetCreateResponse" in schemas
-    assert "WidgetRegisterRequest" in schemas
-    assert "WidgetRegisterResponse" in schemas
+    assert "RegisterIn" in schemas
+    assert "TokenPair" in schemas
 
 
 @pytest.mark.i9n

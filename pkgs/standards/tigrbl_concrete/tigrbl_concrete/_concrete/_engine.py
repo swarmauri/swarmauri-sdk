@@ -53,10 +53,63 @@ class EngineProvider(EngineProviderBase):
 
     def ensure(self) -> Tuple[Any, SessionFactory]:
         if self._maker is None:
-            eng, mk = self.spec.build()
+            eng, mk = self._build_with_fallbacks()
             object.__setattr__(self, "_engine", eng)
             object.__setattr__(self, "_maker", mk)
         return self._engine, self._maker  # type: ignore[return-value]
+
+    def _build_with_fallbacks(self) -> Tuple[Any, SessionFactory]:
+        try:
+            return self.spec.build()
+        except RuntimeError as exc:
+            if "Unknown or unavailable engine kind" not in str(exc):
+                raise
+
+        # Workspace/dev runs may not expose plugin entry-point metadata.
+        try:
+            from tigrbl_concrete.engine.plugins import register as _register_concrete
+
+            _register_concrete()
+            return self.spec.build()
+        except Exception:
+            pass
+
+        # Legacy local fallback for concrete sqlite/postgres builders.
+        from tigrbl_concrete.engine import builders as _builders
+
+        if self.spec.kind == "sqlite":
+            if self.spec.async_:
+                return _builders.async_sqlite_engine(
+                    path=self.spec.path,
+                    pool=self.spec.pool,
+                )
+            return _builders.blocking_sqlite_engine(
+                path=self.spec.path,
+                pool=self.spec.pool,
+            )
+
+        if self.spec.kind == "postgres":
+            if self.spec.async_:
+                return _builders.async_postgres_engine(
+                    user=self.spec.user,
+                    pwd=self.spec.pwd,
+                    host=self.spec.host,
+                    port=self.spec.port,
+                    db=self.spec.name,
+                    pool_size=self.spec.pool_size,
+                    max_size=self.spec.max,
+                )
+            return _builders.blocking_postgres_engine(
+                user=self.spec.user,
+                pwd=self.spec.pwd,
+                host=self.spec.host,
+                port=self.spec.port,
+                db=self.spec.name,
+                pool_size=self.spec.pool_size,
+                max_overflow=self.spec.max,
+            )
+
+        return self.spec.build()
 
     def session(self) -> Union[Session, AsyncSession]:
         _, mk = self.ensure()
@@ -132,15 +185,23 @@ class Engine(EngineBase):
         router: Any | None = None,
         tables: tuple[Any, ...] = (),
     ) -> dict[str, Any]:
-        from tigrbl_canon.mapping.traversal import collect
+        from tigrbl_core.config.engine_traversal import collect_engine_bindings
 
-        return collect(app=app, router=router, tables=tables)
+        return collect_engine_bindings(app=app, router=router, tables=tables)
 
     @staticmethod
     def install(collected: dict[str, Any]) -> None:
-        from tigrbl_canon.mapping.traversal import install
+        from tigrbl_concrete._concrete import engine_resolver as _resolver
 
-        install(collected)
+        default_db = collected.get("default")
+        if default_db is not None:
+            _resolver.set_default(default_db)
+        for router_obj, db in (collected.get("router") or {}).items():
+            _resolver.register_router(router_obj, db)
+        for table_obj, db in (collected.get("tables") or {}).items():
+            _resolver.register_table(table_obj, db)
+        for (model, alias), db in (collected.get("ops") or {}).items():
+            _resolver.register_op(model, alias, db)
 
     @staticmethod
     def install_from_objects(

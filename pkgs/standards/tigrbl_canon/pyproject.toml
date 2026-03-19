@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-canon"
-version = "0.1.0.dev0"
+version = "0.1.0.dev1"
 description = "Canonical mapping and routing resolution utilities for Tigrbl."
 license = "Apache-2.0"
 readme = "README.md"
@@ -22,7 +22,6 @@ dependencies = [
     "tigrbl-base",
     "tigrbl-core",
     "tigrbl-runtime",
-    "tigrbl-kernel",
     "tigrbl-atoms",
     "tigrbl",
 ]
@@ -33,7 +32,6 @@ keywords = ["tigrbl", "sdk", "standards", "framework"]
 "tigrbl-base" = { workspace = true }
 "tigrbl-core" = { workspace = true }
 "tigrbl-runtime" = { workspace = true }
-"tigrbl-kernel" = { workspace = true }
 "tigrbl-atoms" = { workspace = true }
 "tigrbl" = { workspace = true }
 

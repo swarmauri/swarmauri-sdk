@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from typing import Any, Dict, List, Mapping
 
 from tigrbl_atoms import StepFn
+from tigrbl_atoms.atoms.sys.phase_db import run as _bind_phase_db
 
 from . import events as _ev
 from .atoms import (
@@ -15,7 +16,7 @@ from .atoms import (
     _is_persistent,
     _wrap_atom,
 )
-from .models import KernelPlan, OpKey, PackedKernel
+from .models import HotOpPlan, KernelPlan, OpKey, OpView, PackedKernel
 from .types import (
     EGRESS_PHASES,
     INGRESS_PHASES,
@@ -33,6 +34,70 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 
+_PHASE_DB_LABEL = "atom:sys:phase_db@SYS_PHASE_DB_BIND"
+_RUNTIME_EXECUTION_ORDER = (
+    "INGRESS_BEGIN",
+    "INGRESS_PARSE",
+    "INGRESS_DISPATCH",
+    "PRE_TX_BEGIN",
+    "START_TX",
+    "PRE_HANDLER",
+    "HANDLER",
+    "POST_HANDLER",
+    "PRE_COMMIT",
+    "END_TX",
+    "POST_COMMIT",
+    "POST_RESPONSE",
+    "EGRESS_SHAPE",
+    "EGRESS_FINALIZE",
+)
+
+
+def _dedupe_consecutive_steps(steps: list[StepFn]) -> list[StepFn]:
+    """Remove adjacent duplicate callables introduced by chain composition."""
+    if len(steps) < 2:
+        return steps
+    deduped: list[StepFn] = [steps[0]]
+    last_id = id(steps[0])
+    for step in steps[1:]:
+        step_id = id(step)
+        if step_id == last_id:
+            continue
+        deduped.append(step)
+        last_id = step_id
+    if len(deduped) % 2 == 0:
+        half = len(deduped) // 2
+        lhs = tuple(
+            getattr(step, "__tigrbl_label", None) or _label_step(step, "")
+            for step in deduped[:half]
+        )
+        rhs = tuple(
+            getattr(step, "__tigrbl_label", None) or _label_step(step, "")
+            for step in deduped[half:]
+        )
+        if lhs == rhs:
+            return deduped[:half]
+    return deduped
+
+
+def _phase_db_step() -> StepFn:
+    step = _wrap_atom(_bind_phase_db, anchor="SYS_PHASE_DB_BIND")
+    setattr(step, "__tigrbl_label", _PHASE_DB_LABEL)
+    return step
+
+
+def _prepend_phase_db_binding(
+    chains: Dict[str, List[StepFn]],
+    phases: tuple[str, ...] | list[str],
+) -> None:
+    for phase in phases:
+        steps = list(chains.get(phase, ()) or ())
+        if steps and getattr(steps[0], "__tigrbl_label", None) == _PHASE_DB_LABEL:
+            chains[phase] = steps
+            continue
+        chains[phase] = [_phase_db_step(), *steps]
+
+
 def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
     from .core import DEFAULT_PHASE_ORDER
 
@@ -47,7 +112,12 @@ def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
     ) or _is_persistent(chains)
 
     try:
-        _inject_atoms(chains, self._atoms() or (), persistent=persistent)
+        _inject_atoms(
+            chains,
+            self._atoms() or (),
+            persistent=persistent,
+            target=target,
+        )
     except Exception:
         logger.exception(
             "kernel: atom injection failed for %s.%s",
@@ -59,6 +129,8 @@ def _build_op(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
 
     for phase in DEFAULT_PHASE_ORDER:
         chains.setdefault(phase, [])
+    phase_db_phases = list(DEFAULT_PHASE_ORDER)
+    _prepend_phase_db_binding(chains, phase_db_phases)
     return chains
 
 
@@ -82,6 +154,9 @@ def _build_ingress(self, app: Any) -> Dict[str, List[StepFn]]:
     for phase, atoms in ingress_atoms.items():
         ordered = sorted(atoms, key=lambda item: order.get(item[0], 10_000))
         out[phase] = [_wrap_atom(run, anchor=anchor) for anchor, run in ordered]
+    for phase in INGRESS_PHASES:
+        out.setdefault(phase, [])
+    _prepend_phase_db_binding(out, list(INGRESS_PHASES))
     return out
 
 
@@ -101,6 +176,9 @@ def _build_egress(self, app: Any) -> Dict[str, List[StepFn]]:
     for phase, atoms in egress_atoms.items():
         ordered = sorted(atoms, key=lambda item: order.get(item[0], 10_000))
         out[phase] = [_wrap_atom(run, anchor=anchor) for anchor, run in ordered]
+    for phase in EGRESS_PHASES:
+        out.setdefault(phase, [])
+    _prepend_phase_db_binding(out, list(EGRESS_PHASES))
     return out
 
 
@@ -120,11 +198,23 @@ def _plan_labels(self, model: type, alias: str) -> list[str]:
     if persist:
         labels.append(tx_begin)
 
+    def _display_phase(phase: str, step_label: str) -> str:
+        if phase != "POST_COMMIT":
+            return phase
+        if "@out:build" in step_label:
+            return "POST_HANDLER"
+        if "@out:dump" in step_label:
+            return "POST_RESPONSE"
+        return phase
+
     for phase in DEFAULT_PHASE_ORDER:
         if phase in {"START_TX", "END_TX"}:
             continue
         for step in chains.get(phase, ()) or ():
-            labels.append(f"{phase}:{_label_step(step, phase)}")
+            step_label = _label_step(step, phase)
+            if "SYS_PHASE_DB_BIND" in str(step_label):
+                continue
+            labels.append(f"{_display_phase(phase, step_label)}:{step_label}")
 
     if persist:
         labels.append(tx_end)
@@ -155,12 +245,21 @@ def _build_route_matrix(
     return tuple(tuple(row) for row in matrix)
 
 
-def _pack_kernel_plan(self, plan: KernelPlan) -> PackedKernel:
+def _pack_kernel_plan(
+    self,
+    plan: KernelPlan,
+    *,
+    opviews: tuple[OpView | None, ...] = (),
+    rest_exact_route_to_program: Mapping[tuple[str, str], int] | None = None,
+) -> PackedKernel:
     from .core import DEFAULT_PHASE_ORDER
 
     selector_names = tuple(sorted({key.selector for key in plan.opkey_to_meta.keys()}))
     proto_names = tuple(sorted(plan.proto_indices.keys()))
-    op_names = tuple(f"{meta.model.__name__}.{meta.alias}" for meta in plan.opmeta)
+    op_names = tuple(
+        f"{getattr(meta.model, '__name__', None) or getattr(meta.model, 'model_ref', None) or str(meta.model)}.{meta.alias}"
+        for meta in plan.opmeta
+    )
 
     proto_to_id = {name: idx for idx, name in enumerate(proto_names)}
     selector_to_id = {name: idx for idx, name in enumerate(selector_names)}
@@ -171,6 +270,7 @@ def _pack_kernel_plan(self, plan: KernelPlan) -> PackedKernel:
     step_labels: list[str] = []
     effect_ids: list[int] = []
     effect_payloads: list[tuple[int, ...]] = []
+    step_async_flags: list[bool] = []
 
     segment_offsets: list[int] = []
     segment_lengths: list[int] = []
@@ -187,7 +287,7 @@ def _pack_kernel_plan(self, plan: KernelPlan) -> PackedKernel:
         op_segment_offsets.append(len(op_to_segment_ids))
         seg_count = 0
         for phase in DEFAULT_PHASE_ORDER:
-            steps = list(chains.get(phase, ()) or ())
+            steps = _dedupe_consecutive_steps(list(chains.get(phase, ()) or ()))
             if not steps:
                 continue
 
@@ -215,6 +315,11 @@ def _pack_kernel_plan(self, plan: KernelPlan) -> PackedKernel:
                     effect_id, payload = _effect_descriptor_for_step(step)
                     effect_ids.append(effect_id)
                     effect_payloads.append(payload)
+                    is_async = bool(getattr(step, "_tigrbl_is_async", False))
+                    if not is_async:
+                        marker = getattr(step, "__code__", None)
+                        is_async = bool(getattr(marker, "co_flags", 0) & 0x80)
+                    step_async_flags.append(is_async)
                 segment_step_ids.append(step_id)
 
             op_to_segment_ids.append(seg_id)
@@ -226,6 +331,75 @@ def _pack_kernel_plan(self, plan: KernelPlan) -> PackedKernel:
         selector_names=selector_names,
         opkey_to_meta=plan.opkey_to_meta,
     )
+
+    hot_op_plans: list[HotOpPlan] = []
+    for program_id, _meta in enumerate(plan.opmeta):
+        meta = plan.opmeta[program_id]
+        seg_offset = op_segment_offsets[program_id]
+        seg_length = op_segment_lengths[program_id]
+        by_phase: dict[str, list[int]] = {}
+        ordered_segments: list[int] = []
+        remaining_segments: list[int] = []
+        seen_segment_ids: set[int] = set()
+        error_segment_ids: dict[str, list[int]] = {}
+        fusible_sync_segment_ids: list[int] = []
+        nonfusible_segment_ids: list[int] = []
+
+        for idx in range(seg_offset, seg_offset + seg_length):
+            seg_id = op_to_segment_ids[idx]
+            phase = str(segment_phases[seg_id])
+            if phase.startswith("ON_"):
+                error_segment_ids.setdefault(phase, []).append(seg_id)
+                continue
+            by_phase.setdefault(phase, []).append(seg_id)
+
+        for phase in _RUNTIME_EXECUTION_ORDER:
+            for seg_id in by_phase.pop(phase, ()):
+                if seg_id in seen_segment_ids:
+                    continue
+                seen_segment_ids.add(seg_id)
+                ordered_segments.append(seg_id)
+
+        for idx in range(seg_offset, seg_offset + seg_length):
+            seg_id = op_to_segment_ids[idx]
+            if seg_id in seen_segment_ids:
+                continue
+            phase = str(segment_phases[seg_id])
+            if phase.startswith("ON_"):
+                continue
+            seen_segment_ids.add(seg_id)
+            remaining_segments.append(seg_id)
+
+        for seg_id in (*ordered_segments, *remaining_segments):
+            if segment_executor_kinds[seg_id] == LOWER_KIND_SYNC_EXTRACTABLE:
+                fusible_sync_segment_ids.append(seg_id)
+                continue
+            nonfusible_segment_ids.append(seg_id)
+
+        hot_op_plans.append(
+            HotOpPlan(
+                program_id=program_id,
+                model=getattr(meta, "model", None),
+                alias=str(getattr(meta, "alias", "") or ""),
+                target=str(getattr(meta, "target", "") or ""),
+                opview=opviews[program_id] if program_id < len(opviews) else None,
+                ordered_segment_ids=tuple(ordered_segments),
+                remaining_segment_ids=tuple(remaining_segments),
+                error_segment_ids={
+                    phase: tuple(seg_ids)
+                    for phase, seg_ids in error_segment_ids.items()
+                },
+                fusible_sync_segment_ids=tuple(fusible_sync_segment_ids),
+                nonfusible_segment_ids=tuple(nonfusible_segment_ids),
+                db_acquire_hint=(
+                    "model_get_db"
+                    if callable(
+                        getattr(getattr(meta, "model", None), "__tigrbl_get_db__", None)
+                    )
+                    else "resolver"
+                ),
+            )
+        )
 
     packed = PackedKernel(
         proto_names=proto_names,
@@ -247,6 +421,9 @@ def _pack_kernel_plan(self, plan: KernelPlan) -> PackedKernel:
         step_labels=tuple(step_labels),
         numba_effect_ids=tuple(effect_ids),
         numba_effect_payloads=tuple(effect_payloads),
+        step_async_flags=tuple(step_async_flags),
+        rest_exact_route_to_program=dict(rest_exact_route_to_program or {}),
+        hot_op_plans=tuple(hot_op_plans),
         executor_kind="python",
     )
     build_python_executor = getattr(self, "_build_python_packed_executor", None)

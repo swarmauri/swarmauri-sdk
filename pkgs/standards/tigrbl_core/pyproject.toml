@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-core"
-version = "0.1.0.dev0"
+version = "0.1.0.dev1"
 description = "Core specifications and primitives for the Tigrbl framework."
 license = "Apache-2.0"
 readme = "README.md"
@@ -19,8 +19,10 @@ classifiers = [
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "tigrbl-typing",
+    "pydantic>=2.10,<3",
     "pyyaml",
     "tomli-w",
+    "tomli>=2.0.1; python_version < '3.11'",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 

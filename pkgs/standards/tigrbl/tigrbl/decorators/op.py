@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
-import inspect
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Optional, Sequence, Union
 
 from .._spec.op_spec import OpSpec, Arity, TargetOp, PersistPolicy
-from ..schema.types import SchemaArg
+from tigrbl_core._spec.op_utils import (
+    _maybe_await as _core_maybe_await,
+    _normalize_persist as _core_normalize_persist,
+    _unwrap as _core_unwrap,
+)
+from .._spec.schema_spec import SchemaArg
 
 
 # ---------------------------------------------------------------------------
@@ -17,9 +21,7 @@ from ..schema.types import SchemaArg
 
 def _unwrap(obj: Any) -> Callable[..., Any]:
     """Get underlying function for (class|static)method; else return obj."""
-    if isinstance(obj, (classmethod, staticmethod)):
-        return obj.__func__  # type: ignore[attr-defined]
-    return obj
+    return _core_unwrap(obj)
 
 
 def _ensure_cm(func: Any) -> Any:
@@ -30,13 +32,7 @@ def _ensure_cm(func: Any) -> Any:
 
 
 def _maybe_await(v):
-    if inspect.isawaitable(v):
-        return v
-
-    async def _done():
-        return v
-
-    return _done()
+    return _core_maybe_await(v)
 
 
 # ---------------------------------------------------------------------------
@@ -86,12 +82,7 @@ def alias_ctx(**verb_to_alias_or_decl: Union[str, AliasDecl]):
 
         setattr(cls, "__tigrbl_aliases__", amap)
         setattr(cls, "__tigrbl_alias_overrides__", overrides)
-        try:  # clear cached alias maps so late-applied decorators take effect
-            from ..mapping.op_mro_collect import mro_alias_map_for
-
-            mro_alias_map_for.cache_clear()
-        except Exception:  # pragma: no cover - best effort
-            pass
+        # Alias maps are rebuilt from class metadata at bind-time.
         return cls
 
     return deco
@@ -112,7 +103,6 @@ def op_alias(
     response_model: SchemaArg | None = None,
     http_methods: Sequence[str] | None = None,
     tags: Sequence[str] | None = None,
-    rbac_guard_op: TargetOp | None = None,
 ):
     """Class decorator to declare an alias for an operation."""
 
@@ -132,7 +122,6 @@ def op_alias(
             response_model=response_model,
             http_methods=tuple(http_methods) if http_methods else None,
             tags=tuple(tags or ()),
-            rbac_guard_op=rbac_guard_op,
         )
         ops.append(spec)
         table_cls.__tigrbl_ops__ = tuple(ops)
@@ -182,8 +171,17 @@ def op_ctx(
         ):
             inferred_arity = "collection"
 
+        if alias is not None:
+            resolved_alias = alias
+        elif resolved_target != "custom":
+            resolved_alias = resolved_target
+        elif bind is not None:
+            resolved_alias = f.__name__
+        else:
+            resolved_alias = "custom"
+
         spec = OpSpec(
-            alias=alias or "",
+            alias=resolved_alias,
             target=resolved_target,
             arity=inferred_arity,
             http_methods=tuple(http_methods) if http_methods else None,
@@ -205,6 +203,8 @@ def op_ctx(
             )
             for obj in targets:
                 setattr(obj, f.__name__, cm)
+                if isinstance(obj, type):
+                    _refresh_bound_ops(obj)
 
         return cm
 
@@ -235,20 +235,23 @@ def _infer_arity(target: str) -> str:
 
 
 def _normalize_persist(p) -> str:
-    if p is None:
-        return "default"
-    p = str(p).lower()
-    if p in {"none", "skip", "read"}:
-        return "skip"
-    if p in {"append"}:
-        return "append"
-    if p in {"override"}:
-        return "override"
-    if p in {"prepend"}:
-        return "prepend"
-    if p in {"write", "default", "persist"}:
-        return "default"
-    return "default"
+    return _core_normalize_persist(p)
+
+
+def _refresh_bound_ops(model: type) -> None:
+    try:
+        from tigrbl_core._spec.op_spec import _mro_collect_decorated_ops
+        from tigrbl_concrete._mapping.model import (
+            _bind_model_hooks,
+            _materialize_handlers,
+        )
+
+        specs = tuple(_mro_collect_decorated_ops(model))
+        _materialize_handlers(model, specs)
+        _bind_model_hooks(model, specs)
+    except Exception:
+        # Best-effort refresh for dynamic binds.
+        return
 
 
 __all__ = ["alias", "alias_ctx", "op_alias", "op_ctx"]

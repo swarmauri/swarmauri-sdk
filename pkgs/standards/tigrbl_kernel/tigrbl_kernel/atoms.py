@@ -95,7 +95,7 @@ def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
 
     async def _step(ctx: Any) -> Any:
         rv = run(None, ctx) if use_two_args else run(ctx)  # type: ignore[misc]
-        if hasattr(rv, "__await__"):
+        if inspect.isawaitable(rv):
             return await cast(Any, rv)
         return rv
 
@@ -182,6 +182,7 @@ def _inject_atoms(
     atoms: Iterable[_DiscoveredAtom],
     *,
     persistent: bool,
+    target: str | None = None,
 ) -> None:
     order = {name: i for i, name in enumerate(_ev.all_events_ordered())}
 
@@ -199,17 +200,37 @@ def _inject_atoms(
             info = _ev.get_anchor_info(anchor)
             phase = info.phase
             persist_tied = info.persist_tied
+        elif anchor == "INGRESS_ROUTE":
+            # Back-compat phase alias retained for route-stage atom injection.
+            phase = "INGRESS_ROUTE"
+            persist_tied = False
         elif anchor in _ev.PHASES:
+            phase = anchor
+            persist_tied = False
+        elif anchor == "INGRESS_ROUTE":
+            # Compatibility alias retained for tests and legacy direct callers.
+            # Canonical runtime ingress routing phase is INGRESS_DISPATCH.
             phase = anchor
             persist_tied = False
         else:
             continue
 
-        if not persistent and persist_tied:
-            continue
-        if anchor == _ev.SYS_HANDLER_PERSISTENCE and chains.get("HANDLER"):
-            continue
         domain, _subject = _infer_domain_subject(run)
+        if not persistent and persist_tied:
+            if not (
+                domain == "sys"
+                and isinstance(_subject, str)
+                and _subject.startswith("handler_")
+            ):
+                continue
+        if (
+            domain == "sys"
+            and isinstance(_subject, str)
+            and _subject.startswith("handler_")
+        ):
+            handler_target = _subject.removeprefix("handler_")
+            if handler_target != "persistence" and target and handler_target != target:
+                continue
         if domain == "dep":
             continue
 

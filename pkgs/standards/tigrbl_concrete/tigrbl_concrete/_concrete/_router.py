@@ -6,9 +6,9 @@ from contextlib import asynccontextmanager
 from typing import Any, Callable
 from types import SimpleNamespace
 
-from tigrbl_core._spec.router_spec import RouterSpec
-from tigrbl_canon.mapping import engine_resolver as _resolver
-from tigrbl_canon.mapping.spec_normalization import _seqify
+from tigrbl_base._base import RouterBase
+from tigrbl_concrete._concrete import engine_resolver as _resolver
+from tigrbl_core._spec.app_spec import _seqify
 from tigrbl_core._spec.engine_spec import EngineCfg
 from ._table_registry import TableRegistry
 
@@ -22,7 +22,7 @@ from ._routing import (
 from ._httpx import ensure_httpx_sync_transport
 
 from ._route import Route
-from tigrbl.system.docs.openapi.metadata import (
+from tigrbl_concrete.system.docs.openapi.metadata import (
     is_metadata_route as _is_metadata_route_impl,
 )
 
@@ -54,13 +54,28 @@ async def _default_lifespan_context(app: Any):
     yield
 
 
-class Router(RouterSpec):
+class Router(RouterBase):
     """API router with transport, dependency, and model/table registry support."""
 
     TABLES: tuple[Any, ...] = ()
     REST_PREFIX = "/router"
     RPC_PREFIX = "/rpc"
     SYSTEM_PREFIX = "/system"
+
+    @staticmethod
+    def _collect_declared_tables(owner: type) -> tuple[Any, ...]:
+        collected: list[Any] = []
+        seen: set[int] = set()
+        for base in owner.__mro__:
+            if "TABLES" not in base.__dict__:
+                continue
+            for table in tuple(base.__dict__.get("TABLES", ()) or ()):
+                marker = id(table)
+                if marker in seen:
+                    continue
+                seen.add(marker)
+                collected.append(table)
+        return tuple(collected)
 
     def __init__(
         self,
@@ -116,7 +131,11 @@ class Router(RouterSpec):
         self.rest_prefix = getattr(self, "REST_PREFIX", "/router")
         self.rpc_prefix = getattr(self, "RPC_PREFIX", "/rpc")
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
-        self.tables = TableRegistry(tables=getattr(self, "TABLES", ()))
+        self.tables = TableRegistry(
+            tables=Router._collect_declared_tables(self.__class__)
+        )
+        self._table_registry = self.tables
+        self._table_regsitry = self.tables
 
         default_dependencies = list(self.security_deps) + list(self.deps)
         self.dependencies = list(
@@ -127,6 +146,42 @@ class Router(RouterSpec):
         if _engine_ctx is not None:
             _resolver.register_router(self, _engine_ctx)
             _resolver.resolve_provider(router=self)
+
+    def _include_table_impl(
+        self,
+        table: type,
+        *,
+        app: Any | None = None,
+        prefix: str | None = None,
+        mount_router: bool = True,
+    ) -> tuple[type, Any]:
+        from tigrbl_concrete._mapping.router.include import include_table
+
+        return include_table(
+            self,
+            table,
+            app=app,
+            prefix=prefix,
+            mount_router=mount_router,
+        )
+
+    def _include_tables_impl(
+        self,
+        tables: tuple[type, ...] | list[type],
+        *,
+        app: Any | None = None,
+        base_prefix: str | None = None,
+        mount_router: bool = True,
+    ) -> dict[str, Any]:
+        from tigrbl_concrete._mapping.router.include import include_tables
+
+        return include_tables(
+            self,
+            tables,
+            app=app,
+            base_prefix=base_prefix,
+            mount_router=mount_router,
+        )
 
     def _normalize_prefix(self, prefix: str) -> str:
         return normalize_prefix(prefix)
@@ -141,6 +196,13 @@ class Router(RouterSpec):
     def router(self) -> "Router":
         return self
 
+    def _bump_runtime_plan_revision(self) -> None:
+        current = getattr(self, "_runtime_plan_revision", 0)
+        try:
+            self._runtime_plan_revision = int(current) + 1
+        except Exception:
+            self._runtime_plan_revision = 1
+
     def add_route(
         self,
         path: str,
@@ -150,6 +212,7 @@ class Router(RouterSpec):
         **kwargs: Any,
     ) -> None:
         _add_route_impl(self, path, endpoint, methods=methods, **kwargs)
+        self._bump_runtime_plan_revision()
 
     def _merge_tags(self, tags: list[str] | None) -> list[str] | None:
         return merge_tags(self.tags, tags)
@@ -157,6 +220,7 @@ class Router(RouterSpec):
     def include_router(self, router: Any, *, prefix: str | None = None) -> Any:
         routed = getattr(router, "router", router)
         _include_router_impl(self, routed, prefix=prefix or "")
+        self._bump_runtime_plan_revision()
         return router
 
     def route(

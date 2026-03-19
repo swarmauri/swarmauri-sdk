@@ -2,9 +2,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from tigrbl.runtime.atoms.wire import validate_in
+from tigrbl_atoms.atoms.wire import validate_in
 from tigrbl.runtime.status import HTTPException
-from tigrbl.runtime.kernel import (
+from tigrbl_kernel import (
     SchemaIn,
     SchemaOut,
     OpView,
@@ -33,9 +33,11 @@ def test_validate_in_missing_required() -> None:
     K._opviews[app] = {(Model, alias): ov}
     K._primed[app] = True
 
-    ctx = SimpleNamespace(app=app, model=Model, op=alias, temp={"in_values": {}})
+    ctx = SimpleNamespace(
+        app=app, model=Model, op=alias, opview=ov, temp={"in_values": {}}
+    )
     with pytest.raises(HTTPException) as exc:
-        validate_in.run(None, ctx)
+        validate_in._run(None, ctx)
     assert exc.value.status_code == 422
     assert ctx.temp["in_invalid"] is True
 
@@ -62,8 +64,8 @@ def test_validate_in_coerces_types() -> None:
     K._primed[app] = True
 
     ctx = SimpleNamespace(
-        app=app, model=Model, op=alias, temp={"in_values": {"age": "5"}}
+        app=app, model=Model, op=alias, opview=ov, temp={"in_values": {"age": "5"}}
     )
-    validate_in.run(None, ctx)
+    validate_in._run(None, ctx)
     assert ctx.temp["in_values"]["age"] == 5
     assert ctx.temp["in_coerced"] == ("age",)

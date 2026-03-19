@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.emit import paired_pre
-from tigrbl.runtime.kernel import (
+from tigrbl_atoms.atoms.emit import paired_pre
+from tigrbl_kernel import (
     SchemaIn,
     SchemaOut,
     OpView,
@@ -31,8 +31,10 @@ def test_paired_pre_records_descriptor() -> None:
     K._primed[app] = True
 
     temp = {"paired_values": {"token": {"raw": "abc", "alias": "t"}}}
-    ctx = SimpleNamespace(app=app, model=Model, op=alias, persist=True, temp=temp)
-    paired_pre.run(None, ctx)
+    ctx = SimpleNamespace(
+        app=app, model=Model, op=alias, opview=ov, persist=True, temp=temp
+    )
+    paired_pre._run(None, ctx)
     pre = ctx.temp["emit_aliases"]["pre"]
     assert pre[0]["field"] == "token"
     assert pre[0]["alias"] == "t"

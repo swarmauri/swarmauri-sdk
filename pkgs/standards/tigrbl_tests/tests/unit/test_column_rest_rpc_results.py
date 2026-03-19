@@ -2,7 +2,8 @@ import pytest
 from httpx import ASGITransport, Client
 
 from tigrbl import TigrblApp, TigrblRouter, alias_ctx
-from tigrbl._spec import FieldSpec as F, IOSpec as IO, S, makeColumn, makeVirtualColumn
+from tigrbl._spec import FieldSpec as F, IOSpec as IO, S
+from tigrbl.shortcuts.column import makeColumn, makeVirtualColumn
 from tigrbl.shortcuts.engine import engine, mem
 from tigrbl.orm.tables import TableBase
 from tigrbl.types import Integer, Mapped, String

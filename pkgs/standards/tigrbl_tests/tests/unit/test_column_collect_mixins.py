@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from tigrbl.mapping.column_mro_collect import mro_collect_columns
+from tigrbl_core._spec.column_spec import mro_collect_columns
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase
-from tigrbl._spec import S, acol
+from tigrbl._spec import S
+from tigrbl.shortcuts.column import acol
 from tigrbl.types import Mapped, String
 
 

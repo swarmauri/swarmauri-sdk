@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 from sqlalchemy import Integer, String
 
-from tigrbl.mapping import include_table
+from tigrbl_concrete._mapping.router.include import include_table
 from tigrbl._spec import ColumnSpec, StorageSpec as S
 from tigrbl import Table
 

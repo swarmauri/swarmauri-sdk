@@ -1,56 +1,56 @@
 from __future__ import annotations
 
-INGRESS_PHASES = ("INGRESS_BEGIN", "INGRESS_PARSE", "INGRESS_ROUTE")
-EGRESS_PHASES = ("EGRESS_SHAPE", "EGRESS_FINALIZE", "POST_RESPONSE")
-DEFAULT_PHASE_ORDER = (
-    "INGRESS_BEGIN",
-    "INGRESS_PARSE",
-    "INGRESS_ROUTE",
-    "PRE_TX_BEGIN",
-    "START_TX",
-    "PRE_HANDLER",
-    "HANDLER",
-    "END_TX",
-    "POST_COMMIT",
-    "EGRESS_SHAPE",
-    "EGRESS_FINALIZE",
-    "POST_RESPONSE",
-)
+from tigrbl_atoms import EGRESS_PHASES, INGRESS_PHASES, PHASE_SEQUENCE
 
-LOWER_KIND_ASYNC_DIRECT = "async_direct"
 LOWER_KIND_SYNC_EXTRACTABLE = "sync_extractable"
 LOWER_KIND_SPLIT_EXTRACTABLE = "split_extractable"
+LOWER_KIND_ASYNC_DIRECT = "async_direct"
 
-EFFECT_NONE = -1
-EFFECT_ROUTE_PROTOCOL_DETECT = 1
-EFFECT_ROUTE_SELECTOR_RESOLVE = 2
-EFFECT_ROUTE_PROGRAM_RESOLVE = 3
-EFFECT_ROUTE_OP_RESOLVE = 4
-EFFECT_INGRESS_METHOD_EXTRACT = 5
-EFFECT_INGRESS_PATH_EXTRACT = 6
-EFFECT_ROUTE_MATCH_REST = 7
-EFFECT_ROUTE_MATCH_JSONRPC = 8
-EFFECT_ROUTE_MATCH_WS = 9
+# Canonical execution order fallback used by kernel compilation helpers.
+DEFAULT_PHASE_ORDER = tuple(PHASE_SEQUENCE)
 
-EFFECT_BY_ATOM_NAME: dict[str, int] = {
-    "route.protocol_detect": EFFECT_ROUTE_PROTOCOL_DETECT,
-    "route.selector_resolve": EFFECT_ROUTE_SELECTOR_RESOLVE,
-    "route.program_resolve": EFFECT_ROUTE_PROGRAM_RESOLVE,
-    "route.op_resolve": EFFECT_ROUTE_OP_RESOLVE,
-    "ingress.method_extract": EFFECT_INGRESS_METHOD_EXTRACT,
-    "ingress.path_extract": EFFECT_INGRESS_PATH_EXTRACT,
-    "route.match_rest": EFFECT_ROUTE_MATCH_REST,
-    "route.match_jsonrpc": EFFECT_ROUTE_MATCH_JSONRPC,
-    "route.match_ws": EFFECT_ROUTE_MATCH_WS,
+# Step effect metadata for optional compiler/runtime optimization hooks.
+EFFECT_NONE = 0
+EFFECT_DB_READ = 1
+EFFECT_DB_WRITE = 2
+EFFECT_WIRE = 3
+
+EFFECT_BY_ATOM_NAME = {
+    "sys.handler_read": EFFECT_DB_READ,
+    "sys.handler_list": EFFECT_DB_READ,
+    "sys.handler_create": EFFECT_DB_WRITE,
+    "sys.handler_update": EFFECT_DB_WRITE,
+    "sys.handler_replace": EFFECT_DB_WRITE,
+    "sys.handler_merge": EFFECT_DB_WRITE,
+    "sys.handler_delete": EFFECT_DB_WRITE,
+    "sys.handler_bulk_create": EFFECT_DB_WRITE,
+    "sys.handler_bulk_update": EFFECT_DB_WRITE,
+    "sys.handler_bulk_replace": EFFECT_DB_WRITE,
+    "sys.handler_bulk_merge": EFFECT_DB_WRITE,
+    "sys.handler_bulk_delete": EFFECT_DB_WRITE,
+    "egress.to_transport_response": EFFECT_WIRE,
+    "egress.asgi_send": EFFECT_WIRE,
 }
 
-ROUTE_SPINE_ATOMS = {
-    "route.protocol_detect",
-    "route.match_rest",
-    "route.match_jsonrpc",
-    "route.match_ws",
-    "route.match_fallback",
-    "route.selector_resolve",
-    "route.program_resolve",
-    "route.op_resolve",
+# Route atoms that can be lowered into fast sync extractors.
+DISPATCH_SPINE_ATOMS = {
+    "dispatch.binding_match",
+    "dispatch.binding_parse",
+    "dispatch.input_normalize",
+    "dispatch.op_resolve",
 }
+
+__all__ = [
+    "DEFAULT_PHASE_ORDER",
+    "INGRESS_PHASES",
+    "EGRESS_PHASES",
+    "EFFECT_NONE",
+    "EFFECT_DB_READ",
+    "EFFECT_DB_WRITE",
+    "EFFECT_WIRE",
+    "EFFECT_BY_ATOM_NAME",
+    "DISPATCH_SPINE_ATOMS",
+    "LOWER_KIND_SYNC_EXTRACTABLE",
+    "LOWER_KIND_SPLIT_EXTRACTABLE",
+    "LOWER_KIND_ASYNC_DIRECT",
+]

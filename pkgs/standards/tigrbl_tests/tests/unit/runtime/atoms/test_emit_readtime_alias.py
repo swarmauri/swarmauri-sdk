@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.emit import readtime_alias
-from tigrbl.runtime.kernel import (
+from tigrbl_atoms.atoms.emit import readtime_alias
+from tigrbl_kernel import (
     SchemaIn,
     SchemaOut,
     OpView,
@@ -35,7 +35,7 @@ def test_readtime_alias_masks_sensitive_value() -> None:
     K._primed[app] = True
 
     temp = {"response_extras": {}, "emit_aliases": {"pre": [], "post": [], "read": []}}
-    ctx = SimpleNamespace(app=app, model=Model, op=alias, temp=temp)
+    ctx = SimpleNamespace(app=app, model=Model, op=alias, opview=ov, temp=temp)
     obj = SimpleNamespace(secret="abcd1234")
-    readtime_alias.run(obj, ctx)
+    readtime_alias._run(obj, ctx)
     assert ctx.temp["response_extras"]["hint"] == "••••1234"

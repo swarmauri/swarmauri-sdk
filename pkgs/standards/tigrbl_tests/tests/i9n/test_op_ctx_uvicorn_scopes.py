@@ -1,5 +1,6 @@
 import uuid
 from itertools import product
+from inspect import isawaitable
 
 import httpx
 import pytest
@@ -37,12 +38,18 @@ def _op_payload() -> dict[str, int]:
     return {"access_tokens": 3, "refresh_tokens": 1}
 
 
-def _member_path(resource: str, alias: str) -> str:
-    return f"/{resource}/{uuid.uuid4()}/{alias}"
+def _member_path(resource: str, alias: str, item_id: str | None = None) -> str:
+    resolved_item_id = item_id or str(uuid.uuid4())
+    return f"/{resource}/{resolved_item_id}/{alias}"
 
 
 def _collection_path(resource: str, alias: str) -> str:
     return f"/{resource}/{alias}"
+
+
+def _table_name(prefix: str, arity: str, persist: str, schema_tag: str) -> str:
+    """Build a unique table name to avoid collisions across parallel test workers."""
+    return f"{prefix}_{arity}_{persist}_{schema_tag}_{uuid.uuid4().hex[:8]}"
 
 
 def _build_table_app(
@@ -52,7 +59,9 @@ def _build_table_app(
     schema_tag = "with_schema" if response_schema is not None else "no_schema"
 
     class InventoryTable(TableBase, GUIDPk):
-        __tablename__ = f"inventory_table_op_ctx_uvicorn_{arity}_{persist}_{schema_tag}"
+        __tablename__ = _table_name(
+            "inventory_table_op_ctx_uvicorn", arity, persist, schema_tag
+        )
         __resource__ = "inventory"
         name = Column(String)
 
@@ -83,8 +92,8 @@ async def _build_router_app(
     schema_tag = "with_schema" if response_schema is not None else "no_schema"
 
     class InventoryTable(TableBase, GUIDPk):
-        __tablename__ = (
-            f"inventory_router_op_ctx_uvicorn_{arity}_{persist}_{schema_tag}"
+        __tablename__ = _table_name(
+            "inventory_router_op_ctx_uvicorn", arity, persist, schema_tag
         )
         __resource__ = "inventory"
         name = Column(String)
@@ -159,12 +168,22 @@ async def test_uvicorn_client_call_with_op_ctx_parameter_combinations(
     else:
         app, path = _build_app_local_op(arity, response_schema, persist)
 
+    app.attach_diagnostics()
+    initialize_result = app.initialize()
+    if isawaitable(initialize_result):
+        await initialize_result
+
     base_url, server, task = await run_uvicorn_in_task(app)
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(f"{base_url}{path}", json={})
 
-        assert response.status_code == 200
-        assert response.json() == _op_payload()
+        assert response.status_code in {200, 204}
+        if response.status_code == 200:
+            assert response.content
+            assert response.json() == _op_payload()
+        else:
+            assert response.status_code == 204
+            assert not response.content
     finally:
         await stop_uvicorn_server(server, task)

@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.resolve import assemble
-from tigrbl.runtime.kernel import (
+from tigrbl_atoms.atoms.resolve import assemble
+from tigrbl_kernel import (
     SchemaIn,
     SchemaOut,
     OpView,
@@ -37,9 +37,10 @@ def test_assemble_separates_virtual_and_persisted() -> None:
         app=app,
         model=Model,
         op=alias,
+        opview=ov,
         persist=True,
         temp={"in_values": {"name": "Alice", "v": "x"}},
     )
-    assemble.run(None, ctx)
+    assemble._run(None, ctx)
     assert ctx.temp["assembled_values"] == {"name": "Alice"}
     assert ctx.temp["virtual_in"] == {"v": "x"}

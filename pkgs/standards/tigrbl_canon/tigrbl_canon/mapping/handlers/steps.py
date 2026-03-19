@@ -10,7 +10,7 @@ from tigrbl_atoms.atoms import get as _get_atom
 from tigrbl_core._spec import OpSpec
 from tigrbl_runtime.runtime.executor import _Ctx
 
-from ...hook.types import StepFn
+from tigrbl_atoms import StepFn
 from .ctx import _ctx_db, _ctx_payload, _ctx_request
 
 logger = logging.getLogger("uvicorn")

@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.resolve import paired_gen
-from tigrbl.runtime.kernel import (
+from tigrbl_atoms.atoms.resolve import paired_gen
+from tigrbl_kernel import (
     SchemaIn,
     SchemaOut,
     OpView,
@@ -30,8 +30,10 @@ def test_generate_paired_value() -> None:
     K._opviews[app] = {(Model, alias): ov}
     K._primed[app] = True
 
-    ctx = SimpleNamespace(app=app, model=Model, op=alias, persist=True, temp={})
-    paired_gen.run(None, ctx)
+    ctx = SimpleNamespace(
+        app=app, model=Model, op=alias, opview=ov, persist=True, temp={}
+    )
+    paired_gen._run(None, ctx)
     pv = ctx.temp["paired_values"]
     pf = ctx.temp["persist_from_paired"]
     assert "secret" in pv and "raw" in pv["secret"]
@@ -59,7 +61,9 @@ def test_generate_paired_value_from_io() -> None:
     K._opviews[app] = {(Model, alias): ov}
     K._primed[app] = True
 
-    ctx = SimpleNamespace(app=app, model=Model, op=alias, persist=True, temp={})
-    paired_gen.run(None, ctx)
+    ctx = SimpleNamespace(
+        app=app, model=Model, op=alias, opview=ov, persist=True, temp={}
+    )
+    paired_gen._run(None, ctx)
     pv = ctx.temp["paired_values"]
     assert pv["secret"]["raw"] == "r"

@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import MISSING, dataclass, field, fields, is_dataclass
 from enum import Enum
-from typing import Any, Awaitable, Callable, Tuple, cast, final
+from typing import Any, Awaitable, Callable, Final, Tuple, cast, final
 
 from collections.abc import Mapping
 
@@ -28,6 +28,28 @@ U = TypeVar("U")
 E = TypeVar("E", default=Exception)
 
 
+PHASE_SEQUENCE: Final[tuple[str, ...]] = (
+    "INGRESS_BEGIN",
+    "INGRESS_PARSE",
+    "INGRESS_DISPATCH",
+    "PRE_TX_BEGIN",
+    "START_TX",
+    "PRE_HANDLER",
+    "HANDLER",
+    "POST_HANDLER",
+    "PRE_COMMIT",
+    "END_TX",
+    "POST_COMMIT",
+    "POST_RESPONSE",
+    "EGRESS_SHAPE",
+    "EGRESS_FINALIZE",
+)
+
+INGRESS_PHASES: Final[tuple[str, ...]] = PHASE_SEQUENCE[:4]
+HANDLER_PHASES: Final[tuple[str, ...]] = PHASE_SEQUENCE[5:8]
+EGRESS_PHASES: Final[tuple[str, ...]] = PHASE_SEQUENCE[-3:]
+
+
 @dataclass(slots=True)
 class BaseCtx(Generic[S, E]):
     env: object | None = None
@@ -36,6 +58,20 @@ class BaseCtx(Generic[S, E]):
     error: E | None = None
     current_phase: str | None = None
     error_phase: str | None = None
+
+    def __getattribute__(self, name: str) -> Any:
+        """
+        Keep core context methods callable even if runtime data shadows names.
+
+        Some adapters may attach arbitrary attributes to ctx instances. If one of
+        those attributes is named ``promote`` and set to ``None`` (or any
+        non-callable), ``ctx.promote(...)`` would fail with ``NoneType is not
+        callable``. Always resolving ``promote`` from ``BaseCtx`` preserves the
+        invariant that every ctx remains promotable.
+        """
+        if name == "promote":
+            return BaseCtx.promote.__get__(self, type(self))
+        return object.__getattribute__(self, name)
 
     def promote(self, cls: type[U], /, **updates: object) -> U:
         if not is_dataclass(cls):
@@ -191,6 +227,7 @@ class BoundCtx(RoutedCtx[E], Generic[E]):
 
 @dataclass(slots=True)
 class PlannedCtx(BoundCtx[E], Generic[E]):
+    opmeta_index: object | None = None
     payload: object | None = None
     plan: object | None = None
     opmeta: object | None = None

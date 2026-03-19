@@ -95,6 +95,28 @@ class EngineSpec(SerdeMixin):
         spec = getattr(x, "spec", None)
         if isinstance(spec, EngineSpec):
             return spec
+        if spec is not None:
+            # Accept EngineSpec-like instances coming from alternate import
+            # paths (for example ``tigrbl._spec.engine_spec.EngineSpec`` vs
+            # ``tigrbl_core._spec.engine_spec.EngineSpec``).
+            if hasattr(spec, "kind") and hasattr(spec, "async_"):
+                return EngineSpec.from_any(
+                    {
+                        "kind": getattr(spec, "kind", None),
+                        "async": getattr(spec, "async_", False),
+                        "dsn": getattr(spec, "dsn", None),
+                        "path": getattr(spec, "path", None),
+                        "memory": getattr(spec, "memory", False),
+                        "pool": getattr(spec, "pool", None),
+                        "user": getattr(spec, "user", None),
+                        "pwd": getattr(spec, "pwd", None),
+                        "host": getattr(spec, "host", None),
+                        "port": getattr(spec, "port", None),
+                        "name": getattr(spec, "name", None),
+                        "pool_size": getattr(spec, "pool_size", 10),
+                        "max": getattr(spec, "max", 20),
+                    }
+                )
 
         # DSN string
         if isinstance(x, str):
@@ -144,7 +166,12 @@ class EngineSpec(SerdeMixin):
             raise ValueError(f"Unsupported DSN: {s}")
 
         # Mapping
-        m = x  # type: ignore[assignment]
+        if not isinstance(x, Mapping):
+            raise ValueError(
+                "Engine config must be a DSN string, mapping, or EngineSpec-like object"
+            )
+
+        m = x
 
         # Helpers
         def _get_bool(key: str, *aliases: str, default: bool = False) -> bool:
@@ -217,49 +244,23 @@ class EngineSpec(SerdeMixin):
 
     # ---------- realization ----------
 
+    def to_provider(self) -> Any:
+        """Return a concrete-agnostic provider wrapper.
+
+        ``tigrbl_core`` must remain independent from ``tigrbl_concrete``.
+        Concrete and base runtimes can override this contract to provide
+        framework/runtime-specific provider implementations.
+        """
+        return EngineProviderSpec(spec=self)
+
     def build(self) -> Tuple[Any, SessionFactory]:
-        """Construct the engine and sessionmaker for this spec."""
-        from ..engine.builders import (
-            async_postgres_engine,
-            async_sqlite_engine,
-            blocking_postgres_engine,
-            blocking_sqlite_engine,
-        )
+        """Construct the engine/sessionmaker via registered providers.
 
-        if self.kind == "sqlite":
-            if self.memory:
-                if self.async_:
-                    return async_sqlite_engine(path=None, pool=self.pool)
-                return blocking_sqlite_engine(path=None, pool=self.pool)
-            if not self.path:
-                raise ValueError("sqlite file requires 'path'")
-            if self.async_:
-                return async_sqlite_engine(path=self.path, pool=self.pool)
-            return blocking_sqlite_engine(path=self.path, pool=self.pool)
+        Core does not ship concrete engine implementations.
+        """
 
-        if self.kind == "postgres":
-            if self.dsn:
-                if self.async_:
-                    return async_postgres_engine(dsn=self.dsn)
-                return blocking_postgres_engine(dsn=self.dsn)
-            # keyword build
-            kwargs: dict[str, Any] = {
-                "user": self.user or "app",
-                "host": self.host or "localhost",
-                "port": self.port or 5432,
-                "db": self.name or "app_db",
-                "pool_size": int(self.pool_size or 10),
-            }
-            if self.pwd is not None:
-                kwargs["pwd"] = self.pwd
-            if self.async_:
-                kwargs["max_size"] = int(self.max or 20)
-                return async_postgres_engine(**kwargs)
-            else:
-                kwargs["max_overflow"] = int(self.max or 20)
-                return blocking_postgres_engine(**kwargs)
-
-        # External/registered engines
+        # External/registered engines (including sqlite/postgres when provided
+        # by concrete runtime extensions).
         try:
             from .plugins import load_engine_plugins
             from .registry import get_engine_registration, known_engine_kinds

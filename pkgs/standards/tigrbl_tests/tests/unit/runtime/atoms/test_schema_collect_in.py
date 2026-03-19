@@ -1,11 +1,10 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
-from tigrbl.runtime.kernel import (
+from tigrbl_atoms.atoms.schema.collect_in import _run as collect_in_run
+from tigrbl_kernel import (
     SchemaIn,
     SchemaOut,
     OpView,
-    _default_kernel as K,
 )
 
 
@@ -33,10 +32,7 @@ def test_collect_in_builds_schema() -> None:
         to_stored_transforms={},
         refresh_hints=(),
     )
-    K._opviews[app] = {(Model, alias): ov}
-    K._primed[app] = True
-
-    ctx = SimpleNamespace(app=app, model=Model, op=alias, temp={})
+    ctx = SimpleNamespace(app=app, model=Model, op=alias, opview=ov, temp={})
     collect_in_run(None, ctx)
     schema = ctx.temp["schema_in"]
     assert schema["by_field"]["name"]["alias_in"] == "alias"

@@ -18,8 +18,8 @@ from typing import (
 
 from tigrbl_core._spec import OpSpec
 from tigrbl_core._spec.hook_spec import HookSpec
-from ..hook.types import PHASES, StepFn
-from tigrbl.config.constants import (
+from tigrbl_atoms import HookPhases as PHASES, StepFn
+from tigrbl_core.config.constants import (
     TIGRBL_ROUTER_HOOKS_ATTR,
     TIGRBL_HOOKS_ATTR,
     CTX_SKIP_PERSIST_FLAG,
@@ -305,7 +305,7 @@ def _attach_one(model: type, sp: OpSpec) -> None:
     logger.debug("hooks: %s.%s merged (persist=%s)", model.__name__, alias, sp.persist)
 
 
-def normalize_and_attach(
+def build_and_attach(
     model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
 ) -> None:
     """
@@ -322,4 +322,6 @@ def normalize_and_attach(
         _attach_one(model, sp)
 
 
-__all__ = ["normalize_and_attach"]
+normalize_and_attach = build_and_attach
+
+__all__ = ["build_and_attach", "normalize_and_attach"]

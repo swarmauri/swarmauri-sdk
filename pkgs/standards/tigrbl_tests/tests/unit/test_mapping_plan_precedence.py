@@ -1,6 +1,6 @@
-from tigrbl.mapping.context import MappingContext
-from tigrbl.mapping.plan import Step, compile_plan
-from tigrbl.mapping.precedence import merge_op_specs
+from tests.conftest import MappingContext
+from tests.conftest import Step, compile_plan
+from tests.conftest import merge_op_specs
 from tigrbl._spec import OpSpec
 
 

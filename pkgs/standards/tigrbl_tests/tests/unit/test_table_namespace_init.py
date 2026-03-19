@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl._spec import F, S, acol
+from tigrbl._spec import F, S
+from tigrbl.shortcuts.column import acol
 from tigrbl import Table
 from tigrbl.types import Integer, Mapped
 

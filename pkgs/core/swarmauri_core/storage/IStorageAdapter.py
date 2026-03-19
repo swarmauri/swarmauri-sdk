@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from contextlib import AbstractContextManager
+import mmap
 import os
 from typing import BinaryIO
 
@@ -19,6 +21,20 @@ class IStorageAdapter(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def upload_memoryview(
+        self, key: str, payload: memoryview
+    ) -> str:  # pragma: no cover - interface
+        """Upload *payload* under *key* and return the resulting URI."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def upload_mmap(
+        self, key: str, payload: mmap.mmap
+    ) -> str:  # pragma: no cover - interface
+        """Upload a memory-mapped payload under *key*."""
+        raise NotImplementedError
+
+    @abstractmethod
     def get_blob(self, key: str) -> bytes:  # pragma: no cover - interface
         """Retrieve the artifact stored at *key* as raw bytes."""
         raise NotImplementedError
@@ -26,6 +42,20 @@ class IStorageAdapter(ABC):
     @abstractmethod
     def put_blob(self, key: str, data: bytes) -> str:  # pragma: no cover - interface
         """Upload raw *data* under *key* and return the resulting URI."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def download_memoryview(
+        self, key: str
+    ) -> memoryview:  # pragma: no cover - interface
+        """Retrieve the artifact at *key* as a memoryview."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def open_mmap(
+        self, key: str, *, access: int = mmap.ACCESS_READ
+    ) -> AbstractContextManager[mmap.mmap]:  # pragma: no cover - interface
+        """Open a context-managed mmap view for the artifact at *key*."""
         raise NotImplementedError
 
     @abstractmethod

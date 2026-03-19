@@ -7,7 +7,7 @@ from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase
 from tigrbl import HTTPBearer
-from tigrbl.types import Security
+from tigrbl.security import Security
 
 
 def _alpha_dep(cred=Security(HTTPBearer(scheme_name="AlphaToken"))):

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import io
+import mmap
 import os
 import re
-from typing import BinaryIO, Optional, Literal
+import tempfile
+from contextlib import contextmanager
+from typing import BinaryIO, Iterator, Optional, Literal
 from pydantic import Field
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
@@ -27,6 +30,14 @@ class StorageAdapterBase(IStorageAdapter, ComponentBase):
         raise NotImplementedError("download() must be implemented by subclass")
 
     # ------------------------------------------------------------------
+    def upload_memoryview(self, key: str, payload: memoryview) -> str:
+        return self.upload(key, io.BytesIO(payload))
+
+    # ------------------------------------------------------------------
+    def upload_mmap(self, key: str, payload: mmap.mmap) -> str:
+        return self.upload_memoryview(key, memoryview(payload))
+
+    # ------------------------------------------------------------------
     def get_blob(self, key: str) -> bytes:
         stream = self.download(key)
         try:
@@ -40,6 +51,25 @@ class StorageAdapterBase(IStorageAdapter, ComponentBase):
     def put_blob(self, key: str, data: bytes) -> str:
         buffer = io.BytesIO(data)
         return self.upload(key, buffer)
+
+    # ------------------------------------------------------------------
+    def download_memoryview(self, key: str) -> memoryview:
+        return memoryview(self.get_blob(key))
+
+    # ------------------------------------------------------------------
+    @contextmanager
+    def open_mmap(
+        self, key: str, *, access: int = mmap.ACCESS_READ
+    ) -> Iterator[mmap.mmap]:
+        payload = self.get_blob(key)
+        if not payload:
+            raise ValueError("cannot create mmap for empty object")
+
+        with tempfile.NamedTemporaryFile() as temp_file:
+            temp_file.write(payload)
+            temp_file.flush()
+            with mmap.mmap(temp_file.fileno(), 0, access=access) as mapped:
+                yield mapped
 
     # ------------------------------------------------------------------
     def upload_dir(self, src: str | os.PathLike, *, prefix: str = "") -> None:

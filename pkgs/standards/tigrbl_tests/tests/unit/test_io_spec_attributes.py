@@ -1,10 +1,11 @@
 from types import SimpleNamespace
 
-from tigrbl._spec import ColumnSpec, F, IO, S, acol
-from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
-from tigrbl.runtime.atoms.schema.collect_out import run as collect_out_run
-from tigrbl.runtime.atoms.out import masking
-from tigrbl.runtime.kernel import _default_kernel as K
+from tigrbl._spec import ColumnSpec, F, IO, S
+from tigrbl.shortcuts.column import acol
+from tigrbl_atoms.atoms.schema.collect_in import _run as collect_in_run
+from tigrbl_atoms.atoms.schema.collect_out import _run as collect_out_run
+from tigrbl_atoms.atoms.out import masking
+from tigrbl_kernel import _default_kernel as K
 from tigrbl.core.crud import helpers
 from tigrbl.orm.tables import TableBase
 from sqlalchemy import Integer
@@ -97,7 +98,7 @@ def test_sensitive_flag_has_no_masking_effect():
     )
     ov = K._compile_opview_from_specs({"secret": spec}, SimpleNamespace(alias="read"))
     ctx = SimpleNamespace(opview=ov, temp={"response_payload": {"secret": "topsecret"}})
-    masking.run(None, ctx)
+    masking._run(None, ctx)
     assert ctx.temp["response_payload"]["secret"] == "topsecret"
 
 
@@ -109,7 +110,7 @@ def test_redact_last_flag_has_no_masking_effect():
     )
     ov = K._compile_opview_from_specs({"secret": spec}, SimpleNamespace(alias="read"))
     ctx = SimpleNamespace(opview=ov, temp={"response_payload": {"secret": "abcdef"}})
-    masking.run(None, ctx)
+    masking._run(None, ctx)
     assert ctx.temp["response_payload"]["secret"] == "abcdef"
 
 
@@ -142,7 +143,7 @@ def test_sortable_allows_sorting():
             "unsortable": unsortable_spec,
         }
 
-    from tigrbl.mapping.model import bind
+    from tigrbl_concrete._mapping.model import bind
 
     bind(SortModel)
 

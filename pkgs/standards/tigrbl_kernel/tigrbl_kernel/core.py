@@ -68,6 +68,9 @@ class Kernel:
     def get_specs(self, model: type) -> Mapping[str, Any]:
         return self._specs_cache.get(model)
 
+    def plan_labels(self, model: type, alias: str) -> list[str]:
+        return self._plan_labels(model, alias)
+
     def prime_specs(self, models: Sequence[type]) -> None:
         self._specs_cache.prime(models)
 
@@ -171,4 +174,5 @@ Kernel._build_route_matrix = _build_route_matrix
 Kernel._pack_kernel_plan = _pack_kernel_plan
 
 Kernel.compile_plan = _compile_plan
+Kernel.compile_bootstrap_plan = _compile_bootstrap_plan
 Kernel._compile_opview_from_specs = _compile_opview_from_specs

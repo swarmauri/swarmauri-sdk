@@ -1,6 +1,7 @@
 from tigrbl import TableBase
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl._spec import S, acol
+from tigrbl._spec import S
+from tigrbl.shortcuts.column import acol
 from tigrbl.types import Column, String
 
 

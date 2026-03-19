@@ -6,18 +6,19 @@ from sqlalchemy.pool import StaticPool
 from tigrbl import TigrblApp
 from tigrbl.shortcuts.engine import engine as engine_factory
 from tigrbl.shortcuts.engine import mem
-from tigrbl.mapping.model import bind
-from tigrbl.mapping.rest.router import _build_router
-from tigrbl.mapping.rpc import register_and_attach
+from tigrbl_concrete._mapping.model import bind
+from tests.conftest import _build_router
+from tigrbl_base._base._rpc_map import register_and_attach
 from tigrbl._spec import OpSpec
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import TableBase
-from tigrbl.runtime.atoms.resolve import assemble
-from tigrbl.runtime.atoms.schema.collect_in import run as collect_in_run
-from tigrbl.runtime.atoms.schema.collect_out import run as collect_out_run
-from tigrbl.runtime.kernel import _default_kernel as K
-from tigrbl.runtime.kernel import build_phase_chains
-from tigrbl._spec import IO, F, S, acol, vcol
+from tigrbl_atoms.atoms.resolve import assemble
+from tigrbl_atoms.atoms.schema.collect_in import _run as collect_in_run
+from tigrbl_atoms.atoms.schema.collect_out import _run as collect_out_run
+from tigrbl_kernel import _default_kernel as K
+from tigrbl_kernel import build_phase_chains
+from tigrbl._spec import IO, F, S
+from tigrbl.shortcuts.column import acol, vcol
 from tigrbl.types import Integer as IntType
 from tigrbl.types import SimpleNamespace
 from tigrbl.types import String as StrType
@@ -106,7 +107,7 @@ def test_default_factory_resolves_missing_value():
         temp={"in_values": {}},
         persist=True,
     )
-    assemble.run(None, ctx)
+    assemble._run(None, ctx)
     assembled = ctx.temp["assembled_values"]
     assert assembled["created"] == "now"
     assert "created" in ctx.temp["used_default_factory"]
@@ -349,7 +350,7 @@ def test_atoms_execute_with_iospec():
         persist=True,
     )
     collect_in_run(None, ctx)
-    assemble.run(None, ctx)
+    assemble._run(None, ctx)
     collect_out_run(None, ctx)
     assert ctx.temp["assembled_values"]["name"] == "x"
 

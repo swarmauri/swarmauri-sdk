@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.storage import to_stored
-from tigrbl.runtime.kernel import (
+from tigrbl_atoms.atoms.storage import to_stored
+from tigrbl_kernel import (
     SchemaIn,
     SchemaOut,
     OpView,
@@ -39,7 +39,9 @@ def test_to_stored_derives_from_paired_raw() -> None:
         "persist_from_paired": {"token": {"source": ("paired_values", "token", "raw")}},
         "assembled_values": {},
     }
-    ctx = SimpleNamespace(app=app, model=Model, op=alias, persist=True, temp=temp)
-    to_stored.run(None, ctx)
+    ctx = SimpleNamespace(
+        app=app, model=Model, op=alias, opview=ov, persist=True, temp=temp
+    )
+    to_stored._run(None, ctx)
     assert ctx.temp["assembled_values"]["token"] == "ABC"
     assert ctx.temp["storage_log"][0]["action"] == "derived_from_paired"

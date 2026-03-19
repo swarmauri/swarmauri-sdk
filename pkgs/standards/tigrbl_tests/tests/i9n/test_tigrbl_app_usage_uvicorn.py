@@ -7,7 +7,8 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl import HTTPBearer
 from tigrbl.security import Security
 from tigrbl._concrete._security.http_bearer import HTTPAuthorizationCredentials
-from tigrbl._spec import IO, F, S, acol
+from tigrbl._spec import IO, F, S
+from tigrbl.shortcuts.column import acol
 from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server

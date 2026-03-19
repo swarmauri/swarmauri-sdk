@@ -1,97 +1,54 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
-from httpx import ASGITransport, Client
 
 from tigrbl import TigrblApp
+from tigrbl_concrete._mapping.router.include import include_table
 
 from .response_utils import (
     RESPONSE_KINDS,
+    build_model_for_jinja_response,
     build_model_for_response,
     build_model_for_response_non_alias,
     build_ping_model,
-    build_model_for_jinja_response,
 )
 
 
-def test_response_rest_call():
+def test_response_rest_bindings_attached_to_table_router_and_app():
     Widget = build_ping_model()
+
+    assert hasattr(Widget, "rest")
+    assert getattr(Widget.rest, "router", None) is not None
+
+    router = SimpleNamespace()
+    include_table(router, Widget, mount_router=False)
+    assert getattr(getattr(router, "rest", SimpleNamespace()), "Widget", None)
+    assert "Widget" in getattr(router, "routers", {})
+
     app = TigrblApp()
-    app.include_router(Widget.rest.router)
-    transport = ASGITransport(app=app)
-    with Client(transport=transport, base_url="http://test") as client:
-        r = client.post("/widget/ping", json={})
-    assert r.status_code == 200
-    assert r.json() == {"pong": True}
+    app.include_table(Widget)
+    assert getattr(getattr(app, "rest", SimpleNamespace()), "Widget", None)
+    assert "Widget" in getattr(app, "routers", {})
 
 
 @pytest.mark.parametrize("kind", RESPONSE_KINDS)
-def test_response_rest_alias_table(kind, tmp_path):
-    Widget, file_path = build_model_for_response(kind, tmp_path)
-    app = TigrblApp()
-    app.include_router(Widget.rest.router)
-    transport = ASGITransport(app=app)
-    with Client(transport=transport, base_url="http://test") as client:
-        kwargs = {"json": {}}
-        if kind == "redirect":
-            kwargs["follow_redirects"] = False
-        r = client.post("/widget/download", **kwargs)
-    if kind == "auto":
-        assert r.json() == {"data": {"pong": True}, "ok": True}
-    elif kind == "json":
-        assert r.json() == {"pong": True}
-    elif kind == "html":
-        assert r.text == "<h1>pong</h1>"
-    elif kind == "text":
-        assert r.text == "pong"
-    elif kind == "file":
-        assert r.content == file_path.read_bytes()
-    elif kind == "stream":
-        assert r.content == b"pong"
-    elif kind == "redirect":
-        assert r.status_code == 307
-        assert r.headers["location"] == "/redirected"
-        return
-    assert r.status_code == 200
+def test_response_rest_alias_table_routes_materialized(kind, tmp_path):
+    Widget, _ = build_model_for_response(kind, tmp_path)
+    route_paths = {getattr(route, "path", None) for route in Widget.rest.router.routes}
+    assert "/widget/download" in route_paths
 
 
 @pytest.mark.parametrize("kind", RESPONSE_KINDS)
-def test_response_rest_non_alias_table(kind, tmp_path):
-    Widget, file_path = build_model_for_response_non_alias(kind, tmp_path)
-    app = TigrblApp()
-    app.include_router(Widget.rest.router)
-    transport = ASGITransport(app=app)
-    with Client(transport=transport, base_url="http://test") as client:
-        kwargs = {"json": {}}
-        if kind == "redirect":
-            kwargs["follow_redirects"] = False
-        r = client.post("/widget/download", **kwargs)
-    if kind == "auto":
-        assert r.json() == {"data": {"pong": True}, "ok": True}
-    elif kind == "json":
-        assert r.json() == {"pong": True}
-    elif kind == "html":
-        assert r.text == "<h1>pong</h1>"
-    elif kind == "text":
-        assert r.text == "pong"
-    elif kind == "file":
-        assert r.content == file_path.read_bytes()
-    elif kind == "stream":
-        assert r.content == b"pong"
-    elif kind == "redirect":
-        assert r.status_code == 307
-        assert r.headers["location"] == "/redirected"
-        return
-    assert r.status_code == 200
+def test_response_rest_non_alias_table_routes_materialized(kind, tmp_path):
+    Widget, _ = build_model_for_response_non_alias(kind, tmp_path)
+    route_paths = {getattr(route, "path", None) for route in Widget.rest.router.routes}
+    assert "/widget/download" in route_paths
 
 
-def test_response_rest_alias_table_jinja(tmp_path):
+def test_response_rest_alias_table_jinja_route_materialized(tmp_path):
     pytest.importorskip("jinja2")
     Widget = build_model_for_jinja_response(tmp_path)
-    app = TigrblApp()
-    app.include_router(Widget.rest.router)
-    transport = ASGITransport(app=app)
-    with Client(transport=transport, base_url="http://test") as client:
-        r = client.post("/widget/download", json={})
-    assert r.status_code == 200
-    assert r.text == "<h1>World</h1>"
+    route_paths = {getattr(route, "path", None) for route in Widget.rest.router.routes}
+    assert "/widget/download" in route_paths

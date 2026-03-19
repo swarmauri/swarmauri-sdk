@@ -5,8 +5,8 @@ import inspect
 from functools import lru_cache
 from typing import Any, Callable, Dict
 
-from .._concrete._op import Op as OpSpec
-from ..decorators.op import _maybe_await, _normalize_persist, _unwrap
+from tigrbl_concrete._concrete._op import Op as OpSpec
+from tigrbl.decorators.op import _maybe_await, _normalize_persist, _unwrap
 from tigrbl_runtime.runtime.executor import _Ctx
 
 logger = logging.getLogger("uvicorn")
@@ -97,7 +97,7 @@ def mro_collect_decorated_ops(table: type) -> list[OpSpec]:
             if op_spec is None:
                 continue
 
-            resolved_alias = op_spec.alias or name
+            resolved_alias = op_spec.alias or op_spec.target or name
 
             spec = OpSpec(
                 table=table,
@@ -119,7 +119,6 @@ def mro_collect_decorated_ops(table: type) -> list[OpSpec]:
                 engine=getattr(op_spec, "engine", None),
                 response=getattr(op_spec, "response", None),
                 returns=getattr(op_spec, "returns", None),
-                rbac_guard_op=getattr(op_spec, "rbac_guard_op", None),
                 core=getattr(op_spec, "core", None),
                 core_raw=getattr(op_spec, "core_raw", None),
                 extra=dict(getattr(op_spec, "extra", {}) or {}),

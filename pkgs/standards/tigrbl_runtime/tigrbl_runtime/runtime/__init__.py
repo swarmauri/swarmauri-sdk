@@ -6,8 +6,6 @@ from importlib import import_module
 from typing import Any
 
 _EXPORTS = {
-    "_invoke": "executor",
-    "_Ctx": "executor",
     "Kernel": "kernel",
     "build_phase_chains": "kernel",
     "get_cached_specs": "kernel",
@@ -15,6 +13,9 @@ _EXPORTS = {
     "status": "status",
     "STEP_KINDS": "labels",
     "DOMAINS": "labels",
+    "RuntimeBase": "base",
+    "Runtime": "runtime",
+    "GwRawEnvelope": "_typing_aliases",
 }
 
 __all__ = list(_EXPORTS)

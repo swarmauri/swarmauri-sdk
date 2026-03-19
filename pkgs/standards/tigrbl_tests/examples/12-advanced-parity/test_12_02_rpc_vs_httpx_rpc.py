@@ -50,6 +50,19 @@ async def test_rpc_parity_with_httpx() -> None:
             http_result = await http_client.post("/rpc", json=payload)
 
         assert http_result.status_code == 200
-        assert http_result.json()["result"]["name"] == rpc_result["name"]
+        assert http_result.json().get("result") == rpc_result
+
+        # Validate list parity over the same JSON-RPC transport contract.
+        rpc_list = await client.acall("Widget.list", params={})
+        async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as http_client:
+            list_payload = {
+                "jsonrpc": "2.0",
+                "method": "Widget.list",
+                "params": {},
+                "id": "2",
+            }
+            http_list = await http_client.post("/rpc", json=list_payload)
+        assert http_list.status_code == 200
+        assert http_list.json().get("result") == rpc_list
     finally:
         await stop_uvicorn(server, task)

@@ -30,6 +30,10 @@ _EXPORTS = {
     "put": "tigrbl.decorators.rest",
     "patch": "tigrbl.decorators.rest",
     "delete": "tigrbl.decorators.rest",
+    "route_ctx": "tigrbl.decorators.router",
+    "route": "tigrbl.decorators.router",
+    # authn
+    "allow_anon": "tigrbl.decorators.allow_anon",
     # response
     "response_ctx": "tigrbl.decorators.response",
     "get_attached_response_alias": "tigrbl.decorators.response",

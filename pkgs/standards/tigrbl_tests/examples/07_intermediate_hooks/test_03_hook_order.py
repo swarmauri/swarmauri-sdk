@@ -36,7 +36,7 @@ def test_hook_order_collects_multiple_hooks():
     app.bind(LessonHookOrder)
 
     # Test: read the PRE_HANDLER hooks for create.
-    hooks = LessonHookOrder.__tigrbl_hooks__["create"]["PRE_HANDLER"]
+    hooks = LessonHookOrder.hooks.create.PRE_HANDLER
 
     # Assertion: both hooks are registered.
     assert len(hooks) == 2
@@ -73,7 +73,7 @@ def test_hook_order_preserves_declaration_sequence():
     app.bind(LessonHookOrderSequence)
 
     # Test: inspect hook ordering for the create PRE_HANDLER phase.
-    hooks = LessonHookOrderSequence.__tigrbl_hooks__["create"]["PRE_HANDLER"]
+    hooks = LessonHookOrderSequence.hooks.create.PRE_HANDLER
 
     # Assertion: hook sequence matches the declaration order.
     assert hooks[0].__name__ == "first"

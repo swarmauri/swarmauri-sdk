@@ -1,6 +1,6 @@
 from httpx import ASGITransport, Client
 from tigrbl import TableBase, TigrblApp, hook_ctx
-from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from tigrbl_core.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl import Request
@@ -8,7 +8,7 @@ from tigrbl.runtime.status import HTTPException
 from tigrbl import HTTPBearer
 from tigrbl.security import Security
 from tigrbl._concrete._security.http_bearer import HTTPAuthorizationCredentials
-from tigrbl.types.authn_abc import AuthNProvider
+from tigrbl_typing.types.authn_abc import AuthNProvider
 
 
 class HookedAuth(AuthNProvider):

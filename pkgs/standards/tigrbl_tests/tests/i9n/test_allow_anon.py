@@ -1,7 +1,7 @@
 from httpx import ASGITransport, Client
 from sqlalchemy.orm import sessionmaker
 from tigrbl import TigrblApp, TigrblRouter
-from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from tigrbl_core.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl import resolver as _resolver
 from tigrbl.shortcuts.engine import mem
 from tigrbl.orm.mixins import GUIDPk
@@ -11,8 +11,8 @@ from tigrbl.runtime.status import HTTPException
 from tigrbl import HTTPBearer
 from tigrbl.security import Security
 from tigrbl._concrete._security.http_bearer import HTTPAuthorizationCredentials
+from tigrbl.decorators.allow_anon import allow_anon
 from tigrbl.types import (
-    AllowAnonProvider,
     AuthNProvider,
     Column,
     ForeignKey,
@@ -152,16 +152,13 @@ def _build_client_create_noauth():
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(TableBase, GUIDPk, AllowAnonProvider):
+    @allow_anon("create", "bulk_create")
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
         )
         name = Column(String, nullable=False)
-
-        @classmethod
-        def __tigrbl_allow_anon__(cls):
-            return {"create", "bulk_create"}
 
     cfg = mem(async_=False)
     router = TigrblRouter(engine=cfg)
@@ -186,14 +183,13 @@ def _build_client_create_attr_noauth():
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(TableBase, GUIDPk, AllowAnonProvider):
+    @allow_anon("create", "bulk_create")
+    class Item(TableBase, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(
             PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
         )
         name = Column(String, nullable=False)
-
-        __tigrbl_allow_anon__ = {"create", "bulk_create"}
 
     cfg = mem(async_=False)
     router = TigrblRouter(engine=cfg)

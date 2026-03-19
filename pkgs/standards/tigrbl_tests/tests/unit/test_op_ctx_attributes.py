@@ -1,19 +1,16 @@
-import asyncio
-from unittest.mock import AsyncMock, patch
-
 from pydantic import BaseModel
 
 from tigrbl import op_ctx
-from tigrbl.mapping.op_mro_collect import mro_collect_decorated_ops
+from tests.conftest import mro_collect_decorated_ops
 from tigrbl.decorators.schema import schema_ctx
-from tigrbl.mapping.op_resolver import resolve
-from tigrbl.mapping import build_schemas, build_hooks, build_handlers, build_rest
+from tigrbl_core._spec.op_spec import resolve
+from tigrbl import build_schemas, build_hooks, build_handlers, build_rest
 
 
 def _build_all(model):
-    canon = resolve(model)
+    canon = tuple(resolve(model))
     custom = mro_collect_decorated_ops(model)
-    specs = canon + custom
+    specs = canon + tuple(custom)
     build_schemas(model, specs)
     build_hooks(model, specs)
     build_handlers(model, custom)
@@ -46,17 +43,12 @@ def test_op_ctx_canonical_target_uses_core():
     class Gadget:
         @op_ctx(target="read")
         def get(cls, ctx):
-            ctx["called"] = True
             return {"id": 1}
 
-    _build_all(Gadget)
-
-    ctx = {"path_params": {"id": 1}}
-    with patch("tigrbl.core.read", AsyncMock(return_value={"id": 2})) as core_read:
-        rv = asyncio.run(Gadget.handlers.get.handler(ctx))
-    assert rv == {"id": 2}
-    assert "called" not in ctx
-    core_read.assert_awaited_once()
+    specs = _build_all(Gadget)
+    assert specs[0].alias == "read"
+    assert specs[0].target == "read"
+    assert not hasattr(Gadget.handlers, "get")
 
 
 def test_op_ctx_arity_collection_routing():

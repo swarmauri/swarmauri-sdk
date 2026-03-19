@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl.runtime.atoms.refresh import demand
-from tigrbl.runtime.kernel import (
+from tigrbl_atoms.atoms.refresh import demand
+from tigrbl_kernel import (
     SchemaIn,
     SchemaOut,
     OpView,
@@ -34,10 +34,11 @@ def test_refresh_demand_marks_need() -> None:
         app=app,
         model=Model,
         op=alias,
+        opview=ov,
         persist=True,
         temp={},
         cfg=SimpleNamespace(),
     )
-    demand.run(None, ctx)
+    demand._run(None, ctx)
     assert ctx.temp["refresh_demand"] is True
     assert ctx.temp["refresh_fields"] == ("id",)

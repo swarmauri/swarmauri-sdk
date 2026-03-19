@@ -1,31 +1,15 @@
 from __future__ import annotations
 
+from typing import Any
+
 from ...types import Atom, Ctx, OperatedCtx
 from ...stages import Operated
 
-from typing import Any
-
 from ... import events as _ev
 from .._temp import _ensure_temp
+from ._db import _in_transaction, _resolve_db_handle
 
 ANCHOR = _ev.SYS_TX_COMMIT
-
-
-def _resolve_db_handle(ctx: Any) -> Any:
-    db = getattr(ctx, "db", None)
-    if db is not None:
-        return db
-    return getattr(ctx, "session", None)
-
-
-def _in_transaction(db: Any) -> bool:
-    marker = getattr(db, "in_transaction", None)
-    if callable(marker):
-        try:
-            return bool(marker())
-        except Exception:
-            return False
-    return False
 
 
 async def _run(obj: object | None, ctx: Any) -> None:

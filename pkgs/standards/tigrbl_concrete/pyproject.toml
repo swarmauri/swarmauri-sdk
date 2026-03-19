@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-concrete"
-version = "0.1.0.dev0"
+version = "0.1.0.dev1"
 description = "Concrete implementations of Tigrbl base abstractions."
 license = "Apache-2.0"
 readme = "README.md"
@@ -18,18 +18,26 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
+    "orjson",
+    "pydantic>=2.0",
+    "sqlalchemy",
+    "tigrbl-atoms",
     "tigrbl-base",
-    "tigrbl-canon",
     "tigrbl-core",
+    "tigrbl-ops-oltp",
     "tigrbl-runtime",
+    "tigrbl-typing",
+    "uvicorn",
 ]
 keywords = ["tigrbl", "sdk", "standards", "framework"]
 
 [tool.uv.sources]
+"tigrbl-atoms" = { workspace = true }
 "tigrbl-base" = { workspace = true }
-"tigrbl-canon" = { workspace = true }
 "tigrbl-core" = { workspace = true }
+"tigrbl-ops-oltp" = { workspace = true }
 "tigrbl-runtime" = { workspace = true }
+"tigrbl-typing" = { workspace = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -46,3 +54,6 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.9",
 ]
+
+[project.entry-points."tigrbl.engine_plugins"]
+concrete = "tigrbl_concrete.engine.plugins:register"

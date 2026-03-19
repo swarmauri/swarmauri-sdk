@@ -24,34 +24,29 @@ from ._routing import add_route as _add_route_impl
 from tigrbl_core._spec.op_spec import OpSpec
 from tigrbl_core._spec.binding_spec import HttpRestBindingSpec
 from tigrbl_core._spec.engine_spec import EngineCfg
-from tigrbl_canon.mapping import engine_resolver as _resolver
-from tigrbl.ddl import initialize as _ddl_initialize
-from tigrbl_canon.mapping.router.common import (
+from tigrbl_concrete._concrete import engine_resolver as _resolver
+from tigrbl_concrete.ddl import initialize as _ddl_initialize
+from tigrbl_concrete._mapping.router.common import (
     AttrDict,
     _default_prefix,
-    _mount_router,
 )
-from tigrbl_canon.mapping.router.include import _seed_security_and_deps
-from tigrbl_canon.mapping.router.rpc import rpc_call as _rpc_call
-from tigrbl_canon.mapping.table import rebind as _rebind, bind as _bind
-from tigrbl_canon.mapping.rest import (
-    build_router_and_attach as _build_router_and_attach,
-)
-from tigrbl.system import mount_diagnostics as _mount_diagnostics
-from tigrbl.system import mount_lens as _mount_lens
-from tigrbl.system import mount_openapi as _mount_openapi
-from tigrbl.system import mount_openrpc as _mount_openrpc
-from tigrbl.system import mount_swagger as _mount_swagger
-from tigrbl.system import build_openrpc_spec as _build_openrpc_spec
-from tigrbl.system.docs import build_openapi as _build_openapi
-from tigrbl.op import get_registry
+from tigrbl_concrete._mapping.router.rpc import rpc_call as _rpc_call
+from tigrbl_concrete._mapping.model import rebind as _rebind, bind as _bind
+from tigrbl_concrete.system import mount_diagnostics as _mount_diagnostics
+from tigrbl_concrete.system import mount_lens as _mount_lens
+from tigrbl_concrete.system import mount_openapi as _mount_openapi
+from tigrbl_concrete.system import mount_openrpc as _mount_openrpc
+from tigrbl_concrete.system import mount_swagger as _mount_swagger
+from tigrbl_concrete.system import build_openrpc_spec as _build_openrpc_spec
+from tigrbl_concrete.system.docs import build_openapi as _build_openapi
+from ._op_registry import get_registry
 from ._table_registry import TableRegistry
 from tigrbl_core._spec.app_spec import AppSpec
-from tigrbl_canon.mapping.runtime_routes import register_runtime_route
-from tigrbl_canon.mapping.spec_normalization import normalize_app_spec
-from tigrbl_canon.mapping.spec_normalization import _seqify
-from tigrbl.system.favicon import FAVICON_PATH, mount_favicon
-from tigrbl_canon.mapping.model_helpers import _OpSpecGroup
+from tigrbl_core._spec.app_spec import _seqify, normalize_app_spec
+from tigrbl_core.config.constants import TIGRBL_GET_DB_ATTR
+from tigrbl_concrete.system.favicon import FAVICON_PATH, mount_favicon
+from tigrbl_concrete.system.docs.runtime_ops import register_runtime_route
+from tigrbl_concrete._mapping.model_helpers import _OpSpecGroup
 
 
 # optional compat: legacy transactional decorator
@@ -88,6 +83,21 @@ class TigrblApp(_App):
     _event_handlers: Dict[str, list[Callable[..., Any]]]
 
     mount_favicon = mount_favicon
+
+    @staticmethod
+    def _collect_declared_tables(owner: type) -> tuple[Any, ...]:
+        collected: list[Any] = []
+        seen: set[int] = set()
+        for base in owner.__mro__:
+            if "TABLES" not in base.__dict__:
+                continue
+            for table in tuple(base.__dict__.get("TABLES", ()) or ()):
+                marker = id(table)
+                if marker in seen:
+                    continue
+                seen.add(marker)
+                collected.append(table)
+        return tuple(collected)
 
     @classmethod
     def from_spec(cls, spec: AppSpec) -> "TigrblApp":
@@ -141,6 +151,8 @@ class TigrblApp(_App):
         *,
         engine: EngineCfg | None = None,
         routers: Sequence[Any] | None = None,
+        mount_system: bool | None = None,
+        profile: str | None = None,
         jsonrpc_prefix: str | None = None,
         system_prefix: str | None = None,
         favicon_path: str | Path = FAVICON_PATH,
@@ -169,26 +181,34 @@ class TigrblApp(_App):
         self._allow_anon_ops: set[str] = set()
         self._middlewares: list[tuple[Any, dict[str, Any]]] = []
         self.middlewares = _seqify(getattr(self, "MIDDLEWARES", ()))
-        declared_tables = getattr(self, "TABLES", ())
+        declared_tables = self._collect_declared_tables(self.__class__)
         self._table_registry = TableRegistry(tables=declared_tables)
         self._favicon_path = favicon_path
         for mw in self.middlewares:
             mw_cls = getattr(mw, "cls", mw.__class__)
             self.add_middleware(mw_cls, **getattr(mw, "kwargs", {}))
         self._default_router: TigrblRouter | None = None
-        self._install_favicon()
-        # capture initial routes so refreshes retain ASGI defaults
-        self._base_routes = list(self._routes)
         self.jsonrpc_prefix = (
             jsonrpc_prefix
             if jsonrpc_prefix is not None
-            else getattr(self, "JSONRPC_PREFIX", "/rpc")
+            else getattr(
+                self,
+                "jsonrpc_prefix",
+                getattr(self, "JSONRPC_PREFIX", "/rpc"),
+            )
         )
         self.system_prefix = (
             system_prefix
             if system_prefix is not None
-            else getattr(self, "SYSTEM_PREFIX", "/system")
+            else getattr(
+                self,
+                "system_prefix",
+                getattr(self, "SYSTEM_PREFIX", "/system"),
+            )
         )
+        if mount_system is None:
+            mount_system = str(profile or "").lower() != "minimal"
+        self.mount_system = bool(mount_system)
 
         # public containers (mirrors used by bindings.router)
         self.schemas = SimpleNamespace()
@@ -203,6 +223,7 @@ class TigrblApp(_App):
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
         self.core_raw = SimpleNamespace()
+        self._install_favicon()
         initial_routers = list(_seqify(getattr(self, "ROUTERS", ())))
         self._event_handlers = {
             "startup": [],
@@ -211,11 +232,12 @@ class TigrblApp(_App):
 
         # Router-level hooks map (merged into each table at include-time; precedence handled in bindings.hooks)
         self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
-        self.mount_openapi(path="/openapi.json")
-        _mount_swagger(self, path="/docs")
-        self.attach_diagnostics(prefix=self.system_prefix)
-        self.mount_openrpc(path="/openrpc.json")
-        self.mount_lens(path="/lens", spec_path="/openrpc.json")
+        if self.mount_system:
+            self.mount_openapi(path="/openapi.json")
+            _mount_swagger(self, path="/docs")
+            self.attach_diagnostics(prefix=self.system_prefix)
+            self.mount_openrpc(path="/openrpc.json")
+            self.mount_lens(path="/lens", spec_path="/openrpc.json")
         if routers:
             initial_routers.extend(list(routers))
         if initial_routers:
@@ -389,6 +411,7 @@ class TigrblApp(_App):
                 mount_prefix = prefix if prefix is not None else _default_prefix(table)
                 self.include_router(router, prefix=mount_prefix)
         self._sync_default_router_namespaces()
+        self._auto_mount_jsonrpc_if_bound()
         return result
 
     def include_tables(
@@ -421,7 +444,18 @@ class TigrblApp(_App):
                 )
                 self.include_router(router, prefix=mount_prefix)
         self._sync_default_router_namespaces()
+        self._auto_mount_jsonrpc_if_bound()
         return result
+
+    def _auto_mount_jsonrpc_if_bound(self) -> None:
+        has_rpc_binding = any(
+            getattr(binding, "proto", "") == "http.jsonrpc"
+            for table in tuple(getattr(self, "tables", {}).values())
+            for op_spec in tuple(getattr(getattr(table, "ops", None), "all", ()) or ())
+            for binding in tuple(getattr(op_spec, "bindings", ()) or ())
+        )
+        if has_rpc_binding:
+            self.mount_jsonrpc()
 
     def _ensure_system_route_model(self) -> type:
         model_name = "__tigrbl_system_routes__"
@@ -466,7 +500,7 @@ class TigrblApp(_App):
         prefix: str | None = None,
         mount_router: bool = True,
     ) -> Any:
-        """Mount a Tigrbl Router router onto this app and track it."""
+        """Mount a Router and mirror mounted routes into runtime op metadata."""
 
         def _normalize_mount_prefix(value: str | None) -> str:
             if not value:
@@ -586,9 +620,22 @@ class TigrblApp(_App):
                 for name, table in resolved_tables.items():
                     self._default_router.tables.setdefault(name, table)
 
+        if self._default_router is not None and self._default_router is not router:
+            incoming_get_db = getattr(router, "get_db", None)
+            default_get_db = getattr(self._default_router, "get_db", None)
+            if callable(incoming_get_db) and not callable(default_get_db):
+                self._default_router.get_db = incoming_get_db
+                for model in tuple(getattr(self, "tables", {}).values()):
+                    if not isinstance(model, type):
+                        continue
+                    if not callable(getattr(model, TIGRBL_GET_DB_ATTR, None)):
+                        setattr(model, TIGRBL_GET_DB_ATTR, incoming_get_db)
+
         route_models: Dict[str, type] = {}
         for route in getattr(router, "routes", ()):
             model = getattr(route, "tigrbl_model", None)
+            if not isinstance(model, type):
+                continue
             if not isinstance(model, type):
                 continue
             model_name = getattr(model, "__name__", None)
@@ -604,12 +651,39 @@ class TigrblApp(_App):
                 for name, table in route_models.items():
                     self._default_router.tables.setdefault(name, table)
 
+        for route in getattr(router, "routes", ()):
+            if getattr(route, "tigrbl_model", None) is not None:
+                continue
+            endpoint = getattr(route, "endpoint", None)
+            path = getattr(route, "path", None)
+            methods = tuple(
+                sorted(
+                    str(method).upper()
+                    for method in (getattr(route, "methods", ()) or ())
+                    if str(method).upper() not in {"HEAD", "OPTIONS"}
+                )
+            )
+            if not callable(endpoint) or not isinstance(path, str) or not methods:
+                continue
+            full_path = (
+                path
+                if not mount_prefix
+                else path
+                if path == mount_prefix or path.startswith(f"{mount_prefix}/")
+                else f"{mount_prefix}{path if path.startswith('/') else '/' + path}"
+            )
+            alias = f"route_{'_'.join(methods).lower()}_{full_path.strip('/').replace('/', '_').replace('{', '').replace('}', '') or 'root'}"
+            register_runtime_route(
+                self,
+                path=full_path,
+                methods=methods,
+                alias=alias,
+                endpoint=endpoint,
+            )
+
         if not mount_router:
             return router
-        initial_route_count = len(self.routes)
         super().include_router(router, prefix=prefix)
-        for mounted_route in self.routes[initial_route_count:]:
-            register_runtime_route(self, mounted_route)
         return router
 
     def add_router_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
@@ -619,8 +693,6 @@ class TigrblApp(_App):
     def add_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
         """Register a route directly on this app instance."""
         _add_route_impl(self, path, endpoint, **kwargs)
-        if self.routes:
-            register_runtime_route(self, self.routes[-1])
 
     def include_routers(self, routers: Sequence[Any]) -> None:
         """Mount multiple Routers, supporting optional per-item prefixes."""
@@ -716,7 +788,7 @@ class TigrblApp(_App):
         method: str,
         payload: Any = None,
         *,
-        db: Any,
+        db: Any | None = None,
         request: Any = None,
         ctx: Optional[Dict[str, Any]] = None,
     ) -> Any:
@@ -795,6 +867,13 @@ class TigrblApp(_App):
             include_other = getattr(app, "include_router", None)
             if callable(include_other):
                 include_other(router, prefix=px)
+        runtime = getattr(self, "runtime", None)
+        kernel = getattr(runtime, "kernel", None)
+        invalidate = getattr(kernel, "invalidate_kernelz_payload", None)
+        if callable(invalidate):
+            invalidate(self)
+            if app is not None and app is not self:
+                invalidate(app)
         if app is None:
             self._base_routes = list(self._routes)
         return router
@@ -865,22 +944,14 @@ class TigrblApp(_App):
         # Reset router to baseline and allow_anon ops cache
         self._routes = list(self._base_routes)
         self._allow_anon_ops = set()
+        default_router = self._ensure_default_router()
         for table in self._table_registry.values():
-            _seed_security_and_deps(self, table)
-            specs = getattr(getattr(table, "opspecs", SimpleNamespace()), "all", ())
-            if specs:
-                _build_router_and_attach(table, list(specs))
+            default_router.include_table(table, mount_router=False)
             router = getattr(getattr(table, "rest", SimpleNamespace()), "router", None)
             if router is None:
                 continue
-            # update router-level references
-            mname = table.__name__
-            rest_ns = getattr(self.rest, mname, SimpleNamespace())
-            rest_ns.router = router
-            setattr(self.rest, mname, rest_ns)
-            self.routers[mname] = router
-            prefix = _default_prefix(table)
-            _mount_router(self, router, prefix=prefix)
+            self.include_router(router, prefix=_default_prefix(table))
+        self._sync_default_router_namespaces()
 
     def _collect_tables(self):
         # dedupe; handle multiple DeclarativeBases (multiple metadatas)

@@ -2,13 +2,13 @@ import pytest
 
 from tigrbl.decorators.hook import hook_ctx
 from tigrbl.hook.exceptions import InvalidHookPhaseError
-from tigrbl.runtime.kernel.atoms import _inject_atoms
+from tigrbl_kernel.atoms import _inject_atoms
 
 
 _PHASE_ONLY_ATOM_ANCHORS = (
     "INGRESS_BEGIN",
     "INGRESS_PARSE",
-    "INGRESS_ROUTE",
+    "INGRESS_DISPATCH",
     "EGRESS_SHAPE",
     "EGRESS_FINALIZE",
 )
