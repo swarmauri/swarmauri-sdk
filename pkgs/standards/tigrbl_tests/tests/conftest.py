@@ -255,8 +255,14 @@ def sync_db_session():
 
 @pytest_asyncio.fixture
 async def async_db_session():
-    """Provide an asynchronous in-memory SQLite engine and DB session factory."""
-    cfg = mem()
+    """Provide an asynchronous SQLite engine and DB session factory.
+
+    Use a temp file (instead of :memory:) and NullPool so every async session
+    owns/disposes its connection cleanly during teardown.
+    """
+    db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+    db_file.close()
+    cfg = sqlitef(db_file.name, async_=True, pool="null")
     _resolver.set_default(cfg)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
@@ -270,6 +276,8 @@ async def async_db_session():
     finally:
         await engine.dispose()
         _resolver.set_default(None)
+        with contextlib.suppress(OSError):
+            os.unlink(db_file.name)
 
 
 @pytest.fixture

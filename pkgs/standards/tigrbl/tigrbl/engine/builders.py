@@ -182,6 +182,9 @@ def async_sqlite_engine(path: str | None = None, *, pool: str | None = None):
         url,
         connect_args={"check_same_thread": False},
         poolclass=poolclass,
+        # Avoid rollback-on-return during GC/finalizer paths where the event
+        # loop may already be cancelled/closing under pytest teardown.
+        pool_reset_on_return=None,
         echo=False,
     )
 
