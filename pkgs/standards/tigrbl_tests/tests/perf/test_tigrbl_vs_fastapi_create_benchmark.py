@@ -50,6 +50,34 @@ def _summarize(values: list[float]) -> dict[str, float]:
     }
 
 
+def _load_previous_payload(path: Path) -> dict[str, Any] | None:
+    if not path.exists():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _scenario_ops_per_second(
+    payload: dict[str, Any], *, scenario: str, path: Path
+) -> float:
+    for result in payload.get("results", []):
+        if result.get("scenario") == scenario:
+            return float(result["ops_per_second"])
+    raise AssertionError(f"Missing scenario '{scenario}' in {path.name}")
+
+
+def _assert_not_regressed(
+    *,
+    metric_name: str,
+    latest_value: float,
+    baseline_value: float,
+    baseline_path: Path,
+) -> None:
+    assert latest_value >= baseline_value, (
+        f"{metric_name} regressed: latest={latest_value:.6f}, "
+        f"baseline={baseline_value:.6f} from {baseline_path.name}"
+    )
+
+
 async def _benchmark_app(
     *,
     scenario: str,
@@ -289,6 +317,8 @@ async def _run_sequential_consistency_benchmark() -> dict[str, Any]:
 @pytest.mark.perf
 @pytest.mark.benchmark(group="tigrbl_vs_fastapi_create")
 def test_tigrbl_and_fastapi_create_benchmark_and_db_integrity(benchmark: Any) -> None:
+    previous_payload = _load_previous_payload(RESULTS_PATH)
+
     payload = benchmark.pedantic(
         _run_pair_benchmark_sync,
         iterations=1,
@@ -310,11 +340,26 @@ def test_tigrbl_and_fastapi_create_benchmark_and_db_integrity(benchmark: Any) ->
         assert scenario["ops_per_second"] > 0
 
     assert len(payload["results"]) == 2
+    if previous_payload is not None:
+        latest_tigrbl_ops = _scenario_ops_per_second(
+            payload, scenario="tigrbl", path=RESULTS_PATH
+        )
+        baseline_tigrbl_ops = _scenario_ops_per_second(
+            previous_payload, scenario="tigrbl", path=RESULTS_PATH
+        )
+        _assert_not_regressed(
+            metric_name="tigrbl_create_ops_per_second",
+            latest_value=latest_tigrbl_ops,
+            baseline_value=baseline_tigrbl_ops,
+            baseline_path=RESULTS_PATH,
+        )
 
 
 @pytest.mark.perf
 @pytest.mark.benchmark(group="tigrbl_create")
 def test_tigrbl_create_benchmark_and_db_integrity(benchmark: Any) -> None:
+    previous_payload = _load_previous_payload(TIGRBL_ONLY_RESULTS_PATH)
+
     payload = benchmark.pedantic(
         _run_tigrbl_benchmark_sync,
         iterations=1,
@@ -334,11 +379,24 @@ def test_tigrbl_create_benchmark_and_db_integrity(benchmark: Any) -> None:
     assert TIGRBL_ONLY_RESULTS_PATH.exists()
     assert len(payload["results"]) == 1
     assert payload["results"][0]["scenario"] == "tigrbl"
-    assert payload["results"][0]["ops_per_second"] > 0
+    latest_tigrbl_ops = float(payload["results"][0]["ops_per_second"])
+    assert latest_tigrbl_ops > 0
+    if previous_payload is not None:
+        baseline_tigrbl_ops = _scenario_ops_per_second(
+            previous_payload, scenario="tigrbl", path=TIGRBL_ONLY_RESULTS_PATH
+        )
+        _assert_not_regressed(
+            metric_name="tigrbl_only_ops_per_second",
+            latest_value=latest_tigrbl_ops,
+            baseline_value=baseline_tigrbl_ops,
+            baseline_path=TIGRBL_ONLY_RESULTS_PATH,
+        )
 
 
 @pytest.mark.perf
 def test_tigrbl_vs_fastapi_sequential_10_rounds_consistency() -> None:
+    previous_payload = _load_previous_payload(SEQUENTIAL_RESULTS_PATH)
+
     payload = asyncio.run(_run_sequential_consistency_benchmark())
     SEQUENTIAL_RESULTS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
@@ -348,6 +406,29 @@ def test_tigrbl_vs_fastapi_sequential_10_rounds_consistency() -> None:
         payload["summary"]["throughput_ratio_tigrbl_over_fastapi"]
         >= THROUGHPUT_RATIO_TARGET
     )
+    if previous_payload is not None:
+        latest_ratio = float(payload["summary"]["throughput_ratio_tigrbl_over_fastapi"])
+        baseline_ratio = float(
+            previous_payload["summary"]["throughput_ratio_tigrbl_over_fastapi"]
+        )
+        latest_tigrbl_mean = float(
+            payload["summary"]["ops_per_second"]["tigrbl"]["mean"]
+        )
+        baseline_tigrbl_mean = float(
+            previous_payload["summary"]["ops_per_second"]["tigrbl"]["mean"]
+        )
+        _assert_not_regressed(
+            metric_name="sequential_throughput_ratio_tigrbl_over_fastapi",
+            latest_value=latest_ratio,
+            baseline_value=baseline_ratio,
+            baseline_path=SEQUENTIAL_RESULTS_PATH,
+        )
+        _assert_not_regressed(
+            metric_name="sequential_tigrbl_mean_ops_per_second",
+            latest_value=latest_tigrbl_mean,
+            baseline_value=baseline_tigrbl_mean,
+            baseline_path=SEQUENTIAL_RESULTS_PATH,
+        )
 
 
 @pytest.mark.perf
