@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import Depends, FastAPI
@@ -36,11 +37,12 @@ def create_fastapi_app(db_path: Path) -> FastAPI:
     engine = create_engine(f"sqlite+pysqlite:///{db_path}", future=True)
     session_local = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
-    app = FastAPI()
-
-    @app.on_event("startup")
-    def on_startup() -> None:
+    @asynccontextmanager
+    async def lifespan(_: FastAPI):
         Base.metadata.create_all(engine)
+        yield
+
+    app = FastAPI(lifespan=lifespan)
 
     def get_session() -> Session:
         session = session_local()
