@@ -201,35 +201,62 @@ class App(AppBase):
     async def _handle_lifespan(
         self, _scope: dict[str, Any], receive: Any, send: Any
     ) -> None:
-        """Handle the ASGI lifespan protocol (startup/shutdown handshake)."""
-        while True:
-            message = await receive()
-            msg_type = message.get("type")
+        """Handle the ASGI lifespan protocol (startup/shutdown handshake).
 
-            if msg_type == "lifespan.startup":
-                try:
-                    run_handlers = getattr(self, "run_event_handlers", None)
-                    if callable(run_handlers):
-                        await run_handlers("startup")
-                    await send({"type": "lifespan.startup.complete"})
-                except Exception as exc:
-                    await send(
-                        {
-                            "type": "lifespan.startup.failed",
-                            "message": str(exc),
-                        }
-                    )
-                    return
+        Honours a caller-supplied ``lifespan`` context manager (set via
+        ``TigrblApp(..., lifespan=...)``) **and** the event-handler registry
+        (``@app.on_event("startup")`` / ``"shutdown"``).  The lifespan CM
+        wraps the entire up/down cycle so that shared resources it opens
+        remain available until shutdown completes.
+        """
+        message = await receive()
+        if message.get("type") != "lifespan.startup":
+            return
 
-            elif msg_type == "lifespan.shutdown":
+        lifespan_cm = getattr(self, "lifespan", None) or getattr(
+            self, "lifespan_context", None
+        )
+
+        try:
+            # Enter the lifespan context manager (if provided) so that any
+            # resources it creates stay alive until shutdown.
+            if lifespan_cm is not None:
+                ctx_manager = lifespan_cm(self)
+                await ctx_manager.__aenter__()
+            else:
+                ctx_manager = None
+
+            run_handlers = getattr(self, "run_event_handlers", None)
+            if callable(run_handlers):
+                await run_handlers("startup")
+
+            await send({"type": "lifespan.startup.complete"})
+        except Exception as exc:
+            if ctx_manager is not None:
                 try:
-                    run_handlers = getattr(self, "run_event_handlers", None)
-                    if callable(run_handlers):
-                        await run_handlers("shutdown")
-                    await send({"type": "lifespan.shutdown.complete"})
+                    await ctx_manager.__aexit__(type(exc), exc, exc.__traceback__)
                 except Exception:
-                    await send({"type": "lifespan.shutdown.complete"})
-                return
+                    pass
+            await send(
+                {"type": "lifespan.startup.failed", "message": str(exc)}
+            )
+            return
+
+        # Wait for shutdown
+        message = await receive()
+        if message.get("type") == "lifespan.shutdown":
+            try:
+                if callable(run_handlers):
+                    await run_handlers("shutdown")
+            except Exception:
+                pass
+            finally:
+                if ctx_manager is not None:
+                    try:
+                        await ctx_manager.__aexit__(None, None, None)
+                    except Exception:
+                        pass
+                await send({"type": "lifespan.shutdown.complete"})
 
     def _normalize_prefix(self, prefix: str) -> str:
         return _normalize_prefix_impl(prefix)
