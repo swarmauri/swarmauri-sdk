@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_falai"
-version = "0.1.0.dev8"
+version = "0.1.0.dev9"
 description = "Swarmauri Falai LLM adapters from swarmauri_standard."
 license = "Apache-2.0"
 readme = "README.md"

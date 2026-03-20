@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-atoms"
-version = "0.1.0.dev13"
+version = "0.1.0.dev14"
 description = "Runtime atom utilities and execution helpers for Tigrbl."
 license = "Apache-2.0"
 readme = "README.md"
