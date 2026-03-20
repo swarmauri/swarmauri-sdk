@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_cohere"
-version = "0.1.0.dev2"
+version = "0.1.0.dev5"
 description = "Swarmauri Cohere LLM adapters from swarmauri_standard."
 license = "Apache-2.0"
 readme = "README.md"

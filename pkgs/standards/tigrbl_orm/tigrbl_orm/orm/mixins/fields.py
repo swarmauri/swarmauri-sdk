@@ -3,8 +3,8 @@ from __future__ import annotations
 import datetime as dt
 from decimal import Decimal
 
-from ...specs import ColumnSpec, F, IO, S, acol
-from ...types import (
+from tigrbl.specs import ColumnSpec, F, IO, S, acol
+from tigrbl.types import (
     TZDateTime,
     PgUUID,
     String,

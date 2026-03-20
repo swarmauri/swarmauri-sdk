@@ -2,8 +2,8 @@
 
 from ._base import TableBase
 from ..mixins import GUIDPk, Timestamped, TenantBound, Principal
-from ...specs import IO, F, acol, S
-from ...types import Mapped, String
+from tigrbl.specs import IO, F, acol, S
+from tigrbl.types import Mapped, String
 
 
 class Group(TableBase, GUIDPk, Timestamped, TenantBound, Principal):

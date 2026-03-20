@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from ...config.constants import BULK_VERBS
-from ...types import declarative_mixin
+from tigrbl.config.constants import BULK_VERBS
+from tigrbl.types import declarative_mixin
 
 
 @declarative_mixin

@@ -237,9 +237,7 @@ class App(AppBase):
                     await ctx_manager.__aexit__(type(exc), exc, exc.__traceback__)
                 except Exception:
                     pass
-            await send(
-                {"type": "lifespan.startup.failed", "message": str(exc)}
-            )
+            await send({"type": "lifespan.startup.failed", "message": str(exc)})
             return
 
         # Wait for shutdown

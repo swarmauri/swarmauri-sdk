@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import datetime as dt
 
-from ...specs import ColumnSpec, F, S, acol
-from ..._spec.storage_spec import ForeignKeySpec
-from ...types import PgUUID, TZDateTime, UUID, declarative_mixin, Mapped
+from tigrbl.specs import ColumnSpec, F, S, acol
+from tigrbl._spec.storage_spec import ForeignKeySpec
+from tigrbl.types import PgUUID, TZDateTime, UUID, declarative_mixin, Mapped
 
 from .utils import CRUD_IO
 

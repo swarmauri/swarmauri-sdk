@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import datetime as dt
 
-from ...specs import IO
-from ...types import UUID
+from tigrbl.specs import IO
+from tigrbl.types import UUID
 
 
 def tzutcnow() -> dt.datetime:
