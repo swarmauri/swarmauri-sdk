@@ -148,9 +148,7 @@ def build_app(
                     headers=HPKS_CORS_HEADERS,
                 )
             if op_name == "hget":
-                record = await pks_ops.lookup_by_email_hash(
-                    db=db, email_hash=search
-                )
+                record = await pks_ops.lookup_by_email_hash(db=db, email_hash=search)
                 if record is None:
                     raise _not_found()
                 return _response_text(
@@ -221,9 +219,7 @@ def build_app(
     async def vfpget(request: Request) -> Response:
         fingerprint = _path_segment(request, 3)
         async with app.engine.asession() as db:
-            record = await pks_ops.lookup_by_fingerprint(
-                db=db, fingerprint=fingerprint
-            )
+            record = await pks_ops.lookup_by_fingerprint(db=db, fingerprint=fingerprint)
         if record is None:
             raise _not_found()
         return _response_binary(

@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-runtime"
-version = "0.1.0.dev10"
+version = "0.1.0.dev11"
 description = "Runtime pipeline and executor components for Tigrbl."
 license = "Apache-2.0"
 readme = "README.md"
