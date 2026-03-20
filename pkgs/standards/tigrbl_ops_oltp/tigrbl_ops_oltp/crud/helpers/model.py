@@ -51,6 +51,42 @@ def _excluded_schema_fields(model: type, verb: str) -> frozenset[str]:
     )
 
 
+def _filter_plan_cache_token(model: type, verb: str) -> tuple[int, int, int, int, int]:
+    return (
+        *_colspecs_cache_token(model),
+        id(getattr(getattr(model, "schemas", None), verb, None)),
+    )
+
+
+@lru_cache(maxsize=512)
+def _filter_plan_cached(
+    model: type, verb: str, cache_token: tuple[int, int, int, int, int]
+) -> tuple[Mapping[str, bool], frozenset[str], Mapping[str, Any]]:
+    del cache_token
+    specs = _colspecs(model)
+    if not specs:
+        return {}, frozenset(), _table_python_types(model)
+
+    allowed_by_field: dict[str, bool] = {}
+    for name, sp in specs.items():
+        io = getattr(sp, "io", None)
+        if io is None:
+            allowed_by_field[name] = True
+            continue
+        in_verbs = getattr(io, "in_verbs", ())
+        mutable = getattr(io, "mutable_verbs", ())
+        allowed = (not in_verbs or verb in in_verbs) and (
+            not mutable or verb in mutable
+        )
+        allowed_by_field[name] = allowed
+
+    return (
+        allowed_by_field,
+        _excluded_schema_fields(model, verb),
+        _table_python_types(model),
+    )
+
+
 @lru_cache(maxsize=256)
 def _table_python_types(model: type) -> Mapping[str, Any]:
     table = getattr(model, "__table__", None)
@@ -120,28 +156,20 @@ def _colspecs(model: type) -> Mapping[str, Any]:
 def _filter_in_values(
     model: type, data: Mapping[str, Any], verb: str
 ) -> Dict[str, Any]:
-    specs = _colspecs(model)
-    if not specs:
+    allowed_by_field, excluded_fields, column_types = _filter_plan_cached(
+        model, verb, _filter_plan_cache_token(model, verb)
+    )
+    if not allowed_by_field and not excluded_fields:
         return dict(data)
-    excluded_fields = _excluded_schema_fields(model, verb)
-    column_types = _table_python_types(model)
+
     out: Dict[str, Any] = {}
     for k, v in data.items():
-        sp = specs.get(k)
-        if sp is None:
+        allowed = allowed_by_field.get(k)
+        if allowed is None:
             if k in excluded_fields:
                 continue
             out[k] = v
             continue
-        io = getattr(sp, "io", None)
-        allowed = True
-        if io is not None:
-            in_verbs = getattr(io, "in_verbs", ())
-            mutable = getattr(io, "mutable_verbs", ())
-            if in_verbs and verb not in in_verbs:
-                allowed = False
-            if mutable and verb not in mutable:
-                allowed = False
         if allowed:
             try:
                 py_t = column_types.get(k)
