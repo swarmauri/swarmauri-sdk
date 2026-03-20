@@ -242,6 +242,7 @@ class TigrblApp(_App):
             initial_routers.extend(list(routers))
         if initial_routers:
             self.include_routers(initial_routers)
+        self._base_routes = list(self.routes)
 
         declared_table_models = []
         seen_declared_table_ids: set[int] = set()
@@ -750,7 +751,6 @@ class TigrblApp(_App):
                         init(
                             schemas=schemas,
                             sqlite_attachments=sqlite_attachments,
-                            tables=tables,
                         )
                     )
                 except ValueError as exc:
@@ -875,7 +875,7 @@ class TigrblApp(_App):
             if app is not None and app is not self:
                 invalidate(app)
         if app is None:
-            self._base_routes = list(self._routes)
+            self._base_routes = list(self.routes)
         return router
 
     # ------------------------- registry passthroughs -------------------------
@@ -935,14 +935,12 @@ class TigrblApp(_App):
             )
             self._sync_default_router_namespaces()
 
-        # Refresh already-included tables so routers pick up new auth settings
-        if self._table_registry:
-            self._refresh_security()
+        # Security refresh is handled by the default router's set_auth call above.
 
     def _refresh_security(self) -> None:
         """Re-seed auth deps on tables and rebuild routers."""
         # Reset router to baseline and allow_anon ops cache
-        self._routes = list(self._base_routes)
+        self.routes = list(getattr(self, "_base_routes", self.routes))
         self._allow_anon_ops = set()
         default_router = self._ensure_default_router()
         for table in self._table_registry.values():
