@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-kernel"
-version = "0.1.0.dev7"
+version = "0.1.0.dev8"
 description = "Kernel orchestration for Tigrbl runtime composition."
 license = "Apache-2.0"
 readme = "README.md"
