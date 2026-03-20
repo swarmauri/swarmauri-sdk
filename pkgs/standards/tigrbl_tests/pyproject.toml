@@ -78,3 +78,8 @@ build-backend = "poetry.core.masonry.api"
 packages = [
     { include = "tests" },
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11.0",
+]

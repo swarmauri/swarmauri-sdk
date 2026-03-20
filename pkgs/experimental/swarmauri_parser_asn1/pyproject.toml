@@ -31,3 +31,8 @@ ASN1Parser = "swarmauri_parser_asn1.parser:ASN1Parser"
 
 [project.entry-points."swarmauri.tools"]
 ASN1EncodeTool = "swarmauri_parser_asn1.tool:ASN1EncodeTool"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11.0",
+]

@@ -25,3 +25,8 @@ Homepage = "https://github.com/swarmauri/swarmauri-sdk"
 
 [project.entry-points."tigrbl.engine"]
 membloom = "tigrbl_engine_membloom.plugin:register"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11.0",
+]
