@@ -4,8 +4,8 @@ from uuid import UUID
 
 from . import TableBase
 from ..mixins import GUIDPk, Timestamped
-from ...specs import IO, F, acol, S
-from ...types import DateTime, Integer, String, PgUUID, Mapped
+from tigrbl.specs import IO, F, acol, S
+from tigrbl.types import DateTime, Integer, String, PgUUID, Mapped
 
 
 class Change(TableBase, GUIDPk, Timestamped):
