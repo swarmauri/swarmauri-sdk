@@ -201,6 +201,9 @@ jobs:
     needs: [set-matrix, test]
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && always() && needs.set-matrix.outputs.has_members == 'true' }}
+    concurrency:
+      group: v0.10.0-mono-prepare-validate-publish-batch-commit-${{ github.ref_name }}
+      cancel-in-progress: false
     timeout-minutes: 15
     outputs:
       checkout_ref: ${{ steps.commit_and_push.outputs.checkout_ref }}
@@ -253,9 +256,23 @@ jobs:
             git commit -m "chore: apply automatic formatting and lint fixes"
             # Keep updates on the trigger branch (e.g. master) while avoiding protected-branch force pushes.
             # Sync with any upstream movement first, then push as a fast-forward update.
-            git fetch origin "$TARGET_BRANCH"
-            git pull --rebase origin "$TARGET_BRANCH"
-            git push origin "HEAD:${DEFAULT_REF}"
+            pushed="false"
+            for attempt in 1 2 3; do
+              echo "Push attempt ${attempt}/3 for ${TARGET_BRANCH}"
+              git fetch origin "$TARGET_BRANCH"
+              git pull --rebase origin "$TARGET_BRANCH"
+              if git push origin "HEAD:${DEFAULT_REF}"; then
+                pushed="true"
+                break
+              fi
+              echo "Push attempt ${attempt} failed due to concurrent updates; retrying..."
+              sleep 2
+            done
+
+            if [ "$pushed" != "true" ]; then
+              echo "Failed to push after 3 attempts."
+              exit 1
+            fi
             echo "checkout_ref=${DEFAULT_REF}" >> $GITHUB_OUTPUT
           else
             echo "No changes to commit."
@@ -384,5 +401,4 @@ jobs:
           prerelease: ${{ steps.prepare_release.outputs.prerelease }}
           files: |
             pkgs/${{ matrix.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
-
 
