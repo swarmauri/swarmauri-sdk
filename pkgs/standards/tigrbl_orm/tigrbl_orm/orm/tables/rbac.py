@@ -1,9 +1,9 @@
 from uuid import UUID
 
 
-from ...specs import IO, F, acol, S
-from ..._spec.storage_spec import ForeignKeySpec
-from ...types import Integer, String, PgUUID, Mapped
+from tigrbl.specs import IO, F, acol, S
+from tigrbl._spec.storage_spec import ForeignKeySpec
+from tigrbl.types import Integer, String, PgUUID, Mapped
 
 from . import TableBase
 from ..mixins import (

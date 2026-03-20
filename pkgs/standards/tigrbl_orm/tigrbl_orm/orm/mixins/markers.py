@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ...types import declarative_mixin
+from tigrbl.types import declarative_mixin
 
 
 @declarative_mixin

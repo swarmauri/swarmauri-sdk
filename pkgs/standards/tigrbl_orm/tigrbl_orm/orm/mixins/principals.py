@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from ...specs import ColumnSpec, F, S, acol
-from ..._spec.storage_spec import ForeignKeySpec
-from ...types import PgUUID, UUID, declarative_mixin, declared_attr, uuid4, Mapped
+from tigrbl.specs import ColumnSpec, F, S, acol
+from tigrbl._spec.storage_spec import ForeignKeySpec
+from tigrbl.types import PgUUID, UUID, declarative_mixin, declared_attr, uuid4, Mapped
 
 from .utils import _infer_schema, uuid_example, CRUD_IO, RO_IO
 
