@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_perplexity"
-version = "0.1.0.dev7"
+version = "0.1.0.dev8"
 description = "Swarmauri Perplexity LLM adapters from swarmauri_standard."
 license = "Apache-2.0"
 readme = "README.md"
