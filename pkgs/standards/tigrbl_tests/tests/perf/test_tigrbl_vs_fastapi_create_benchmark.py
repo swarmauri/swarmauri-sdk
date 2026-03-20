@@ -212,6 +212,9 @@ async def _run_sequential_consistency_benchmark() -> dict[str, Any]:
     tigrbl_mean = mean(per_scenario_ops["tigrbl"])
     fastapi_mean = mean(per_scenario_ops["fastapi"])
     throughput_ratio = tigrbl_mean / fastapi_mean if fastapi_mean else 0.0
+    delta_ops_values = [
+        step["delta_ops_per_second_tigrbl_minus_fastapi"] for step in steps
+    ]
 
     return {
         "rounds": rounds,
@@ -225,6 +228,9 @@ async def _run_sequential_consistency_benchmark() -> dict[str, Any]:
                 "fastapi": _ops_summary(per_scenario_ops["fastapi"]),
             },
             "delta_ops_per_second_tigrbl_minus_fastapi": tigrbl_mean - fastapi_mean,
+            "delta_ops_per_second_tigrbl_minus_fastapi_summary": _ops_summary(
+                delta_ops_values
+            ),
             "throughput_ratio_tigrbl_over_fastapi": throughput_ratio,
         },
     }
@@ -278,6 +284,27 @@ def test_tigrbl_vs_fastapi_sequential_10_rounds_randomized_comparison() -> None:
             f_out=summary["ops_per_second"]["fastapi"]["outliers"],
             delta=summary["delta_ops_per_second_tigrbl_minus_fastapi"],
             ratio=summary["throughput_ratio_tigrbl_over_fastapi"],
+        )
+    )
+    print(
+        (
+            "[perf] delta ops/s min={d_min:.3f} max={d_max:.3f} "
+            "mean={d_mean:.3f} stddev={d_std:.3f} median={d_median:.3f} "
+            "iqr={d_iqr:.3f} outliers={d_out}"
+        ).format(
+            d_min=summary["delta_ops_per_second_tigrbl_minus_fastapi_summary"]["min"],
+            d_max=summary["delta_ops_per_second_tigrbl_minus_fastapi_summary"]["max"],
+            d_mean=summary["delta_ops_per_second_tigrbl_minus_fastapi_summary"]["mean"],
+            d_std=summary["delta_ops_per_second_tigrbl_minus_fastapi_summary"][
+                "stddev"
+            ],
+            d_median=summary["delta_ops_per_second_tigrbl_minus_fastapi_summary"][
+                "median"
+            ],
+            d_iqr=summary["delta_ops_per_second_tigrbl_minus_fastapi_summary"]["iqr"],
+            d_out=summary["delta_ops_per_second_tigrbl_minus_fastapi_summary"][
+                "outliers"
+            ],
         )
     )
 
