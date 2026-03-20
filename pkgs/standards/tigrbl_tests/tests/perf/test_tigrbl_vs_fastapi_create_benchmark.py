@@ -26,13 +26,12 @@ from tests.perf.helper_tigrbl_create_app import (
     tigrbl_create_path,
 )
 
-RESULTS_PATH = Path(__file__).with_name("benchmark_results_create_uvicorn.json")
 SEQUENTIAL_RESULTS_PATH = Path(__file__).with_name(
     "benchmark_results_create_uvicorn_sequential_10_rounds.json"
 )
 OPS_COUNT = 25
 SEQUENTIAL_ROUNDS = 10
-THROUGHPUT_RATIO_TARGET = 1.3
+THROUGHPUT_RATIO_TARGET = 2.0
 
 
 def _summarize(values: list[float]) -> dict[str, float]:
@@ -97,10 +96,13 @@ async def _benchmark_app(
         try:
             async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
                 for _ in range(5):
-                    ready = await client.get("/healthz")
-                    if ready.status_code == 200:
+                    ready = await client.get("/")
+                    if ready.status_code in {200, 404, 405}:
                         break
                     await asyncio.sleep(0.05)
+
+                warmup = await client.post(endpoint_path, json={})
+                assert warmup.status_code in {400, 422}
 
                 execution_start = perf_counter()
 
@@ -233,7 +235,6 @@ def test_tigrbl_vs_fastapi_sequential_10_rounds_randomized_comparison() -> None:
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     payload = asyncio.run(_run_sequential_consistency_benchmark())
-    RESULTS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     SEQUENTIAL_RESULTS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     summary = payload["summary"]
@@ -280,7 +281,6 @@ def test_tigrbl_vs_fastapi_sequential_10_rounds_randomized_comparison() -> None:
         )
     )
 
-    assert RESULTS_PATH.exists()
     assert SEQUENTIAL_RESULTS_PATH.exists()
     assert summary["round_count"] == SEQUENTIAL_ROUNDS
     assert summary["step_count"] == SEQUENTIAL_ROUNDS
