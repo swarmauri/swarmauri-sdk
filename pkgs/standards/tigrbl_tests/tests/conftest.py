@@ -191,14 +191,26 @@ def event_loop():
 
 
 @pytest.fixture(autouse=True)
-def _reset_state():
-    """Ensure clean metadata and caches around each test."""
+def _reset_state(request):
+    """Ensure clean metadata and caches around each test.
+
+    Performance benchmarks compare warm/cold behavior and should not inherit
+    cross-cutting cache flushes from the shared tests conftest.
+    """
+    is_perf_test = bool(request.node.get_closest_marker("perf"))
+    if is_perf_test:
+        yield
+        return
+
     _reset_tigrbl_state()
     yield
     _reset_tigrbl_state()
 
 
 def pytest_collect_file(file_path, parent):
+    if "tests/perf/" in file_path.as_posix():
+        return None
+
     if file_path.suffix == ".py" and file_path.name.startswith("test_"):
         _reset_tigrbl_state()
     return None
