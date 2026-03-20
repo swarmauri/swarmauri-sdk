@@ -71,3 +71,27 @@ class CsvSession(TigrblSessionBase):
 
     async def run_sync(self, fn: Callable[[Any], Any]) -> Any:
         return await self._inner.run_sync(fn)
+
+    async def begin(self) -> None:
+        await self._tx_begin_impl()
+
+    async def commit(self) -> None:
+        await self._tx_commit_impl()
+
+    async def rollback(self) -> None:
+        await self._tx_rollback_impl()
+
+    async def flush(self) -> None:
+        await self._flush_impl()
+
+    async def refresh(self, obj: Any) -> None:
+        await self._refresh_impl(obj)
+
+    async def get(self, model: type, ident: Any) -> Any | None:
+        return await self._get_impl(model, ident)
+
+    async def execute(self, stmt: Any) -> Any:
+        return await self._execute_impl(stmt)
+
+    async def close(self) -> None:
+        await self._close_impl()

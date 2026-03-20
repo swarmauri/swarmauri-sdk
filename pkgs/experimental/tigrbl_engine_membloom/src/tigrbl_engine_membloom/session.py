@@ -38,6 +38,24 @@ class BloomSession:
         if self._closed:
             raise RuntimeError("session is closed")
 
+    async def begin(self) -> None:
+        return
+
+    async def commit(self) -> None:
+        return
+
+    async def rollback(self) -> None:
+        return
+
+    async def flush(self) -> None:
+        return
+
+    async def refresh(self, obj: Any) -> None:
+        return
+
+    async def get(self, model: type, ident: Any) -> Any | None:
+        return None
+
 
 class AsyncBloomSession(BloomSession):
     async def close(self) -> None:  # type: ignore[override]

@@ -13,6 +13,8 @@ class CacheSession:
 
     def get(self, key: str, default=None):
         self._require_open()
+        if isinstance(key, type):
+            return None
         return self._cache.get(key, default)
 
     def set(self, key: str, value, *, ttl_s: float | None = None) -> None:
@@ -30,6 +32,21 @@ class CacheSession:
     def _require_open(self) -> None:
         if self._closed:
             raise RuntimeError("session is closed")
+
+    async def begin(self) -> None:
+        return
+
+    async def commit(self) -> None:
+        return
+
+    async def rollback(self) -> None:
+        return
+
+    async def flush(self) -> None:
+        return
+
+    async def refresh(self, obj) -> None:
+        return
 
 
 class AsyncCacheSession(CacheSession):
