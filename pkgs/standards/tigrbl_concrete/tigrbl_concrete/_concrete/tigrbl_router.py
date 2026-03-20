@@ -387,7 +387,7 @@ class TigrblRouter(_Router):
         # Reset routes and allow_anon ops cache
         self.routes = []
         self._allow_anon_ops = set()
-        for name, registered in self.tables.items():
+        for name, registered in list(self.tables.items()):
             model = self._resolve_registered_model(name, registered)
             if not isinstance(model, type):
                 continue
