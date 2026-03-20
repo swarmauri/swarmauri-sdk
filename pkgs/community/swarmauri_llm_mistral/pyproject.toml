@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_mistral"
-version = "0.1.0.dev3"
+version = "0.1.0.dev4"
 description = "Swarmauri Mistral LLM adapters from swarmauri_standard."
 license = "Apache-2.0"
 readme = "README.md"
