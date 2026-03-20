@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-concrete"
-version = "0.1.0.dev6"
+version = "0.1.0.dev7"
 description = "Concrete implementations of Tigrbl base abstractions."
 license = "Apache-2.0"
 readme = "README.md"
