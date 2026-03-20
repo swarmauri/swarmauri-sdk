@@ -5,6 +5,7 @@ from ...stages import Encoded
 
 from ... import events as _ev
 from typing import Mapping
+from .renderer import ResponseHints
 
 from .._temp import _response_payload
 
@@ -18,8 +19,6 @@ def _run(_, ctx) -> None:
     - Honors op-specific exposure via ``io.out_verbs``.
     Complexity: O(#fields in opview).
     """
-    from tigrbl_atoms.atoms.response.renderer import ResponseHints
-
     resp = getattr(ctx, "response", None)
     if resp is None:
         return

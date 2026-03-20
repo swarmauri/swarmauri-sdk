@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import random
-import tracemalloc
 from pathlib import Path
 from statistics import mean, median, pstdev
 from tempfile import TemporaryDirectory
@@ -32,7 +32,7 @@ SEQUENTIAL_RESULTS_PATH = Path(__file__).with_name(
 )
 OPS_COUNT = 25
 SEQUENTIAL_ROUNDS = 10
-THROUGHPUT_RATIO_TARGET = 1.75
+THROUGHPUT_RATIO_TARGET = 2.0
 
 
 def _summarize(values: list[float]) -> dict[str, float]:
@@ -94,8 +94,6 @@ async def _benchmark_app(
         first_start_time = perf_counter() - start
 
         op_durations: list[float] = []
-        op_memory_peak_bytes: list[int] = []
-
         try:
             async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
                 for _ in range(5):
@@ -104,13 +102,9 @@ async def _benchmark_app(
                         break
                     await asyncio.sleep(0.05)
 
-                tracemalloc.start()
                 execution_start = perf_counter()
 
                 for item_name in expected_names:
-                    mem_before_current, mem_before_peak = (
-                        tracemalloc.get_traced_memory()
-                    )
                     op_start = perf_counter()
 
                     response = await client.post(
@@ -124,20 +118,13 @@ async def _benchmark_app(
                         )
 
                     op_elapsed = perf_counter() - op_start
-                    mem_after_current, mem_after_peak = tracemalloc.get_traced_memory()
-
                     assert response.status_code in {200, 201}, response.text
                     body = response.json()
                     assert body["name"] == item_name
 
                     op_durations.append(op_elapsed)
-                    op_memory_peak_bytes.append(
-                        max(0, mem_after_peak - mem_before_peak)
-                    )
-                    _ = mem_before_current, mem_after_current
 
                 execution_total = perf_counter() - execution_start
-                tracemalloc.stop()
 
             persisted_names = fetch_names(db_path)
             assert persisted_names == expected_names
@@ -145,7 +132,6 @@ async def _benchmark_app(
             await stop_uvicorn_server(server, task)
 
     per_op_s = _summarize(op_durations)
-    per_op_mem = _summarize([float(v) for v in op_memory_peak_bytes])
 
     return {
         "scenario": scenario,
@@ -154,7 +140,6 @@ async def _benchmark_app(
         "execution_total_seconds": execution_total,
         "ops_per_second": OPS_COUNT / execution_total,
         "time_per_op_seconds": per_op_s,
-        "memory_peak_per_op_bytes": per_op_mem,
     }
 
 
@@ -225,6 +210,9 @@ async def _run_sequential_consistency_benchmark() -> dict[str, Any]:
     tigrbl_mean = mean(per_scenario_ops["tigrbl"])
     fastapi_mean = mean(per_scenario_ops["fastapi"])
     throughput_ratio = tigrbl_mean / fastapi_mean if fastapi_mean else 0.0
+    delta_ops_values = [
+        step["delta_ops_per_second_tigrbl_minus_fastapi"] for step in steps
+    ]
 
     return {
         "rounds": rounds,
@@ -238,6 +226,9 @@ async def _run_sequential_consistency_benchmark() -> dict[str, Any]:
                 "fastapi": _ops_summary(per_scenario_ops["fastapi"]),
             },
             "delta_ops_per_second_tigrbl_minus_fastapi": tigrbl_mean - fastapi_mean,
+            "delta_ops_per_second_tigrbl_minus_fastapi_summary": _ops_summary(
+                delta_ops_values
+            ),
             "throughput_ratio_tigrbl_over_fastapi": throughput_ratio,
         },
     }
@@ -245,11 +236,27 @@ async def _run_sequential_consistency_benchmark() -> dict[str, Any]:
 
 @pytest.mark.perf
 def test_tigrbl_vs_fastapi_sequential_10_rounds_randomized_comparison() -> None:
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
     payload = asyncio.run(_run_sequential_consistency_benchmark())
     RESULTS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     SEQUENTIAL_RESULTS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     summary = payload["summary"]
+    print("\n[perf] per-round randomized sequential order")
+    for step in payload["steps"]:
+        print(
+            "[perf] round={round} order={order} tigrbl_ops/s={tigrbl:.3f} "
+            "fastapi_ops/s={fastapi:.3f} delta={delta:.3f} ratio={ratio:.3f}".format(
+                round=step["step"],
+                order="->".join(step["order"]),
+                tigrbl=step["ops_per_second"]["tigrbl"],
+                fastapi=step["ops_per_second"]["fastapi"],
+                delta=step["delta_ops_per_second_tigrbl_minus_fastapi"],
+                ratio=step["throughput_ratio_tigrbl_over_fastapi"],
+            )
+        )
+
     print(
         (
             "\n[perf] tigrbl ops/s min={t_min:.3f} max={t_max:.3f} "
@@ -276,6 +283,27 @@ def test_tigrbl_vs_fastapi_sequential_10_rounds_randomized_comparison() -> None:
             f_out=summary["ops_per_second"]["fastapi"]["outliers"],
             delta=summary["delta_ops_per_second_tigrbl_minus_fastapi"],
             ratio=summary["throughput_ratio_tigrbl_over_fastapi"],
+        )
+    )
+    print(
+        (
+            "[perf] delta ops/s min={d_min:.3f} max={d_max:.3f} "
+            "mean={d_mean:.3f} stddev={d_std:.3f} median={d_median:.3f} "
+            "iqr={d_iqr:.3f} outliers={d_out}"
+        ).format(
+            d_min=summary["delta_ops_per_second_tigrbl_minus_fastapi_summary"]["min"],
+            d_max=summary["delta_ops_per_second_tigrbl_minus_fastapi_summary"]["max"],
+            d_mean=summary["delta_ops_per_second_tigrbl_minus_fastapi_summary"]["mean"],
+            d_std=summary["delta_ops_per_second_tigrbl_minus_fastapi_summary"][
+                "stddev"
+            ],
+            d_median=summary["delta_ops_per_second_tigrbl_minus_fastapi_summary"][
+                "median"
+            ],
+            d_iqr=summary["delta_ops_per_second_tigrbl_minus_fastapi_summary"]["iqr"],
+            d_out=summary["delta_ops_per_second_tigrbl_minus_fastapi_summary"][
+                "outliers"
+            ],
         )
     )
 

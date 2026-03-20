@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import enum as _enum
 from typing import Any, Mapping
 import builtins as _builtins
 import logging
@@ -40,12 +41,7 @@ def _validate_enum_values(model: type, values: Mapping[str, Any]) -> None:
 
         enum_cls = getattr(col_type, "enum_class", None)
         if enum_cls is not None:
-            try:
-                import enum as _enum
-            except Exception:  # pragma: no cover
-                _enum = None
-
-            if _enum is not None and isinstance(v, _enum.Enum):
+            if isinstance(v, _enum.Enum):
                 if isinstance(v, enum_cls):
                     continue
                 logger.debug(

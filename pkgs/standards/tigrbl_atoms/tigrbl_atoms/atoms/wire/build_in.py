@@ -4,6 +4,7 @@ from __future__ import annotations
 from ...types import Atom, Ctx, ExecutingCtx
 from ...stages import Executing
 
+import dataclasses as _dc
 import uuid as _uuid
 from typing import Any, Dict, Mapping, Optional
 import logging
@@ -183,8 +184,6 @@ def _coerce_payload(ctx: Any) -> Mapping[str, Any] | Any:
                 pass
         # Dataclass?
         try:
-            import dataclasses as _dc  # local import; safe if missing
-
             if _dc.is_dataclass(val):
                 return _dc.asdict(val)
         except Exception:
