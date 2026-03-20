@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-ops-oltp"
-version = "0.1.0.dev12"
+version = "0.1.0.dev13"
 description = "OLTP operation implementations for Tigrbl, including CRUD and bulk handlers."
 license = "Apache-2.0"
 readme = "README.md"

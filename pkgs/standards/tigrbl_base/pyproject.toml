@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-base"
-version = "0.1.0.dev11"
+version = "0.1.0.dev12"
 description = "Abstract base interfaces for Tigrbl APIs and runtime components."
 license = "Apache-2.0"
 readme = "README.md"
