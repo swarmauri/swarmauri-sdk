@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-core"
-version = "0.1.0.dev8"
+version = "0.1.0.dev9"
 description = "Core specifications and primitives for the Tigrbl framework."
 license = "Apache-2.0"
 readme = "README.md"
