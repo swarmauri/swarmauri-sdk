@@ -101,9 +101,17 @@ except Exception:
 
 
 def engine(*args, **kwargs):
-    from tigrbl.shortcuts.engine import engine as _engine
+    from tigrbl_core._spec.engine_spec import EngineSpec
 
-    return _engine(*args, **kwargs)
+    if args:
+        spec = args[0]
+    elif kwargs:
+        spec = kwargs
+    else:
+        spec = None
+    if isinstance(spec, EngineSpec):
+        return Engine(spec)
+    return Engine(EngineSpec.from_any(spec))
 
 
 def _register_concrete_defaults() -> None:
