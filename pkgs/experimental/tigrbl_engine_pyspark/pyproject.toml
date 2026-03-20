@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tigrbl_engine_pyspark"
-version = "0.1.1.dev7"
+version = "0.1.1.dev8"
 description = "PySpark engine plugin for tigrbl."
 readme = "README.md"
 license = { file = "LICENSE" }
