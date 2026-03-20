@@ -301,7 +301,7 @@ jobs:
   release:
     needs: [commit, set-matrix, pypi_approval_gate]
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && always() && needs.set-matrix.outputs.has_members == 'true' && (needs.set-matrix.outputs.approval_required != 'true' || needs.pypi_approval_gate.result == 'success') }}
+    if: ${{ !cancelled() && needs.commit.result == 'success' && needs.set-matrix.outputs.has_members == 'true' && (needs.set-matrix.outputs.approval_required != 'true' || needs.pypi_approval_gate.result == 'success') }}
     timeout-minutes: 15
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
