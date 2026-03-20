@@ -15,3 +15,21 @@ class PySparkSession:
     def close(self) -> None:
         # Intentionally a no-op by default. Users may stop the session explicitly if desired.
         pass
+
+    async def begin(self) -> None:
+        return
+
+    async def commit(self) -> None:
+        return
+
+    async def rollback(self) -> None:
+        return
+
+    async def flush(self) -> None:
+        return
+
+    async def refresh(self, obj: Any) -> None:
+        return
+
+    async def get(self, model: type, ident: Any) -> Any | None:
+        return None
