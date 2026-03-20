@@ -1,6 +1,6 @@
 [project]
 name = "swamauri_metric_wasserstein"
-version = "0.9.0.dev42"
+version = "0.9.0.dev43"
 description = "Wasserstein metric plugin for Swarmauri vector comparisons."
 license = "Apache-2.0"
 readme = "README.md"
