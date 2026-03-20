@@ -247,13 +247,16 @@ jobs:
           git add .
 
           DEFAULT_REF="${{ github.ref }}"
-          BRANCH_NAME="automation/batch-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.event.inputs.batch_index || 'na' }}"
+          TARGET_BRANCH="${DEFAULT_REF#refs/heads/}"
 
           if ! git diff-index --quiet HEAD; then
-            git checkout -B "$BRANCH_NAME"
             git commit -m "chore: apply automatic formatting and lint fixes"
-            git push origin "HEAD:refs/heads/$BRANCH_NAME" --force
-            echo "checkout_ref=refs/heads/$BRANCH_NAME" >> $GITHUB_OUTPUT
+            # Keep updates on the trigger branch (e.g. master) while avoiding protected-branch force pushes.
+            # Sync with any upstream movement first, then push as a fast-forward update.
+            git fetch origin "$TARGET_BRANCH"
+            git pull --rebase origin "$TARGET_BRANCH"
+            git push origin "HEAD:${DEFAULT_REF}"
+            echo "checkout_ref=${DEFAULT_REF}" >> $GITHUB_OUTPUT
           else
             echo "No changes to commit."
             echo "checkout_ref=$DEFAULT_REF" >> $GITHUB_OUTPUT
@@ -381,6 +384,5 @@ jobs:
           prerelease: ${{ steps.prepare_release.outputs.prerelease }}
           files: |
             pkgs/${{ matrix.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
-
 
 
