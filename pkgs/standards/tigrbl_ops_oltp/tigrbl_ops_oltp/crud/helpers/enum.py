@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum as _enum
+from functools import lru_cache
 from typing import Any, Mapping
 import builtins as _builtins
 import logging
@@ -10,33 +11,34 @@ from . import SAEnum
 logger = logging.getLogger("uvicorn")
 
 
+@lru_cache(maxsize=256)
+def _enum_validation_plan(model: type) -> tuple[tuple[str, Any], ...]:
+    table = getattr(model, "__table__", None)
+    if table is None or SAEnum is None:
+        return ()
+
+    plan: list[tuple[str, Any]] = []
+    for col in getattr(table, "columns", ()):
+        key = getattr(col, "name", None)
+        col_type = getattr(col, "type", None)
+        if isinstance(key, str) and key and isinstance(col_type, SAEnum):
+            plan.append((key, col_type))
+    return tuple(plan)
+
+
 def _validate_enum_values(model: type, values: Mapping[str, Any]) -> None:
     logger.debug("_validate_enum_values called with model=%s values=%s", model, values)
-    if not values or SAEnum is None:
+    if not values:
         logger.debug("_validate_enum_values no validation needed")
         return
 
-    table = getattr(model, "__table__", None)
-    if table is None:
+    validation_plan = _enum_validation_plan(model)
+    if not validation_plan:
         return
 
-    get = getattr(table.c, "get", None)
-
-    for key, v in values.items():
-        col = get(key) if get else None
-        if col is None:
-            try:
-                col = table.c[key]  # type: ignore[index]
-            except Exception:
-                col = None
-        if col is None:
-            continue
-
-        col_type = getattr(col, "type", None)
-        if col_type is None or not isinstance(col_type, SAEnum):
-            continue
-
-        if v is None:
+    for key, col_type in validation_plan:
+        v = values.get(key)
+        if key not in values or v is None:
             continue
 
         enum_cls = getattr(col_type, "enum_class", None)
