@@ -206,9 +206,6 @@ jobs:
     needs: [set-matrix, test]
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && always() && needs.set-matrix.outputs.has_members == 'true' }}
-    concurrency:
-      group: v0.10.0-mono-prepare-validate-publish-batch-commit-${{ github.ref_name }}
-      cancel-in-progress: false
     timeout-minutes: 15
     outputs:
       checkout_ref: ${{ steps.commit_and_push.outputs.checkout_ref }}
