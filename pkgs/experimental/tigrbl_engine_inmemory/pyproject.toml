@@ -25,3 +25,8 @@ Homepage = "https://github.com/swarmauri/swarmauri-sdk"
 
 [project.entry-points."tigrbl.engine"]
 inmemory = "tigrbl_engine_inmemory.plugin:register"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11.0",
+]
