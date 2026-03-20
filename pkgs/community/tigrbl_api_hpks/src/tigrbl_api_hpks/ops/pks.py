@@ -437,7 +437,11 @@ async def _merge_parsed_key(*, db: Any, parsed: ParsedKey) -> OpenPGPKey:
         payload["bits"] = parsed.bits or existing.bits
         payload["primary_uid"] = parsed.primary_uid or existing.primary_uid
         payload["version"] = parsed.version or existing.version
-    ctx = {"db": db, "payload": payload}
+    ctx = {
+        "db": db,
+        "payload": payload,
+        "path_params": {"item_id": parsed.fingerprint},
+    }
     record = await OpenPGPKey.handlers.merge.handler(ctx)
     await _commit_session(db)
     return record
@@ -540,7 +544,11 @@ async def merge_json_payload(
         "primary_uid": primary_uid or existing.primary_uid,
         "version": payload.get("version") or existing.version,
     }
-    ctx = {"db": db, "payload": merged_payload}
+    ctx = {
+        "db": db,
+        "payload": merged_payload,
+        "path_params": {"item_id": normalized},
+    }
     record = await OpenPGPKey.handlers.merge.handler(ctx)
     await _commit_session(db)
     return record

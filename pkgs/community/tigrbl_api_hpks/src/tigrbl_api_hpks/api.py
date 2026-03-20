@@ -5,14 +5,13 @@ from __future__ import annotations
 import datetime as dt
 import os
 import tempfile
-from typing import Any, AsyncIterator
+from typing import Any
 from urllib.parse import parse_qs
 
 from tigrbl import Router, TigrblApp, Response, Request
 from tigrbl.decorators.router import route
 from tigrbl.shortcuts.engine import engine as build_engine
 from tigrbl.runtime.status import HTTPException
-from tigrbl.security.dependencies import Depends
 
 
 from .ops import pks as pks_ops
@@ -26,6 +25,18 @@ def _normalize_fingerprint(value: str) -> str:
     if stripped.lower().startswith("0x"):
         stripped = stripped[2:]
     return stripped.upper()
+
+
+def _query_first(request: Request, key: str, default: str = "") -> str:
+    """Extract the first value for a query parameter."""
+    values = request.query.get(key, [])
+    return values[0] if values else default
+
+
+def _path_segment(request: Request, index: int) -> str:
+    """Extract a path segment by index (0-based, after splitting on '/')."""
+    parts = request.path.strip("/").split("/")
+    return parts[index] if index < len(parts) else ""
 
 
 def _response_text(
@@ -85,17 +96,13 @@ def build_app(
 
     router = Router(prefix="/pks")
 
-    async def get_session() -> AsyncIterator[Any]:
-        async with app.engine.asession() as session:
-            yield session
-
     def _not_found(detail: str = "Not found") -> HTTPException:
         return HTTPException(status_code=404, detail=detail, headers=HPKS_CORS_HEADERS)
 
+    # ---- Legacy HKP endpoints ----
+
     @route(router, "/add", methods=["POST"])
-    async def legacy_add(
-        request: Request, *, db: Any = Depends(get_session)
-    ) -> Response:
+    async def legacy_add(request: Request) -> Response:
         body = request.body.decode("utf-8")
         form_data = parse_qs(body, keep_blank_values=True)
         keytext = form_data.get("keytext", [""])[0]
@@ -105,72 +112,76 @@ def build_app(
                 detail="keytext is required",
                 headers=HPKS_CORS_HEADERS,
             )
-        try:
-            await pks_ops.ingest_armored(db=db, armored=keytext)
-        except ValueError as exc:  # pragma: no cover - defensive
-            raise HTTPException(
-                status_code=422, detail=str(exc), headers=HPKS_CORS_HEADERS
-            ) from exc
+        async with app.engine.asession() as db:
+            try:
+                await pks_ops.ingest_armored(db=db, armored=keytext)
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=422, detail=str(exc), headers=HPKS_CORS_HEADERS
+                ) from exc
         return _response_text("OK\n", headers=HPKS_CORS_HEADERS)
 
     @route(router, "/lookup", methods=["GET"])
-    async def legacy_lookup(request: Request, *, db: Any = Depends(get_session)):
-        op = request.query_param("op") or ""
-        search = request.query_param("search") or ""
+    async def legacy_lookup(request: Request):
+        op = _query_first(request, "op")
+        search = _query_first(request, "search")
         op_name = op.lower()
         normalized = _normalize_fingerprint(search)
-        if op_name == "index":
-            results = await pks_ops.search_index(db=db, search=search)
-            if not results:
-                raise _not_found()
-            body = pks_ops.render_legacy_index(results, search=search)
-            return _response_text(body, headers=HPKS_CORS_HEADERS)
-        if op_name == "get":
-            if len(normalized) <= 8:
-                raise _not_found()
-            record = await pks_ops.lookup_by_fingerprint(db=db, fingerprint=normalized)
-            if record is None:
-                raise _not_found()
-            return _response_text(
-                record.ascii_armored,
-                media_type="application/pgp-keys",
-                headers=HPKS_CORS_HEADERS,
-            )
-        if op_name == "hget":
-            record = await pks_ops.lookup_by_email_hash(db=db, email_hash=search)
-            if record is None:
-                raise _not_found()
-            return _response_text(
-                record.ascii_armored,
-                media_type="application/pgp-keys",
-                headers=HPKS_CORS_HEADERS,
-            )
+        async with app.engine.asession() as db:
+            if op_name == "index":
+                results = await pks_ops.search_index(db=db, search=search)
+                if not results:
+                    raise _not_found()
+                body = pks_ops.render_legacy_index(results, search=search)
+                return _response_text(body, headers=HPKS_CORS_HEADERS)
+            if op_name == "get":
+                if len(normalized) <= 8:
+                    raise _not_found()
+                record = await pks_ops.lookup_by_fingerprint(
+                    db=db, fingerprint=normalized
+                )
+                if record is None:
+                    raise _not_found()
+                return _response_text(
+                    record.ascii_armored,
+                    media_type="application/pgp-keys",
+                    headers=HPKS_CORS_HEADERS,
+                )
+            if op_name == "hget":
+                record = await pks_ops.lookup_by_email_hash(db=db, email_hash=search)
+                if record is None:
+                    raise _not_found()
+                return _response_text(
+                    record.ascii_armored,
+                    media_type="application/pgp-keys",
+                    headers=HPKS_CORS_HEADERS,
+                )
         raise HTTPException(
             status_code=400,
             detail=f"Unsupported legacy op '{op}'",
             headers=HPKS_CORS_HEADERS,
         )
 
+    # ---- V2 endpoints ----
+
+    # Pattern: /pks/{fingerprint} — the fingerprint is the 2nd segment
     @route(router, "/{fingerprint}", methods=["POST"])
-    async def merge_fingerprint(
-        request: Request,
-        *,
-        fingerprint: str,
-        db: Any = Depends(get_session),
-    ) -> Response:
+    async def merge_fingerprint(request: Request) -> Response:
+        fingerprint = _path_segment(request, 1)
         payload = await request.json() or {}
-        try:
-            record = await pks_ops.merge_json_payload(
-                db=db, fingerprint=fingerprint, payload=payload
-            )
-        except ValueError as exc:
-            raise HTTPException(
-                status_code=422, detail=str(exc), headers=HPKS_CORS_HEADERS
-            ) from exc
+        async with app.engine.asession() as db:
+            try:
+                record = await pks_ops.merge_json_payload(
+                    db=db, fingerprint=fingerprint, payload=payload
+                )
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=422, detail=str(exc), headers=HPKS_CORS_HEADERS
+                ) from exc
         return _response_json(pks_ops.to_v2_document(record), headers=HPKS_CORS_HEADERS)
 
     @route(router, "/v2/add", methods=["POST"])
-    async def v2_add(request: Request, *, db: Any = Depends(get_session)) -> Response:
+    async def v2_add(request: Request) -> Response:
         content_type = request.headers.get("content-type", "")
         if "application/pgp-keys" not in content_type:
             raise HTTPException(
@@ -183,25 +194,32 @@ def build_app(
             raise HTTPException(
                 status_code=400, detail="Empty payload", headers=HPKS_CORS_HEADERS
             )
-        try:
-            summary = await pks_ops.ingest_binary(db=db, bundle=bundle)
-        except ValueError as exc:
-            raise HTTPException(
-                status_code=422, detail=str(exc), headers=HPKS_CORS_HEADERS
-            ) from exc
+        async with app.engine.asession() as db:
+            try:
+                summary = await pks_ops.ingest_binary(db=db, bundle=bundle)
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=422, detail=str(exc), headers=HPKS_CORS_HEADERS
+                ) from exc
         return _response_json(summary, status_code=202, headers=HPKS_CORS_HEADERS)
 
+    # Pattern: /pks/v2/index/{query} — the query is the 4th segment
     @route(router, "/v2/index/{query}", methods=["GET"])
-    async def v2_index(query: str, *, db: Any = Depends(get_session)) -> Response:
-        results = await pks_ops.search_index(db=db, search=query)
+    async def v2_index(request: Request) -> Response:
+        query = _path_segment(request, 3)
+        async with app.engine.asession() as db:
+            results = await pks_ops.search_index(db=db, search=query)
         if not results:
             raise _not_found()
         payload = [pks_ops.to_v2_document(rec) for rec in results]
         return _response_json(payload, headers=HPKS_CORS_HEADERS)
 
+    # Pattern: /pks/v2/vfpget/{fingerprint} — fingerprint is the 4th segment
     @route(router, "/v2/vfpget/{fingerprint}", methods=["GET"])
-    async def vfpget(fingerprint: str, *, db: Any = Depends(get_session)) -> Response:
-        record = await pks_ops.lookup_by_fingerprint(db=db, fingerprint=fingerprint)
+    async def vfpget(request: Request) -> Response:
+        fingerprint = _path_segment(request, 3)
+        async with app.engine.asession() as db:
+            record = await pks_ops.lookup_by_fingerprint(db=db, fingerprint=fingerprint)
         if record is None:
             raise _not_found()
         return _response_binary(
@@ -210,9 +228,12 @@ def build_app(
             headers=HPKS_CORS_HEADERS,
         )
 
+    # Pattern: /pks/v2/kidget/{keyid} — keyid is the 4th segment
     @route(router, "/v2/kidget/{keyid}", methods=["GET"])
-    async def kidget(keyid: str, *, db: Any = Depends(get_session)) -> Response:
-        record = await pks_ops.lookup_by_keyid(db=db, key_id=keyid)
+    async def kidget(request: Request) -> Response:
+        keyid = _path_segment(request, 3)
+        async with app.engine.asession() as db:
+            record = await pks_ops.lookup_by_keyid(db=db, key_id=keyid)
         if record is None or (record.version and record.version > 4):
             raise _not_found()
         return _response_binary(
@@ -221,9 +242,12 @@ def build_app(
             headers=HPKS_CORS_HEADERS,
         )
 
+    # Pattern: /pks/v2/authget/{identifier} — identifier is the 4th segment
     @route(router, "/v2/authget/{identifier}", methods=["GET"])
-    async def authget(identifier: str, *, db: Any = Depends(get_session)) -> Response:
-        matches = await pks_ops.search_index(db=db, search=identifier)
+    async def authget(request: Request) -> Response:
+        identifier = _path_segment(request, 3)
+        async with app.engine.asession() as db:
+            matches = await pks_ops.search_index(db=db, search=identifier)
         lowered = identifier.lower()
         record = next(
             (
@@ -241,10 +265,10 @@ def build_app(
             headers=HPKS_CORS_HEADERS,
         )
 
+    # Pattern: /pks/v2/prefixlog/{since} — since is the 4th segment
     @route(router, "/v2/prefixlog/{since}", methods=["GET"])
-    async def prefixlog_route(
-        since: str, *, db: Any = Depends(get_session)
-    ) -> Response:
+    async def prefixlog_route(request: Request) -> Response:
+        since = _path_segment(request, 3)
         try:
             parsed = dt.datetime.fromisoformat(since)
         except ValueError:
@@ -258,12 +282,13 @@ def build_app(
                 ) from None
         if parsed.tzinfo is None:
             parsed = parsed.replace(tzinfo=dt.timezone.utc)
-        prefixes = await pks_ops.prefix_log(db=db, since=parsed)
+        async with app.engine.asession() as db:
+            prefixes = await pks_ops.prefix_log(db=db, since=parsed)
         body = "\r\n".join(prefixes)
         return _response_text(body, headers=HPKS_CORS_HEADERS)
 
     @route(router, "/v2/tokensend", methods=["POST"])
-    async def tokensend(_: Request) -> Response:
+    async def tokensend(request: Request) -> Response:
         return Response(status_code=501, headers=list(HPKS_CORS_HEADERS.items()))
 
     app.include_router(router)
