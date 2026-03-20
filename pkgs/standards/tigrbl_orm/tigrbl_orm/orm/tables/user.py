@@ -9,8 +9,8 @@ from ..mixins import (
     AsyncCapable,
     ActiveToggle,
 )
-from ...specs import IO, acol, F, S
-from ...types import Mapped, String
+from tigrbl.specs import IO, acol, F, S
+from tigrbl.types import Mapped, String
 
 
 class User(

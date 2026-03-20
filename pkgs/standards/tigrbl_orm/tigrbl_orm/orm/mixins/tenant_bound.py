@@ -8,16 +8,16 @@ from typing import Any, Mapping
 from uuid import UUID
 
 from ._RowBound import _RowBound
-from ...specs import acol
-from ...config.constants import (
+from tigrbl.specs import acol
+from tigrbl.config.constants import (
     TIGRBL_TENANT_POLICY_ATTR,
     CTX_AUTH_KEY,
     CTX_TENANT_ID_KEY,
 )
-from ...runtime.status import create_standardized_error
-from ...specs import ColumnSpec, F, IO, S
-from ..._spec.storage_spec import ForeignKeySpec
-from ...types import Mapped, PgUUID, declared_attr
+from tigrbl.runtime.status import create_standardized_error
+from tigrbl.specs import ColumnSpec, F, IO, S
+from tigrbl._spec.storage_spec import ForeignKeySpec
+from tigrbl.types import Mapped, PgUUID, declared_attr
 
 
 log = logging.getLogger(__name__)

@@ -101,7 +101,7 @@ except Exception:
 
 
 def engine(*args, **kwargs):
-    from tigrbl_concrete.shortcuts.engine import engine as _engine
+    from tigrbl.shortcuts.engine import engine as _engine
 
     return _engine(*args, **kwargs)
 

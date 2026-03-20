@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 
-from ...specs import acol, IO, S, F
-from ...types import LargeBinary, Mapped, String
+from tigrbl.specs import acol, IO, S, F
+from tigrbl.types import LargeBinary, Mapped, String
 
 from ._base import TableBase
 from ..mixins import ActiveToggle, GUIDPk, Timestamped, TenantBound
