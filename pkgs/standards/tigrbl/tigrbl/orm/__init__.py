@@ -13,8 +13,16 @@ for _name, _value in vars(_target).items():
     globals()[_name] = _value
 
 __doc__ = getattr(_target, "__doc__", __doc__)
-__all__ = getattr(_target, "__all__", [])
+__all__ = list(getattr(_target, "__all__", []))
 __path__ = list(getattr(_target, "__path__", []))
+
+# Expose commonly imported child modules directly on ``tigrbl.orm``.
+for _child in ("mixins", "tables"):
+    _child_module = import_module(f"tigrbl_orm.orm.{_child}")
+    globals()[_child] = _child_module
+    sys.modules.setdefault(f"tigrbl.orm.{_child}", _child_module)
+    if _child not in __all__:
+        __all__.append(_child)
 
 _target_prefix = "tigrbl_orm.orm"
 _alias_prefix = "tigrbl.orm"
