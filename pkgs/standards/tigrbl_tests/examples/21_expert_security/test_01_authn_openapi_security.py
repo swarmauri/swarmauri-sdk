@@ -135,3 +135,57 @@ async def test_openapi_security_from_router_authn_dependency() -> None:
         assert schema["components"]["securitySchemes"]
 
     await stop_uvicorn(server, task)
+
+
+def test_app_set_auth_updates_auth_configuration() -> None:
+    """Show ``app.set_auth(...)`` updates auth-related app configuration."""
+
+    bearer_scheme = HTTPBearer()
+    optional_bearer_scheme = HTTPBearer(auto_error=False)
+
+    async def authn_dependency(
+        credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
+    ) -> dict[str, str]:
+        return {"sub": credentials.credentials}
+
+    async def optional_authn_dependency(
+        credentials: HTTPAuthorizationCredentials | None = Security(
+            optional_bearer_scheme
+        ),
+    ) -> dict[str, str] | None:
+        if credentials is None:
+            return None
+        return {"sub": credentials.credentials}
+
+    def authorize_dependency() -> None: ...
+
+    app = TigrblApp(engine=mem(async_=False))
+    app.set_auth(
+        authn=authn_dependency,
+        authorize=authorize_dependency,
+        optional_authn_dep=optional_authn_dependency,
+    )
+
+    assert app._authn is authn_dependency
+    assert app._allow_anon is False
+    assert app._authorize is authorize_dependency
+    assert app._optional_authn_dep is optional_authn_dependency
+
+
+def test_app_set_auth_refreshes_security_for_preincluded_tables() -> None:
+    """Show ``app.set_auth(...)`` updates route security after table inclusion."""
+
+    class SecurityRefreshWidget(TableBase, GUIDPk):
+        __tablename__ = "lesson_security_refresh_widget"
+        __allow_unmapped__ = True
+        __tigrbl_allow_anon__ = ("list",)
+
+        name = Column(String, nullable=False)
+
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_table(SecurityRefreshWidget)
+    app.set_auth(authn=lambda cred=Security(HTTPBearer()): cred, allow_anon=False)
+
+    ops_by_alias = getattr(SecurityRefreshWidget.ops, "by_alias", {})
+    assert tuple(ops_by_alias["list"])[0].secdeps == ()
+    assert tuple(ops_by_alias["create"])[0].secdeps == (app._authn,)

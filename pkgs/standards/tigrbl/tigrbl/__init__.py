@@ -16,7 +16,6 @@ _ALIAS_MODULES = {
     "_base": "tigrbl_base._base",
     "_concrete": "tigrbl_concrete._concrete",
     "core": "tigrbl_ops_oltp",
-    "orm": "tigrbl_orm.orm",
     "runtime": "tigrbl_runtime.runtime",
     "executors": "tigrbl_runtime.executors",
     "atoms": "tigrbl_atoms.atoms",

@@ -93,6 +93,8 @@ class InMemorySession:
 
     def get(self, table: str, pk_value: Any) -> dict[str, Any] | None:
         self._require_open()
+        if isinstance(table, type):
+            table = getattr(table, "__tablename__", table.__name__)
         state = self._table_for_read(table)
         row = state.rows.get(pk_value)
         return dict(row) if row is not None else None
@@ -130,6 +132,12 @@ class InMemorySession:
     def _require_open(self) -> None:
         if self._closed or self._tx is None:
             raise RuntimeError("session is closed")
+
+    def flush(self) -> None:
+        return
+
+    def refresh(self, obj: Any) -> None:
+        return
 
 
 class AsyncInMemorySession(InMemorySession):

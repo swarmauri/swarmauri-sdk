@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_deepinfra"
-version = "0.1.0.dev6"
+version = "0.1.0.dev10"
 description = "Swarmauri Deepinfra LLM adapters from swarmauri_standard."
 license = "Apache-2.0"
 readme = "README.md"

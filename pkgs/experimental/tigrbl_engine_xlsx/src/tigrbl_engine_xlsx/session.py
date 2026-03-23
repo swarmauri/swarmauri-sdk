@@ -150,6 +150,30 @@ class XlsxSession(TigrblSessionBase):
         out = fn(self)
         return await out if hasattr(out, "__await__") else out
 
+    async def begin(self) -> None:
+        await self._tx_begin_impl()
+
+    async def commit(self) -> None:
+        await self._tx_commit_impl()
+
+    async def rollback(self) -> None:
+        await self._tx_rollback_impl()
+
+    async def flush(self) -> None:
+        await self._flush_impl()
+
+    async def refresh(self, obj: Any) -> None:
+        await self._refresh_impl(obj)
+
+    async def get(self, model: type, ident: Any) -> Any | None:
+        return await self._get_impl(model, ident)
+
+    async def execute(self, stmt: Any) -> Any:
+        return await self._execute_impl(stmt)
+
+    async def close(self) -> None:
+        await self._close_impl()
+
     async def _tx_begin_impl(self) -> None:
         self._snap.clear()
         self._snap_ver.clear()
