@@ -39,7 +39,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Framework :: AsyncIO",
     "Topic :: Internet :: WWW/HTTP",
-    "Topic :: Internet :: WWW/HTTP :: HTTP Headers",
+    "Topic :: Internet :: WWW/HTTP :: Session",
     "Topic :: Security :: Cryptography",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Typing :: Typed",

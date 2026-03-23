@@ -16,7 +16,7 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
-    "Topic :: Internet :: WWW/HTTP :: Middleware",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware",
     "Intended Audience :: Developers",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
