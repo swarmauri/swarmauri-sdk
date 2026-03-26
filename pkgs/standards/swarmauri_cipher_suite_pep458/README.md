@@ -1,4 +1,4 @@
-![Swarmauri Brand Theme](https://github.com/swarmauri/swarmauri-sdk/blob/main/assets/swarmauri.brand.theme.svg)
+![Swarmauri Brand Theme](https://github.com/swarmauri/swarmauri-sdk/blob/main/assets/swarmauri_brand_frag_light.png)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_cipher_suite_pep458/">

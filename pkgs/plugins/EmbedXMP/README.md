@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg" alt="Swarmauri logotype" width="420" />
+  <img src="https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png" alt="Swarmauri logotype" width="420" />
 </p>
 
 <h1 align="center">EmbedXMP</h1>
