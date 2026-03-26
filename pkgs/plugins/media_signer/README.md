@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../../../assets/swarmauri.brand.theme.svg" alt="Swarmauri logotype" width="420" />
+  <img src="../../../assets/swarmauri_brand_frag_light.png" alt="Swarmauri logotype" width="420" />
 </p>
 
 <h1 align="center">MediaSigner</h1>

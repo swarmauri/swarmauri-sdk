@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg" alt="Swarmauri Signing OpenPGP" width="320" />
+    <img src="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_brand_frag_light.png" alt="Swarmauri Signing OpenPGP" width="320" />
 </p>
 
 <p align="center">
