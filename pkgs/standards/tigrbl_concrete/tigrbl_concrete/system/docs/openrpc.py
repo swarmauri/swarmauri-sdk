@@ -138,12 +138,22 @@ def _iter_ops(model: type) -> Sequence[OpSpec]:
 
 def _is_docs_only_op(op: OpSpec) -> bool:
     alias = str(getattr(op, "alias", "")).lower()
-    if any(token in alias for token in ("docs", "lens", "openapi", "openrpc")):
+    if any(
+        token in alias
+        for token in ("docs", "lens", "openapi", "openrpc", "asyncapi", "json_schema")
+    ):
         return True
 
     for binding in tuple(getattr(op, "bindings", ()) or ()):
         path = str(getattr(binding, "path", "") or "").lower()
-        if path in {"/docs", "/lens", "/openapi.json", "/openrpc.json"}:
+        if path in {
+            "/docs",
+            "/lens",
+            "/openapi.json",
+            "/openrpc.json",
+            "/asyncapi.json",
+            "/json-schema.json",
+        }:
             return True
 
     return False

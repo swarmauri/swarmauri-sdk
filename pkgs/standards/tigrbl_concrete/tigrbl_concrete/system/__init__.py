@@ -39,6 +39,18 @@ def mount_openrpc(*args: Any, **kwargs: Any) -> Any:
     return _mount_openrpc(*args, **kwargs)
 
 
+def mount_asyncapi(*args: Any, **kwargs: Any) -> Any:
+    from .docs import mount_asyncapi as _mount_asyncapi
+
+    return _mount_asyncapi(*args, **kwargs)
+
+
+def mount_json_schema(*args: Any, **kwargs: Any) -> Any:
+    from .docs import mount_json_schema as _mount_json_schema
+
+    return _mount_json_schema(*args, **kwargs)
+
+
 def mount_favicon(*args: Any, **kwargs: Any) -> Any:
     from .favicon import mount_favicon as _mount_favicon
 
@@ -75,6 +87,18 @@ def build_openrpc_spec(*args: Any, **kwargs: Any) -> Any:
     return _build_openrpc_spec(*args, **kwargs)
 
 
+def build_asyncapi_spec(*args: Any, **kwargs: Any) -> Any:
+    from .docs import build_asyncapi_spec as _build_asyncapi_spec
+
+    return _build_asyncapi_spec(*args, **kwargs)
+
+
+def build_json_schema_spec(*args: Any, **kwargs: Any) -> Any:
+    from .docs import build_json_schema_spec as _build_json_schema_spec
+
+    return _build_json_schema_spec(*args, **kwargs)
+
+
 def stop_uvicorn_server(*args: Any, **kwargs: Any) -> Any:
     from .uvicorn import stop_uvicorn_server as _stop_uvicorn_server
 
@@ -85,12 +109,16 @@ __all__ = [
     "FAVICON_PATH",
     "mount_diagnostics",
     "mount_favicon",
+    "mount_asyncapi",
+    "mount_json_schema",
     "mount_lens",
     "mount_openapi",
     "mount_openrpc",
     "mount_swagger",
     "build_favicon",
     "build_lens",
+    "build_asyncapi_spec",
+    "build_json_schema_spec",
     "build_openapi",
     "build_openrpc_spec",
     "build_swagger",
