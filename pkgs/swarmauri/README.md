@@ -30,6 +30,27 @@ in `interface_registry.py`, then mapped to plugin modules via
 `plugin_citizenship_registry.py`. For a deeper look at the import flow, see
 [`docs/callflow.md`](docs/callflow.md).
 
+## Public Operator Surfaces
+
+Swarmauri exposes three stable operator-facing surfaces:
+
+1. **Namespace imports (`swarmauri.<kind>`)**  
+   The primary runtime surface is the namespace import path. Importing concrete
+   operators through the `swarmauri` namespace triggers the microkernel
+   importer and resolves to the installed implementation.
+
+2. **Registry contracts (`interface_registry.py`)**  
+   The interface registry defines the accepted interface path for each resource
+   kind. This is the canonical public contract that implementations must satisfy.
+
+3. **Citizenship mappings (`plugin_citizenship_registry.py`)**  
+   Citizenship maps each public interface path to a concrete plugin module that
+   can be loaded. This is the public compatibility surface used to connect
+   interface contracts to implementations.
+
+Together these surfaces allow operators to use stable import paths while
+implementations evolve independently.
+
 ## Core 
 - **Core Interfaces**: Define the fundamental communication and data-sharing protocols between components in a Swarmauri-based system.
 
@@ -59,6 +80,48 @@ in `interface_registry.py`, then mapped to plugin modules via
 - **Third-Party Integrations**: Extend the system's capabilities by easily incorporating third-party tools, libraries, and services.
 - **Prototype and Experimentation**: Test cutting-edge ideas using the experimental components in the SDK, while retaining the reliability of core and standard features for production systems.
 
+## Extension Surface
+
+Swarmauri is designed to be extended by adding new resource kinds or new
+implementations for existing kinds.
+
+For extension work:
+
+- Add or update the interface contract in
+  [`swarmauri/interface_registry.py`](swarmauri/interface_registry.py).
+- Register the concrete implementation in
+  [`swarmauri/plugin_citizenship_registry.py`](swarmauri/plugin_citizenship_registry.py).
+- Ensure the implementation module can be imported and instantiated directly
+  through its public class API.
+- Validate import resolution against the call flow documented in
+  [`docs/callflow.md`](docs/callflow.md).
+
+This extension surface keeps the microkernel small while allowing packages,
+plugins, and standards modules to participate in the same runtime model.
+
+## Authoring Guide
+
+When authoring new Swarmauri components:
+
+1. **Define the interface first**  
+   Start from the interface contract and ensure your class adheres to the
+   expected methods and typing.
+
+2. **Implement concrete behavior in your package**  
+   Keep domain logic in the implementation package and keep the namespace
+   microkernel declarations focused on discovery and routing.
+
+3. **Register the implementation**  
+   Add citizenship entries so the namespace importer can resolve your class.
+
+4. **Instantiate plugins directly in usage examples**  
+   Prefer direct class imports/instantiation in examples and integrations unless
+   a manager abstraction is explicitly required.
+
+5. **Document expected workflow**  
+   Include installation, minimal usage, and extension notes so users can adopt
+   and extend the component safely.
+
 # Future Development
 
 The Swarmauri SDK is an evolving platform, and the community is encouraged to contribute to its growth. Upcoming releases will focus on enhancing the framework's modularity, providing more advanced serialization methods, and expanding the community-driven component library.
@@ -77,9 +140,6 @@ The Swarmauri SDK is an evolving platform, and the community is encouraged to co
 When introducing a new resource kind or class, remember to update both the
 `plugin_citizenship_registry.py` and `interface_registry.py` so the framework can
 discover and validate your additions.
-
-### Plugin Manager
-- [plugin_manager.py](swarmauri/plugin_manager.py): Oversees the loading, initialization, and management of plugins to extend the functionality of the Swarmauri framework.
 
 ## Contributing
 
