@@ -133,6 +133,8 @@ def test_default_system_docs_endpoints_are_present_and_gettable() -> None:
         lens = client.get("/lens")
         openapi = client.get("/openapi.json")
         openrpc = client.get("/openrpc.json")
+        asyncapi = client.get("/asyncapi.json")
+        json_schema = client.get("/json-schema.json")
 
     assert docs.status_code == 200
     assert "text/html" in docs.headers.get("content-type", "")
@@ -148,13 +150,30 @@ def test_default_system_docs_endpoints_are_present_and_gettable() -> None:
     assert openrpc.status_code == 200
     assert openrpc.json()["openrpc"] == "1.2.6"
 
+    assert asyncapi.status_code == 200
+    assert "text/plain" in asyncapi.headers.get("content-type", "")
+    assert "'asyncapi': '3.0.0'" in asyncapi.text
+
+    assert json_schema.status_code == 200
+    assert "text/plain" in json_schema.headers.get("content-type", "")
+    assert (
+        "'$schema': 'https://json-schema.org/draft/2020-12/schema'" in json_schema.text
+    )
+
 
 def test_docs_lens_openapi_openrpc_are_rest_get_only_and_not_rpc_methods() -> None:
     app, _ = _build_app()
     transport = ASGITransport(app=app)
 
     route_map = {route.path: route for route in app.routes}
-    for path in ("/docs", "/lens", "/openapi.json", "/openrpc.json"):
+    for path in (
+        "/docs",
+        "/lens",
+        "/openapi.json",
+        "/openrpc.json",
+        "/asyncapi.json",
+        "/json-schema.json",
+    ):
         assert path in route_map
         assert set(route_map[path].methods or []) == {"GET"}
 
@@ -166,13 +185,32 @@ def test_docs_lens_openapi_openrpc_are_rest_get_only_and_not_rpc_methods() -> No
         assert client.post("/lens").status_code in {404, 405}
         assert client.post("/openapi.json").status_code in {404, 405}
         assert client.post("/openrpc.json").status_code in {404, 405}
+        assert client.post("/asyncapi.json").status_code in {404, 405}
+        assert client.post("/json-schema.json").status_code in {404, 405}
 
         method_names = {
             method["name"] for method in client.get("/openrpc.json").json()["methods"]
         }
 
-    for forbidden in ("docs", "lens", "openapi", "openrpc"):
+    for forbidden in ("docs", "lens", "openapi", "openrpc", "asyncapi", "json_schema"):
         assert all(forbidden not in name.lower() for name in method_names)
+
+
+def test_asyncapi_and_json_schema_are_pretty_printed() -> None:
+    app, _ = _build_app()
+    transport = ASGITransport(app=app)
+
+    with Client(transport=transport, base_url="http://test") as client:
+        asyncapi = client.get("/asyncapi.json")
+        json_schema = client.get("/json-schema.json")
+
+    assert asyncapi.status_code == 200
+    assert "\n    'info': {" in asyncapi.text
+    assert "'title':" in asyncapi.text
+
+    assert json_schema.status_code == 200
+    assert "\n    'properties': {" in json_schema.text
+    assert "'Widget': {" in json_schema.text
 
 
 def test_openrpc_server_url_respects_router_mount_jsonrpc_prefix_argument():

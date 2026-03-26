@@ -29,7 +29,11 @@ from ._op_registry import get_registry
 from tigrbl_core._spec import OpSpec
 from ._table_registry import TableRegistry
 from ._routing import include_router as _include_router_impl
+from tigrbl_concrete.system import mount_asyncapi as _mount_asyncapi
+from tigrbl_concrete.system import mount_json_schema as _mount_json_schema
 from tigrbl_concrete.system import mount_openrpc as _mount_openrpc
+from tigrbl_concrete.system import build_asyncapi_spec as _build_asyncapi_spec
+from tigrbl_concrete.system import build_json_schema_spec as _build_json_schema_spec
 from tigrbl_concrete.system import mount_diagnostics as _mount_diagnostics
 from tigrbl_concrete.system.docs import build_openapi as _build_openapi
 from tigrbl_concrete._concrete import engine_resolver as _resolver
@@ -305,6 +309,24 @@ class TigrblRouter(_Router):
         """Mount an OpenRPC JSON endpoint onto this router instance."""
         return _mount_openrpc(self, path=path, name=name, tags=tags)
 
+    def mount_asyncapi(
+        self,
+        *,
+        path: str = "/asyncapi.json",
+        name: str = "asyncapi_json",
+    ) -> Any:
+        """Mount an AsyncAPI-styled docs endpoint onto this router."""
+        return _mount_asyncapi(self, path=path, name=name)
+
+    def mount_json_schema(
+        self,
+        *,
+        path: str = "/json-schema.json",
+        name: str = "json_schema",
+    ) -> Any:
+        """Mount a JSON Schema-styled docs endpoint onto this router."""
+        return _mount_json_schema(self, path=path, name=name)
+
     def attach_diagnostics(
         self, *, prefix: str | None = None, app: Any | None = None
     ) -> Any:
@@ -333,6 +355,14 @@ class TigrblRouter(_Router):
     def openapi(self) -> Dict[str, Any]:
         """Build and return the OpenAPI document for this router."""
         return _build_openapi(self)
+
+    def asyncapi(self) -> Dict[str, Any]:
+        """Build and return the AsyncAPI-styled document for this router."""
+        return _build_asyncapi_spec(self)
+
+    def json_schema(self) -> Dict[str, Any]:
+        """Build and return the JSON Schema-styled document for this router."""
+        return _build_json_schema_spec(self)
 
     # ------------------------- registry passthroughs -------------------------
 

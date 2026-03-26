@@ -34,9 +34,13 @@ from tigrbl_concrete._mapping.router.rpc import rpc_call as _rpc_call
 from tigrbl_concrete._mapping.model import rebind as _rebind, bind as _bind
 from tigrbl_concrete.system import mount_diagnostics as _mount_diagnostics
 from tigrbl_concrete.system import mount_lens as _mount_lens
+from tigrbl_concrete.system import mount_asyncapi as _mount_asyncapi
+from tigrbl_concrete.system import mount_json_schema as _mount_json_schema
 from tigrbl_concrete.system import mount_openapi as _mount_openapi
 from tigrbl_concrete.system import mount_openrpc as _mount_openrpc
 from tigrbl_concrete.system import mount_swagger as _mount_swagger
+from tigrbl_concrete.system import build_asyncapi_spec as _build_asyncapi_spec
+from tigrbl_concrete.system import build_json_schema_spec as _build_json_schema_spec
 from tigrbl_concrete.system import build_openrpc_spec as _build_openrpc_spec
 from tigrbl_concrete.system.docs import build_openapi as _build_openapi
 from ._op_registry import get_registry
@@ -237,6 +241,8 @@ class TigrblApp(_App):
             _mount_swagger(self, path="/docs")
             self.attach_diagnostics(prefix=self.system_prefix)
             self.mount_openrpc(path="/openrpc.json")
+            self.mount_asyncapi(path="/asyncapi.json")
+            self.mount_json_schema(path="/json-schema.json")
             self.mount_lens(path="/lens", spec_path="/openrpc.json")
         if routers:
             initial_routers.extend(list(routers))
@@ -834,9 +840,35 @@ class TigrblApp(_App):
         """Mount an OpenRPC JSON endpoint onto this instance."""
         return _mount_openrpc(self, path=path, name=name, tags=tags)
 
+    def mount_asyncapi(
+        self,
+        *,
+        path: str = "/asyncapi.json",
+        name: str = "asyncapi_json",
+    ) -> Any:
+        """Mount an AsyncAPI-styled docs endpoint onto this instance."""
+        return _mount_asyncapi(self, path=path, name=name)
+
+    def mount_json_schema(
+        self,
+        *,
+        path: str = "/json-schema.json",
+        name: str = "json_schema",
+    ) -> Any:
+        """Mount a JSON Schema-styled docs endpoint onto this instance."""
+        return _mount_json_schema(self, path=path, name=name)
+
     def openrpc(self) -> Dict[str, Any]:
         """Build and return the OpenRPC document for this app."""
         return _build_openrpc_spec(self)
+
+    def asyncapi(self) -> Dict[str, Any]:
+        """Build and return the AsyncAPI-styled document for this app."""
+        return _build_asyncapi_spec(self)
+
+    def json_schema(self) -> Dict[str, Any]:
+        """Build and return the JSON Schema-styled document for this app."""
+        return _build_json_schema_spec(self)
 
     def openapi(self) -> Dict[str, Any]:
         """Build and return the OpenAPI document for this app."""
