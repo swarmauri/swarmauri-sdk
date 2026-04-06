@@ -1,9 +1,23 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from tigrbl_concrete._concrete._response import Response
 from tigrbl_concrete.system.docs.runtime_ops import register_runtime_get_route
+
+_DOCS_DIR = Path(__file__).resolve().parent
+_SWAGGER_ASSETS = {
+    "swagger-ui.css": ("text/css; charset=utf-8", _DOCS_DIR / "swagger-ui.css"),
+    "swagger-ui-bundle.js": (
+        "application/javascript; charset=utf-8",
+        _DOCS_DIR / "swagger-ui-bundle.js",
+    ),
+    "swagger-ui-standalone-preset.js": (
+        "application/javascript; charset=utf-8",
+        _DOCS_DIR / "swagger-ui-standalone-preset.js",
+    ),
+}
 
 
 def _resolve_docs_owner(target: Any) -> Any:
@@ -19,15 +33,15 @@ def build_swagger_html(router: Any, request: Any) -> str:
     openapi_path = getattr(docs_owner, "openapi_url", "/openapi.json")
     openapi_url = openapi_path if openapi_path.startswith("/") else f"/{openapi_path}"
     spec_url = f"{base}{openapi_url}"
-    version = getattr(docs_owner, "swagger_ui_version", "5.31.0")
     title = getattr(docs_owner, "title", getattr(router, "title", "API"))
+    assets_path = "/system/docs/assets"
     return f"""<!doctype html>
 <html>
   <head>
     <meta charset=\"utf-8\" />
     <title>{title} — API Docs</title>
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
-    <link rel=\"stylesheet\" href=\"https://unpkg.com/swagger-ui-dist@{version}/swagger-ui.css\" />
+    <link rel=\"stylesheet\" href=\"{assets_path}/swagger-ui.css\" />
     <style>
       .swagger-ui .topbar {{
         display: none;
@@ -35,9 +49,15 @@ def build_swagger_html(router: Any, request: Any) -> str:
     </style>
   </head>
   <body>
+    <header style="font-family: sans-serif; padding: 16px 24px 8px;">
+      <h1 style="margin: 0 0 6px;">{title} — Swagger UI</h1>
+      <p style="margin: 0; color: #666;">
+        If interactive docs do not load, fetch the OpenAPI spec at <code>{spec_url}</code>.
+      </p>
+    </header>
     <div id=\"swagger-ui\"></div>
-    <script src=\"https://unpkg.com/swagger-ui-dist@{version}/swagger-ui-bundle.js\"></script>
-    <script src=\"https://unpkg.com/swagger-ui-dist@{version}/swagger-ui-standalone-preset.js\"></script>
+    <script src=\"{assets_path}/swagger-ui-bundle.js\"></script>
+    <script src=\"{assets_path}/swagger-ui-standalone-preset.js\"></script>
     <script>
       window.onload = function () {{
         window.ui = SwaggerUIBundle({{
@@ -54,6 +74,19 @@ def build_swagger_html(router: Any, request: Any) -> str:
   </body>
 </html>
 """
+
+
+def _serve_swagger_asset(asset_name: str) -> Response:
+    media_type, file_path = _SWAGGER_ASSETS[asset_name]
+    payload = file_path.read_bytes()
+    return Response(body=payload, media_type=media_type)
+
+
+def _build_asset_endpoint(asset_name: str):
+    def _endpoint(_request: Any) -> Response:
+        return _serve_swagger_asset(asset_name)
+
+    return _endpoint
 
 
 def mount_swagger(
@@ -81,6 +114,23 @@ def mount_swagger(
         name=name,
         include_in_schema=False,
     )
+
+    for asset_name in _SWAGGER_ASSETS:
+        endpoint = _build_asset_endpoint(asset_name)
+        asset_path = f"/system/docs/assets/{asset_name}"
+        register_runtime_get_route(
+            router,
+            path=asset_path,
+            alias=f"__docs_asset_{asset_name.replace('.', '_')}__",
+            endpoint=endpoint,
+        )
+        router.add_route(
+            asset_path,
+            endpoint,
+            methods=["GET"],
+            name=f"__docs_asset_{asset_name.replace('.', '_')}__",
+            include_in_schema=False,
+        )
     return router
 
 
