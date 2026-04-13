@@ -1,0 +1,26 @@
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project]
+name = "tigr"
+version = "0.1.0"
+description = "Experimental placeholder package for future Tigr APIs"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["tigr", "placeholder", "experimental"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.9.9",
+]

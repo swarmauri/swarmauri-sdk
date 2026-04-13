@@ -167,6 +167,7 @@ members = [
     "experimental/swarmauri_tests_pylicense",
     "experimental/swarmauri_tests_readme_examples",
     "experimental/swarmauri_workflow_statedriven",
+    "experimental/tigr",
     "experimental/tigrbl_acme_ca",
     "experimental/tigrbl_engine_bigquery",
     "experimental/tigrbl_engine_clickhouse",
@@ -681,6 +682,7 @@ swarmauri_xmp_webp = { workspace = true }
 swm_example_package = { workspace = true }
 swm_example_plugin = { workspace = true }
 swm_example_community_package = { workspace = true }
+tigr = { workspace = true }
 tigrbl = { workspace = true }
 "tigrbl-atoms" = { workspace = true }
 "tigrbl-base" = { workspace = true }
