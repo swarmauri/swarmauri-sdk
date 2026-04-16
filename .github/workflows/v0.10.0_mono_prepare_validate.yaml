@@ -69,29 +69,15 @@ jobs:
               and os.path.basename(member).startswith("swarmauri_")
           ]
           remaining = [member for member in remaining if member not in third_batch]
-          fourth_batch = [
-              member
-              for member in remaining
-              if os.path.basename(member).startswith("tigrbl")
-          ]
+          fourth_batch = [member for member in remaining if not member.startswith("experimental/")]
           remaining = [member for member in remaining if member not in fourth_batch]
-          fifth_batch = [
-              member
-              for member in remaining
-              if os.path.basename(member).startswith("peagen")
-          ]
-          remaining = [member for member in remaining if member not in fifth_batch]
-          sixth_batch = [member for member in remaining if not member.startswith("experimental/")]
-          remaining = [member for member in remaining if member not in sixth_batch]
-          seventh_batch = remaining
+          fifth_batch = remaining
           named_batches = [
               ("Foundational packages", first_batch),
               ("Swarmauri standards", second_batch),
               ("Swarmauri community", third_batch),
-              ("Tigrbl packages", fourth_batch),
-              ("Peagen packages", fifth_batch),
-              ("General packages", sixth_batch),
-              ("Experimental packages", seventh_batch),
+              ("General packages", fourth_batch),
+              ("Experimental packages", fifth_batch),
           ]
           chunks = []
           batch_size = 50

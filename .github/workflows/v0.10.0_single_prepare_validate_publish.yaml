@@ -19,8 +19,8 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write       # push commits/tags, create releases
-  deployments: write    # environment approval gates
+  contents: write
+  deployments: write
 
 jobs:
   package-info:
@@ -214,12 +214,11 @@ jobs:
             echo "::notice::No changes to commit."
           fi
 
-  # Environment-gated approval for publishing NEW packages
   pypi_approval_gate:
     needs: [test, commit, package-info]
     if: ${{ !cancelled() && needs.test.result == 'success' && needs.commit.result == 'success' && needs.package-info.outputs.requires_approval == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15   # up to 15 minutes for manual approval
+    timeout-minutes: 15
     environment:
       name: pypi-new-package-approval
       url: https://pypi.org/project/${{ needs.package-info.outputs.package_name }}/
@@ -231,7 +230,6 @@ jobs:
   release:
     needs: [commit, package-info, pypi_approval_gate]
     runs-on: ubuntu-latest
-    # Proceed only if commit succeeded AND (no approval required OR gate succeeded)
     if: ${{ !cancelled() && needs.commit.result == 'success' && (needs.package-info.outputs.requires_approval != 'true' || needs.pypi_approval_gate.result == 'success') }}
     steps:
       - name: Checkout code
@@ -248,7 +246,6 @@ jobs:
       - name: Install build tooling
         run: pip install uv pytest toml
 
-      # Build
       - name: Build
         run: |
           cd pkgs
@@ -257,7 +254,6 @@ jobs:
           echo "::notice::Building: $PACKAGE_NAME ($MEMBER)"
           uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
 
-      # Publish
       - name: Publish
         run: |
           cd pkgs
@@ -266,7 +262,6 @@ jobs:
           echo "::notice::Publishing: $PACKAGE_NAME ($MEMBER)"
           uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
 
-      # Release Steps
       - name: Prepare release variables
         id: prepare_release
         run: |
@@ -293,7 +288,6 @@ jobs:
           PREVIOUS_TAG=$(git tag --list "${{ steps.prepare_release.outputs.package_name }}==*" --sort=-v:refname | grep -v "^${CURRENT_TAG}$" | head -n1)
           echo "::notice::Previous tag: ${PREVIOUS_TAG:-<none>}"
           if [ -n "$PREVIOUS_TAG" ]; then
-            # Changes affecting this member since the previous tag
             RELEASE_NOTES=$(git log "${PREVIOUS_TAG}..HEAD" -- . --pretty=format:"* %s" --reverse)
           else
             RELEASE_NOTES="Initial release."
@@ -327,4 +321,3 @@ jobs:
           prerelease: ${{ steps.prepare_release.outputs.prerelease }}
           files: |
             pkgs/${{ github.event.inputs.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
-

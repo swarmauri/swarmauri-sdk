@@ -15,7 +15,6 @@ jobs:
   test:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    # We'll continue on error to ensure we capture all issues and still produce patches/artifacts
     continue-on-error: true
     steps:
       - name: Checkout code
@@ -69,7 +68,6 @@ jobs:
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
           echo "::notice::Package name: $PACKAGE_NAME"
 
-          # We run tests; if they fail, let's output an annotation (but we don't stop the workflow).
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
 
       - name: Create patch for changes
@@ -157,5 +155,3 @@ jobs:
           else
             echo "::notice::No changes to commit."
           fi
-
-

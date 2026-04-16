@@ -8,13 +8,10 @@ jobs:
   license-scan:
     runs-on: ubuntu-latest
     steps:
-      # Step: Check out repository
       - uses: actions/checkout@v4
 
-      # Step: Install uv
       - uses: astral-sh/setup-uv@v3
 
-      # Step: Run license scan
       - name: Run license scan
         id: scan
         continue-on-error: true
@@ -22,14 +19,12 @@ jobs:
           set -o pipefail
           ./scripts/license_scan.py | tee license_report.log
 
-      # Step: Upload license report
       - name: Upload license report
         uses: actions/upload-artifact@v4
         with:
           name: license-report
           path: license_report.log
 
-      # Step: Summarize and annotate
       - name: Summarize and annotate
         if: always()
         run: |
@@ -47,5 +42,3 @@ jobs:
             exit 1
           fi
         shell: bash
-
-

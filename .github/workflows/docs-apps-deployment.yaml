@@ -17,7 +17,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Provide the runner's UID/GID to Compose (consumed by infra/docs/.env)
       - name: Export runner UID/GID for Compose
         working-directory: infra/docs
         run: |
@@ -30,4 +29,4 @@ jobs:
           sudo docker system prune -f
           sudo docker compose -f docker-compose.yaml \
             up -d --build --force-recreate --no-deps \
-            swarmauri-sdk-docs peagen-docs tigrbl-docs
+            swarmauri-sdk-docs
