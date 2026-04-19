@@ -164,6 +164,7 @@ members = [
     "experimental/swarmauri_crypto_sodium",
     # "experimental/swarmauri_experimental",
     "experimental/swarmauri_keyprovider_pkcs11",
+    "experimental/swarmauri_middleware_tracetiming",
     "experimental/swarmauri_tests_loc_tersity",
     "experimental/swarmauri_tests_pylicense",
     "experimental/swarmauri_tests_readme_examples",

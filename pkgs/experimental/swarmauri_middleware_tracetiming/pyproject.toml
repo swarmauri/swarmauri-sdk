@@ -1,0 +1,58 @@
+[project]
+name = "swarmauri_middleware_tracetiming"
+version = "0.1.0.dev0"
+description = "Swarmauri middleware for W3C trace context propagation and Server-Timing response metrics."
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{name = "Jacob Stewart", email = "jacob@swarmauri.com"}]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+]
+keywords = [
+    "swarmauri",
+    "middleware",
+    "observability",
+    "server-timing",
+    "trace-context",
+    "asgi",
+]
+
+[tool.uv.sources]
+swarmauri_core = {workspace = true}
+swarmauri_base = {workspace = true}
+
+[tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts"]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.9.9",
+    "fastapi",
+    "starlette",
+]
+
+[project.entry-points.'swarmauri.middlewares']
+TraceTimingMiddleware = "swarmauri_middleware_tracetiming:TraceTimingMiddleware"
