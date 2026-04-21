@@ -40,3 +40,5 @@ node_modules/
 *.zip
 .pymon
 /.tmp_pydeps
+/.tmp/
+.tmp*
