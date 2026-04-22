@@ -398,7 +398,6 @@ EmbedXMP = { workspace = true }
 # layout-engine = { workspace = true }
 # layout-engine-atoms = { workspace = true }
 MediaSigner = { workspace = true }
-peagen = { workspace = true }
 peagen_templset_vue = { workspace = true }
 ptree_dag_extension_example = { workspace = true }
 # QueryEngine = { workspace = true }
