@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "monotone-ops"
-version = "0.1.0"
+version = "0.1.1.dev1"
 description = "Research-oriented monotone operator catalog for deterministic aggregation, CRDTs, fixpoints, and algebraic dataflow."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
