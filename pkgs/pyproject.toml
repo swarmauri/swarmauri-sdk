@@ -152,6 +152,7 @@ members = [
     # "experimental/jz",
     # "experimental/layout_engine",
     # "experimental/layout_engine_atoms",
+    "experimental/monotone_ops",
     "experimental/ptree_dag_extension_example",
     # "experimental/RapidSimilarity/DistanceMetrics",
     # "experimental/RapidSimilarity/IndexBuilder",
@@ -397,6 +398,7 @@ EmbedXMP = { workspace = true }
 # jz = { workspace = true }
 # layout-engine = { workspace = true }
 # layout-engine-atoms = { workspace = true }
+"monotone-ops" = { workspace = true }
 MediaSigner = { workspace = true }
 peagen_templset_vue = { workspace = true }
 ptree_dag_extension_example = { workspace = true }
