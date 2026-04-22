@@ -126,6 +126,7 @@ members = [
     "community/swarmauri_vectorstore_annoy",
     "community/swarmauri_vectorstore_cloudweaviate",
     "community/swarmauri_vectorstore_duckdb",
+    "community/swarmauri_vectorstore_fs",
     "community/swarmauri_vectorstore_git",
     "community/swarmauri_vectorstore_mlm",
     "community/swarmauri_vectorstore_neo4j",
@@ -667,6 +668,7 @@ swarmauri_vectorstore_annoy = { workspace = true }
 swarmauri_vectorstore_cloudweaviate = { workspace = true }
 swarmauri_vectorstore_doc2vec = { workspace = true }
 swarmauri_vectorstore_duckdb = { workspace = true }
+swarmauri_vectorstore_fs = { workspace = true }
 swarmauri_vectorstore_git = { workspace = true }
 swarmauri_vectorstore_mlm = { workspace = true }
 swarmauri_vectorstore_neo4j = { workspace = true }
