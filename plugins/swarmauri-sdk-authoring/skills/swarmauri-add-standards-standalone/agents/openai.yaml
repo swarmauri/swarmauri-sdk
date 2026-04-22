@@ -1,0 +1,4 @@
+interface:
+  display_name: "Swarmauri Standards Package"
+  short_description: "Add first-class standards packages."
+  default_prompt: "Use $swarmauri-add-standards-standalone to add a first-class standards package."

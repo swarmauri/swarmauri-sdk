@@ -1,0 +1,4 @@
+interface:
+  display_name: "Swarmauri Core Interface"
+  short_description: "Add swarmauri_core interfaces and exports."
+  default_prompt: "Use $swarmauri-add-core-interface to add a new Swarmauri core interface."

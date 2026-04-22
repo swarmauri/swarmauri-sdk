@@ -1,0 +1,4 @@
+interface:
+  display_name: "Swarmauri Base Mixin"
+  short_description: "Add swarmauri_base mixins safely."
+  default_prompt: "Use $swarmauri-add-base-mixin to add a Swarmauri base mixin."

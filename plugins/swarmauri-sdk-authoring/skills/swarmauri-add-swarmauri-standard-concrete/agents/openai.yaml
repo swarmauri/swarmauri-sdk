@@ -1,0 +1,4 @@
+interface:
+  display_name: "Swarmauri Standard Concrete"
+  short_description: "Add concretes inside swarmauri_standard."
+  default_prompt: "Use $swarmauri-add-swarmauri-standard-concrete to add a standard concrete component."

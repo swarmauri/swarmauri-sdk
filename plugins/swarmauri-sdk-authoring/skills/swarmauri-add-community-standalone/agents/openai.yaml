@@ -1,0 +1,4 @@
+interface:
+  display_name: "Swarmauri Community Package"
+  short_description: "Add second-class community packages."
+  default_prompt: "Use $swarmauri-add-community-standalone to add a community package."
