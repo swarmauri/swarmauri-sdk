@@ -1,0 +1,30 @@
+name: v0.10.0-Entity-Manifest
+
+on:
+  pull_request:
+    paths:
+      - "pkgs/**"
+      - "entity_specs/**"
+      - "scripts/generate_entity_manifest.py"
+      - "scripts/generate_entities.py"
+      - ".github/workflows/v0.10.0_entity-manifest.yaml"
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile entity manifest generator
+        run: |
+          python -m py_compile scripts/generate_entity_manifest.py
+          python -m py_compile scripts/generate_entities.py
+      - name: Check entity manifest drift
+        run: python scripts/generate_entity_manifest.py check
+      - name: Validate entity manifest and source specs
+        run: python scripts/generate_entity_manifest.py validate
+      - name: Check source-spec Python generation
+        run: python scripts/generate_entities.py check
