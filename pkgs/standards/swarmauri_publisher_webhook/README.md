@@ -1,8 +1,8 @@
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_publisher_webhook/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri_publisher_webhook" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_publisher_webhook/">
+        <img src="https://static.pepy.tech/badge/swarmauri_publisher_webhook/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_publisher_webhook/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_publisher_webhook.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_publisher_webhook/">

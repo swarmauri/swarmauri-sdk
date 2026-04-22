@@ -2,8 +2,8 @@
 
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_keyprovider_inmemory/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri_keyprovider_inmemory" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_keyprovider_inmemory/">
+        <img src="https://static.pepy.tech/badge/swarmauri_keyprovider_inmemory/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_inmemory/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_inmemory.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_inmemory/">

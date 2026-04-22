@@ -2,8 +2,8 @@
 
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_tokens_paseto_v4/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri_tokens_paseto_v4" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_tokens_paseto_v4/">
+        <img src="https://static.pepy.tech/badge/swarmauri_tokens_paseto_v4/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_paseto_v4/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_paseto_v4.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_paseto_v4/">

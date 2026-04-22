@@ -2,7 +2,7 @@
 
 # tigrbl-base
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/tigrbl-base.svg) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-base.svg) ![License](https://img.shields.io/pypi/l/tigrbl-base.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-base.svg)
+![PyPI - Downloads](https://static.pepy.tech/badge/tigrbl-base/month) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-base.svg) ![License](https://img.shields.io/pypi/l/tigrbl-base.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-base.svg)
 
 ## Features
 

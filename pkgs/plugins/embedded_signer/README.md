@@ -5,7 +5,7 @@
 <h1 align="center">EmbeddedSigner</h1>
 
 <p align="center">
-  <a href="https://img.shields.io/pypi/dm/EmbeddedSigner?style=for-the-badge"><img src="https://img.shields.io/pypi/dm/EmbeddedSigner?style=for-the-badge" alt="PyPI - Downloads" /></a>
+  <a href="https://pepy.tech/project/EmbeddedSigner/"><img src="https://static.pepy.tech/badge/EmbeddedSigner/month" alt="PyPI - Downloads" /></a>
   <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/embedded_signer/"><img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/embedded_signer.svg?style=for-the-badge" alt="Repo views" /></a>
   <a href="https://img.shields.io/pypi/pyversions/EmbeddedSigner?style=for-the-badge"><img src="https://img.shields.io/pypi/pyversions/EmbeddedSigner?style=for-the-badge" alt="Supported Python versions" /></a>
   <a href="https://img.shields.io/pypi/l/EmbeddedSigner?style=for-the-badge"><img src="https://img.shields.io/pypi/l/EmbeddedSigner?style=for-the-badge" alt="License" /></a>

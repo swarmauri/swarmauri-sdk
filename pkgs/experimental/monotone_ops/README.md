@@ -4,8 +4,8 @@
     <a href="https://pypi.org/project/monotone-ops/">
         <img src="https://img.shields.io/pypi/v/monotone-ops?label=monotone-ops&color=green" alt="PyPI - monotone-ops"/>
     </a>
-    <a href="https://pypi.org/project/monotone-ops/">
-        <img src="https://img.shields.io/pypi/dm/monotone-ops" alt="PyPI - Downloads"/>
+    <a href="https://pepy.tech/project/monotone-ops/">
+        <img src="https://static.pepy.tech/badge/monotone-ops/month" alt="PyPI - Downloads"/>
     </a>
     <a href="https://pypi.org/project/monotone-ops/">
         <img src="https://img.shields.io/pypi/pyversions/monotone-ops" alt="PyPI - Python Version"/>

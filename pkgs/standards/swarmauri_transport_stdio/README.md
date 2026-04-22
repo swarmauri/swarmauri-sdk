@@ -1,8 +1,8 @@
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri-transport-stdio/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri-transport-stdio" alt="PyPI - Downloads"/>
+    <a href="https://pepy.tech/project/swarmauri-transport-stdio/">
+        <img src="https://static.pepy.tech/badge/swarmauri-transport-stdio/month" alt="PyPI - Downloads"/>
     </a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri_transport_stdio/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri_transport_stdio.svg"/>

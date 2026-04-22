@@ -1,8 +1,8 @@
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_signing_dpop/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri_signing_dpop" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_signing_dpop/">
+        <img src="https://static.pepy.tech/badge/swarmauri_signing_dpop/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_dpop/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_dpop.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_dpop/">

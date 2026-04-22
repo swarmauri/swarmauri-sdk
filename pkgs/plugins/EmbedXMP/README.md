@@ -5,7 +5,7 @@
 <h1 align="center">EmbedXMP</h1>
 
 <p align="center">
-  <a href="https://pypi.org/project/EmbedXMP/"><img src="https://img.shields.io/pypi/dm/EmbedXMP?style=for-the-badge" alt="PyPI - Downloads" /></a>
+  <a href="https://pepy.tech/project/EmbedXMP/"><img src="https://static.pepy.tech/badge/EmbedXMP/month" alt="PyPI - Downloads" /></a>
   <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/EmbedXMP/"><img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/EmbedXMP.svg?style=for-the-badge" alt="Repository views" /></a>
   <a href="https://pypi.org/project/EmbedXMP/"><img src="https://img.shields.io/pypi/pyversions/EmbedXMP?style=for-the-badge" alt="Supported Python versions" /></a>
   <a href="https://pypi.org/project/EmbedXMP/"><img src="https://img.shields.io/pypi/l/EmbedXMP?style=for-the-badge" alt="License" /></a>

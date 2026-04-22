@@ -2,8 +2,8 @@
 
 <p align="center">
 
-<a href="https://pypi.org/project/swarmauri-core/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri-core" alt="PyPI - Downloads"/></a>
+<a href="https://pepy.tech/project/swarmauri-core/">
+        <img src="https://static.pepy.tech/badge/swarmauri-core/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/core/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/core.svg"/></a>
         <img src="https://img.shields.io/pypi/pyversions/swarmauri-core" alt="PyPI - Python Version"/></a>

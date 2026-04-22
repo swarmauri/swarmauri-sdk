@@ -2,8 +2,8 @@
 
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_keyproviders_mirrored/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri_keyproviders_mirrored" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_keyproviders_mirrored/">
+        <img src="https://static.pepy.tech/badge/swarmauri_keyproviders_mirrored/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyproviders_mirrored/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyproviders_mirrored.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_keyproviders_mirrored/">

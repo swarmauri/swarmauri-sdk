@@ -1,8 +1,8 @@
 # QueryEngine
 
 <p align="center">
-    <a href="https://pypi.org/project/QueryEngine/">
-        <img src="https://img.shields.io/pypi/dm/QueryEngine" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/QueryEngine/">
+        <img src="https://static.pepy.tech/badge/QueryEngine/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/RapidSimilarity/QueryEngine/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/RapidSimilarity/QueryEngine.svg"/></a>
     <a href="https://pypi.org/project/QueryEngine/">

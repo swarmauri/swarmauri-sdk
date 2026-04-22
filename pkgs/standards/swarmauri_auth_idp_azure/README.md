@@ -1,8 +1,8 @@
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/master/assets/swarmauri_brand_frag_light.png)
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_auth_idp_azure/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri_auth_idp_azure" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_auth_idp_azure/">
+        <img src="https://static.pepy.tech/badge/swarmauri_auth_idp_azure/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_auth_idp_azure/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_auth_idp_azure.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_azure/">

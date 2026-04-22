@@ -2,8 +2,8 @@
 
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_certs_pkcs11/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri_certs_pkcs11" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_certs_pkcs11/">
+        <img src="https://static.pepy.tech/badge/swarmauri_certs_pkcs11/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_certs_pkcs11/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_certs_pkcs11.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_pkcs11/">

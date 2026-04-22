@@ -2,8 +2,8 @@
 
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_xmp_jpeg/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri_xmp_jpeg" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_xmp_jpeg/">
+        <img src="https://static.pepy.tech/badge/swarmauri_xmp_jpeg/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_xmp_jpeg/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_xmp_jpeg.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_xmp_jpeg/">

@@ -1,8 +1,8 @@
 ![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl_full_logo.png)
 
 <p align="center">
-    <a href="https://pypi.org/project/tigrbl_auth/">
-        <img src="https://img.shields.io/pypi/dm/tigrbl_auth" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/tigrbl_auth/">
+        <img src="https://static.pepy.tech/badge/tigrbl_auth/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl_auth/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl_auth.svg"/></a>
     <a href="https://pypi.org/project/tigrbl_auth/">

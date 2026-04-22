@@ -2,8 +2,8 @@
 
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_signing_secp256k1/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri_signing_secp256k1" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_signing_secp256k1/">
+        <img src="https://static.pepy.tech/badge/swarmauri_signing_secp256k1/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_secp256k1/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_secp256k1.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_secp256k1/">

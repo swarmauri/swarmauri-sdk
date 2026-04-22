@@ -4,8 +4,8 @@
     <a href="https://pypi.org/project/mto/">
         <img src="https://img.shields.io/pypi/v/mto?label=mto&color=green" alt="PyPI - mto"/>
     </a>
-    <a href="https://pypi.org/project/mto/">
-        <img src="https://img.shields.io/pypi/dm/mto" alt="PyPI - Downloads"/>
+    <a href="https://pepy.tech/project/mto/">
+        <img src="https://static.pepy.tech/badge/mto/month" alt="PyPI - Downloads"/>
     </a>
     <a href="https://pypi.org/project/mto/">
         <img src="https://img.shields.io/pypi/pyversions/mto" alt="PyPI - Python Version"/>

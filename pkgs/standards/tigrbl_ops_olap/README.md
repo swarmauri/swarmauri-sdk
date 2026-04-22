@@ -2,7 +2,7 @@
 
 # tigrbl-ops-olap
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/tigrbl-ops-olap.svg) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-ops-olap.svg) ![License](https://img.shields.io/pypi/l/tigrbl-ops-olap.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-ops-olap.svg)
+![PyPI - Downloads](https://static.pepy.tech/badge/tigrbl-ops-olap/month) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-ops-olap.svg) ![License](https://img.shields.io/pypi/l/tigrbl-ops-olap.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-ops-olap.svg)
 
 ## Features
 

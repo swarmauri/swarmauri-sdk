@@ -4,8 +4,8 @@
     <a href="https://pypi.org/project/tigrbl_client/">
         <img src="https://img.shields.io/pypi/v/tigrbl_client?label=tigrbl_client&color=green" alt="PyPI - tigrbl_client"/>
     </a>
-    <a href="https://pypi.org/project/tigrbl_client/">
-        <img src="https://img.shields.io/pypi/dm/tigrbl_client" alt="PyPI - Downloads"/>
+    <a href="https://pepy.tech/project/tigrbl_client/">
+        <img src="https://static.pepy.tech/badge/tigrbl_client/month" alt="PyPI - Downloads"/>
     </a>
     <a href="https://pypi.org/project/tigrbl_client/">
         <img src="https://img.shields.io/pypi/pyversions/tigrbl_client" alt="PyPI - Python Version"/>

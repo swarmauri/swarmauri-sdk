@@ -2,7 +2,7 @@
 
 # tigrbl-canon
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/tigrbl-canon.svg) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-canon.svg) ![License](https://img.shields.io/pypi/l/tigrbl-canon.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-canon.svg)
+![PyPI - Downloads](https://static.pepy.tech/badge/tigrbl-canon/month) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-canon.svg) ![License](https://img.shields.io/pypi/l/tigrbl-canon.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-canon.svg)
 
 ## Features
 

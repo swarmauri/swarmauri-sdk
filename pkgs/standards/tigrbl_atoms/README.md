@@ -2,7 +2,7 @@
 
 # tigrbl-atoms
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/tigrbl-atoms.svg) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-atoms.svg) ![License](https://img.shields.io/pypi/l/tigrbl-atoms.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-atoms.svg)
+![PyPI - Downloads](https://static.pepy.tech/badge/tigrbl-atoms/month) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-atoms.svg) ![License](https://img.shields.io/pypi/l/tigrbl-atoms.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-atoms.svg)
 
 ## Features
 

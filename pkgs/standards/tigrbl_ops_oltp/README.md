@@ -2,7 +2,7 @@
 
 # tigrbl-ops-oltp
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/tigrbl-ops-oltp.svg) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-ops-oltp.svg) ![License](https://img.shields.io/pypi/l/tigrbl-ops-oltp.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-ops-oltp.svg)
+![PyPI - Downloads](https://static.pepy.tech/badge/tigrbl-ops-oltp/month) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-ops-oltp.svg) ![License](https://img.shields.io/pypi/l/tigrbl-ops-oltp.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-ops-oltp.svg)
 
 ## Features
 

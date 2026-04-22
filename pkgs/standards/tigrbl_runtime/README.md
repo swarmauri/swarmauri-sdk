@@ -2,7 +2,7 @@
 
 # tigrbl-runtime
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/tigrbl-runtime.svg) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-runtime.svg) ![License](https://img.shields.io/pypi/l/tigrbl-runtime.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-runtime.svg)
+![PyPI - Downloads](https://static.pepy.tech/badge/tigrbl-runtime/month) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-runtime.svg) ![License](https://img.shields.io/pypi/l/tigrbl-runtime.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-runtime.svg)
 
 ## Features
 

@@ -2,7 +2,7 @@
 
 # tigrbl-concrete
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/tigrbl-concrete.svg) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-concrete.svg) ![License](https://img.shields.io/pypi/l/tigrbl-concrete.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-concrete.svg)
+![PyPI - Downloads](https://static.pepy.tech/badge/tigrbl-concrete/month) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-concrete.svg) ![License](https://img.shields.io/pypi/l/tigrbl-concrete.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-concrete.svg)
 
 ## Features
 

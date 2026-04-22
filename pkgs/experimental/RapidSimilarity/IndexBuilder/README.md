@@ -1,8 +1,8 @@
 # IndexBuilder
 
 <p align="center">
-    <a href="https://pypi.org/project/IndexBuilder/">
-        <img src="https://img.shields.io/pypi/dm/IndexBuilder" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/IndexBuilder/">
+        <img src="https://static.pepy.tech/badge/IndexBuilder/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/RapidSimilarity/IndexBuilder/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/RapidSimilarity/IndexBuilder.svg"/></a>
     <a href="https://pypi.org/project/IndexBuilder/">

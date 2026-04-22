@@ -2,7 +2,7 @@
 
 # tigrbl-typing
 
-![PyPI - Downloads](https://img.shields.io/pypi/dm/tigrbl-typing.svg) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-typing.svg) ![License](https://img.shields.io/pypi/l/tigrbl-typing.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-typing.svg)
+![PyPI - Downloads](https://static.pepy.tech/badge/tigrbl-typing/month) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-typing.svg) ![License](https://img.shields.io/pypi/l/tigrbl-typing.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-typing.svg)
 
 ## Features
 

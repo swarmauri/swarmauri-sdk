@@ -4,8 +4,8 @@
     <a href="https://pypi.org/project/tigrbl_engine_xlsx/">
         <img src="https://img.shields.io/pypi/v/tigrbl_engine_xlsx?label=tigrbl_engine_xlsx&color=green" alt="PyPI - tigrbl_engine_xlsx"/>
     </a>
-    <a href="https://pypi.org/project/tigrbl_engine_xlsx/">
-        <img src="https://img.shields.io/pypi/dm/tigrbl_engine_xlsx" alt="PyPI - Downloads"/>
+    <a href="https://pepy.tech/project/tigrbl_engine_xlsx/">
+        <img src="https://static.pepy.tech/badge/tigrbl_engine_xlsx/month" alt="PyPI - Downloads"/>
     </a>
     <a href="https://pypi.org/project/tigrbl_engine_xlsx/">
         <img src="https://img.shields.io/pypi/pyversions/tigrbl_engine_xlsx" alt="PyPI - Python Version"/>

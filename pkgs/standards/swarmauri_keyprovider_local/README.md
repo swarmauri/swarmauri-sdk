@@ -1,7 +1,7 @@
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_keyprovider_local/"><img src="https://img.shields.io/pypi/dm/swarmauri_keyprovider_local" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_keyprovider_local/"><img src="https://static.pepy.tech/badge/swarmauri_keyprovider_local/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_local/"><img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_local.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_local/"><img src="https://img.shields.io/pypi/pyversions/swarmauri_keyprovider_local" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_local/"><img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_local" alt="PyPI - License"/></a>

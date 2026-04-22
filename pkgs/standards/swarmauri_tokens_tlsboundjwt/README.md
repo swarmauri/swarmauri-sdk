@@ -2,8 +2,8 @@
 
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_tokens_tlsboundjwt/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri_tokens_tlsboundjwt" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_tokens_tlsboundjwt/">
+        <img src="https://static.pepy.tech/badge/swarmauri_tokens_tlsboundjwt/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_tlsboundjwt/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_tlsboundjwt.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_tlsboundjwt/">

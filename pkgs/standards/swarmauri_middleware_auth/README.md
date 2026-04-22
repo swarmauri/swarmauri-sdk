@@ -1,8 +1,8 @@
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_middleware_auth/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri_middleware_auth" alt="PyPI - Downloads"/>
+    <a href="https://pepy.tech/project/swarmauri_middleware_auth/">
+        <img src="https://static.pepy.tech/badge/swarmauri_middleware_auth/month" alt="PyPI - Downloads"/>
     </a>
     <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/pkgs/swarmauri_middleware_auth">
         <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/pkgs/swarmauri_middleware_auth&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/>

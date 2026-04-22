@@ -2,8 +2,8 @@
 
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_middleware_jwksverifier/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri_middleware_jwksverifier" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_middleware_jwksverifier/">
+        <img src="https://static.pepy.tech/badge/swarmauri_middleware_jwksverifier/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_jwksverifier/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_jwksverifier.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_jwksverifier/">

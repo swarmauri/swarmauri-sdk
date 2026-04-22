@@ -1,8 +1,8 @@
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/master/assets/swarmauri_brand_frag_light.png)
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_auth_idp_okta/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri_auth_idp_okta" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_auth_idp_okta/">
+        <img src="https://static.pepy.tech/badge/swarmauri_auth_idp_okta/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_auth_idp_okta/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_auth_idp_okta.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_okta/">
