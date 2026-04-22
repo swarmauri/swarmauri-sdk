@@ -66,7 +66,10 @@ def transpose(grid: Grid[T]) -> tuple[tuple[T, ...], ...]:
 
 
 def max_dilate(grid: Grid[Number], offsets: Sequence[tuple[int, int]]) -> tuple[tuple[Number, ...], ...]:
-    """Grey-scale dilation: each cell becomes the max over shifted neighbors."""
+    """Grey-scale dilation over clipped shifted neighbors.
+
+    Cells whose clipped neighborhood is empty keep their original value.
+    """
 
     rows, cols = _shape(grid)
     if not offsets:
@@ -76,13 +79,16 @@ def max_dilate(grid: Grid[Number], offsets: Sequence[tuple[int, int]]) -> tuple[
         row: list[Number] = []
         for c in range(cols):
             vals = [grid[r + dr][c + dc] for dr, dc in offsets if 0 <= r + dr < rows and 0 <= c + dc < cols]
-            row.append(max(vals))
+            row.append(max(vals) if vals else grid[r][c])
         out.append(row)
     return tuple(tuple(row) for row in out)
 
 
 def min_erode(grid: Grid[Number], offsets: Sequence[tuple[int, int]]) -> tuple[tuple[Number, ...], ...]:
-    """Grey-scale erosion: each cell becomes the min over shifted neighbors."""
+    """Grey-scale erosion over clipped shifted neighbors.
+
+    Cells whose clipped neighborhood is empty keep their original value.
+    """
 
     rows, cols = _shape(grid)
     if not offsets:
@@ -92,7 +98,7 @@ def min_erode(grid: Grid[Number], offsets: Sequence[tuple[int, int]]) -> tuple[t
         row: list[Number] = []
         for c in range(cols):
             vals = [grid[r + dr][c + dc] for dr, dc in offsets if 0 <= r + dr < rows and 0 <= c + dc < cols]
-            row.append(min(vals))
+            row.append(min(vals) if vals else grid[r][c])
         out.append(row)
     return tuple(tuple(row) for row in out)
 
