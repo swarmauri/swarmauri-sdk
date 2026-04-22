@@ -13,23 +13,37 @@ def _identity(x: T) -> T:
 
 
 def argmax_by(key: Callable[[T], Any], tie_key: Callable[[T], Any] | None = None) -> Callable[[T, T], T]:
-    """Return an idempotent selector for the maximum ``(key, tie_key)`` tuple."""
+    """Return an idempotent selector for the maximum key.
 
-    tie = tie_key or _identity
+    When ``tie_key`` is omitted, equal primary keys keep the first argument.
+    """
 
     def merge(a: T, b: T) -> T:
-        return a if (key(a), tie(a)) >= (key(b), tie(b)) else b
+        ka = key(a)
+        kb = key(b)
+        if ka != kb:
+            return a if ka > kb else b
+        if tie_key is None:
+            return a
+        return a if tie_key(a) >= tie_key(b) else b
 
     return merge
 
 
 def argmin_by(key: Callable[[T], Any], tie_key: Callable[[T], Any] | None = None) -> Callable[[T, T], T]:
-    """Return an idempotent selector for the minimum ``(key, tie_key)`` tuple."""
+    """Return an idempotent selector for the minimum key.
 
-    tie = tie_key or _identity
+    When ``tie_key`` is omitted, equal primary keys keep the first argument.
+    """
 
     def merge(a: T, b: T) -> T:
-        return a if (key(a), tie(a)) <= (key(b), tie(b)) else b
+        ka = key(a)
+        kb = key(b)
+        if ka != kb:
+            return a if ka < kb else b
+        if tie_key is None:
+            return a
+        return a if tie_key(a) <= tie_key(b) else b
 
     return merge
 
@@ -38,14 +52,19 @@ def lexicographic_max(
     *keys: Callable[[T], Any],
     tie_key: Callable[[T], Any] | None = None,
 ) -> Callable[[T, T], T]:
-    """Lexicographic maximum selector with deterministic full-tie handling."""
+    """Lexicographic maximum selector.
 
-    tie = tie_key or _identity
+    When ``tie_key`` is omitted, equal key tuples keep the first argument.
+    """
 
     def merge(a: T, b: T) -> T:
-        ka = tuple(key(a) for key in keys) + (tie(a),)
-        kb = tuple(key(b) for key in keys) + (tie(b),)
-        return a if ka >= kb else b
+        ka = tuple(key(a) for key in keys)
+        kb = tuple(key(b) for key in keys)
+        if ka != kb:
+            return a if ka > kb else b
+        if tie_key is None:
+            return a
+        return a if tie_key(a) >= tie_key(b) else b
 
     return merge
 
@@ -54,14 +73,19 @@ def lexicographic_min(
     *keys: Callable[[T], Any],
     tie_key: Callable[[T], Any] | None = None,
 ) -> Callable[[T, T], T]:
-    """Lexicographic minimum selector with deterministic full-tie handling."""
+    """Lexicographic minimum selector.
 
-    tie = tie_key or _identity
+    When ``tie_key`` is omitted, equal key tuples keep the first argument.
+    """
 
     def merge(a: T, b: T) -> T:
-        ka = tuple(key(a) for key in keys) + (tie(a),)
-        kb = tuple(key(b) for key in keys) + (tie(b),)
-        return a if ka <= kb else b
+        ka = tuple(key(a) for key in keys)
+        kb = tuple(key(b) for key in keys)
+        if ka != kb:
+            return a if ka < kb else b
+        if tie_key is None:
+            return a
+        return a if tie_key(a) <= tie_key(b) else b
 
     return merge
 
