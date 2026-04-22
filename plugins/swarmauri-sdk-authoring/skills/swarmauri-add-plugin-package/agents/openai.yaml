@@ -1,0 +1,4 @@
+interface:
+  display_name: "Swarmauri Plugin Package"
+  short_description: "Add swarmauri plugin packages."
+  default_prompt: "Use $swarmauri-add-plugin-package to add a Swarmauri plugin package."

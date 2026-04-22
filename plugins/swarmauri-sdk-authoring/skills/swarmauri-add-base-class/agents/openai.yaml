@@ -1,0 +1,4 @@
+interface:
+  display_name: "Swarmauri Base Class"
+  short_description: "Add swarmauri_base base classes and registries."
+  default_prompt: "Use $swarmauri-add-base-class to add a new Swarmauri base class."

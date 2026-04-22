@@ -1,0 +1,20 @@
+{
+  "name": "swarmauri-sdk",
+  "interface": {
+    "displayName": "Swarmauri SDK"
+  },
+  "plugins": [
+    {
+      "name": "swarmauri-sdk-authoring",
+      "source": {
+        "source": "local",
+        "path": "./plugins/swarmauri-sdk-authoring"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

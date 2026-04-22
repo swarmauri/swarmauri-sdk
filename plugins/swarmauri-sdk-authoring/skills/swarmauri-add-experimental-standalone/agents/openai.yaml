@@ -1,0 +1,4 @@
+interface:
+  display_name: "Swarmauri Experimental Package"
+  short_description: "Add experimental package members."
+  default_prompt: "Use $swarmauri-add-experimental-standalone to add an experimental package."

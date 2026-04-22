@@ -1,0 +1,43 @@
+{
+  "name": "swarmauri-sdk-authoring",
+  "version": "0.1.0",
+  "description": "Codex skills for adding and changing Swarmauri SDK interfaces, base classes, mixins, concretes, standalone packages, and plugin packages.",
+  "author": {
+    "name": "Swarmauri",
+    "email": "jacob@swarmauri.com",
+    "url": "https://github.com/swarmauri"
+  },
+  "homepage": "https://github.com/swarmauri/swarmauri-sdk/tree/master/plugins/swarmauri-sdk-authoring",
+  "repository": "https://github.com/swarmauri/swarmauri-sdk",
+  "license": "Apache-2.0",
+  "keywords": [
+    "swarmauri",
+    "swarmauri-sdk",
+    "codex",
+    "skills",
+    "plugin-authoring",
+    "interfaces",
+    "packages",
+    "entry-points"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Swarmauri SDK Authoring",
+    "shortDescription": "Author Swarmauri SDK additions with repo-native rules.",
+    "longDescription": "Provides focused Codex skills for adding Swarmauri core interfaces, base classes, mixins, swarmauri_standard concretes, standards packages, community packages, experimental packages, and plugin packages. The skills enforce interface registry updates, citizenship registry updates, entry points, inheritance patterns, README branding, and package validation.",
+    "developerName": "Swarmauri",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Write",
+      "Code"
+    ],
+    "websiteURL": "https://swarmauri.com",
+    "defaultPrompt": [
+      "Use $swarmauri-add-core-interface to add a new SDK interface.",
+      "Use $swarmauri-add-standards-standalone to add a first-class package.",
+      "Use $swarmauri-add-plugin-package to add a plugin package."
+    ],
+    "brandColor": "#2563EB"
+  }
+}

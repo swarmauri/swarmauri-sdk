@@ -126,6 +126,7 @@ members = [
     "community/swarmauri_vectorstore_annoy",
     "community/swarmauri_vectorstore_cloudweaviate",
     "community/swarmauri_vectorstore_duckdb",
+    "community/swarmauri_vectorstore_fs",
     "community/swarmauri_vectorstore_git",
     "community/swarmauri_vectorstore_mlm",
     "community/swarmauri_vectorstore_neo4j",
@@ -152,6 +153,7 @@ members = [
     # "experimental/jz",
     # "experimental/layout_engine",
     # "experimental/layout_engine_atoms",
+    "experimental/mto",
     "experimental/monotone_ops",
     "experimental/ptree_dag_extension_example",
     # "experimental/RapidSimilarity/DistanceMetrics",
@@ -191,7 +193,6 @@ members = [
     "plugins/EmbedXMP",
     "plugins/example_plugin",
     "plugins/media_signer",
-    "plugins/wcag_pdf_pytest",
     "plugins/zdx",
     "standards/peagen",
     "standards/peagen_templset_vue",
@@ -398,6 +399,7 @@ EmbedXMP = { workspace = true }
 # jz = { workspace = true }
 # layout-engine = { workspace = true }
 # layout-engine-atoms = { workspace = true }
+mto = { workspace = true }
 "monotone-ops" = { workspace = true }
 MediaSigner = { workspace = true }
 peagen_templset_vue = { workspace = true }
@@ -666,6 +668,7 @@ swarmauri_vectorstore_annoy = { workspace = true }
 swarmauri_vectorstore_cloudweaviate = { workspace = true }
 swarmauri_vectorstore_doc2vec = { workspace = true }
 swarmauri_vectorstore_duckdb = { workspace = true }
+swarmauri_vectorstore_fs = { workspace = true }
 swarmauri_vectorstore_git = { workspace = true }
 swarmauri_vectorstore_mlm = { workspace = true }
 swarmauri_vectorstore_neo4j = { workspace = true }
@@ -721,7 +724,6 @@ tigrbl_engine_redis = { workspace = true }
 tigrbl_engine_rediscachethrough = { workspace = true }
 tigrbl_engine_snowflake = { workspace = true }
 tigrbl_engine_xlsx = { workspace = true }
-wcag_pdf_pytest = { workspace = true }
 # ye = { workspace = true }
 # ymls = { workspace = true }
 # zdx = { workspace = true }
