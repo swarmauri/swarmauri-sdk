@@ -400,7 +400,7 @@ EmbedXMP = { workspace = true }
 # layout-engine = { workspace = true }
 # layout-engine-atoms = { workspace = true }
 mto = { workspace = true }
-"monotone-ops" = { workspace = true }
+monotone_ops = { workspace = true }
 MediaSigner = { workspace = true }
 peagen_templset_vue = { workspace = true }
 ptree_dag_extension_example = { workspace = true }
