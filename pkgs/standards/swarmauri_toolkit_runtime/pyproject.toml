@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri_toolkit_toolcrudtoolkit"
+name = "swarmauri_toolkit_runtime"
 version = "0.1.0"
 description = "A toolkit that lets agents create, read, update, list, and delete tools from a live Swarmauri toolkit."
 license = "Apache-2.0"
@@ -31,7 +31,7 @@ keywords = [
     "sdk",
     "standards",
     "toolkit",
-    "toolcrudtoolkit",
+    "runtime",
     "tool-management",
     "agent",
     "crud",
@@ -64,14 +64,14 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [project.entry-points.'swarmauri.toolkits']
-ToolCrudToolkit = "swarmauri_toolkit_toolcrudtoolkit:ToolCrudToolkit"
+RuntimeToolkit = "swarmauri_toolkit_runtime:RuntimeToolkit"
 
 [project.entry-points.'swarmauri.tools']
-AddToolToToolkitTool = "swarmauri_toolkit_toolcrudtoolkit:AddToolToToolkitTool"
-GetToolFromToolkitTool = "swarmauri_toolkit_toolcrudtoolkit:GetToolFromToolkitTool"
-ListToolkitToolsTool = "swarmauri_toolkit_toolcrudtoolkit:ListToolkitToolsTool"
-RemoveToolFromToolkitTool = "swarmauri_toolkit_toolcrudtoolkit:RemoveToolFromToolkitTool"
-UpdateToolInToolkitTool = "swarmauri_toolkit_toolcrudtoolkit:UpdateToolInToolkitTool"
+RegisterRuntimeTool = "swarmauri_toolkit_runtime:RegisterRuntimeTool"
+InspectRuntimeTool = "swarmauri_toolkit_runtime:InspectRuntimeTool"
+ListRuntimeTools = "swarmauri_toolkit_runtime:ListRuntimeTools"
+UnregisterRuntimeTool = "swarmauri_toolkit_runtime:UnregisterRuntimeTool"
+ReplaceRuntimeTool = "swarmauri_toolkit_runtime:ReplaceRuntimeTool"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -90,3 +90,4 @@ dev = [
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
 ]
+

@@ -7,12 +7,12 @@ from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 
 
-@ComponentBase.register_type(ToolBase, "ListToolkitToolsTool")
-class ListToolkitToolsTool(ToolBase):
+@ComponentBase.register_type(ToolBase, "ListRuntimeTools")
+class ListRuntimeTools(ToolBase):
     version: str = "0.1.0"
-    name: str = "ListToolkitToolsTool"
+    name: str = "ListRuntimeTools"
     description: str = "List all tools currently available in the active toolkit."
-    type: Literal["ListToolkitToolsTool"] = "ListToolkitToolsTool"
+    type: Literal["ListRuntimeTools"] = "ListRuntimeTools"
     toolkit: ToolkitBase | None = Field(default=None, exclude=True, repr=False)
     parameters: List[Any] = Field(default_factory=list)
 

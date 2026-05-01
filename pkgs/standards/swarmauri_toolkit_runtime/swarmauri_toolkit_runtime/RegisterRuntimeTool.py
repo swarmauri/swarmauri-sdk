@@ -10,14 +10,14 @@ from swarmauri_standard.tools.Parameter import Parameter
 from ._tool_factory import build_tool_from_spec
 
 
-@ComponentBase.register_type(ToolBase, "AddToolToToolkitTool")
-class AddToolToToolkitTool(ToolBase):
+@ComponentBase.register_type(ToolBase, "RegisterRuntimeTool")
+class RegisterRuntimeTool(ToolBase):
     version: str = "0.1.0"
-    name: str = "AddToolToToolkitTool"
+    name: str = "RegisterRuntimeTool"
     description: str = (
         "Create a tool from a serialized tool spec and add it to the active toolkit."
     )
-    type: Literal["AddToolToToolkitTool"] = "AddToolToToolkitTool"
+    type: Literal["RegisterRuntimeTool"] = "RegisterRuntimeTool"
     toolkit: ToolkitBase | None = Field(default=None, exclude=True, repr=False)
     protected_tool_names: set[str] = Field(
         default_factory=set, exclude=True, repr=False
@@ -39,7 +39,7 @@ class AddToolToToolkitTool(ToolBase):
 
         tool = build_tool_from_spec(tool_spec)
         if tool.name in self.protected_tool_names:
-            raise ValueError(f"Tool '{tool.name}' is reserved by ToolCrudToolkit")
+            raise ValueError(f"Tool '{tool.name}' is reserved by RuntimeToolkit")
         if tool.name in self.toolkit.tools:
             raise ValueError(f"Tool '{tool.name}' already exists in the toolkit")
 

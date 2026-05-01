@@ -10,12 +10,12 @@ from swarmauri_standard.tools.Parameter import Parameter
 from ._tool_factory import build_tool_from_spec
 
 
-@ComponentBase.register_type(ToolBase, "UpdateToolInToolkitTool")
-class UpdateToolInToolkitTool(ToolBase):
+@ComponentBase.register_type(ToolBase, "ReplaceRuntimeTool")
+class ReplaceRuntimeTool(ToolBase):
     version: str = "0.1.0"
-    name: str = "UpdateToolInToolkitTool"
+    name: str = "ReplaceRuntimeTool"
     description: str = "Replace an existing non-reserved tool in the active toolkit with a new serialized tool spec."
-    type: Literal["UpdateToolInToolkitTool"] = "UpdateToolInToolkitTool"
+    type: Literal["ReplaceRuntimeTool"] = "ReplaceRuntimeTool"
     toolkit: ToolkitBase | None = Field(default=None, exclude=True, repr=False)
     protected_tool_names: set[str] = Field(
         default_factory=set, exclude=True, repr=False
@@ -43,7 +43,7 @@ class UpdateToolInToolkitTool(ToolBase):
         if self.toolkit is None:
             raise ValueError("toolkit is not configured")
         if tool_name in self.protected_tool_names:
-            raise ValueError(f"Tool '{tool_name}' is reserved by ToolCrudToolkit")
+            raise ValueError(f"Tool '{tool_name}' is reserved by RuntimeToolkit")
         if tool_name not in self.toolkit.tools:
             raise ValueError(f"Tool '{tool_name}' not found in the toolkit")
 
@@ -52,9 +52,7 @@ class UpdateToolInToolkitTool(ToolBase):
             replacement.name in self.protected_tool_names
             and replacement.name != tool_name
         ):
-            raise ValueError(
-                f"Tool '{replacement.name}' is reserved by ToolCrudToolkit"
-            )
+            raise ValueError(f"Tool '{replacement.name}' is reserved by RuntimeToolkit")
         if replacement.name != tool_name and replacement.name in self.toolkit.tools:
             raise ValueError(f"Tool '{replacement.name}' already exists in the toolkit")
 
