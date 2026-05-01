@@ -331,6 +331,7 @@ members = [
     "standards/swarmauri_tool_githubloader",
     "standards/swarmauri_tool_httploaded",
     "standards/swarmauri_tool_matplotlib",
+    "standards/swarmauri_toolkit_toolcrudtoolkit",
     "standards/swarmauri_toolkit_containertoolkit",
     "standards/swarmauri_transport_asgi",
     "standards/swarmauri_transport_h2",
@@ -646,6 +647,7 @@ swarmauri_tool_smogindex = { workspace = true }
 swarmauri_tool_textlength = { workspace = true }
 swarmauri_tool_webscraping = { workspace = true }
 swarmauri_tool_zapierhook = { workspace = true }
+swarmauri_toolkit_toolcrudtoolkit = { workspace = true }
 swarmauri_toolkit_containertoolkit = { workspace = true }
 swarmauri_toolkit_github = { workspace = true }
 swarmauri_toolkit_jupytertoolkit = { workspace = true }
