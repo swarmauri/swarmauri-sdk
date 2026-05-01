@@ -87,6 +87,20 @@ def test_runtime_add_get_update_remove_runtime_tool():
             "type": "AdditionTool",
             "name": "RuntimeAdditionToolV2",
             "description": "Updated runtime addition tool.",
+            "parameters": [
+                {
+                    "name": "x",
+                    "input_type": "integer",
+                    "description": "The left operand",
+                    "required": True,
+                },
+                {
+                    "name": "y",
+                    "input_type": "integer",
+                    "description": "The right operand",
+                    "required": True,
+                },
+            ],
         },
     )
     assert update_result["status"] == "updated"
@@ -112,5 +126,27 @@ def test_runtime_rejects_reserved_tool_mutation():
             {
                 "type": "AdditionTool",
                 "name": "ListRuntimeTools",
+                "parameters": [
+                    {
+                        "name": "x",
+                        "input_type": "integer",
+                        "description": "The left operand",
+                        "required": True,
+                    }
+                ],
+            }
+        )
+
+
+@pytest.mark.unit
+def test_runtime_rejects_registration_without_declared_parameters():
+    toolkit = RuntimeToolkit()
+
+    with pytest.raises(ValueError, match="non-empty 'parameters' list"):
+        toolkit.get_tool_by_name("RegisterRuntimeTool")(
+            {
+                "type": "AdditionTool",
+                "name": "RuntimeAdditionTool",
+                "description": "Adds two integers during the active agent session.",
             }
         )

@@ -55,6 +55,20 @@ toolkit.get_tool_by_name("RegisterRuntimeTool")(
         "type": "AdditionTool",
         "name": "RuntimeAdditionTool",
         "description": "Adds two integers during the active agent session.",
+        "parameters": [
+            {
+                "name": "x",
+                "input_type": "integer",
+                "description": "The left operand",
+                "required": True,
+            },
+            {
+                "name": "y",
+                "input_type": "integer",
+                "description": "The right operand",
+                "required": True,
+            },
+        ],
     }
 )
 
@@ -74,13 +88,30 @@ Typical flow:
 
 ## Tool Spec Contract
 
-Mutation tools accept a serialized tool specification. At minimum, provide a `type` field that resolves to an installed Swarmauri tool import such as `swarmauri.tools.AdditionTool`.
+Mutation tools accept a serialized tool specification. At minimum, provide:
+
+- a `type` field that resolves to an installed Swarmauri tool import such as `swarmauri.tools.AdditionTool`
+- a non-empty `parameters` list that explicitly declares the runtime callable contract
 
 ```python
 {
     "type": "AdditionTool",
     "name": "RuntimeAdditionTool",
     "description": "Adds two integers.",
+    "parameters": [
+        {
+            "name": "x",
+            "input_type": "integer",
+            "description": "The left operand",
+            "required": True,
+        },
+        {
+            "name": "y",
+            "input_type": "integer",
+            "description": "The right operand",
+            "required": True,
+        },
+    ],
 }
 ```
 
