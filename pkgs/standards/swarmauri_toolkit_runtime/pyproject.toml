@@ -1,13 +1,13 @@
 [project]
 name = "swarmauri_toolkit_runtime"
 version = "0.1.0"
-description = "A toolkit that lets agents create, read, update, list, and delete tools from a live Swarmauri toolkit."
+description = "Runtime toolkit for explicit-parameter registration, inspection, replacement, listing, and removal of Swarmauri tools during agent execution."
 license = "Apache-2.0"
-readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk"
+readme = { file = "README.md", content-type = "text/markdown" }
+repository = "http://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_toolkit_runtime"
 requires-python = ">=3.10,<3.13"
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 1 - Planning",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
@@ -32,7 +32,15 @@ keywords = [
     "standards",
     "toolkit",
     "runtime",
+    "agent-runtime",
     "tool-management",
+    "tool-registration",
+    "tool-inspection",
+    "tool-replacement",
+    "tool-removal",
+    "tool-schema",
+    "explicit-parameters",
+    "runtime-governance",
     "agent",
     "crud",
     "runtime-tools",
