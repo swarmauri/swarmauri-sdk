@@ -318,6 +318,18 @@ jobs:
           tag_name: ${{ steps.prepare_release.outputs.tag }}
           name: ${{ steps.prepare_release.outputs.tag }}
           body: ${{ steps.generate_release_notes.outputs.release_notes }}
+          draft: true
           prerelease: ${{ steps.prepare_release.outputs.prerelease }}
           files: |
             pkgs/${{ github.event.inputs.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.prepare_release.outputs.tag }}"
+          if [ "${{ steps.prepare_release.outputs.prerelease }}" = "true" ]; then
+            gh release edit "$TAG" --draft=false --prerelease
+          else
+            gh release edit "$TAG" --draft=false
+          fi
