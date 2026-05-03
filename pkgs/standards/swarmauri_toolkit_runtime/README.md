@@ -104,6 +104,8 @@ Mutation tools accept a serialized tool specification. At minimum, provide:
 - a `type` field that resolves to an installed Swarmauri tool import such as `swarmauri.tools.AdditionTool`
 - a non-empty `parameters` list that explicitly declares the runtime callable contract
 
+Resolution prefers the `swarmauri` facade when present and falls back to `swarmauri_standard.tools.<ToolName>` for isolated package installs.
+
 ```python
 {
     "type": "AdditionTool",

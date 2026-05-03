@@ -4,6 +4,20 @@ from typing import Any, Mapping
 from swarmauri_base.tools.ToolBase import ToolBase
 
 
+def _resolve_tool_module(tool_type: str):
+    module_names = [
+        f"swarmauri.tools.{tool_type}",
+        f"swarmauri_standard.tools.{tool_type}",
+    ]
+    last_error: ModuleNotFoundError | None = None
+    for module_name in module_names:
+        try:
+            return import_module(module_name)
+        except ModuleNotFoundError as exc:
+            last_error = exc
+    raise ValueError(f"Unable to resolve tool type '{tool_type}'") from last_error
+
+
 def build_tool_from_spec(tool_spec: Mapping[str, Any] | ToolBase) -> ToolBase:
     if isinstance(tool_spec, ToolBase):
         if not tool_spec.parameters:
@@ -22,10 +36,7 @@ def build_tool_from_spec(tool_spec: Mapping[str, Any] | ToolBase) -> ToolBase:
             "Runtime tool registration requires a non-empty 'parameters' list"
         )
 
-    try:
-        module = import_module(f"swarmauri.tools.{tool_type}")
-    except ModuleNotFoundError as exc:
-        raise ValueError(f"Unable to resolve tool type '{tool_type}'") from exc
+    module = _resolve_tool_module(tool_type)
 
     tool_cls = getattr(module, tool_type, None)
     if tool_cls is None:
