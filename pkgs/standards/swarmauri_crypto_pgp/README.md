@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_crypto_pgp/">
@@ -24,18 +24,18 @@ symmetrical encryption, public-key key wrapping, and hybrid envelopes.
 
 ### Features at a glance
 
-- **Symmetric AEAD** – AES-256-GCM powers `encrypt` and `decrypt`.
-- **Key wrapping** – `wrap` and `unwrap` delegate to GnuPG to protect random or
+- **Symmetric AEAD** â€“ AES-256-GCM powers `encrypt` and `decrypt`.
+- **Key wrapping** â€“ `wrap` and `unwrap` delegate to GnuPG to protect random or
   supplied key material with a recipient's public/private key pair.
-- **Hybrid envelopes** – `encrypt_for_many` supports both traditional
+- **Hybrid envelopes** â€“ `encrypt_for_many` supports both traditional
   KEM+AEAD (shared ciphertext + wrapped session key) and OpenPGP sealed mode for
   per-recipient ciphertexts.
-- **Sealing convenience** – `seal` and `unseal` provide single-recipient
+- **Sealing convenience** â€“ `seal` and `unseal` provide single-recipient
   OpenPGP public-key encryption without managing the envelope structure.
 
 ### System requirements
 
-- Python 3.10 – 3.13.
+- Python 3.10 â€“ 3.13.
 - [GnuPG](https://gnupg.org/) available on the `PATH` (required by
   `python-gnupg`).
 

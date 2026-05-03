@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_billing_paypal/">
@@ -21,10 +21,10 @@ The **Swarmauri Billing PayPal** package delivers a PayPal-oriented billing prov
 
 ## Features
 
-- ✅ Generates deterministic IDs and payload echoes to keep local testing predictable.
-- ✅ Covers PayPal's core primitives: products, plans, hosted checkout sessions, invoices, refunds, customers, payment methods, payouts, and reports.
-- ✅ Returns serializable dictionaries that map cleanly onto Swarmauri billing references and capability checks.
-- ✅ Ships as a standalone package that can be swapped for real PayPal SDK logic when you are production ready.
+- âœ… Generates deterministic IDs and payload echoes to keep local testing predictable.
+- âœ… Covers PayPal's core primitives: products, plans, hosted checkout sessions, invoices, refunds, customers, payment methods, payouts, and reports.
+- âœ… Returns serializable dictionaries that map cleanly onto Swarmauri billing references and capability checks.
+- âœ… Ships as a standalone package that can be swapped for real PayPal SDK logic when you are production ready.
 
 ## Installation
 

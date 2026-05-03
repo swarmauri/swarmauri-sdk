@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 
 <p align="center">
@@ -33,7 +33,7 @@ and integration testing.
   Extended Key Usage (EKU) values.
 - `verify_cert` performs a timestamp check and one-hop signature
   validation against provided trust roots or intermediates.
-- Designed for basic validation flows – revocation checking and complex
+- Designed for basic validation flows â€“ revocation checking and complex
   path building are intentionally out of scope and reported as
   `revocation_checked=False` in the response.
 

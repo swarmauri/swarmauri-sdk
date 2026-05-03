@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri/">
@@ -60,7 +60,7 @@ implementations evolve independently.
 - **Concrete Classes**: Ready-to-use, pre-implemented classes that fulfill standard system needs while adhering to Swarmauri principles. **These classes are the first in line for ongoing support and maintenance, ensuring they remain stable, performant, and up to date with future SDK developments.**
 
 ## Community
-- **Third-Party Plug-in Integration**: Concrete classes designed to extend the framework’s capabilities by utilizing third-party libraries and plugins.
+- **Third-Party Plug-in Integration**: Concrete classes designed to extend the frameworkâ€™s capabilities by utilizing third-party libraries and plugins.
 - **Open Source Contributions**: A collaborative space for developers to contribute new components, plug-ins, and features.
 
 ## Experimental
@@ -76,7 +76,7 @@ implementations evolve independently.
 ## Use Cases
 
 - **Modular Systems**: Develop scalable, pluggable systems that can evolve over time by adding or modifying components without disrupting the entire ecosystem.
-- **Distributed Architectures**: Build systems with distributed nodes that seamlessly communicate using the SDK’s standardized interfaces.
+- **Distributed Architectures**: Build systems with distributed nodes that seamlessly communicate using the SDKâ€™s standardized interfaces.
 - **Third-Party Integrations**: Extend the system's capabilities by easily incorporating third-party tools, libraries, and services.
 - **Prototype and Experimentation**: Test cutting-edge ideas using the experimental components in the SDK, while retaining the reliability of core and standard features for production systems.
 

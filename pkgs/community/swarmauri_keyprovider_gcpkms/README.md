@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_keyprovider_gcpkms/">
@@ -22,7 +22,7 @@ Google Cloud KMS-backed key provider for the Swarmauri framework. It exposes Clo
 
 ## Optional Canonicalization Extras
 
-- `cbor` – installs `cbor2` to enable canonical CBOR utilities where workflows require deterministic binary encoding.
+- `cbor` â€“ installs `cbor2` to enable canonical CBOR utilities where workflows require deterministic binary encoding.
 
 ## Features
 
@@ -131,4 +131,4 @@ async def encrypt_documents() -> None:
 - The provider caches public keys (`_pub_cache`) for 5 minutes; call `get_public_jwk(..., force=True)` if you rotate Cloud KMS key versions and need instant propagation.
 - Use explicit key version names when destroying or disabling keys: `projects/.../cryptoKeys/<name>/cryptoKeyVersions/<n>`.
 - Cloud KMS rotation is controlled outside the provider (per key configuration). Combine the provider with IAM rotation settings to enforce regular key versioning.
-- For auditability, inspect the `tags` field on returned `KeyRef` objects—they include algorithm purpose and key type hints derived from Cloud KMS metadata.
+- For auditability, inspect the `tags` field on returned `KeyRef` objectsâ€”they include algorithm purpose and key type hints derived from Cloud KMS metadata.

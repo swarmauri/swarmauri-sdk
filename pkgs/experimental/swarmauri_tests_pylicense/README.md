@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tests_pylicense/">
@@ -97,7 +97,7 @@ pytest --pylicense-package=<your-package> --pylicense-accept-deps=cffi
 ```
 
 This tells the plugin to treat `cffi` as pre-approved. Any license issues for
-`cffi`—including unknown or non-standard licenses—are ignored while other
+`cffi`â€”including unknown or non-standard licensesâ€”are ignored while other
 dependencies continue to be validated normally.
 
 ## License

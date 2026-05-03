@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_crypto_rust/">
@@ -26,15 +26,15 @@ High-performance Rust-backed crypto provider implementing the `ICrypto` contract
 
 ## Features
 
-✨ **Rust-powered AEAD**: ChaCha20-Poly1305 encrypt/decrypt is implemented in Rust via the `ring` crate
-🔒 **Memory Safe**: Rust's memory safety guarantees prevent common crypto vulnerabilities
-🧰 **Utility Primitives**: Helper methods wrap keys and build multi-recipient envelopes on top of the AEAD primitive
-📦 **Self-Contained**: No external C library dependencies are required
-🐍 **Python Integration**: Seamless integration with existing Python crypto workflows
+âœ¨ **Rust-powered AEAD**: ChaCha20-Poly1305 encrypt/decrypt is implemented in Rust via the `ring` crate
+ðŸ”’ **Memory Safe**: Rust's memory safety guarantees prevent common crypto vulnerabilities
+ðŸ§° **Utility Primitives**: Helper methods wrap keys and build multi-recipient envelopes on top of the AEAD primitive
+ðŸ“¦ **Self-Contained**: No external C library dependencies are required
+ðŸ **Python Integration**: Seamless integration with existing Python crypto workflows
 
 ## Installation
 
-Pre-built wheels are published for common platforms. The Python facade requires the compiled Rust extension – if the wheel
+Pre-built wheels are published for common platforms. The Python facade requires the compiled Rust extension â€“ if the wheel
 cannot be loaded the import will raise an `ImportError`, so be sure to install from PyPI or build the project locally before
 using `RustCrypto`.
 
@@ -151,21 +151,21 @@ do not provide additional performance characteristics beyond what the AEAD primi
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────┐
-│              Python Layer                   │
-│  ┌─────────────────┐  ┌─────────────────┐   │
-│  │   RustCrypto    │  │  swarmauri_core │   │
-│  │    (Bridge)     │  │    (Types)      │   │
-│  └─────────────────┘  └─────────────────┘   │
-└─────────────────────────────────────────────┘
-                       │
-┌─────────────────────────────────────────────┐
-│               Rust Layer                    │
-│  ┌─────────────────┐  ┌─────────────────┐   │
-│  │   PyO3 Bindings │  │   ring crypto   │   │
-│  │   (Interface)   │  │   (Backend)     │   │
-│  └─────────────────┘  └─────────────────┘   │
-└─────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚              Python Layer                   â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”‚
+â”‚  â”‚   RustCrypto    â”‚  â”‚  swarmauri_core â”‚   â”‚
+â”‚  â”‚    (Bridge)     â”‚  â”‚    (Types)      â”‚   â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜   â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                       â”‚
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚               Rust Layer                    â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”‚
+â”‚  â”‚   PyO3 Bindings â”‚  â”‚   ring crypto   â”‚   â”‚
+â”‚  â”‚   (Interface)   â”‚  â”‚   (Backend)     â”‚   â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜   â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ## Security
@@ -181,7 +181,7 @@ do not provide additional performance characteristics beyond what the AEAD primi
 
 - **Side-Channel Resistance**: The `ring` library implements constant-time operations to prevent timing attacks
 
-> ⚠️ The helper methods for wrapping, sealing, and envelope creation are illustrative and intentionally omit a full X25519 key
+> âš ï¸ The helper methods for wrapping, sealing, and envelope creation are illustrative and intentionally omit a full X25519 key
 > agreement. Do not rely on them for production key exchange without hardening the implementation.
 
 ## Development

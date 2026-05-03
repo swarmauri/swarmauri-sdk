@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 
 <p align="center">
@@ -111,13 +111,13 @@ number of signatures validates against the supplied key material.
 
 Beyond detached signatures, `CASigner` assists with certificate authority tasks:
 
-- `issue_self_signed` – build a CA or leaf certificate directly from a
+- `issue_self_signed` â€“ build a CA or leaf certificate directly from a
   `KeyRef` and subject mapping.
-- `create_csr` – generate a certificate signing request complete with SAN and
+- `create_csr` â€“ generate a certificate signing request complete with SAN and
   key-usage extensions.
-- `sign_csr` – issue certificates from CSRs using an existing CA key and
+- `sign_csr` â€“ issue certificates from CSRs using an existing CA key and
   certificate chain.
-- `verify_chain` – validate a leaf against an intermediate chain and optional
+- `verify_chain` â€“ validate a leaf against an intermediate chain and optional
   trust anchors with basic time and CA checks.
 
 These helpers rely on the same key-loading logic demonstrated in the quickstart,

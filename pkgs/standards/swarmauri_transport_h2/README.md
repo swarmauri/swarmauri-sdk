@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri-transport-h2/">
@@ -20,7 +20,7 @@
 
 ---
 
-# Swarmauri Transport – HTTP/2 Adapter
+# Swarmauri Transport â€“ HTTP/2 Adapter
 
 `swarmauri-transport-h2` layers HTTP semantics on top of the reusable `H2MuxTransport`, giving you request/response helpers while preserving multiplexed channel control.
 

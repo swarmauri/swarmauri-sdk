@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_state_clipboard/">
@@ -77,7 +77,7 @@ print(clone.read())    # {'session': 'xyz789'}
 ## Tips
 
 - Clipboard overwrites are global; avoid using this state provider in multi-user or production environments where clipboard privacy matters.
-- Contents are stored as Python literal strings—avoid writing untrusted data to the clipboard to prevent evaluation issues (though `ast.literal_eval` mitigates code execution risks).
+- Contents are stored as Python literal stringsâ€”avoid writing untrusted data to the clipboard to prevent evaluation issues (though `ast.literal_eval` mitigates code execution risks).
 - Ensure required system commands exist before running in CI or containers (install `xclip` for Linux builds).
 
 ## Want to help?

@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri-canon-http/">
@@ -33,16 +33,16 @@ The parity tests are organized into `tests/parity/httpx/` and `tests/parity/requ
 
 | Feature area | httpx | swarmauri_canon_http |
 | --- | --- | --- |
-| Auth (`auth=`) | ✅ | ❌ (not implemented) |
-| Cookies (`cookies=`) | ✅ | ❌ (not implemented) |
-| Rich Request/Response model | ✅ | ❌ (primitive tuple/string responses) |
-| `request(...)` generic API | ✅ | ⚠️ (`sync_request`/`async_request` only) |
-| Streaming API (`stream`) | ✅ | ❌ |
-| HTTP/1 + HTTP/2 toggles | ✅ | ⚠️ (`version="1.1"` or `"2"`) |
-| HTTP/3 | ❌ | ❌ |
-| WebSocket schemes (`ws://`, `wss://`) | ❌ | ❌ |
-| SSL verify/cert keyword options | ✅ | ❌ (constructor does not accept `verify`/`cert`) |
-| Async client support | ✅ | ✅ |
+| Auth (`auth=`) | âœ… | âŒ (not implemented) |
+| Cookies (`cookies=`) | âœ… | âŒ (not implemented) |
+| Rich Request/Response model | âœ… | âŒ (primitive tuple/string responses) |
+| `request(...)` generic API | âœ… | âš ï¸ (`sync_request`/`async_request` only) |
+| Streaming API (`stream`) | âœ… | âŒ |
+| HTTP/1 + HTTP/2 toggles | âœ… | âš ï¸ (`version="1.1"` or `"2"`) |
+| HTTP/3 | âŒ | âŒ |
+| WebSocket schemes (`ws://`, `wss://`) | âŒ | âŒ |
+| SSL verify/cert keyword options | âœ… | âŒ (constructor does not accept `verify`/`cert`) |
+| Async client support | âœ… | âœ… |
 
 ## Installation
 

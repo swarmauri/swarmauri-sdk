@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_jupyterexportpython/">
@@ -17,7 +17,7 @@
 
 # Swarmauri Tool Jupyter Export Python
 
-Exports a Jupyter `NotebookNode` to a Python script using nbconvert’s `PythonExporter` with optional custom templates.
+Exports a Jupyter `NotebookNode` to a Python script using nbconvertâ€™s `PythonExporter` with optional custom templates.
 
 ## Features
 
@@ -61,8 +61,8 @@ else:
 
 ## Tips
 
-- Use custom templates to control cell separators or code comments—pass a `.tpl` file via `template_file`.
-- Pair with notebook execution tools (execute → export to .py) to operationalize notebooks as Python scripts.
+- Use custom templates to control cell separators or code commentsâ€”pass a `.tpl` file via `template_file`.
+- Pair with notebook execution tools (execute â†’ export to .py) to operationalize notebooks as Python scripts.
 
 ## Want to help?
 

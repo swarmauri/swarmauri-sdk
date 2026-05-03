@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_middleware_llamaguard/">
@@ -27,7 +27,7 @@ A FastAPI middleware that wraps Groq's ``llama-guard-3-8b`` model to provide end
 ## Features
 
 - Real-time scanning of incoming request bodies and outgoing responses (including streaming responses).
-- Configurable language model injection – provide your own :class:`~swarmauri_standard.llms.GroqModel` or let the middleware create one for you.
+- Configurable language model injection â€“ provide your own :class:`~swarmauri_standard.llms.GroqModel` or let the middleware create one for you.
 - Graceful degradation when no model is configured (traffic is allowed but logged).
 
 ## Middleware behavior

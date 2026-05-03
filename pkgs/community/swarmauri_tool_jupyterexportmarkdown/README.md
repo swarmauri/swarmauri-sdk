@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_jupyterexportmarkdown/">
@@ -17,7 +17,7 @@
 
 # Swarmauri Tool Jupyter Export Markdown
 
-Converts a Jupyter `NotebookNode` to Markdown using nbconvert’s `MarkdownExporter`. Injectable CSS and JS snippets let you tweak the output for static publishing.
+Converts a Jupyter `NotebookNode` to Markdown using nbconvertâ€™s `MarkdownExporter`. Injectable CSS and JS snippets let you tweak the output for static publishing.
 
 ## Features
 
@@ -70,7 +70,7 @@ else:
 
 - Use Markdown export when preparing notebooks for static docs, blogs, or README content.
 - Apply lightweight CSS/JS to adjust styling when the Markdown is embedded in HTML environments.
-- Combine with notebook execution tools to build pipelines (execute → convert to Markdown → publish).
+- Combine with notebook execution tools to build pipelines (execute â†’ convert to Markdown â†’ publish).
 
 ## Want to help?
 

@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri-standard/">
@@ -76,7 +76,7 @@ The AI Kit provides a collection of tools and components for building intelligen
 - [JaccardIndexDistance.py](swarmauri_standard/distances/JaccardIndexDistance.py): Calculates Jaccard index distance.
 - [LevenshteinDistance.py](swarmauri_standard/distances/LevenshteinDistance.py): Calculates Levenshtein distance.
 - [ManhattanDistance.py](swarmauri_standard/distances/ManhattanDistance.py): Calculates Manhattan distance.
-- [SorensenDiceDistance.py](swarmauri_standard/distances/SorensenDiceDistance.py): Calculates Sørensen-Dice distance.
+- [SorensenDiceDistance.py](swarmauri_standard/distances/SorensenDiceDistance.py): Calculates SÃ¸rensen-Dice distance.
 - [SquaredEuclideanDistance.py](swarmauri_standard/distances/SquaredEuclideanDistance.py): Calculates squared Euclidean distance.
 
 ### Documents
@@ -269,7 +269,7 @@ agents using predefined configurations.
 ## Use Cases
 
 - **Modular Systems**: Develop scalable, pluggable systems that can evolve over time by adding or modifying components without disrupting the entire ecosystem.
-- **Distributed Architectures**: Build systems with distributed nodes that seamlessly communicate using the SDK’s standardized interfaces.
+- **Distributed Architectures**: Build systems with distributed nodes that seamlessly communicate using the SDKâ€™s standardized interfaces.
 - **Third-Party Integrations**: Extend the system's capabilities by easily incorporating third-party tools, libraries, and services.
 - **Prototype and Experimentation**: Test cutting-edge ideas using the experimental components in the SDK, while retaining the reliability of core and standard features for production systems.
 

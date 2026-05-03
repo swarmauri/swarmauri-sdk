@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png" alt="Swarmauri logotype" width="420" />
+  <img src="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg" alt="Swarmauri logotype" width="420" />
 </p>
 
 <h1 align="center">EmbedXMP</h1>
@@ -18,11 +18,11 @@ EmbedXMP collects every installed `EmbedXmpBase` implementation, discovers them 
 
 ## Features
 
-- **Dynamic discovery** – lazily imports modules named `swarmauri_xmp_*` and collects subclasses registered under `EmbedXmpBase`.
-- **Unified interface** – delegates to the first handler whose `supports` method confirms compatibility with the payload.
-- **Convenience wrappers** – module-level helpers (`embed`, `read`, `remove`) keep high-level workflows succinct.
-- **Async-friendly APIs** – integrate inside event loops without blocking when calling out to plugin hooks.
-- **Media-format coverage** – load handlers for PNG, GIF, JPEG, SVG, WEBP, TIFF, PDF, and MP4 assets through extras.
+- **Dynamic discovery** â€“ lazily imports modules named `swarmauri_xmp_*` and collects subclasses registered under `EmbedXmpBase`.
+- **Unified interface** â€“ delegates to the first handler whose `supports` method confirms compatibility with the payload.
+- **Convenience wrappers** â€“ module-level helpers (`embed`, `read`, `remove`) keep high-level workflows succinct.
+- **Async-friendly APIs** â€“ integrate inside event loops without blocking when calling out to plugin hooks.
+- **Media-format coverage** â€“ load handlers for PNG, GIF, JPEG, SVG, WEBP, TIFF, PDF, and MP4 assets through extras.
 
 ## Installation
 

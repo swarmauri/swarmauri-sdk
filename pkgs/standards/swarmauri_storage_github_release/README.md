@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_storage_github_release/">
@@ -24,15 +24,15 @@ still being usable as a standalone utility.
 
 ## Features
 
-- **Automatic release management** – a release is created on-demand when the
+- **Automatic release management** â€“ a release is created on-demand when the
   requested tag does not already exist.
-- **`ghrel://` addressing** – the adapter exposes a `root_uri` and returns
+- **`ghrel://` addressing** â€“ the adapter exposes a `root_uri` and returns
   fully-qualified URIs (e.g. `ghrel://org/repo/tag/path`) from `upload` calls.
-- **Prefix-aware paths** – supply an optional `prefix` to group related assets
+- **Prefix-aware paths** â€“ supply an optional `prefix` to group related assets
   underneath a pseudo-directory on the release.
-- **Bulk helpers** – use `upload_dir` and `download_dir` to synchronise entire
+- **Bulk helpers** â€“ use `upload_dir` and `download_dir` to synchronise entire
   directories, or `iter_prefix` to discover stored assets.
-- **Configuration friendly** – `GithubReleaseStorageAdapter.from_uri` reads
+- **Configuration friendly** â€“ `GithubReleaseStorageAdapter.from_uri` reads
   credentials from the `GITHUB_TOKEN` environment variable for simple
   environment-driven configuration in workflows.
 

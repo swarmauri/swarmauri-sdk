@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/layout-engine-atoms/">
@@ -25,18 +25,18 @@ package you can:
 - mount a production-ready Vue dashboard that renders multi-page manifests, theme
   tokens, and websocket event streams without writing custom front-end plumbing.
 
-> **Python compatibility**: Python 3.10–3.12
+> **Python compatibility**: Python 3.10â€“3.12
 
 ## Highlights
 
-- **Curated atom registry** – every semantic role maps to an importable module,
+- **Curated atom registry** â€“ every semantic role maps to an importable module,
   default props, and version metadata so manifests can stay declarative.
-- **Vue thin wrapper** – packaged `mount_layout_app` helper mounts a drop-in
+- **Vue thin wrapper** â€“ packaged `mount_layout_app` helper mounts a drop-in
   dashboard with grid layout, shared theme tokens, plugin hooks, and optional
   realtime updates straight from FastAPI.
-- **Swiss grid defaults** – spacing, typography, and layout tokens follow Swiss
+- **Swiss grid defaults** â€“ spacing, typography, and layout tokens follow Swiss
   graphic design ratios for consistent output across HTML, PDF, or SVG targets.
-- **Realtime ready** – websocket bridge understands `manifest.replace`,
+- **Realtime ready** â€“ websocket bridge understands `manifest.replace`,
   `manifest.patch`, and `manifest.refresh` payloads and can broadcast custom
   messages to connected clients.
 
@@ -141,21 +141,21 @@ fetches `/dashboard/manifest.json`.
 
 ## Examples
 
-- **Simple manifest** – minimal script that builds a SwarmaKit manifest with
+- **Simple manifest** â€“ minimal script that builds a SwarmaKit manifest with
   layout-engine (`pkgs/experimental/layout_engine_atoms/examples/simple_demo`).
-- **UiEvent Counter Demo** – showcases a single button triggering a Python
+- **UiEvent Counter Demo** â€“ showcases a single button triggering a Python
   handler and realtime counter patches
   (`pkgs/experimental/layout_engine_atoms/examples/events_demo`).
-- **UiEvents Command Center** – richer control deck with multiple UiEvents,
+- **UiEvents Command Center** â€“ richer control deck with multiple UiEvents,
   realtime bindings, and action logs
   (`pkgs/experimental/layout_engine_atoms/examples/event_hub_demo`).
-- **Customer Success Command Center** – demonstrates multi-page manifests and
+- **Customer Success Command Center** â€“ demonstrates multi-page manifests and
   realtime incident streaming via websocket patches
   (`pkgs/experimental/layout_engine_atoms/examples/customer_success`).
-- **Hybrid SPA/MPA Demo** – mounts both a single-page and multi-page runtime in
+- **Hybrid SPA/MPA Demo** â€“ mounts both a single-page and multi-page runtime in
   one FastAPI app, showcasing realtime updates
   (`pkgs/experimental/layout_engine_atoms/examples/hybrid_demo`).
-- **Revenue Ops Command Center** – richer stream routing and manifest patches
+- **Revenue Ops Command Center** â€“ richer stream routing and manifest patches
   (`pkgs/experimental/layout_engine_atoms/examples/revenue_ops`).
 
 You can run any example directly with `uvicorn`:

@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_middleware_circuitbreaker/">
@@ -21,10 +21,10 @@ FastAPI middleware that adds a configurable circuit breaker (powered by `pybreak
 
 ## Features
 
-- Integrates with Swarmauri's `MiddlewareBase` interface—drop in via `app.add_middleware`.
+- Integrates with Swarmauri's `MiddlewareBase` interfaceâ€”drop in via `app.add_middleware`.
 - Configurable thresholds: `fail_max`, `reset_timeout`, and `half_open_wait_time`.
 - Supports async FastAPI request handling and conveys 429 responses when the circuit is open.
-- Logs state transitions (closed ➜ open ➜ half-open) for observability.
+- Logs state transitions (closed âžœ open âžœ half-open) for observability.
 
 ## Prerequisites
 
@@ -86,7 +86,7 @@ Integrate with your logging/monitoring stack to alert on circuit state changes.
 ## Tips
 
 - Use targeted middleware stacks; wrap only the routes that call upstream services prone to failure.
-- Tune `fail_max` and `reset_timeout` for each dependency—critical paths may require conservative thresholds.
+- Tune `fail_max` and `reset_timeout` for each dependencyâ€”critical paths may require conservative thresholds.
 - Pair with retry logic or queueing to degrade gracefully while the circuit is open.
 - When testing locally, trigger failures intentionally to ensure your observability tracks circuit transitions correctly.
 

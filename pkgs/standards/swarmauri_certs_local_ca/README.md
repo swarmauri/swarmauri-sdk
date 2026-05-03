@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 
 <p align="center">
@@ -58,7 +58,7 @@ uv pip install swarmauri_certs_local_ca
 
 ## Usage
 
-Below is a minimal end‑to‑end example that issues and verifies a leaf
+Below is a minimal endâ€‘toâ€‘end example that issues and verifies a leaf
 certificate signed by a local certificate authority.  The helper function
 `_key` creates the ``KeyRef`` objects required by the service.
 

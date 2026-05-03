@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_certs_csronly/">
@@ -109,6 +109,6 @@ if __name__ == "__main__":
 
 ## Best Practices
 - Generate new key pairs and CSRs ahead of certificate expiry to allow review and approval time.
-- Store private keys securely—`KeyRef` can reference hardware or cloud KMS-backed material rather than local files.
+- Store private keys securelyâ€”`KeyRef` can reference hardware or cloud KMS-backed material rather than local files.
 - Keep SAN lists minimal and auditable to avoid issuing overly permissive certificates.
 - Pair this service with a signing backend (e.g., CFSSL, ACME, Azure Key Vault) to form a complete issuance pipeline.

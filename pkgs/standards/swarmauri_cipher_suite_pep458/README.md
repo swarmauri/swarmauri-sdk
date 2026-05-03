@@ -1,4 +1,4 @@
-![Swarmauri Brand Theme](https://github.com/swarmauri/swarmauri-sdk/blob/main/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Brand Theme](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_cipher_suite_pep458/">
@@ -27,16 +27,16 @@ expectations when they sign or verify TUF metadata.
 
 ## Highlights
 
-- **Explicit role policies** – Encodes recommended thresholds, expiration windows,
+- **Explicit role policies** â€“ Encodes recommended thresholds, expiration windows,
   and algorithm selections for the canonical `root`, `targets`, `snapshot`, and
   `timestamp` metadata roles.
-- **Deterministic defaults** – Advertises TUF canonical JSON (`tuf-json`) as the
+- **Deterministic defaults** â€“ Advertises TUF canonical JSON (`tuf-json`) as the
   canonicalization format and returns Ed25519 as the default online algorithm while
   still supporting RSA-PSS-SHA256 for offline roots.
-- **Descriptor normalization** – Produces rich normalized descriptors containing the
+- **Descriptor normalization** â€“ Produces rich normalized descriptors containing the
   signer implementation hint (`swarmauri_signing_pep458.Pep458Signer`), canonical
   preferences, and caller-specified policy overrides.
-- **Compliance metadata** – Surfaces machine readable notes indicating PEP 458 and
+- **Compliance metadata** â€“ Surfaces machine readable notes indicating PEP 458 and
   TUF compatibility, enabling automated linting and negotiation between components.
 
 ## Installation

@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_jupyterexecutecell/">
@@ -59,7 +59,7 @@ print("error:", result["error"])
 ## Tips
 
 - Increase `timeout` for cells that perform long-running tasks.
-- The tool executes in the current kernel—make sure dependencies are already imported/installed in that environment.
+- The tool executes in the current kernelâ€”make sure dependencies are already imported/installed in that environment.
 - Handle errors gracefully by checking the `error` field before using results.
 
 ## Want to help?

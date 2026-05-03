@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../../../assets/swarmauri_brand_frag_light.png" alt="Swarmauri logotype" width="420" />
+  <img src="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg" alt="Swarmauri logotype" width="420" />
 </p>
 
 <h1 align="center">EmbeddedSigner</h1>
@@ -22,22 +22,22 @@ produced.
 
 ## Features
 
-- **One-shot embed & sign** – inject XMP metadata and produce signatures with a
+- **One-shot embed & sign** â€“ inject XMP metadata and produce signatures with a
   single call.
-- **Media-aware detection** – delegates to all registered `EmbedXmpBase`
+- **Media-aware detection** â€“ delegates to all registered `EmbedXmpBase`
   handlers so PNG, GIF, JPEG, SVG, WEBP, TIFF, PDF, and MP4 assets are
   processed consistently.
-- **Pluggable signers** – forwards signing requests to every
+- **Pluggable signers** â€“ forwards signing requests to every
   `SigningBase` registered with `MediaSigner`, including CMS, JWS, OpenPGP, PDF,
   and XMLDSig providers.
-- **Key provider integration** – loads providers from the
+- **Key provider integration** â€“ loads providers from the
   `swarmauri.key_providers` entry point group and resolves opaque key reference
   strings (e.g. `local://kid@2`) before invoking a signer.
-- **Attached or detached output** – toggle between embedded signatures or
+- **Attached or detached output** â€“ toggle between embedded signatures or
   detached artifacts via a simple flag.
-- **File and byte workflows** – operate on in-memory payloads or update files
+- **File and byte workflows** â€“ operate on in-memory payloads or update files
   on disk with helpers for embedding, reading, removing, and signing.
-- **Command line tooling** – bundle a ready-to-use `embedded-signer` CLI for
+- **Command line tooling** â€“ bundle a ready-to-use `embedded-signer` CLI for
   ad-hoc embedding, signing, and combined workflows.
 
 ## Installation

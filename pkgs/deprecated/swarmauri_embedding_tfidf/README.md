@@ -1,5 +1,5 @@
 
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_embedding_tfidf/">
@@ -18,7 +18,7 @@
 
 # Swarmauri Embedding TFIDF
 
-> **⚠️ Deprecated:** This package is maintained for backward compatibility. Consider using a supported embedding implementation from the Swarmauri SDK for new projects.
+> **âš ï¸ Deprecated:** This package is maintained for backward compatibility. Consider using a supported embedding implementation from the Swarmauri SDK for new projects.
 
 A TF-IDF (Term Frequency-Inverse Document Frequency) embedding implementation for the Swarmauri SDK, providing document vectorization capabilities.
 

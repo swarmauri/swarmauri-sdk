@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 
 <p align="center">
@@ -22,9 +22,9 @@
 
 ## Features
 
-- **Registry-ready** – inherits from `EmbedXmpBase` so Swarmauri's dynamic registry can auto-discover the handler.
-- **Spec compliant** – emits iTXt chunks with the `XML:com.adobe.xmp` keyword and UTF-8 payloads.
-- **Safety guards** – `_ensure_xml` performs a minimal RDF/XML check before embedding metadata.
+- **Registry-ready** â€“ inherits from `EmbedXmpBase` so Swarmauri's dynamic registry can auto-discover the handler.
+- **Spec compliant** â€“ emits iTXt chunks with the `XML:com.adobe.xmp` keyword and UTF-8 payloads.
+- **Safety guards** â€“ `_ensure_xml` performs a minimal RDF/XML check before embedding metadata.
 
 ## Installation
 
@@ -63,9 +63,9 @@ clean_bytes = handler.remove_xmp(updated_bytes)
 
 ### Why it works
 
-- **Dynamic discovery** – the handler is automatically registered with `DynamicBase` consumers via inheritance.
-- **Standards alignment** – PNG metadata lives in an iTXt chunk per ISO 16684 guidance.
-- **Predictable behavior** – read/write/remove flows mirror each other so pipelines remain idempotent.
+- **Dynamic discovery** â€“ the handler is automatically registered with `DynamicBase` consumers via inheritance.
+- **Standards alignment** â€“ PNG metadata lives in an iTXt chunk per ISO 16684 guidance.
+- **Predictable behavior** â€“ read/write/remove flows mirror each other so pipelines remain idempotent.
 
 ## Project Resources
 

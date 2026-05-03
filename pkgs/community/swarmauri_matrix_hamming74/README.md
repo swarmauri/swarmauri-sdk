@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_matrix_hamming74/">
@@ -21,10 +21,10 @@ The `swarmauri_matrix_hamming74` package provides a binary Hamming (7,4) code ma
 
 ## Features
 
-- 🧮 Binary matrix implementation built on `MatrixBase` with full indexing and arithmetic support.
-- 🧷 Generator and parity-check matrix accessors for classic Hamming (7,4) coding schemes.
-- 📨 Encoding, syndrome calculation, and nearest-codeword decoding helpers powered by the Hamming metric.
-- 🔁 Binary-safe matrix operations (addition, subtraction, multiplication, and matrix multiplication modulo 2).
+- ðŸ§® Binary matrix implementation built on `MatrixBase` with full indexing and arithmetic support.
+- ðŸ§· Generator and parity-check matrix accessors for classic Hamming (7,4) coding schemes.
+- ðŸ“¨ Encoding, syndrome calculation, and nearest-codeword decoding helpers powered by the Hamming metric.
+- ðŸ” Binary-safe matrix operations (addition, subtraction, multiplication, and matrix multiplication modulo 2).
 
 ## Installation
 

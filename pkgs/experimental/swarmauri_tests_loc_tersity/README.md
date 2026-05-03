@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tests_loc_tersity/">
@@ -19,7 +19,7 @@
 
 `swarmauri_tests_loc_tersity` is a [pytest](https://docs.pytest.org/) plugin that
 keeps modules small and readable. It scans a package for Python files and
-asserts that each file stays under a configurable line‑of‑code (LOC) limit
+asserts that each file stays under a configurable lineâ€‘ofâ€‘code (LOC) limit
 (docstrings included). The default limit is **400 lines**.
 
 The plugin runs in *parameterized* mode by default, turning every file into an
@@ -68,8 +68,8 @@ E   pkg/other.py has 410 lines (>400)
 
 ### Customizing
 
-* `--loc-root PATH` – directory to scan (defaults to the package root)
-* `--loc-max-lines N` – change the maximum line count
+* `--loc-root PATH` â€“ directory to scan (defaults to the package root)
+* `--loc-max-lines N` â€“ change the maximum line count
 
 ```bash
 pytest --loc-root=src --loc-max-lines=200

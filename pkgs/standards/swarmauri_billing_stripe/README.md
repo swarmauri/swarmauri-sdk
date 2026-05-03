@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_billing_stripe/">
@@ -21,10 +21,10 @@ The **Swarmauri Billing Stripe** package provides a Stripe-aligned billing provi
 
 ## Features
 
-- ✅ Implements every Swarmauri billing capability for a Stripe-style provider stub.
-- ✅ Returns strongly-typed Pydantic models for references, specs, and webhook events.
-- ✅ Maps Swarmauri capabilities to the `tigrbl_billing` strategy catalog for easier interoperability.
-- ✅ Serves as a ready-to-extend template for production-grade Stripe integrations.
+- âœ… Implements every Swarmauri billing capability for a Stripe-style provider stub.
+- âœ… Returns strongly-typed Pydantic models for references, specs, and webhook events.
+- âœ… Maps Swarmauri capabilities to the `tigrbl_billing` strategy catalog for easier interoperability.
+- âœ… Serves as a ready-to-extend template for production-grade Stripe integrations.
 
 ## Installation
 

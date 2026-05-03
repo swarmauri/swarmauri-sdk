@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_qrcodegenerator/">
@@ -15,7 +15,7 @@
 
 ---
 
-# Swarmauri Tool · QR Code Generator
+# Swarmauri Tool Â· QR Code Generator
 
 A Swarmauri tool that converts text payloads into QR codes and returns the image data as a Base64 string. Plug it into conversational agents, marketing workflows, or automation scripts that need scannable hand-offs (URLs, Wi-Fi credentials, one-time tokens, etc.).
 
@@ -25,7 +25,7 @@ A Swarmauri tool that converts text payloads into QR codes and returns the image
 
 ## Requirements
 
-- Python 3.10 – 3.13.
+- Python 3.10 â€“ 3.13.
 - `qrcode` (installs with its Pillow dependency) and Swarmauri base packages (`swarmauri_base`, `swarmauri_standard`, `pydantic`).
 - Optional: downstream consumers often decode the Base64 string using Pillow or write it to disk; ensure those environments can handle binary data.
 
@@ -138,9 +138,9 @@ Expose an API that transforms arbitrary data into QR codes your front-end can di
 
 ## Troubleshooting
 
-- **Blank or unreadable codes** – Confirm the Base64 string is decoded to a PNG (`base64.b64decode(...)`). Avoid writing the raw Base64 text directly to file.
-- **Binary dependency errors (Pillow)** – Install platform-specific libraries (`apt-get install libjpeg-dev zlib1g-dev`, etc.) before installing the package, especially in slim containers.
-- **Large payloads** – Version 1 QR codes have size constraints (~17 alphanumeric characters). Fork the tool or extend it to allow larger versions if you need to encode lengthy data.
+- **Blank or unreadable codes** â€“ Confirm the Base64 string is decoded to a PNG (`base64.b64decode(...)`). Avoid writing the raw Base64 text directly to file.
+- **Binary dependency errors (Pillow)** â€“ Install platform-specific libraries (`apt-get install libjpeg-dev zlib1g-dev`, etc.) before installing the package, especially in slim containers.
+- **Large payloads** â€“ Version 1 QR codes have size constraints (~17 alphanumeric characters). Fork the tool or extend it to allow larger versions if you need to encode lengthy data.
 
 ## License
 

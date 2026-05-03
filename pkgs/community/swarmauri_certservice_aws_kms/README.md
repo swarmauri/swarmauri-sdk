@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_certservice_aws_kms/">
@@ -26,7 +26,7 @@ This package provides an implementation of `CertServiceBase` that signs and veri
 
 - Create CSRs from exportable key material.
 - Issue certificates using AWS KMS `Sign` API.
-- Create self‑signed certificates.
+- Create selfâ€‘signed certificates.
 - Verify and parse certificates with RFC 5280 compliance.
 
 ## Prerequisites
@@ -141,5 +141,5 @@ if __name__ == "__main__":
 ## Best Practices
 - Grant the KMS key limited permissions: `kms:GetPublicKey`, `kms:DescribeKey`, `kms:Sign`. Avoid broad grants (e.g., wildcard actions).
 - Store KMS key ARNs in `KeyRef.tags["aws_kms_key_id"]` or `KeyRef.kid` for clarity and to avoid hard-coding ARNs throughout application logic.
-- Coordinate certificate validity with KMS key rotation—renew certificates before rotating customer-managed keys.
+- Coordinate certificate validity with KMS key rotationâ€”renew certificates before rotating customer-managed keys.
 - Cache returned certificates and metadata to minimize repeated calls to KMS and reduce signing latency.

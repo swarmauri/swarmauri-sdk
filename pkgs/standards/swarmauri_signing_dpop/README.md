@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_signing_dpop/">
@@ -107,8 +107,8 @@ Use the `jkt` helper when comparing against `cnf.jkt` values embedded in access 
 
 Keys are provided using the `KeyRef` mapping expected by other Swarmauri signing packages:
 
-- `{ "kind": "pem", "priv": <PEM bytes|str> }` — RSA/EC keys and Ed25519 PKCS8 PEM.
-- `{ "kind": "jwk", "priv": <private JWK dict> }` — accepts EC, RSA, or OKP keys with private fields.
+- `{ "kind": "pem", "priv": <PEM bytes|str> }` â€” RSA/EC keys and Ed25519 PKCS8 PEM.
+- `{ "kind": "jwk", "priv": <private JWK dict> }` â€” accepts EC, RSA, or OKP keys with private fields.
 
 For Ed25519 material, both formats are supported; the signer derives and embeds the public JWK automatically.
 

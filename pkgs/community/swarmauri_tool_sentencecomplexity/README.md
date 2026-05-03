@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_sentencecomplexity/">
@@ -15,7 +15,7 @@
 
 ---
 
-# Swarmauri Tool · Sentence Complexity
+# Swarmauri Tool Â· Sentence Complexity
 
 A Swarmauri NLP tool that evaluates sentence complexity by measuring average sentence length and estimating clause counts. Use it to monitor writing style, enforce readability requirements, or trigger editorial suggestions in agents.
 
@@ -25,7 +25,7 @@ A Swarmauri NLP tool that evaluates sentence complexity by measuring average sen
 
 ## Requirements
 
-- Python 3.10 – 3.13.
+- Python 3.10 â€“ 3.13.
 - `nltk` (downloads the `punkt_tab` tokenizer data on first import).
 - Core Swarmauri dependencies (`swarmauri_base`, `swarmauri_standard`, `pydantic`).
 
@@ -128,9 +128,9 @@ Track whether edits are making the writing clearer or more complex.
 
 ## Troubleshooting
 
-- **`LookupError: Resource punkt_tab not found`** – Run `python -m nltk.downloader punkt_tab` before executing the tool, especially in offline environments.
-- **Low clause counts for technical prose** – The heuristic relies on commas/semicolons and common conjunctions; adjust or extend the tool if you need domain-specific parsing.
-- **Non-English text** – Tokenization models are optimized for English. Supply language-appropriate tokenizers before using the tool for other languages.
+- **`LookupError: Resource punkt_tab not found`** â€“ Run `python -m nltk.downloader punkt_tab` before executing the tool, especially in offline environments.
+- **Low clause counts for technical prose** â€“ The heuristic relies on commas/semicolons and common conjunctions; adjust or extend the tool if you need domain-specific parsing.
+- **Non-English text** â€“ Tokenization models are optimized for English. Supply language-appropriate tokenizers before using the tool for other languages.
 
 ## License
 

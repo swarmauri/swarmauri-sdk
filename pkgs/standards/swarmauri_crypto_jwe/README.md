@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_crypto_jwe/"><img src="https://static.pepy.tech/badge/swarmauri_crypto_jwe/month" alt="PyPI - Downloads"/></a>
@@ -97,9 +97,9 @@ crypto = pm.load("swarmauri.cryptos", "JweCrypto")
 
 **Parameters**
 
-- `alg` – `JWAAlg` member describing the key management algorithm (`JWAAlg.RSA_OAEP_256`, `JWAAlg.DIR`, etc.).
-- `enc` – `JWAAlg` member describing the content encryption algorithm (`JWAAlg.A256GCM`, `JWAAlg.A128GCM`, etc.).
-- `key` – mapping containing the key material used for encryption:
+- `alg` â€“ `JWAAlg` member describing the key management algorithm (`JWAAlg.RSA_OAEP_256`, `JWAAlg.DIR`, etc.).
+- `enc` â€“ `JWAAlg` member describing the content encryption algorithm (`JWAAlg.A256GCM`, `JWAAlg.A128GCM`, etc.).
+- `key` â€“ mapping containing the key material used for encryption:
   - `{"k": bytes}` for direct symmetric keys (`dir`).
   - `{"pub": rsa_public_key}` for RSA OAEP, where the public key may be PEM bytes or an `RSAPublicKey` instance.
   - `{"pub": ec_public_key}` for ECDH-ES with PEM, JWK, or key objects.

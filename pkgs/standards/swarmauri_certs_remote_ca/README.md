@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 
 <p align="center">
@@ -48,11 +48,11 @@ uv pip install swarmauri_certs_remote_ca
 
 `RemoteCaCertService` accepts the following arguments:
 
-- `endpoint` – Base URL of the remote CA sign endpoint.
-- `auth` – Optional mapping of HTTP headers or an `httpx.Auth` instance for
+- `endpoint` â€“ Base URL of the remote CA sign endpoint.
+- `auth` â€“ Optional mapping of HTTP headers or an `httpx.Auth` instance for
   authentication.
-- `timeout_s` – HTTP timeout in seconds (default `10`).
-- `ca_chain` – Optional sequence of cached trust anchors exposed during
+- `timeout_s` â€“ HTTP timeout in seconds (default `10`).
+- `ca_chain` â€“ Optional sequence of cached trust anchors exposed during
   verification and parsing.
 
 ## Entry Point

@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_billing_braintree/">
@@ -21,10 +21,10 @@
 
 ## Features
 
-- ✅ Models Braintree primitives such as customer vault, payment methods, subscriptions, and disbursements.
-- ✅ Returns predictable payloads so downstream Swarmauri workflows can be validated in isolation.
-- ✅ Highlights Braintree's fraud tools and reporting by exposing capability flags.
-- ✅ Stays self-contained: swap the stubbed responses for real API calls when ready.
+- âœ… Models Braintree primitives such as customer vault, payment methods, subscriptions, and disbursements.
+- âœ… Returns predictable payloads so downstream Swarmauri workflows can be validated in isolation.
+- âœ… Highlights Braintree's fraud tools and reporting by exposing capability flags.
+- âœ… Stays self-contained: swap the stubbed responses for real API calls when ready.
 
 ## Installation
 

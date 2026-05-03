@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_billing_square/">
@@ -21,11 +21,11 @@ The **Swarmauri Billing Square** package delivers a Square-backed billing provid
 
 ## Features
 
-- ✅ Turns Square catalog items and variations into Swarmauri product and price references.
-- ✅ Generates hosted checkout links through the Payments API Link service.
-- ✅ Supports payment intents, captures, and cancellations using Square's server APIs.
-- ✅ Manages subscriptions and invoices, including publishing and cancellation flows.
-- ✅ Surfaces marketplace fee splits and dispute listings for downstream automation.
+- âœ… Turns Square catalog items and variations into Swarmauri product and price references.
+- âœ… Generates hosted checkout links through the Payments API Link service.
+- âœ… Supports payment intents, captures, and cancellations using Square's server APIs.
+- âœ… Manages subscriptions and invoices, including publishing and cancellation flows.
+- âœ… Surfaces marketplace fee splits and dispute listings for downstream automation.
 
 ## Installation
 

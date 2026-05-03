@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri-transport-sseoutbound/">
@@ -20,7 +20,7 @@
 
 ---
 
-# Swarmauri Transport – Server-Sent Events
+# Swarmauri Transport â€“ Server-Sent Events
 
 `swarmauri-transport-sseoutbound` hosts a lightweight SSE endpoint for broadcasting real-time updates to browsers or other streaming clients.
 

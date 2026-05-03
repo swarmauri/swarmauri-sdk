@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 
 <p align="center">
@@ -99,13 +99,13 @@ print(claims["sub"])
 
 ### Cache management helpers
 
-- `refresh(force: bool = False)` — trigger a JWKS refresh immediately when
+- `refresh(force: bool = False)` â€” trigger a JWKS refresh immediately when
   `force` is true or the cache has expired.
-- `invalidate(kid: Optional[str] = None)` — drop either a specific key or the
+- `invalidate(kid: Optional[str] = None)` â€” drop either a specific key or the
   entire cache, including overrides.
-- `inject_override_key(kid, key_obj)` / `inject_override_jwk(kid, jwk)` — add
+- `inject_override_key(kid, key_obj)` / `inject_override_jwk(kid, jwk)` â€” add
   temporary key material that bypasses JWKS fetching when resolving by `kid`.
-- `key_resolver()` — obtain a callable suitable for advanced PyJWT usage when
+- `key_resolver()` â€” obtain a callable suitable for advanced PyJWT usage when
   integrating with other verification flows.
 
 ## Entry Point

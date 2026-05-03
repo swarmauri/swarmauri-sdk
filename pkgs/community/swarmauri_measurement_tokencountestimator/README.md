@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_measurement_tokencountestimator/">
@@ -94,7 +94,7 @@ except ValueError:
 ## Tips
 
 - Token counts can change as tokenizers evolve; pin `tiktoken` to a known version for stable measurements.
-- Normalize whitespace if your prompt assembly adds or strips spaces—tokenizers are sensitive to exact byte sequences.
+- Normalize whitespace if your prompt assembly adds or strips spacesâ€”tokenizers are sensitive to exact byte sequences.
 - For batch estimation, combine this measurement with Pandas or list comprehensions to preprocess entire prompt sets before sending them to an LLM.
 
 ## Want to help?

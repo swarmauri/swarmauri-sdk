@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_webscraping/">
@@ -15,7 +15,7 @@
 
 ---
 
-# Swarmauri Tool · Web Scraping
+# Swarmauri Tool Â· Web Scraping
 
 A Swarmauri-compatible scraper that fetches HTML with `requests`, parses it via BeautifulSoup, and extracts content with CSS selectors. Ideal for lightweight data collection, compliance checks, or enriching agent answers with live webpage snippets.
 
@@ -25,13 +25,13 @@ A Swarmauri-compatible scraper that fetches HTML with `requests`, parses it via 
 
 ## Requirements
 
-- Python 3.10 – 3.13.
+- Python 3.10 â€“ 3.13.
 - `requests` and `beautifulsoup4` (installed automatically with the package).
 - Respect site terms of service, robots.txt directives, and rate limits when scraping.
 
 ## Installation
 
-Use your preferred packaging workflow—each command installs the dependencies above.
+Use your preferred packaging workflowâ€”each command installs the dependencies above.
 
 **pip**
 
@@ -90,7 +90,7 @@ if "error" in result:
     raise RuntimeError(result["error"])
 
 if "maintenance" in result["extracted_text"].lower():
-    print("Maintenance notice detected – alert the ops team.")
+    print("Maintenance notice detected â€“ alert the ops team.")
 ```
 
 ### Inject Live Data Into a Swarmauri Agent Response
@@ -130,9 +130,9 @@ for url in urls:
 
 ## Troubleshooting
 
-- **`Request error`** – Network failures, DNS issues, or HTTP 4xx/5xx responses produce `Request error` messages. Verify connectivity, headers, or authentication if required by the site.
-- **Empty `extracted_text`** – The selector may not match any nodes. Use browser dev tools to confirm the CSS selector or adjust the parser to target the correct element.
-- **SSL certificate problems** – Pass `verify=False` by forking/extending the tool only when you trust the target; otherwise update CA certificates on the host.
+- **`Request error`** â€“ Network failures, DNS issues, or HTTP 4xx/5xx responses produce `Request error` messages. Verify connectivity, headers, or authentication if required by the site.
+- **Empty `extracted_text`** â€“ The selector may not match any nodes. Use browser dev tools to confirm the CSS selector or adjust the parser to target the correct element.
+- **SSL certificate problems** â€“ Pass `verify=False` by forking/extending the tool only when you trust the target; otherwise update CA certificates on the host.
 
 ## License
 

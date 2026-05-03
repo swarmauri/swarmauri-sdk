@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_billing_paystack/">
@@ -21,11 +21,11 @@ The **Swarmauri Billing Paystack** package provides an integration between the P
 
 ## Features
 
-- ✅ Manages Paystack products and price codes with Swarmauri references.
-- ✅ Initializes hosted checkout sessions and card-not-present payments.
-- ✅ Integrates Paystack's subscription lifecycle endpoints.
-- ✅ Issues invoices and forwards notifications as required.
-- ✅ Configures split codes and marketplace charges while validating webhooks.
+- âœ… Manages Paystack products and price codes with Swarmauri references.
+- âœ… Initializes hosted checkout sessions and card-not-present payments.
+- âœ… Integrates Paystack's subscription lifecycle endpoints.
+- âœ… Issues invoices and forwards notifications as required.
+- âœ… Configures split codes and marketplace charges while validating webhooks.
 
 ## Installation
 

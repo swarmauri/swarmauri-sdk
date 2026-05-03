@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_billing_adyen/">
@@ -21,10 +21,10 @@ The **Swarmauri Billing Adyen** package provides an Adyen-style billing provider
 
 ## Features
 
-- ✅ Simulates all Swarmauri billing capabilities for an Adyen-like provider.
-- ✅ Generates deterministic webhook events and dispute lists for integration testing.
-- ✅ Makes it easy to evaluate tigrbl strategy coverage by mapping `Capability` values.
-- ✅ Ships as a ready-made baseline for extending into production-grade Adyen clients.
+- âœ… Simulates all Swarmauri billing capabilities for an Adyen-like provider.
+- âœ… Generates deterministic webhook events and dispute lists for integration testing.
+- âœ… Makes it easy to evaluate tigrbl strategy coverage by mapping `Capability` values.
+- âœ… Ships as a ready-made baseline for extending into production-grade Adyen clients.
 
 ## Installation
 

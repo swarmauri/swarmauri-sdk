@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_billing_authorize_net/">
@@ -21,10 +21,10 @@ The **Swarmauri Billing Authorize.Net** package exposes a payments-first provide
 
 ## Features
 
-- ✅ Focuses on the Authorize.Net core: transactions, refunds, customer profiles, and reporting.
-- ✅ Emits deterministic payloads keyed by the provider namespace for straightforward assertions.
-- ✅ Provides webhook parsing hooks for signature verification and fraud review flows.
-- ✅ Designed as a drop-in replacement that can later call the Authorize.Net XML/JSON APIs.
+- âœ… Focuses on the Authorize.Net core: transactions, refunds, customer profiles, and reporting.
+- âœ… Emits deterministic payloads keyed by the provider namespace for straightforward assertions.
+- âœ… Provides webhook parsing hooks for signature verification and fraud review flows.
+- âœ… Designed as a drop-in replacement that can later call the Authorize.Net XML/JSON APIs.
 
 ## Installation
 

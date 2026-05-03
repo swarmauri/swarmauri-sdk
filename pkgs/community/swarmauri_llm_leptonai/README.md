@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_llm_leptonai/">
@@ -117,7 +117,7 @@ img_model.save_image(image_bytes, output.as_posix())
 
 - Models are invoked via `https://<model>.lepton.run/api/v1/`; updating `name` on `LeptonAIModel` switches endpoints without altering the client setup.
 - Streaming responses emit usage data at stream completion; consume the generator fully before inspecting `conversation.get_last().usage`.
-- Respect Lepton AI rate limits—add retries with exponential backoff or queue requests during traffic spikes.
+- Respect Lepton AI rate limitsâ€”add retries with exponential backoff or queue requests during traffic spikes.
 - Store API keys securely and rotate them regularly; avoid hard-coding credentials in notebooks or scripts.
 - Large image generations may take longer and consume more credits; adjust `width`, `height`, `steps`, and `guidance_scale` to balance quality versus latency.
 

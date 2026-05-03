@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_brand_frag_light.png" alt="Swarmauri Signing PDF" width="320" />
+    <img src="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg" alt="Swarmauri Signing PDF" width="320" />
 </p>
 
 <p align="center">
@@ -23,7 +23,7 @@
 
 `PDFSigner` builds on the CMS signer to produce detached signatures suitable for
 embedding in PDF documents. It exposes the standard Swarmauri `SigningBase`
-interface and cooperates with the shared `Signer` façade.
+interface and cooperates with the shared `Signer` faÃ§ade.
 
 ## Installation
 

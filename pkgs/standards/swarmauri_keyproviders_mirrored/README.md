@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 
 <p align="center">
@@ -37,7 +37,7 @@ for redundancy.
 - JWKS responses merge keys from both providers, preferring primary entries when
   the same `kid` appears in both sets.
 - Maintains an in-memory mapping of mirrored key identifiers to coordinate
-  destroy operations and failover reads—persist or rebuild this mapping if you
+  destroy operations and failover readsâ€”persist or rebuild this mapping if you
   need cross-process continuity.
 - Optional extras add canonical JSON (`jsoncanon`) and CBOR (`cbor`) support for
   consumers that require deterministic encodings.
@@ -120,11 +120,11 @@ remains identical and ready for verification.
 
 ## Mirror Modes
 
-- `public_only` *(default)* — Mirrors public key material and JWKS entries when
+- `public_only` *(default)* â€” Mirrors public key material and JWKS entries when
   available.
-- `full` — Attempts to mirror private material when export policy permits,
+- `full` â€” Attempts to mirror private material when export policy permits,
   falling back to public-only replication otherwise.
-- `none` — Disables replication while still permitting read failover to the
+- `none` â€” Disables replication while still permitting read failover to the
   secondary provider.
 
 ## Failover Semantics

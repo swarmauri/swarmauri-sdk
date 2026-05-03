@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_lexicaldensity/">
@@ -15,9 +15,9 @@
 
 ---
 
-# Swarmauri Tool · Lexical Density
+# Swarmauri Tool Â· Lexical Density
 
-A Swarmauri-compatible NLP utility that measures the lexical density of text—the ratio of content words (nouns, verbs, adjectives, adverbs) versus the total token count. Use it to monitor writing complexity, automate readability checks, or surface style signals inside agent conversations.
+A Swarmauri-compatible NLP utility that measures the lexical density of textâ€”the ratio of content words (nouns, verbs, adjectives, adverbs) versus the total token count. Use it to monitor writing complexity, automate readability checks, or surface style signals inside agent conversations.
 
 - Tokenizes input with NLTK and tags parts of speech to isolate lexical items.
 - Returns a percentage score so changes in density are easy to compare between drafts.
@@ -25,7 +25,7 @@ A Swarmauri-compatible NLP utility that measures the lexical density of text—t
 
 ## Requirements
 
-- Python 3.10 – 3.13.
+- Python 3.10 â€“ 3.13.
 - `nltk` with the `punkt_tab` and `averaged_perceptron_tagger_eng` resources available (downloaded at runtime).
 - `textstat` for robust lexicon counting.
 - Core dependencies (`swarmauri_base`, `swarmauri_standard`, `pydantic`).
@@ -132,9 +132,9 @@ Monitor writing complexity across a corpus of articles or support responses.
 
 ## Troubleshooting
 
-- **`LookupError` for NLTK resources** – Ensure `punkt_tab` and `averaged_perceptron_tagger_eng` are downloaded prior to calling the tool (see `nltk.download(...)`).
-- **Low density on short texts** – Very short messages yield coarse percentages. Aggregate multiple utterances or relax thresholds for brief content.
-- **Non-English text** – POS tagging models target English. Swap in language-specific models before using the tool with multilingual corpora.
+- **`LookupError` for NLTK resources** â€“ Ensure `punkt_tab` and `averaged_perceptron_tagger_eng` are downloaded prior to calling the tool (see `nltk.download(...)`).
+- **Low density on short texts** â€“ Very short messages yield coarse percentages. Aggregate multiple utterances or relax thresholds for brief content.
+- **Non-English text** â€“ POS tagging models target English. Swap in language-specific models before using the tool with multilingual corpora.
 
 ## License
 

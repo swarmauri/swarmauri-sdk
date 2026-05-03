@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_billing_razorpay/">
@@ -21,11 +21,11 @@ The **Swarmauri Billing Razorpay** package integrates the Razorpay Python SDK in
 
 ## Features
 
-- ✅ Creates products and prices using Razorpay items and catalog metadata.
-- ✅ Generates payment links for hosted checkout flows.
-- ✅ Manages orders for online payments, capture, and cancellation workflows.
-- ✅ Handles Razorpay subscriptions and invoice issuance APIs.
-- ✅ Supports Route marketplace transfers and secure webhook signature validation.
+- âœ… Creates products and prices using Razorpay items and catalog metadata.
+- âœ… Generates payment links for hosted checkout flows.
+- âœ… Manages orders for online payments, capture, and cancellation workflows.
+- âœ… Handles Razorpay subscriptions and invoice issuance APIs.
+- âœ… Supports Route marketplace transfers and secure webhook signature validation.
 
 ## Installation
 

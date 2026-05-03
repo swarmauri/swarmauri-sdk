@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_metric_hamming/">
@@ -21,10 +21,10 @@ The `swarmauri_metric_hamming` package delivers a production-ready implementatio
 
 ## Features
 
-- ✅ Fully compliant `MetricBase` implementation for binary sequences.
-- 🔁 Pairwise and batched distance calculations for matrices, vectors, and iterables.
-- 🧪 Built-in validation helpers for metric axioms and input compatibility checks.
-- 🧰 Utility conversion helpers for strings, dictionaries, NumPy arrays, and Swarmauri matrices/vectors.
+- âœ… Fully compliant `MetricBase` implementation for binary sequences.
+- ðŸ” Pairwise and batched distance calculations for matrices, vectors, and iterables.
+- ðŸ§ª Built-in validation helpers for metric axioms and input compatibility checks.
+- ðŸ§° Utility conversion helpers for strings, dictionaries, NumPy arrays, and Swarmauri matrices/vectors.
 
 ## Installation
 

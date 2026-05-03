@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png" alt="Swarmauri logotype" width="420" />
+  <img src="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg" alt="Swarmauri logotype" width="420" />
 </p>
 
 <h1 align="center">Swarmauri Example Plugin</h1>
@@ -21,13 +21,13 @@ start from a fully configured baseline that supports Python 3.10 through 3.12.
 
 ## Features
 
-- **Entry-point wiring** – exposes the `swarmauri.plugins` group so your agent
+- **Entry-point wiring** â€“ exposes the `swarmauri.plugins` group so your agent
   classes can be discovered automatically once implemented.
-- **Ready-to-publish metadata** – includes keywords, classifiers, and long
+- **Ready-to-publish metadata** â€“ includes keywords, classifiers, and long
   descriptions wired directly into `pyproject.toml`.
-- **Version helpers** – surfaces `__version__` and `__long_desc__` constants so
+- **Version helpers** â€“ surfaces `__version__` and `__long_desc__` constants so
   documentation and tooling can introspect the package after installation.
-- **Testing scaffold** – ships with baseline unit tests verifying version
+- **Testing scaffold** â€“ ships with baseline unit tests verifying version
   resolution to encourage a test-first development workflow.
 
 ## Installation

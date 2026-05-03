@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_publisher_rabbitmq/">
@@ -48,12 +48,12 @@ uv add swarmauri_publisher_rabbitmq
 
 | Field | Required | Description |
 | --- | --- | --- |
-| `exchange` | ✅ | The exchange name to declare and publish to. Declared as a durable direct exchange. |
-| `uri` | ⚪️ | Full AMQP URI. When provided, omit `host`/`port`/`username`/`password`. |
-| `host` | ⚪️ | RabbitMQ host. Required when `uri` is omitted. |
-| `port` | ⚪️ | RabbitMQ port. Supply the broker port (for example `5672`); the publisher does not insert a default when constructing the URI. |
-| `username` | ⚪️ | Username used in the URI when `uri` is omitted. Automatically URL-encoded. |
-| `password` | ⚪️ | Password used in the URI when `uri` is omitted. Automatically URL-encoded. |
+| `exchange` | âœ… | The exchange name to declare and publish to. Declared as a durable direct exchange. |
+| `uri` | âšªï¸ | Full AMQP URI. When provided, omit `host`/`port`/`username`/`password`. |
+| `host` | âšªï¸ | RabbitMQ host. Required when `uri` is omitted. |
+| `port` | âšªï¸ | RabbitMQ port. Supply the broker port (for example `5672`); the publisher does not insert a default when constructing the URI. |
+| `username` | âšªï¸ | Username used in the URI when `uri` is omitted. Automatically URL-encoded. |
+| `password` | âšªï¸ | Password used in the URI when `uri` is omitted. Automatically URL-encoded. |
 
 The `publish(channel, payload)` method treats `channel` as the RabbitMQ routing key. `payload` must be JSON serialisable because it is serialized with `json.dumps` before publishing.
 

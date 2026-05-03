@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_certs_crlverifyservice/">
@@ -111,6 +111,6 @@ if __name__ == "__main__":
 
 ## Best Practices
 - Refresh CRLs frequently; RFC 5280 `nextUpdate` dictates how long a CRL should be considered valid.
-- Combine this service with Swarmauri signing services to perform a full lifecycle check (issue → deploy → monitor).
+- Combine this service with Swarmauri signing services to perform a full lifecycle check (issue â†’ deploy â†’ monitor).
 - Cache CRLs in memory or a fast datastore to avoid repeatedly downloading them when calling `verify_cert`.
 - Log verification outputs (especially `reason` and `revoked`) to your observability pipeline to catch trust issues early.

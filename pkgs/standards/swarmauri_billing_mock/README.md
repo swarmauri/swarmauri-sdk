@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_billing_mock/">
@@ -21,10 +21,10 @@ The **Swarmauri Billing Mock** package delivers a deterministic billing provider
 
 ## Features
 
-- ✅ Implements all billing mixins with predictable outputs.
-- ✅ Perfect for test suites where deterministic responses are essential.
-- ✅ Provides fast feedback without network calls.
-- ✅ Demonstrates how to subclass `BillingProviderBase` for custom flows.
+- âœ… Implements all billing mixins with predictable outputs.
+- âœ… Perfect for test suites where deterministic responses are essential.
+- âœ… Provides fast feedback without network calls.
+- âœ… Demonstrates how to subclass `BillingProviderBase` for custom flows.
 
 ## Installation
 

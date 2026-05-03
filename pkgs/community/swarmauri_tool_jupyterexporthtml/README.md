@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_jupyterexporthtml/">
@@ -17,7 +17,7 @@
 
 # Swarmauri Tool Jupyter Export HTML
 
-Converts a Jupyter notebook (passed in as JSON) to HTML using nbconvert’s `HTMLExporter` with optional custom templates, CSS, and JavaScript.
+Converts a Jupyter notebook (passed in as JSON) to HTML using nbconvertâ€™s `HTMLExporter` with optional custom templates, CSS, and JavaScript.
 
 ## Features
 
@@ -71,7 +71,7 @@ else:
 
 - nbconvert templates let you customize the layout; pass a `.tpl` file to `template_file`.
 - Keep `extra_css`/`extra_js` lightweight to avoid bloating the HTML output.
-- Combine with notebook execution tools (execute → export → publish) for end-to-end pipelines.
+- Combine with notebook execution tools (execute â†’ export â†’ publish) for end-to-end pipelines.
 
 ## Want to help?
 

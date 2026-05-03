@@ -1,4 +1,4 @@
-![Swarmauri Brand Theme](https://github.com/swarmauri/swarmauri-sdk/blob/main/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Brand Theme](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_signing_pep458/">
@@ -27,18 +27,18 @@ and validate repository metadata with a uniform API.
 
 ## Key Features
 
-- **PEP 458 compatible format** – Signatures emit the `tuf/pep458` envelope with
+- **PEP 458 compatible format** â€“ Signatures emit the `tuf/pep458` envelope with
   `method`, `keyid`, and base64-encoded payloads so the metadata aligns with the
   specification's detached signature requirements.
-- **Deterministic canonicalization** – Canonicalizes envelopes using TUF's
+- **Deterministic canonicalization** â€“ Canonicalizes envelopes using TUF's
   lexicographically-sorted JSON encoding to guarantee byte-for-byte reproducibility.
-- **Multiple signature algorithms** – Supports Ed25519 for online roles and
+- **Multiple signature algorithms** â€“ Supports Ed25519 for online roles and
   RSA-PSS-SHA256 for offline root-style metadata, allowing you to mix schemes per
   role.
-- **Quorum aware verification** – Enforces `min_signers`, explicit key-id allow
+- **Quorum aware verification** â€“ Enforces `min_signers`, explicit key-id allow
   lists, and algorithm restrictions during verification to help model offline
   threshold signing policies.
-- **Flexible key inputs** – Accepts cryptography key objects, PEM encoded key
+- **Flexible key inputs** â€“ Accepts cryptography key objects, PEM encoded key
   material, or Swarmauri `KeyRef` dictionaries for both signing and verification.
 
 ## Installation

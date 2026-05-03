@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_certs_x509/">
@@ -28,8 +28,8 @@ X.509 certificate service plugin for Swarmauri using the `cryptography` library.
 - Parse certificates to extract subject, issuer, validity, and extension metadata
 
 ## RFC References
-- [RFC 2986](https://datatracker.ietf.org/doc/html/rfc2986) – PKCS #10 Certification Request Syntax
-- [RFC 5280](https://datatracker.ietf.org/doc/html/rfc5280) – Internet X.509 Public Key Infrastructure Certificate and CRL Profile
+- [RFC 2986](https://datatracker.ietf.org/doc/html/rfc2986) â€“ PKCS #10 Certification Request Syntax
+- [RFC 5280](https://datatracker.ietf.org/doc/html/rfc5280) â€“ Internet X.509 Public Key Infrastructure Certificate and CRL Profile
 
 ## Installation
 

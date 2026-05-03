@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_psutil/">
@@ -15,7 +15,7 @@
 
 ---
 
-# Swarmauri Tool · psutil
+# Swarmauri Tool Â· psutil
 
 A Swarmauri-compatible system inspection tool powered by `psutil`. Use it to surface CPU, memory, disk, network, and sensor telemetry inside agents, observability workflows, or health checks.
 
@@ -25,7 +25,7 @@ A Swarmauri-compatible system inspection tool powered by `psutil`. Use it to sur
 
 ## Requirements
 
-- Python 3.10 – 3.13.
+- Python 3.10 â€“ 3.13.
 - `psutil` installed (pulled automatically with the package).
 - Optional platform support: some sensor endpoints require root/admin privileges or may not exist on virtualized hosts.
 
@@ -147,9 +147,9 @@ Capture periodic snapshots that can be loaded into notebooks, dashboards, or ano
 
 ## Troubleshooting
 
-- **`ValueError: Invalid info_type`** – Only `"cpu"`, `"memory"`, `"disk"`, `"network"`, and `"sensors"` are supported. Validate user input before calling the tool.
-- **`Permission denied` retrieving connections/sensors** – Run with elevated privileges or filter out those sections. The tool returns a descriptive string when it cannot access the data.
-- **`psutil.AccessDenied` on containerized hosts** – Grant the container additional capabilities (e.g., `SYS_PTRACE`) or restrict to metrics that do not require elevated rights.
+- **`ValueError: Invalid info_type`** â€“ Only `"cpu"`, `"memory"`, `"disk"`, `"network"`, and `"sensors"` are supported. Validate user input before calling the tool.
+- **`Permission denied` retrieving connections/sensors** â€“ Run with elevated privileges or filter out those sections. The tool returns a descriptive string when it cannot access the data.
+- **`psutil.AccessDenied` on containerized hosts** â€“ Grant the container additional capabilities (e.g., `SYS_PTRACE`) or restrict to metrics that do not require elevated rights.
 
 ## License
 

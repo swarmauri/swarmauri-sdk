@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_evaluatorpool_accessibility/">
@@ -23,9 +23,9 @@
 # Swarmauri Evaluatorpool Accessibility
 
 Accessibility-focused evaluator pool for Swarmauri programs. The pool bundles a
-set of classic readability metrics (Automated Readability Index, Coleman–Liau,
-Flesch–Kincaid Grade, Flesch Reading Ease, and Gunning Fog) and normalises their
-scores onto a single 0–1 scale where higher values mean easier-to-read content.
+set of classic readability metrics (Automated Readability Index, Colemanâ€“Liau,
+Fleschâ€“Kincaid Grade, Flesch Reading Ease, and Gunning Fog) and normalises their
+scores onto a single 0â€“1 scale where higher values mean easier-to-read content.
 
 ## Installation
 
@@ -89,14 +89,14 @@ pool.shutdown()  # release resources when finished
 
 Each entry returned from `evaluate` is an `EvalResultBase` with:
 
-- `score`: the weighted mean of the evaluator scores mapped to the 0–1 range.
+- `score`: the weighted mean of the evaluator scores mapped to the 0â€“1 range.
 - `metadata["evaluator_scores"]`: raw scores keyed by evaluator name.
 - `metadata["evaluator_metadata"]`: evaluator-specific metadata (e.g. sentence
   counts, syllable estimates, interpretation strings).
 - `metadata["aggregate_score"]`: mirrors `.score` for convenience.
 
 You can customise the weighting of each evaluator by passing a `weights`
-dictionary (name → float) when constructing the pool.
+dictionary (name â†’ float) when constructing the pool.
 
 ### Notes
 

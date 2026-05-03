@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 
 <p align="center">
@@ -22,9 +22,9 @@
 
 ## Features
 
-- **Future ready** – codifies the contract for TIFF/DNG metadata manipulation ahead of implementation work.
-- **Registry connected** – extends `EmbedXmpBase`, so the handler is automatically registered for discovery.
-- **Explicit messaging** – each method raises `NotImplementedError`, clarifying expectations for contributors.
+- **Future ready** â€“ codifies the contract for TIFF/DNG metadata manipulation ahead of implementation work.
+- **Registry connected** â€“ extends `EmbedXmpBase`, so the handler is automatically registered for discovery.
+- **Explicit messaging** â€“ each method raises `NotImplementedError`, clarifying expectations for contributors.
 
 ## Installation
 
@@ -51,9 +51,9 @@ except NotImplementedError:
 
 ### Why it works
 
-- **Future ready** – codifies the contract for TIFF/DNG metadata manipulation ahead of implementation work.
-- **Registry connected** – extends `EmbedXmpBase`, so the handler is automatically registered for discovery.
-- **Explicit messaging** – each method raises `NotImplementedError`, clarifying expectations for contributors.
+- **Future ready** â€“ codifies the contract for TIFF/DNG metadata manipulation ahead of implementation work.
+- **Registry connected** â€“ extends `EmbedXmpBase`, so the handler is automatically registered for discovery.
+- **Explicit messaging** â€“ each method raises `NotImplementedError`, clarifying expectations for contributors.
 
 ## Project Resources
 

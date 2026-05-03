@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_keyprovider_vaulttransit/">
@@ -126,13 +126,13 @@ async def encrypt_and_wrap() -> None:
 
 ## Configuration Reference
 
-- `url` – Vault server address (e.g., `https://vault.example.com:8200`).
-- `token` – Vault token or wrapped token with permissions for the Transit mount.
-- `mount` – Transit engine mount path; defaults to `transit`.
-- `namespace` – Optional Vault Enterprise namespace header.
-- `verify` – TLS verification flag or CA bundle path.
-- `prefer_vault_rng` – When `True`, `random_bytes` uses Vault's RNG; otherwise falls back to `os.urandom`.
-- `client` – Provide a pre-configured `hvac.Client` if you manage authentication externally.
+- `url` â€“ Vault server address (e.g., `https://vault.example.com:8200`).
+- `token` â€“ Vault token or wrapped token with permissions for the Transit mount.
+- `mount` â€“ Transit engine mount path; defaults to `transit`.
+- `namespace` â€“ Optional Vault Enterprise namespace header.
+- `verify` â€“ TLS verification flag or CA bundle path.
+- `prefer_vault_rng` â€“ When `True`, `random_bytes` uses Vault's RNG; otherwise falls back to `os.urandom`.
+- `client` â€“ Provide a pre-configured `hvac.Client` if you manage authentication externally.
 
 ## Want to help?
 

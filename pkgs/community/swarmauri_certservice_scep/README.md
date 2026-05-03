@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_certservice_scep/">
@@ -89,7 +89,7 @@ async def enroll() -> None:
 
     fullchain = await service.sign_cert(csr_pem, ca_key=key_ref)
     Path("device.pem").write_bytes(fullchain)
-    print("Enrollment complete → device.pem")
+    print("Enrollment complete â†’ device.pem")
 
 
 if __name__ == "__main__":
@@ -132,7 +132,7 @@ if __name__ == "__main__":
 
 ## Operational Tips
 
-- Generate distinct key pairs per device or workload, and store them securely—`KeyRef` can reference HSM-backed keys instead of raw PEM material.
+- Generate distinct key pairs per device or workload, and store them securelyâ€”`KeyRef` can reference HSM-backed keys instead of raw PEM material.
 - Capture challenge passwords and sensitive enrollment secrets from a secure vault or environment variables rather than hard-coding them in scripts.
 - If your SCEP responder returns PKCS#7 payloads, feed the response into `cryptography.hazmat.primitives.serialization.pkcs7` to extract certificate chains before deployment.
 - Pair SCEP enrollment with Swarmauri revocation check services (`swarmauri_certs_ocspverify`, `swarmauri_certs_crlverifyservice`) to maintain lifecycle hygiene.

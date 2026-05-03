@@ -1,5 +1,5 @@
 
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_embedding_mlm/">
@@ -33,7 +33,7 @@ Trainable embedding provider that fine-tunes a Hugging Face masked language mode
 - Python 3.10 or newer.
 - PyTorch with CUDA support if you plan to train on GPU (the class falls back to CPU automatically).
 - Access to the Hugging Face model hub for downloading `embedding_name`. Set `HF_HOME`, proxies, or tokens if your environment requires authentication.
-- Enough disk space to cache the chosen MLM (e.g., `bert-base-uncased` ~420 MB).
+- Enough disk space to cache the chosen MLM (e.g., `bert-base-uncased` ~420â€¯MB).
 
 ## Installation
 
@@ -121,7 +121,7 @@ embedding = restored.infer_vector("Reuse the trained weights instantly")
 ## Operational Tips
 
 - Batch and sequence length drive GPU memory usage; reduce `batch_size` or `max_length` in tokenizer calls when running on constrained hardware.
-- `fit_transform` runs a full fine-tuning pass and immediately returns embeddings—useful for one-off adaptation jobs.
+- `fit_transform` runs a full fine-tuning pass and immediately returns embeddingsâ€”useful for one-off adaptation jobs.
 - When training on large corpora, stream documents from a generator, chunk them, or wrap the `.fit` call in your own epoch loop.
 - Run `extract_features()` to audit the tokenizer vocabulary (helpful when debugging domain token coverage).
 - Combine the generated vectors with Swarmauri vector stores (Redis, Qdrant, etc.) to build end-to-end retrieval pipelines.

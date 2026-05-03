@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tests_readme_examples/">
@@ -53,10 +53,10 @@ E   README.md::block-3 raised ValueError('boom')
 
 You can control the scan through CLI options or `pyproject.toml`:
 
-* `--readme-files` – comma/newline separated Markdown files (default: `README.md`)
-* `--readme-languages` – languages to execute (default: `python`, `py`, `pycon`)
-* `--readme-mode` – `parameterized` (default) or `aggregate`
-* `--readme-skip-markers` – comment markers that skip a block when they appear on the first non-empty line
+* `--readme-files` â€“ comma/newline separated Markdown files (default: `README.md`)
+* `--readme-languages` â€“ languages to execute (default: `python`, `py`, `pycon`)
+* `--readme-mode` â€“ `parameterized` (default) or `aggregate`
+* `--readme-skip-markers` â€“ comment markers that skip a block when they appear on the first non-empty line
 
 `pyproject.toml` example (under `[tool.pytest.ini_options]`):
 

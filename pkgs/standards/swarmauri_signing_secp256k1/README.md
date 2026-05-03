@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 
 <p align="center">
@@ -24,17 +24,17 @@ canonicalized envelopes.
 
 ## Features
 
-- **Asynchronous API** – `sign_bytes`, `verify_bytes`, `sign_envelope`, and
+- **Asynchronous API** â€“ `sign_bytes`, `verify_bytes`, `sign_envelope`, and
   `verify_envelope` operate with `asyncio` and return canonical Swarmauri
   signature payloads.
-- **Multiple canonicalizations** – JSON canonicalization is always
+- **Multiple canonicalizations** â€“ JSON canonicalization is always
   available, while CBOR canonicalization can be enabled with the optional
   `cbor2` dependency.
-- **Flexible key loading** – accepts PEM strings/paths, JWK dictionaries, or
+- **Flexible key loading** â€“ accepts PEM strings/paths, JWK dictionaries, or
   native `cryptography` key objects via the `KeyRef` protocol.
-- **Deterministic verification requirements** – verification expects one or
+- **Deterministic verification requirements** â€“ verification expects one or
   more secp256k1 public keys provided through `opts["pubkeys"]`.
-- **Signature format control** – DER encoding is returned by default; supply
+- **Signature format control** â€“ DER encoding is returned by default; supply
   `opts={"format": "RAW"}` when signing or verifying to work with
   JOSE-style `r || s` concatenated signatures.
 

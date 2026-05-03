@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../../../assets/swarmauri_brand_frag_light.png" alt="Swarmauri logotype" width="420" />
+  <img src="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg" alt="Swarmauri logotype" width="420" />
 </p>
 
 <h1 align="center">MediaSigner</h1>
@@ -21,15 +21,15 @@ specialised signers such as CMS, JWS, OpenPGP, PDF, and XMLDSig providers.
 
 ## Features
 
-- **Unified signing façade** – talk to every installed `SigningBase` through a
+- **Unified signing faÃ§ade** â€“ talk to every installed `SigningBase` through a
   single async API that automatically discovers entry-point contributions.
-- **Format-aware routing** – delegates signing and verification to the provider
+- **Format-aware routing** â€“ delegates signing and verification to the provider
   registered for a format token such as `jws`, `pdf`, or `xmld`.
-- **Optional plugin bundles** – install curated extras (e.g. `[plugins]`) to
+- **Optional plugin bundles** â€“ install curated extras (e.g. `[plugins]`) to
   bring in all available signer backends in one step.
-- **Key-provider integration** – share Swarmauri key providers with the facade
+- **Key-provider integration** â€“ share Swarmauri key providers with the facade
   so opaque key references resolve before signature creation.
-- **Production-ready CLI** – inspect capabilities, sign payloads, and verify
+- **Production-ready CLI** â€“ inspect capabilities, sign payloads, and verify
   results directly from the command line for fast automation.
 
 ## Installation
@@ -118,11 +118,11 @@ for format_name in signer.supported_formats():
 
 ### Why this structure?
 
-* **Separation of concerns** – standards remain focused on common abstractions
+* **Separation of concerns** â€“ standards remain focused on common abstractions
   while the plugin encapsulates optional dependencies.
-* **Explicit opt-in** – downstream projects can install only the signing stacks
+* **Explicit opt-in** â€“ downstream projects can install only the signing stacks
   they need via the curated extras.
-* **Consistent ergonomics** – usage matches the historical
+* **Consistent ergonomics** â€“ usage matches the historical
   `swarmauri_standard.signing.Signer` import, preserving existing tutorials and
   code samples.
 

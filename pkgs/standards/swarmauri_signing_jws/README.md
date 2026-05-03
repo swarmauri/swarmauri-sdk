@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 
 <p align="center">
@@ -116,12 +116,12 @@ probabilities negligible even after many verification attempts.
 Rationale:
 
 - Forgery success scales with tag length; a 256-bit tag keeps the chance
-  negligible even after many tries ([NIST SP 800‑107 Rev.1](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-107r1.pdf)).
-- [RFC 7518](https://datatracker.ietf.org/doc/html/rfc7518) already mandates
-  HS256 keys ≥ 256 bits; using the full HMAC-SHA-256 output avoids
+  negligible even after many tries ([NIST SPÂ 800â€‘107Â Rev.1](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-107r1.pdf)).
+- [RFCÂ 7518](https://datatracker.ietf.org/doc/html/rfc7518) already mandates
+  HS256 keys â‰¥â€Š256 bits; using the full HMAC-SHA-256 output avoids
   inadvertent strength reduction.
-- A full 32-byte tag preserves ≈128-bit security even under generic quantum
-  search speedups ([NIST IR 8547](https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8547.ipd.pdf)).
+- A full 32-byte tag preserves â‰ˆ128-bit security even under generic quantum
+  search speedups ([NISTÂ IRÂ 8547](https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8547.ipd.pdf)).
 - Fixed-length tags simplify constant-time verification and prevent
   configuration mismatches.
 

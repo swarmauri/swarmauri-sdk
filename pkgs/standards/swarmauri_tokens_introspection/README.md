@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tokens_introspection/">
@@ -53,7 +53,7 @@ The package exposes an async API, so ensure your environment includes an event l
 
 ## Usage
 
-The example below demonstrates how to exercise the service with a mocked introspection endpoint. The same API works against a live OAuth 2.0 Authorization Server—simply omit the mock transport and let `httpx` reach your configured `endpoint`.
+The example below demonstrates how to exercise the service with a mocked introspection endpoint. The same API works against a live OAuth 2.0 Authorization Serverâ€”simply omit the mock transport and let `httpx` reach your configured `endpoint`.
 
 ```python
 """Execute the README example with `python README_example.py`."""
@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
 ## License
 
-`Apache-2.0` © Swarmauri
+`Apache-2.0` Â© Swarmauri
 
 ## Want to help?
 

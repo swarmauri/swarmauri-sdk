@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_keyprovider_aws_kms/">
@@ -75,7 +75,7 @@ async def main() -> None:
     jwk = await provider.get_public_jwk(key_ref.kid)
     print("Public JWK", jwk)
 
-    # Rotate the key – new CMK in KMS, version alias bump, old alias retained
+    # Rotate the key â€“ new CMK in KMS, version alias bump, old alias retained
     rotated = await provider.rotate_key(key_ref.kid)
     print("Rotated to version", rotated.version)
 
@@ -118,5 +118,5 @@ async def derive_data_key() -> bytes:
 
 - `list_versions(kid)` inspects versioned aliases (`alias/<prefix>/<kid>/vN`); use it before destructive actions to ensure you capture all active CMKs.
 - Destroying a key schedules deletion for 7 days. Plan rotations ahead of time so dependent systems can migrate to the new version before you call `destroy_key`.
-- Tag metadata persisted by the provider (`saur:kid`, `saur:version`, `saur:alg`, optional `saur:label`) enables inventory checks—query them from the AWS console or CLI when auditing.
+- Tag metadata persisted by the provider (`saur:kid`, `saur:version`, `saur:alg`, optional `saur:label`) enables inventory checksâ€”query them from the AWS console or CLI when auditing.
 - For high-throughput signing, ensure your IAM policies, KMS quotas, and region placement match latency expectations; consider caching public JWKs from `jwks()` in your verifier services.

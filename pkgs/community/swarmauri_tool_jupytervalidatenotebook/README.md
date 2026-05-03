@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_jupytervalidatenotebook/">
@@ -15,7 +15,7 @@
 
 ---
 
-# Swarmauri Tool · Jupyter Validate Notebook
+# Swarmauri Tool Â· Jupyter Validate Notebook
 
 A Swarmauri tool that validates Jupyter notebooks (`NotebookNode` objects) against the official nbformat JSON schema. Use it to gate notebook submissions, enforce structural best practices, or wire schema checks into automated notebook pipelines.
 
@@ -25,7 +25,7 @@ A Swarmauri tool that validates Jupyter notebooks (`NotebookNode` objects) again
 
 ## Requirements
 
-- Python 3.10 – 3.13.
+- Python 3.10 â€“ 3.13.
 - `nbformat` (installed automatically) with access to the notebook JSON schema.
 - Dependencies (`jsonschema`, `swarmauri_base`, `swarmauri_standard`, `pydantic`, `typing_extensions`).
 
@@ -138,9 +138,9 @@ Use the validation step after automated notebook generation/execution to ensure 
 
 ## Troubleshooting
 
-- **`Invalid nbformat version`** – The tool enforces nbformat version 4. Upgrade the notebook (`nbformat.convert`) or save it with a modern Jupyter client.
-- **`Validation error`** – Inspect the `report` field for the jsonschema path causing the failure. Missing metadata or malformed cells are common culprits.
-- **`Unexpected error`** – Log the exception and confirm the input is an nbformat `NotebookNode`, not a raw dict or path string.
+- **`Invalid nbformat version`** â€“ The tool enforces nbformat version 4. Upgrade the notebook (`nbformat.convert`) or save it with a modern Jupyter client.
+- **`Validation error`** â€“ Inspect the `report` field for the jsonschema path causing the failure. Missing metadata or malformed cells are common culprits.
+- **`Unexpected error`** â€“ Log the exception and confirm the input is an nbformat `NotebookNode`, not a raw dict or path string.
 
 ## License
 

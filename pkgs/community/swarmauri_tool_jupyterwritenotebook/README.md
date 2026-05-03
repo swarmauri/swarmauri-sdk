@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_jupyterwritenotebook/">
@@ -15,7 +15,7 @@
 
 ---
 
-# Swarmauri Tool · Jupyter Write Notebook
+# Swarmauri Tool Â· Jupyter Write Notebook
 
 A Swarmauri automation tool that serializes Jupyter `NotebookNode` objects (or compatible dictionaries) to disk using the nbformat JSON schema. It encapsulates validation, encoding, and integrity checks so pipelines can persist generated notebooks with confidence.
 
@@ -25,13 +25,13 @@ A Swarmauri automation tool that serializes Jupyter `NotebookNode` objects (or c
 
 ## Requirements
 
-- Python 3.10 – 3.13.
+- Python 3.10 â€“ 3.13.
 - `nbformat` for working with notebook structures.
 - Dependencies (`swarmauri_base`, `swarmauri_standard`, `pydantic`). These install automatically with the package.
 
 ## Installation
 
-Choose the installer that matches your workflow—each command pulls transitive dependencies.
+Choose the installer that matches your workflowâ€”each command pulls transitive dependencies.
 
 **pip**
 
@@ -159,9 +159,9 @@ Validate the notebook schema first, then persist the approved version for distri
 
 ## Troubleshooting
 
-- **`An error occurred during notebook write operation`** – The tool surfaces file-system exceptions verbatim. Check write permissions and ensure the target directory exists.
-- **Empty file after execution** – Read-back verification triggers when the file cannot be parsed as JSON. Confirm the notebook structure is JSON serializable (e.g., use nbformat helper constructors).
-- **Unexpected characters** – The tool writes with `ensure_ascii=False` so non-ASCII text remains intact. If your environment cannot handle UTF-8, pass a different `encoding` argument.
+- **`An error occurred during notebook write operation`** â€“ The tool surfaces file-system exceptions verbatim. Check write permissions and ensure the target directory exists.
+- **Empty file after execution** â€“ Read-back verification triggers when the file cannot be parsed as JSON. Confirm the notebook structure is JSON serializable (e.g., use nbformat helper constructors).
+- **Unexpected characters** â€“ The tool writes with `ensure_ascii=False` so non-ASCII text remains intact. If your environment cannot handle UTF-8, pass a different `encoding` argument.
 
 ## License
 

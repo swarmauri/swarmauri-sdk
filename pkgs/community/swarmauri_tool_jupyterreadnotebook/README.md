@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_jupyterreadnotebook/">
@@ -21,7 +21,7 @@ Reads a `.ipynb` file from disk into a validated nbformat `NotebookNode` for dow
 
 ## Features
 
-- Wraps nbformat’s `read` + validation workflow in a Swarmauri tool.
+- Wraps nbformatâ€™s `read` + validation workflow in a Swarmauri tool.
 - Returns `{ "notebook_node": NotebookNode }` on success or `{ "error": ... }` on failure.
 - Optional `as_version` argument controls notebook parsing version (default 4).
 
@@ -63,7 +63,7 @@ else:
 
 ## Tips
 
-- Use with execution/export tools to build pipelines (read → execute → convert).
+- Use with execution/export tools to build pipelines (read â†’ execute â†’ convert).
 - Handle `error` key gracefully when files are missing or malformed.
 
 ## Want to help?

@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_certservice_ms_adcs/">
@@ -150,10 +150,10 @@ if __name__ == "__main__":
 
 ## Authentication Modes
 
-- **NTLM** – enable by installing `requests-ntlm` and providing domain credentials via `_AuthCfg(mode="ntlm", username="DOMAIN\\user", password="..." )`.
-- **Kerberos/SPNEGO** – install `requests-kerberos` and set `_AuthCfg(mode="kerberos", spnego_delegate=True)` when delegation is required.
-- **HTTP Basic** – provide `_AuthCfg(mode="basic", username=..., password=...)` for AD CS deployments fronted by basic auth proxies.
-- **Anonymous** – set `_AuthCfg(mode="none")` for environments that rely on IP allow lists or mutual TLS.
+- **NTLM** â€“ enable by installing `requests-ntlm` and providing domain credentials via `_AuthCfg(mode="ntlm", username="DOMAIN\\user", password="..." )`.
+- **Kerberos/SPNEGO** â€“ install `requests-kerberos` and set `_AuthCfg(mode="kerberos", spnego_delegate=True)` when delegation is required.
+- **HTTP Basic** â€“ provide `_AuthCfg(mode="basic", username=..., password=...)` for AD CS deployments fronted by basic auth proxies.
+- **Anonymous** â€“ set `_AuthCfg(mode="none")` for environments that rely on IP allow lists or mutual TLS.
 
 ## Best Practices
 

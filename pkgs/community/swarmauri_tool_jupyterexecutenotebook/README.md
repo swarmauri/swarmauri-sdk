@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_jupyterexecutenotebook/">
@@ -28,7 +28,7 @@ Executes all cells of a Jupyter notebook using nbclient and returns the executed
 ## Prerequisites
 
 - Python 3.10 or newer.
-- Jupyter/nbconvert stack available (`nbclient`, `nbformat`, `ipykernel`, etc.—installed automatically).
+- Jupyter/nbconvert stack available (`nbclient`, `nbformat`, `ipykernel`, etc.â€”installed automatically).
 - Notebook dependencies must be installed in the environment where the tool runs.
 
 ## Installation

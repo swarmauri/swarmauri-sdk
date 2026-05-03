@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 
 <p align="center">
@@ -22,9 +22,9 @@
 
 ## Features
 
-- **Future-proof** – defines the API surface for PDF metadata before implementation begins.
-- **Registry-integrated** – extends `EmbedXmpBase`, so discovery happens automatically once functionality ships.
-- **Clear guidance** – explicit errors communicate the current development status to downstream users.
+- **Future-proof** â€“ defines the API surface for PDF metadata before implementation begins.
+- **Registry-integrated** â€“ extends `EmbedXmpBase`, so discovery happens automatically once functionality ships.
+- **Clear guidance** â€“ explicit errors communicate the current development status to downstream users.
 
 ## Installation
 
@@ -51,9 +51,9 @@ except NotImplementedError:
 
 ### Why it works
 
-- **Future-proof** – defines the API surface for PDF metadata before implementation begins.
-- **Registry-integrated** – extends `EmbedXmpBase`, so discovery happens automatically once functionality ships.
-- **Clear guidance** – explicit errors communicate the current development status to downstream users.
+- **Future-proof** â€“ defines the API surface for PDF metadata before implementation begins.
+- **Registry-integrated** â€“ extends `EmbedXmpBase`, so discovery happens automatically once functionality ships.
+- **Clear guidance** â€“ explicit errors communicate the current development status to downstream users.
 
 ## Project Resources
 

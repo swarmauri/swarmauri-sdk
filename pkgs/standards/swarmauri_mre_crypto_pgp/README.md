@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_mre_crypto_pgp/">
@@ -25,15 +25,15 @@ Providers that wrap a shared content-encryption key (CEK) additionally require
 
 ### Highlights
 
-- **PGPSealMreCrypto** – Implements the `sealed_per_recipient` mode. Each
+- **PGPSealMreCrypto** â€“ Implements the `sealed_per_recipient` mode. Each
   recipient receives a sealed copy of the plaintext. Associated data (AAD) is
   not supported and re-wrapping new recipients requires the original plaintext
   via `opts["plaintext"]`.
-- **PGPSealedCekMreCrypto** – Implements the `sealed_cek+aead` mode with an
+- **PGPSealedCekMreCrypto** â€“ Implements the `sealed_cek+aead` mode with an
   AES-256-GCM payload. The CEK is sealed per recipient and can be re-used to
   add or rotate recipients without decrypting the payload when
   `opts["cek"]` or `opts["opener_identities"]` are supplied.
-- **PGPMreCrypto** – Composite provider supporting both
+- **PGPMreCrypto** â€“ Composite provider supporting both
   `enc_once+per_recipient_header` (AES-256-GCM payload with OpenPGP headers)
   and `sealed_per_recipient`. Re-wrapping shared-payload envelopes requires the
   CEK via `opts["cek"]` or a managing private key supplied through
@@ -128,9 +128,9 @@ not match the expected values.
 
 ### Re-wrapping envelopes
 
-- **Sealed per recipient** – Re-wrapping with additional recipients requires
+- **Sealed per recipient** â€“ Re-wrapping with additional recipients requires
   `opts["plaintext"]` so the providers can seal the original payload again.
-- **Shared CEK (enc_once / sealed_cek)** – Supply either the decrypted CEK via
+- **Shared CEK (enc_once / sealed_cek)** â€“ Supply either the decrypted CEK via
   `opts["cek"]` or provide identities capable of opening the envelope through
   `opts["manage_key"]` (composite provider) or
   `opts["opener_identities"]` (sealed CEK provider).

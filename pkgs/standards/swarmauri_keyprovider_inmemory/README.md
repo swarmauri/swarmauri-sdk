@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 
 <p align="center">
@@ -16,9 +16,9 @@
 
 ---
 
-# Swarmauri In‑Memory Key Provider
+# Swarmauri Inâ€‘Memory Key Provider
 
-Volatile, in‑memory key provider for Swarmauri. All key material is kept strictly in process memory (no disk writes). Ideal for testing, CI, and ephemeral gateways where persistence is not desired. Not intended for long‑term or production storage of secrets.
+Volatile, inâ€‘memory key provider for Swarmauri. All key material is kept strictly in process memory (no disk writes). Ideal for testing, CI, and ephemeral gateways where persistence is not desired. Not intended for longâ€‘term or production storage of secrets.
 
 ## Installation
 
@@ -59,7 +59,7 @@ async def main() -> None:
     # Create a symmetric key kept only in memory
     spec = KeySpec(
         klass=KeyClass.symmetric,
-        alg=KeyAlg.AES256_GCM,             # optional hint – not strictly enforced
+        alg=KeyAlg.AES256_GCM,             # optional hint â€“ not strictly enforced
         uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
         export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,  # material may be present
         label="session-key",

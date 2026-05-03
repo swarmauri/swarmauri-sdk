@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_storage_github/">
@@ -62,7 +62,7 @@ print(uri)  # github://my-org/my-repo/README.md
 
 ### Behavior and limitations
 
-- `upload()` does not persist data—it simply echoes the key back as a
+- `upload()` does not persist dataâ€”it simply echoes the key back as a
   `github://` URI.
 - `download()`, `upload_dir()`, and `download_dir()` raise
   `NotImplementedError` to signal that full GitHub support is intentionally out

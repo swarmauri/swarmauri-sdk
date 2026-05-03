@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_parser_textblob/">
@@ -72,7 +72,7 @@ for doc in docs:
 
 ## Tips
 
-- TextBlob uses simple heuristics—it works well for general English text but may struggle with domain-specific jargon.
+- TextBlob uses simple heuristicsâ€”it works well for general English text but may struggle with domain-specific jargon.
 - Download corpora once in CI/CD or container builds (`python -m textblob.download_corpora`) to avoid runtime downloads.
 - Combine sentence and noun parsers to build structured representations of documents before vectorization or downstream NLP tasks.
 

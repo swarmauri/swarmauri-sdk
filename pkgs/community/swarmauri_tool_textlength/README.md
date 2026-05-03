@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_textlength/">
@@ -15,7 +15,7 @@
 
 ---
 
-# Swarmauri Tool · Text Length
+# Swarmauri Tool Â· Text Length
 
 A Swarmauri-ready helper that measures text length in characters, words, and sentences using NLTK tokenization. Drop it into content pipelines, moderation bots, or editorial agents to monitor message size and cadence.
 
@@ -25,7 +25,7 @@ A Swarmauri-ready helper that measures text length in characters, words, and sen
 
 ## Requirements
 
-- Python 3.10 – 3.13.
+- Python 3.10 â€“ 3.13.
 - `nltk` with the `punkt_tab` resource available (downloaded automatically on import).
 - Core Swarmauri dependencies (`swarmauri_base`, `swarmauri_standard`, `pydantic`).
 
@@ -124,9 +124,9 @@ Scan an entire documentation set to identify sprawling sections or under-documen
 
 ## Troubleshooting
 
-- **`LookupError: Resource punkt_tab not found`** – Run `python -m nltk.downloader punkt_tab` ahead of time, especially in air-gapped deployments.
-- **Unexpected character counts** – The tool excludes spaces; adjust the implementation if you need raw length including whitespace.
-- **Non-English text** – NLTK’s default tokenizers target English. Swap in language-specific tokenizers if needed.
+- **`LookupError: Resource punkt_tab not found`** â€“ Run `python -m nltk.downloader punkt_tab` ahead of time, especially in air-gapped deployments.
+- **Unexpected character counts** â€“ The tool excludes spaces; adjust the implementation if you need raw length including whitespace.
+- **Non-English text** â€“ NLTKâ€™s default tokenizers target English. Swap in language-specific tokenizers if needed.
 
 ## License
 

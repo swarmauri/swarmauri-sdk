@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_jupyterexportlatex/">
@@ -21,7 +21,7 @@ Converts a Jupyter `NotebookNode` into LaTeX using nbconvert; optionally generat
 
 ## Features
 
-- Uses nbconvert’s `LatexExporter` with optional custom template support.
+- Uses nbconvertâ€™s `LatexExporter` with optional custom template support.
 - Returns the LaTeX string and (optionally) the path to a generated PDF.
 - Accepts inline CSS/JS injection via nbconvert hooks.
 
@@ -73,7 +73,7 @@ else:
 
 - Install a TeX distribution (e.g., `texlive`, `tectonic`) when `to_pdf=True`.
 - Use `use_custom_template=True` and `template_path` to control the LaTeX layout.
-- Combine with notebook execution tools (execute → export → PDF) for reporting pipelines.
+- Combine with notebook execution tools (execute â†’ export â†’ PDF) for reporting pipelines.
 
 ## Want to help?
 

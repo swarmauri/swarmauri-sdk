@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_jupyterstartkernel/">
@@ -15,7 +15,7 @@
 
 ---
 
-# Swarmauri Tool · Jupyter Start Kernel
+# Swarmauri Tool Â· Jupyter Start Kernel
 
 A Swarmauri orchestration tool that spins up Jupyter kernels on demand using `jupyter_client`. The helper wraps connection-file management, kernel specification, and timeout handling so automation pipelines, notebook CI, or Swarmauri agents can acquire fresh kernels with one function call.
 
@@ -25,7 +25,7 @@ A Swarmauri orchestration tool that spins up Jupyter kernels on demand using `ju
 
 ## Requirements
 
-- Python 3.10 – 3.13.
+- Python 3.10 â€“ 3.13.
 - The environment must have Jupyter kernel specs installed (for example the default `python3`).
 - Dependencies (`jupyter_client`, `swarmauri_base`, `swarmauri_standard`, `pydantic`) install automatically.
 
@@ -146,9 +146,9 @@ The agent resolves the registered tool, starts a kernel, and returns the connect
 
 ## Troubleshooting
 
-- **`No such kernel`** – The requested `kernel_name` is not installed. Check `jupyter kernelspec list`.
-- **`Kernel start timeout exceeded`** – Increase `startup_timeout` for slow environments or pre-warm interpreters.
-- **Permission errors** – Ensure the process can create files inside Jupyter's runtime directory (usually `~/.local/share/jupyter/runtime`).
+- **`No such kernel`** â€“ The requested `kernel_name` is not installed. Check `jupyter kernelspec list`.
+- **`Kernel start timeout exceeded`** â€“ Increase `startup_timeout` for slow environments or pre-warm interpreters.
+- **Permission errors** â€“ Ensure the process can create files inside Jupyter's runtime directory (usually `~/.local/share/jupyter/runtime`).
 
 ## License
 

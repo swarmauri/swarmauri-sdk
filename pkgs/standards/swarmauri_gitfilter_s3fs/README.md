@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_gitfilter_s3fs/">
@@ -61,13 +61,13 @@ uv pip install swarmauri_gitfilter_s3fs
 Create the filter by supplying your bucket name and optional connection
 parameters:
 
-- ``bucket`` – Target bucket name (required).
-- ``prefix`` – Optional key prefix to scope uploads.
-- ``key`` / ``secret`` – Credentials for the S3 endpoint.  ``SecretStr``
+- ``bucket`` â€“ Target bucket name (required).
+- ``prefix`` â€“ Optional key prefix to scope uploads.
+- ``key`` / ``secret`` â€“ Credentials for the S3 endpoint.  ``SecretStr``
   instances are supported.
-- ``endpoint_url`` – Custom S3-compatible endpoint (useful for MinIO or
+- ``endpoint_url`` â€“ Custom S3-compatible endpoint (useful for MinIO or
   LocalStack).
-- ``region_name`` – Region for the endpoint.
+- ``region_name`` â€“ Region for the endpoint.
 
 When using :meth:`S3FSFilter.from_uri`, the URI sets the ``bucket`` and
 ``prefix`` while credentials are loaded from ``peagen.toml`` at
@@ -106,7 +106,7 @@ with patch("swarmauri_gitfilter_s3fs.s3fs_filter.s3fs.S3FileSystem") as fs_cls:
     assert buffer.getvalue() == b"model-weights"
 ```
 
-In a production workflow you do not need to patch ``s3fs`` – instantiate the
+In a production workflow you do not need to patch ``s3fs`` â€“ instantiate the
 filter with your credentials and bucket, then use ``clean``/``smudge`` or
 ``upload``/``download`` to move artifacts between git and S3.
 

@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_githubloader/">
@@ -45,10 +45,10 @@ result = tool(x=1, y=2)
 
 Customize how the loader fetches your component:
 
-- **branch** – Branch to read from (defaults to `"master"`).
-- **commit_ref** – Specific commit SHA; overrides `branch` when provided.
-- **token** – GitHub token for private repositories.
-- **use_cache** – Set to `False` to reload the component on every call.
+- **branch** â€“ Branch to read from (defaults to `"master"`).
+- **commit_ref** â€“ Specific commit SHA; overrides `branch` when provided.
+- **token** â€“ GitHub token for private repositories.
+- **use_cache** â€“ Set to `False` to reload the component on every call.
 
 ### Advanced examples
 

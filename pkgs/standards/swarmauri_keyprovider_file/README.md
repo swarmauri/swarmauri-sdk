@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 
 <p align="center">
@@ -84,7 +84,7 @@ async def run_example() -> str:
 asyncio.run(run_example())
 ```
 
-`FileKeyProvider` is asynchronous—every lifecycle method returns a
+`FileKeyProvider` is asynchronousâ€”every lifecycle method returns a
 `KeyRef`. Use `include_secret=True` when retrieving keys that allow private
 material export so symmetric key bytes are loaded from disk.
 

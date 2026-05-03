@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_certservice_stepca/">
@@ -162,6 +162,6 @@ async def request_short_lived_cert(ott: str) -> bytes:
 ## Operational Tips
 
 - Close the underlying HTTP client with `aclose()` once you are done issuing certificates to release sockets.
-- Provisioners can restrict key algorithms and SAN contents—call `supports()` to check compatibility before presenting the service to end users.
-- Store OTTs in a secure vault or request them just-in-time from step-ca’s ACME/JWT machinery; never hard-code long-lived tokens in scripts.
+- Provisioners can restrict key algorithms and SAN contentsâ€”call `supports()` to check compatibility before presenting the service to end users.
+- Store OTTs in a secure vault or request them just-in-time from step-caâ€™s ACME/JWT machinery; never hard-code long-lived tokens in scripts.
 - Combine this service with Swarmauri verification agents (CRL/OCSP) or your preferred PKI lints to track certificate health after issuance.

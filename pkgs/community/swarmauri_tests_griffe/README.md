@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri_brand_frag_light.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri-tests-griffe/">
@@ -25,14 +25,14 @@ Swarmauri ecosystem.
 
 ## Features
 
-- **Python 3.10–3.12 coverage** – verified across the supported Swarmauri
+- **Python 3.10â€“3.12 coverage** â€“ verified across the supported Swarmauri
   runtime range so you can keep consistent quality gates on every maintained
   interpreter.
-- **Warning-to-test enforcement** – automatically escalates Griffe warnings to
+- **Warning-to-test enforcement** â€“ automatically escalates Griffe warnings to
   failing pytest checks to stop documentation drift before it ships.
-- **Zero-config discovery** – the plugin registers as a pytest entry point and
+- **Zero-config discovery** â€“ the plugin registers as a pytest entry point and
   loads without additional setup once installed.
-- **Flexible targeting** – tune the inspection scope with command-line flags or
+- **Flexible targeting** â€“ tune the inspection scope with command-line flags or
   persistent `pyproject.toml` settings.
 
 ## Installation
@@ -53,7 +53,7 @@ pip install swarmauri-tests-griffe
 
 Both commands add the plugin as a dependency of your project. Because the plugin
 uses pytest entry points, it is automatically discovered the next time your test
-suite runs—no manual configuration required.
+suite runsâ€”no manual configuration required.
 
 > **Supported Python versions:** The plugin is tested and published for Python
 > 3.10, 3.11, and 3.12 across the Swarmauri platform.
