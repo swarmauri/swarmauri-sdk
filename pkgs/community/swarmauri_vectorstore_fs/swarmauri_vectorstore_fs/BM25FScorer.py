@@ -37,7 +37,9 @@ class BM25FScorer:
             token = raw_token.lower()
             if token:
                 tokens.append(token)
-            parts = re.findall(r"[A-Z]?[a-z]+|[A-Z]+(?=[A-Z]|$)|[0-9]+", raw_token.replace("_", " "))
+            parts = re.findall(
+                r"[A-Z]?[a-z]+|[A-Z]+(?=[A-Z]|$)|[0-9]+", raw_token.replace("_", " ")
+            )
             for part in parts:
                 lowered = part.lower()
                 if lowered and lowered != token:
@@ -97,8 +99,7 @@ class BM25FScorer:
             if weighted_frequency <= 0:
                 continue
             score += self._idf(document_frequency) * (
-                (weighted_frequency * (self.k1 + 1.0))
-                / (self.k1 + weighted_frequency)
+                (weighted_frequency * (self.k1 + 1.0)) / (self.k1 + weighted_frequency)
             )
         return score
 
@@ -118,7 +119,9 @@ class BM25FScorer:
 
     def _idf(self, document_frequency: int) -> float:
         doc_count = len(self.document_fields)
-        return math.log(1.0 + ((doc_count - document_frequency + 0.5) / (document_frequency + 0.5)))
+        return math.log(
+            1.0 + ((doc_count - document_frequency + 0.5) / (document_frequency + 0.5))
+        )
 
     def to_dict(self) -> Dict:
         return {

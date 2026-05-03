@@ -36,10 +36,18 @@ def build_parser() -> argparse.ArgumentParser:
         default="chunk",
         help="Indexing mode",
     )
-    parser.add_argument("--chunk-size", type=int, default=1200, help="Chunk size in characters")
-    parser.add_argument("--chunk-overlap", type=int, default=120, help="Chunk overlap in characters")
-    parser.add_argument("--include", action="append", dest="include", help="Glob to include")
-    parser.add_argument("--exclude", action="append", dest="exclude", help="Glob to exclude")
+    parser.add_argument(
+        "--chunk-size", type=int, default=1200, help="Chunk size in characters"
+    )
+    parser.add_argument(
+        "--chunk-overlap", type=int, default=120, help="Chunk overlap in characters"
+    )
+    parser.add_argument(
+        "--include", action="append", dest="include", help="Glob to include"
+    )
+    parser.add_argument(
+        "--exclude", action="append", dest="exclude", help="Glob to exclude"
+    )
     parser.add_argument(
         "--max-file-size",
         type=int,
@@ -50,13 +58,19 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    query_parser = subparsers.add_parser("query", help="Query indexed filesystem documents")
+    query_parser = subparsers.add_parser(
+        "query", help="Query indexed filesystem documents"
+    )
     query_parser.add_argument("--query", required=True, help="Query text")
-    query_parser.add_argument("--top-k", type=int, default=5, help="Number of hits to return")
+    query_parser.add_argument(
+        "--top-k", type=int, default=5, help="Number of hits to return"
+    )
     query_parser.add_argument("--json", action="store_true", help="Emit JSON output")
 
     show_parser = subparsers.add_parser("show", help="Print a document by id")
-    show_parser.add_argument("--document-id", required=True, help="Document id to display")
+    show_parser.add_argument(
+        "--document-id", required=True, help="Document id to display"
+    )
 
     return parser
 
@@ -81,11 +95,17 @@ def build_store(args: argparse.Namespace) -> FsVectorStore:
     return store
 
 
-def render_query_results(store: FsVectorStore, query: str, top_k: int, as_json: bool) -> int:
-    LOGGER.info("Running BM25F retrieval for query [bold yellow]%s[/bold yellow]", query)
+def render_query_results(
+    store: FsVectorStore, query: str, top_k: int, as_json: bool
+) -> int:
+    LOGGER.info(
+        "Running BM25F retrieval for query [bold yellow]%s[/bold yellow]", query
+    )
     results = store.search(query, top_k=top_k)
     if not results:
-        LOGGER.warning("No lexical matches found for query [bold yellow]%s[/bold yellow]", query)
+        LOGGER.warning(
+            "No lexical matches found for query [bold yellow]%s[/bold yellow]", query
+        )
 
     if as_json:
         payload = [

@@ -96,7 +96,9 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
         }
         global_index = 0
 
-        for file_index, path in enumerate(self._iter_indexable_files(root, skip_counts)):
+        for file_index, path in enumerate(
+            self._iter_indexable_files(root, skip_counts)
+        ):
             relative_path = path.relative_to(root).as_posix()
             text = self._read_text(path, skip_counts)
             if text is None:
@@ -104,7 +106,9 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
 
             chunks = self._chunk_text(text)
             if self.mode in {"chunk", "chunk_file"}:
-                for chunk_file_index, (chunk, start_line, end_line) in enumerate(chunks):
+                for chunk_file_index, (chunk, start_line, end_line) in enumerate(
+                    chunks
+                ):
                     document = self._build_document(
                         relative_path=relative_path,
                         file_index=file_index,
@@ -170,7 +174,9 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
             "max_file_size": self.max_file_size,
             "index_metadata": self.index_metadata,
             "bm25f": self._scorer.to_dict(),
-            "documents": [document.model_dump(mode="json") for document in self.documents],
+            "documents": [
+                document.model_dump(mode="json") for document in self.documents
+            ],
         }
         (output_dir / "fs_vectorstore.json").write_text(
             json.dumps(payload, indent=2), encoding="utf-8"
@@ -188,7 +194,9 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
         self.exclude = tuple(payload.get("exclude", []))
         self.max_file_size = payload.get("max_file_size", 1_000_000)
         self.index_metadata = payload.get("index_metadata", {})
-        self.documents = [Document.model_validate(document) for document in payload["documents"]]
+        self.documents = [
+            Document.model_validate(document) for document in payload["documents"]
+        ]
         self._document_map = {document.id: document for document in self.documents}
         self._scorer = BM25FScorer.from_dict(payload.get("bm25f", {}))
         if not self._scorer.document_fields:
@@ -196,7 +204,9 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
 
     def _reindex_documents(self) -> None:
         self._scorer = BM25FScorer()
-        self._scorer.fit([self._fields_for_document(document) for document in self.documents])
+        self._scorer.fit(
+            [self._fields_for_document(document) for document in self.documents]
+        )
 
     def _validate_root(self) -> Path:
         if not self.root_path:
@@ -214,7 +224,9 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
             raise ValueError("chunk_overlap must be smaller than chunk_size")
         return root
 
-    def _iter_indexable_files(self, root: Path, skip_counts: Dict[str, int]) -> Iterable[Path]:
+    def _iter_indexable_files(
+        self, root: Path, skip_counts: Dict[str, int]
+    ) -> Iterable[Path]:
         for path in sorted(root.rglob("*")):
             if not path.is_file():
                 continue
@@ -222,7 +234,9 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
             if self.include and not self._matches_any(relative_path, self.include):
                 skip_counts["excluded"] += 1
                 continue
-            if self._matches_any(relative_path, (*DEFAULT_EXCLUDE_PATTERNS, *self.exclude)):
+            if self._matches_any(
+                relative_path, (*DEFAULT_EXCLUDE_PATTERNS, *self.exclude)
+            ):
                 skip_counts["excluded"] += 1
                 continue
             yield path
@@ -354,7 +368,9 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
         return {
             "file_name": str(document.metadata.get("file_name", "")),
             "relative_path": str(document.metadata.get("relative_path", "")),
-            "directory_path": str(Path(str(document.metadata.get("relative_path", ""))).parent),
+            "directory_path": str(
+                Path(str(document.metadata.get("relative_path", ""))).parent
+            ),
             "file_extension": str(document.metadata.get("file_extension", "")),
             "chunk_identity": " ".join(
                 str(document.metadata.get(key, ""))
@@ -387,7 +403,10 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
     def _matches_any(self, relative_path: str, patterns: Tuple[str, ...]) -> bool:
         path = relative_path.replace("\\", "/")
         name = Path(path).name
-        return any(fnmatch.fnmatch(path, pattern) or fnmatch.fnmatch(name, pattern) for pattern in patterns)
+        return any(
+            fnmatch.fnmatch(path, pattern) or fnmatch.fnmatch(name, pattern)
+            for pattern in patterns
+        )
 
     def _line_count(self, text: str) -> int:
         if not text:

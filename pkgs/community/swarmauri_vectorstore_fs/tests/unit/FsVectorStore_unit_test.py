@@ -68,8 +68,12 @@ def test_all_zero_query_returns_no_results(sample_tree: Path):
 
 @pytest.mark.unit
 def test_modes_produce_expected_document_counts(sample_tree: Path):
-    chunk_store = FsVectorStore(root_path=sample_tree.as_posix(), mode="chunk", chunk_size=10_000)
-    file_store = FsVectorStore(root_path=sample_tree.as_posix(), mode="file", chunk_size=10_000)
+    chunk_store = FsVectorStore(
+        root_path=sample_tree.as_posix(), mode="chunk", chunk_size=10_000
+    )
+    file_store = FsVectorStore(
+        root_path=sample_tree.as_posix(), mode="file", chunk_size=10_000
+    )
     chunk_file_store = FsVectorStore(
         root_path=sample_tree.as_posix(),
         mode="chunk_file",
@@ -123,17 +127,28 @@ def test_retrieval_by_body_filename_path_extension_and_chunk_number(sample_tree:
     )
     store.build_index()
 
-    assert store.retrieve("registration", top_k=1)[0].metadata["relative_path"].endswith(
-        "FsVectorStore.py"
+    assert (
+        store.retrieve("registration", top_k=1)[0]
+        .metadata["relative_path"]
+        .endswith("FsVectorStore.py")
     )
-    assert store.retrieve("FsVectorStore", top_k=1)[0].metadata["relative_path"].endswith(
-        "FsVectorStore.py"
+    assert (
+        store.retrieve("FsVectorStore", top_k=1)[0]
+        .metadata["relative_path"]
+        .endswith("FsVectorStore.py")
     )
-    assert store.retrieve("src search", top_k=1)[0].metadata["relative_path"].endswith(
-        "FsVectorStore.py"
+    assert (
+        store.retrieve("src search", top_k=1)[0]
+        .metadata["relative_path"]
+        .endswith("FsVectorStore.py")
     )
-    assert store.retrieve("md", top_k=1)[0].metadata["relative_path"] == "docs/auth_token.md"
-    assert store.retrieve("chunk_global_1", top_k=1)[0].metadata["chunk_global_index"] == 1
+    assert (
+        store.retrieve("md", top_k=1)[0].metadata["relative_path"]
+        == "docs/auth_token.md"
+    )
+    assert (
+        store.retrieve("chunk_global_1", top_k=1)[0].metadata["chunk_global_index"] == 1
+    )
 
 
 @pytest.mark.unit
@@ -148,7 +163,10 @@ def test_save_and_load_preserves_retrieval(sample_tree: Path, tmp_path: Path):
 
     assert len(loaded.documents) == len(store.documents)
     assert loaded.index_metadata == store.index_metadata
-    assert loaded.retrieve("auth token", top_k=1)[0].metadata["relative_path"] == "docs/auth_token.md"
+    assert (
+        loaded.retrieve("auth token", top_k=1)[0].metadata["relative_path"]
+        == "docs/auth_token.md"
+    )
 
 
 @pytest.mark.unit
@@ -157,5 +175,22 @@ def test_cli_query_json_and_show(sample_tree: Path):
     store.build_index()
     document_id = store.retrieve("registration", top_k=1)[0].id
 
-    assert cli_main(["--root", sample_tree.as_posix(), "query", "--query", "registration", "--json"]) == 0
-    assert cli_main(["--root", sample_tree.as_posix(), "show", "--document-id", document_id]) == 0
+    assert (
+        cli_main(
+            [
+                "--root",
+                sample_tree.as_posix(),
+                "query",
+                "--query",
+                "registration",
+                "--json",
+            ]
+        )
+        == 0
+    )
+    assert (
+        cli_main(
+            ["--root", sample_tree.as_posix(), "show", "--document-id", document_id]
+        )
+        == 0
+    )
