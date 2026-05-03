@@ -21,13 +21,13 @@ start from a fully configured baseline that supports Python 3.10 through 3.12.
 
 ## Features
 
-- **Entry-point wiring** â€“ exposes the `swarmauri.plugins` group so your agent
+- **Entry-point wiring** - exposes the `swarmauri.plugins` group so your agent
   classes can be discovered automatically once implemented.
-- **Ready-to-publish metadata** â€“ includes keywords, classifiers, and long
+- **Ready-to-publish metadata** - includes keywords, classifiers, and long
   descriptions wired directly into `pyproject.toml`.
-- **Version helpers** â€“ surfaces `__version__` and `__long_desc__` constants so
+- **Version helpers** - surfaces `__version__` and `__long_desc__` constants so
   documentation and tooling can introspect the package after installation.
-- **Testing scaffold** â€“ ships with baseline unit tests verifying version
+- **Testing scaffold** - ships with baseline unit tests verifying version
   resolution to encourage a test-first development workflow.
 
 ## Installation

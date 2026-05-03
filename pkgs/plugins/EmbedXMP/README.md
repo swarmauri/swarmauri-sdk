@@ -18,11 +18,11 @@ EmbedXMP collects every installed `EmbedXmpBase` implementation, discovers them 
 
 ## Features
 
-- **Dynamic discovery** â€“ lazily imports modules named `swarmauri_xmp_*` and collects subclasses registered under `EmbedXmpBase`.
-- **Unified interface** â€“ delegates to the first handler whose `supports` method confirms compatibility with the payload.
-- **Convenience wrappers** â€“ module-level helpers (`embed`, `read`, `remove`) keep high-level workflows succinct.
-- **Async-friendly APIs** â€“ integrate inside event loops without blocking when calling out to plugin hooks.
-- **Media-format coverage** â€“ load handlers for PNG, GIF, JPEG, SVG, WEBP, TIFF, PDF, and MP4 assets through extras.
+- **Dynamic discovery** - lazily imports modules named `swarmauri_xmp_*` and collects subclasses registered under `EmbedXmpBase`.
+- **Unified interface** - delegates to the first handler whose `supports` method confirms compatibility with the payload.
+- **Convenience wrappers** - module-level helpers (`embed`, `read`, `remove`) keep high-level workflows succinct.
+- **Async-friendly APIs** - integrate inside event loops without blocking when calling out to plugin hooks.
+- **Media-format coverage** - load handlers for PNG, GIF, JPEG, SVG, WEBP, TIFF, PDF, and MP4 assets through extras.
 
 ## Installation
 
