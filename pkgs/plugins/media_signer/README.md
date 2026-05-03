@@ -1,17 +1,17 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg" alt="Swarmauri logotype" width="420" />
-</p>
-
-<h1 align="center">MediaSigner</h1>
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-  <a href="https://pepy.tech/project/MediaSigner/"><img src="https://static.pepy.tech/badge/MediaSigner/month" alt="PyPI - Downloads" /></a>
-  <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/media_signer/"><img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/media_signer.svg?style=for-the-badge" alt="Repository views" /></a>
-  <a href="https://pypi.org/project/MediaSigner/"><img src="https://img.shields.io/pypi/pyversions/MediaSigner?style=for-the-badge" alt="Supported Python versions" /></a>
-  <a href="https://pypi.org/project/MediaSigner/"><img src="https://img.shields.io/pypi/l/MediaSigner?style=for-the-badge" alt="License" /></a>
-  <a href="https://pypi.org/project/MediaSigner/"><img src="https://img.shields.io/pypi/v/MediaSigner?style=for-the-badge&label=MediaSigner" alt="Latest release" /></a>
+    <a href="https://pepy.tech/project/MediaSigner/">
+        <img src="https://static.pepy.tech/badge/MediaSigner/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/media_signer/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/media_signer.svg"/></a>
+    <a href="https://pypi.org/project/MediaSigner/">
+        <img src="https://img.shields.io/pypi/pyversions/MediaSigner" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/MediaSigner/">
+        <img src="https://img.shields.io/pypi/l/MediaSigner" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/MediaSigner/">
+        <img src="https://img.shields.io/pypi/v/MediaSigner?label=MediaSigner&color=green" alt="PyPI - MediaSigner"/></a>
 </p>
-
 ---
 
 MediaSigner packages the asynchronous `Signer` facade that orchestrates registered
@@ -150,8 +150,8 @@ materials matching the selected plugin.
 
 ## Project Resources
 
-- Source: <https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/media_signer>
-- Documentation: <https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/media_signer#readme>
+- Source: <https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/media_signer>
+- Documentation: <https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/media_signer#readme>
 - Issues: <https://github.com/swarmauri/swarmauri-sdk/issues>
 - Releases: <https://github.com/swarmauri/swarmauri-sdk/releases>
 - Discussions: <https://github.com/orgs/swarmauri/discussions>

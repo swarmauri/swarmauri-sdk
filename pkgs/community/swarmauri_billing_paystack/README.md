@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_billing_paystack/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_paystack?label=swarmauri_billing_paystack&color=green" alt="PyPI - swarmauri_billing_paystack"/></a>
 </p>
-
 ---
 
 # Swarmauri Billing Paystack

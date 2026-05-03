@@ -11,9 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_tokens_rotatingjwt" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_rotatingjwt/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tokens_rotatingjwt?label=swarmauri_tokens_rotatingjwt&color=green" alt="PyPI - swarmauri_tokens_rotatingjwt"/></a>
-
 </p>
-
 ---
 
 # swarmauri_tokens_rotatingjwt

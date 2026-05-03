@@ -1,23 +1,17 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/swarmauri-middleware-securityheaders/">
-        <img src="https://static.pepy.tech/badge/swarmauri-middleware-securityheaders/month" alt="PyPI - Downloads"/>
-    </a>
+    <a href="https://pepy.tech/project/swarmauri_middleware_securityheaders/">
+        <img src="https://static.pepy.tech/badge/swarmauri_middleware_securityheaders/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_securityheaders/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_securityheaders.svg"/>
-    </a>
-    <a href="https://pypi.org/project/swarmauri-middleware-securityheaders/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri-middleware-securityheaders" alt="PyPI - Python Version"/>
-    </a>
-    <a href="https://pypi.org/project/swarmauri-middleware-securityheaders/">
-        <img src="https://img.shields.io/pypi/l/swarmauri-middleware-securityheaders" alt="PyPI - License"/>
-    </a>
-    <a href="https://pypi.org/project/swarmauri-middleware-securityheaders/">
-        <img src="https://img.shields.io/pypi/v/swarmauri-middleware-securityheaders?label=swarmauri-middleware-securityheaders&color=green" alt="PyPI - swarmauri-middleware-securityheaders"/>
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_securityheaders.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_middleware_securityheaders/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_middleware_securityheaders" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_middleware_securityheaders/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_securityheaders" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_middleware_securityheaders/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_securityheaders?label=swarmauri_middleware_securityheaders&color=green" alt="PyPI - swarmauri_middleware_securityheaders"/></a>
 </p>
-
 ---
 
 # Swarmauri Middleware Security Headers

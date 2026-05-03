@@ -2,22 +2,16 @@
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_middleware_ratelimit/">
-        <img src="https://static.pepy.tech/badge/swarmauri_middleware_ratelimit/month" alt="PyPI - Downloads"/>
-    </a>
+        <img src="https://static.pepy.tech/badge/swarmauri_middleware_ratelimit/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_ratelimit/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_ratelimit.svg"/>
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_ratelimit.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_ratelimit/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_middleware_ratelimit" alt="PyPI - Python Version"/>
-    </a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_middleware_ratelimit" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_ratelimit/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_ratelimit" alt="PyPI - License"/>
-    </a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_ratelimit" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_ratelimit/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_ratelimit?label=swarmauri_middleware_ratelimit&color=green" alt="PyPI - swarmauri_middleware_ratelimit"/>
-    </a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_ratelimit?label=swarmauri_middleware_ratelimit&color=green" alt="PyPI - swarmauri_middleware_ratelimit"/></a>
 </p>
-
 ---
 
 # Swarmauri Middleware Ratelimit

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_containernewsession/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_containernewsession?label=swarmauri_tool_containernewsession&color=green" alt="PyPI - swarmauri_tool_containernewsession"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool ContainerNewSession

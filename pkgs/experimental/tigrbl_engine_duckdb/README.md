@@ -1,3 +1,19 @@
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
+
+<p align="center">
+    <a href="https://pepy.tech/project/tigrbl_engine_duckdb/">
+        <img src="https://static.pepy.tech/badge/tigrbl_engine_duckdb/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_duckdb/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_duckdb.svg"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_duckdb/">
+        <img src="https://img.shields.io/pypi/pyversions/tigrbl_engine_duckdb" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_duckdb/">
+        <img src="https://img.shields.io/pypi/l/tigrbl_engine_duckdb" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_duckdb/">
+        <img src="https://img.shields.io/pypi/v/tigrbl_engine_duckdb?label=tigrbl_engine_duckdb&color=green" alt="PyPI - tigrbl_engine_duckdb"/></a>
+</p>
+---
+
 # tigrbl_engine_duckdb
 
 DuckDB engine extension for **Tigrbl**. This package registers the `duckdb`

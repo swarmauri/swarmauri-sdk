@@ -10,9 +10,8 @@
     <a href="https://pypi.org/project/swarmauri_tests_readme_examples/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tests_readme_examples" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tests_readme_examples/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tests_readme_examples?label=swarmauri_tests_readme_examples&color=green" alt="PyPI - Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tests_readme_examples?label=swarmauri_tests_readme_examples&color=green" alt="PyPI - swarmauri_tests_readme_examples"/></a>
 </p>
-
 ---
 
 ## Overview

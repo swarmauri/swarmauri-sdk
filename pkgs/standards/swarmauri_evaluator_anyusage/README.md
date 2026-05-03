@@ -2,22 +2,16 @@
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_evaluator_anyusage/">
-        <img src="https://static.pepy.tech/badge/swarmauri_evaluator_anyusage/month" alt="PyPI - Downloads"/>
-    </a>
+        <img src="https://static.pepy.tech/badge/swarmauri_evaluator_anyusage/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_evaluator_anyusage/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_evaluator_anyusage.svg"/>
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_evaluator_anyusage.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_evaluator_anyusage/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_evaluator_anyusage" alt="PyPI - Python Version"/>
-    </a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_evaluator_anyusage" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_evaluator_anyusage/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_evaluator_anyusage" alt="PyPI - License"/>
-    </a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_evaluator_anyusage" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_evaluator_anyusage/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_evaluator_anyusage?label=swarmauri_evaluator_anyusage&color=green" alt="PyPI - swarmauri_evaluator_anyusage"/>
-    </a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_evaluator_anyusage?label=swarmauri_evaluator_anyusage&color=green" alt="PyPI - swarmauri_evaluator_anyusage"/></a>
 </p>
-
 ---
 
 # Swarmauri Evaluator AnyUsage

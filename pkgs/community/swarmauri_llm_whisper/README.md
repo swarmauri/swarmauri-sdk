@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_llm_whisper/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_whisper?label=swarmauri_llm_whisper&color=green" alt="PyPI - swarmauri_llm_whisper"/></a>
 </p>
-
 ---
 
 # swarmauri_llm_whisper

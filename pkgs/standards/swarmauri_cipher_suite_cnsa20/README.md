@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_cipher_suite_cnsa20/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_cnsa20?label=swarmauri_cipher_suite_cnsa20&color=green" alt="PyPI - swarmauri_cipher_suite_cnsa20"/></a>
 </p>
-
 ---
 
 # Swarmauri Cipher Cnsa20

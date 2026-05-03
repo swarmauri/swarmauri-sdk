@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_jupytershutdownkernel/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupytershutdownkernel?label=swarmauri_tool_jupytershutdownkernel&color=green" alt="PyPI - swarmauri_tool_jupytershutdownkernel"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool Â· Jupyter Shutdown Kernel

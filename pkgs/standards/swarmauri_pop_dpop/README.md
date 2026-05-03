@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_pop_dpop/">
         <img src="https://img.shields.io/pypi/v/swarmauri_pop_dpop?label=swarmauri_pop_dpop&color=green" alt="PyPI - swarmauri_pop_dpop"/></a>
 </p>
-
 ---
 
 # Swarmauri PoP DPoP

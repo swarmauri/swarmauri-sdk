@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_crypto_pgp/">
         <img src="https://img.shields.io/pypi/v/swarmauri_crypto_pgp?label=swarmauri_crypto_pgp&color=green" alt="PyPI - swarmauri_crypto_pgp"/></a>
 </p>
-
 ---
 
 ## Swarmauri Crypto PGP

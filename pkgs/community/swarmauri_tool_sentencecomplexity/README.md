@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_sentencecomplexity/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_sentencecomplexity?label=swarmauri_tool_sentencecomplexity&color=green" alt="PyPI - swarmauri_tool_sentencecomplexity"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool Â· Sentence Complexity

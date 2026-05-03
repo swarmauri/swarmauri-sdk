@@ -1,23 +1,17 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/swarmauri-transport-sshtunnel/">
-        <img src="https://static.pepy.tech/badge/swarmauri-transport-sshtunnel/month" alt="PyPI - Downloads"/>
-    </a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri_transport_sshtunnel/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri_transport_sshtunnel.svg"/>
-    </a>
-    <a href="https://pypi.org/project/swarmauri-transport-sshtunnel/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri-transport-sshtunnel" alt="PyPI - Python Version"/>
-    </a>
-    <a href="https://pypi.org/project/swarmauri-transport-sshtunnel/">
-        <img src="https://img.shields.io/pypi/l/swarmauri-transport-sshtunnel" alt="PyPI - License"/>
-    </a>
-    <a href="https://pypi.org/project/swarmauri-transport-sshtunnel/">
-        <img src="https://img.shields.io/pypi/v/swarmauri-transport-sshtunnel?label=swarmauri-transport-sshtunnel&color=green" alt="PyPI - swarmauri-transport-sshtunnel"/>
-    </a>
+    <a href="https://pepy.tech/project/swarmauri_transport_sshtunnel/">
+        <img src="https://static.pepy.tech/badge/swarmauri_transport_sshtunnel/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_sshtunnel/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_sshtunnel.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_sshtunnel/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_transport_sshtunnel" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_sshtunnel/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_transport_sshtunnel" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_sshtunnel/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_transport_sshtunnel?label=swarmauri_transport_sshtunnel&color=green" alt="PyPI - swarmauri_transport_sshtunnel"/></a>
 </p>
-
 ---
 
 # Swarmauri Transport â€“ SSH Tunnel

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_jupyterruncell/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterruncell?label=swarmauri_tool_jupyterruncell&color=green" alt="PyPI - swarmauri_tool_jupyterruncell"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool Jupyter Run Cell

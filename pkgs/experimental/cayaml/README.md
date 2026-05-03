@@ -11,8 +11,6 @@
         <img src="https://img.shields.io/pypi/l/cayaml" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/cayaml/">
         <img src="https://img.shields.io/pypi/v/cayaml?label=cayaml&color=green" alt="PyPI - cayaml"/></a>
-
 </p>
-
 ---
 

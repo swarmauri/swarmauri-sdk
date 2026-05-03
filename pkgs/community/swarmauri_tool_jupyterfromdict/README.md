@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_jupyterfromdict/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterfromdict?label=swarmauri_tool_jupyterfromdict&color=green" alt="PyPI - swarmauri_tool_jupyterfromdict"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool Jupyter From Dict

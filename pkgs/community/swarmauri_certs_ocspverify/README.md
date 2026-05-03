@@ -11,9 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_certs_ocspverify" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_ocspverify/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_ocspverify?label=swarmauri_certs_ocspverify&color=green" alt="PyPI - swarmauri_certs_ocspverify"/></a>
-
 </p>
-
 ---
 
 # swarmauri_certs_ocspverify

@@ -1,6 +1,5 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
-
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_signing_ed25519/">
         <img src="https://static.pepy.tech/badge/swarmauri_signing_ed25519/month" alt="PyPI - Downloads"/></a>
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_signing_ed25519/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_ed25519?label=swarmauri_signing_ed25519&color=green" alt="PyPI - swarmauri_signing_ed25519"/></a>
 </p>
-
 ---
 
 # Swarmauri Signing Ed25519

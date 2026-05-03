@@ -11,9 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_certs_csronly" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_csronly/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_csronly?label=swarmauri_certs_csronly&color=green" alt="PyPI - swarmauri_certs_csronly"/></a>
-
 </p>
-
 ---
 
 # swarmauri_certs_csronly

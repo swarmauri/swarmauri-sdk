@@ -1,18 +1,17 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/swarmauri-typing/">
-        <img src="https://static.pepy.tech/badge/swarmauri-typing/month" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_typing/">
+        <img src="https://static.pepy.tech/badge/swarmauri_typing/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/typing/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/typing.svg"/></a>
-    <a href="https://pypi.org/project/swarmauri-typing/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri-typing" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri-typing/">
-        <img src="https://img.shields.io/pypi/l/swarmauri-typing" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/swarmauri-typing/">
-        <img src="https://img.shields.io/pypi/v/swarmauri-typing?label=swarmauri-typing&color=green" alt="PyPI - swarmauri-typing"/></a>
+    <a href="https://pypi.org/project/swarmauri_typing/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_typing" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_typing/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_typing" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_typing/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_typing?label=swarmauri_typing&color=green" alt="PyPI - swarmauri_typing"/></a>
 </p>
-
 ---
 
 # Swarmauri Typing

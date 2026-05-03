@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_pop_cwt/">
         <img src="https://img.shields.io/pypi/v/swarmauri_pop_cwt?label=swarmauri_pop_cwt&color=green" alt="PyPI - swarmauri_pop_cwt"/></a>
 </p>
-
 ---
 
 # Swarmauri PoP CWT

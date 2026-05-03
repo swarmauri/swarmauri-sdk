@@ -1,31 +1,18 @@
-# tigrbl_engine_clickhouse
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
 
-A ClickHouse engine plugin for **tigrbl**. This package registers a new engine
-kind `"clickhouse"` that tigrbl auto‑discovers via the `tigrbl.engine` entry‑point group.
-
-> Both classes in this package are **subclasses of tigrbl's first‑class objects**.
-
-## Installation
-
-```bash
-pip install tigrbl_engine_clickhouse
-```
-
-## Usage
-
-```python
-from tigrbl.engine.engine_spec import EngineSpec
-
-spec = EngineSpec(kind="clickhouse", mapping={
-    "host": "localhost",
-    "port": 8123,
-    "username": "default",
-    "password": "",
-    "database": "default",
-    "secure": False,
-})
-eng, make_session = spec.build()   # resolved via entry-points
-s = make_session()                 # returns a ClickHouseSession (TigrblSessionBase subclass)
+<p align="center">
+    <a href="https://pepy.tech/project/tigrbl_engine_clickhouse/">
+        <img src="https://static.pepy.tech/badge/tigrbl_engine_clickhouse/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_clickhouse/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_clickhouse.svg"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_clickhouse/">
+        <img src="https://img.shields.io/pypi/pyversions/tigrbl_engine_clickhouse" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_clickhouse/">
+        <img src="https://img.shields.io/pypi/l/tigrbl_engine_clickhouse" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_clickhouse/">
+        <img src="https://img.shields.io/pypi/v/tigrbl_engine_clickhouse?label=tigrbl_engine_clickhouse&color=green" alt="PyPI - tigrbl_engine_clickhouse"/></a>
+</p>
+---
 
 # Example query
 rows = await s._execute_impl("SELECT 1 AS x")

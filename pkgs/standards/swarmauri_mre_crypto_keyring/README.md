@@ -1,6 +1,5 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
-
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_mre_crypto_keyring/">
         <img src="https://static.pepy.tech/badge/swarmauri_mre_crypto_keyring/month" alt="PyPI - Downloads"/></a>
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_mre_crypto_keyring/">
         <img src="https://img.shields.io/pypi/v/swarmauri_mre_crypto_keyring?label=swarmauri_mre_crypto_keyring&color=green" alt="PyPI - swarmauri_mre_crypto_keyring"/></a>
 </p>
-
 ---
 
 # Swarmauri MRE Crypto Keyring

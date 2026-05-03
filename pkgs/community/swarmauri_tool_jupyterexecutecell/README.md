@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_jupyterexecutecell/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterexecutecell?label=swarmauri_tool_jupyterexecutecell&color=green" alt="PyPI - swarmauri_tool_jupyterexecutecell"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool Jupyter Execute Cell

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_llm_gemini/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_gemini?label=swarmauri_llm_gemini&color=green" alt="PyPI - swarmauri_llm_gemini"/></a>
 </p>
-
 ---
 
 # swarmauri_llm_gemini

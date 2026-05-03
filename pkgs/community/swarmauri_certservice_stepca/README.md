@@ -11,9 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_certservice_stepca" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_certservice_stepca/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certservice_stepca?label=swarmauri_certservice_stepca&color=green" alt="PyPI - swarmauri_certservice_stepca"/></a>
-
 </p>
-
 ---
 
 # Swarmauri Step-ca Certificate Service

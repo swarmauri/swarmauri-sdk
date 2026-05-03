@@ -11,9 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_certs_azure" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_azure/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_azure?label=swarmauri_certs_azure&color=green" alt="PyPI - swarmauri_certs_azure"/></a>
-
 </p>
-
 ---
 
 # swarmauri_certs_azure

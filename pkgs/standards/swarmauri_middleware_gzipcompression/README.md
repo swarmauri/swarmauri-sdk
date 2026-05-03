@@ -1,19 +1,17 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/swarmauri-middleware-gzipcompression/">
-        <img src="https://static.pepy.tech/badge/swarmauri-middleware-gzipcompression/month" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/pkgs/pkgs/swarmauri-middleware-gzipcompression">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/pkgs/swarmauri-middleware-gzipcompression&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
-    <a href="https://pypi.org/project/swarmauri-middleware-gzipcompression/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri-middleware-gzipcompression" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri-middleware-gzipcompression/">
-        <img src="https://img.shields.io/pypi/l/swarmauri-middleware-gzipcompression" alt="PyPI - License"/></a>
-    <br />
-    <a href="https://pypi.org/project/swarmauri-middleware-gzipcompression/">
-        <img src="https://img.shields.io/pypi/v/swarmauri-middleware-gzipcompression?label=swarmauri-middleware-gzipcompression&color=green" alt="PyPI - swarmauri-middleware-gzipcompression"/></a>
+    <a href="https://pepy.tech/project/swarmauri_middleware_gzipcompression/">
+        <img src="https://static.pepy.tech/badge/swarmauri_middleware_gzipcompression/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_gzipcompression/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_gzipcompression.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_middleware_gzipcompression/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_middleware_gzipcompression" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_middleware_gzipcompression/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_gzipcompression" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_middleware_gzipcompression/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_gzipcompression?label=swarmauri_middleware_gzipcompression&color=green" alt="PyPI - swarmauri_middleware_gzipcompression"/></a>
 </p>
-
 ---
 
 # `swarmauri_middleware_gzipcompression`

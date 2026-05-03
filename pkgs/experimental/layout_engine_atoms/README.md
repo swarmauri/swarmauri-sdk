@@ -1,18 +1,17 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/layout-engine-atoms/">
-        <img src="https://static.pepy.tech/badge/layout-engine-atoms/month" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/layout_engine_atoms/">
+        <img src="https://static.pepy.tech/badge/layout_engine_atoms/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/layout_engine_atoms/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/layout_engine_atoms.svg"/></a>
-    <a href="https://pypi.org/project/layout-engine-atoms/">
-        <img src="https://img.shields.io/pypi/pyversions/layout-engine-atoms" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/layout-engine-atoms/">
-        <img src="https://img.shields.io/pypi/l/layout-engine-atoms" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/layout-engine-atoms/">
-        <img src="https://img.shields.io/pypi/v/layout-engine-atoms?label=layout-engine-atoms&color=green" alt="PyPI - layout-engine-atoms"/></a>
+    <a href="https://pypi.org/project/layout_engine_atoms/">
+        <img src="https://img.shields.io/pypi/pyversions/layout_engine_atoms" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/layout_engine_atoms/">
+        <img src="https://img.shields.io/pypi/l/layout_engine_atoms" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/layout_engine_atoms/">
+        <img src="https://img.shields.io/pypi/v/layout_engine_atoms?label=layout_engine_atoms&color=green" alt="PyPI - layout_engine_atoms"/></a>
 </p>
-
 ---
 
 # Layout Engine Atoms & Vue Runtime

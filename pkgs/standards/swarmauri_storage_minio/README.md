@@ -11,9 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_storage_minio" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_minio/">
         <img src="https://img.shields.io/pypi/v/swarmauri_storage_minio?label=swarmauri_storage_minio&color=green" alt="PyPI - swarmauri_storage_minio"/></a>
-
 </p>
-
 ---
 
 # Swarmauri MinIO Storage Adapter

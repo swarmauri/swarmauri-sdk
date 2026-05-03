@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_jupytervalidatenotebook/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupytervalidatenotebook?label=swarmauri_tool_jupytervalidatenotebook&color=green" alt="PyPI - swarmauri_tool_jupytervalidatenotebook"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool Â· Jupyter Validate Notebook

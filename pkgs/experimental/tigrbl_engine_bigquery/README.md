@@ -1,25 +1,18 @@
-# tigrbl_engine_bigquery
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
 
-A BigQuery engine plugin for **tigrbl**. This package registers a new engine kind
-`"bigquery"` that tigrbl auto-discovers via the `tigrbl.engine` entry-point group.
-
-## Installation
-
-```bash
-pip install tigrbl_engine_bigquery
-```
-
-## Usage
-
-Once installed, just refer to `kind="bigquery"` in your engine spec:
-
-```python
-from tigrbl.engine.engine_spec import EngineSpec
-
-spec = EngineSpec(kind="bigquery", mapping={"project": "my-gcp-project", "default_dataset": "analytics"})
-provider = spec.to_provider()
-engine, make_session = provider.ensure()   # triggers external plugin registration
-session = make_session()                   # returns a BigQuerySession
+<p align="center">
+    <a href="https://pepy.tech/project/tigrbl_engine_bigquery/">
+        <img src="https://static.pepy.tech/badge/tigrbl_engine_bigquery/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_bigquery/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_bigquery.svg"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_bigquery/">
+        <img src="https://img.shields.io/pypi/pyversions/tigrbl_engine_bigquery" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_bigquery/">
+        <img src="https://img.shields.io/pypi/l/tigrbl_engine_bigquery" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_bigquery/">
+        <img src="https://img.shields.io/pypi/v/tigrbl_engine_bigquery?label=tigrbl_engine_bigquery&color=green" alt="PyPI - tigrbl_engine_bigquery"/></a>
+</p>
+---
 
 # Optionally run SQL via the session (see session.query method stub)
 ```

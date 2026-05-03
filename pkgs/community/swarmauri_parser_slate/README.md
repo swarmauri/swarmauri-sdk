@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_parser_slate/">
         <img src="https://img.shields.io/pypi/v/swarmauri_parser_slate?label=swarmauri_parser_slate&color=green" alt="PyPI - swarmauri_parser_slate"/></a>
 </p>
-
 ---
 
 # Swarmauri Parser Slate

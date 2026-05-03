@@ -1,17 +1,19 @@
-# tigr
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
-`tigr` is a minimal placeholder package intended to reserve the name and provide a stable starting point for future work.
+<p align="center">
+    <a href="https://pepy.tech/project/tigr/">
+        <img src="https://static.pepy.tech/badge/tigr/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigr/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigr.svg"/></a>
+    <a href="https://pypi.org/project/tigr/">
+        <img src="https://img.shields.io/pypi/pyversions/tigr" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigr/">
+        <img src="https://img.shields.io/pypi/l/tigr" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigr/">
+        <img src="https://img.shields.io/pypi/v/tigr?label=tigr&color=green" alt="PyPI - tigr"/></a>
+</p>
+---
 
-## Features
-
-- Reserved PyPI package scaffold
-- Minimal importable Python module
-- Basic smoke test suitable for CI workflows
-
-## Installation
-
-```bash
-uv add tigr
 # or
 pip install tigr
 ```

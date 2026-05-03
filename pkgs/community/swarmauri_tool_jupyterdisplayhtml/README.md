@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_jupyterdisplayhtml/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterdisplayhtml?label=swarmauri_tool_jupyterdisplayhtml&color=green" alt="PyPI - swarmauri_tool_jupyterdisplayhtml"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool Jupyter Display HTML

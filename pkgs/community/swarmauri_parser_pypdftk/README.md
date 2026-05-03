@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_parser_pypdftk/">
         <img src="https://img.shields.io/pypi/v/swarmauri_parser_pypdftk?label=swarmauri_parser_pypdftk&color=green" alt="PyPI - swarmauri_parser_pypdftk"/></a>
 </p>
-
 ---
 
 # Swarmauri Parser PyPDFTK

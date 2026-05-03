@@ -1,19 +1,17 @@
-
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/sf/">
-        <img src="https://static.pepy.tech/badge/sf/month" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/g9/">
+        <img src="https://static.pepy.tech/badge/g9/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/g9/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/g9.svg"/></a>
-    <a href="https://pypi.org/project/sf/">
-        <img src="https://img.shields.io/pypi/pyversions/sf" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/sf/">
-        <img src="https://img.shields.io/pypi/l/sf" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/sf/">
-        <img src="https://img.shields.io/pypi/v/sf?label=sf&color=green" alt="PyPI - sf"/></a>
+    <a href="https://pypi.org/project/g9/">
+        <img src="https://img.shields.io/pypi/pyversions/g9" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/g9/">
+        <img src="https://img.shields.io/pypi/l/g9" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/g9/">
+        <img src="https://img.shields.io/pypi/v/g9?label=g9&color=green" alt="PyPI - g9"/></a>
 </p>
-
 ---
 
 # Swm Example Package

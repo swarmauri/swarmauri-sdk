@@ -1,4 +1,4 @@
-# DistanceMetrics
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/DistanceMetrics/">
@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/DistanceMetrics/">
         <img src="https://img.shields.io/pypi/v/DistanceMetrics?label=DistanceMetrics&color=green" alt="PyPI - DistanceMetrics"/></a>
 </p>
-
 ---
 
 

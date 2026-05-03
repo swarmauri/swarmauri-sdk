@@ -1,23 +1,18 @@
-# tigrbl_engine_pgsqli_wal
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
 
-**Tigrbl engine plugin providing two engines:**
-
-- `postgres_wal` — PostgreSQL via SQLAlchemy + psycopg3
-- `sqlite_wal` — SQLite with WAL mode enabled via connection PRAGMAs
-
-The package **auto-registers** with Tigrbl through the `tigrbl.engine` entry-point group.
-
-## Install
-
-```bash
-pip install -e .
-```
-
-## Usage (inside Tigrbl)
-
-```python
-from tigrbl.engine import Engine
-from tigrbl.engine.engine_spec import EngineSpec
+<p align="center">
+    <a href="https://pepy.tech/project/tigrbl_engine_pgsqli_wal/">
+        <img src="https://static.pepy.tech/badge/tigrbl_engine_pgsqli_wal/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_pgsqli_wal/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_pgsqli_wal.svg"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_pgsqli_wal/">
+        <img src="https://img.shields.io/pypi/pyversions/tigrbl_engine_pgsqli_wal" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_pgsqli_wal/">
+        <img src="https://img.shields.io/pypi/l/tigrbl_engine_pgsqli_wal" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_pgsqli_wal/">
+        <img src="https://img.shields.io/pypi/v/tigrbl_engine_pgsqli_wal?label=tigrbl_engine_pgsqli_wal&color=green" alt="PyPI - tigrbl_engine_pgsqli_wal"/></a>
+</p>
+---
 
 # PostgreSQL (DSN or mapping)
 spec = EngineSpec(kind="postgres_wal", dsn="postgresql+psycopg://user:pwd@host:5432/db?application_name=tigrbl")

@@ -1,18 +1,17 @@
-![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl_full_logo.png)
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/tigrbl-billing/">
-        <img src="https://static.pepy.tech/badge/tigrbl-billing/month" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/tigrbl_billing/">
+        <img src="https://static.pepy.tech/badge/tigrbl_billing/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl_billing/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl_billing.svg"/></a>
-    <a href="https://pypi.org/project/tigrbl-billing/">
-        <img src="https://img.shields.io/pypi/pyversions/tigrbl-billing" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/tigrbl-billing/">
-        <img src="https://img.shields.io/pypi/l/tigrbl-billing" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/tigrbl-billing/">
-        <img src="https://img.shields.io/pypi/v/tigrbl-billing?label=tigrbl-billing&color=green" alt="PyPI - tigrbl-billing"/></a>
+    <a href="https://pypi.org/project/tigrbl_billing/">
+        <img src="https://img.shields.io/pypi/pyversions/tigrbl_billing" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigrbl_billing/">
+        <img src="https://img.shields.io/pypi/l/tigrbl_billing" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigrbl_billing/">
+        <img src="https://img.shields.io/pypi/v/tigrbl_billing?label=tigrbl_billing&color=green" alt="PyPI - tigrbl_billing"/></a>
 </p>
-
 ---
 
 # Tigrbl Billing 🧾

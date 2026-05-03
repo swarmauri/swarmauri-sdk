@@ -11,9 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_storage_file" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_file/">
         <img src="https://img.shields.io/pypi/v/swarmauri_storage_file?label=swarmauri_storage_file&color=green" alt="PyPI - swarmauri_storage_file"/></a>
-
 </p>
-
 ---
 
 # Swarmauri File Storage Adapter

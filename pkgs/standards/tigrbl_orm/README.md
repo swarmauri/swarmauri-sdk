@@ -1,4 +1,18 @@
-![Tigrbl branding](https://github.com/swarmauri/swarmauri-sdk/blob/a170683ecda8ca1c4f912c966d4499649ffb8224/assets/tigrbl.brand.theme.svg)
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
+
+<p align="center">
+    <a href="https://pepy.tech/project/tigrbl-orm/">
+        <img src="https://static.pepy.tech/badge/tigrbl-orm/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl_orm/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl_orm.svg"/></a>
+    <a href="https://pypi.org/project/tigrbl-orm/">
+        <img src="https://img.shields.io/pypi/pyversions/tigrbl-orm" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigrbl-orm/">
+        <img src="https://img.shields.io/pypi/l/tigrbl-orm" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigrbl-orm/">
+        <img src="https://img.shields.io/pypi/v/tigrbl-orm?label=tigrbl-orm&color=green" alt="PyPI - tigrbl-orm"/></a>
+</p>
+---
 
 # tigrbl-orm
 

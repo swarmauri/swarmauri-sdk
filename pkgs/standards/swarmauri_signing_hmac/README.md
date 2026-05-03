@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_signing_hmac/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_hmac?label=swarmauri_signing_hmac&color=green" alt="PyPI - swarmauri_signing_hmac"/></a>
 </p>
-
 ---
 
 # Swarmauri Signing HMAC

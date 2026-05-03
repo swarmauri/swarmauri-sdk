@@ -1,22 +1,18 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pypi.org/project/monotone-ops/">
-        <img src="https://img.shields.io/pypi/v/monotone-ops?label=monotone-ops&color=green" alt="PyPI - monotone-ops"/>
-    </a>
     <a href="https://pepy.tech/project/monotone-ops/">
-        <img src="https://static.pepy.tech/badge/monotone-ops/month" alt="PyPI - Downloads"/>
-    </a>
-    <a href="https://pypi.org/project/monotone-ops/">
-        <img src="https://img.shields.io/pypi/pyversions/monotone-ops" alt="PyPI - Python Version"/>
-    </a>
-    <a href="https://pypi.org/project/monotone-ops/">
-        <img src="https://img.shields.io/pypi/l/monotone-ops" alt="PyPI - License"/>
-    </a>
+        <img src="https://static.pepy.tech/badge/monotone-ops/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/monotone_ops/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/monotone_ops.svg"/>
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/monotone_ops.svg"/></a>
+    <a href="https://pypi.org/project/monotone-ops/">
+        <img src="https://img.shields.io/pypi/pyversions/monotone-ops" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/monotone-ops/">
+        <img src="https://img.shields.io/pypi/l/monotone-ops" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/monotone-ops/">
+        <img src="https://img.shields.io/pypi/v/monotone-ops?label=monotone-ops&color=green" alt="PyPI - monotone-ops"/></a>
 </p>
+---
 
 # monotone-ops
 

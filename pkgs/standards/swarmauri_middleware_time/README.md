@@ -2,22 +2,16 @@
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_middleware_time/">
-        <img src="https://static.pepy.tech/badge/swarmauri_middleware_time/month" alt="PyPI - Downloads"/>
-    </a>
+        <img src="https://static.pepy.tech/badge/swarmauri_middleware_time/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_time/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_time.svg"/>
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_time.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_time/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_middleware_time" alt="PyPI - Python Version"/>
-    </a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_middleware_time" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_time/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_time" alt="PyPI - License"/>
-    </a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_time" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_time/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_time?label=swarmauri_middleware_time&color=green" alt="PyPI - swarmauri_middleware_time"/>
-    </a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_time?label=swarmauri_middleware_time&color=green" alt="PyPI - swarmauri_middleware_time"/></a>
 </p>
-
 ---
 
 # Swarmauri Middleware Time

@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_embedding_tfidf/">
         <img src="https://img.shields.io/pypi/v/swarmauri_embedding_tfidf?label=swarmauri_embedding_tfidf&color=green" alt="PyPI - swarmauri_embedding_tfidf"/></a>
 </p>
-
 ---
 
 # Swarmauri Embedding TFIDF

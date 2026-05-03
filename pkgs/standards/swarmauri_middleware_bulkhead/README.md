@@ -2,22 +2,16 @@
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_middleware_bulkhead/">
-        <img src="https://static.pepy.tech/badge/swarmauri_middleware_bulkhead/month" alt="PyPI - Downloads"/>
-    </a>
+        <img src="https://static.pepy.tech/badge/swarmauri_middleware_bulkhead/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_bulkhead/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_bulkhead.svg"/>
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_bulkhead.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_bulkhead/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_middleware_bulkhead" alt="PyPI - Python Version"/>
-    </a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_middleware_bulkhead" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_bulkhead/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_bulkhead" alt="PyPI - License"/>
-    </a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_bulkhead" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_bulkhead/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_bulkhead?label=swarmauri_middleware_bulkhead&color=green" alt="PyPI - swarmauri_middleware_bulkhead"/>
-    </a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_bulkhead?label=swarmauri_middleware_bulkhead&color=green" alt="PyPI - swarmauri_middleware_bulkhead"/></a>
 </p>
-
 ---
 
 # Swarmauri Middleware Bulkhead

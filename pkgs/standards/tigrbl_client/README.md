@@ -1,23 +1,17 @@
-![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl_full_logo.png)
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pypi.org/project/tigrbl_client/">
-        <img src="https://img.shields.io/pypi/v/tigrbl_client?label=tigrbl_client&color=green" alt="PyPI - tigrbl_client"/>
-    </a>
     <a href="https://pepy.tech/project/tigrbl_client/">
-        <img src="https://static.pepy.tech/badge/tigrbl_client/month" alt="PyPI - Downloads"/>
-    </a>
-    <a href="https://pypi.org/project/tigrbl_client/">
-        <img src="https://img.shields.io/pypi/pyversions/tigrbl_client" alt="PyPI - Python Version"/>
-    </a>
-    <a href="https://pypi.org/project/tigrbl_client/">
-        <img src="https://img.shields.io/pypi/l/tigrbl_client" alt="PyPI - License"/>
-    </a>
+        <img src="https://static.pepy.tech/badge/tigrbl_client/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl_client/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl_client.svg"/>
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl_client.svg"/></a>
+    <a href="https://pypi.org/project/tigrbl_client/">
+        <img src="https://img.shields.io/pypi/pyversions/tigrbl_client" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigrbl_client/">
+        <img src="https://img.shields.io/pypi/l/tigrbl_client" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigrbl_client/">
+        <img src="https://img.shields.io/pypi/v/tigrbl_client?label=tigrbl_client&color=green" alt="PyPI - tigrbl_client"/></a>
 </p>
-
 ---
 
 # Tigrbl Client 🐅

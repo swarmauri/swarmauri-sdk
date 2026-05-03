@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_cipher_suite_fips1403/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_fips1403?label=swarmauri_cipher_suite_fips1403&color=green" alt="PyPI - swarmauri_cipher_suite_fips1403"/></a>
 </p>
-
 ---
 
 # Swarmauri Cipher FIPS 140-3

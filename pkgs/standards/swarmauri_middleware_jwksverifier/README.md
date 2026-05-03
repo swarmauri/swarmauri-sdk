@@ -1,6 +1,5 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
-
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_middleware_jwksverifier/">
         <img src="https://static.pepy.tech/badge/swarmauri_middleware_jwksverifier/month" alt="PyPI - Downloads"/></a>
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_jwksverifier/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_jwksverifier?label=swarmauri_middleware_jwksverifier&color=green" alt="PyPI - swarmauri_middleware_jwksverifier"/></a>
 </p>
-
 ---
 
 # Swarmauri Middleware JWKS Verifier

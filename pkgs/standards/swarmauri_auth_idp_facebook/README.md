@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_auth_idp_facebook/">
         <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_facebook?label=swarmauri_auth_idp_facebook&color=green" alt="PyPI - swarmauri_auth_idp_facebook"/></a>
 </p>
-
 ---
 
 # Swarmauri Auth IDP Facebook

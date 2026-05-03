@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_billing_stripe/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_stripe?label=swarmauri_billing_stripe&color=green" alt="PyPI - swarmauri_billing_stripe"/></a>
 </p>
-
 ---
 
 # Swarmauri Billing Stripe

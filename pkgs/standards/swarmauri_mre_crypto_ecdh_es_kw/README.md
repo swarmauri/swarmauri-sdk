@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_mre_crypto_ecdh_es_kw/">
         <img src="https://img.shields.io/pypi/v/swarmauri_mre_crypto_ecdh_es_kw?label=swarmauri_mre_crypto_ecdh_es_kw&color=green" alt="PyPI - swarmauri_mre_crypto_ecdh_es_kw"/></a>
 </p>
-
 ---
 
 ## Swarmauri MRE Crypto ECDH-ES+A128KW

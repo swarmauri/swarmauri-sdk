@@ -1,12 +1,18 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/swarmauri_keyprovider_ssh/"><img src="https://static.pepy.tech/badge/swarmauri_keyprovider_ssh/month" alt="PyPI - Downloads"/></a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_ssh/"><img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_ssh.svg"/></a>
-    <a href="https://pypi.org/project/swarmauri_keyprovider_ssh/"><img src="https://img.shields.io/pypi/pyversions/swarmauri_keyprovider_ssh" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri_keyprovider_ssh/"><img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_ssh" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/swarmauri_keyprovider_ssh/"><img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_ssh?label=swarmauri_keyprovider_ssh&color=green" alt="PyPI - swarmauri_keyprovider_ssh"/></a>
+    <a href="https://pepy.tech/project/swarmauri_keyprovider_ssh/">
+        <img src="https://static.pepy.tech/badge/swarmauri_keyprovider_ssh/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_ssh/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_ssh.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_keyprovider_ssh/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_keyprovider_ssh" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_keyprovider_ssh/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_ssh" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_keyprovider_ssh/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_ssh?label=swarmauri_keyprovider_ssh&color=green" alt="PyPI - swarmauri_keyprovider_ssh"/></a>
 </p>
+---
 
 # Swarmauri SSH Key Provider
 

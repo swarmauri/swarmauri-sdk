@@ -1,19 +1,17 @@
-
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/sf/">
-        <img src="https://static.pepy.tech/badge/sf/month" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/s.f/">
+        <img src="https://static.pepy.tech/badge/s.f/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/s_f/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/s_f.svg"/></a>
-    <a href="https://pypi.org/project/sf/">
-        <img src="https://img.shields.io/pypi/pyversions/sf" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/sf/">
-        <img src="https://img.shields.io/pypi/l/sf" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/sf/">
-        <img src="https://img.shields.io/pypi/v/sf?label=sf&color=green" alt="PyPI - sf"/></a>
+    <a href="https://pypi.org/project/s.f/">
+        <img src="https://img.shields.io/pypi/pyversions/s.f" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/s.f/">
+        <img src="https://img.shields.io/pypi/l/s.f" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/s.f/">
+        <img src="https://img.shields.io/pypi/v/s.f?label=s.f&color=green" alt="PyPI - s.f"/></a>
 </p>
-
 ---
 
 # Swm Example Package

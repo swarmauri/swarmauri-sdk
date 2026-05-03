@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swm_example_community_package/">
         <img src="https://img.shields.io/pypi/v/swm_example_community_package?label=swm_example_community_package&color=green" alt="PyPI - swm_example_community_package"/></a>
 </p>
-
 ---
 
 # Swm Example Community Package

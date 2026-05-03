@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_certs_acme/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_acme?label=swarmauri_certs_acme&color=green" alt="PyPI - swarmauri_certs_acme"/></a>
 </p>
-
 ---
 
 # Swarmauri ACME Certificate Service

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_toolkit_jupytertoolkit/">
         <img src="https://img.shields.io/pypi/v/swarmauri_toolkit_jupytertoolkit?label=swarmauri_toolkit_jupytertoolkit&color=green" alt="PyPI - swarmauri_toolkit_jupytertoolkit"/></a>
 </p>
-
 ---
 
 # Swarmauri Toolkit Â· Jupyter Toolkit

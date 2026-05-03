@@ -1,23 +1,17 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/swarmauri-transport-wsjsonrpcmux/">
-        <img src="https://static.pepy.tech/badge/swarmauri-transport-wsjsonrpcmux/month" alt="PyPI - Downloads"/>
-    </a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri_transport_wsjsonrpcmux/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri_transport_wsjsonrpcmux.svg"/>
-    </a>
-    <a href="https://pypi.org/project/swarmauri-transport-wsjsonrpcmux/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri-transport-wsjsonrpcmux" alt="PyPI - Python Version"/>
-    </a>
-    <a href="https://pypi.org/project/swarmauri-transport-wsjsonrpcmux/">
-        <img src="https://img.shields.io/pypi/l/swarmauri-transport-wsjsonrpcmux" alt="PyPI - License"/>
-    </a>
-    <a href="https://pypi.org/project/swarmauri-transport-wsjsonrpcmux/">
-        <img src="https://img.shields.io/pypi/v/swarmauri-transport-wsjsonrpcmux?label=swarmauri-transport-wsjsonrpcmux&color=green" alt="PyPI - swarmauri-transport-wsjsonrpcmux"/>
-    </a>
+    <a href="https://pepy.tech/project/swarmauri_transport_wsjsonrpcmux/">
+        <img src="https://static.pepy.tech/badge/swarmauri_transport_wsjsonrpcmux/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_wsjsonrpcmux/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_wsjsonrpcmux.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_wsjsonrpcmux/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_transport_wsjsonrpcmux" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_wsjsonrpcmux/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_transport_wsjsonrpcmux" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_wsjsonrpcmux/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_transport_wsjsonrpcmux?label=swarmauri_transport_wsjsonrpcmux&color=green" alt="PyPI - swarmauri_transport_wsjsonrpcmux"/></a>
 </p>
-
 ---
 
 # Swarmauri Transport â€“ WebSocket JSON-RPC

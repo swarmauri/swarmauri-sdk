@@ -2,22 +2,16 @@
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_gitfilter_s3fs/">
-        <img src="https://static.pepy.tech/badge/swarmauri_gitfilter_s3fs/month" alt="PyPI - Downloads"/>
-    </a>
+        <img src="https://static.pepy.tech/badge/swarmauri_gitfilter_s3fs/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_gitfilter_s3fs/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_gitfilter_s3fs.svg"/>
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_gitfilter_s3fs.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_gitfilter_s3fs/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_gitfilter_s3fs" alt="PyPI - Python Version"/>
-    </a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_gitfilter_s3fs" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_gitfilter_s3fs/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_gitfilter_s3fs" alt="PyPI - License"/>
-    </a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_gitfilter_s3fs" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_gitfilter_s3fs/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_gitfilter_s3fs?label=swarmauri_gitfilter_s3fs&color=green" alt="PyPI - swarmauri_gitfilter_s3fs"/>
-    </a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_gitfilter_s3fs?label=swarmauri_gitfilter_s3fs&color=green" alt="PyPI - swarmauri_gitfilter_s3fs"/></a>
 </p>
-
 ---
 
 # Swarmauri Git Filter S3FS

@@ -1,6 +1,5 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
-
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_certs_x509verify/">
         <img src="https://static.pepy.tech/badge/swarmauri_certs_x509verify/month" alt="PyPI - Downloads"/></a>
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_certs_x509verify/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_x509verify?label=swarmauri_certs_x509verify&color=green" alt="PyPI - swarmauri_certs_x509verify"/></a>
 </p>
-
 ---
 
 # Swarmauri Certs X509 Verify

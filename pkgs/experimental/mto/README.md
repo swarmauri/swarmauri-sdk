@@ -1,22 +1,18 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pypi.org/project/mto/">
-        <img src="https://img.shields.io/pypi/v/mto?label=mto&color=green" alt="PyPI - mto"/>
-    </a>
     <a href="https://pepy.tech/project/mto/">
-        <img src="https://static.pepy.tech/badge/mto/month" alt="PyPI - Downloads"/>
-    </a>
-    <a href="https://pypi.org/project/mto/">
-        <img src="https://img.shields.io/pypi/pyversions/mto" alt="PyPI - Python Version"/>
-    </a>
-    <a href="https://pypi.org/project/mto/">
-        <img src="https://img.shields.io/pypi/l/mto" alt="PyPI - License"/>
-    </a>
+        <img src="https://static.pepy.tech/badge/mto/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/mto/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/mto.svg"/>
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/mto.svg"/></a>
+    <a href="https://pypi.org/project/mto/">
+        <img src="https://img.shields.io/pypi/pyversions/mto" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/mto/">
+        <img src="https://img.shields.io/pypi/l/mto" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/mto/">
+        <img src="https://img.shields.io/pypi/v/mto?label=mto&color=green" alt="PyPI - mto"/></a>
 </p>
+---
 
 # mto
 

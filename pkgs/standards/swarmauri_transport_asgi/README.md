@@ -1,23 +1,17 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/swarmauri-transport-asgi/">
-        <img src="https://static.pepy.tech/badge/swarmauri-transport-asgi/month" alt="PyPI - Downloads"/>
-    </a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri_transport_asgi/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri_transport_asgi.svg"/>
-    </a>
-    <a href="https://pypi.org/project/swarmauri-transport-asgi/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri-transport-asgi" alt="PyPI - Python Version"/>
-    </a>
-    <a href="https://pypi.org/project/swarmauri-transport-asgi/">
-        <img src="https://img.shields.io/pypi/l/swarmauri-transport-asgi" alt="PyPI - License"/>
-    </a>
-    <a href="https://pypi.org/project/swarmauri-transport-asgi/">
-        <img src="https://img.shields.io/pypi/v/swarmauri-transport-asgi?label=swarmauri-transport-asgi&color=green" alt="PyPI - swarmauri-transport-asgi"/>
-    </a>
+    <a href="https://pepy.tech/project/swarmauri_transport_asgi/">
+        <img src="https://static.pepy.tech/badge/swarmauri_transport_asgi/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_asgi/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_asgi.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_asgi/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_transport_asgi" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_asgi/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_transport_asgi" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_asgi/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_transport_asgi?label=swarmauri_transport_asgi&color=green" alt="PyPI - swarmauri_transport_asgi"/></a>
 </p>
-
 ---
 
 # Swarmauri Transport â€“ ASGI Server

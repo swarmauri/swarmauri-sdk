@@ -1,4 +1,4 @@
-![Tigrbl Branding](https://github.com/swarmauri/swarmauri-sdk/blob/a170683ecda8ca1c4f912c966d4499649ffb8224/assets/tigrbl.brand.theme.svg)
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/tigrcorn/">
@@ -12,8 +12,9 @@
     <a href="https://pypi.org/project/tigrcorn/">
         <img src="https://img.shields.io/pypi/v/tigrcorn?label=tigrcorn&color=green" alt="PyPI - tigrcorn"/></a>
 </p>
+---
 
-## Features
+# Features
 
 - Defines a planning-stage namespace for tigrcorn capabilities.
 - Establishes a package foundation for future Tigrbl-oriented extensions.

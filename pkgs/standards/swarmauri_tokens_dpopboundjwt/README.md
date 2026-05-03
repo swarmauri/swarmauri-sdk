@@ -1,6 +1,5 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
-
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tokens_dpopboundjwt/">
         <img src="https://static.pepy.tech/badge/swarmauri_tokens_dpopboundjwt/month" alt="PyPI - Downloads"/></a>
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tokens_dpopboundjwt/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tokens_dpopboundjwt?label=swarmauri_tokens_dpopboundjwt&color=green" alt="PyPI - swarmauri_tokens_dpopboundjwt"/></a>
 </p>
-
 ---
 
 # Swarmauri Tokens DPoP Bound JWT

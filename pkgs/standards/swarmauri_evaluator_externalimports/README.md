@@ -2,23 +2,16 @@
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_evaluator_externalimports/">
-        <img src="https://static.pepy.tech/badge/swarmauri_evaluator_externalimports/month" alt="PyPI - Downloads"/>
-    </a>
+        <img src="https://static.pepy.tech/badge/swarmauri_evaluator_externalimports/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_evaluator_externalimports/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_evaluator_externalimports.svg"/>
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_evaluator_externalimports.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_evaluator_externalimports/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_evaluator_externalimports" alt="PyPI - Python Version"/>
-    </a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_evaluator_externalimports" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_evaluator_externalimports/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_evaluator_externalimports" alt="PyPI - License"/>
-    </a>
-    <br />
+        <img src="https://img.shields.io/pypi/l/swarmauri_evaluator_externalimports" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_evaluator_externalimports/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_evaluator_externalimports?label=swarmauri_evaluator_externalimports&color=green" alt="PyPI - swarmauri_evaluator_externalimports"/>
-    </a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_evaluator_externalimports?label=swarmauri_evaluator_externalimports&color=green" alt="PyPI - swarmauri_evaluator_externalimports"/></a>
 </p>
-
 ---
 
 # Swarmauri Evaluator External Imports

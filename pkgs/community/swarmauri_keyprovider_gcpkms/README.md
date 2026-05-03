@@ -11,9 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_gcpkms" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_gcpkms/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_gcpkms?label=swarmauri_keyprovider_gcpkms&color=green" alt="PyPI - swarmauri_keyprovider_gcpkms"/></a>
-
 </p>
-
 ---
 
 # Swarmauri GCP KMS Key Provider

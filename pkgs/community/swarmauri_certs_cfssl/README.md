@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_certs_cfssl/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_cfssl?label=swarmauri_certs_cfssl&color=green" alt="PyPI - swarmauri_certs_cfssl"/></a>
 </p>
-
 ---
 
 # Swarmauri Cert Cfssl

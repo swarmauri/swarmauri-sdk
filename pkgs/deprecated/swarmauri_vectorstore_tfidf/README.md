@@ -1,11 +1,10 @@
-
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_vectorstore_tfidf/">
         <img src="https://static.pepy.tech/badge/swarmauri_vectorstore_tfidf/month" alt="PyPI - Downloads"/></a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_vectorstore_tfidf/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_vectorstore_tfidf.svg"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_vectorstore_tfidf/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_vectorstore_tfidf.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_tfidf/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_vectorstore_tfidf" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_tfidf/">
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_vectorstore_tfidf/">
         <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_tfidf?label=swarmauri_vectorstore_tfidf&color=green" alt="PyPI - swarmauri_vectorstore_tfidf"/></a>
 </p>
-
 ---
 
 # Swarmauri Vectorstore Tfidf

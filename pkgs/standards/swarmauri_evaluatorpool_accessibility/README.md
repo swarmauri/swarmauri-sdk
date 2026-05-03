@@ -2,22 +2,16 @@
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_evaluatorpool_accessibility/">
-        <img src="https://static.pepy.tech/badge/swarmauri_evaluatorpool_accessibility/month" alt="PyPI - Downloads"/>
-    </a>
+        <img src="https://static.pepy.tech/badge/swarmauri_evaluatorpool_accessibility/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_evaluatorpool_accessibility/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_evaluatorpool_accessibility.svg"/>
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_evaluatorpool_accessibility.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_evaluatorpool_accessibility/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_evaluatorpool_accessibility" alt="PyPI - Python Version"/>
-    </a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_evaluatorpool_accessibility" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_evaluatorpool_accessibility/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_evaluatorpool_accessibility" alt="PyPI - License"/>
-    </a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_evaluatorpool_accessibility" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_evaluatorpool_accessibility/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_evaluatorpool_accessibility?label=swarmauri_evaluatorpool_accessibility&color=green" alt="PyPI - swarmauri_evaluatorpool_accessibility"/>
-    </a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_evaluatorpool_accessibility?label=swarmauri_evaluatorpool_accessibility&color=green" alt="PyPI - swarmauri_evaluatorpool_accessibility"/></a>
 </p>
-
 ---
 
 # Swarmauri Evaluatorpool Accessibility

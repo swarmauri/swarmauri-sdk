@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_ocr_pytesseract/">
         <img src="https://img.shields.io/pypi/v/swarmauri_ocr_pytesseract?label=swarmauri_ocr_pytesseract&color=green" alt="PyPI - swarmauri_ocr_pytesseract"/></a>
 </p>
-
 ---
 
 # Swarmauri OCR Pytesseract

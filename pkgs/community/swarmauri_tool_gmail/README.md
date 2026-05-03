@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_gmail/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_gmail?label=swarmauri_tool_gmail&color=green" alt="PyPI - swarmauri_tool_gmail"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool Gmail

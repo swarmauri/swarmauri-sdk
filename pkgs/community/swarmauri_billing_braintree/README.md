@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_billing_braintree/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_braintree?label=swarmauri_billing_braintree&color=green" alt="PyPI - swarmauri_billing_braintree"/></a>
 </p>
-
 ---
 
 # Swarmauri Billing Braintree

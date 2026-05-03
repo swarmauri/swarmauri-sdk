@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_auth_idp_aws/">
         <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_aws?label=swarmauri_auth_idp_aws&color=green" alt="PyPI - swarmauri_auth_idp_aws"/></a>
 </p>
-
 ---
 
 # Swarmauri Auth IDP AWS

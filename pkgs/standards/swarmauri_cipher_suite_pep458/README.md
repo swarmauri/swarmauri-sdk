@@ -1,20 +1,17 @@
-![Swarmauri Brand Theme](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
+    <a href="https://pepy.tech/project/swarmauri_cipher_suite_pep458/">
+        <img src="https://static.pepy.tech/badge/swarmauri_cipher_suite_pep458/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suite_pep458/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suite_pep458.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_pep458/">
-        <img src="https://img.shields.io/badge/status-planning-blueviolet" alt="Development status" />
-    </a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_cipher_suite_pep458" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_pep458/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_cipher_suite_pep458.svg" alt="Python versions" />
-    </a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_cipher_suite_pep458" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_pep458/">
-        <img src="https://img.shields.io/badge/canonicalization-tuf--json-brightgreen" alt="Canonicalization" />
-    </a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_cipher_suite_pep458">
-        <img src="https://img.shields.io/badge/pep%20458-policy-blue" alt="PEP 458 policy" />
-    </a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_pep458?label=swarmauri_cipher_suite_pep458&color=green" alt="PyPI - swarmauri_cipher_suite_pep458"/></a>
 </p>
-
 ---
 
 # swarmauri_cipher_suite_pep458

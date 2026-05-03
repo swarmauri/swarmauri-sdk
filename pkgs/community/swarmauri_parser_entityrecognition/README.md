@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_parser_entityrecognition/">
         <img src="https://img.shields.io/pypi/v/swarmauri_parser_entityrecognition?label=swarmauri_parser_entityrecognition&color=green" alt="PyPI - swarmauri_parser_entityrecognition"/></a>
 </p>
-
 ---
 
 # Swarmauri Parser Entityrecognition

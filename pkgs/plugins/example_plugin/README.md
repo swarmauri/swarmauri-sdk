@@ -1,17 +1,17 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg" alt="Swarmauri logotype" width="420" />
-</p>
-
-<h1 align="center">Swarmauri Example Plugin</h1>
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-  <a href="https://pepy.tech/project/swm-example-plugin/"><img src="https://static.pepy.tech/badge/swm-example-plugin/month" alt="PyPI - Downloads" /></a>
-  <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/example_plugin/"><img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/example_plugin.svg?style=for-the-badge" alt="Repository views" /></a>
-  <a href="https://pypi.org/project/swm-example-plugin/"><img src="https://img.shields.io/pypi/pyversions/swm-example-plugin?style=for-the-badge" alt="Supported Python versions" /></a>
-  <a href="https://pypi.org/project/swm-example-plugin/"><img src="https://img.shields.io/pypi/l/swm-example-plugin?style=for-the-badge" alt="License" /></a>
-  <a href="https://pypi.org/project/swm-example-plugin/"><img src="https://img.shields.io/pypi/v/swm-example-plugin?style=for-the-badge&label=swm-example-plugin" alt="Latest release" /></a>
+    <a href="https://pepy.tech/project/swm_example_plugin/">
+        <img src="https://static.pepy.tech/badge/swm_example_plugin/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/example_plugin/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/example_plugin.svg"/></a>
+    <a href="https://pypi.org/project/swm_example_plugin/">
+        <img src="https://img.shields.io/pypi/pyversions/swm_example_plugin" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swm_example_plugin/">
+        <img src="https://img.shields.io/pypi/l/swm_example_plugin" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swm_example_plugin/">
+        <img src="https://img.shields.io/pypi/v/swm_example_plugin?label=swm_example_plugin&color=green" alt="PyPI - swm_example_plugin"/></a>
 </p>
-
 ---
 
 The Swarmauri Example Plugin is a lightweight reference package that shows how to
@@ -72,8 +72,8 @@ custom functionality into the Swarmauri plugin registry.
 
 ## Project Resources
 
-- Source: <https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/example_plugin>
-- Documentation: <https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/example_plugin#readme>
+- Source: <https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/example_plugin>
+- Documentation: <https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/example_plugin#readme>
 - Issues: <https://github.com/swarmauri/swarmauri-sdk/issues>
 - Releases: <https://github.com/swarmauri/swarmauri-sdk/releases>
 - Discussions: <https://github.com/orgs/swarmauri/discussions>

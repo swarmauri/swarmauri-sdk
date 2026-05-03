@@ -1,18 +1,17 @@
-![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl_full_logo.png)
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/tigrbl-tests/">
-        <img src="https://static.pepy.tech/badge/tigrbl-tests/month" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/tigrbl_tests/">
+        <img src="https://static.pepy.tech/badge/tigrbl_tests/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl_tests/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl_tests.svg"/></a>
-    <a href="https://pypi.org/project/tigrbl-tests/">
-        <img src="https://img.shields.io/pypi/pyversions/tigrbl-tests" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/tigrbl-tests/">
-        <img src="https://img.shields.io/pypi/l/tigrbl-tests" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/tigrbl-tests/">
-        <img src="https://img.shields.io/pypi/v/tigrbl-tests?label=tigrbl-tests&color=green" alt="PyPI - tigrbl-tests"/></a>
+    <a href="https://pypi.org/project/tigrbl_tests/">
+        <img src="https://img.shields.io/pypi/pyversions/tigrbl_tests" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigrbl_tests/">
+        <img src="https://img.shields.io/pypi/l/tigrbl_tests" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigrbl_tests/">
+        <img src="https://img.shields.io/pypi/v/tigrbl_tests?label=tigrbl_tests&color=green" alt="PyPI - tigrbl_tests"/></a>
 </p>
-
 ---
 
 # Tigrbl Tests 🧪

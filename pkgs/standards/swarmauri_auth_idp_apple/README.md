@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_auth_idp_apple/">
         <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_apple?label=swarmauri_auth_idp_apple&color=green" alt="PyPI - swarmauri_auth_idp_apple"/></a>
 </p>
-
 ---
 
 # Swarmauri Auth IDP Apple

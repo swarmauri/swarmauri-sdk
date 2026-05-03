@@ -2,22 +2,16 @@
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tokens_introspection/">
-        <img src="https://static.pepy.tech/badge/swarmauri_tokens_introspection/month" alt="PyPI - Downloads"/>
-    </a>
+        <img src="https://static.pepy.tech/badge/swarmauri_tokens_introspection/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_introspection/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_introspection.svg"/>
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_introspection.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_introspection/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tokens_introspection" alt="PyPI - Python Version"/>
-    </a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tokens_introspection" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_introspection/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tokens_introspection" alt="PyPI - License"/>
-    </a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tokens_introspection" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_introspection/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tokens_introspection?label=swarmauri_tokens_introspection&color=green" alt="PyPI - swarmauri_tokens_introspection"/>
-    </a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tokens_introspection?label=swarmauri_tokens_introspection&color=green" alt="PyPI - swarmauri_tokens_introspection"/></a>
 </p>
-
 ---
 
 # swarmauri_tokens_introspection

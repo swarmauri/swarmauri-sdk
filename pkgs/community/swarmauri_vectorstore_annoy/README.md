@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_vectorstore_annoy/">
         <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_annoy?label=swarmauri_vectorstore_annoy&color=green" alt="PyPI - swarmauri_vectorstore_annoy"/></a>
 </p>
-
 ---
 
 # Swarmauri VectorStore Annoy

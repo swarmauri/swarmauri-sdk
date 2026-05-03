@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_cipher_suite_tls13/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_tls13?label=swarmauri_cipher_suite_tls13&color=green" alt="PyPI - swarmauri_cipher_suite_tls13"/></a>
 </p>
-
 ---
 
 # Swarmauri Cipher Tls13

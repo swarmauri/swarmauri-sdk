@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_llm_playht/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_playht?label=swarmauri_llm_playht&color=green" alt="PyPI - swarmauri_llm_playht"/></a>
 </p>
-
 ---
 
 # swarmauri_llm_playht

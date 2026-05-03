@@ -7,9 +7,7 @@ from swarmauri_base.tools.ToolBase import ToolBase
 def build_tool_from_spec(tool_spec: Mapping[str, Any] | ToolBase) -> ToolBase:
     if isinstance(tool_spec, ToolBase):
         if not tool_spec.parameters:
-            raise ValueError(
-                "Runtime tool registration requires declared parameters"
-            )
+            raise ValueError("Runtime tool registration requires declared parameters")
         return tool_spec
     if not isinstance(tool_spec, Mapping):
         raise TypeError("tool_spec must be a mapping or ToolBase instance")

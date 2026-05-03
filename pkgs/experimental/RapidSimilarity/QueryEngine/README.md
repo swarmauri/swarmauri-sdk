@@ -1,4 +1,4 @@
-# QueryEngine
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/QueryEngine/">
@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/QueryEngine/">
         <img src="https://img.shields.io/pypi/v/QueryEngine?label=QueryEngine&color=green" alt="PyPI - QueryEngine"/></a>
 </p>
-
 ---
 
 

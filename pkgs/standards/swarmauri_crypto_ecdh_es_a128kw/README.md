@@ -11,9 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_crypto_ecdh_es_a128kw" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_ecdh_es_a128kw/">
         <img src="https://img.shields.io/pypi/v/swarmauri_crypto_ecdh_es_a128kw?label=swarmauri_crypto_ecdh_es_a128kw&color=green" alt="PyPI - swarmauri_crypto_ecdh_es_a128kw"/></a>
-
 </p>
-
 ---
 
 # swarmauri_crypto_ecdh_es_a128kw

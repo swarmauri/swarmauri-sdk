@@ -1,6 +1,5 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
-
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tokens_paseto_v4/">
         <img src="https://static.pepy.tech/badge/swarmauri_tokens_paseto_v4/month" alt="PyPI - Downloads"/></a>
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tokens_paseto_v4/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tokens_paseto_v4?label=swarmauri_tokens_paseto_v4&color=green" alt="PyPI - swarmauri_tokens_paseto_v4"/></a>
 </p>
-
 ---
 
 # Swarmauri Token Paseto V4

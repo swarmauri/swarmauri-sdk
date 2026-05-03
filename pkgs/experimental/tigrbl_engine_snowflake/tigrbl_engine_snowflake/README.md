@@ -1,18 +1,18 @@
-# tigrbl_engine_snowflake
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
 
-**Tigrbl engine plugin for Snowflake**, auto-registered via the `tigrbl.engine` entry-point group.
-
-## Install
-
-```bash
-pip install -e .
-```
-
-## Usage (inside Tigrbl)
-
-```python
-from tigrbl.engine import Engine
-from tigrbl.engine.engine_spec import EngineSpec
+<p align="center">
+    <a href="https://pepy.tech/project/tigrbl_engine_snowflake/">
+        <img src="https://static.pepy.tech/badge/tigrbl_engine_snowflake/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_snowflake/tigrbl_engine_snowflake/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_snowflake/tigrbl_engine_snowflake.svg"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_snowflake/">
+        <img src="https://img.shields.io/pypi/pyversions/tigrbl_engine_snowflake" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_snowflake/">
+        <img src="https://img.shields.io/pypi/l/tigrbl_engine_snowflake" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_snowflake/">
+        <img src="https://img.shields.io/pypi/v/tigrbl_engine_snowflake?label=tigrbl_engine_snowflake&color=green" alt="PyPI - tigrbl_engine_snowflake"/></a>
+</p>
+---
 
 # DSN (Snowflake SQLAlchemy URL)
 spec = EngineSpec(kind="snowflake", dsn="snowflake://USER:PWD@ACCOUNT/DB/SCHEMA?warehouse=WH&role=ROLE")

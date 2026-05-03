@@ -1,6 +1,5 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
-
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_keyprovider_remote_jwks/">
         <img src="https://static.pepy.tech/badge/swarmauri_keyprovider_remote_jwks/month" alt="PyPI - Downloads"/></a>
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_keyprovider_remote_jwks/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_remote_jwks?label=swarmauri_keyprovider_remote_jwks&color=green" alt="PyPI - swarmauri_keyprovider_remote_jwks"/></a>
 </p>
-
 ---
 
 # Swarmauri Remote JWKS Key Provider

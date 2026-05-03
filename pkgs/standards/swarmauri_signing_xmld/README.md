@@ -1,21 +1,20 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg" alt="Swarmauri logotype" width="420" />
-</p>
-
-<h1 align="center">swarmauri_signing_xmld</h1>
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-  <a href="https://img.shields.io/badge/status-experimental-ff6f61?style=for-the-badge"><img src="https://img.shields.io/badge/status-experimental-ff6f61?style=for-the-badge" alt="Status: experimental" /></a>
-  <a href="https://img.shields.io/badge/license-Apache--2.0-0a6ebd?style=for-the-badge"><img src="https://img.shields.io/badge/license-Apache--2.0-0a6ebd?style=for-the-badge" alt="License: Apache-2.0" /></a>
-  <a href="https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-4b8bbe?style=for-the-badge"><img src="https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-4b8bbe?style=for-the-badge" alt="Python versions" /></a>
+    <a href="https://pepy.tech/project/swarmauri_signing_xmld/">
+        <img src="https://static.pepy.tech/badge/swarmauri_signing_xmld/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_xmld/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_xmld.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_signing_xmld/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_signing_xmld" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_signing_xmld/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_signing_xmld" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_signing_xmld/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_signing_xmld?label=swarmauri_signing_xmld&color=green" alt="PyPI - swarmauri_signing_xmld"/></a>
 </p>
+---
 
-`swarmauri_signing_xmld` packages an XML Digital Signature (`XMLDSig`) provider that registers
-with the Swarmauri `SigningBase` registry. The signer focuses on canonicalized
-XML payloads and produces detached signatures that can be embedded into
-workflow-specific envelopes.
-
-## Installation
+# Installation
 
 ### uv
 

@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_smogindex/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_smogindex?label=swarmauri_tool_smogindex&color=green" alt="PyPI - swarmauri_tool_smogindex"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool Smog Index

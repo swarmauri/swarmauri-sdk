@@ -1,3 +1,19 @@
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
+
+<p align="center">
+    <a href="https://pepy.tech/project/swarmauri_transport_udp/">
+        <img src="https://static.pepy.tech/badge/swarmauri_transport_udp/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_udp/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_udp.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_udp/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_transport_udp" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_udp/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_transport_udp" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_udp/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_transport_udp?label=swarmauri_transport_udp&color=green" alt="PyPI - swarmauri_transport_udp"/></a>
+</p>
+---
+
 # Swarmauri UDP Transport
 
 ![Transport Icon](https://img.shields.io/badge/transport-udp_family-4B8BF4.svg)

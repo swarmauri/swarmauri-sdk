@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_jupyterexecutenotebookwithparameters/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterexecutenotebookwithparameters?label=swarmauri_tool_jupyterexecutenotebookwithparameters&color=green" alt="PyPI - swarmauri_tool_jupyterexecutenotebookwithparameters"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool Jupyter Execute Notebook With Parameters

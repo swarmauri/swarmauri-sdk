@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_crypto_nacl_pkcs11/">
         <img src="https://img.shields.io/pypi/v/swarmauri_crypto_nacl_pkcs11?label=swarmauri_crypto_nacl_pkcs11&color=green" alt="PyPI - swarmauri_crypto_nacl_pkcs11"/></a>
 </p>
-
 ---
 
 ## Swarmauri Crypto NaCl PKCS#11

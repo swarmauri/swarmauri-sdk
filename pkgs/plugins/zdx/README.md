@@ -1,11 +1,10 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
-
 <p align="center">
     <a href="https://pepy.tech/project/zdx/">
         <img src="https://static.pepy.tech/badge/zdx/month" alt="PyPI - Downloads"/></a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/zdx/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/zdx.svg"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/zdx/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/zdx.svg"/></a>
     <a href="https://pypi.org/project/zdx/">
         <img src="https://img.shields.io/pypi/pyversions/zdx" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/zdx/">
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/zdx/">
         <img src="https://img.shields.io/pypi/v/zdx?label=zdx&color=green" alt="PyPI - zdx"/></a>
 </p>
-
 ---
 
 # ZDX

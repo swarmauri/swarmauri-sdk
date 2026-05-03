@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_prompt_j2prompttemplate/">
         <img src="https://img.shields.io/pypi/v/swarmauri_prompt_j2prompttemplate?label=swarmauri_prompt_j2prompttemplate&color=green" alt="PyPI - swarmauri_prompt_j2prompttemplate"/></a>
 </p>
-
 ---
 
 # Swarmauri Prompt J2PromptTemplate

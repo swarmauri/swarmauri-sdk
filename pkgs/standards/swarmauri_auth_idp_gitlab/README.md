@@ -3,8 +3,8 @@
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_auth_idp_gitlab/">
         <img src="https://static.pepy.tech/badge/swarmauri_auth_idp_gitlab/month" alt="PyPI - Downloads"/></a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_auth_idp_gitlab/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_auth_idp_gitlab.svg"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_auth_idp_gitlab/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_auth_idp_gitlab.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_gitlab/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_auth_idp_gitlab" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_gitlab/">
@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_auth_idp_gitlab/">
         <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_gitlab?label=swarmauri_auth_idp_gitlab&color=green" alt="PyPI - swarmauri_auth_idp_gitlab"/></a>
 </p>
-
 ---
 
 # Swarmauri Auth IDP GitLab

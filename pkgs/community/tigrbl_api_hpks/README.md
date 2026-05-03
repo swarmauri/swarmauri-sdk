@@ -1,4 +1,4 @@
-![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl_full_logo.png)
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/tigrbl_api_hpks/">
@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/tigrbl_api_hpks/">
         <img src="https://img.shields.io/pypi/v/tigrbl_api_hpks?label=tigrbl_api_hpks&color=green" alt="PyPI - tigrbl_api_hpks"/></a>
 </p>
-
 ---
 
 # Tigrbl API HPKS 🔐

@@ -1,15 +1,19 @@
-# tigrbl-spiffe
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
 
-SPIFFE/SPIRE plugin for **Tigrbl**. Table/op-centric design:
-- Single SVID table with `rotate` op and remote-read delegation
-- Registrar and Bundle tables using canonical `read/merge/replace`
-- Middleware for identity injection, authn, TLS
-- Transport adapter for UDS (agent), HTTP/HTTPS (gateways)
+<p align="center">
+    <a href="https://pepy.tech/project/tigrbl_spiffe/">
+        <img src="https://static.pepy.tech/badge/tigrbl_spiffe/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_spiffe/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_spiffe.svg"/></a>
+    <a href="https://pypi.org/project/tigrbl_spiffe/">
+        <img src="https://img.shields.io/pypi/pyversions/tigrbl_spiffe" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigrbl_spiffe/">
+        <img src="https://img.shields.io/pypi/l/tigrbl_spiffe" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigrbl_spiffe/">
+        <img src="https://img.shields.io/pypi/v/tigrbl_spiffe?label=tigrbl_spiffe&color=green" alt="PyPI - tigrbl_spiffe"/></a>
+</p>
+---
 
-## Install
-
-```bash
-uv add tigrbl-spiffe
 # or
 pip install tigrbl-spiffe
 ```

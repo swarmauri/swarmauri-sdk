@@ -1,3 +1,19 @@
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
+
+<p align="center">
+    <a href="https://pepy.tech/project/swarmauri_parser_asn1/">
+        <img src="https://static.pepy.tech/badge/swarmauri_parser_asn1/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_parser_asn1/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_parser_asn1.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_asn1/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_parser_asn1" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_asn1/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_parser_asn1" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_parser_asn1/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_parser_asn1?label=swarmauri_parser_asn1&color=green" alt="PyPI - swarmauri_parser_asn1"/></a>
+</p>
+---
+
 # swarmauri-asn1
 
 Grammar-driven ASN.1 schema parsing (X.680) + minimal DER decoding (X.690) for `swarmauri-sdk`.

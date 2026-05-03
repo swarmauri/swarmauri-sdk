@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_jupyterexporthtml/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterexporthtml?label=swarmauri_tool_jupyterexporthtml&color=green" alt="PyPI - swarmauri_tool_jupyterexporthtml"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool Jupyter Export HTML

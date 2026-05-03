@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_llm_openai/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_openai?label=swarmauri_llm_openai&color=green" alt="PyPI - swarmauri_llm_openai"/></a>
 </p>
-
 ---
 
 # swarmauri_llm_openai

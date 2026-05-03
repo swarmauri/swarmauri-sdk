@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_githubloader/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_githubloader?label=swarmauri_tool_githubloader&color=green" alt="PyPI - swarmauri_tool_githubloader"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool GithubLoader

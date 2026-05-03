@@ -11,9 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_certservice_aws_kms" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_certservice_aws_kms/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certservice_aws_kms?label=swarmauri_certservice_aws_kms&color=green" alt="PyPI - swarmauri_certservice_aws_kms"/></a>
-
 </p>
-
 ---
 
 # swarmauri_certservice_aws_kms

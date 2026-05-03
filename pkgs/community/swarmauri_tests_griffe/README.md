@@ -1,18 +1,17 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/swarmauri-tests-griffe/">
-        <img src="https://static.pepy.tech/badge/swarmauri-tests-griffe/month" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_tests_griffe/">
+        <img src="https://static.pepy.tech/badge/swarmauri_tests_griffe/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tests_griffe/">
-        <img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tests_griffe.svg" alt="Repository Hits"/></a>
-    <a href="https://pypi.org/project/swarmauri-tests-griffe/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri-tests-griffe" alt="PyPI - Supported Python Versions"/></a>
-    <a href="https://pypi.org/project/swarmauri-tests-griffe/">
-        <img src="https://img.shields.io/pypi/l/swarmauri-tests-griffe" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/swarmauri-tests-griffe/">
-        <img src="https://img.shields.io/pypi/v/swarmauri-tests-griffe?label=swarmauri_tests_griffe&color=green" alt="PyPI - Latest Release"/></a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tests_griffe.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_tests_griffe/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tests_griffe" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_tests_griffe/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tests_griffe" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_tests_griffe/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tests_griffe?label=swarmauri_tests_griffe&color=green" alt="PyPI - swarmauri_tests_griffe"/></a>
 </p>
-
 ---
 
 # swarmauri_tests_griffe

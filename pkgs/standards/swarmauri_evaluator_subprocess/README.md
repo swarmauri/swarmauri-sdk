@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_evaluator_subprocess/">
         <img src="https://img.shields.io/pypi/v/swarmauri_evaluator_subprocess?label=swarmauri_evaluator_subprocess&color=green" alt="PyPI - swarmauri_evaluator_subprocess"/></a>
 </p>
-
 ---
 
 # Swarmauri Evaluator Subprocess

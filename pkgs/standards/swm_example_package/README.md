@@ -1,19 +1,17 @@
-
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/swm-example-package/">
-        <img src="https://static.pepy.tech/badge/swm-example-package/month" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swm_example_package/">
+        <img src="https://static.pepy.tech/badge/swm_example_package/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swm_example_package/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swm_example_package.svg"/></a>
-    <a href="https://pypi.org/project/swm-example-package/">
-        <img src="https://img.shields.io/pypi/pyversions/swm-example-package" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swm-example-package/">
-        <img src="https://img.shields.io/pypi/l/swm-example-package" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/swm-example-package/">
-        <img src="https://img.shields.io/pypi/v/swm-example-package?label=swm-example-package&color=green" alt="PyPI - swm-example-package"/></a>
+    <a href="https://pypi.org/project/swm_example_package/">
+        <img src="https://img.shields.io/pypi/pyversions/swm_example_package" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swm_example_package/">
+        <img src="https://img.shields.io/pypi/l/swm_example_package" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swm_example_package/">
+        <img src="https://img.shields.io/pypi/v/swm_example_package?label=swm_example_package&color=green" alt="PyPI - swm_example_package"/></a>
 </p>
-
 ---
 
 # Swm Example Package

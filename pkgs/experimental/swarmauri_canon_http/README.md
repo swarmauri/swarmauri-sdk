@@ -1,18 +1,17 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/swarmauri-canon-http/">
-        <img src="https://static.pepy.tech/badge/swarmauri-canon-http/month" alt="PyPI - Downloads"/></a>
+    <a href="https://pepy.tech/project/swarmauri_canon_http/">
+        <img src="https://static.pepy.tech/badge/swarmauri_canon_http/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_canon_http/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_canon_http.svg"/></a>
-    <a href="https://pypi.org/project/swarmauri-canon-http/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri-canon-http" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri-canon-http/">
-        <img src="https://img.shields.io/pypi/l/swarmauri-canon-http" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/swarmauri-canon-http/">
-        <img src="https://img.shields.io/pypi/v/swarmauri-canon-http?label=swarmauri-canon-http&color=green" alt="PyPI - swarmauri-canon-http"/></a>
+    <a href="https://pypi.org/project/swarmauri_canon_http/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_canon_http" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_canon_http/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_canon_http" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_canon_http/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_canon_http?label=swarmauri_canon_http&color=green" alt="PyPI - swarmauri_canon_http"/></a>
 </p>
-
 ---
 
 `swarmauri_canon_http` is a lightweight canonical HTTP client implementation that tracks a subset of `httpx` behavior for parity checks and incremental feature alignment.

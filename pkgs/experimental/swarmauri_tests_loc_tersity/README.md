@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tests_loc_tersity/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tests_loc_tersity?label=swarmauri_tests_loc_tersity&color=green" alt="PyPI - swarmauri_tests_loc_tersity"/></a>
 </p>
-
 ---
 
 ## Overview

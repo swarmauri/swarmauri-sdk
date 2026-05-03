@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_llm_leptonai/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_leptonai?label=swarmauri_llm_leptonai&color=green" alt="PyPI - swarmauri_llm_leptonai"/></a>
 </p>
-
 ---
 
 # Swarmauri LLM LeptonAI

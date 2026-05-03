@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_toolkit_runtime/">
         <img src="https://img.shields.io/pypi/v/swarmauri_toolkit_runtime?label=swarmauri_toolkit_runtime&color=green" alt="PyPI - swarmauri_toolkit_runtime"/></a>
 </p>
-
 ---
 
 # Swarmauri Toolkit RuntimeToolkit

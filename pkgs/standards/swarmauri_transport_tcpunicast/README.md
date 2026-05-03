@@ -1,23 +1,17 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/swarmauri-transport-tcpunicast/">
-        <img src="https://static.pepy.tech/badge/swarmauri-transport-tcpunicast/month" alt="PyPI - Downloads"/>
-    </a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri_transport_tcpunicast/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri_transport_tcpunicast.svg"/>
-    </a>
-    <a href="https://pypi.org/project/swarmauri-transport-tcpunicast/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri-transport-tcpunicast" alt="PyPI - Python Version"/>
-    </a>
-    <a href="https://pypi.org/project/swarmauri-transport-tcpunicast/">
-        <img src="https://img.shields.io/pypi/l/swarmauri-transport-tcpunicast" alt="PyPI - License"/>
-    </a>
-    <a href="https://pypi.org/project/swarmauri-transport-tcpunicast/">
-        <img src="https://img.shields.io/pypi/v/swarmauri-transport-tcpunicast?label=swarmauri-transport-tcpunicast&color=green" alt="PyPI - swarmauri-transport-tcpunicast"/>
-    </a>
+    <a href="https://pepy.tech/project/swarmauri_transport_tcpunicast/">
+        <img src="https://static.pepy.tech/badge/swarmauri_transport_tcpunicast/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_tcpunicast/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_tcpunicast.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_tcpunicast/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_transport_tcpunicast" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_tcpunicast/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_transport_tcpunicast" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_tcpunicast/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_transport_tcpunicast?label=swarmauri_transport_tcpunicast&color=green" alt="PyPI - swarmauri_transport_tcpunicast"/></a>
 </p>
-
 ---
 
 # Swarmauri Transport â€“ TCP Unicast

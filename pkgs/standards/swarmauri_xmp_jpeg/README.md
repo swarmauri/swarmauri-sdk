@@ -1,6 +1,5 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
-
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_xmp_jpeg/">
         <img src="https://static.pepy.tech/badge/swarmauri_xmp_jpeg/month" alt="PyPI - Downloads"/></a>
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_xmp_jpeg/">
         <img src="https://img.shields.io/pypi/v/swarmauri_xmp_jpeg?label=swarmauri_xmp_jpeg&color=green" alt="PyPI - swarmauri_xmp_jpeg"/></a>
 </p>
-
 ---
 
 # swarmauri_xmp_jpeg

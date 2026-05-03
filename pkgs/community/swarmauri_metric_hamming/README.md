@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_metric_hamming/">
         <img src="https://img.shields.io/pypi/v/swarmauri_metric_hamming?label=swarmauri_metric_hamming&color=green" alt="PyPI - swarmauri_metric_hamming"/></a>
 </p>
-
 ---
 
 # Swarmauri Metric Hamming

@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_vectorstore_persistentchromadb/">
         <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_persistentchromadb?label=swarmauri_vectorstore_persistentchromadb&color=green" alt="PyPI - swarmauri_vectorstore_persistentchromadb"/></a>
 </p>
-
 ---
 
 # Swarmauri Vectorstore Persistentchromadb

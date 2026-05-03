@@ -11,9 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_storage_github_release" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_github_release/">
         <img src="https://img.shields.io/pypi/v/swarmauri_storage_github_release?label=swarmauri_storage_github_release&color=green" alt="PyPI - swarmauri_storage_github_release"/></a>
-
 </p>
-
 ---
 
 # Swarmauri GitHub Release Storage Adapter

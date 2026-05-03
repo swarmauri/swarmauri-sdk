@@ -2,22 +2,16 @@
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_crypto_sodium/">
-        <img src="https://static.pepy.tech/badge/swarmauri_crypto_sodium/month" alt="PyPI - Downloads"/>
-    </a>
+        <img src="https://static.pepy.tech/badge/swarmauri_crypto_sodium/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_crypto_sodium/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_crypto_sodium.svg"/>
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_crypto_sodium.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_sodium/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_crypto_sodium" alt="PyPI - Python Version"/>
-    </a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_crypto_sodium" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_sodium/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_crypto_sodium" alt="PyPI - License"/>
-    </a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_crypto_sodium" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_sodium/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_crypto_sodium?label=swarmauri_crypto_sodium&color=green" alt="PyPI - swarmauri_crypto_sodium"/>
-    </a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_crypto_sodium?label=swarmauri_crypto_sodium&color=green" alt="PyPI - swarmauri_crypto_sodium"/></a>
 </p>
-
 ---
 
 # Swarmauri Crypto Sodium

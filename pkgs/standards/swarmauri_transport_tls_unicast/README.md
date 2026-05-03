@@ -1,40 +1,19 @@
-# Swarmauri TLS Unicast Transport
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
-![Transport Icon](https://img.shields.io/badge/transport-tls_unicast-4B8BF4.svg)
-![Security](https://img.shields.io/badge/security-TLS%2Fmtls-2ECC71.svg)
-![Lifecycle](https://img.shields.io/badge/lifecycle-async%20contexts-1E90FF.svg)
+<p align="center">
+    <a href="https://pepy.tech/project/swarmauri_transport_tls_unicast/">
+        <img src="https://static.pepy.tech/badge/swarmauri_transport_tls_unicast/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_tls_unicast/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_tls_unicast.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_tls_unicast/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_transport_tls_unicast" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_tls_unicast/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_transport_tls_unicast" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_transport_tls_unicast/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_transport_tls_unicast?label=swarmauri_transport_tls_unicast&color=green" alt="PyPI - swarmauri_transport_tls_unicast"/></a>
+</p>
+---
 
-The **Swarmauri TLS Unicast Transport** brings encrypted, authenticated
-connections to the unified transport lifecycle. It wraps asyncio's TLS streams
-with the `.server(...)` / `.client(...)` contexts so you can safely manage
-secure sockets directly from the transport.
-
-## Installation
-
-### Using `uv`
-
-```bash
-uv add --directory pkgs/standards/swarmauri_transport_tls_unicast swarmauri_transport_tls_unicast
-```
-
-### Using `pip`
-
-```bash
-pip install swarmauri_transport_tls_unicast
-```
-
-## Usage
-
-The snippet below demonstrates creating a mutually-authenticated TLS echo
-server and client.
-
-```python
-import asyncio
-import ssl
-from swarmauri_transport_tls_unicast import TlsUnicastTransport
-
-srv_ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-srv_ctx.load_cert_chain("srv.pem", "srv.key")
 # srv_ctx.verify_mode = ssl.CERT_REQUIRED
 # srv_ctx.load_verify_locations("ca.pem")
 

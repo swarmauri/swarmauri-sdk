@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_lexicaldensity/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_lexicaldensity?label=swarmauri_tool_lexicaldensity&color=green" alt="PyPI - swarmauri_tool_lexicaldensity"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool Â· Lexical Density

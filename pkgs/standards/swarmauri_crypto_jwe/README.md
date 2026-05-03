@@ -1,13 +1,17 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/swarmauri_crypto_jwe/"><img src="https://static.pepy.tech/badge/swarmauri_crypto_jwe/month" alt="PyPI - Downloads"/></a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_crypto_jwe/"><img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_crypto_jwe.svg"/></a>
-    <a href="https://pypi.org/project/swarmauri_crypto_jwe/"><img src="https://img.shields.io/pypi/pyversions/swarmauri_crypto_jwe" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri_crypto_jwe/"><img src="https://img.shields.io/pypi/l/swarmauri_crypto_jwe" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/swarmauri_crypto_jwe/"><img src="https://img.shields.io/pypi/v/swarmauri_crypto_jwe?label=swarmauri_crypto_jwe&color=green" alt="PyPI - swarmauri_crypto_jwe"/></a>
+    <a href="https://pepy.tech/project/swarmauri_crypto_jwe/">
+        <img src="https://static.pepy.tech/badge/swarmauri_crypto_jwe/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_crypto_jwe/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_crypto_jwe.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_crypto_jwe/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_crypto_jwe" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_crypto_jwe/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_crypto_jwe" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_crypto_jwe/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_crypto_jwe?label=swarmauri_crypto_jwe&color=green" alt="PyPI - swarmauri_crypto_jwe"/></a>
 </p>
-
 ---
 
 ## Swarmauri Crypto JWE

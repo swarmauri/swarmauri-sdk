@@ -1,4 +1,4 @@
-# IndexBuilder
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/IndexBuilder/">
@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/IndexBuilder/">
         <img src="https://img.shields.io/pypi/v/IndexBuilder?label=IndexBuilder&color=green" alt="PyPI - IndexBuilder"/></a>
 </p>
-
 ---
 
 

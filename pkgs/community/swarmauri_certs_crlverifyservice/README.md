@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_certs_crlverifyservice/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_crlverifyservice?label=swarmauri_certs_crlverifyservice&color=green" alt="PyPI - swarmauri_certs_crlverifyservice"/></a>
 </p>
-
 ---
 
 # swarmauri_certs_crlverifyservice

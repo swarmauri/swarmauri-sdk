@@ -1,22 +1,17 @@
-<p align="center">
-    <img src="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg" alt="Swarmauri Signing PDF" width="320" />
-</p>
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_signing_pdf/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_signing_pdf?label=swarmauri_signing_pdf&color=f97316" alt="PyPI Version" />
-    </a>
-    <a href="https://pypi.org/project/swarmauri_signing_pdf/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_signing_pdf" alt="Python Versions" />
-    </a>
-    <a href="https://pypi.org/project/swarmauri_signing_pdf/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_signing_pdf" alt="License" />
-    </a>
+    <a href="https://pepy.tech/project/swarmauri_signing_pdf/">
+        <img src="https://static.pepy.tech/badge/swarmauri_signing_pdf/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_pdf/">
-        <img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_pdf.svg" alt="Repo views" />
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_pdf.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_signing_pdf/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_signing_pdf" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_signing_pdf/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_signing_pdf" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_signing_pdf/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_signing_pdf?label=swarmauri_signing_pdf&color=green" alt="PyPI - swarmauri_signing_pdf"/></a>
 </p>
-
 ---
 
 # Swarmauri Signing PDF

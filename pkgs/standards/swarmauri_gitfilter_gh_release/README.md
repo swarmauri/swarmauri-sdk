@@ -2,22 +2,16 @@
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_gitfilter_gh_release/">
-        <img src="https://static.pepy.tech/badge/swarmauri_gitfilter_gh_release/month" alt="PyPI - Downloads"/>
-    </a>
+        <img src="https://static.pepy.tech/badge/swarmauri_gitfilter_gh_release/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_gitfilter_gh_release/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_gitfilter_gh_release.svg"/>
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_gitfilter_gh_release.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_gitfilter_gh_release/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_gitfilter_gh_release" alt="PyPI - Python Version"/>
-    </a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_gitfilter_gh_release" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_gitfilter_gh_release/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_gitfilter_gh_release" alt="PyPI - License"/>
-    </a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_gitfilter_gh_release" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_gitfilter_gh_release/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_gitfilter_gh_release?label=swarmauri_gitfilter_gh_release&color=green" alt="PyPI - swarmauri_gitfilter_gh_release"/>
-    </a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_gitfilter_gh_release?label=swarmauri_gitfilter_gh_release&color=green" alt="PyPI - swarmauri_gitfilter_gh_release"/></a>
 </p>
-
 ---
 
 # Swarmauri Git Filter GitHub Release

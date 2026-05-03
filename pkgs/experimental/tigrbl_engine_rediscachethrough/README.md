@@ -1,28 +1,19 @@
-# tigrbl_engine_rediscachethrough
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
 
-A Redis/Postgres **cache-through** engine plugin for **tigrbl**.
+<p align="center">
+    <a href="https://pepy.tech/project/tigrbl_engine_rediscachethrough/">
+        <img src="https://static.pepy.tech/badge/tigrbl_engine_rediscachethrough/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_rediscachethrough/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_rediscachethrough.svg"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_rediscachethrough/">
+        <img src="https://img.shields.io/pypi/pyversions/tigrbl_engine_rediscachethrough" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_rediscachethrough/">
+        <img src="https://img.shields.io/pypi/l/tigrbl_engine_rediscachethrough" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_rediscachethrough/">
+        <img src="https://img.shields.io/pypi/v/tigrbl_engine_rediscachethrough?label=tigrbl_engine_rediscachethrough&color=green" alt="PyPI - tigrbl_engine_rediscachethrough"/></a>
+</p>
+---
 
-- Uses Postgres (via tigrbl's built-in SQLAlchemy builders) for persistence.
-- Uses Redis for read-through/write-through caching of simple lookups.
-- Auto-discovers via entry point group `tigrbl.engine`.
-
-## Install
-
-```bash
-pip install -e .
-```
-
-## Usage
-
-```python
-from tigrbl.engine import EngineSpec
-
-spec = EngineSpec(kind="rediscachethrough", url="postgresql://user:pwd@host:5432/db",
-                  extras={"redis_url": "redis://localhost:6379/0", "cache_ttl_sec": 60})
-provider = spec.to_provider()
-engine_handles, session_factory = provider.build()
-
-sess = session_factory()  # CacheThroughSession (subclass of TigrblSessionBase)
 # e.g., await sess.execute(text("SELECT 1"))
 ```
 

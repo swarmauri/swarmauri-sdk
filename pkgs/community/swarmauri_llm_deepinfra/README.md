@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_llm_deepinfra/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_deepinfra?label=swarmauri_llm_deepinfra&color=green" alt="PyPI - swarmauri_llm_deepinfra"/></a>
 </p>
-
 ---
 
 # swarmauri_llm_deepinfra

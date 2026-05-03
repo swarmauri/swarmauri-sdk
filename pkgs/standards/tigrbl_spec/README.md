@@ -1,4 +1,4 @@
-![Tigrbl Branding](https://github.com/swarmauri/swarmauri-sdk/blob/a170683ecda8ca1c4f912c966d4499649ffb8224/assets/tigrbl.brand.theme.svg)
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/tigrbl_spec/">
@@ -12,8 +12,9 @@
     <a href="https://pypi.org/project/tigrbl_spec/">
         <img src="https://img.shields.io/pypi/v/tigrbl_spec?label=tigrbl_spec&color=green" alt="PyPI - tigrbl_spec"/></a>
 </p>
+---
 
-## Features
+# Features
 
 - Provides a planning-stage home for Tigrbl shared specifications.
 - Captures protocol and interface intent for future package consumers.

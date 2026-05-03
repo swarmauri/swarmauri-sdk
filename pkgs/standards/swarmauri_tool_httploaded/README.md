@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_httploaded/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_httploaded?label=swarmauri_tool_httploaded&color=green" alt="PyPI - swarmauri_tool_httploaded"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool HTTPLoaded

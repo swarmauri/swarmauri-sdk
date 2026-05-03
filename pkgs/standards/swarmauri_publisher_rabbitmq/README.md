@@ -11,9 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_publisher_rabbitmq" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_publisher_rabbitmq/">
         <img src="https://img.shields.io/pypi/v/swarmauri_publisher_rabbitmq?label=swarmauri_publisher_rabbitmq&color=green" alt="PyPI - swarmauri_publisher_rabbitmq"/></a>
-
 </p>
-
 ---
 
 # Swarmauri RabbitMQ Publisher

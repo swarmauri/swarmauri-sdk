@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_containerfeedchars/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_containerfeedchars?label=swarmauri_tool_containerfeedchars&color=green" alt="PyPI - swarmauri_tool_containerfeedchars"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool ContainerFeedChars

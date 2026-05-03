@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_cipher_suite_fips205/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_fips205?label=swarmauri_cipher_suite_fips205&color=green" alt="PyPI - swarmauri_cipher_suite_fips205"/></a>
 </p>
-
 ---
 
 # Swarmauri Cipher Suite FIPS 205

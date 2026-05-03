@@ -1,3 +1,19 @@
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
+
+<p align="center">
+    <a href="https://pepy.tech/project/tigrbl_engine_redis/">
+        <img src="https://static.pepy.tech/badge/tigrbl_engine_redis/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_redis/tigrbl_engine_redis/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_redis/tigrbl_engine_redis.svg"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_redis/">
+        <img src="https://img.shields.io/pypi/pyversions/tigrbl_engine_redis" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_redis/">
+        <img src="https://img.shields.io/pypi/l/tigrbl_engine_redis" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_redis/">
+        <img src="https://img.shields.io/pypi/v/tigrbl_engine_redis?label=tigrbl_engine_redis&color=green" alt="PyPI - tigrbl_engine_redis"/></a>
+</p>
+---
+
 # tigrbl_engine_redis
 
 A Redis engine plugin for **tigrbl**. This package registers a new engine kind

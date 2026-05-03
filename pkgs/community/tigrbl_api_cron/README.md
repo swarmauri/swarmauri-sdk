@@ -1,4 +1,4 @@
-![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl_full_logo.png)
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/tigrbl_api_cron/">
@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/tigrbl_api_cron/">
         <img src="https://img.shields.io/pypi/v/tigrbl_api_cron?label=tigrbl_api_cron&color=green" alt="PyPI - tigrbl_api_cron"/></a>
 </p>
-
 ---
 
 # Tigrbl API Cron ⏰

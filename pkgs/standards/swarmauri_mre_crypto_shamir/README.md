@@ -11,9 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_mre_crypto_shamir" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_mre_crypto_shamir/">
         <img src="https://img.shields.io/pypi/v/swarmauri_mre_crypto_shamir?label=swarmauri_mre_crypto_shamir&color=green" alt="PyPI - swarmauri_mre_crypto_shamir"/></a>
-
 </p>
-
 ---
 
 # swarmauri_mre_crypto_shamir

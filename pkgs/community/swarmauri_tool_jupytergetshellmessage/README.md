@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_jupytergetshellmessage/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupytergetshellmessage?label=swarmauri_tool_jupytergetshellmessage&color=green" alt="PyPI - swarmauri_tool_jupytergetshellmessage"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool Jupyter Get Shell Message

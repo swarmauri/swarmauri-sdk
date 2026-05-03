@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_llm_cerebras/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_cerebras?label=swarmauri_llm_cerebras&color=green" alt="PyPI - swarmauri_llm_cerebras"/></a>
 </p>
-
 ---
 
 # swarmauri_llm_cerebras

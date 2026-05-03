@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_jupyterexportmarkdown/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterexportmarkdown?label=swarmauri_tool_jupyterexportmarkdown&color=green" alt="PyPI - swarmauri_tool_jupyterexportmarkdown"/></a>
 </p>
-
 ---
 
 # Swarmauri Tool Jupyter Export Markdown

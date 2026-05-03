@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_cipher_suite_sigstore/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_sigstore?label=swarmauri_cipher_suite_sigstore&color=green" alt="PyPI - swarmauri_cipher_suite_sigstore"/></a>
 </p>
-
 ---
 
 # Swarmauri Cipher Sigstore

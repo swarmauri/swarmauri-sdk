@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_cipher_suite_xades/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_xades?label=swarmauri_cipher_suite_xades&color=green" alt="PyPI - swarmauri_cipher_suite_xades"/></a>
 </p>
-
 ---
 
 # Swarmauri Cipher Xades

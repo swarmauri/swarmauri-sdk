@@ -1,6 +1,10 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
+    <a href="https://pepy.tech/project/swarmauri_vectorstore_fs/">
+        <img src="https://static.pepy.tech/badge/swarmauri_vectorstore_fs/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_fs/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_fs.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_fs/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_vectorstore_fs" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_fs/">
@@ -8,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_vectorstore_fs/">
         <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_fs?label=swarmauri_vectorstore_fs&color=green" alt="PyPI - swarmauri_vectorstore_fs"/></a>
 </p>
-
 ---
 
 # Swarmauri Vectorstore FS

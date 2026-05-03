@@ -1,20 +1,17 @@
-![Swarmauri Brand Theme](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
+    <a href="https://pepy.tech/project/swarmauri_signing_pep458/">
+        <img src="https://static.pepy.tech/badge/swarmauri_signing_pep458/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_pep458/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_pep458.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_pep458/">
-        <img src="https://img.shields.io/badge/status-planning-blueviolet" alt="Development status" />
-    </a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_signing_pep458" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_pep458/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_signing_pep458.svg" alt="Python versions" />
-    </a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_signing_pep458" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_pep458/">
-        <img src="https://img.shields.io/badge/signature-format-tuf%2Fpep458-brightgreen" alt="Signature format" />
-    </a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_signing_pep458">
-        <img src="https://img.shields.io/badge/cryptography-backed-FFD700" alt="cryptography dependency" />
-    </a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_signing_pep458?label=swarmauri_signing_pep458&color=green" alt="PyPI - swarmauri_signing_pep458"/></a>
 </p>
-
 ---
 
 # swarmauri_signing_pep458

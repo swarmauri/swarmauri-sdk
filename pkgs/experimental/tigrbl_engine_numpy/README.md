@@ -1,22 +1,18 @@
-![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl_full_logo.png)
+![Tigrbl Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/tigrbl.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pypi.org/project/tigrbl_engine_numpy/">
-        <img src="https://img.shields.io/pypi/v/tigrbl_engine_numpy?label=tigrbl_engine_numpy&color=green" alt="PyPI - tigrbl_engine_numpy"/>
-    </a>
     <a href="https://pepy.tech/project/tigrbl_engine_numpy/">
-        <img src="https://static.pepy.tech/badge/tigrbl_engine_numpy/month" alt="PyPI - Downloads"/>
-    </a>
-    <a href="https://pypi.org/project/tigrbl_engine_numpy/">
-        <img src="https://img.shields.io/pypi/pyversions/tigrbl_engine_numpy" alt="PyPI - Python Version"/>
-    </a>
-    <a href="https://pypi.org/project/tigrbl_engine_numpy/">
-        <img src="https://img.shields.io/pypi/l/tigrbl_engine_numpy" alt="PyPI - License"/>
-    </a>
+        <img src="https://static.pepy.tech/badge/tigrbl_engine_numpy/month" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_numpy/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_numpy.svg"/>
-    </a>
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_numpy.svg"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_numpy/">
+        <img src="https://img.shields.io/pypi/pyversions/tigrbl_engine_numpy" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_numpy/">
+        <img src="https://img.shields.io/pypi/l/tigrbl_engine_numpy" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigrbl_engine_numpy/">
+        <img src="https://img.shields.io/pypi/v/tigrbl_engine_numpy?label=tigrbl_engine_numpy&color=green" alt="PyPI - tigrbl_engine_numpy"/></a>
 </p>
+---
 
 # tigrbl_engine_numpy
 

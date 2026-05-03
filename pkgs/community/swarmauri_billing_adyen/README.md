@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_billing_adyen/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_adyen?label=swarmauri_billing_adyen&color=green" alt="PyPI - swarmauri_billing_adyen"/></a>
 </p>
-
 ---
 
 # Swarmauri Billing Adyen

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_llm_mistral/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_mistral?label=swarmauri_llm_mistral&color=green" alt="PyPI - swarmauri_llm_mistral"/></a>
 </p>
-
 ---
 
 # swarmauri_llm_mistral

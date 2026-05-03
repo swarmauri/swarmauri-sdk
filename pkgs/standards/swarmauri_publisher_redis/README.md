@@ -11,9 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_publisher_redis" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_publisher_redis/">
         <img src="https://img.shields.io/pypi/v/swarmauri_publisher_redis?label=swarmauri_publisher_redis&color=green" alt="PyPI - swarmauri_publisher_redis"/></a>
-
 </p>
-
 ---
 
 # Swarmauri Redis Publisher

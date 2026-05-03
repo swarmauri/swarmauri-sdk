@@ -1,17 +1,17 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg" alt="Swarmauri logotype" width="420" />
-</p>
-
-<h1 align="center">EmbedXMP</h1>
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-  <a href="https://pepy.tech/project/EmbedXMP/"><img src="https://static.pepy.tech/badge/EmbedXMP/month" alt="PyPI - Downloads" /></a>
-  <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/EmbedXMP/"><img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/EmbedXMP.svg?style=for-the-badge" alt="Repository views" /></a>
-  <a href="https://pypi.org/project/EmbedXMP/"><img src="https://img.shields.io/pypi/pyversions/EmbedXMP?style=for-the-badge" alt="Supported Python versions" /></a>
-  <a href="https://pypi.org/project/EmbedXMP/"><img src="https://img.shields.io/pypi/l/EmbedXMP?style=for-the-badge" alt="License" /></a>
-  <a href="https://pypi.org/project/EmbedXMP/"><img src="https://img.shields.io/pypi/v/EmbedXMP?style=for-the-badge&label=EmbedXMP" alt="Latest release" /></a>
+    <a href="https://pepy.tech/project/EmbedXMP/">
+        <img src="https://static.pepy.tech/badge/EmbedXMP/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/EmbedXMP/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/EmbedXMP.svg"/></a>
+    <a href="https://pypi.org/project/EmbedXMP/">
+        <img src="https://img.shields.io/pypi/pyversions/EmbedXMP" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/EmbedXMP/">
+        <img src="https://img.shields.io/pypi/l/EmbedXMP" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/EmbedXMP/">
+        <img src="https://img.shields.io/pypi/v/EmbedXMP?label=EmbedXMP&color=green" alt="PyPI - EmbedXMP"/></a>
 </p>
-
 ---
 
 EmbedXMP collects every installed `EmbedXmpBase` implementation, discovers them via Swarmauri's dynamic registry, and exposes a unified manager that can embed, read, or remove XMP packets without worrying about container formats.
@@ -88,8 +88,8 @@ asyncio.run(embed_all(["one.png", "two.svg"], "<x:xmpmeta>...</x:xmpmeta>"))
 
 ## Project Resources
 
-- Source: <https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/EmbedXMP>
-- Documentation: <https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/EmbedXMP#readme>
+- Source: <https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/EmbedXMP>
+- Documentation: <https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/EmbedXMP#readme>
 - Issues: <https://github.com/swarmauri/swarmauri-sdk/issues>
 - Releases: <https://github.com/swarmauri/swarmauri-sdk/releases>
 - Discussions: <https://github.com/orgs/swarmauri/discussions>

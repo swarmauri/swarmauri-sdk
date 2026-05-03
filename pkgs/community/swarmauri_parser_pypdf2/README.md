@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_parser_pypdf2/">
         <img src="https://img.shields.io/pypi/v/swarmauri_parser_pypdf2?label=swarmauri_parser_pypdf2&color=green" alt="PyPI - swarmauri_parser_pypdf2"/></a>
 </p>
-
 ---
 
 # Swarmauri Parser PyPDF2

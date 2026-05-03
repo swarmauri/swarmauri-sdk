@@ -3,6 +3,8 @@
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_evaluator_abstractmethods/">
         <img src="https://static.pepy.tech/badge/swarmauri_evaluator_abstractmethods/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_evaluator_abstractmethods/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_evaluator_abstractmethods.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_evaluator_abstractmethods/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_evaluator_abstractmethods" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_evaluator_abstractmethods/">
@@ -10,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_evaluator_abstractmethods/">
         <img src="https://img.shields.io/pypi/v/swarmauri_evaluator_abstractmethods?label=swarmauri_evaluator_abstractmethods&color=green" alt="PyPI - swarmauri_evaluator_abstractmethods"/></a>
 </p>
-
 ---
 
 # Swarmauri Evaluator Abstractmethods

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_cipher_suite_yubikey/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_yubikey?label=swarmauri_cipher_suite_yubikey&color=green" alt="PyPI - swarmauri_cipher_suite_yubikey"/></a>
 </p>
-
 ---
 
 # Swarmauri Cipher Suites YubiKey

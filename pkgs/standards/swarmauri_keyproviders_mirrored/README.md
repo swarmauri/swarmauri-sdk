@@ -1,6 +1,5 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
-
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_keyproviders_mirrored/">
         <img src="https://static.pepy.tech/badge/swarmauri_keyproviders_mirrored/month" alt="PyPI - Downloads"/></a>
@@ -13,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_keyproviders_mirrored/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyproviders_mirrored?label=swarmauri_keyproviders_mirrored&color=green" alt="PyPI - swarmauri_keyproviders_mirrored"/></a>
 </p>
-
 ---
 
 # Swarmauri Mirrored Key Provider

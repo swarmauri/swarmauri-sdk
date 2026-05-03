@@ -11,9 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_aws_kms" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_aws_kms/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_aws_kms?label=swarmauri_keyprovider_aws_kms&color=green" alt="PyPI - swarmauri_keyprovider_aws_kms"/></a>
-
 </p>
-
 ---
 
 # Swarmauri AWS KMS Key Provider
