@@ -34,5 +34,5 @@ class InspectRuntimeTool(ToolBase):
         return {
             "tool_name": tool_name,
             "tool_type": tool.type,
-            "tool": tool.model_dump(exclude_none=True),
+            "tool": tool.model_dump(exclude_none=True, by_alias=True),
         }

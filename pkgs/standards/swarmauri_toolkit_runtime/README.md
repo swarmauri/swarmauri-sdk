@@ -15,13 +15,14 @@
 
 # Swarmauri Toolkit RuntimeToolkit
 
-`RuntimeToolkit` is a Swarmauri runtime-management toolkit for agents that need to register, inspect, list, replace, and remove tools during execution. It keeps tool mutation inside the active toolkit instance and requires explicit parameter declarations when a new runtime tool is introduced.
+`RuntimeToolkit` is a Swarmauri runtime-management toolkit for agents that need to register, inspect, list, replace, and remove tools during execution. It keeps tool mutation inside the active toolkit instance and requires both explicit parameter declarations and an explicit `__call__` implementation when a new runtime tool is introduced.
 
 ## Features
 
 - Bundles agent-callable CRUD operations for toolkit members.
-- Accepts serialized tool specs with `type` fields and materializes installed Swarmauri tools at runtime.
-- Enforces a non-empty declared `parameters` list for runtime tool registration and replacement.
+- Accepts serialized runtime tool specs with `type`, `parameters`, and `__call__` fields.
+- Enforces a non-empty declared `parameters` list and a non-empty `__call__` body for runtime tool registration and replacement.
+- Evaluates runtime `__call__` bodies through a restricted expression rail rather than unrestricted Python execution.
 - Returns agent-friendly dictionaries for reads, lists, and mutation results.
 - Protects the toolkit's own management tools from accidental overwrite or removal.
 - Supports Python 3.10 through 3.12.
@@ -51,7 +52,7 @@ pip install swarmauri_toolkit_runtime
 Use `RuntimeToolkit` when an agent needs to mutate its own tool surface safely at runtime. The expected workflow is:
 
 1. Start with the management toolkit.
-2. Register a runtime tool using an explicit parameter contract.
+2. Register a runtime tool using an explicit parameter contract and explicit callable body.
 3. Inspect or list the available runtime tools.
 4. Execute the registered tool.
 5. Replace or unregister the tool when the runtime surface changes.
@@ -65,7 +66,7 @@ toolkit = RuntimeToolkit()
 
 toolkit.get_tool_by_name("RegisterRuntimeTool")(
     {
-        "type": "AdditionTool",
+        "type": "RuntimeAdditionTool",
         "name": "RuntimeAdditionTool",
         "description": "Adds two integers during the active agent session.",
         "parameters": [
@@ -82,6 +83,7 @@ toolkit.get_tool_by_name("RegisterRuntimeTool")(
                 "required": True,
             },
         ],
+        "__call__": '{"sum": str(x + y)}',
     }
 )
 
@@ -101,14 +103,15 @@ print(result)
 
 Mutation tools accept a serialized tool specification. At minimum, provide:
 
-- a `type` field that resolves to an installed Swarmauri tool import such as `swarmauri.tools.AdditionTool`
+- a non-empty `type` field that names the runtime tool surface
 - a non-empty `parameters` list that explicitly declares the runtime callable contract
+- a non-empty `__call__` string that evaluates as a safe Python expression over the declared parameters and approved builtins
 
-Resolution prefers the `swarmauri` facade when present and falls back to `swarmauri_standard.tools.<ToolName>` for isolated package installs.
+The runtime evaluator permits only a constrained expression subset and approved builtins such as `str`, `int`, `float`, `len`, `sum`, `min`, `max`, and `abs`. Imports, attribute traversal, and arbitrary function calls are rejected.
 
 ```python
 {
-    "type": "AdditionTool",
+    "type": "RuntimeAdditionTool",
     "name": "RuntimeAdditionTool",
     "description": "Adds two integers.",
     "parameters": [
@@ -125,15 +128,19 @@ Resolution prefers the `swarmauri` facade when present and falls back to `swarma
             "required": True,
         },
     ],
+    "__call__": '{"sum": str(x + y)}',
 }
 ```
 
-If the target tool defines extra fields, include them in the spec and the toolkit will validate them against the concrete tool class.
+The `__call__` value is evaluated against the declared parameter names. A body such as `{"sum": str(x + y)}` is valid. A body that tries to import modules, access attributes, or reference undeclared names is rejected.
 
 ## Failure Modes
 
 - Registration fails when the tool spec omits `parameters`.
+- Registration fails when the tool spec omits `__call__`.
+- Registration fails when the `__call__` body uses unsafe syntax or disallowed names.
 - Registration fails when the tool name collides with a protected management tool.
+- Execution failures inside an accepted runtime tool return a structured error payload instead of propagating a hard exception or terminating the host process.
 - Replacement fails when the target tool is missing, reserved, or renamed to an existing tool.
 - Unregistration fails when the target is reserved or absent.
 

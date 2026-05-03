@@ -27,7 +27,7 @@ class RegisterRuntimeTool(ToolBase):
             Parameter(
                 name="tool_spec",
                 input_type="object",
-                description="Serialized tool payload with at least a 'type' field.",
+                description="Serialized tool payload with 'type', 'parameters', and '__call__' fields.",
                 required=True,
             )
         ]
@@ -48,6 +48,6 @@ class RegisterRuntimeTool(ToolBase):
             "status": "created",
             "tool_name": tool.name,
             "tool_type": tool.type,
-            "tool": tool.model_dump(exclude_none=True),
+            "tool": tool.model_dump(exclude_none=True, by_alias=True),
             "tool_count": len(self.toolkit),
         }

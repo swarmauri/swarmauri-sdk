@@ -21,7 +21,7 @@ class ListRuntimeTools(ToolBase):
             raise ValueError("toolkit is not configured")
 
         tools = {
-            name: tool.model_dump(exclude_none=True)
+            name: tool.model_dump(exclude_none=True, by_alias=True)
             for name, tool in self.toolkit.tools.items()
         }
         return {

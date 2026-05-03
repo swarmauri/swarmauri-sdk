@@ -1,27 +1,17 @@
-from importlib import import_module
 from typing import Any, Mapping
 
 from swarmauri_base.tools.ToolBase import ToolBase
+from swarmauri_standard.tools.Parameter import Parameter
 
-
-def _resolve_tool_module(tool_type: str):
-    module_names = [
-        f"swarmauri.tools.{tool_type}",
-        f"swarmauri_standard.tools.{tool_type}",
-    ]
-    last_error: ModuleNotFoundError | None = None
-    for module_name in module_names:
-        try:
-            return import_module(module_name)
-        except ModuleNotFoundError as exc:
-            last_error = exc
-    raise ValueError(f"Unable to resolve tool type '{tool_type}'") from last_error
+from .DynamicRuntimeTool import DynamicRuntimeTool
 
 
 def build_tool_from_spec(tool_spec: Mapping[str, Any] | ToolBase) -> ToolBase:
     if isinstance(tool_spec, ToolBase):
         if not tool_spec.parameters:
             raise ValueError("Runtime tool registration requires declared parameters")
+        if not callable(getattr(tool_spec, "__call__", None)):
+            raise ValueError("Runtime tool registration requires a callable '__call__'")
         return tool_spec
     if not isinstance(tool_spec, Mapping):
         raise TypeError("tool_spec must be a mapping or ToolBase instance")
@@ -35,15 +25,16 @@ def build_tool_from_spec(tool_spec: Mapping[str, Any] | ToolBase) -> ToolBase:
         raise ValueError(
             "Runtime tool registration requires a non-empty 'parameters' list"
         )
-
-    module = _resolve_tool_module(tool_type)
-
-    tool_cls = getattr(module, tool_type, None)
-    if tool_cls is None:
+    call_source = tool_data.get("__call__")
+    if not isinstance(call_source, str) or not call_source.strip():
         raise ValueError(
-            f"Module for tool type '{tool_type}' does not expose that class"
+            "Runtime tool registration requires a non-empty '__call__' string"
         )
-    if not issubclass(tool_cls, ToolBase):
-        raise TypeError(f"Resolved class '{tool_type}' is not a ToolBase subtype")
 
-    return tool_cls.model_validate(tool_data)
+    tool_data["parameters"] = [
+        parameter
+        if isinstance(parameter, Parameter)
+        else Parameter.model_validate(parameter)
+        for parameter in declared_parameters
+    ]
+    return DynamicRuntimeTool.model_validate(tool_data).validate_call_source()

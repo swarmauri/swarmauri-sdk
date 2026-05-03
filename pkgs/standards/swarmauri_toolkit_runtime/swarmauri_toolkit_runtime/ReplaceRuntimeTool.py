@@ -31,7 +31,7 @@ class ReplaceRuntimeTool(ToolBase):
             Parameter(
                 name="tool_spec",
                 input_type="object",
-                description="Serialized replacement tool payload with at least a 'type' field.",
+                description="Serialized replacement tool payload with 'type', 'parameters', and '__call__' fields.",
                 required=True,
             ),
         ]
@@ -63,6 +63,6 @@ class ReplaceRuntimeTool(ToolBase):
             "previous_tool_name": tool_name,
             "tool_name": replacement.name,
             "tool_type": replacement.type,
-            "tool": replacement.model_dump(exclude_none=True),
+            "tool": replacement.model_dump(exclude_none=True, by_alias=True),
             "tool_count": len(self.toolkit),
         }
