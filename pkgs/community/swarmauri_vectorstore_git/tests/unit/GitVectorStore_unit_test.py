@@ -53,7 +53,9 @@ def sample_repo(tmp_path: Path) -> Path:
 
 @pytest.mark.unit
 def test_head_scope_indexes_only_head_history(sample_repo: Path):
-    store = GitVectorStore(repo_path=sample_repo.as_posix(), scope="head", document_kinds=("commit",))
+    store = GitVectorStore(
+        repo_path=sample_repo.as_posix(), scope="head", document_kinds=("commit",)
+    )
     store.build_index()
     subjects = {document.metadata["subject"] for document in store.documents}
 

@@ -102,9 +102,9 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
         query_vector = self._embedder.transform([query])[0]
         document_vectors = [document.embedding for document in self.documents]
         distances = self._distance.distances(query_vector, document_vectors)
-        top_k_indices = sorted(range(len(distances)), key=lambda index: distances[index])[
-            :top_k
-        ]
+        top_k_indices = sorted(
+            range(len(distances)), key=lambda index: distances[index]
+        )[:top_k]
         return [self.documents[index] for index in top_k_indices]
 
     def query(self, text: str, top_k: int = 5) -> List[Document]:
@@ -120,7 +120,9 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
             "document_kinds": list(self.document_kinds),
             "include_diff_stats": self.include_diff_stats,
             "max_commits": self.max_commits,
-            "documents": [document.model_dump(mode="json") for document in self.documents],
+            "documents": [
+                document.model_dump(mode="json") for document in self.documents
+            ],
         }
         (output_dir / "git_vectorstore.json").write_text(
             json.dumps(payload, indent=2), encoding="utf-8"
@@ -136,7 +138,9 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
         self.document_kinds = tuple(payload.get("document_kinds", ["commit", "log"]))
         self.include_diff_stats = payload.get("include_diff_stats", True)
         self.max_commits = payload.get("max_commits")
-        self.documents = [Document.model_validate(document) for document in payload["documents"]]
+        self.documents = [
+            Document.model_validate(document) for document in payload["documents"]
+        ]
         self._document_map = {document.id: document for document in self.documents}
         self._reindex_documents()
 
@@ -145,7 +149,9 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
             self._embedder = TfidfEmbedding()
             return
 
-        vectors = self._embedder.fit_transform([document.content for document in self.documents])
+        vectors = self._embedder.fit_transform(
+            [document.content for document in self.documents]
+        )
         for document, vector in zip(self.documents, vectors):
             document.embedding = vector
 
@@ -154,7 +160,9 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
             raise ValueError("repo_path is required to build the git index")
         repo_path = Path(self.repo_path)
         if not repo_path.exists():
-            raise FileNotFoundError(f"Repository path '{self.repo_path}' does not exist")
+            raise FileNotFoundError(
+                f"Repository path '{self.repo_path}' does not exist"
+            )
         self._run_git("rev-parse", "--git-dir")
 
     def _iter_commit_oids(self) -> Iterable[str]:
@@ -174,7 +182,9 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
         output = self._run_git(*args)
         return [line.strip() for line in output.splitlines() if line.strip()]
 
-    def _collect_commit_metadata(self, oid: str) -> Dict[str, Union[str, List[str], Dict[str, str], None]]:
+    def _collect_commit_metadata(
+        self, oid: str
+    ) -> Dict[str, Union[str, List[str], Dict[str, str], None]]:
         fields = self._run_git(
             "show",
             "--quiet",
@@ -211,14 +221,18 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
             "committed_at": fields[7].strip(),
             "subject": fields[8].strip(),
             "body": fields[9].strip(),
-            "changed_paths": [line.strip() for line in changed_paths.splitlines() if line.strip()],
+            "changed_paths": [
+                line.strip() for line in changed_paths.splitlines() if line.strip()
+            ],
             "stats": stats.strip(),
             "log_text": log_text.strip(),
             "scope": self.scope,
             "ref": self.ref,
         }
 
-    def _build_commit_document(self, metadata: Dict[str, Union[str, List[str], None]]) -> Document:
+    def _build_commit_document(
+        self, metadata: Dict[str, Union[str, List[str], None]]
+    ) -> Document:
         changed_paths = metadata["changed_paths"] or []
         stats = metadata["stats"] or ""
         content_lines = [
@@ -263,7 +277,9 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
             },
         )
 
-    def _build_log_document(self, metadata: Dict[str, Union[str, List[str], None]]) -> Document:
+    def _build_log_document(
+        self, metadata: Dict[str, Union[str, List[str], None]]
+    ) -> Document:
         return Document(
             id=f"{metadata['oid']}:log",
             content=str(metadata["log_text"]).strip(),

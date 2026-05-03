@@ -29,9 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Semantic retrieval over git commits and git log records."
     )
-    parser.add_argument(
-        "--repo-path", default=".", help="Path to the git repository"
-    )
+    parser.add_argument("--repo-path", default=".", help="Path to the git repository")
     parser.add_argument(
         "--ref",
         default="all",
@@ -44,7 +42,9 @@ def build_parser() -> argparse.ArgumentParser:
         dest="document_kinds",
         help="Document kinds to index. Repeat to include both.",
     )
-    parser.add_argument("--max-commits", type=int, help="Cap the number of indexed commits")
+    parser.add_argument(
+        "--max-commits", type=int, help="Cap the number of indexed commits"
+    )
     parser.add_argument(
         "--no-diff-stats",
         action="store_true",
@@ -54,20 +54,28 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    query_parser = subparsers.add_parser("query", help="Query the indexed git documents")
+    query_parser = subparsers.add_parser(
+        "query", help="Query the indexed git documents"
+    )
     query_parser.add_argument("--query", required=True, help="Query text")
-    query_parser.add_argument("--top-k", type=int, default=5, help="Number of hits to return")
+    query_parser.add_argument(
+        "--top-k", type=int, default=5, help="Number of hits to return"
+    )
     query_parser.add_argument("--json", action="store_true", help="Emit JSON output")
 
     show_parser = subparsers.add_parser("show", help="Print a document by id")
-    show_parser.add_argument("--document-id", required=True, help="Document id to display")
+    show_parser.add_argument(
+        "--document-id", required=True, help="Document id to display"
+    )
 
     return parser
 
 
 def build_store(args: argparse.Namespace) -> GitVectorStore:
     document_kinds = tuple(args.document_kinds or ("commit", "log"))
-    scope = "all_refs" if args.ref == "all" else ("head" if args.ref == "HEAD" else "ref")
+    scope = (
+        "all_refs" if args.ref == "all" else ("head" if args.ref == "HEAD" else "ref")
+    )
     ref = None if args.ref in {"all", "HEAD"} else args.ref
     store = GitVectorStore(
         repo_path=args.repo_path,
@@ -87,7 +95,9 @@ def build_store(args: argparse.Namespace) -> GitVectorStore:
     return store
 
 
-def render_query_results(store: GitVectorStore, query: str, top_k: int, as_json: bool) -> int:
+def render_query_results(
+    store: GitVectorStore, query: str, top_k: int, as_json: bool
+) -> int:
     LOGGER.info("Running retrieval for query [bold yellow]%s[/bold yellow]", query)
     results = store.retrieve(query, top_k=top_k)
     if as_json:
