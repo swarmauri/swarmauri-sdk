@@ -2,12 +2,12 @@ import pytest
 
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_toolkit_runtime import RuntimeToolkit
-from swarmauri_toolkit_runtime import DynamicRuntimeTool
 from swarmauri_toolkit_runtime.InspectRuntimeTool import InspectRuntimeTool
 from swarmauri_toolkit_runtime.ListRuntimeTools import ListRuntimeTools
 from swarmauri_toolkit_runtime.RegisterRuntimeTool import RegisterRuntimeTool
 from swarmauri_toolkit_runtime.ReplaceRuntimeTool import ReplaceRuntimeTool
 from swarmauri_toolkit_runtime.UnregisterRuntimeTool import UnregisterRuntimeTool
+from swarmauri_toolkit_runtime._dynamic_runtime_tool import DynamicRuntimeTool
 from swarmauri_toolkit_runtime._tool_factory import build_tool_from_spec
 
 
@@ -68,11 +68,13 @@ def test_runtime_add_get_update_remove_runtime_tool(addition_tool_spec):
     create_result = register_addition_tool(toolkit, addition_tool_spec)
     assert create_result["status"] == "created"
     assert create_result["tool"]["__call__"] == '{"sum": str(x + y)}'
+    assert "runtime_kind" not in create_result["tool"]
 
     get_result = toolkit.get_tool_by_name("InspectRuntimeTool")("RuntimeAdditionTool")
     assert get_result["tool"]["name"] == "RuntimeAdditionTool"
     assert get_result["tool_type"] == "RuntimeAdditionTool"
     assert get_result["tool"]["__call__"] == '{"sum": str(x + y)}'
+    assert "runtime_kind" not in get_result["tool"]
     assert [
         {
             "name": parameter["name"],
@@ -330,6 +332,7 @@ def test_list_runtime_tools_serializes_registered_tool(addition_tool_spec):
     assert "RuntimeAdditionTool" in result["tool_names"]
     assert result["tools"]["RuntimeAdditionTool"]["type"] == "RuntimeAdditionTool"
     assert result["tools"]["RuntimeAdditionTool"]["__call__"] == '{"sum": str(x + y)}'
+    assert "runtime_kind" not in result["tools"]["RuntimeAdditionTool"]
 
 
 @pytest.mark.unit

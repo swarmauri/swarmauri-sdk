@@ -93,7 +93,7 @@ class DynamicRuntimeTool(ToolBase):
 
     version: str = "0.1.0"
     type: str
-    runtime_kind: Literal["dynamic"] = "dynamic"
+    runtime_kind: Literal["dynamic"] = Field(default="dynamic", exclude=True)
     call_source: str = Field(alias="__call__", serialization_alias="__call__")
 
     def validate_call_source(self) -> "DynamicRuntimeTool":

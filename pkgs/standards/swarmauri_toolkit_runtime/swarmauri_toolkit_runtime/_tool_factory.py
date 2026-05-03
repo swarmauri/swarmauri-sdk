@@ -3,7 +3,7 @@ from typing import Any, Mapping
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
-from .DynamicRuntimeTool import DynamicRuntimeTool
+from ._dynamic_runtime_tool import DynamicRuntimeTool
 
 
 def build_tool_from_spec(tool_spec: Mapping[str, Any] | ToolBase) -> ToolBase:
