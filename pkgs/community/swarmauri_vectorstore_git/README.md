@@ -63,10 +63,88 @@ for document in results:
 gitvs query --query "memory leak fix" --top-k 5
 ```
 
+To inspect both document kinds together and return machine-readable output:
+
+```bash
+gitvs --ref HEAD --document-kind commit --document-kind log query --query "mojibake plugin readme" --top-k 2 --json
+```
+
+Actual output captured against the `swarmauri-sdk` repository:
+
+```json
+[
+  {
+    "id": "5fb843d09edc2be4e681d4cff73b11a677439588:commit",
+    "metadata": {
+      "oid": "5fb843d09edc2be4e681d4cff73b11a677439588",
+      "kind": "commit",
+      "scope": "head",
+      "ref": null,
+      "parents": [
+        "0d29234100fd8bff6ace454cb5ede16d43550f20"
+      ],
+      "changed_paths": [
+        "pkgs/plugins/EmbedXMP/README.md",
+        "pkgs/plugins/example_plugin/README.md"
+      ],
+      "subject": "Fix mojibake in plugin README feature bullets",
+      "author": {
+        "name": "cobycloud",
+        "email": "25079070+cobycloud@users.noreply.github.com",
+        "time": "2026-05-03T01:51:22-05:00"
+      },
+      "committer": {
+        "name": "cobycloud",
+        "email": "25079070+cobycloud@users.noreply.github.com",
+        "time": "2026-05-03T01:52:36-05:00"
+      }
+    },
+    "content": "commit 5fb843d09edc2be4e681d4cff73b11a677439588\nscope head\nref HEAD\nsubject Fix mojibake in plugin README feature bullets\nauthor cobycloud <25079070+cobycloud@users.noreply.github.com>\ncommitter cobycloud <25079070+cobycloud@users.noreply.github.com>\nauthored_at 2026-05-03T01:51:22-05:00\ncommitted_at 2026-05-03T01:52:36-05:00\nparents 0d29234100fd8bff6ace454cb5ede16d43550f20\n\nmessage\nFix mojibake in plugin README feature bullets\n\nchanged_paths\npkgs/plugins/EmbedXMP/README.md\npkgs/plugins/example_plugin/README.md\n\ndiff_stats\npkgs/plugins/EmbedXMP/README.md       | 10 +++++-----\n pkgs/plugins/example_plugin/README.md |  8 ++++----\n 2 files changed, 9 insertions(+), 9 deletions(-)"
+  },
+  {
+    "id": "5fb843d09edc2be4e681d4cff73b11a677439588:log",
+    "metadata": {
+      "oid": "5fb843d09edc2be4e681d4cff73b11a677439588",
+      "kind": "log",
+      "scope": "head",
+      "ref": null,
+      "subject": "Fix mojibake in plugin README feature bullets"
+    },
+    "content": "commit 5fb843d09edc2be4e681d4cff73b11a677439588\nAuthor:     cobycloud <25079070+cobycloud@users.noreply.github.com>\nAuthorDate: 2026-05-03T01:51:22-05:00\nCommit:     cobycloud <25079070+cobycloud@users.noreply.github.com>\nCommitDate: 2026-05-03T01:52:36-05:00\n\n    Fix mojibake in plugin README feature bullets\n\n pkgs/plugins/EmbedXMP/README.md       | 10 +++++-----\n pkgs/plugins/example_plugin/README.md |  8 ++++----\n 2 files changed, 9 insertions(+), 9 deletions(-)"
+  }
+]
+```
+
 To inspect a specific retrieved document:
 
 ```bash
-gitvs show --ref feature/my-branch --document-id <document-id>
+gitvs --ref HEAD show --document-id 5fb843d09edc2be4e681d4cff73b11a677439588:commit
+```
+
+Actual output:
+
+```text
+commit 5fb843d09edc2be4e681d4cff73b11a677439588
+scope head
+ref HEAD
+subject Fix mojibake in plugin README feature bullets
+author cobycloud <25079070+cobycloud@users.noreply.github.com>
+committer cobycloud <25079070+cobycloud@users.noreply.github.com>
+authored_at 2026-05-03T01:51:22-05:00
+committed_at 2026-05-03T01:52:36-05:00
+parents 0d29234100fd8bff6ace454cb5ede16d43550f20
+
+message
+Fix mojibake in plugin README feature bullets
+
+changed_paths
+pkgs/plugins/EmbedXMP/README.md
+pkgs/plugins/example_plugin/README.md
+
+diff_stats
+pkgs/plugins/EmbedXMP/README.md       | 10 +++++-----
+ pkgs/plugins/example_plugin/README.md |  8 ++++----
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 ```
 
 ## Want to help?
