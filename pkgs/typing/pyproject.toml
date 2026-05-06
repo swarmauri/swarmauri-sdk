@@ -3,6 +3,19 @@ name = "swarmauri_typing"
 version = "0.10.0"
 
 description = "This repository includes typing used in the Swarmauri framework."
+keywords = [
+    "swarmauri",
+    "typing",
+    "dynamic-json-schema",
+    "discriminated-unions",
+    "pydantic",
+    "schema-first",
+    "serialization",
+    "yaml",
+    "toml",
+    "plugin-factory",
+    "typed-components",
+]
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
     ]

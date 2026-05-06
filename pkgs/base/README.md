@@ -16,6 +16,45 @@
 
 # Swarmauri Base
 
+`swarmauri_base` is where Swarmauri's dynamic component schema machinery lives.
+`ComponentBase` combines Pydantic JSON support, YAML/TOML serialization mixins,
+and `DynamicBase` registration so components can preserve concrete subclass
+identity across configuration files, APIs, factories, queues, and databases.
+
+When a subclass is registered with `ComponentBase.register_type(...)`, fields
+typed with `SubclassUnion[...]` can hydrate that concrete subclass from a
+serialized `type` discriminator. The same component can be dumped to JSON,
+YAML, or TOML and loaded again without becoming an untyped dictionary.
+
+```python
+from typing import Literal
+from pydantic import BaseModel
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.DynamicBase import SubclassUnion
+
+
+@ComponentBase.register_model()
+class StoreConfig(ComponentBase):
+    type: Literal["StoreConfig"] = "StoreConfig"
+    name: str
+
+
+@ComponentBase.register_type(StoreConfig, "SqliteStoreConfig")
+class SqliteStoreConfig(StoreConfig):
+    type: Literal["SqliteStoreConfig"] = "SqliteStoreConfig"
+    path: str
+
+
+class StoreEnvelope(BaseModel):
+    store: SubclassUnion[StoreConfig]
+
+
+envelope = StoreEnvelope.model_validate_json(
+    '{"store":{"type":"SqliteStoreConfig","name":"local","path":"./data.db"}}'
+)
+assert isinstance(envelope.store, SqliteStoreConfig)
+```
+
 ## Getting Started
 
 ### Installing Swarmauri Base from pypi
@@ -82,6 +121,9 @@ class MyConcreteClass(LLMBase):
 
 ### factories
 - [`FactoryBase.py`](./swarmauri_base/factories/FactoryBase.py): Base class for factories.
+
+Factories can accept serialized component specs and hydrate concrete subclasses
+through `SubclassUnion[...]`, avoiding brittle manual switches over `type`.
 
 ### image_gens
 - [`ImageGenBase.py`](./swarmauri_base/image_gens/ImageGenBase.py): Base class for image generation.

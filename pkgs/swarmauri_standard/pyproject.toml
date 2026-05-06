@@ -2,6 +2,19 @@
 name = "swarmauri_standard"
 version = "0.10.0"
 description = "This repository includes standard components within the Swarmauri framework."
+keywords = [
+    "swarmauri",
+    "standard-components",
+    "dynamic-json-schema",
+    "discriminated-unions",
+    "pydantic",
+    "schema-first",
+    "serialization",
+    "yaml",
+    "toml",
+    "plugin-factory",
+    "typed-components",
+]
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
     ]

@@ -86,6 +86,55 @@ uv pip install -e .
 
 ## Using Swarmauri Components
 
+## Native Dynamic Schemas and Serialization
+
+Swarmauri components are built to preserve concrete kin across runtime
+boundaries. A component can be initialized from JSON, YAML, or TOML, dumped back
+to the same formats, and restored later with its `type` discriminator intact.
+That matters when factories, APIs, queues, or databases only see serialized
+payloads: Swarmauri can hydrate the concrete subclass instead of forcing every
+application to maintain a handwritten `if type == ...` factory.
+
+The dynamic schema registry updates the available discriminated-union members as
+component classes are registered. A field typed as `SubclassUnion[ToolBase]`,
+`SubclassUnion[ToolkitBase]`, or another registered base can accept newly
+available component kin and expose an accurate JSON Schema for the current
+runtime surface.
+
+```python
+from typing import Literal
+from pydantic import BaseModel
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.DynamicBase import SubclassUnion
+
+
+@ComponentBase.register_model()
+class ConnectorBase(ComponentBase):
+    type: Literal["ConnectorBase"] = "ConnectorBase"
+    label: str
+
+
+@ComponentBase.register_type(ConnectorBase, "ApiConnector")
+class ApiConnector(ConnectorBase):
+    type: Literal["ApiConnector"] = "ApiConnector"
+    endpoint: str
+
+
+class ConnectorSpec(BaseModel):
+    connector: SubclassUnion[ConnectorBase]
+
+
+spec = ConnectorSpec.model_validate_json(
+    '{"connector":{"type":"ApiConnector","label":"primary","endpoint":"https://api.example.test"}}'
+)
+
+assert isinstance(spec.connector, ApiConnector)
+assert "ApiConnector" in str(ConnectorSpec.model_json_schema())
+```
+
+See the [dynamic schemas guide](infra/docs/swarmauri-sdk/docs/guide/dynamic_schemas.md)
+for factory, API, database, JSON, YAML, and TOML examples.
+
 ### Method 1: Use the namespace package (recommended)
 
 The `swarmauri` package acts as a namespace microkernel. Importing `swarmauri`

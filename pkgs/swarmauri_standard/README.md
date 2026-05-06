@@ -23,6 +23,32 @@ The Swarmauri SDK offers a comprehensive suite of tools designed for building di
 
 - **Concrete Classes**: Ready-to-use, pre-implemented classes that fulfill standard system needs while adhering to Swarmauri principles. **These classes are the first in line for ongoing support and maintenance, ensuring they remain stable, performant, and up to date with future SDK developments.**
 
+Swarmauri Standard components also participate in the SDK's native dynamic
+schema and serialization model. Concrete tools, toolkits, documents, agents,
+messages, metrics, vector stores, and other registered kin retain their `type`
+when dumped to JSON and can be restored through base-family unions. This makes
+standard components practical for API payloads, database-backed specs,
+agent-managed factories, and YAML/TOML configuration without converting them to
+untyped dictionaries.
+
+```python
+from pydantic import BaseModel
+from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
+from swarmauri_base.DynamicBase import SubclassUnion
+from swarmauri_standard.toolkits.Toolkit import Toolkit
+
+
+class ToolkitEnvelope(BaseModel):
+    toolkit: SubclassUnion[ToolkitBase]
+
+
+toolkit = Toolkit()
+payload = ToolkitEnvelope(toolkit=toolkit).model_dump_json()
+restored = ToolkitEnvelope.model_validate_json(payload)
+
+assert isinstance(restored.toolkit, Toolkit)
+```
+
 
 
 ## AI Kit
@@ -259,8 +285,9 @@ agents using predefined configurations.
 # Features
 
 - **Polymorphism**: Allows for dynamic behavior switching between components, enabling flexible, context-aware system behavior.
+- **Dynamic JSON Schemas**: Registered standard components expand the available `type` discriminator schemas at runtime.
 - **Discriminated Unions**: Provides a robust method for handling multiple possible object types in a type-safe manner.
-- **Serialization**: Efficiently encode and decode data for transmission across different environments and system components, with support for both standard and custom serialization formats.
+- **Serialization**: Efficiently encode and decode component initializations across JSON, YAML, and TOML while preserving concrete kin.
 - **Intensional and Extensional Programming**: Leverages both rule-based (intensional) and set-based (extensional) approaches to building and manipulating complex data structures, offering developers a wide range of tools for system design.
 
 ## Use Cases

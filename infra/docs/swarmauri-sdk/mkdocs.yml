@@ -118,6 +118,7 @@ nav:
   - guide/index.md
   - Installation: guide/installation.md
   - Usage: guide/usage.md
+  - Dynamic Schemas: guide/dynamic_schemas.md
   - Courses: guide/courses.md
   - FAQ: guide/faq.md
 - API Documentation:

@@ -9,6 +9,7 @@ Welcome to Swarmauri guides! This section contains practical tutorials and how-t
 
 - **[Installation Guide](installation.md)** - Step-by-step instructions for setting up Swarmauri SDK
 - **[Usage Guide](usage.md)** - Learn how to use core Swarmauri features
+- **[Dynamic Schemas](dynamic_schemas.md)** - Preserve concrete component kin across JSON, YAML, TOML, APIs, factories, and persistence
 - **[Courses](courses.md)** - Structured learning paths for different skill levels
 - **[FAQ](faq.md)** - Answers to frequently asked questions
 

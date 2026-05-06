@@ -2,6 +2,18 @@
 name = "swarmauri"
 version = "0.9.0"
 description = "Namespace package for components, packages, and plugins within the Swarmauri framework."
+keywords = [
+    "swarmauri",
+    "dynamic-json-schema",
+    "discriminated-unions",
+    "pydantic",
+    "schema-first",
+    "serialization",
+    "yaml",
+    "toml",
+    "plugin-factory",
+    "typed-components",
+]
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"

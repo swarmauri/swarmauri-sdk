@@ -50,6 +50,59 @@ Swarmauri exposes three stable operator-facing surfaces:
 Together these surfaces allow operators to use stable import paths while
 implementations evolve independently.
 
+## Native Dynamic Schemas and Serialization
+
+Swarmauri treats dynamic, typed component serialization as a core runtime
+strength. Registered component families use `type` discriminators and dynamic
+unions so factories, HTTP APIs, queues, and persisted JSON payloads can restore
+the concrete subclass that was serialized.
+
+Every `ComponentBase`-derived component inherits JSON support from Pydantic and
+YAML/TOML helpers from the Swarmauri base mixins. That means the same component
+initialization can move through JSON, YAML, or TOML configuration files and dump
+back to those formats while preserving concrete kin.
+
+```python
+from typing import Literal
+from pydantic import BaseModel
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.DynamicBase import SubclassUnion
+
+
+@ComponentBase.register_model()
+class RuntimeConnector(ComponentBase):
+    type: Literal["RuntimeConnector"] = "RuntimeConnector"
+    label: str
+
+
+@ComponentBase.register_type(RuntimeConnector, "HttpRuntimeConnector")
+class HttpRuntimeConnector(RuntimeConnector):
+    type: Literal["HttpRuntimeConnector"] = "HttpRuntimeConnector"
+    endpoint: str
+
+
+class RuntimePayload(BaseModel):
+    connector: SubclassUnion[RuntimeConnector]
+
+
+payload = RuntimePayload.model_validate(
+    {
+        "connector": {
+            "type": "HttpRuntimeConnector",
+            "label": "orders",
+            "endpoint": "https://api.example.test/orders",
+        }
+    }
+)
+
+assert isinstance(payload.connector, HttpRuntimeConnector)
+```
+
+Without this, applications usually fall back to untyped dictionaries or manual
+factory switches. With it, Swarmauri can publish JSON Schema for the available
+kin classes and hydrate concrete components from the same payloads used by
+APIs, databases, and configuration files.
+
 ## Core 
 - **Core Interfaces**: Define the fundamental communication and data-sharing protocols between components in a Swarmauri-based system.
 
@@ -68,8 +121,9 @@ implementations evolve independently.
 # Features
 
 - **Polymorphism**: Allows for dynamic behavior switching between components, enabling flexible, context-aware system behavior.
+- **Dynamic JSON Schemas**: Updates discriminated-union schemas as registered component kin become available.
 - **Discriminated Unions**: Provides a robust method for handling multiple possible object types in a type-safe manner.
-- **Serialization**: Efficiently encode and decode data for transmission across different environments and system components, with support for both standard and custom serialization formats.
+- **Serialization**: Efficiently encode and decode component initializations across JSON, YAML, and TOML while preserving concrete `type`.
 - **Intensional and Extensional Programming**: The microkernel continues to leverage both rule-based (intensional) patterns and set-based (extensional) plugin discovery, allowing you to build and manipulate complex data structures with ease.
 
 ## Use Cases
