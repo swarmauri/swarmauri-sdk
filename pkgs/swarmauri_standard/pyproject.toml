@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_standard"
-version = "0.10.1.dev3"
+version = "0.10.1.dev4"
 description = "This repository includes standard components within the Swarmauri framework."
 keywords = [
     "swarmauri",
