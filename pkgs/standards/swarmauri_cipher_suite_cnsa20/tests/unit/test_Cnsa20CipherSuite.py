@@ -39,21 +39,42 @@ def test_suite_identifier(cipher_suite: Cnsa20CipherSuite) -> None:
 @pytest.mark.unit
 def test_supports_expected_algorithms(cipher_suite: Cnsa20CipherSuite) -> None:
     supports = cipher_suite.supports()
-    assert set(supports.keys()) == {"sign", "verify", "encrypt", "decrypt"}
-    assert set(supports["sign"]) == {"ES384", "PS384"}
+    assert set(supports.keys()) == {
+        "sign",
+        "verify",
+        "encrypt",
+        "decrypt",
+        "wrap",
+        "unwrap",
+    }
+    assert set(supports["sign"]) == {
+        "ES384",
+        "PS384",
+        "ML-DSA-44",
+        "ML-DSA-65",
+        "ML-DSA-87",
+        "SLH-DSA-SHAKE-192s",
+        "SLH-DSA-SHAKE-192f",
+        "SLH-DSA-SHAKE-256s",
+        "SLH-DSA-SHAKE-256f",
+    }
     assert set(supports["encrypt"]) == {"A256GCM"}
+    assert set(supports["wrap"]) == {"ML-KEM-768", "ML-KEM-1024"}
     assert supports["sign"] == supports["verify"]
     assert supports["encrypt"] == supports["decrypt"]
+    assert supports["wrap"] == supports["unwrap"]
 
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
     "operation, expected",
     [
-        ("sign", "ES384"),
-        ("verify", "A256GCM"),
+        ("sign", "ML-DSA-65"),
+        ("verify", "ML-DSA-65"),
         ("encrypt", "A256GCM"),
         ("decrypt", "A256GCM"),
+        ("wrap", "ML-KEM-768"),
+        ("unwrap", "ML-KEM-768"),
     ],
 )
 def test_default_alg(
@@ -67,9 +88,14 @@ def test_features_descriptor(cipher_suite: Cnsa20CipherSuite) -> None:
     features = cipher_suite.features()
     assert features["suite"] == "cnsa-2.0"
     assert set(features["dialects"]["jwa"]) == {"ES384", "PS384", "A256GCM"}
-    assert features["ops"]["sign"]["default"] == "ES384"
+    assert "ML-DSA-65" in features["dialects"]["provider"]
+    assert "ML-KEM-768" in features["dialects"]["provider"]
+    assert features["ops"]["sign"]["default"] == "ML-DSA-65"
     assert features["ops"]["encrypt"]["default"] == "A256GCM"
+    assert features["ops"]["wrap"]["default"] == "ML-KEM-768"
     assert features["constraints"]["hash"] == "SHA384"
+    assert features["constraints"]["post_quantum_levels"]["ML-DSA-65"] == 3
+    assert features["constraints"]["post_quantum_levels"]["ML-KEM-768"] == 3
 
 
 @pytest.mark.unit
@@ -79,12 +105,14 @@ def test_normalize_with_aead_defaults(cipher_suite: Cnsa20CipherSuite) -> None:
     assert descriptor["alg"] == "A256GCM"
     assert descriptor["params"]["tagBits"] == 128
     assert descriptor["params"]["nonceLen"] == 12
-    assert descriptor["constraints"] == {"minKeyBits": 3072}
+    assert descriptor["constraints"] == {"aead": {"tagBits": 128, "nonceLen": 12}}
     assert descriptor["dialect"] == "jwa"
 
 
 @pytest.mark.unit
-def test_normalize_sign_preserves_params(cipher_suite: Cnsa20CipherSuite) -> None:
+def test_normalize_classic_sign_preserves_params(
+    cipher_suite: Cnsa20CipherSuite,
+) -> None:
     descriptor = cipher_suite.normalize(
         op="sign",
         alg="PS384",
@@ -96,6 +124,32 @@ def test_normalize_sign_preserves_params(cipher_suite: Cnsa20CipherSuite) -> Non
     assert descriptor["dialect"] == "custom"
     assert descriptor["mapped"] == {"jwa": "PS384", "provider": "PS384"}
     assert descriptor["params"] == {"detached": True}
+
+
+@pytest.mark.unit
+def test_normalize_post_quantum_sign_defaults(cipher_suite: Cnsa20CipherSuite) -> None:
+    descriptor = cipher_suite.normalize(op="sign")
+
+    assert descriptor["alg"] == "ML-DSA-65"
+    assert descriptor["dialect"] == "provider"
+    assert descriptor["mapped"] == {"provider": "ML-DSA-65"}
+    assert descriptor["constraints"] == {
+        "nistLevel": 3,
+        "category": "post-quantum",
+    }
+
+
+@pytest.mark.unit
+def test_normalize_wrap_defaults(cipher_suite: Cnsa20CipherSuite) -> None:
+    descriptor = cipher_suite.normalize(op="wrap")
+
+    assert descriptor["alg"] == "ML-KEM-768"
+    assert descriptor["dialect"] == "provider"
+    assert descriptor["mapped"] == {"provider": "ML-KEM-768"}
+    assert descriptor["constraints"] == {
+        "nistLevel": 3,
+        "category": "post-quantum",
+    }
 
 
 @pytest.mark.unit
