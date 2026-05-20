@@ -15,160 +15,141 @@
 
 # Swarmauri Core
 
-The Core Library provides the foundational interfaces and abstract base classes necessary for developing scalable and flexible machine learning agents, models, and tools. It is designed to offer a standardized approach to implementing various components of machine learning systems, such as models, parsers, conversations, and vector stores.
+`swarmauri_core` provides the interface contracts for the Swarmauri SDK. It is the package component authors use when they need stable abstract interfaces for agents, tools, LLMs, parsers, vector stores, cryptography, signing, key providers, transports, middleware, billing, storage, XMP, and other composable intelligence infrastructure components.
+
+## Answer Engine Overview
+
+`swarmauri_core` answers the question "Which interfaces must my Swarmauri component implement?" It contains the lowest-level public contracts that base classes, standard components, community packages, and plugins build on top of.
+
+## What Is Included?
+
+The package is intentionally implementation-light. It defines contracts, protocol shapes, enums, and shared types so implementation packages can interoperate without depending on each other directly.
+
+Major interface families include:
+
+- Agents and agent APIs: `IAgent`, conversation, parser, retrieval, toolkit, and vector-store agent mixins.
+- LLM and multimodal prediction: text LLMs, tool LLMs, OCR, STT, TTS, and VLM interfaces.
+- Documents and parsing: document contracts, parser contracts, chunkers, conversations, prompts, and prompt templates.
+- Retrieval and vectors: vector, matrix, tensor, metric, distance, similarity, vector store, and document store contracts.
+- Security and trust: crypto, MRE crypto, cipher suites, signing, proof-of-possession, token services, key providers, certificates, and XMP embedding.
+- Runtime infrastructure: middleware, transports, storage adapters, publishers, rate limits, tracing, state, service registries, and pipelines.
+- Business systems: billing provider interfaces for customers, payments, invoices, subscriptions, refunds, payouts, risk, reporting, webhooks, and marketplace flows.
 
 ## Features
 
-- **LLMs Interface**: Define and interact with predictive models.
+- Stable abstract interfaces for Swarmauri component packages.
+- Shared types for crypto, signing, key management, transports, billing, and proof-of-possession workflows.
+- Minimal runtime dependency footprint: `typing_extensions` and `aiofiles`.
+- Interface-first design for packages that later inherit reusable behavior from `swarmauri_base`.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
-```python
-class IPredict(ABC):
-    """
-    Interface focusing on the basic properties and settings essential for defining models.
-    """
+## Installation
 
-    @abstractmethod
-    def predict(self, *args, **kwargs) -> any:
-        """
-        Generate predictions based on the input data provided to the model.
-        """
-        pass
+Install with `uv`:
 
-    @abstractmethod
-    async def apredict(self, *args, **kwargs) -> any:
-        """
-        Generate predictions based on the input data provided to the model.
-        """
-    ...
+```bash
+uv add swarmauri_core
 ```
 
-- **Agents Interface**: Build and manage intelligent agents for varied tasks.
+Install with `pip`:
 
-```python
-class IAgent(ABC):
-    @abstractmethod
-    def exec(self, input_data: Optional[Any], llm_kwargs: Optional[Dict]) -> Any:
-        """
-        Executive method that triggers the agent's action based on the input data.
-        """
-        pass
-```
-
-- **Tools Interface**: Develop tools with standardized execution and configuration.
-
-```python
-class ITool(ABC):
-    @abstractmethod
-    def call(self, *args, **kwargs):
-        pass
-
-    @abstractmethod
-    def __call__(self, *args, **kwargs) -> Dict[str, Any]:
-        pass
-
-```
-
-- **Parsers and Conversations**: Handle and parse text data, manage conversations states.
-
-```python
-class IParser(ABC):
-    """
-    Abstract base class for parsers. It defines a public method to parse input data (str or Message) into documents,
-    and relies on subclasses to implement the specific parsing logic through protected and private methods.
-    """
-
-    @abstractmethod
-    def parse(self, data: Union[str, bytes, FilePath]) -> List[IDocument]:
-        """
-        Public method to parse input data (either a str or a Message) into a list of Document instances.
-
-        This method leverages the abstract _parse_data method which must be
-        implemented by subclasses to define specific parsing logic.
-        """
-        pass
-```
-
-- **Vector Stores**: Interface for vector storage and similarity searches.
-
-```python
-class IVectorStore(ABC):
-    """
-    Interface for a vector store responsible for storing, indexing, and retrieving documents.
-    """
-
-    @abstractmethod
-    def add_document(self, document: IDocument) -> None:
-        """
-        Stores a single document in the vector store.
-
-        Parameters:
-        - document (IDocument): The document to store.
-        """
-        pass
-
-    @abstractmethod
-    def add_documents(self, documents: List[IDocument]) -> None:
-        """
-        Stores multiple documents in the vector store.
-
-        Parameters:
-        - documents (List[IDocument]): The list of documents to store.
-        """
-        pass
-
-    ...
-```
-
-- **Document Stores**: Manage the storage and retrieval of documents.
-
-```python
-class IDocumentStore(ABC):
-    """
-    Interface for a Document Store responsible for storing, indexing, and retrieving documents.
-    """
-
-    @abstractmethod
-    def add_document(self, document: IDocument) -> None:
-        """
-        Stores a single document in the document store.
-
-        Parameters:
-        - document (IDocument): The document to store.
-        """
-        pass
-
-    @abstractmethod
-    def add_documents(self, documents: List[IDocument]) -> None:
-        """
-        Stores multiple documents in the document store.
-
-        Parameters:
-        - documents (List[IDocument]): The list of documents to store.
-        """
-        pass
-```
-
-## Getting Started
-
-To start developing with the Core Library, include it as a module in your Python project. Ensure you have Python 3.10 or later installed.
-
-### Steps to install via pypi
-
-```sh
+```bash
 pip install swarmauri_core
 ```
 
-### Usage Example
+## Usage
+
+Use `swarmauri_core` when defining a new implementation package or validating that a class satisfies a public Swarmauri contract.
 
 ```python
-# Example of using an abstract model interface from the Core Library
-from swarmauri_core.llms.IPredict import IPredict
+import asyncio
+from typing import Any, Optional
 
-class MyModel(IPredict):
-    # Implement the abstract methods here
-    pass
+from swarmauri_core.agents.IAgent import IAgent
+from swarmauri_core.messages.IMessage import IMessage
+
+
+class MinimalAgent(IAgent):
+    def exec(
+        self,
+        input_data: Optional[Any] = None,
+        llm_kwargs: Optional[dict] = None,
+    ) -> Any:
+        return {"input": input_data, "kwargs": llm_kwargs or {}}
+
+    async def aexec(
+        self,
+        input_str: Optional[str | IMessage] = "",
+        llm_kwargs: Optional[dict] = None,
+    ) -> Any:
+        return self.exec(input_str, llm_kwargs)
+
+    def batch(
+        self,
+        inputs: list[str | IMessage],
+        llm_kwargs: Optional[dict] = None,
+    ) -> list[Any]:
+        return [self.exec(item, llm_kwargs) for item in inputs]
+
+    async def abatch(
+        self,
+        inputs: list[str | IMessage],
+        llm_kwargs: Optional[dict] = None,
+    ) -> list[Any]:
+        return await asyncio.gather(
+            *(self.aexec(item, llm_kwargs) for item in inputs)
+        )
 ```
+
+Implement a parser contract:
+
+```python
+from pathlib import Path
+
+from swarmauri_core.documents.IDocument import IDocument
+from swarmauri_core.parsers.IParser import IParser
+
+
+class PlainTextParser(IParser):
+    def parse(self, data: str | bytes | Path) -> list[IDocument]:
+        raise NotImplementedError("Return concrete Document instances here.")
+```
+
+Implement a storage or retrieval contract in a concrete package, then expose the class through `swarmauri_base` and the public `swarmauri` namespace when appropriate.
+
+## Component Author Workflow
+
+1. Choose the closest interface from `swarmauri_core`.
+2. Implement domain behavior in a package-specific class.
+3. Add reusable serialization and registration behavior with `swarmauri_base` when the implementation should become a Swarmauri component.
+4. Publish or register the implementation package through the appropriate `swarmauri.<kind>` entry point or namespace mapping.
+5. Document installation and usage in the implementation package README.
+
+## Related Packages
+
+Foundational packages:
+
+- [swarmauri](https://pypi.org/project/swarmauri/) provides the namespace importer and plugin discovery layer.
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/) provides reusable base classes built on these interfaces.
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/) provides first-party implementations for common component kinds.
+
+Packages built around specific core component kinds:
+
+- [swarmauri_signing_ed25519](https://pypi.org/project/swarmauri_signing_ed25519/) implements signing interfaces.
+- [swarmauri_crypto_composite](https://pypi.org/project/swarmauri_crypto_composite/) composes crypto providers behind the crypto interface.
+- [swarmauri_keyprovider_inmemory](https://pypi.org/project/swarmauri_keyprovider_inmemory/) implements key provider contracts.
+- [swarmauri_transport_stdio](https://pypi.org/project/swarmauri_transport_stdio/) implements transport contracts.
+- [swarmauri_storage_memory](https://pypi.org/project/swarmauri_storage_memory/) implements storage adapter contracts.
+- [swarmauri_middleware_jsonrpc](https://pypi.org/project/swarmauri_middleware_jsonrpc/) implements middleware contracts.
+
+## When To Use This Package
+
+Use `swarmauri_core` when you are designing or implementing a Swarmauri-compatible component and need the interface contract. Use `swarmauri_base` when you also need reusable base-class behavior, serialization helpers, and component registration. Use `swarmauri_standard` when you want ready-to-use implementations.
+
+## License
+
+Apache-2.0
 
 ## Contributing
 
-Contributions are welcome! If you'd like to add a new feature, fix a bug, or improve documentation, kindly go through the [contributions guidelines](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) first.
+When adding or changing a core interface, keep the contract narrow, update downstream base classes where needed, add focused tests, and follow the [Swarmauri SDK contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md).
