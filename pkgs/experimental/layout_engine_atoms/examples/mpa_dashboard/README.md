@@ -1,3 +1,18 @@
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+
+<p align="center">
+    <a href="https://pepy.tech/project/layout_engine_atoms/">
+        <img src="https://static.pepy.tech/badge/layout_engine_atoms/month" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/layout_engine_atoms/examples/mpa_dashboard/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/layout_engine_atoms/examples/mpa_dashboard.svg"/></a>
+    <a href="https://pypi.org/project/layout_engine_atoms/">
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/layout_engine_atoms/">
+        <img src="https://img.shields.io/pypi/l/layout_engine_atoms" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/layout_engine_atoms/">
+        <img src="https://img.shields.io/pypi/v/layout_engine_atoms?label=layout_engine_atoms&color=green" alt="PyPI - layout_engine_atoms"/></a>
+</p>
+
 # Multi-page Mission Control Demo
 
 This example packages a styled, multi-page dashboard that showcases how
