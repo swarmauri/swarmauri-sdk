@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_file"
-version = "0.3.1.dev2"
+version = "0.3.1.dev3"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "Filesystem storage adapter for Peagen"
 readme = "README.md"
