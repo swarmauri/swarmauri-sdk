@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_gitfilter_gh_release"
-version = "0.3.0"
+version = "0.3.1.dev1"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "GitHub release backed git filter for Peagen"
 readme = "README.md"
