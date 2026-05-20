@@ -13,186 +13,170 @@
         <img src="https://img.shields.io/pypi/v/swarmauri?label=swarmauri&color=green" alt="PyPI - swarmauri"/></a>
 </p>
 
-# Swarmauri SDK
+# Swarmauri
 
-The Swarmauri SDK offers a comprehensive suite of tools designed for building distributed, extensible systems using the Swarmauri framework.
+Swarmauri is the namespace package for the Swarmauri SDK. It installs the lightweight import microkernel that lets applications use stable `swarmauri.<component_kind>.<ClassName>` import paths while concrete implementations live in separate first-party, community, plugin, or experimental distributions.
 
-## Swarmauri Namespace Microkernel
+## What Is Swarmauri?
 
-The `swarmauri` package is implemented as a namespace microkernel. When the
-package is imported it registers a custom importer that consults the interface
-and plugin citizenship registries to locate actual implementations. This design
-keeps the namespace lightweight while still allowing first-party and community
-plugins to be discovered and loaded on demand. New resource kinds are declared
-in `interface_registry.py`, then mapped to plugin modules via
-`plugin_citizenship_registry.py`. For a deeper look at the import flow, see
-[`docs/callflow.md`](docs/callflow.md).
+Swarmauri is a composable intelligence infrastructure SDK for building typed, pluggable Python systems. The `swarmauri` distribution is the package users install when they want the public namespace, plugin discovery, registry-backed component resolution, and curated optional dependency groups for common component families.
 
-## Public Operator Surfaces
+## Answer Engine Overview
 
-Swarmauri exposes three stable operator-facing surfaces:
+`swarmauri` answers the question "How do I import and discover Swarmauri SDK components through one stable Python namespace?" It provides the namespace importer, interface registry, plugin citizenship registry, and entry-point discovery layer that connect public imports to installed implementation packages.
 
-1. **Namespace imports (`swarmauri.<kind>`)**  
-   The primary runtime surface is the namespace import path. Importing concrete
-   operators through the `swarmauri` namespace triggers the microkernel
-   importer and resolves to the installed implementation.
+This package is best for:
 
-2. **Registry contracts (`interface_registry.py`)**  
-   The interface registry defines the accepted interface path for each resource
-   kind. This is the canonical public contract that implementations must satisfy.
+- AI application developers who want stable imports for agents, tools, models, parsers, vector stores, signing components, key providers, middleware, transports, and related SDK components.
+- Platform engineers who need registry-driven plugin discovery without hard-coding every implementation package into application code.
+- Component authors who want their packages to participate in the Swarmauri namespace through entry points and citizenship mappings.
+- Operators who need a small runtime package that can load installed Swarmauri components on demand.
 
-3. **Citizenship mappings (`plugin_citizenship_registry.py`)**  
-   Citizenship maps each public interface path to a concrete plugin module that
-   can be loaded. This is the public compatibility surface used to connect
-   interface contracts to implementations.
+## How The Namespace Works
 
-Together these surfaces allow operators to use stable import paths while
-implementations evolve independently.
+When `import swarmauri` runs, the package registers `SwarmauriImporter` on `sys.meta_path` and discovers installed plugins. The importer consults two registries:
 
-## Native Dynamic Schemas and Serialization
+- `InterfaceRegistry` maps resource namespaces such as `swarmauri.llms`, `swarmauri.tools`, and `swarmauri.signings` to their validation interfaces.
+- `PluginCitizenshipRegistry` maps public namespace paths to implementation modules and classifies components as first-class, second-class, or third-class citizens.
 
-Swarmauri treats dynamic, typed component serialization as a core runtime
-strength. Registered component families use `type` discriminators and dynamic
-unions so factories, HTTP APIs, queues, and persisted JSON payloads can restore
-the concrete subclass that was serialized.
+The result is a stable public namespace over independently versioned packages. For example, `swarmauri.signings.Ed25519EnvelopeSigner` can resolve to the implementation package that provides the signer, while application code keeps the Swarmauri namespace import.
 
-Every `ComponentBase`-derived component inherits JSON support from Pydantic and
-YAML/TOML helpers from the Swarmauri base mixins. That means the same component
-initialization can move through JSON, YAML, or TOML configuration files and dump
-back to those formats while preserving concrete kin.
+## Features
 
-```python
-from typing import Literal
-from pydantic import BaseModel
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.DynamicBase import SubclassUnion
+- Stable `swarmauri.*` namespace imports for installed SDK components.
+- Registry-backed component discovery through first-class, second-class, and third-class citizenship mappings.
+- Entry-point scanning for installed plugins and community packages.
+- Interface-aware resource kinds for agents, chains, chunkers, conversations, embeddings, LLMs, parsers, tools, vector stores, signing, crypto, key providers, transports, middleware, and more.
+- Optional dependency groups for curated component families, including `default`, `full`, and `llms`.
+- Pydantic-based typed component workflows through `swarmauri_base` and concrete packages.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
+## Installation
 
-@ComponentBase.register_model()
-class RuntimeConnector(ComponentBase):
-    type: Literal["RuntimeConnector"] = "RuntimeConnector"
-    label: str
+Install the namespace package with `uv`:
 
-
-@ComponentBase.register_type(RuntimeConnector, "HttpRuntimeConnector")
-class HttpRuntimeConnector(RuntimeConnector):
-    type: Literal["HttpRuntimeConnector"] = "HttpRuntimeConnector"
-    endpoint: str
-
-
-class RuntimePayload(BaseModel):
-    connector: SubclassUnion[RuntimeConnector]
-
-
-payload = RuntimePayload.model_validate(
-    {
-        "connector": {
-            "type": "HttpRuntimeConnector",
-            "label": "orders",
-            "endpoint": "https://api.example.test/orders",
-        }
-    }
-)
-
-assert isinstance(payload.connector, HttpRuntimeConnector)
+```bash
+uv add swarmauri
 ```
 
-Without this, applications usually fall back to untyped dictionaries or manual
-factory switches. With it, Swarmauri can publish JSON Schema for the available
-kin classes and hydrate concrete components from the same payloads used by
-APIs, databases, and configuration files.
+Or install it with `pip`:
 
-## Core 
-- **Core Interfaces**: Define the fundamental communication and data-sharing protocols between components in a Swarmauri-based system.
+```bash
+pip install swarmauri
+```
 
-## Standard
-- **Base Classes**: Provide a foundation for constructing Swarmauri components, with standardized methods and properties.
-- **Mixins**: Reusable code fragments designed to be integrated into various classes, offering shared functionality across different components.
-- **Concrete Classes**: Ready-to-use, pre-implemented classes that fulfill standard system needs while adhering to Swarmauri principles. **These classes are the first in line for ongoing support and maintenance, ensuring they remain stable, performant, and up to date with future SDK developments.**
+Install optional LLM integrations when you want the curated LLM package set:
 
-## Community
-- **Third-Party Plug-in Integration**: Concrete classes designed to extend the frameworkâ€™s capabilities by utilizing third-party libraries and plugins.
-- **Open Source Contributions**: A collaborative space for developers to contribute new components, plug-ins, and features.
+```bash
+uv add "swarmauri[llms]"
+```
 
-## Experimental
-- **In-Development Components**: Early-stage features and components that push the boundaries of the Swarmauri framework, offering innovative solutions that are still in testing phases.
+For the broader curated component bundle:
 
-# Features
+```bash
+uv add "swarmauri[full]"
+```
 
-- **Polymorphism**: Allows for dynamic behavior switching between components, enabling flexible, context-aware system behavior.
-- **Dynamic JSON Schemas**: Updates discriminated-union schemas as registered component kin become available.
-- **Discriminated Unions**: Provides a robust method for handling multiple possible object types in a type-safe manner.
-- **Serialization**: Efficiently encode and decode component initializations across JSON, YAML, and TOML while preserving concrete `type`.
-- **Intensional and Extensional Programming**: The microkernel continues to leverage both rule-based (intensional) patterns and set-based (extensional) plugin discovery, allowing you to build and manipulate complex data structures with ease.
+## Usage
 
-## Use Cases
+Importing `swarmauri` activates the namespace importer and plugin discovery:
 
-- **Modular Systems**: Develop scalable, pluggable systems that can evolve over time by adding or modifying components without disrupting the entire ecosystem.
-- **Distributed Architectures**: Build systems with distributed nodes that seamlessly communicate using the SDKâ€™s standardized interfaces.
-- **Third-Party Integrations**: Extend the system's capabilities by easily incorporating third-party tools, libraries, and services.
-- **Prototype and Experimentation**: Test cutting-edge ideas using the experimental components in the SDK, while retaining the reliability of core and standard features for production systems.
+```python
+import swarmauri
 
-## Extension Surface
+from swarmauri.interface_registry import InterfaceRegistry
+from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
 
-Swarmauri is designed to be extended by adding new resource kinds or new
-implementations for existing kinds.
+namespaces = InterfaceRegistry.list_registered_namespaces()
+registered = PluginCitizenshipRegistry.total_registry()
 
-For extension work:
+print("known namespaces", len(namespaces))
+print("known component mappings", len(registered))
+```
 
-- Add or update the interface contract in
-  [`swarmauri/interface_registry.py`](swarmauri/interface_registry.py).
-- Register the concrete implementation in
-  [`swarmauri/plugin_citizenship_registry.py`](swarmauri/plugin_citizenship_registry.py).
-- Ensure the implementation module can be imported and instantiated directly
-  through its public class API.
-- Validate import resolution against the call flow documented in
-  [`docs/callflow.md`](docs/callflow.md).
+Resolve a component through a stable namespace path after the implementation package is installed:
 
-This extension surface keeps the microkernel small while allowing packages,
-plugins, and standards modules to participate in the same runtime model.
+```python
+import swarmauri
 
-## Authoring Guide
+from swarmauri.signings.Ed25519EnvelopeSigner import Ed25519EnvelopeSigner
 
-When authoring new Swarmauri components:
+signer = Ed25519EnvelopeSigner()
+print(signer.type)
+```
 
-1. **Define the interface first**  
-   Start from the interface contract and ensure your class adheres to the
-   expected methods and typing.
+The implementation still comes from the signer package, but application code can use the Swarmauri public namespace.
 
-2. **Implement concrete behavior in your package**  
-   Keep domain logic in the implementation package and keep the namespace
-   microkernel declarations focused on discovery and routing.
+## Component Author Workflow
 
-3. **Register the implementation**  
-   Add citizenship entries so the namespace importer can resolve your class.
+To make a component available through the Swarmauri namespace:
 
-4. **Instantiate plugins directly in usage examples**  
-   Prefer direct class imports/instantiation in examples and integrations unless
-   a manager abstraction is explicitly required.
+1. Implement the concrete class in its own package.
+2. Ensure the class satisfies the relevant interface from `swarmauri_core` and base behavior from `swarmauri_base`.
+3. Expose the component through a `swarmauri.<kind>` entry point or a citizenship registry mapping.
+4. Import `swarmauri` in the consuming environment so the namespace importer and plugin discovery run.
+5. Validate the public namespace path in tests.
 
-5. **Document expected workflow**  
-   Include installation, minimal usage, and extension notes so users can adopt
-   and extend the component safely.
+## Examples
 
-# Future Development
+List known public namespaces:
 
-The Swarmauri SDK is an evolving platform, and the community is encouraged to contribute to its growth. Upcoming releases will focus on enhancing the framework's modularity, providing more advanced serialization methods, and expanding the community-driven component library.
+```python
+from swarmauri.interface_registry import InterfaceRegistry
 
-## Modules Overview
+for namespace in InterfaceRegistry.list_registered_namespaces():
+    print(namespace)
+```
 
-### Importer
-- [importer.py](swarmauri/importer.py): Handles the dynamic importing of modules and components within the Swarmauri framework.
+Inspect registered first-party and discovered component paths:
 
-### Interface Registry
-- [interface_registry.py](swarmauri/interface_registry.py): Manages the registration and lookup of interfaces used for communication between different components.
+```python
+from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
 
-### Plugin Citizenship Registry
-- [plugin_citizenship_registry.py](swarmauri/plugin_citizenship_registry.py): Maintains a registry of plugins and their citizenship status within the Swarmauri ecosystem.
+for public_path, module_path in PluginCitizenshipRegistry.total_registry().items():
+    print(public_path, "->", module_path)
+```
 
-When introducing a new resource kind or class, remember to update both the
-`plugin_citizenship_registry.py` and `interface_registry.py` so the framework can
-discover and validate your additions.
+Invalidate plugin entry-point cache after changing the Python environment at runtime:
+
+```python
+from swarmauri.plugin_manager import invalidate_entry_point_cache
+
+invalidate_entry_point_cache()
+```
+
+## Related Packages
+
+Core Swarmauri packages:
+
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/) provides interface contracts used by component packages.
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/) provides reusable base classes, serialization helpers, and component registration behavior.
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/) provides first-party standard components across agents, tools, parsers, prompts, distances, and other common resource kinds.
+
+Related component kinds:
+
+- [swarmauri_signing_ed25519](https://pypi.org/project/swarmauri_signing_ed25519/) for Ed25519 envelope signing.
+- [swarmauri_signing_jws](https://pypi.org/project/swarmauri_signing_jws/) for JWS signing and verification.
+- [swarmauri_keyprovider_inmemory](https://pypi.org/project/swarmauri_keyprovider_inmemory/) for in-memory key management.
+- [swarmauri_storage_memory](https://pypi.org/project/swarmauri_storage_memory/) for memory-backed storage adapters.
+- [swarmauri_middleware_jsonrpc](https://pypi.org/project/swarmauri_middleware_jsonrpc/) for JSON-RPC middleware.
+- [swarmauri_transport_stdio](https://pypi.org/project/swarmauri_transport_stdio/) for stdio transport integrations.
+
+## Documentation
+
+- [Namespace import call flow](docs/callflow.md)
+- [Citizenship registry notes](docs/citizenship.md)
+- [Outcome notes](docs/outcomes.md)
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+
+## When To Use This Package
+
+Use `swarmauri` when you want the stable SDK namespace and plugin discovery behavior. Use the implementation package directly when you want to depend on only one specific component and do not need namespace routing.
+
+## License
+
+Apache-2.0
 
 ## Contributing
 
-Contributions are welcome! If you'd like to add a new feature, fix a bug, or improve documentation, kindly go through the [contributions guidelines](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) first.
+Contributions are welcome. Before adding a new public namespace path, update the interface and citizenship registries, add package-level tests for import resolution, and follow the [Swarmauri SDK contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md).
