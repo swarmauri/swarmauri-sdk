@@ -31,6 +31,15 @@ def _b64u(b: bytes) -> str:
     return base64.urlsafe_b64encode(b).rstrip(b"=").decode("ascii")
 
 
+def _serialization_option(container, name: Optional[str], default):
+    if not name:
+        return default
+    try:
+        return getattr(container, name)
+    except AttributeError as exc:
+        raise ValueError(f"Unsupported serialization option: {name}") from exc
+
+
 def _serialize_keypair(priv, spec: KeySpec) -> tuple[bytes, Optional[bytes]]:
     """Serialize a private key and its public counterpart.
 
@@ -39,24 +48,24 @@ def _serialize_keypair(priv, spec: KeySpec) -> tuple[bytes, Optional[bytes]]:
     RETURNS (Tuple[bytes, Optional[bytes]]): Private bytes and public bytes.
     """
 
-    encoding = (
-        serialization.Encoding[spec.encoding]
-        if spec.encoding
-        else serialization.Encoding.PEM
+    encoding = _serialization_option(
+        serialization.Encoding,
+        spec.encoding,
+        serialization.Encoding.PEM,
     )
-    public_format = (
-        serialization.PublicFormat[spec.public_format]
-        if spec.public_format
-        else serialization.PublicFormat.SubjectPublicKeyInfo
+    public_format = _serialization_option(
+        serialization.PublicFormat,
+        spec.public_format,
+        serialization.PublicFormat.SubjectPublicKeyInfo,
     )
     public = priv.public_key().public_bytes(encoding=encoding, format=public_format)
 
     material: Optional[bytes] = None
     if spec.export_policy != ExportPolicy.PUBLIC_ONLY:
-        private_format = (
-            serialization.PrivateFormat[spec.private_format]
-            if spec.private_format
-            else serialization.PrivateFormat.PKCS8
+        private_format = _serialization_option(
+            serialization.PrivateFormat,
+            spec.private_format,
+            serialization.PrivateFormat.PKCS8,
         )
         if spec.encryption and spec.encryption != "NoEncryption":
             raise ValueError(f"Unsupported encryption: {spec.encryption}")
