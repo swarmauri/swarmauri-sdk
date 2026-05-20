@@ -6,7 +6,7 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_inmemcache/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_inmemcache.svg"/></a>
     <a href="https://pypi.org/project/tigrbl_engine_inmemcache/">
-        <img src="https://img.shields.io/pypi/pyversions/tigrbl_engine_inmemcache" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/tigrbl_engine_inmemcache/">
         <img src="https://img.shields.io/pypi/l/tigrbl_engine_inmemcache" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/tigrbl_engine_inmemcache/">
@@ -20,7 +20,7 @@
 
 ![PyPI - Downloads](https://static.pepy.tech/badge/tigrbl_engine_inmemcache/month)
 ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg)
-![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl_engine_inmemcache)
+![Python Versions](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)
 ![License](https://img.shields.io/pypi/l/tigrbl_engine_inmemcache)
 ![Version](https://img.shields.io/pypi/v/tigrbl_engine_inmemcache)
 

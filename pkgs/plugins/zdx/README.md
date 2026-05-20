@@ -6,7 +6,7 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/zdx/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/zdx.svg"/></a>
     <a href="https://pypi.org/project/zdx/">
-        <img src="https://img.shields.io/pypi/pyversions/zdx" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/zdx/">
         <img src="https://img.shields.io/pypi/l/zdx" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/zdx/">

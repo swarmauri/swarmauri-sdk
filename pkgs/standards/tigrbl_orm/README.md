@@ -6,7 +6,7 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl_orm/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl_orm.svg"/></a>
     <a href="https://pypi.org/project/tigrbl-orm/">
-        <img src="https://img.shields.io/pypi/pyversions/tigrbl-orm" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/tigrbl-orm/">
         <img src="https://img.shields.io/pypi/l/tigrbl-orm" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/tigrbl-orm/">
@@ -16,7 +16,7 @@
 
 # tigrbl-orm
 
-![PyPI - Downloads](https://static.pepy.tech/badge/tigrbl-orm/month) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/pypi/pyversions/tigrbl-orm.svg) ![License](https://img.shields.io/pypi/l/tigrbl-orm.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-orm.svg)
+![PyPI - Downloads](https://static.pepy.tech/badge/tigrbl-orm/month) ![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg) ![Python Versions](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue) ![License](https://img.shields.io/pypi/l/tigrbl-orm.svg) ![Version](https://img.shields.io/pypi/v/tigrbl-orm.svg)
 
 ## Features
 

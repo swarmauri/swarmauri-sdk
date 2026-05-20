@@ -6,7 +6,7 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_llm_deepinfra/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_llm_deepinfra.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_llm_deepinfra/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_llm_deepinfra" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_llm_deepinfra/">
         <img src="https://img.shields.io/pypi/l/swarmauri_llm_deepinfra" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_llm_deepinfra/">

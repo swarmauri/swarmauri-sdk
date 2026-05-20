@@ -1,19 +1,22 @@
 [project]
 name = "layout_engine"
 version = "0.1.1.dev1"
-authors = [
-    { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
-]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "Swiss-grid inspired, format-agnostic layout engine with SSR+SSG, atom & MFE registries."
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.15"
 classifiers = [
     "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
     "jinja2>=3.1",

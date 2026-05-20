@@ -16,19 +16,22 @@ keywords = [
     "plugin-factory",
     "typed-components",
 ]
-authors = [
-    { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
-    ]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
 readme = { file = "README.md", content-type = "text/markdown" }
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12"
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.15"
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }

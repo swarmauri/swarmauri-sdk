@@ -6,7 +6,7 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_metric_hamming/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_metric_hamming.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_metric_hamming/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_metric_hamming" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_metric_hamming/">
         <img src="https://img.shields.io/pypi/l/swarmauri_metric_hamming" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_metric_hamming/">

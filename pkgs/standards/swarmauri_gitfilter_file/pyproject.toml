@@ -1,23 +1,23 @@
 [project]
 name = "swarmauri_gitfilter_file"
 version = "0.3.0"
-authors = [
-    { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
-]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "Filesystem git filter for Peagen"
 readme = "README.md"
 license = "Apache-2.0"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.15"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
     "peagen",

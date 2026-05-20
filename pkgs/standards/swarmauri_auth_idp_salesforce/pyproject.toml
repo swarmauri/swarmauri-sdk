@@ -4,7 +4,7 @@ version = "0.2.0"
 description = "Salesforce OAuth 2.0 / OAuth 2.1 / OIDC 1.0 identity provider implementations for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.15"
 repository = "https://github.com/swarmauri/swarmauri-sdk"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 classifiers = [
@@ -12,14 +12,16 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Security :: Cryptography",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Internet :: WWW/HTTP",
-    "Topic :: Security :: Cryptography",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 keywords = [
     "swarmauri",
