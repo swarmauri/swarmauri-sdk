@@ -23,7 +23,7 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "pinecone[grpc]>=5.0.1",
+    "pinecone[grpc]>=5.0.1,<9",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
