@@ -137,3 +137,25 @@ class CompositeCrypto(ICrypto, ComponentBase):
     ) -> bytes:
         # Some providers embed alg tag in sealed blob; we still require alg for routing clarity.
         return await self._pick("unseal", alg).unseal(recipient_priv, sealed, alg=alg)
+
+    # -------- encaps / decaps --------
+    async def encaps(
+        self,
+        recipient: KeyRef,
+        *,
+        alg: Optional[Alg] = None,
+    ) -> Tuple[bytes, bytes]:
+        return await self._pick("encaps", alg).encaps(recipient, alg=alg)
+
+    async def decaps(
+        self,
+        recipient_priv: KeyRef,
+        encapsulated_key: bytes,
+        *,
+        alg: Optional[Alg] = None,
+    ) -> bytes:
+        return await self._pick("decaps", alg).decaps(
+            recipient_priv,
+            encapsulated_key,
+            alg=alg,
+        )

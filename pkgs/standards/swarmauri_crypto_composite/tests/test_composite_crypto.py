@@ -60,6 +60,14 @@ class DummyCrypto(ICrypto):
     ):  # pragma: no cover - unused
         raise NotImplementedError
 
+    async def encaps(self, recipient, *, alg=None):  # pragma: no cover - unused
+        raise NotImplementedError
+
+    async def decaps(
+        self, recipient_priv, encapsulated_key, *, alg=None
+    ):  # pragma: no cover - unused
+        raise NotImplementedError
+
 
 @pytest.mark.asyncio
 async def test_encrypt_routing():

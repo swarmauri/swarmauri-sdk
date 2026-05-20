@@ -90,6 +90,12 @@ class DummyCrypto(ICrypto):
     async def unseal(self, recipient_priv, sealed, *, alg=None):  # pragma: no cover - demo only
         raise NotImplementedError
 
+    async def encaps(self, recipient, *, alg=None):  # pragma: no cover - demo only
+        raise NotImplementedError
+
+    async def decaps(self, recipient_priv, encapsulated_key, *, alg=None):  # pragma: no cover - demo only
+        raise NotImplementedError
+
 
 async def main() -> None:
     # Compose two providers that advertise different algorithms.
