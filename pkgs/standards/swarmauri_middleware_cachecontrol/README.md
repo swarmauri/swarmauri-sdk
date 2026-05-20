@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_cachecontrol/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_cachecontrol?label=swarmauri_middleware_cachecontrol&color=green" alt="PyPI - swarmauri_middleware_cachecontrol"/></a>
 </p>
----
 
 # Swarmauri Middleware Cachecontrol
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/MediaSigner/">
         <img src="https://img.shields.io/pypi/v/MediaSigner?label=MediaSigner&color=green" alt="PyPI - MediaSigner"/></a>
 </p>
----
 
 MediaSigner packages the asynchronous `Signer` facade that orchestrates registered
 `SigningBase` providers. Moving the facade into a standalone plugin keeps the

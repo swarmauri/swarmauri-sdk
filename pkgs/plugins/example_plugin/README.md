@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swm_example_plugin/">
         <img src="https://img.shields.io/pypi/v/swm_example_plugin?label=swm_example_plugin&color=green" alt="PyPI - swm_example_plugin"/></a>
 </p>
----
 
 The Swarmauri Example Plugin is a lightweight reference package that shows how to
 ship a plugin ready for the Swarmauri ecosystem. It demonstrates how to declare

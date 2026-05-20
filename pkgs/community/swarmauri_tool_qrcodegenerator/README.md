@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_qrcodegenerator/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_qrcodegenerator?label=swarmauri_tool_qrcodegenerator&color=green" alt="PyPI - swarmauri_tool_qrcodegenerator"/></a>
 </p>
----
 
 # Swarmauri Tool Â· QR Code Generator
 

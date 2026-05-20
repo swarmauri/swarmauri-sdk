@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_parser_bertembedding/">
         <img src="https://img.shields.io/pypi/v/swarmauri_parser_bertembedding?label=swarmauri_parser_bertembedding&color=green" alt="PyPI - swarmauri_parser_bertembedding"/></a>
 </p>
----
 
 # Swarmauri Parser Bert Embedding
 

@@ -12,5 +12,4 @@
     <a href="https://pypi.org/project/ptree_dag_extension_example/">
         <img src="https://img.shields.io/pypi/v/ptree_dag_extension_example?label=ptree_dag_extension_example&color=green" alt="PyPI - ptree_dag_extension_example"/></a>
 </p>
----
 

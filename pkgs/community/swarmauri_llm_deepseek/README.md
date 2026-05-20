@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_llm_deepseek/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_deepseek?label=swarmauri_llm_deepseek&color=green" alt="PyPI - swarmauri_llm_deepseek"/></a>
 </p>
----
 
 # swarmauri_llm_deepseek
 

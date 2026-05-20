@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_storage_github/">
         <img src="https://img.shields.io/pypi/v/swarmauri_storage_github?label=swarmauri_storage_github&color=green" alt="PyPI - swarmauri_storage_github"/></a>
 </p>
----
 
 # Swarmauri GitHub Storage Adapter
 

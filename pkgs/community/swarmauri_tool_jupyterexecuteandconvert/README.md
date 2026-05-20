@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_jupyterexecuteandconvert/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterexecuteandconvert?label=swarmauri_tool_jupyterexecuteandconvert&color=green" alt="PyPI - swarmauri_tool_jupyterexecuteandconvert"/></a>
 </p>
----
 
 # Swarmauri Tool Jupyter Execute & Convert
 

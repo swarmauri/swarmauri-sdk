@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_publisher_webhook/">
         <img src="https://img.shields.io/pypi/v/swarmauri_publisher_webhook?label=swarmauri_publisher_webhook&color=green" alt="PyPI - swarmauri_publisher_webhook"/></a>
 </p>
----
 
 # Swarmauri Webhook Publisher
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_certs_composite/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_composite?label=swarmauri_certs_composite&color=green" alt="PyPI - swarmauri_certs_composite"/></a>
 </p>
----
 
 ## Swarmauri Certs Composite
 

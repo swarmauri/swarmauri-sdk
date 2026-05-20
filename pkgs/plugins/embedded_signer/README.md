@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/EmbeddedSigner/">
         <img src="https://img.shields.io/pypi/v/EmbeddedSigner?label=EmbeddedSigner&color=green" alt="PyPI - EmbeddedSigner"/></a>
 </p>
----
 
 # Embed metadata into a file and write it back in place.
 signer.embed_file("image.png", xmp_xml)

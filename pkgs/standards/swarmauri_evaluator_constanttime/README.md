@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_evaluator_constanttime/">
         <img src="https://img.shields.io/pypi/v/swarmauri_evaluator_constanttime?label=swarmauri_evaluator_constanttime&color=green" alt="PyPI - swarmauri_evaluator_constanttime"/></a>
 </p>
----
 
 # Swarmauri Evaluator Constanttime
 

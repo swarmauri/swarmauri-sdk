@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_transport_mtlsunicast/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_mtlsunicast?label=swarmauri_transport_mtlsunicast&color=green" alt="PyPI - swarmauri_transport_mtlsunicast"/></a>
 </p>
----
 
 # Swarmauri Transport â€“ Mutual TLS Unicast
 

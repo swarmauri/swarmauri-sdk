@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/monotone-ops/">
         <img src="https://img.shields.io/pypi/v/monotone-ops?label=monotone-ops&color=green" alt="PyPI - monotone-ops"/></a>
 </p>
----
 
 # monotone-ops
 

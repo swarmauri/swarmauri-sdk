@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_jsonrpc/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_jsonrpc?label=swarmauri_middleware_jsonrpc&color=green" alt="PyPI - swarmauri_middleware_jsonrpc"/></a>
 </p>
----
 
 # Swarmauri Middleware JsonRpc
 

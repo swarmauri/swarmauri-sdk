@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tokens_tlsboundjwt/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tokens_tlsboundjwt?label=swarmauri_tokens_tlsboundjwt&color=green" alt="PyPI - swarmauri_tokens_tlsboundjwt"/></a>
 </p>
----
 
 # Swarmauri Tokens TLS-Bound JWT
 

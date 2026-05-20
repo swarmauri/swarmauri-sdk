@@ -53,9 +53,6 @@ server = [
     "uvicorn[standard]>=0.30",
 ]
 
-[tool.uv.sources]
-tigrbl = { workspace = true }
-
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
 markers = [

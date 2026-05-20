@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/mto/">
         <img src="https://img.shields.io/pypi/v/mto?label=mto&color=green" alt="PyPI - mto"/></a>
 </p>
----
 
 # mto
 

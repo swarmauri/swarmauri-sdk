@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_toolkit_containertoolkit/">
         <img src="https://img.shields.io/pypi/v/swarmauri_toolkit_containertoolkit?label=swarmauri_toolkit_containertoolkit&color=green" alt="PyPI - swarmauri_toolkit_containertoolkit"/></a>
 </p>
----
 
 # Swarmauri Toolkit ContainerToolkit
 

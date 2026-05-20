@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_auth_idp_cognito/">
         <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_cognito?label=swarmauri_auth_idp_cognito&color=green" alt="PyPI - swarmauri_auth_idp_cognito"/></a>
 </p>
----
 
 # Swarmauri Auth IDP Cognito
 

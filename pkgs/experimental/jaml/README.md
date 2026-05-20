@@ -12,5 +12,4 @@
     <a href="https://pypi.org/project/jaml/">
         <img src="https://img.shields.io/pypi/v/jaml?label=jaml&color=green" alt="PyPI - jaml"/></a>
 </p>
----
 

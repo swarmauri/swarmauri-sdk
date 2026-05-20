@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_cipher_suite_webauthn/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_webauthn?label=swarmauri_cipher_suite_webauthn&color=green" alt="PyPI - swarmauri_cipher_suite_webauthn"/></a>
 </p>
----
 
 # Swarmauri Cipher Webauthn
 

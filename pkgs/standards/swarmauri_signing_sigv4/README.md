@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_signing_sigv4/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_sigv4?label=swarmauri_signing_sigv4&color=green" alt="PyPI - swarmauri_signing_sigv4"/></a>
 </p>
----
 
 # Swarmauri Signing SigV4
 

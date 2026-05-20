@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_crypto_jwe/">
         <img src="https://img.shields.io/pypi/v/swarmauri_crypto_jwe?label=swarmauri_crypto_jwe&color=green" alt="PyPI - swarmauri_crypto_jwe"/></a>
 </p>
----
 
 ## Swarmauri Crypto JWE
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_parser_fitzpdf/">
         <img src="https://img.shields.io/pypi/v/swarmauri_parser_fitzpdf?label=swarmauri_parser_fitzpdf&color=green" alt="PyPI - swarmauri_parser_fitzpdf"/></a>
 </p>
----
 
 # Swarmauri Parser Fitz PDF
 

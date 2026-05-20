@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_cipher_suite_ssh/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_ssh?label=swarmauri_cipher_suite_ssh&color=green" alt="PyPI - swarmauri_cipher_suite_ssh"/></a>
 </p>
----
 
 # Swarmauri Cipher Ssh
 

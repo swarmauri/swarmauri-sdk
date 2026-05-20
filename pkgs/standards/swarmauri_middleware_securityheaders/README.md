@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_securityheaders/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_securityheaders?label=swarmauri_middleware_securityheaders&color=green" alt="PyPI - swarmauri_middleware_securityheaders"/></a>
 </p>
----
 
 # Swarmauri Middleware Security Headers
 

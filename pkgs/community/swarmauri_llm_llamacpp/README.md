@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_llm_llamacpp/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_llamacpp?label=swarmauri_llm_llamacpp&color=green" alt="PyPI - swarmauri_llm_llamacpp"/></a>
 </p>
----
 
 # swarmauri_llm_llamacpp
 

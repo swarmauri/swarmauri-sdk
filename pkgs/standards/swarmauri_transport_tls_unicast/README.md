@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_transport_tls_unicast/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_tls_unicast?label=swarmauri_transport_tls_unicast&color=green" alt="PyPI - swarmauri_transport_tls_unicast"/></a>
 </p>
----
 
 # srv_ctx.verify_mode = ssl.CERT_REQUIRED
 # srv_ctx.load_verify_locations("ca.pem")

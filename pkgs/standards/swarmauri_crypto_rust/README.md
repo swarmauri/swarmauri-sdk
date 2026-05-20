@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_crypto_rust/">
         <img src="https://img.shields.io/pypi/v/swarmauri_crypto_rust?label=swarmauri_crypto_rust&color=green" alt="PyPI - swarmauri_crypto_rust"/></a>
 </p>
----
 
 ## Swarmauri Crypto Rust
 

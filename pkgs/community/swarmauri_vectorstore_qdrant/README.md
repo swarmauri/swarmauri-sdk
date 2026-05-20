@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_vectorstore_qdrant/">
         <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_qdrant?label=swarmauri_vectorstore_qdrant&color=green" alt="PyPI - swarmauri_vectorstore_qdrant"/></a>
 </p>
----
 
 # Swarmauri Vectorstore Qdrant
 

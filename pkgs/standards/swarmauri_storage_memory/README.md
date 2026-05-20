@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_storage_memory/">
         <img src="https://img.shields.io/pypi/v/swarmauri_storage_memory?label=swarmauri_storage_memory&color=green" alt="PyPI - swarmauri_storage_memory"/></a>
 </p>
----
 
 # Swarmauri Memory Storage Adapter
 

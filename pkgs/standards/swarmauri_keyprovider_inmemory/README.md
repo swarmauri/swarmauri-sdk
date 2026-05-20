@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_keyprovider_inmemory/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_inmemory?label=swarmauri_keyprovider_inmemory&color=green" alt="PyPI - swarmauri_keyprovider_inmemory"/></a>
 </p>
----
 
 # Swarmauri Inâ€‘Memory Key Provider
 

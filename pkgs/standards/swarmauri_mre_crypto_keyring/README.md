@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_mre_crypto_keyring/">
         <img src="https://img.shields.io/pypi/v/swarmauri_mre_crypto_keyring?label=swarmauri_mre_crypto_keyring&color=green" alt="PyPI - swarmauri_mre_crypto_keyring"/></a>
 </p>
----
 
 # Swarmauri MRE Crypto Keyring
 

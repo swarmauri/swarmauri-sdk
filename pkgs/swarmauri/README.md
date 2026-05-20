@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri/">
         <img src="https://img.shields.io/pypi/v/swarmauri?label=swarmauri&color=green" alt="PyPI - swarmauri"/></a>
 </p>
----
 
 # Swarmauri SDK
 

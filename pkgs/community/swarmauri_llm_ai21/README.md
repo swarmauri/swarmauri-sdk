@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_llm_ai21/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_ai21?label=swarmauri_llm_ai21&color=green" alt="PyPI - swarmauri_llm_ai21"/></a>
 </p>
----
 
 # swarmauri_llm_ai21
 

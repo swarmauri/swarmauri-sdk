@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_jwksverifier/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_jwksverifier?label=swarmauri_middleware_jwksverifier&color=green" alt="PyPI - swarmauri_middleware_jwksverifier"/></a>
 </p>
----
 
 # Swarmauri Middleware JWKS Verifier
 

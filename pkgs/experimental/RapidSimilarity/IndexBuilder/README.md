@@ -12,8 +12,6 @@
     <a href="https://pypi.org/project/IndexBuilder/">
         <img src="https://img.shields.io/pypi/v/IndexBuilder?label=IndexBuilder&color=green" alt="PyPI - IndexBuilder"/></a>
 </p>
----
-
 
 ## Purpose
 

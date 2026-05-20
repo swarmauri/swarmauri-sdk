@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_documentstore_redis/">
         <img src="https://img.shields.io/pypi/v/swarmauri_documentstore_redis?label=swarmauri_documentstore_redis&color=green" alt="PyPI - swarmauri_documentstore_redis"/></a>
 </p>
----
 
 # Swarmauri Documentstore Redis
 

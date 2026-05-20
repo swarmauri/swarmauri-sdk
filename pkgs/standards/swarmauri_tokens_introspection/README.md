@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tokens_introspection/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tokens_introspection?label=swarmauri_tokens_introspection&color=green" alt="PyPI - swarmauri_tokens_introspection"/></a>
 </p>
----
 
 # swarmauri_tokens_introspection
 

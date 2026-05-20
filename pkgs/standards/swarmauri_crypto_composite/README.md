@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_crypto_composite/">
         <img src="https://img.shields.io/pypi/v/swarmauri_crypto_composite?label=swarmauri_crypto_composite&color=green" alt="PyPI - swarmauri_crypto_composite"/></a>
 </p>
----
 
 ## Swarmauri Crypto Composite
 

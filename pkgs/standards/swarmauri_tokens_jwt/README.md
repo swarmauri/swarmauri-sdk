@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tokens_jwt/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tokens_jwt?label=swarmauri_tokens_jwt&color=green" alt="PyPI - swarmauri_tokens_jwt"/></a>
 </p>
----
 
 # swarmauri_tokens_jwt
 

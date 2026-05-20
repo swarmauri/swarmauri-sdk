@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tokens_sshcert/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tokens_sshcert?label=swarmauri_tokens_sshcert&color=green" alt="PyPI - swarmauri_tokens_sshcert"/></a>
 </p>
----
 
 # swarmauri_tokens_sshcert
 

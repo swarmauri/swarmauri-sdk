@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_embedding_mlm/">
         <img src="https://img.shields.io/pypi/v/swarmauri_embedding_mlm?label=swarmauri_embedding_mlm&color=green" alt="PyPI - swarmauri_embedding_mlm"/></a>
 </p>
----
 
 # Swarmauri Embedding MLM
 

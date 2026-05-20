@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tokens_dpopboundjwt/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tokens_dpopboundjwt?label=swarmauri_tokens_dpopboundjwt&color=green" alt="PyPI - swarmauri_tokens_dpopboundjwt"/></a>
 </p>
----
 
 # Swarmauri Tokens DPoP Bound JWT
 

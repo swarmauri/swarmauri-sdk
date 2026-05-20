@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_transport_sseoutbound/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_sseoutbound?label=swarmauri_transport_sseoutbound&color=green" alt="PyPI - swarmauri_transport_sseoutbound"/></a>
 </p>
----
 
 # Swarmauri Transport â€“ Server-Sent Events
 

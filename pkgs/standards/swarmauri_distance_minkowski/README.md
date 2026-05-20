@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_distance_minkowski/">
         <img src="https://img.shields.io/pypi/v/swarmauri_distance_minkowski?label=swarmauri_distance_minkowski&color=green" alt="PyPI - swarmauri_distance_minkowski"/></a>
 </p>
----
 
 # Swarmauri Distance Minkowski
 

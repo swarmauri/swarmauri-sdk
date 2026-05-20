@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/ye/">
         <img src="https://img.shields.io/pypi/v/ye?label=ye&color=green" alt="PyPI - ye"/></a>
 </p>
----
 
 # Swm Example Package
 

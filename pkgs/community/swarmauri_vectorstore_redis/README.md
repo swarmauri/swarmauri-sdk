@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_vectorstore_redis/">
         <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_redis?label=swarmauri_vectorstore_redis&color=green" alt="PyPI - swarmauri_vectorstore_redis"/></a>
 </p>
----
 
 # Swarmauri Vectorstore Redis
 

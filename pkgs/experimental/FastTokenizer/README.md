@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/FastTokenizer/">
         <img src="https://img.shields.io/pypi/v/FastTokenizer?label=FastTokenizer&color=green" alt="PyPI - FastTokenizer"/></a>
 </p>
----
 
 # `FastTokenizer`
 

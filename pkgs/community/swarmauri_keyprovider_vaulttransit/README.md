@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_keyprovider_vaulttransit/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_vaulttransit?label=swarmauri_keyprovider_vaulttransit&color=green" alt="PyPI - swarmauri_keyprovider_vaulttransit"/></a>
 </p>
----
 
 # Swarmauri Vault Transit Key Provider
 

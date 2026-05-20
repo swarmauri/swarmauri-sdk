@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/layout_engine_atoms/">
         <img src="https://img.shields.io/pypi/v/layout_engine_atoms?label=layout_engine_atoms&color=green" alt="PyPI - layout_engine_atoms"/></a>
 </p>
----
 
 # Layout Engine Atoms & Vue Runtime
 

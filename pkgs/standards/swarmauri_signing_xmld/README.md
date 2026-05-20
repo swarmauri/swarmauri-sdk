@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_signing_xmld/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_xmld?label=swarmauri_signing_xmld&color=green" alt="PyPI - swarmauri_signing_xmld"/></a>
 </p>
----
 
 # Installation
 

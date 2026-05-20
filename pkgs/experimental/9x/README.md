@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/9x/">
         <img src="https://img.shields.io/pypi/v/9x?label=9x&color=green" alt="PyPI - 9x"/></a>
 </p>
----
 
 # Swm Example Package
 

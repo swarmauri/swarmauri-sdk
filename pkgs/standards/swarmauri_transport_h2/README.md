@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_transport_h2/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_h2?label=swarmauri_transport_h2&color=green" alt="PyPI - swarmauri_transport_h2"/></a>
 </p>
----
 
 # Swarmauri Transport â€“ HTTP/2 Adapter
 

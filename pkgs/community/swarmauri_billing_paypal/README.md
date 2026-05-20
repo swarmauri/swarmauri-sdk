@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_billing_paypal/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_paypal?label=swarmauri_billing_paypal&color=green" alt="PyPI - swarmauri_billing_paypal"/></a>
 </p>
----
 
 # Swarmauri Billing PayPal
 

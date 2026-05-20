@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_certservice_ms_adcs/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certservice_ms_adcs?label=swarmauri_certservice_ms_adcs&color=green" alt="PyPI - swarmauri_certservice_ms_adcs"/></a>
 </p>
----
 
 # swarmauri_certservice_ms_adcs
 

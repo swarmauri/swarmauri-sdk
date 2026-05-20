@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/ymls/">
         <img src="https://img.shields.io/pypi/v/ymls?label=ymls&color=green" alt="PyPI - ymls"/></a>
 </p>
----
 
 # Swm Example Package
 

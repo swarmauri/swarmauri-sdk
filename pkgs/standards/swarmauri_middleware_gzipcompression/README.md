@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_gzipcompression/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_gzipcompression?label=swarmauri_middleware_gzipcompression&color=green" alt="PyPI - swarmauri_middleware_gzipcompression"/></a>
 </p>
----
 
 # `swarmauri_middleware_gzipcompression`
 

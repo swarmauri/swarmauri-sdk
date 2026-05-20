@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_crypto_paramiko/">
         <img src="https://img.shields.io/pypi/v/swarmauri_crypto_paramiko?label=swarmauri_crypto_paramiko&color=green" alt="PyPI - swarmauri_crypto_paramiko"/></a>
 </p>
----
 
 ## Swarmauri Crypto Paramiko
 

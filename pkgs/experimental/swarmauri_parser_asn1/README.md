@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_parser_asn1/">
         <img src="https://img.shields.io/pypi/v/swarmauri_parser_asn1?label=swarmauri_parser_asn1&color=green" alt="PyPI - swarmauri_parser_asn1"/></a>
 </p>
----
 
 # swarmauri-asn1
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_signing_ca/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_ca?label=swarmauri_signing_ca&color=green" alt="PyPI - swarmauri_signing_ca"/></a>
 </p>
----
 
 # Swarmauri Signing CA
 

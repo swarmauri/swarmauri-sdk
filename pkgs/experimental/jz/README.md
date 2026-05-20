@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/jz/">
         <img src="https://img.shields.io/pypi/v/jz?label=jz&color=green" alt="PyPI - jz"/></a>
 </p>
----
 
 # Swm Example Package
 

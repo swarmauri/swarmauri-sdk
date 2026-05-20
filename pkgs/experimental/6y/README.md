@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/6y/">
         <img src="https://img.shields.io/pypi/v/6y?label=6y&color=green" alt="PyPI - 6y"/></a>
 </p>
----
 
 # Swm Example Package
 

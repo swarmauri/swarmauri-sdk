@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_logging/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_logging?label=swarmauri_middleware_logging&color=green" alt="PyPI - swarmauri_middleware_logging"/></a>
 </p>
----
 
 # Swarmauri Middleware Logging
 

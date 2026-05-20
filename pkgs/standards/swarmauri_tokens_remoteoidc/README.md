@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tokens_remoteoidc/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tokens_remoteoidc?label=swarmauri_tokens_remoteoidc&color=green" alt="PyPI - swarmauri_tokens_remoteoidc"/></a>
 </p>
----
 
 # swarmauri_tokens_remoteoidc
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/layout_engine/">
         <img src="https://img.shields.io/pypi/v/layout_engine?label=layout_engine&color=green" alt="PyPI - layout_engine"/></a>
 </p>
----
 
 # Layout Engine (Core)
 

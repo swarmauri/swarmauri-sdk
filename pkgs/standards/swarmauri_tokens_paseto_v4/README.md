@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tokens_paseto_v4/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tokens_paseto_v4?label=swarmauri_tokens_paseto_v4&color=green" alt="PyPI - swarmauri_tokens_paseto_v4"/></a>
 </p>
----
 
 # Swarmauri Token Paseto V4
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_captchagenerator/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_captchagenerator?label=swarmauri_tool_captchagenerator&color=green" alt="PyPI - swarmauri_tool_captchagenerator"/></a>
 </p>
----
 
 # Swarmauri Tool Captcha Generator
 

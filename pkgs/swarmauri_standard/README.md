@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_standard/">
         <img src="https://img.shields.io/pypi/v/swarmauri_standard?label=swarmauri_standard&color=green" alt="PyPI - swarmauri_standard"/></a>
 </p>
----
 
 # Swarmauri Standard
 

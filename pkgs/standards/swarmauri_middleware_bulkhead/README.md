@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_bulkhead/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_bulkhead?label=swarmauri_middleware_bulkhead&color=green" alt="PyPI - swarmauri_middleware_bulkhead"/></a>
 </p>
----
 
 # Swarmauri Middleware Bulkhead
 

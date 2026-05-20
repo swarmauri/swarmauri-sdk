@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_mre_crypto_pgp/">
         <img src="https://img.shields.io/pypi/v/swarmauri_mre_crypto_pgp?label=swarmauri_mre_crypto_pgp&color=green" alt="PyPI - swarmauri_mre_crypto_pgp"/></a>
 </p>
----
 
 ## Swarmauri MRE Crypto PGP
 

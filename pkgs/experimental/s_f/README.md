@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/s.f/">
         <img src="https://img.shields.io/pypi/v/s.f?label=s.f&color=green" alt="PyPI - s.f"/></a>
 </p>
----
 
 # Swm Example Package
 

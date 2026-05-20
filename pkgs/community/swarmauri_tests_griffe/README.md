@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tests_griffe/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tests_griffe?label=swarmauri_tests_griffe&color=green" alt="PyPI - swarmauri_tests_griffe"/></a>
 </p>
----
 
 # swarmauri_tests_griffe
 

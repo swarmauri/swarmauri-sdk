@@ -182,20 +182,6 @@ members = [
     "experimental/swarmauri_tests_readme_examples",
     "experimental/swarmauri_workflow_statedriven",
     "experimental/tigr",
-    "experimental/tigrbl_acme_ca",
-    "experimental/tigrbl_engine_bigquery",
-    "experimental/tigrbl_engine_clickhouse",
-    "experimental/tigrbl_engine_csv",
-    "experimental/tigrbl_engine_pandas/tigrbl_engine_pandas",
-    "experimental/tigrbl_engine_duckdb",
-    "experimental/tigrbl_engine_pgsqli_wal",
-    "experimental/tigrbl_engine_numpy",
-    "experimental/tigrbl_engine_pyspark",
-    "experimental/tigrbl_engine_redis/tigrbl_engine_redis",
-    "experimental/tigrbl_engine_rediscachethrough",
-    "experimental/tigrbl_engine_snowflake/tigrbl_engine_snowflake",
-    "experimental/tigrbl_engine_xlsx",
-    "experimental/tigrbl_spiffe",
     # "experimental/ye",
     # "experimental/ymls",
     # "experimental/zr0",
@@ -367,25 +353,6 @@ members = [
     "standards/swarmauri_xmp_tiff",
     "standards/swarmauri_xmp_webp",
     "standards/swm_example_package",
-    "standards/tigrbl",
-    "standards/tigrbl_orm",
-    "standards/tigrbl_atoms",
-    "standards/tigrbl_base",
-    "standards/tigrbl_canon",
-    "standards/tigrbl_concrete",
-    "standards/tigrbl_core",
-    "standards/tigrbl_ops_oltp",
-    "standards/tigrbl_ops_olap",
-    "standards/tigrbl_kernel",
-    "standards/tigrbl_runtime",
-    "standards/tigrbl_typing",
-    "standards/tigrbl_auth",
-    "standards/tigrbl_billing",
-    "standards/tigrbl_client",
-    "standards/tigrbl_kms",
-    "standards/tigrbl_spec",
-    "standards/tigrbl_tests",
-    "standards/tigrcorn",
     "swarmauri",
     "swarmauri_standard",
     "typing",
@@ -701,41 +668,8 @@ swm_example_package = { workspace = true }
 swm_example_plugin = { workspace = true }
 swm_example_community_package = { workspace = true }
 tigr = { workspace = true }
-tigrbl = { workspace = true }
-"tigrbl-atoms" = { workspace = true }
-"tigrbl-base" = { workspace = true }
-"tigrbl-canon" = { workspace = true }
-"tigrbl-concrete" = { workspace = true }
-"tigrbl-core" = { workspace = true }
-"tigrbl-kernel" = { workspace = true }
-"tigrbl-ops-olap" = { workspace = true }
-"tigrbl-ops-oltp" = { workspace = true }
-"tigrbl-orm" = { workspace = true }
-"tigrbl-runtime" = { workspace = true }
-"tigrbl-typing" = { workspace = true }
-tigrbl_acme_ca = { workspace = true }
-tigrbl_auth = { workspace = true }
-tigrbl_billing = { workspace = true }
-tigrbl_client = { workspace = true }
-tigrbl_kms = { workspace = true }
-tigrbl_spec = { workspace = true }
-tigrcorn = { workspace = true }
-tigrbl_spiffe = { workspace = true }
-tigrbl_tests = { workspace = true }
 tigrbl_api_cron = { workspace = true }
 tigrbl_api_hpks = { workspace = true }
-tigrbl_engine_bigquery = { workspace = true }
-tigrbl_engine_clickhouse = { workspace = true }
-tigrbl_engine_csv = { workspace = true }
-tigrbl_engine_pandas = { workspace = true }
-tigrbl_engine_duckdb = { workspace = true }
-tigrbl_engine_numpy = { workspace = true }
-tigrbl_engine_pgsqli_wal = { workspace = true }
-tigrbl_engine_pyspark = { workspace = true }
-tigrbl_engine_redis = { workspace = true }
-tigrbl_engine_rediscachethrough = { workspace = true }
-tigrbl_engine_snowflake = { workspace = true }
-tigrbl_engine_xlsx = { workspace = true }
 # ye = { workspace = true }
 # ymls = { workspace = true }
 # zdx = { workspace = true }

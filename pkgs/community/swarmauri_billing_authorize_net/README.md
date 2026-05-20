@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_billing_authorize_net/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_authorize_net?label=swarmauri_billing_authorize_net&color=green" alt="PyPI - swarmauri_billing_authorize_net"/></a>
 </p>
----
 
 # Swarmauri Billing Authorize.Net
 

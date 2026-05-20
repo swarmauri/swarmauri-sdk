@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_folium/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_folium?label=swarmauri_tool_folium&color=green" alt="PyPI - swarmauri_tool_folium"/></a>
 </p>
----
 
 # Swarmauri Tool Folium
 

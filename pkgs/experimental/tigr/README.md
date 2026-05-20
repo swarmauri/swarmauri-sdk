@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/tigr/">
         <img src="https://img.shields.io/pypi/v/tigr?label=tigr&color=green" alt="PyPI - tigr"/></a>
 </p>
----
 
 # or
 pip install tigr

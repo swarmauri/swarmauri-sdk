@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_gitfilter_minio/">
         <img src="https://img.shields.io/pypi/v/swarmauri_gitfilter_minio?label=swarmauri_gitfilter_minio&color=green" alt="PyPI - swarmauri_gitfilter_minio"/></a>
 </p>
----
 
 # Swarmauri Git Filter Minio
 

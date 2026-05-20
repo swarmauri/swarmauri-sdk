@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_certservice_scep/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certservice_scep?label=swarmauri_certservice_scep&color=green" alt="PyPI - swarmauri_certservice_scep"/></a>
 </p>
----
 
 # Swarmauri Certservice SCEP
 

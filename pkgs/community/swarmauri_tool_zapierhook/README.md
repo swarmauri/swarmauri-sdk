@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_zapierhook/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_zapierhook?label=swarmauri_tool_zapierhook&color=green" alt="PyPI - swarmauri_tool_zapierhook"/></a>
 </p>
----
 
 # Swarmauri Tool Â· Zapier Hook
 

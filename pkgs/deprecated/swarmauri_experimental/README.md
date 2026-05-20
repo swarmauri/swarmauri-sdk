@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_experimental/">
         <img src="https://img.shields.io/pypi/v/swarmauri_experimental?label=swarmauri_experimental&color=green" alt="PyPI - swarmauri_experimental"/></a>
 </p>
----
 
 # Swarmauri Experimental
 

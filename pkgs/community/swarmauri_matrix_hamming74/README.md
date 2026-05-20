@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_matrix_hamming74/">
         <img src="https://img.shields.io/pypi/v/swarmauri_matrix_hamming74?label=swarmauri_matrix_hamming74&color=green" alt="PyPI - swarmauri_matrix_hamming74"/></a>
 </p>
----
 
 # Swarmauri Matrix Hamming(7,4)
 

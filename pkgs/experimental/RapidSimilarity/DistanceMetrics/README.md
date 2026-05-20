@@ -12,8 +12,6 @@
     <a href="https://pypi.org/project/DistanceMetrics/">
         <img src="https://img.shields.io/pypi/v/DistanceMetrics?label=DistanceMetrics&color=green" alt="PyPI - DistanceMetrics"/></a>
 </p>
----
-
 
 ## Purpose
 The `DistanceMetrics` package provides core distance and similarity measures, including implementations of various distance functions such as Euclidean distance and cosine similarity to evaluate similarity between high-dimensional vectors.

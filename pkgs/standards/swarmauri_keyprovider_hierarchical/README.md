@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_keyprovider_hierarchical/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_hierarchical?label=swarmauri_keyprovider_hierarchical&color=green" alt="PyPI - swarmauri_keyprovider_hierarchical"/></a>
 </p>
----
 
 # Swarmauri Hierarchical Key Provider
 

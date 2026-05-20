@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_exceptionhandling/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_exceptionhandling?label=swarmauri_middleware_exceptionhandling&color=green" alt="PyPI - swarmauri_middleware_exceptionhandling"/></a>
 </p>
----
 
 # Swarmauri Middleware Exception Handling
 

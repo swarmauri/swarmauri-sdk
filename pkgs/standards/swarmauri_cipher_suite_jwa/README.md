@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_cipher_suite_jwa/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_jwa?label=swarmauri_cipher_suite_jwa&color=green" alt="PyPI - swarmauri_cipher_suite_jwa"/></a>
 </p>
----
 
 # Swarmauri Cipher JWA
 

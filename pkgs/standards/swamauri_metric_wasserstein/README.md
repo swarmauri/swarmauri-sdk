@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swamauri_metric_wasserstein/">
         <img src="https://img.shields.io/pypi/v/swamauri_metric_wasserstein?label=swamauri_metric_wasserstein&color=green" alt="PyPI - swamauri_metric_wasserstein"/></a>
 </p>
----
 
 # Swamauri Metric Wasserstein
 

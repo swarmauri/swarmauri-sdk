@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_transport_sshtunnel/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_sshtunnel?label=swarmauri_transport_sshtunnel&color=green" alt="PyPI - swarmauri_transport_sshtunnel"/></a>
 </p>
----
 
 # Swarmauri Transport â€“ SSH Tunnel
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/zdx/">
         <img src="https://img.shields.io/pypi/v/zdx?label=zdx&color=green" alt="PyPI - zdx"/></a>
 </p>
----
 
 # ZDX
 

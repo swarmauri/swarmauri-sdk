@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_vectorstore_neo4j/">
         <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_neo4j?label=swarmauri_vectorstore_neo4j&color=green" alt="PyPI - swarmauri_vectorstore_neo4j"/></a>
 </p>
----
 
 # Swarmauri Vectorstore Neo4j
 

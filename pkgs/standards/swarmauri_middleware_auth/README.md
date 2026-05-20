@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_auth/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_auth?label=swarmauri_middleware_auth&color=green" alt="PyPI - swarmauri_middleware_auth"/></a>
 </p>
----
 
 # `swarmauri_middleware_auth`
 

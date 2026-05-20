@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_transport_h2mux/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_h2mux?label=swarmauri_transport_h2mux&color=green" alt="PyPI - swarmauri_transport_h2mux"/></a>
 </p>
----
 
 # Swarmauri Transport â€“ H2 Multiplexer
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_gitfilter_gh_release/">
         <img src="https://img.shields.io/pypi/v/swarmauri_gitfilter_gh_release?label=swarmauri_gitfilter_gh_release&color=green" alt="PyPI - swarmauri_gitfilter_gh_release"/></a>
 </p>
----
 
 # Swarmauri Git Filter GitHub Release
 

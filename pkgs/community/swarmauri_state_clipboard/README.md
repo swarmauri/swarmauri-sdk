@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_state_clipboard/">
         <img src="https://img.shields.io/pypi/v/swarmauri_state_clipboard?label=swarmauri_state_clipboard&color=green" alt="PyPI - swarmauri_state_clipboard"/></a>
 </p>
----
 
 # Swarmauri State Clipboard
 

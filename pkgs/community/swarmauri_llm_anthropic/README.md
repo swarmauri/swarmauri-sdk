@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_llm_anthropic/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_anthropic?label=swarmauri_llm_anthropic&color=green" alt="PyPI - swarmauri_llm_anthropic"/></a>
 </p>
----
 
 # swarmauri_llm_anthropic
 

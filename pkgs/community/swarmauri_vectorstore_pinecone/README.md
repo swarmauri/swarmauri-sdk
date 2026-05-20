@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_vectorstore_pinecone/">
         <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_pinecone?label=swarmauri_vectorstore_pinecone&color=green" alt="PyPI - swarmauri_vectorstore_pinecone"/></a>
 </p>
----
 
 # Swarmauri Vectorstore Pinecone
 

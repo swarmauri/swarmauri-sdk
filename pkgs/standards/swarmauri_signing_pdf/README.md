@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_signing_pdf/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_pdf?label=swarmauri_signing_pdf&color=green" alt="PyPI - swarmauri_signing_pdf"/></a>
 </p>
----
 
 # Swarmauri Signing PDF
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/zr0/">
         <img src="https://img.shields.io/pypi/v/zr0?label=zr0&color=green" alt="PyPI - zr0"/></a>
 </p>
----
 
 # Swm Example Package
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_webscraping/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_webscraping?label=swarmauri_tool_webscraping&color=green" alt="PyPI - swarmauri_tool_webscraping"/></a>
 </p>
----
 
 # Swarmauri Tool Â· Web Scraping
 

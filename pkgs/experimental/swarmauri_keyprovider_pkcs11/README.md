@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_keyprovider_pkcs11/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_pkcs11?label=swarmauri_keyprovider_pkcs11&color=green" alt="PyPI - swarmauri_keyprovider_pkcs11"/></a>
 </p>
----
 
 # Swarmauri PKCS#11 Key Provider
 

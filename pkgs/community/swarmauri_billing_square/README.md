@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_billing_square/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_square?label=swarmauri_billing_square&color=green" alt="PyPI - swarmauri_billing_square"/></a>
 </p>
----
 
 # Swarmauri Billing Square
 

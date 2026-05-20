@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_searchword/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_searchword?label=swarmauri_tool_searchword&color=green" alt="PyPI - swarmauri_tool_searchword"/></a>
 </p>
----
 
 # Swarmauri Tool Â· Search Word
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_signing_ssh/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_ssh?label=swarmauri_signing_ssh&color=green" alt="PyPI - swarmauri_signing_ssh"/></a>
 </p>
----
 
 # swarmauri_signing_ssh
 

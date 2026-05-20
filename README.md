@@ -13,8 +13,6 @@
         <img src="https://img.shields.io/pypi/v/swarmauri?label=swarmauri&color=green" alt="PyPI - swarmauri"/></a>
 </p>
 
----
-
 # Swarmauri SDK
 
 The Swarmauri SDK provides a powerful, extensible framework for building AI-powered applications. This repository includes core interfaces, standard abstract base classes, and concrete reference implementations.

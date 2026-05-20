@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tests_pylicense/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tests_pylicense?label=swarmauri_tests_pylicense&color=green" alt="PyPI - swarmauri_tests_pylicense"/></a>
 </p>
----
 
 ## Overview
 

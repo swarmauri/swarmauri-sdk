@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_parser_textblob/">
         <img src="https://img.shields.io/pypi/v/swarmauri_parser_textblob?label=swarmauri_parser_textblob&color=green" alt="PyPI - swarmauri_parser_textblob"/></a>
 </p>
----
 
 # Swarmauri Parser TextBlob
 

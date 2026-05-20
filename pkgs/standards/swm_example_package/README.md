@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swm_example_package/">
         <img src="https://img.shields.io/pypi/v/swm_example_package?label=swm_example_package&color=green" alt="PyPI - swm_example_package"/></a>
 </p>
----
 
 # Swm Example Package
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_transport_stdio/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_stdio?label=swarmauri_transport_stdio&color=green" alt="PyPI - swarmauri_transport_stdio"/></a>
 </p>
----
 
 # Swarmauri Transport â€“ STDIO Bridge
 

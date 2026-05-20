@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_vectorstore_git/">
         <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_git?label=swarmauri_vectorstore_git&color=green" alt="PyPI - swarmauri_vectorstore_git"/></a>
 </p>
----
 
 # Swarmauri Vectorstore Git
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_transport_quic/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_quic?label=swarmauri_transport_quic&color=green" alt="PyPI - swarmauri_transport_quic"/></a>
 </p>
----
 
 # Swarmauri QUIC Transport
 

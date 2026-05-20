@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_cipher_suite_pep458/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_pep458?label=swarmauri_cipher_suite_pep458&color=green" alt="PyPI - swarmauri_cipher_suite_pep458"/></a>
 </p>
----
 
 # swarmauri_cipher_suite_pep458
 

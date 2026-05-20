@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_jupyterexportlatex/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterexportlatex?label=swarmauri_tool_jupyterexportlatex&color=green" alt="PyPI - swarmauri_tool_jupyterexportlatex"/></a>
 </p>
----
 
 # Swarmauri Tool Jupyter Export LaTeX
 

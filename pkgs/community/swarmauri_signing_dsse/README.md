@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_signing_dsse/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_dsse?label=swarmauri_signing_dsse&color=green" alt="PyPI - swarmauri_signing_dsse"/></a>
 </p>
----
 
 # Swarmauri Signing DSSE
 

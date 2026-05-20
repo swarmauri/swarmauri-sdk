@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_xmp_png/">
         <img src="https://img.shields.io/pypi/v/swarmauri_xmp_png?label=swarmauri_xmp_png&color=green" alt="PyPI - swarmauri_xmp_png"/></a>
 </p>
----
 
 # swarmauri_xmp_png
 

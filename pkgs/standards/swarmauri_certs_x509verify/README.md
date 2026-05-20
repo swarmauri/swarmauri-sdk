@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_certs_x509verify/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_x509verify?label=swarmauri_certs_x509verify&color=green" alt="PyPI - swarmauri_certs_x509verify"/></a>
 </p>
----
 
 # Swarmauri Certs X509 Verify
 

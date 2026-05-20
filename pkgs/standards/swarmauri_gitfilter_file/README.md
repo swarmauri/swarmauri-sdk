@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_gitfilter_file/">
         <img src="https://img.shields.io/pypi/v/swarmauri_gitfilter_file?label=swarmauri_gitfilter_file&color=green" alt="PyPI - swarmauri_gitfilter_file"/></a>
 </p>
----
 
 # Swarmauri Git Filter File
 

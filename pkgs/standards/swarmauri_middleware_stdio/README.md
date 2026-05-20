@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_stdio/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_stdio?label=swarmauri_middleware_stdio&color=green" alt="PyPI - swarmauri_middleware_stdio"/></a>
 </p>
----
 
 # Swarmauri Middleware Stdio
 

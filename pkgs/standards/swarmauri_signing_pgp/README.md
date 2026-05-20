@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_signing_pgp/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_pgp?label=swarmauri_signing_pgp&color=green" alt="PyPI - swarmauri_signing_pgp"/></a>
 </p>
----
 
 # Swarmauri Signing PGP
 

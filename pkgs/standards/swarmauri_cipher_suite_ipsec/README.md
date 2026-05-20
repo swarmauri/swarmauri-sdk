@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_cipher_suite_ipsec/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_ipsec?label=swarmauri_cipher_suite_ipsec&color=green" alt="PyPI - swarmauri_cipher_suite_ipsec"/></a>
 </p>
----
 
 # Swarmauri Cipher Ipsec
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_jwt/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_jwt?label=swarmauri_middleware_jwt&color=green" alt="PyPI - swarmauri_middleware_jwt"/></a>
 </p>
----
 
 # Swarmauri Middleware JWT
 

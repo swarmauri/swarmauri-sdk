@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_workflow_statedriven/">
         <img src="https://img.shields.io/pypi/v/swarmauri_workflow_statedriven?label=swarmauri_workflow_statedriven&color=green" alt="PyPI - swarmauri_workflow_statedriven"/></a>
 </p>
----
 
 # Swarmauri Workflow Statedriven
 

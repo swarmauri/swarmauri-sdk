@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_cipher_suite_cose/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_cose?label=swarmauri_cipher_suite_cose&color=green" alt="PyPI - swarmauri_cipher_suite_cose"/></a>
 </p>
----
 
 # Swarmauri Cipher COSE
 

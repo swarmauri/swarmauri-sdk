@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_vectorstore_mlm/">
         <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_mlm?label=swarmauri_vectorstore_mlm&color=green" alt="PyPI - swarmauri_vectorstore_mlm"/></a>
 </p>
----
 
 # Swarmauri Vectorstore Mlm
 

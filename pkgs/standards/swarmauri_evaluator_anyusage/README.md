@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_evaluator_anyusage/">
         <img src="https://img.shields.io/pypi/v/swarmauri_evaluator_anyusage?label=swarmauri_evaluator_anyusage&color=green" alt="PyPI - swarmauri_evaluator_anyusage"/></a>
 </p>
----
 
 # Swarmauri Evaluator AnyUsage
 

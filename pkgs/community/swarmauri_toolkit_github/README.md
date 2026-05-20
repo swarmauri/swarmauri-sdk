@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_toolkit_github/">
         <img src="https://img.shields.io/pypi/v/swarmauri_toolkit_github?label=swarmauri_toolkit_github&color=green" alt="PyPI - swarmauri_toolkit_github"/></a>
 </p>
----
 
 # Swarmauri Toolkit Â· GitHub
 

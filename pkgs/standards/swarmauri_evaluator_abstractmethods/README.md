@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_evaluator_abstractmethods/">
         <img src="https://img.shields.io/pypi/v/swarmauri_evaluator_abstractmethods?label=swarmauri_evaluator_abstractmethods&color=green" alt="PyPI - swarmauri_evaluator_abstractmethods"/></a>
 </p>
----
 
 # Swarmauri Evaluator Abstractmethods
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_evaluatorpool_accessibility/">
         <img src="https://img.shields.io/pypi/v/swarmauri_evaluatorpool_accessibility?label=swarmauri_evaluatorpool_accessibility&color=green" alt="PyPI - swarmauri_evaluatorpool_accessibility"/></a>
 </p>
----
 
 # Swarmauri Evaluatorpool Accessibility
 

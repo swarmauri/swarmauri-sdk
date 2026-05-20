@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/snt/">
         <img src="https://img.shields.io/pypi/v/snt?label=snt&color=green" alt="PyPI - snt"/></a>
 </p>
----
 
 # Swm Example Package
 

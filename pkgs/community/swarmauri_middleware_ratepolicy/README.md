@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_ratepolicy/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_ratepolicy?label=swarmauri_middleware_ratepolicy&color=green" alt="PyPI - swarmauri_middleware_ratepolicy"/></a>
 </p>
----
 
 # Swarmauri Middleware Ratepolicy
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_billing_razorpay/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_razorpay?label=swarmauri_billing_razorpay&color=green" alt="PyPI - swarmauri_billing_razorpay"/></a>
 </p>
----
 
 # Swarmauri Billing Razorpay
 

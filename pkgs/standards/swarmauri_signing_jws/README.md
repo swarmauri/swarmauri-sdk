@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_signing_jws/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_jws?label=swarmauri_signing_jws&color=green" alt="PyPI - swarmauri_signing_jws"/></a>
 </p>
----
 
 # Swarmauri Signing JWS
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_canon_http/">
         <img src="https://img.shields.io/pypi/v/swarmauri_canon_http?label=swarmauri_canon_http&color=green" alt="PyPI - swarmauri_canon_http"/></a>
 </p>
----
 
 `swarmauri_canon_http` is a lightweight canonical HTTP client implementation that tracks a subset of `httpx` behavior for parity checks and incremental feature alignment.
 

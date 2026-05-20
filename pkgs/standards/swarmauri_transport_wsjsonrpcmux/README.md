@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_transport_wsjsonrpcmux/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_wsjsonrpcmux?label=swarmauri_transport_wsjsonrpcmux&color=green" alt="PyPI - swarmauri_transport_wsjsonrpcmux"/></a>
 </p>
----
 
 # Swarmauri Transport â€“ WebSocket JSON-RPC
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_signing_ecdsa/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_ecdsa?label=swarmauri_signing_ecdsa&color=green" alt="PyPI - swarmauri_signing_ecdsa"/></a>
 </p>
----
 
 # Swarmauri Signing ECDSA
 

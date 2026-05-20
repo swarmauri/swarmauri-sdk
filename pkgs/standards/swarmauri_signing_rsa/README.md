@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_signing_rsa/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_rsa?label=swarmauri_signing_rsa&color=green" alt="PyPI - swarmauri_signing_rsa"/></a>
 </p>
----
 
 # Swarmauri Signing RSA
 

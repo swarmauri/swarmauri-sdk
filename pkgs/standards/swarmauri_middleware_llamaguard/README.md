@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_llamaguard/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_llamaguard?label=swarmauri_middleware_llamaguard&color=green" alt="PyPI - swarmauri_middleware_llamaguard"/></a>
 </p>
----
 
 # Swarmauri Middleware LlamaGuard
 

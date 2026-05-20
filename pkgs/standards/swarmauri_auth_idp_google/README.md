@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_auth_idp_google/">
         <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_google?label=swarmauri_auth_idp_google&color=green" alt="PyPI - swarmauri_auth_idp_google"/></a>
 </p>
----
 
 # Swarmauri Auth IDP Google
 

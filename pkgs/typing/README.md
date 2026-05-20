@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_typing/">
         <img src="https://img.shields.io/pypi/v/swarmauri_typing?label=swarmauri_typing&color=green" alt="PyPI - swarmauri_typing"/></a>
 </p>
----
 
 # Swarmauri Typing
 

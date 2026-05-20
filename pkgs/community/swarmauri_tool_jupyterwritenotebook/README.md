@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_jupyterwritenotebook/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterwritenotebook?label=swarmauri_tool_jupyterwritenotebook&color=green" alt="PyPI - swarmauri_tool_jupyterwritenotebook"/></a>
 </p>
----
 
 # Swarmauri Tool Â· Jupyter Write Notebook
 

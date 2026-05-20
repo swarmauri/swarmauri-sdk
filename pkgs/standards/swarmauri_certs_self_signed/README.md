@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_certs_self_signed/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_self_signed?label=swarmauri_certs_self_signed&color=green" alt="PyPI - swarmauri_certs_self_signed"/></a>
 </p>
----
 
 # Swarmauri Self-Signed Certificate Builder
 

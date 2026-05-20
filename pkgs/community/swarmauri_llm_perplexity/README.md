@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_llm_perplexity/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_perplexity?label=swarmauri_llm_perplexity&color=green" alt="PyPI - swarmauri_llm_perplexity"/></a>
 </p>
----
 
 # swarmauri_llm_perplexity
 

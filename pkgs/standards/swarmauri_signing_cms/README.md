@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_signing_cms/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_cms?label=swarmauri_signing_cms&color=green" alt="PyPI - swarmauri_signing_cms"/></a>
 </p>
----
 
 # Swarmauri Signing CMS
 

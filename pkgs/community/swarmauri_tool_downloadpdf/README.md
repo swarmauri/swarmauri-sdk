@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_downloadpdf/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_downloadpdf?label=swarmauri_tool_downloadpdf&color=green" alt="PyPI - swarmauri_tool_downloadpdf"/></a>
 </p>
----
 
 # Swarmauri Tool Download PDF
 

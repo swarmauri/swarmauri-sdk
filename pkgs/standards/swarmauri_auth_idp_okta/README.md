@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_auth_idp_okta/">
         <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_okta?label=swarmauri_auth_idp_okta&color=green" alt="PyPI - swarmauri_auth_idp_okta"/></a>
 </p>
----
 
 # Swarmauri Auth IDP Okta
 

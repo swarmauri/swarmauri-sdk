@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_core/">
         <img src="https://img.shields.io/pypi/v/swarmauri_core?label=swarmauri_core&color=green" alt="PyPI - swarmauri_core"/></a>
 </p>
----
 
 # Swarmauri Core
 

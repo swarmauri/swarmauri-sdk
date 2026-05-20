@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_auth_idp_salesforce/">
         <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_salesforce?label=swarmauri_auth_idp_salesforce&color=green" alt="PyPI - swarmauri_auth_idp_salesforce"/></a>
 </p>
----
 
 # Swarmauri Auth IDP Salesforce
 

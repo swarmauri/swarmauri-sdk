@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_vectorstore_tfidf/">
         <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_tfidf?label=swarmauri_vectorstore_tfidf&color=green" alt="PyPI - swarmauri_vectorstore_tfidf"/></a>
 </p>
----
 
 # Swarmauri Vectorstore Tfidf
 

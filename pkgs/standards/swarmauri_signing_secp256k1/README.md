@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_signing_secp256k1/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_secp256k1?label=swarmauri_signing_secp256k1&color=green" alt="PyPI - swarmauri_signing_secp256k1"/></a>
 </p>
----
 
 # Swarmauri Signing Secp256k1
 

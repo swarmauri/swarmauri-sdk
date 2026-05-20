@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_transport_tcpunicast/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_tcpunicast?label=swarmauri_transport_tcpunicast&color=green" alt="PyPI - swarmauri_transport_tcpunicast"/></a>
 </p>
----
 
 # Swarmauri Transport â€“ TCP Unicast
 

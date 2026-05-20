@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_httpsig/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_httpsig?label=swarmauri_middleware_httpsig&color=green" alt="PyPI - swarmauri_middleware_httpsig"/></a>
 </p>
----
 
 # Swarmauri Middleware HttpSig
 

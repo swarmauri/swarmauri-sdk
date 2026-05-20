@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_parser_beautifulsoupelement/">
         <img src="https://img.shields.io/pypi/v/swarmauri_parser_beautifulsoupelement?label=swarmauri_parser_beautifulsoupelement&color=green" alt="PyPI - swarmauri_parser_beautifulsoupelement"/></a>
 </p>
----
 
 # Swarmauri Parser Beautifulsoupelement
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_certs_remote_ca/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_remote_ca?label=swarmauri_certs_remote_ca&color=green" alt="PyPI - swarmauri_certs_remote_ca"/></a>
 </p>
----
 
 # Swarmauri Remote CA Cert Service
 

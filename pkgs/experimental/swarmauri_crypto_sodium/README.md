@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_crypto_sodium/">
         <img src="https://img.shields.io/pypi/v/swarmauri_crypto_sodium?label=swarmauri_crypto_sodium&color=green" alt="PyPI - swarmauri_crypto_sodium"/></a>
 </p>
----
 
 # Swarmauri Crypto Sodium
 

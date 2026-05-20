@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_session/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_session?label=swarmauri_middleware_session&color=green" alt="PyPI - swarmauri_middleware_session"/></a>
 </p>
----
 
 # Swarmauri Middleware Session
 

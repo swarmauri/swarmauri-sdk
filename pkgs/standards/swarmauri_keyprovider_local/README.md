@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_keyprovider_local/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_local?label=swarmauri_keyprovider_local&color=green" alt="PyPI - swarmauri_keyprovider_local"/></a>
 </p>
----
 
 # Swarmauri Local Key Provider
 

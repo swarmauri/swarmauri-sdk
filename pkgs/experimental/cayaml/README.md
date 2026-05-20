@@ -12,5 +12,4 @@
     <a href="https://pypi.org/project/cayaml/">
         <img src="https://img.shields.io/pypi/v/cayaml?label=cayaml&color=green" alt="PyPI - cayaml"/></a>
 </p>
----
 

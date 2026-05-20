@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_keyproviders_mirrored/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyproviders_mirrored?label=swarmauri_keyproviders_mirrored&color=green" alt="PyPI - swarmauri_keyproviders_mirrored"/></a>
 </p>
----
 
 # Swarmauri Mirrored Key Provider
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/tigrbl_api_cron/">
         <img src="https://img.shields.io/pypi/v/tigrbl_api_cron?label=tigrbl_api_cron&color=green" alt="PyPI - tigrbl_api_cron"/></a>
 </p>
----
 
 # Tigrbl API Cron ⏰
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/EmbedXMP/">
         <img src="https://img.shields.io/pypi/v/EmbedXMP?label=EmbedXMP&color=green" alt="PyPI - EmbedXMP"/></a>
 </p>
----
 
 EmbedXMP collects every installed `EmbedXmpBase` implementation, discovers them via Swarmauri's dynamic registry, and exposes a unified manager that can embed, read, or remove XMP packets without worrying about container formats.
 

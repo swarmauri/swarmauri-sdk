@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_auth_idp_gitea/">
         <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_gitea?label=swarmauri_auth_idp_gitea&color=green" alt="PyPI - swarmauri_auth_idp_gitea"/></a>
 </p>
----
 
 # Swarmauri Auth IDP Gitea
 

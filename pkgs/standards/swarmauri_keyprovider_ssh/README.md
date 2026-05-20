@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_keyprovider_ssh/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_ssh?label=swarmauri_keyprovider_ssh&color=green" alt="PyPI - swarmauri_keyprovider_ssh"/></a>
 </p>
----
 
 # Swarmauri SSH Key Provider
 

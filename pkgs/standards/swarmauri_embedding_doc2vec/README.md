@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_embedding_doc2vec/">
         <img src="https://img.shields.io/pypi/v/swarmauri_embedding_doc2vec?label=swarmauri_embedding_doc2vec&color=green" alt="PyPI - swarmauri_embedding_doc2vec"/></a>
 </p>
----
 
 # Swarmauri Embedding Doc2vec
 

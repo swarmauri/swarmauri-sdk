@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_middleware_time/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_time?label=swarmauri_middleware_time&color=green" alt="PyPI - swarmauri_middleware_time"/></a>
 </p>
----
 
 # Swarmauri Middleware Time
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_transport_uds_unicast/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_uds_unicast?label=swarmauri_transport_uds_unicast&color=green" alt="PyPI - swarmauri_transport_uds_unicast"/></a>
 </p>
----
 
 # Swarmauri UDS Unicast Transport
 

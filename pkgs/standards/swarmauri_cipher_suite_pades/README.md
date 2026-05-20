@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_cipher_suite_pades/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_pades?label=swarmauri_cipher_suite_pades&color=green" alt="PyPI - swarmauri_cipher_suite_pades"/></a>
 </p>
----
 
 # Swarmauri Cipher Pades
 

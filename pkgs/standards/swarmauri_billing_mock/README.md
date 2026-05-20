@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_billing_mock/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_mock?label=swarmauri_billing_mock&color=green" alt="PyPI - swarmauri_billing_mock"/></a>
 </p>
----
 
 # Swarmauri Billing Mock
 

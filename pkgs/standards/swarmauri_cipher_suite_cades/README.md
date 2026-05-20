@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_cipher_suite_cades/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_cades?label=swarmauri_cipher_suite_cades&color=green" alt="PyPI - swarmauri_cipher_suite_cades"/></a>
 </p>
----
 
 # Swarmauri Cipher Cades
 

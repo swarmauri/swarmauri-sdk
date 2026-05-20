@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_psutil/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_psutil?label=swarmauri_tool_psutil&color=green" alt="PyPI - swarmauri_tool_psutil"/></a>
 </p>
----
 
 # Swarmauri Tool Â· psutil
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_jupyterstartkernel/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterstartkernel?label=swarmauri_tool_jupyterstartkernel&color=green" alt="PyPI - swarmauri_tool_jupyterstartkernel"/></a>
 </p>
----
 
 # Swarmauri Tool Â· Jupyter Start Kernel
 

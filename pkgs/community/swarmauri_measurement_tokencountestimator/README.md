@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_measurement_tokencountestimator/">
         <img src="https://img.shields.io/pypi/v/swarmauri_measurement_tokencountestimator?label=swarmauri_measurement_tokencountestimator&color=green" alt="PyPI - swarmauri_measurement_tokencountestimator"/></a>
 </p>
----
 
 # Swarmauri Measurement Token Count Estimator
 

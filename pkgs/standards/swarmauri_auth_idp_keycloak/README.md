@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_auth_idp_keycloak/">
         <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_keycloak?label=swarmauri_auth_idp_keycloak&color=green" alt="PyPI - swarmauri_auth_idp_keycloak"/></a>
 </p>
----
 
 # Swarmauri Auth IDP Keycloak
 

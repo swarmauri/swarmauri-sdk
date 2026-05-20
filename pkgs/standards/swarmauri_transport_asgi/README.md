@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_transport_asgi/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_asgi?label=swarmauri_transport_asgi&color=green" alt="PyPI - swarmauri_transport_asgi"/></a>
 </p>
----
 
 # Swarmauri Transport â€“ ASGI Server
 

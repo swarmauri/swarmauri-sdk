@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_transport_udp/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_udp?label=swarmauri_transport_udp&color=green" alt="PyPI - swarmauri_transport_udp"/></a>
 </p>
----
 
 # Swarmauri UDP Transport
 

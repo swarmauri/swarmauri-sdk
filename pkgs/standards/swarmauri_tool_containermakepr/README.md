@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_containermakepr/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_containermakepr?label=swarmauri_tool_containermakepr&color=green" alt="PyPI - swarmauri_tool_containermakepr"/></a>
 </p>
----
 
 # Swarmauri Tool ContainerMakePR
 

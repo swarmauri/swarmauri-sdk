@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/g9/">
         <img src="https://img.shields.io/pypi/v/g9?label=g9&color=green" alt="PyPI - g9"/></a>
 </p>
----
 
 # Swm Example Package
 

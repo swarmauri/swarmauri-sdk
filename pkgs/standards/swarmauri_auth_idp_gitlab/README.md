@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_auth_idp_gitlab/">
         <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_gitlab?label=swarmauri_auth_idp_gitlab&color=green" alt="PyPI - swarmauri_auth_idp_gitlab"/></a>
 </p>
----
 
 # Swarmauri Auth IDP GitLab
 

@@ -12,5 +12,4 @@
     <a href="https://pypi.org/project/catoml/">
         <img src="https://img.shields.io/pypi/v/catoml?label=catoml&color=green" alt="PyPI - catoml"/></a>
 </p>
----
 

@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_gitfilter_s3fs/">
         <img src="https://img.shields.io/pypi/v/swarmauri_gitfilter_s3fs?label=swarmauri_gitfilter_s3fs&color=green" alt="PyPI - swarmauri_gitfilter_s3fs"/></a>
 </p>
----
 
 # Swarmauri Git Filter S3FS
 

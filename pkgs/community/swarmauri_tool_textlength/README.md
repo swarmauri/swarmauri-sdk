@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_textlength/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_textlength?label=swarmauri_tool_textlength&color=green" alt="PyPI - swarmauri_tool_textlength"/></a>
 </p>
----
 
 # Swarmauri Tool Â· Text Length
 

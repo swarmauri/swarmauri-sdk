@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_jupytergetiopubmessage/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupytergetiopubmessage?label=swarmauri_tool_jupytergetiopubmessage&color=green" alt="PyPI - swarmauri_tool_jupytergetiopubmessage"/></a>
 </p>
----
 
 # Swarmauri Tool Jupyter Get IOPub Message
 

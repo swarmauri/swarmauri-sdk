@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_tool_dalechallreadability/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_dalechallreadability?label=swarmauri_tool_dalechallreadability&color=green" alt="PyPI - swarmauri_tool_dalechallreadability"/></a>
 </p>
----
 
 # Swarmauri Tool Dale-Chall Readability
 

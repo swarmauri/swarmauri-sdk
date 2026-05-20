@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_llm_falai/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_falai?label=swarmauri_llm_falai&color=green" alt="PyPI - swarmauri_llm_falai"/></a>
 </p>
----
 
 # swarmauri_llm_falai
 

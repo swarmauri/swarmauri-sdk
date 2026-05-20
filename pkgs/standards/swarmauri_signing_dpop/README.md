@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_signing_dpop/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_dpop?label=swarmauri_signing_dpop&color=green" alt="PyPI - swarmauri_signing_dpop"/></a>
 </p>
----
 
 # Swarmauri Signing DPoP
 

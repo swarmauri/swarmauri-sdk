@@ -12,7 +12,6 @@
     <a href="https://pypi.org/project/swarmauri_measurement_mutualinformation/">
         <img src="https://img.shields.io/pypi/v/swarmauri_measurement_mutualinformation?label=swarmauri_measurement_mutualinformation&color=green" alt="PyPI - swarmauri_measurement_mutualinformation"/></a>
 </p>
----
 
 # Swarmauri Measurement Mutual Information
 
