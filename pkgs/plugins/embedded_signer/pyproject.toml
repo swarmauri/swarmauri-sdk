@@ -175,7 +175,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--pylicense-package=EmbeddedSigner --pylicense-mode=parameterized --pylicense-accept-deps=cffi,pycparser"
+addopts = "--pylicense-package=EmbeddedSigner --pylicense-mode=parameterized --pylicense-accept-deps=cffi,pycparser,numpy"
 
 [tool.poetry]
 packages = [
