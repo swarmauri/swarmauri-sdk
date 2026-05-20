@@ -190,8 +190,6 @@ members = [
     "plugins/example_plugin",
     "plugins/media_signer",
     "plugins/zdx",
-    "standards/peagen",
-    "standards/peagen_templset_vue",
     "standards/swarmauri_auth_idp_apple",
     "standards/swarmauri_auth_idp_aws",
     "standards/swarmauri_auth_idp_azure",
@@ -380,7 +378,6 @@ EmbedXMP = { workspace = true }
 mto = { workspace = true }
 monotone_ops = { workspace = true }
 MediaSigner = { workspace = true }
-peagen_templset_vue = { workspace = true }
 ptree_dag_extension_example = { workspace = true }
 # QueryEngine = { workspace = true }
 # s = { workspace = true }
