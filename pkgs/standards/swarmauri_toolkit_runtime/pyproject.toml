@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_toolkit_runtime"
-version = "0.1.1.dev2"
+version = "0.1.1.dev3"
 description = "Runtime toolkit for explicit-parameter registration, inspection, replacement, listing, and removal of Swarmauri tools during agent execution."
 license = "Apache-2.0"
 readme = { file = "README.md", content-type = "text/markdown" }
