@@ -40,6 +40,7 @@ dependencies = [
     "swarmauri_base",
     "swarmauri_core",
     "pgpy>=0.6.0",
+    "standard-imghdr>=3.13.0; python_version >= '3.13'",
 ]
 
 [project.urls]
