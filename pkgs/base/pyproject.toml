@@ -1,18 +1,24 @@
 [project]
 name = "swarmauri_base"
 version = "0.10.1.dev5"
-description = "This repository includes base classes and mixins for the Swarmauri framework."
+description = "Reusable Swarmauri base classes, mixins, and dynamic Pydantic component models for composable intelligence infrastructure."
 keywords = [
     "swarmauri",
     "base-classes",
+    "mixins",
+    "ai-sdk",
+    "component-model",
+    "component-registry",
+    "composable-intelligence",
     "dynamic-json-schema",
     "discriminated-unions",
     "pydantic",
+    "pydantic-models",
     "schema-first",
     "serialization",
     "yaml",
     "toml",
-    "plugin-factory",
+    "plugin-components",
     "typed-components",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
@@ -20,7 +26,10 @@ license = "Apache-2.0"
 readme = { file = "README.md", content-type = "text/markdown" }
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -29,6 +38,10 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Markup",
 ]
 requires-python = ">=3.10,<3.15"
 dependencies = [

@@ -15,18 +15,56 @@
 
 # Swarmauri Base
 
-`swarmauri_base` is where Swarmauri's dynamic component schema machinery lives.
-`ComponentBase` combines Pydantic JSON support, YAML/TOML serialization mixins,
-and `DynamicBase` registration so components can preserve concrete subclass
-identity across configuration files, APIs, factories, queues, and databases.
+`swarmauri_base` provides the reusable base classes, mixins, and dynamic component model used by Swarmauri SDK implementations. It builds on `swarmauri_core` interfaces and adds Pydantic models, typed component registration, JSON/YAML/TOML serialization, logging helpers, service helpers, and base classes for each major component family.
 
-When a subclass is registered with `ComponentBase.register_type(...)`, fields
-typed with `SubclassUnion[...]` can hydrate that concrete subclass from a
-serialized `type` discriminator. The same component can be dumped to JSON,
-YAML, or TOML and loaded again without becoming an untyped dictionary.
+## Answer Engine Overview
+
+`swarmauri_base` answers the question "How do I turn a Swarmauri interface into a serializable, typed, registry-aware component?" It provides `ComponentBase`, `DynamicBase`, `SubclassUnion`, resource typing, and family-specific base classes that implementation packages inherit before they are published through the `swarmauri` namespace.
+
+## Features
+
+- `ComponentBase` for Pydantic-backed Swarmauri components with `type`, `resource`, `name`, and `version` fields.
+- `DynamicBase` and `SubclassUnion` for discriminated-union deserialization from concrete `type` values.
+- JSON, YAML, and TOML serialization through Pydantic plus Swarmauri mixins.
+- Base classes for agents, chains, chunkers, conversations, documents, embeddings, LLMs, tools, toolkits, vector stores, parsers, prompts, transports, middleware, signing, crypto, key providers, tokens, billing, XMP, and more.
+- Default mixins for logging, service metadata, batch behavior, retrieval behavior, storage behavior, and component-family-specific workflows.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
+
+## Installation
+
+Install with `uv`:
+
+```bash
+uv add swarmauri_base
+```
+
+Install with `pip`:
+
+```bash
+pip install swarmauri_base
+```
+
+## Usage
+
+Create a typed component by inheriting from `ComponentBase`:
 
 ```python
 from typing import Literal
+
+from swarmauri_base.ComponentBase import ComponentBase
+
+
+@ComponentBase.register_model()
+class StoreConfig(ComponentBase):
+    type: Literal["StoreConfig"] = "StoreConfig"
+    name: str
+```
+
+Register and hydrate concrete subtypes with `SubclassUnion`:
+
+```python
+from typing import Literal
+
 from pydantic import BaseModel
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.DynamicBase import SubclassUnion
@@ -51,164 +89,78 @@ class StoreEnvelope(BaseModel):
 envelope = StoreEnvelope.model_validate_json(
     '{"store":{"type":"SqliteStoreConfig","name":"local","path":"./data.db"}}'
 )
+
 assert isinstance(envelope.store, SqliteStoreConfig)
 ```
 
-## Getting Started
-
-### Installing Swarmauri Base from pypi
-
-To start developing with the Core Library, include it as a module in your Python project. Ensure you have Python 3.10 or later installed.
-
-```sh
-pip install swarmauri-base
-```
-
-
-
-### Example Usage:
+Build a concrete tool from `ToolBase`:
 
 ```python
-# Example of using the base class
-from swarmauri_base.llms.LLMBase import LLMBase
+from typing import Any, Literal
 
-class MyConcreteClass(LLMBase):
-    
-    pass
+from swarmauri_base.tools.ToolBase import ToolBase
+
+
+class EchoTool(ToolBase):
+    type: Literal["EchoTool"] = "EchoTool"
+    name: str = "echo"
+    description: str = "Return the input payload."
+
+    def __call__(self, payload: Any) -> Any:
+        return payload
+
+
+tool = EchoTool()
+assert tool("hello") == "hello"
+assert tool.batch(["a", "b"]) == ["a", "b"]
 ```
 
-## Features
+## Component Families
 
-### agents
-- [`AgentBase.py`](./swarmauri_base/agents/AgentBase.py): Base class for agents.
-- [`AgentConversationMixin.py`](./swarmauri_base/agents/AgentConversationMixin.py): Mixin for conversation capabilities.
-- [`AgentRetrieveMixin.py`](./swarmauri_base/agents/AgentRetrieveMixin.py): Mixin for retrieval functionalities.
-- [`AgentSystemContextMixin.py`](./swarmauri_base/agents/AgentSystemContextMixin.py): Mixin for system context.
-- [`AgentToolMixin.py`](./swarmauri_base/agents/AgentToolMixin.py): Mixin for tool integration.
-- [`AgentVectorStoreMixin.py`](./swarmauri_base/agents/AgentVectorStoreMixin.py): Mixin for vector store functionalities.
+`swarmauri_base` includes base classes and mixins for these component kinds:
 
-### chains
-- [`ChainBase.py`](./swarmauri_base/chains/ChainBase.py): Base class for chains.
-- [`ChainContextBase.py`](./swarmauri_base/chains/ChainContextBase.py): Base class for chain context.
-- [`ChainStepBase.py`](./swarmauri_base/chains/ChainStepBase.py): Base class for chain steps.
-- [`PromptContextChainBase.py`](./swarmauri_base/chains/PromptContextChainBase.py): Base class for prompt context chains.
+- AI and agent workflow: agents, chains, conversations, prompts, prompt templates, pipelines, swarms, task management strategies, tool LLMs, tools, toolkits, LLMs, VLMs, OCR, STT, and TTS.
+- Data and retrieval: documents, document stores, embeddings, vectors, vector stores, parsers, schema converters, data connectors, state, service registries, and storage adapters.
+- Math and evaluation: distances, inner products, matrices, measurements, metrics, norms, pseudometrics, seminorms, similarities, tensors, evaluators, evaluator pools, and evaluator results.
+- Runtime and infrastructure: transports, middleware, publishers, rate limits, logging handlers, logging formatters, loggers, tracing-oriented mixins, services, and programs.
+- Security and trust: cert services, crypto, MRE crypto, cipher suites, signing, proof-of-possession helpers, key providers, token services, XMP embedding, and git filters.
+- Business integrations: billing provider base classes and mixins for customers, hosted checkout, payments, invoices, subscriptions, refunds, payouts, reports, promotions, risk, marketplace, and webhooks.
 
-### chunkers
-- [`ChunkerBase.py`](./swarmauri_base/chunkers/ChunkerBase.py): Base class for chunkers.
+## Component Author Workflow
 
-### conversations
-- [`ConversationBase.py`](./swarmauri_base/conversations/ConversationBase.py): Base class for conversations.
-- [`ConversationSystemContextMixin.py`](./swarmauri_base/conversations/ConversationSystemContextMixin.py): Mixin for system context in conversations.
+1. Start with the relevant interface in [swarmauri_core](https://pypi.org/project/swarmauri_core/).
+2. Inherit the matching base class from `swarmauri_base`.
+3. Add a stable `type` literal and `resource` value.
+4. Register the model or subtype with `ComponentBase.register_model()` or `ComponentBase.register_type(...)`.
+5. Add package entry points or namespace mappings through [swarmauri](https://pypi.org/project/swarmauri/) when the implementation should be discoverable.
+6. Document installation, direct instantiation, serialization behavior, and any provider-specific configuration in the implementation package README.
 
-### dataconnectors
-- [`DataConnectorBase.py`](./swarmauri_base/dataconnectors/DataConnectorBase.py): Base class for data connectors.
+## Related Packages
 
-### distances
-- [`DistanceBase.py`](./swarmauri_base/distances/DistanceBase.py): Base class for distance calculations.
-- [`VisionDistanceBase.py`](./swarmauri_base/distances/VisionDistanceBase.py): Base class for vision distance calculations.
+Foundational packages:
 
-### documents
-- [`DocumentBase.py`](./swarmauri_base/documents/DocumentBase.py): Base class for documents.
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/) provides the interface contracts that these base classes implement.
+- [swarmauri](https://pypi.org/project/swarmauri/) provides namespace imports and plugin discovery.
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/) provides first-party components built from these base classes.
+- [swarmauri_typing](https://pypi.org/project/swarmauri_typing/) provides typing utilities used by dynamic union machinery.
 
-### document_stores
-- [`DocumentStoreBase.py`](./swarmauri_base/document_stores/DocumentStoreBase.py): Base class for document stores.
-- [`DocumentStoreRetrieveBase.py`](./swarmauri_base/document_stores/DocumentStoreRetrieveBase.py): Base class for document retrieval.
+Packages built on component-kind bases:
 
-### embeddings
-- [`EmbeddingBase.py`](./swarmauri_base/embeddings/EmbeddingBase.py): Base class for embeddings.
-- [`VisionEmbeddingBase.py`](./swarmauri_base/embeddings/VisionEmbeddingBase.py): Base class for vision embeddings.
+- [swarmauri_signing_ed25519](https://pypi.org/project/swarmauri_signing_ed25519/) builds on signing base behavior.
+- [swarmauri_crypto_composite](https://pypi.org/project/swarmauri_crypto_composite/) builds on crypto base behavior.
+- [swarmauri_keyprovider_inmemory](https://pypi.org/project/swarmauri_keyprovider_inmemory/) builds on key provider base behavior.
+- [swarmauri_storage_memory](https://pypi.org/project/swarmauri_storage_memory/) builds on storage adapter base behavior.
+- [swarmauri_transport_stdio](https://pypi.org/project/swarmauri_transport_stdio/) builds on transport base behavior.
+- [swarmauri_middleware_jsonrpc](https://pypi.org/project/swarmauri_middleware_jsonrpc/) builds on middleware base behavior.
 
-### factories
-- [`FactoryBase.py`](./swarmauri_base/factories/FactoryBase.py): Base class for factories.
+## When To Use This Package
 
-Factories can accept serialized component specs and hydrate concrete subclasses
-through `SubclassUnion[...]`, avoiding brittle manual switches over `type`.
+Use `swarmauri_base` when implementing a Swarmauri component that needs serialization, registration, and shared base behavior. Use `swarmauri_core` when you only need interface definitions. Use implementation packages such as `swarmauri_standard` or individual component packages when you need ready-to-run behavior.
 
-### image_gens
-- [`ImageGenBase.py`](./swarmauri_base/image_gens/ImageGenBase.py): Base class for image generation.
+## License
 
-### llms
-- [`LLMBase.py`](./swarmauri_base/llms/LLMBase.py): Base class for large language models.
-
-### logging
-- [`HandlerBase.py`](./swarmauri_base/logging/HandlerBase.py): Base class for logging handlers.
-- [`LoggerBase.py`](./swarmauri_base/logging/LoggerBase.py): Base class for loggers.
-
-### measurements
-- [`MeasurementAggregateMixin.py`](./swarmauri_base/measurements/MeasurementAggregateMixin.py): Mixin for measurement aggregation.
-- [`MeasurementBase.py`](./swarmauri_base/measurements/MeasurementBase.py): Base class for measurements.
-- [`MeasurementCalculateMixin.py`](./swarmauri_base/measurements/MeasurementCalculateMixin.py): Mixin for measurement calculations.
-- [`MeasurementThresholdMixin.py`](./swarmauri_base/measurements/MeasurementThresholdMixin.py): Mixin for measurement thresholds.
-
-### messages
-- [`MessageBase.py`](./swarmauri_base/messages/MessageBase.py): Base class for messages.
-
-### ocrs
-- [`OCRBase.py`](./swarmauri_base/ocrs/OCRBase.py): Base class for OCR functionalities.
-
-### parsers
-- [`ParserBase.py`](./swarmauri_base/parsers/ParserBase.py): Base class for parsers.
-
-### pipelines
-- [`PipelineBase.py`](./swarmauri_base/pipelines/PipelineBase.py): Base class for pipelines.
-
-### prompts
-- [`PromptBase.py`](./swarmauri_base/prompts/PromptBase.py): Base class for prompts.
-- [`PromptGeneratorBase.py`](./swarmauri_base/prompts/PromptGeneratorBase.py): Base class for prompt generators.
-- [`PromptMatrixBase.py`](./swarmauri_base/prompts/PromptMatrixBase.py): Base class for prompt matrices.
-
-### prompt_templates
-- [`PromptTemplateBase.py`](./swarmauri_base/prompt_templates/PromptTemplateBase.py): Base class for prompt templates.
-
-### schema_converters
-- [`SchemaConverterBase.py`](./swarmauri_base/schema_converters/SchemaConverterBase.py): Base class for schema converters.
-
-### service_registries
-- [`ServiceRegistryBase.py`](./swarmauri_base/service_registries/ServiceRegistryBase.py): Base class for service registries.
-
-### state
-- [`StateBase.py`](./swarmauri_base/state/StateBase.py): Base class for state management.
-
-### stt
-- [`STTBase.py`](./swarmauri_base/stt/STTBase.py): Base class for speech-to-text functionalities.
-
-### swarms
-- [`SwarmBase.py`](./swarmauri_base/swarms/SwarmBase.py): Base class for swarm intelligence.
-
-### task_mgmt_strategies
-- [`TaskMgmtStrategyBase.py`](./swarmauri_base/task_mgmt_strategies/TaskMgmtStrategyBase.py): Base class for task management strategies.
-
-### toolkits
-- [`ToolkitBase.py`](./swarmauri_base/toolkits/ToolkitBase.py): Base class for toolkits.
-
-### tool_llms
-- [`ToolLLMBase.py`](./swarmauri_base/tool_llms/ToolLLMBase.py): Base class for tools for large language models.
-
-### tools
-- [`ParameterBase.py`](./swarmauri_base/tools/ParameterBase.py): Base class for parameters.
-- [`ToolBase.py`](./swarmauri_base/tools/ToolBase.py): Base class for tools.
-
-### transports
-- [`TransportBase.py`](./swarmauri_base/transports/TransportBase.py): Base class for transports.
-
-### tts
-- [`TTSBase.py`](./swarmauri_base/tts/TTSBase.py): Base class for text-to-speech functionalities.
-
-### vectors
-- [`VectorBase.py`](./swarmauri_base/vectors/VectorBase.py): Base class for vectors.
-
-### vector_stores
-- [`VectorStoreBase.py`](./swarmauri_base/vector_stores/VectorStoreBase.py): Base class for vector stores.
-- [`VectorStoreCloudMixin.py`](./swarmauri_base/vector_stores/VectorStoreCloudMixin.py): Mixin for cloud vector stores.
-- [`VectorStorePersistentMixin.py`](./swarmauri_base/vector_stores/VectorStorePersistentMixin.py): Mixin for persistent vector stores.
-- [`VectorStoreRetrieveMixin.py`](./swarmauri_base/vector_stores/VectorStoreRetrieveMixin.py): Mixin for vector store retrieval.
-- [`VectorStoreSaveLoadMixin.py`](./swarmauri_base/vector_stores/VectorStoreSaveLoadMixin.py): Mixin for saving and loading vector stores.
-- [`VisionVectorStoreBase.py`](./swarmauri_base/vector_stores/VisionVectorStoreBase.py): Base class for vision vector stores.
-
-### vlms
-- [`VLMBase.py`](./swarmauri_base/vlms/VLMBase.py): Base class for visual language models.
-
+Apache-2.0
 
 ## Contributing
 
-Contributions are welcome! If you'd like to add a new feature, fix a bug, or improve documentation, kindly go through the [contributions guidelines](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) first.
+When adding or changing a base class, keep it aligned with the corresponding `swarmauri_core` interface, preserve direct plugin instantiation patterns, update exports and tests, and follow the [Swarmauri SDK contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md).
