@@ -1,10 +1,20 @@
 [project]
 name = "swarmauri_standard"
 version = "0.10.1.dev5"
-description = "This repository includes standard components within the Swarmauri framework."
+description = "First-party Swarmauri standard components for agents, tools, parsers, vectors, model adapters, and composable intelligence workflows."
 keywords = [
     "swarmauri",
     "standard-components",
+    "ai-sdk",
+    "agents",
+    "tools",
+    "toolkits",
+    "parsers",
+    "vector-stores",
+    "llms",
+    "embeddings",
+    "schema-converters",
+    "composable-intelligence",
     "dynamic-json-schema",
     "discriminated-unions",
     "pydantic",
@@ -20,7 +30,10 @@ license = "Apache-2.0"
 readme = { file = "README.md", content-type = "text/markdown" }
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -29,6 +42,11 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing",
 ]
 requires-python = ">=3.10,<3.15"
 dependencies = [
