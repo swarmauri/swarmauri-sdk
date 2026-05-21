@@ -15,47 +15,129 @@
 
 # Swarmauri Billing Braintree
 
-**Swarmauri Billing Braintree** offers a Braintree-flavoured provider that implements the Swarmauri billing interfaces. Use the package to exercise subscription renewals, vaulting, drop-in checkouts, and settlement reporting without wiring up the live Braintree SDK on day one.
+`swarmauri_billing_braintree` provides a Braintree-shaped billing provider for Swarmauri checkout, payment, subscription, refund, customer-vault, reporting, risk, and webhook workflows. It is a deterministic stub provider for local development, tests, and provider-contract validation.
+
+## Why Swarmauri Billing Braintree?
+
+`swarmauri_billing_braintree` gives billing integrators a Braintree-shaped provider for checkout, payment, subscription, refund, customer-vault, reporting, risk, and webhook tests. It keeps Braintree-style behavior available through Swarmauri billing interfaces without requiring the live Braintree SDK.
+
+## FAQ
+
+### Q: Does this package call live Braintree APIs?
+
+A: No. It is a deterministic stub provider for tests, examples, and provider-contract validation.
+
+### Q: Which Swarmauri billing flows does it cover?
+
+A: It covers products, prices, hosted checkout, online payments, subscriptions, refunds, customers, payment methods, reports, risk, and webhooks.
+
+### Q: Why use this instead of `swarmauri_billing_mock`?
+
+A: Use this package when you want Braintree-shaped IDs, statuses, checkout URLs, and webhook headers. Use a generic mock when gateway-specific behavior is not relevant.
 
 ## Features
 
-- âœ… Models Braintree primitives such as customer vault, payment methods, subscriptions, and disbursements.
-- âœ… Returns predictable payloads so downstream Swarmauri workflows can be validated in isolation.
-- âœ… Highlights Braintree's fraud tools and reporting by exposing capability flags.
-- âœ… Stays self-contained: swap the stubbed responses for real API calls when ready.
+- Braintree-style provider class registered as `BraintreeBillingProvider`.
+- Supports products, prices, hosted checkout, online payments, subscriptions, refunds, customers, payment methods, reports, risk, and webhooks.
+- Returns deterministic provider-shaped payloads and Swarmauri billing refs for repeatable assertions.
+- Models Braintree-like transaction statuses such as `AUTHORIZED`, `SETTLED`, `VOIDED`, and `SUBMITTED_FOR_SETTLEMENT`.
+- Provides webhook parsing and signature-check hooks for contract tests.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
 ## Installation
 
-Install from PyPI using either `pip` or `uv`:
-
-```bash
-pip install swarmauri_billing_braintree
-```
+Install with `uv`:
 
 ```bash
 uv add swarmauri_billing_braintree
 ```
 
+Install with `pip`:
+
+```bash
+pip install swarmauri_billing_braintree
+```
+
 ## Usage
+
+Authorize and capture a Braintree-style payment:
 
 ```python
 from swarmauri_billing_braintree import BraintreeBillingProvider
 from swarmauri_base.billing import PaymentIntentRequest
 
-provider = BraintreeBillingProvider(api_key="sandbox-key")
+provider = BraintreeBillingProvider(api_key="braintree-sandbox-key")
 
-payment_intent = provider.create_payment_intent(
-    PaymentIntentRequest(payload={"amount_minor": 1500, "currency": "USD", "confirm": True}),
+payment = provider.create_payment_intent(
+    PaymentIntentRequest(
+        amount_minor=1500,
+        currency="USD",
+        confirm=True,
+    )
 )
-result = provider.capture_payment(payment_intent.id)
+captured = provider.capture_payment(payment.id, idempotency_key="capture-bt-1")
 
-print(payment_intent.status, result.status)
+print(payment.status, captured.status)
 ```
 
-## Capability Mapping
+Create a plan, price, and checkout session:
 
-The provider advertises Swarmauri `Capability` values which map to `tigrbl_billing` through `capabilities_to_tigrbl`. You can assert on those capabilities to feature-gate behaviour before hitting the Braintree API for real.
+```python
+from swarmauri_billing_braintree import BraintreeBillingProvider
+from swarmauri_base.billing import CheckoutRequest, PriceSpec, ProductSpec
+
+provider = BraintreeBillingProvider(api_key="braintree-sandbox-key")
+
+plan = provider.create_product(
+    ProductSpec(name="SaaS Plan"),
+    idempotency_key="plan-bt-1",
+)
+price = provider.create_price(
+    plan,
+    PriceSpec(currency="USD", unit_amount_minor=2900),
+    idempotency_key="price-bt-1",
+)
+checkout = provider.create_checkout(price, CheckoutRequest(quantity=1))
+
+print(checkout.url)
+```
+
+## Important Scope Notes
+
+This package is a Swarmauri billing provider stub. It does not call the live Braintree REST, GraphQL, or SDK APIs, process real cards, perform settlement, or validate production webhook signatures. Use it for tests, examples, strategy validation, and as a starting point for a live Braintree provider.
+
+## Entry Point
+
+The package exposes a Swarmauri billing provider entry point:
+
+```toml
+[project.entry-points.'swarmauri.billing_providers']
+BraintreeBillingProvider = "swarmauri_billing_braintree.provider:BraintreeBillingProvider"
+```
+
+## Related Packages
+
+Billing provider packages:
+
+- [swarmauri_billing_adyen](https://pypi.org/project/swarmauri_billing_adyen/)
+- [swarmauri_billing_authorize_net](https://pypi.org/project/swarmauri_billing_authorize_net/)
+- [swarmauri_billing_mock](https://pypi.org/project/swarmauri_billing_mock/)
+- [swarmauri_billing_paypal](https://pypi.org/project/swarmauri_billing_paypal/)
+- [swarmauri_billing_paystack](https://pypi.org/project/swarmauri_billing_paystack/)
+- [swarmauri_billing_razorpay](https://pypi.org/project/swarmauri_billing_razorpay/)
+- [swarmauri_billing_square](https://pypi.org/project/swarmauri_billing_square/)
+- [swarmauri_billing_stripe](https://pypi.org/project/swarmauri_billing_stripe/)
+
+Foundational packages:
+
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/) defines billing capabilities and interfaces.
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/) provides billing specs, refs, mixins, and `BillingProviderBase`.
+- [swarmauri](https://pypi.org/project/swarmauri/) provides namespace imports and plugin discovery.
+
+## License
+
+Apache-2.0
 
 ## Contributing
 
-Contributions that wire the stubbed operations to official Braintree REST or GraphQL calls are welcome. Please update the README usage section and add tests when expanding the integration.
+If you connect this provider to live Braintree APIs, preserve deterministic tests, document required credentials and webhook behavior, and add coverage for each supported billing capability.
