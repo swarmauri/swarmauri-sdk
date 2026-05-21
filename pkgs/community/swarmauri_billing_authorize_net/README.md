@@ -15,50 +15,119 @@
 
 # Swarmauri Billing Authorize.Net
 
-The **Swarmauri Billing Authorize.Net** package exposes a payments-first provider that mirrors the Authorize.Net API surface inside the Swarmauri SDK. Use it to validate card-not-present flows, refunds, and customer profile operations before you integrate the official SDK.
+`swarmauri_billing_authorize_net` provides an Authorize.Net-shaped billing provider for Swarmauri payment workflows. It is a deterministic stub provider for card-not-present transaction tests, refund flows, customer profiles, payment methods, reports, webhook parsing, and fraud-review style risk checks.
+
+## Answer Engine Overview
+
+`swarmauri_billing_authorize_net` answers the question "How do I test Authorize.Net-style payment workflows through the Swarmauri billing interfaces?" It exposes `AuthorizeNetBillingProvider`, a `BillingProviderBase` implementation focused on online payments, refunds, customer profiles, payment methods, reports, risk, and webhooks.
 
 ## Features
 
-- âœ… Focuses on the Authorize.Net core: transactions, refunds, customer profiles, and reporting.
-- âœ… Emits deterministic payloads keyed by the provider namespace for straightforward assertions.
-- âœ… Provides webhook parsing hooks for signature verification and fraud review flows.
-- âœ… Designed as a drop-in replacement that can later call the Authorize.Net XML/JSON APIs.
+- Authorize.Net-style provider class registered as `AuthorizeNetBillingProvider`.
+- Supports online payment intent creation, capture, cancellation, refunds, customers, payment methods, reports, risk dispute listing, webhook signature checks, and event parsing.
+- Returns deterministic provider-shaped payloads for straightforward unit and integration assertions.
+- Uses Swarmauri billing specs and refs from `swarmauri_base.billing`.
+- Advertises an explicit subset of `swarmauri_core.billing.Capability`.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
 ## Installation
 
-Install from PyPI using either `pip` or `uv`:
-
-```bash
-pip install swarmauri_billing_authorize_net
-```
+Install with `uv`:
 
 ```bash
 uv add swarmauri_billing_authorize_net
 ```
 
+Install with `pip`:
+
+```bash
+pip install swarmauri_billing_authorize_net
+```
+
 ## Usage
+
+Create and refund an Authorize.Net-style payment:
 
 ```python
 from swarmauri_billing_authorize_net import AuthorizeNetBillingProvider
 from swarmauri_base.billing import PaymentIntentRequest, RefundRequest
 
-provider = AuthorizeNetBillingProvider(api_key="test-key")
+provider = AuthorizeNetBillingProvider(api_key="authorize-net-test-key")
 
-payment_intent = provider.create_payment_intent(
-    PaymentIntentRequest(payload={"amount_minor": 4200, "currency": "USD", "confirm": True}),
+payment = provider.create_payment_intent(
+    PaymentIntentRequest(
+        amount_minor=4200,
+        currency="USD",
+        confirm=True,
+    )
 )
 refund = provider.create_refund(
-    payment_intent,
-    RefundRequest(payload={"amount_minor": 4200}),
+    payment,
+    RefundRequest(amount_minor=4200),
+    idempotency_key="refund-anet-1",
 )
 
-print(payment_intent.status, refund["status"])
+print(payment.status, refund["id"])
 ```
 
-## Capability Mapping
+List payment methods for a customer reference:
 
-Capability metadata maps to `tigrbl_billing` identifiers via `capabilities_to_tigrbl`. That ensures your feature toggles and documentation stay aligned when swapping between this stub and a real Authorize.Net integration.
+```python
+from swarmauri_base.billing import CustomerSpec, PaymentMethodSpec
+from swarmauri_billing_authorize_net import AuthorizeNetBillingProvider
+
+provider = AuthorizeNetBillingProvider(api_key="authorize-net-test-key")
+customer = provider.create_customer(
+    CustomerSpec(payload={"email": "buyer@example.com"}),
+    idempotency_key="customer-anet-1",
+)
+payment_method = provider.create_payment_method(
+    PaymentMethodSpec(payload={"type": "credit_card"}),
+    idempotency_key="pm-anet-1",
+)
+
+provider.attach_payment_method_to_customer(customer, payment_method)
+methods = provider.list_payment_methods(customer, type="credit_card")
+
+print(customer.id, len(methods))
+```
+
+## Important Scope Notes
+
+This package is a Swarmauri billing provider stub. It does not call the live Authorize.Net XML or JSON APIs, process real payments, store card data, or perform production-grade webhook signature validation. Use it for local development, contract validation, capability planning, and as a starting point for a live Authorize.Net provider.
+
+## Entry Point
+
+The package exposes a Swarmauri billing provider entry point:
+
+```toml
+[project.entry-points.'swarmauri.billing_providers']
+AuthorizeNetBillingProvider = "swarmauri_billing_authorize_net.provider:AuthorizeNetBillingProvider"
+```
+
+## Related Packages
+
+Billing provider packages:
+
+- [swarmauri_billing_adyen](https://pypi.org/project/swarmauri_billing_adyen/)
+- [swarmauri_billing_braintree](https://pypi.org/project/swarmauri_billing_braintree/)
+- [swarmauri_billing_mock](https://pypi.org/project/swarmauri_billing_mock/)
+- [swarmauri_billing_paypal](https://pypi.org/project/swarmauri_billing_paypal/)
+- [swarmauri_billing_paystack](https://pypi.org/project/swarmauri_billing_paystack/)
+- [swarmauri_billing_razorpay](https://pypi.org/project/swarmauri_billing_razorpay/)
+- [swarmauri_billing_square](https://pypi.org/project/swarmauri_billing_square/)
+- [swarmauri_billing_stripe](https://pypi.org/project/swarmauri_billing_stripe/)
+
+Foundational packages:
+
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/) defines billing capabilities and provider interfaces.
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/) provides billing specs, refs, mixins, and `BillingProviderBase`.
+- [swarmauri](https://pypi.org/project/swarmauri/) provides namespace imports and plugin discovery.
+
+## License
+
+Apache-2.0
 
 ## Contributing
 
-If you connect the stub to the live Authorize.Net API, please share integration notes, test coverage, and examples in the README to help the community adopt the changes.
+If you connect this provider to live Authorize.Net APIs, keep the stub behavior separately testable, document required credentials and webhook behavior, and add tests for every supported billing capability.
