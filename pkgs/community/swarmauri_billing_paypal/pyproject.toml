@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_billing_paypal"
 version = "0.1.3.dev5"
-description = "PayPal billing provider for the Swarmauri SDK."
+description = "PayPal-style Swarmauri billing provider stub for checkout, payments, subscriptions, invoices, payouts, and webhook tests."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -12,8 +12,12 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Office/Business :: Financial",
     "Topic :: Office/Business :: Financial :: Point-Of-Sale",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Testing",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -33,9 +37,18 @@ keywords = [
     "sdk",
     "billing",
     "paypal",
-    "standards",
+    "paypal billing provider",
+    "paypal payments",
+    "community",
     "payments",
+    "payment gateway",
+    "checkout",
+    "hosted checkout",
     "invoicing",
+    "payouts",
+    "refunds",
+    "webhooks",
+    "billing provider stub",
     "subscription management",
     "merchant services",
     "e-commerce integration",
