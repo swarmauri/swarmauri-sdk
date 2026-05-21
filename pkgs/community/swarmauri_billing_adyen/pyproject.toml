@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_billing_adyen"
 version = "0.9.3.dev5"
-description = "Adyen billing provider for the Swarmauri SDK."
+description = "Adyen-style Swarmauri billing provider stub for payment, checkout, subscription, invoice, and marketplace workflow tests."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -12,8 +12,12 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Office/Business :: Financial",
     "Topic :: Office/Business :: Financial :: Point-Of-Sale",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Testing",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -33,11 +37,20 @@ keywords = [
     "sdk",
     "billing",
     "adyen",
+    "adyen billing provider",
+    "adyen payments",
     "community",
     "payments",
     "payment gateway",
+    "checkout",
+    "hosted checkout",
     "recurring billing",
     "subscription management",
+    "invoicing",
+    "refunds",
+    "webhooks",
+    "marketplace payments",
+    "billing provider stub",
     "merchant services",
     "e-commerce integration",
 ]
