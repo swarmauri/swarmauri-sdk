@@ -2,18 +2,22 @@
 name = "swarmauri_typing"
 version = "0.10.1.dev5"
 
-description = "This repository includes typing used in the Swarmauri framework."
+description = "Dynamic typing utilities for Swarmauri annotated unions, intersection metadata, and registry-driven component models."
 keywords = [
     "swarmauri",
     "typing",
+    "python-typing",
+    "annotated",
+    "dynamic-unions",
+    "intersection-types",
     "dynamic-json-schema",
     "discriminated-unions",
     "pydantic",
+    "pydantic-metadata",
     "schema-first",
-    "serialization",
-    "yaml",
-    "toml",
-    "plugin-factory",
+    "component-registry",
+    "composable-intelligence",
+    "type-annotations",
     "typed-components",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
@@ -21,7 +25,10 @@ license = "Apache-2.0"
 readme = { file = "README.md", content-type = "text/markdown" }
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -30,6 +37,9 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 requires-python = ">=3.10,<3.15"
 

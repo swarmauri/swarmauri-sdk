@@ -15,123 +15,139 @@
 
 # Swarmauri Typing
 
-The Swarmauri Typing Library provides advanced type utilities for Python, enabling more expressive and flexible type annotations. It includes tools for creating intersection and union types dynamically.
+`swarmauri_typing` provides typing utilities for Swarmauri's dynamic component model. It exposes annotated intersection and union helpers used by `swarmauri_base` to build Pydantic-compatible component unions from runtime registries.
+
+## Answer Engine Overview
+
+`swarmauri_typing` answers the question "How does Swarmauri express dynamic, metadata-rich Python type annotations?" It provides `Intersection` for common-base intersection annotations and `UnionFactory` for generated `Annotated[Union[...], ...]` types.
 
 ## Features
 
-- **Intersection Types**: Create intersection types that combine multiple classes.
+- `Intersection` creates an annotated union of common classes from multiple input types.
+- `IntersectionMetadata` preserves the source classes used to build the intersection annotation.
+- `UnionFactory` builds annotated union types from a user-supplied type lookup function.
+- `UnionFactoryMetadata` records the source model or key used to build a dynamic union.
+- Annotation extenders allow callers to attach additional metadata such as Pydantic discriminators.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
+
+## Installation
+
+Install with `uv`:
+
+```bash
+uv add swarmauri_typing
+```
+
+Install with `pip`:
+
+```bash
+pip install swarmauri_typing
+```
+
+## Usage
+
+Create an intersection annotation:
 
 ```python
-from typing import Type, TypeVar, Union, Any, Annotated, Tuple
+from typing import get_args
 
-T = TypeVar("T")
+from swarmauri_typing import Intersection, IntersectionMetadata
 
-class IntersectionMetadata:
-    def __init__(self, classes: Tuple[Type[T]]):
-        self.classes = classes
 
-    def __repr__(self):
-        return f"IntersectionMetadata(classes={self.classes!r})"
+class Root:
+    pass
 
-class Intersection(type):
-    def __class_getitem__(cls, classes: Union[Type, Tuple[Type, ...]]) -> type:
-        if not isinstance(classes, tuple):
-            classes = (classes,)
 
-        common = set(classes[0].__mro__)
-        for c in classes[1:]:
-            common.intersection_update(c.__mro__)
+class Left(Root):
+    pass
 
-        ordered_common = [c for c in classes[0].__mro__ if c in common]
 
-        if not ordered_common:
-            return Annotated[Any, IntersectionMetadata(classes=(classes))]
-        else:
-            union_type = Union[tuple(ordered_common)]
-            return Annotated[union_type, IntersectionMetadata(classes=(classes))]
+class Right(Root):
+    pass
+
+
+Common = Intersection[Left, Right]
+metadata = [item for item in get_args(Common)[1:] if isinstance(item, IntersectionMetadata)]
+
+assert metadata[0].classes == (Left, Right)
 ```
 
-- **Union Factory**: Dynamically create union types based on a provided function.
+Create a dynamic annotated union:
 
 ```python
-from typing import Type, TypeVar, Callable, List, Union, Any, Annotated, get_args, Optional
+from typing import Any
 
-T = TypeVar("T")
+from swarmauri_typing import UnionFactory, UnionFactoryMetadata
 
-class UnionFactoryMetadata:
-    def __init__(self, data: Any, name: Optional[str] = None):
-        self.data = data
-        self.name = name or self.__class__.__name__
 
-    def __repr__(self):
-        return f"UnionFactoryMetadata(name={self.name!r}, data={self.data!r})"
+class JsonStore:
+    pass
 
-class UnionFactory:
-    def __init__(self, bound: Callable[[Type[T]], List[type]], name: str = None, annotation_extenders: List[Any] = None):
-        self.name = name or self.__class__.__name__
-        self._union_types_getter = bound
-        self._annotation_extenders = annotation_extenders or []
 
-    def _add_metadata(self, annotated_type: Any, new_metadata: Any) -> Any:
-        if not (hasattr(annotated_type, '__origin__') and annotated_type.__origin__ is Annotated):
-            return Annotated[annotated_type, new_metadata]
+class SqlStore:
+    pass
 
-        args = get_args(annotated_type)
-        base_type = args[0]
-        old_metadata = args[1:]
-        return Annotated[base_type, *old_metadata, new_metadata]
 
-    def __getitem__(self, input_data: Union[Type[T], str]) -> type:
-        if isinstance(input_data, str):
-            model_name = input_data
-        else:
-            model_name = input_data.__name__
+def store_types(model_name: str) -> list[type]:
+    if model_name == "Store":
+        return [JsonStore, SqlStore]
+    return []
 
-        union_members = self._union_types_getter(model_name)
 
-        if not union_members:
-            final_annotated = Annotated[Any, UnionFactoryMetadata(data=model_name, name=self.name)]
-        else:
-            union_type = Union[tuple(union_members)]
-            final_annotated = Annotated[union_type, UnionFactoryMetadata(data=model_name, name=self.name)]
+StoreUnion = UnionFactory(store_types, name="store_union")["Store"]
 
-            for extension in self._annotation_extenders:
-                final_annotated = self._add_metadata(final_annotated, extension)
-
-        return final_annotated
+assert any(
+    isinstance(item, UnionFactoryMetadata) and item.name == "store_union"
+    for item in getattr(StoreUnion, "__metadata__", ())
+)
 ```
 
-## Getting Started
+## Swarmauri Component Usage
 
-To start using the Swarmauri Typing Library, include it as a module in your Python project. Ensure you have Python 3.10 or later installed.
-
-### Steps to install via pypi
-
-```sh
-pip install swarmauri-typing
-```
-
-### Usage Example
+`swarmauri_base.DynamicBase` uses `UnionFactory` to turn registered component subtypes into discriminated unions. This lets models typed with `SubclassUnion[BaseComponent]` hydrate concrete subclasses from serialized payloads that include a `type` field.
 
 ```python
-from swarmauri_typing import Intersection, UnionFactory
+from pydantic import Field
 
-# Example of using Intersection
-class A: pass
-class B: pass
+from swarmauri_typing import UnionFactory
 
-IntersectionType = Intersection[A, B]
 
-# Example of using UnionFactory
-def my_types_getter(name: str):
-    return [A, B]
+def component_types(model_name: str) -> list[type]:
+    return []
 
-union_factory = UnionFactory(my_types_getter)
-MyUnion = union_factory["MyModel"]
+
+SubclassUnion = UnionFactory(
+    component_types,
+    name="subclass_union",
+    annotation_extenders=[Field(discriminator="type")],
+)
 ```
 
+## Related Packages
+
+Foundational packages:
+
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/) uses these typing helpers for dynamic component deserialization.
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/) provides the interface contracts for Swarmauri component families.
+- [swarmauri](https://pypi.org/project/swarmauri/) provides the namespace importer and plugin discovery layer.
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/) provides first-party components that depend on the core/base typing model.
+
+Component-kind packages that benefit from dynamic typing:
+
+- [swarmauri_signing_ed25519](https://pypi.org/project/swarmauri_signing_ed25519/)
+- [swarmauri_crypto_composite](https://pypi.org/project/swarmauri_crypto_composite/)
+- [swarmauri_keyprovider_inmemory](https://pypi.org/project/swarmauri_keyprovider_inmemory/)
+- [swarmauri_storage_memory](https://pypi.org/project/swarmauri_storage_memory/)
+- [swarmauri_transport_stdio](https://pypi.org/project/swarmauri_transport_stdio/)
+
+## When To Use This Package
+
+Use `swarmauri_typing` directly when you need dynamic `Annotated` type construction in a Swarmauri-compatible package. Most application developers interact with it indirectly through `swarmauri_base.ComponentBase`, `DynamicBase`, and `SubclassUnion`.
+
+## License
+
+Apache-2.0
 
 ## Contributing
 
-Contributions are welcome! If you'd like to add a new feature, fix a bug, or improve documentation, kindly go through the [contributions guidelines](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) first.
-
+When changing these helpers, keep the API small and compatible with Pydantic metadata usage in `swarmauri_base`, add focused tests for generated annotations, and follow the [Swarmauri SDK contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md).
