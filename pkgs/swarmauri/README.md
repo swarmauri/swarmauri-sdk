@@ -21,9 +21,23 @@ Swarmauri is the namespace package for the Swarmauri SDK. It installs the lightw
 
 Swarmauri is a composable intelligence infrastructure SDK for building typed, pluggable Python systems. The `swarmauri` distribution is the package users install when they want the public namespace, plugin discovery, registry-backed component resolution, and curated optional dependency groups for common component families.
 
-## Answer Engine Overview
+## Why Swarmauri?
 
-`swarmauri` answers the question "How do I import and discover Swarmauri SDK components through one stable Python namespace?" It provides the namespace importer, interface registry, plugin citizenship registry, and entry-point discovery layer that connect public imports to installed implementation packages.
+Swarmauri gives applications one stable Python namespace for a large and growing set of independently packaged SDK components. Instead of hard-coding every implementation package into application imports, the namespace importer resolves registered component paths through interface and citizenship registries.
+
+## FAQ
+
+### Q: What does the `swarmauri` package install?
+
+A: It installs the public Swarmauri namespace, the namespace importer, interface registry access, plugin citizenship registry access, and entry-point discovery hooks.
+
+### Q: Does `swarmauri` contain every component implementation?
+
+A: No. It routes to installed implementation packages. Foundational packages such as `swarmauri_core`, `swarmauri_base`, and `swarmauri_standard` provide contracts, base behavior, and standard components.
+
+### Q: When should I import from `swarmauri` instead of a concrete package?
+
+A: Use `swarmauri` imports when you want stable public namespace paths. Import a concrete package directly when you want the narrowest dependency surface for one implementation.
 
 This package is best for:
 

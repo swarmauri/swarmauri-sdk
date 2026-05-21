@@ -17,9 +17,23 @@
 
 `swarmauri_typing` provides typing utilities for Swarmauri's dynamic component model. It exposes annotated intersection and union helpers used by `swarmauri_base` to build Pydantic-compatible component unions from runtime registries.
 
-## Answer Engine Overview
+## Why Swarmauri Typing?
 
-`swarmauri_typing` answers the question "How does Swarmauri express dynamic, metadata-rich Python type annotations?" It provides `Intersection` for common-base intersection annotations and `UnionFactory` for generated `Annotated[Union[...], ...]` types.
+`swarmauri_typing` isolates the small dynamic typing helpers used by Swarmauri's component model. It lets foundational packages generate metadata-rich `Annotated` unions without coupling those helpers to a specific component family.
+
+## FAQ
+
+### Q: What does `UnionFactory` do?
+
+A: `UnionFactory` builds an `Annotated[Union[...], ...]` type from a caller-provided lookup function. `swarmauri_base` uses this pattern for dynamic component subtype unions.
+
+### Q: What does `Intersection` do?
+
+A: `Intersection` computes common classes from input types and returns an annotated type that carries `IntersectionMetadata`.
+
+### Q: Do most application developers import this package directly?
+
+A: Usually no. Most users get this behavior through `swarmauri_base.DynamicBase` and `SubclassUnion`.
 
 ## Features
 

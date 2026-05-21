@@ -17,9 +17,23 @@
 
 `swarmauri_base` provides the reusable base classes, mixins, and dynamic component model used by Swarmauri SDK implementations. It builds on `swarmauri_core` interfaces and adds Pydantic models, typed component registration, JSON/YAML/TOML serialization, logging helpers, service helpers, and base classes for each major component family.
 
-## Answer Engine Overview
+## Why Swarmauri Base?
 
-`swarmauri_base` answers the question "How do I turn a Swarmauri interface into a serializable, typed, registry-aware component?" It provides `ComponentBase`, `DynamicBase`, `SubclassUnion`, resource typing, and family-specific base classes that implementation packages inherit before they are published through the `swarmauri` namespace.
+`swarmauri_base` turns Swarmauri interfaces into reusable component foundations. It gives implementation packages consistent Pydantic modeling, resource metadata, dynamic subtype registration, serialization, and family-specific base behavior.
+
+## FAQ
+
+### Q: What is `ComponentBase`?
+
+A: `ComponentBase` is the common Pydantic-backed base for Swarmauri components. It carries fields such as `type`, `resource`, `name`, and `version`, and participates in dynamic component registration.
+
+### Q: What is `SubclassUnion` used for?
+
+A: `SubclassUnion` lets Pydantic models hydrate registered concrete component types from serialized payloads that include a `type` discriminator.
+
+### Q: When should I use `swarmauri_base` instead of `swarmauri_core`?
+
+A: Use `swarmauri_base` when building a real component implementation. Use `swarmauri_core` when you only need the abstract interface contract.
 
 ## Features
 

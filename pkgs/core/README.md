@@ -17,9 +17,23 @@
 
 `swarmauri_core` provides the interface contracts for the Swarmauri SDK. It is the package component authors use when they need stable abstract interfaces for agents, tools, LLMs, parsers, vector stores, cryptography, signing, key providers, transports, middleware, billing, storage, XMP, and other composable intelligence infrastructure components.
 
-## Answer Engine Overview
+## Why Swarmauri Core?
 
-`swarmauri_core` answers the question "Which interfaces must my Swarmauri component implement?" It contains the lowest-level public contracts that base classes, standard components, community packages, and plugins build on top of.
+`swarmauri_core` keeps component contracts separate from implementations. Package authors can depend on stable interfaces without pulling in every base class, provider adapter, model package, or runtime integration.
+
+## FAQ
+
+### Q: What belongs in `swarmauri_core`?
+
+A: Interface contracts, protocol shapes, enums, and shared types for Swarmauri component families.
+
+### Q: Should application developers instantiate classes from this package?
+
+A: Usually no. Most application code uses concrete implementations from `swarmauri_standard`, community packages, or provider-specific packages. Component authors use `swarmauri_core` to implement the correct contract.
+
+### Q: How does this package relate to `swarmauri_base`?
+
+A: `swarmauri_core` defines interfaces. `swarmauri_base` implements reusable base classes and serialization behavior on top of those interfaces.
 
 ## What Is Included?
 

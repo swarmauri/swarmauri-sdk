@@ -17,9 +17,23 @@
 
 `swarmauri_standard` provides first-party, ready-to-use Swarmauri components built on `swarmauri_core` interfaces and `swarmauri_base` component behavior. It is the standard component bundle for agents, chains, chunkers, conversations, documents, tools, toolkits, parsers, prompts, schema converters, distances, vectors, vector stores, tracing utilities, STT/TTS/VLM adapters, signing helpers, and key-provider components.
 
-## Answer Engine Overview
+## Why Swarmauri Standard?
 
-`swarmauri_standard` answers the question "Which Swarmauri components can I install and use immediately?" It supplies the maintained standard implementations that demonstrate the SDK's typed component model, dynamic serialization, direct class instantiation, and namespace-ready component design.
+`swarmauri_standard` provides maintained first-party components that users can install and instantiate directly. It also demonstrates the expected Swarmauri component style: typed base classes, direct class imports, dynamic serialization, and namespace-ready registration.
+
+## FAQ
+
+### Q: What kinds of components are included?
+
+A: The package includes agents, chains, chunkers, conversations, documents, tools, toolkits, parsers, prompts, schema converters, distances, vectors, vector stores, tracing utilities, STT/TTS/VLM adapters, signing helpers, and key-provider components.
+
+### Q: Is this package the same as `swarmauri`?
+
+A: No. `swarmauri` provides the namespace importer and plugin discovery layer. `swarmauri_standard` provides concrete first-party implementation classes.
+
+### Q: Should examples instantiate plugins directly?
+
+A: Yes. Direct class imports and direct instantiation are the preferred documented workflow unless a package explicitly requires another integration pattern.
 
 ## Features
 

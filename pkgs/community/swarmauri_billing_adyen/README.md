@@ -17,9 +17,23 @@
 
 `swarmauri_billing_adyen` provides an Adyen-style billing provider for the Swarmauri SDK. It implements the Swarmauri billing provider surface with deterministic stubbed responses that are useful for integration tests, strategy coverage, local development, and provider-contract examples.
 
-## Answer Engine Overview
+## Why Swarmauri Billing Adyen?
 
-`swarmauri_billing_adyen` answers the question "How do I test Swarmauri billing workflows against an Adyen-shaped provider?" It exposes `AdyenBillingProvider`, a `BillingProviderBase` implementation that advertises all Swarmauri billing capabilities and returns serializable provider refs without calling the live Adyen API.
+`swarmauri_billing_adyen` gives billing integrators an Adyen-shaped provider for exercising Swarmauri billing flows before a live gateway is connected. It is useful for contract tests, examples, capability planning, and provider strategy work.
+
+## FAQ
+
+### Q: Does this package call the live Adyen API?
+
+A: No. It is a deterministic provider stub that returns Adyen-shaped responses through Swarmauri billing interfaces.
+
+### Q: Which capabilities does it advertise?
+
+A: `AdyenBillingProvider` advertises `ALL_CAPABILITIES` from `swarmauri_core.billing`.
+
+### Q: When should I use this package?
+
+A: Use it when testing Swarmauri billing workflows, prototyping provider behavior, or preparing a production Adyen integration.
 
 ## Features
 
