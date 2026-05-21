@@ -15,92 +15,130 @@
 
 # Swarmauri SDK
 
-The Swarmauri SDK provides a powerful, extensible framework for building AI-powered applications. This repository includes core interfaces, standard abstract base classes, and concrete reference implementations.
+Swarmauri is a composable intelligence infrastructure SDK for building typed, pluggable Python systems. The repository contains the public `swarmauri` namespace package, interface contracts, reusable base classes, standard components, community integrations, plugin packages, and package-level documentation for independently installable Swarmauri distributions.
 
-## Installation Options
+## Why Swarmauri?
 
-Swarmauri offers multiple installation options to suit different needs:
+Swarmauri separates component contracts from implementations so applications can compose agents, tools, models, parsers, vector stores, signing components, key providers, transports, middleware, billing providers, and storage adapters without locking every workflow to one provider package. The namespace package gives users stable imports while individual packages keep dependencies focused.
 
-### Option 1: Complete SDK Installation
+## FAQ
 
-For a full-featured experience with all standard components:
+### Q: What is the main package to install?
+
+A: Install [swarmauri](https://pypi.org/project/swarmauri/) when you want the public namespace, plugin discovery, and curated optional dependency groups.
+
+### Q: Which package should component authors start with?
+
+A: Start with [swarmauri_core](https://pypi.org/project/swarmauri_core/) for interfaces, then use [swarmauri_base](https://pypi.org/project/swarmauri_base/) when the implementation needs serialization, component registration, and reusable base behavior.
+
+### Q: Where are ready-to-use components?
+
+A: Use [swarmauri_standard](https://pypi.org/project/swarmauri_standard/) for first-party standard components, or install a focused community, plugin, or standards package for a specific provider or component kind.
+
+### Q: Does this repository support modern Python versions?
+
+A: Swarmauri package metadata and badges target Python 3.10, 3.11, 3.12, 3.13, and 3.14.
+
+## Features
+
+- Stable `swarmauri.*` namespace imports through the namespace package.
+- Interface-first package architecture through `swarmauri_core`.
+- Pydantic-backed base classes, serialization helpers, and dynamic component registration through `swarmauri_base`.
+- First-party standard components through `swarmauri_standard`.
+- Independently installable community, plugin, experimental, and standards packages.
+- Component families for agents, chains, conversations, documents, embeddings, LLMs, parsers, prompts, schema converters, tools, toolkits, vector stores, signing, crypto, key providers, transports, middleware, storage, XMP, billing, and more.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
+
+## Installation
+
+Install the namespace package with `uv`:
 
 ```bash
-# Install the main namespace package with standard components
+uv add swarmauri
+```
+
+Install it with `pip`:
+
+```bash
 pip install swarmauri
+```
 
-# Install the main namespace package with extra standard components
+Install the broader curated component bundle:
+
+```bash
+uv add "swarmauri[full]"
 pip install "swarmauri[full]"
-
-# Or with uv for faster installation
-uv pip install swarmauri
-uv pip install "swarmauri[full]"
 ```
 
-### Option 2: Core Only
-For a minimal installation with just the core interfaces:
+Install only foundational packages when building components:
 
 ```bash
-# Install only the core components
-pip install swarmauri_core
-
-# Or with uv for faster installation
-uv pip install swarmauri_core
+uv add swarmauri_core swarmauri_base
+pip install swarmauri_core swarmauri_base
 ```
 
-### Option 3: Standalone Packages
-
-Install specific packages for targeted functionality:
+Install focused packages when you only need one component family:
 
 ```bash
-# Install only the vector store implementations you need
-pip install swarmauri_vectorstore_pinecone
-pip install swarmauri_vectorstore_annoy
-
-# Install specific tools
-pip install swarmauri_tool_jupyterexportlatex
-
-# Or with uv for faster installation
-uv pip install swarmauri_vectorstore_pinecone
-uv pip install swarmauri_vectorstore_annoy
-uv pip install swarmauri_tool_jupyterexportlatex
+uv add swarmauri_vectorstore_pinecone
+uv add swarmauri_tool_jupyterexportlatex
+uv add swarmauri_signing_ed25519
 ```
 
-### Development Installation
+## Usage
 
-For contributors or those wanting the latest features:
-```bash
-# Clone the repository
-git clone https://github.com/swarmauri/swarmauri-sdk.git
-cd swarmauri-sdk
+Importing `swarmauri` activates namespace discovery for installed components:
 
-# Install in development mode
-pip install -e .
+```python
+import swarmauri
 
-# Or with UV for faster installation
-pip install uv
-uv pip install -e .
+from swarmauri.interface_registry import InterfaceRegistry
+from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
+
+print(len(InterfaceRegistry.list_registered_namespaces()))
+print(len(PluginCitizenshipRegistry.total_registry()))
 ```
 
-## Using Swarmauri Components
+Use the namespace package for stable public imports after the implementation package is installed:
 
-## Native Dynamic Schemas and Serialization
+```python
+import swarmauri
 
-Swarmauri components are built to preserve concrete kin across runtime
-boundaries. A component can be initialized from JSON, YAML, or TOML, dumped back
-to the same formats, and restored later with its `type` discriminator intact.
-That matters when factories, APIs, queues, or databases only see serialized
-payloads: Swarmauri can hydrate the concrete subclass instead of forcing every
-application to maintain a handwritten `if type == ...` factory.
+from swarmauri.signings.Ed25519EnvelopeSigner import Ed25519EnvelopeSigner
 
-The dynamic schema registry updates the available discriminated-union members as
-component classes are registered. A field typed as `SubclassUnion[ToolBase]`,
-`SubclassUnion[ToolkitBase]`, or another registered base can accept newly
-available component kin and expose an accurate JSON Schema for the current
-runtime surface.
+signer = Ed25519EnvelopeSigner()
+print(signer.type)
+```
+
+Use direct package imports when you want the narrowest dependency surface:
+
+```python
+from swarmauri_standard.documents import Document
+from swarmauri_standard.tools import AdditionTool
+
+doc = Document(content="Direct package import")
+tool = AdditionTool()
+
+print(doc.type)
+print(tool("2+2"))
+```
+
+## Examples
+
+Discover registered component mappings:
+
+```python
+from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
+
+for public_path, module_path in list(PluginCitizenshipRegistry.total_registry().items())[:10]:
+    print(public_path, "->", module_path)
+```
+
+Use dynamic component serialization from `swarmauri_base`:
 
 ```python
 from typing import Literal
+
 from pydantic import BaseModel
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.DynamicBase import SubclassUnion
@@ -127,108 +165,90 @@ spec = ConnectorSpec.model_validate_json(
 )
 
 assert isinstance(spec.connector, ApiConnector)
-assert "ApiConnector" in str(ConnectorSpec.model_json_schema())
-```
-
-See the [dynamic schemas guide](infra/docs/swarmauri-sdk/docs/guide/dynamic_schemas.md)
-for factory, API, database, JSON, YAML, and TOML examples.
-
-### Method 1: Use the namespace package (recommended)
-
-The `swarmauri` package acts as a namespace microkernel. Importing `swarmauri`
-registers a custom importer that resolves classes from installed first-party and
-community plugins.
-
-```python
-import swarmauri
-
-# import concrete implementations through the unified namespace
-from swarmauri.documents import Document
-from swarmauri.tools import AdditionTool
-from swarmauri.messages import HumanMessage
-
-doc = Document(content="Hello from the namespace package")
-tool = AdditionTool()
-msg = HumanMessage(content="Run a quick tool check")
-
-print(doc.type)
-print(tool("2+2"))
-print(msg.content)
-```
-
-### Method 2: Use the index to discover what is available
-
-Use the plugin citizenship registry as an index of resource paths to concrete
-module locations.
-
-```python
-from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
-
-# Full index across first-, second-, and third-class plugins
-index = PluginCitizenshipRegistry.total_registry()
-print(f"Indexed resources: {len(index)}")
-
-# Example: inspect a few tool entries
-tool_rows = sorted(
-    (resource, module)
-    for resource, module in index.items()
-    if resource.startswith("swarmauri.tools.")
-)
-for resource, module in tool_rows[:5]:
-    print(f"{resource} -> {module}")
-
-# Optional: inspect by citizenship class
-first_class_only = PluginCitizenshipRegistry.list_registry("first")
-print(f"First-class resources: {len(first_class_only)}")
-```
-
-### Method 3: Direct package imports
-
-For explicit dependency control, import classes directly from their package.
-
-```python
-from swarmauri_standard.documents import Document
-from swarmauri_standard.tools import AdditionTool
-
-doc = Document(content="Direct package import")
-tool = AdditionTool()
 ```
 
 ## Package Structure
-The Swarmauri SDK is organized into several key packages:
 
-- `swarmauri_core`: Core interfaces and constants
-- `swarmauri_base`: Abstract base classes for extensibility
-- `swarmauri_standard`: Standard implementations of common components
-- `swarmauri`: Main namespace package that unifies all components
-- `pkgs/community`: Community-maintained packages and integrations
-- `pkgs/deprecated`: Retired packages that remain for historical reference
+Foundational packages:
 
-Individual components follow these naming conventions:
+- [swarmauri](https://pypi.org/project/swarmauri/) provides the namespace importer and plugin discovery layer.
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/) provides interface contracts and shared types.
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/) provides reusable base classes, serialization helpers, and component registration behavior.
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/) provides first-party standard components.
+- [swarmauri_typing](https://pypi.org/project/swarmauri_typing/) provides dynamic typing utilities used by Swarmauri base classes.
 
-- `swarmauri_vectorstore_`*: Vector database integrations
-- `swarmauri_embedding_`*: Embedding model implementations
-- `swarmauri_tool_`*: Task-specific tools
-- `swarmauri_parser_`*: Text parsing utilities
-- `swarmauri_distance_`*: Distance calculation methods
+Repository package areas:
 
+- `pkgs/core`, `pkgs/base`, `pkgs/typing`, and `pkgs/swarmauri` contain foundational packages.
+- `pkgs/swarmauri_standard` contains first-party standard components.
+- `pkgs/community` contains community-maintained packages and provider integrations.
+- `pkgs/plugins` contains plugin packages.
+- `pkgs/standards` contains standard-interface and standards-oriented packages.
+- `pkgs/experimental` contains early-stage packages.
+
+Common package families:
+
+- `swarmauri_vectorstore_*` packages provide vector database integrations.
+- `swarmauri_embedding_*` packages provide embedding model integrations.
+- `swarmauri_tool_*` packages provide task-specific tools.
+- `swarmauri_parser_*` packages provide parsing utilities.
+- `swarmauri_signing_*` packages provide signing implementations.
+- `swarmauri_keyprovider_*` packages provide key-management implementations.
+- `swarmauri_billing_*` packages provide billing provider implementations and stubs.
+
+## Related Packages
+
+Security and signing packages:
+
+- [swarmauri_signing_ed25519](https://pypi.org/project/swarmauri_signing_ed25519/)
+- [swarmauri_signing_jws](https://pypi.org/project/swarmauri_signing_jws/)
+- [swarmauri_crypto_composite](https://pypi.org/project/swarmauri_crypto_composite/)
+- [swarmauri_keyprovider_inmemory](https://pypi.org/project/swarmauri_keyprovider_inmemory/)
+
+Runtime and infrastructure packages:
+
+- [swarmauri_transport_stdio](https://pypi.org/project/swarmauri_transport_stdio/)
+- [swarmauri_middleware_jsonrpc](https://pypi.org/project/swarmauri_middleware_jsonrpc/)
+- [swarmauri_storage_memory](https://pypi.org/project/swarmauri_storage_memory/)
+
+Billing provider packages:
+
+- [swarmauri_billing_adyen](https://pypi.org/project/swarmauri_billing_adyen/)
+- [swarmauri_billing_authorize_net](https://pypi.org/project/swarmauri_billing_authorize_net/)
+- [swarmauri_billing_braintree](https://pypi.org/project/swarmauri_billing_braintree/)
+- [swarmauri_billing_paypal](https://pypi.org/project/swarmauri_billing_paypal/)
+- [swarmauri_billing_stripe](https://pypi.org/project/swarmauri_billing_stripe/)
+
+## Documentation
+
+- [Dynamic schemas guide](infra/docs/swarmauri-sdk/docs/guide/dynamic_schemas.md)
+- [Swarmauri namespace call flow](pkgs/swarmauri/docs/callflow.md)
+- [Swarmauri citizenship notes](pkgs/swarmauri/docs/citizenship.md)
+- [Contribution guide](CONTRIBUTING.md)
+- [Style guide](STYLE_GUIDE.md)
+- [Package index](pkgs/)
 
 ## For Contributors
-If you want to contribute to the Swarmauri SDK, please read our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md) and [style guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/STYLE_GUIDE.md) to get started.
 
-### Creating a New Plugin
-Swarmauri uses Python's entry point system for plugin discovery. Here's how to register your component:
+Create component packages with direct instantiation in mind. Plugins should expose clear package-level imports, use the relevant `swarmauri_core` interface and `swarmauri_base` base class, document installation and usage, and register entry points where namespace discovery is expected.
 
-```python
-# In your pyproject.toml
+```toml
 [project.entry-points.'swarmauri.vectorstores']
 YourVectorStore = "swarmauri_vectorstore_yourplugin:YourVectorStore"
+```
 
-# In your implementation file
+```python
+from typing import Literal
+
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
+
+
 @ComponentBase.register_type(VectorStoreBase, "YourVectorStore")
 class YourVectorStore(VectorStoreBase):
-    # Your implementation
+    type: Literal["YourVectorStore"] = "YourVectorStore"
 ```
 
 ## License
-The Swarmauri SDK is licensed under the Apache License 2.0. See the [LICENSE](https://github.com/swarmauri/swarmauri-sdk/blob/master/LICENSE) file for details.
+
+The Swarmauri SDK is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
