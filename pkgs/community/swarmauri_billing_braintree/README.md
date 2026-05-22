@@ -15,21 +15,21 @@
 
 # Swarmauri Billing Braintree
 
-`swarmauri_billing_braintree` provides a Braintree-shaped billing provider for Swarmauri checkout, payment, subscription, refund, customer-vault, reporting, risk, and webhook workflows. It is a deterministic stub provider for local development, tests, and provider-contract validation.
+`swarmauri_billing_braintree` provides a Braintree SDK backed billing provider for Swarmauri checkout, payment, subscription, refund, customer-vault, reporting, risk, and webhook workflows. It connects Swarmauri billing interfaces to Braintree transactions, settlement submission, voids, refunds, customers, payment methods, subscriptions, disputes, and webhook notifications.
 
 ## Why Swarmauri Billing Braintree?
 
-`swarmauri_billing_braintree` gives billing integrators a Braintree-shaped provider for checkout, payment, subscription, refund, customer-vault, reporting, risk, and webhook tests. It keeps Braintree-style behavior available through Swarmauri billing interfaces without requiring the live Braintree SDK.
+`swarmauri_billing_braintree` gives billing integrators Braintree payment runtime behavior behind Swarmauri billing interfaces. Applications can create transactions, submit authorized payments for settlement, void transactions, refund payments, manage customer vault records, create subscriptions, and parse Braintree webhooks without hard-coding Braintree SDK calls throughout the codebase.
 
 ## FAQ
 
 ### Q: Does this package call live Braintree APIs?
 
-A: No. It is a deterministic stub provider for tests, examples, and provider-contract validation.
+A: Yes. It creates a `braintree.BraintreeGateway` from merchant credentials and calls Braintree SDK resources for transactions, customers, payment methods, subscriptions, disputes, and webhooks.
 
 ### Q: Which Swarmauri billing flows does it cover?
 
-A: It covers products, prices, hosted checkout, online payments, subscriptions, refunds, customers, payment methods, reports, risk, and webhooks.
+A: It covers online payments, settlement capture, voids, refunds, customers, payment methods, subscriptions, dispute listing, and webhook parsing. Product, price, hosted-checkout, and report helpers remain compatibility placeholders where Braintree does not expose direct matching objects through the same API shape.
 
 ### Q: Why use this instead of `swarmauri_billing_mock`?
 
@@ -37,11 +37,14 @@ A: Use this package when you want Braintree-shaped IDs, statuses, checkout URLs,
 
 ## Features
 
-- Braintree-style provider class registered as `BraintreeBillingProvider`.
-- Supports products, prices, hosted checkout, online payments, subscriptions, refunds, customers, payment methods, reports, risk, and webhooks.
-- Returns deterministic provider-shaped payloads and Swarmauri billing refs for repeatable assertions.
-- Models Braintree-like transaction statuses such as `AUTHORIZED`, `SETTLED`, `VOIDED`, and `SUBMITTED_FOR_SETTLEMENT`.
-- Provides webhook parsing and signature-check hooks for contract tests.
+- Braintree provider class registered as `BraintreeBillingProvider`.
+- Transaction sale, submit-for-settlement, void, and refund support.
+- Customer creation and lookup through the Braintree customer vault.
+- Payment method create/delete support.
+- Subscription create/cancel support.
+- Dispute search support.
+- Webhook parsing and signature validation through Braintree SDK helpers.
+- Compatibility placeholders for product, price, hosted-checkout, and report methods that do not map directly to Braintree SDK resources.
 - Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
 ## Installation
@@ -66,7 +69,12 @@ Authorize and capture a Braintree-style payment:
 from swarmauri_billing_braintree import BraintreeBillingProvider
 from swarmauri_base.billing import PaymentIntentRequest
 
-provider = BraintreeBillingProvider(api_key="braintree-sandbox-key")
+provider = BraintreeBillingProvider(
+    api_key="braintree",
+    merchant_id="merchant-id",
+    public_key="public-key",
+    private_key="private-key",
+)
 
 payment = provider.create_payment_intent(
     PaymentIntentRequest(
@@ -86,7 +94,12 @@ Create a plan, price, and checkout session:
 from swarmauri_billing_braintree import BraintreeBillingProvider
 from swarmauri_base.billing import CheckoutRequest, PriceSpec, ProductSpec
 
-provider = BraintreeBillingProvider(api_key="braintree-sandbox-key")
+provider = BraintreeBillingProvider(
+    api_key="braintree",
+    merchant_id="merchant-id",
+    public_key="public-key",
+    private_key="private-key",
+)
 
 plan = provider.create_product(
     ProductSpec(name="SaaS Plan"),
@@ -104,7 +117,7 @@ print(checkout.url)
 
 ## Important Scope Notes
 
-This package is a Swarmauri billing provider stub. It does not call the live Braintree REST, GraphQL, or SDK APIs, process real cards, perform settlement, or validate production webhook signatures. Use it for tests, examples, strategy validation, and as a starting point for a live Braintree provider.
+This package uses live Braintree SDK calls for payment, customer, payment-method, subscription, dispute, and webhook workflows. Production use requires valid Braintree merchant credentials and tokenized payment-method nonces or vaulted payment method tokens.
 
 ## Entry Point
 
