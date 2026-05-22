@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_keyprovider_gcpkms"
 version = "0.9.4.dev5"
-description = "Google Cloud KMS Key Provider for Swarmauri"
+description = "Google Cloud KMS-backed Swarmauri key provider for key metadata, encryption, signing, wrapping, public JWKS, and HKDF workflows."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,11 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Operating System :: OS Independent",
+    "Topic :: Security",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -32,13 +37,23 @@ dependencies = [
 ]
 keywords = [
     "swarmauri",
+    "swarmauri keyprovider",
+    "key provider",
     "keyprovider",
     "gcpkms",
     "google",
     "cloud",
     "kms",
-    "key",
-    "provider",
+    "google cloud kms",
+    "cloud key management",
+    "jwks",
+    "jwk",
+    "asymmetric sign",
+    "asymmetric decrypt",
+    "envelope encryption",
+    "key wrapping",
+    "cryptography",
+    "composable intelligence",
 ]
 
 [project.optional-dependencies]
@@ -50,6 +65,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=cachetools,google-auth,pyasn1,pyasn1-modules,pycparser,rsa"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
