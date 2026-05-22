@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_certservice_stepca"
 version = "0.3.4.dev5"
-description = "Step-ca backed certificate service for Swarmauri"
+description = "Asynchronous Swarmauri certificate service for smallstep step-ca CSR creation, one-time-token signing requests, and X.509 certificate parsing."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,12 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Security",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -31,12 +37,21 @@ dependencies = [
 ]
 keywords = [
     "swarmauri",
+    "swarmauri certservice",
+    "certificate service",
     "certservice",
-    "stepca",
-    "step",
-    "backed",
-    "certificate",
-    "service",
+    "step-ca",
+    "smallstep",
+    "step ca",
+    "x509",
+    "pkcs10",
+    "csr generation",
+    "one time token",
+    "pki",
+    "workload identity",
+    "internal ca",
+    "cryptography",
+    "composable intelligence",
 ]
 
 [project.optional-dependencies]
@@ -48,6 +63,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=pycparser"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",

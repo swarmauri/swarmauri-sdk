@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import datetime as dt
 import ipaddress
+import time
 from typing import (
     Any,
     Awaitable,
@@ -349,3 +350,69 @@ class StepCaCertService(CertServiceBase):
             cert = x509.load_pem_x509_certificate(cert_pem.encode())
             return cert.public_bytes(serialization.Encoding.DER)
         return cert_pem.encode()
+
+    async def verify_cert(
+        self,
+        cert: CertBytes,
+        *,
+        trust_roots: Optional[Sequence[CertBytes]] = None,
+        intermediates: Optional[Sequence[CertBytes]] = None,
+        check_time: Optional[int] = None,
+        check_revocation: bool = False,
+        opts: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Load a certificate and check its validity window."""
+        parsed = (
+            x509.load_pem_x509_certificate(cert)
+            if cert.strip().startswith(b"-----")
+            else x509.load_der_x509_certificate(cert)
+        )
+        nb = int(parsed.not_valid_before_utc.timestamp())
+        na = int(parsed.not_valid_after_utc.timestamp())
+        now = int(check_time if check_time is not None else time.time())
+        valid = nb <= now <= na
+        return {
+            "valid": valid,
+            "reason": None if valid else "time_window",
+            "issuer": parsed.issuer.rfc4514_string(),
+            "subject": parsed.subject.rfc4514_string(),
+            "not_before": nb,
+            "not_after": na,
+            "serial": parsed.serial_number,
+            "is_ca": any(
+                ext.value.ca
+                for ext in parsed.extensions
+                if ext.oid.dotted_string == "2.5.29.19"
+            ),
+        }
+
+    async def parse_cert(
+        self,
+        cert: CertBytes,
+        *,
+        include_extensions: bool = True,
+        opts: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Parse a PEM or DER X.509 certificate into metadata."""
+        parsed = (
+            x509.load_pem_x509_certificate(cert)
+            if cert.strip().startswith(b"-----")
+            else x509.load_der_x509_certificate(cert)
+        )
+        data: Dict[str, Any] = {
+            "subject": parsed.subject.rfc4514_string(),
+            "issuer": parsed.issuer.rfc4514_string(),
+            "serial": parsed.serial_number,
+            "not_before": parsed.not_valid_before_utc.isoformat(),
+            "not_after": parsed.not_valid_after_utc.isoformat(),
+        }
+        if include_extensions:
+            data["extensions"] = [
+                {
+                    "oid": ext.oid.dotted_string,
+                    "critical": ext.critical,
+                    "name": ext.oid._name,
+                }
+                for ext in parsed.extensions
+            ]
+        return data
