@@ -1,17 +1,18 @@
 [project]
 name = "swarmauri_certs_acme"
 version = "0.3.4.dev5"
-description = "ACME certificate service for Swarmauri"
+description = "ACME v2 certificate service for Swarmauri CSR creation, certificate issuance, PEM chain retrieval, and X.509 inspection."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
-    "License :: OSI Approved :: Apache Software License",
-    "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -20,6 +21,11 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Security",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
@@ -31,10 +37,22 @@ dependencies = [
 ]
 keywords = [
     "swarmauri",
-    "certs",
+    "swarmauri certs",
     "acme",
+    "acme v2",
+    "rfc8555",
+    "lets encrypt",
     "certificate",
-    "service",
+    "certificate authority",
+    "certificate service",
+    "certificate signing request",
+    "csr",
+    "pkcs10",
+    "x509",
+    "pem",
+    "tls automation",
+    "cryptography",
+    "composable intelligence",
 ]
 
 [project.optional-dependencies]
@@ -64,6 +82,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-accept-deps=pyrfc3339,pycparser"
 
 [project.entry-points.'swarmauri.certs']
 AcmeCertService = "swarmauri_certs_acme.AcmeCertService:AcmeCertService"
