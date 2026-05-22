@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_billing_razorpay"
 version = "0.9.3.dev5"
-description = "Razorpay billing provider for the Swarmauri SDK."
+description = "Razorpay-backed Swarmauri billing provider for payment links, orders, capture, refunds, subscriptions, invoices, transfers, and webhooks."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -12,7 +12,10 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Office/Business :: Financial",
     "Topic :: Office/Business :: Financial :: Point-Of-Sale",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -34,11 +37,19 @@ keywords = [
     "sdk",
     "billing",
     "razorpay",
+    "razorpay billing provider",
+    "razorpay payments",
     "community",
     "payments",
     "payment gateway",
+    "payment links",
+    "orders",
+    "refunds",
     "recurring billing",
     "subscription management",
+    "invoicing",
+    "route transfers",
+    "webhook verification",
     "merchant services",
     "e-commerce integration",
 ]

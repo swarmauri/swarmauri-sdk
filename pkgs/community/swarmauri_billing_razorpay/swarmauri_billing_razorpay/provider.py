@@ -23,6 +23,8 @@ from swarmauri_base.billing import (
     ProductRef,
     ProductSpec,
     ProductsPricesMixin,
+    RefundRequest,
+    RefundsMixin,
     RiskMixin,
     SplitSpec,
     SubscriptionSpec,
@@ -37,6 +39,7 @@ class RazorpayBillingProvider(
     SubscriptionsMixin,
     InvoicingMixin,
     MarketplaceMixin,
+    RefundsMixin,
     RiskMixin,
     BillingProviderBase,
 ):
@@ -82,8 +85,8 @@ class RazorpayBillingProvider(
             {
                 "name": name,
                 "description": description,
-                "amount": 0,
-                "currency": "INR",
+                "amount": int(product_spec.resolve("amount") or 0),
+                "currency": str(product_spec.resolve("currency") or "INR").upper(),
             }
         )
         ref = ProductRef(
@@ -175,10 +178,20 @@ class RazorpayBillingProvider(
         self, payment_id: str, *, idempotency_key: Optional[str] = None
     ) -> PaymentRef:
         client = self._rz()
-        payment = client.payment.capture(payment_id, data={"amount": None})
+        existing = client.payment.fetch(payment_id)
+        amount = existing.get("amount")
+        if amount is None:
+            raise RuntimeError("Razorpay payment capture requires a payment amount")
+        payment = client.payment.capture(
+            payment_id,
+            amount,
+            data={"currency": existing.get("currency", "INR")},
+        )
         ref = PaymentRef(
             id=payment["id"],
             status=payment.get("status"),
+            amount_minor=payment.get("amount"),
+            currency=payment.get("currency"),
             provider=self.component_name,
             raw=payment,
         )
@@ -192,10 +205,18 @@ class RazorpayBillingProvider(
         idempotency_key: Optional[str] = None,
     ) -> PaymentRef:
         client = self._rz()
-        payment = client.payment.refund(payment_id, data={"speed": "optimum"})
+        payment = client.payment.refund(
+            payment_id,
+            data={
+                "speed": "optimum",
+                "notes": {"reason": reason} if reason else {},
+            },
+        )
         ref = PaymentRef(
             id=payment["id"],
             status=payment.get("status", "refunded"),
+            amount_minor=payment.get("amount"),
+            currency=payment.get("currency"),
             provider=self.component_name,
             raw=payment,
         )
@@ -335,6 +356,39 @@ class RazorpayBillingProvider(
         }
         return result
 
+    # ---------------------------------------------------------------- Refunds
+    def _create_refund(
+        self, payment: PaymentRef, req: RefundRequest, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
+        client = self._rz()
+        data: dict[str, Any] = {
+            "speed": str(req.resolve("speed", "optimum")),
+        }
+        if req.amount_minor is not None:
+            data["amount"] = req.amount_minor
+        notes = dict(req.metadata or {})
+        if req.reason:
+            notes.setdefault("reason", req.reason)
+        if notes:
+            data["notes"] = notes
+        refund = client.payment.refund(payment.id, data=data)
+        return {
+            "id": refund["id"],
+            "status": refund.get("status"),
+            "provider": self.component_name,
+            "raw": refund,
+        }
+
+    def _get_refund(self, refund_id: str) -> Mapping[str, Any]:
+        client = self._rz()
+        refund = client.refund.fetch(refund_id)
+        return {
+            "id": refund["id"],
+            "status": refund.get("status"),
+            "provider": self.component_name,
+            "raw": refund,
+        }
+
     # ---------------------------------------------------------------- Risk
     def _verify_webhook_signature(
         self, raw_body: bytes, headers: Mapping[str, str], secret: str
@@ -349,9 +403,9 @@ class RazorpayBillingProvider(
 
     def _list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
         client = self._rz()
-        settlements = client.payments.fetch_settlements()
-        if isinstance(settlements, Mapping):
-            data = cast(Sequence[Mapping[str, Any]], settlements.get("items", []))
+        disputes = client.dispute.all({"count": limit})
+        if isinstance(disputes, Mapping):
+            data = cast(Sequence[Mapping[str, Any]], disputes.get("items", []))
         else:
             data = tuple()
         return data
