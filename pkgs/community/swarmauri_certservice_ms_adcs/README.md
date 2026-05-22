@@ -13,148 +13,168 @@
         <img src="https://img.shields.io/pypi/v/swarmauri_certservice_ms_adcs?label=swarmauri_certservice_ms_adcs&color=green" alt="PyPI - swarmauri_certservice_ms_adcs"/></a>
 </p>
 
-# swarmauri_certservice_ms_adcs
+# Swarmauri Microsoft AD CS Certificate Service
 
-Community plugin providing a certificate service client for Microsoft Active Directory Certificate Services (AD CS).
+`swarmauri_certservice_ms_adcs` provides `MsAdcsCertService`, a Swarmauri certificate service prepared for Microsoft Active Directory Certificate Services environments. The implemented runtime builds PKCS#10 CSRs from PEM private keys, creates local self-signed certificates, verifies issued certificates against supplied issuers, parses X.509 metadata, and configures HTTP authentication sessions for AD CS Web Enrollment endpoints.
+
+## Why Swarmauri Microsoft AD CS Certificate Service?
+
+Use this package when Swarmauri workflows need AD CS-compatible certificate request generation and local certificate inspection while preserving room for NTLM, Kerberos, basic, or anonymous Web Enrollment access. It gives enterprise PKI code one `CertServiceBase` component for CSR creation, self-signed test certificates, verification, parsing, and authentication configuration.
+
+## FAQ
+
+### Q: Does this package submit CSRs to AD CS today?
+
+A: Not yet. `sign_cert()` currently raises `NotImplementedError`. Use `create_csr()` to build the request, then submit it through your AD CS Web Enrollment workflow or a custom automation layer.
+
+### Q: Which authentication modes are modeled?
+
+A: `_AuthCfg` supports `ntlm`, `kerberos`, `basic`, and `none`. NTLM and Kerberos require optional dependencies: `requests-ntlm` and `requests-kerberos`.
+
+### Q: What certificate operations are implemented?
+
+A: CSR creation, self-signed certificate creation, validity/signature verification with supplied issuer certificates, and metadata parsing are implemented.
+
+### Q: What certificate metadata can it parse?
+
+A: `parse_cert()` returns serial, signature algorithm, issuer, subject, validity timestamps, SKID, AKID, SAN, EKU, key usage, and CA status when those extensions are present.
 
 ## Features
 
-- Generate RFC 2986-compliant PKCS#10 CSRs with rich subject, subject alternative name, and extension options.
-- Parse and validate X.509 certificates per RFC 5280, including issuer matching and signature verification.
-- Ready-to-use authentication helpers for NTLM, Kerberos, and HTTP basic auth while preserving TLS configuration.
-- Typed `supports()` metadata describing templates, key algorithms, and capabilities advertised to Swarmauri agents.
+- `MsAdcsCertService` class registered under the `swarmauri.cert_services` entry point.
+- HTTP session setup for AD CS-style endpoints with configurable TLS verification.
+- NTLM, Kerberos/SPNEGO, HTTP Basic, and anonymous authentication modes.
+- PKCS#10 CSR creation from PEM private keys in `KeyRef.material`.
+- Subject support for standard X.509 distinguished-name fields and custom RDNs.
+- SAN support for DNS, IP, URI, email, and UPN entries.
+- Key usage and extended key usage CSR extension support.
+- Local self-signed certificate generation for development and tests.
+- Certificate verification with validity-window checks and optional issuer signature verification.
+- X.509 metadata parsing for audit and observability workflows.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
 ## Prerequisites
 
-- Python 3.10 or newer.
-- Network access to an AD CS Web Enrollment endpoint (typically `https://<ca>/certsrv`).
-- A private key for each CSR you plan to submit; software keys can be read from PEM while HSM-backed keys can be referenced via `KeyRef` metadata.
-- Optional authentication libraries: install `requests-ntlm` for NTLM flows and `requests-kerberos` for Kerberos/SPNEGO delegation.
+- Network access to an AD CS Web Enrollment endpoint when integrating with a live CA.
+- PEM private key material for CSR and self-signed certificate creation.
+- Optional `requests-ntlm` for NTLM authentication.
+- Optional `requests-kerberos` for Kerberos/SPNEGO authentication.
+- Issuer certificates when using signature verification.
 
 ## Installation
 
-Install the core package or include extras for the auth helpers your environment requires:
+Install with `uv`:
 
 ```bash
-# pip
-pip install "swarmauri_certservice_ms_adcs[ntlm,kerberos]"
-
-# poetry
-poetry add swarmauri_certservice_ms_adcs -E ntlm -E kerberos
-
-# uv (pyproject-based projects)
 uv add "swarmauri_certservice_ms_adcs[ntlm,kerberos]"
 ```
 
-You can drop the extras if your AD CS deployment only needs anonymous access or HTTP basic authentication.
+Install with `pip`:
 
-## Quickstart: Build a CSR for AD CS
+```bash
+pip install "swarmauri_certservice_ms_adcs[ntlm,kerberos]"
+```
+
+Install without auth extras when using anonymous or basic-auth-only flows:
+
+```bash
+uv add swarmauri_certservice_ms_adcs
+```
+
+## Usage
+
+Build a CSR for AD CS enrollment:
 
 ```python
 import asyncio
 from pathlib import Path
 
 from swarmauri_certservice_ms_adcs import MsAdcsCertService, _AuthCfg
-from swarmauri_core.certs.ICertService import SubjectSpec
-from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
+from swarmauri_core.crypto.types import KeyRef
 
 
 async def main() -> None:
     service = MsAdcsCertService(
         base_url="https://ca.example.com/certsrv",
         default_template="WebServer",
-        auth=_AuthCfg(
-            mode="ntlm",
-            username="EXAMPLE\\svc-adcs",
-            password="s3cr3t!",
-            verify_tls=True,
-        ),
+        auth=_AuthCfg(mode="none"),
     )
+    key_ref = KeyRef(material=Path("webserver.key.pem").read_bytes())
 
-    key_bytes = Path("webserver.key.pem").read_bytes()
-    key_ref = KeyRef(
-        kid="webserver-key",
-        version=1,
-        type=KeyType.RSA,
-        uses=(KeyUse.SIGN,),
-        export_policy=ExportPolicy.PUBLIC_ONLY,
-        material=key_bytes,
-    )
-
-    subject: SubjectSpec = {
-        "C": "US",
-        "ST": "Texas",
-        "L": "Austin",
-        "O": "Example Corp",
-        "CN": "app.example.com",
-    }
-
-    csr_pem = await service.create_csr(
+    csr = await service.create_csr(
         key=key_ref,
-        subject=subject,
+        subject={"C": "US", "O": "Example Corp", "CN": "app.example.com"},
         san={"dns": ["app.example.com", "www.example.com"]},
     )
-
-    Path("app.csr").write_bytes(csr_pem)
-    print("CSR saved to app.csr")
+    Path("app.csr").write_bytes(csr)
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+asyncio.run(main())
 ```
 
-Submit `app.csr` through your AD CS Web Enrollment UI, automation, or a downstream Swarmauri agent responsible for certificate issuance.
-
-## Validate Issued Certificates
-
-After AD CS returns a certificate, use the same service instance to confirm the chain and inspect metadata:
+Create and inspect a local self-signed certificate:
 
 ```python
 import asyncio
 from pathlib import Path
 
 from swarmauri_certservice_ms_adcs import MsAdcsCertService, _AuthCfg
+from swarmauri_core.crypto.types import KeyRef
 
 
-async def verify_certificate() -> None:
+async def main() -> None:
     service = MsAdcsCertService(
         base_url="https://ca.example.com/certsrv",
         auth=_AuthCfg(mode="none"),
     )
+    key_ref = KeyRef(material=Path("dev.key.pem").read_bytes())
 
-    issued_cert = Path("app.pem").read_bytes()
-    issuing_ca = Path("issuing-ca.pem").read_bytes()
-
-    verification = await service.verify_cert(
-        cert=issued_cert,
-        trust_roots=[issuing_ca],
+    cert = await service.create_self_signed(
+        key=key_ref,
+        subject={"CN": "dev.example.com"},
     )
-    if verification["valid"]:
-        print("Certificate is valid until", verification["not_after"])
-    else:
-        print("Validation failed:", verification["reason"])
+    parsed = await service.parse_cert(cert)
+    verification = await service.verify_cert(cert, trust_roots=[cert])
 
-    parsed = await service.parse_cert(issued_cert)
-    print("Subject:", parsed["subject"])
-    print("Subject Alternative Names:", parsed.get("san"))
+    print(parsed["subject"])
+    print(verification["valid"])
 
 
-if __name__ == "__main__":
-    asyncio.run(verify_certificate())
+asyncio.run(main())
 ```
-
-`verify_cert` performs structural checks and signature validation when an issuer certificate is supplied, while `parse_cert` surfaces extension data for auditing or observability pipelines.
 
 ## Authentication Modes
 
-- **NTLM** â€“ enable by installing `requests-ntlm` and providing domain credentials via `_AuthCfg(mode="ntlm", username="DOMAIN\\user", password="..." )`.
-- **Kerberos/SPNEGO** â€“ install `requests-kerberos` and set `_AuthCfg(mode="kerberos", spnego_delegate=True)` when delegation is required.
-- **HTTP Basic** â€“ provide `_AuthCfg(mode="basic", username=..., password=...)` for AD CS deployments fronted by basic auth proxies.
-- **Anonymous** â€“ set `_AuthCfg(mode="none")` for environments that rely on IP allow lists or mutual TLS.
+- `ntlm`: install `requests-ntlm` and provide `_AuthCfg(mode="ntlm", username="DOMAIN\\user", password="...")`.
+- `kerberos`: install `requests-kerberos` and provide `_AuthCfg(mode="kerberos", spnego_delegate=True)` when delegation is required.
+- `basic`: provide `_AuthCfg(mode="basic", username="...", password="...")`.
+- `none`: provide `_AuthCfg(mode="none")` for anonymous, mTLS-fronted, or externally authenticated flows.
+
+## Related Packages
+
+Certificate service packages:
+
+- [swarmauri_certservice_scep](https://pypi.org/project/swarmauri_certservice_scep/)
+- [swarmauri_certservice_stepca](https://pypi.org/project/swarmauri_certservice_stepca/)
+- [swarmauri_certservice_aws_kms](https://pypi.org/project/swarmauri_certservice_aws_kms/)
+- [swarmauri_certservice_gcpkms](https://pypi.org/project/swarmauri_certservice_gcpkms/)
+- [swarmauri_certs_crlverifyservice](https://pypi.org/project/swarmauri_certs_crlverifyservice/)
+- [swarmauri_certs_ocspverify](https://pypi.org/project/swarmauri_certs_ocspverify/)
+
+Foundational packages:
+
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/) defines certificate interfaces and `KeyRef`.
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/) provides `CertServiceBase`.
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/) provides standard Swarmauri components for certificate-adjacent workflows.
+- [swarmauri](https://pypi.org/project/swarmauri/) provides namespace imports and plugin discovery.
 
 ## Best Practices
 
-- Store AD CS credentials in a secure secrets manager and inject them via environment variables rather than hard-coding passwords.
-- Capture issued certificates, verification results, and parsed metadata in your logging system so you can trace enrollment activity.
-- Rotate key pairs and certificates regularly; regenerate CSRs ahead of expiry to leave time for manual approvals.
-- Combine this plugin with Swarmauri certificate verification agents (CRL/OCSP) to maintain revocation visibility across the lifecycle.
+- Store AD CS credentials in a secure secrets manager and inject them at runtime.
+- Treat generated CSRs, issued certificates, verification results, and parsed metadata as auditable enrollment artifacts.
+- Regenerate CSRs before certificate expiry to leave time for manual approvals.
+- Combine this service with CRL and OCSP verification packages for revocation visibility.
+
+## License
+
+Apache-2.0

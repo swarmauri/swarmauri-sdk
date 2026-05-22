@@ -342,15 +342,17 @@ class MsAdcsCertService(CertServiceBase):
     ) -> Dict[str, Any]:
         c = _load_cert_any(cert)
         now = _now() if check_time is None else int(check_time)
-        ok_time = c.not_valid_before.timestamp() <= now <= c.not_valid_after.timestamp()
+        not_before = int(c.not_valid_before_utc.timestamp())
+        not_after = int(c.not_valid_after_utc.timestamp())
+        ok_time = not_before <= now <= not_after
 
         result = {
             "valid": ok_time,
             "reason": None if ok_time else "time_window",
             "subject": c.subject.rfc4514_string(),
             "issuer": c.issuer.rfc4514_string(),
-            "not_before": int(c.not_valid_before.timestamp()),
-            "not_after": int(c.not_valid_after.timestamp()),
+            "not_before": not_before,
+            "not_after": not_after,
             "is_ca": any(
                 isinstance(ext.value, x509.BasicConstraints) and ext.value.ca
                 for ext in c.extensions
@@ -413,8 +415,8 @@ class MsAdcsCertService(CertServiceBase):
             "sig_alg": c.signature_algorithm_oid.dotted_string,
             "issuer": c.issuer.rfc4514_string(),
             "subject": c.subject.rfc4514_string(),
-            "not_before": int(c.not_valid_before.timestamp()),
-            "not_after": int(c.not_valid_after.timestamp()),
+            "not_before": int(c.not_valid_before_utc.timestamp()),
+            "not_after": int(c.not_valid_after_utc.timestamp()),
             "skid": None,
             "akid": None,
             "san": None,
