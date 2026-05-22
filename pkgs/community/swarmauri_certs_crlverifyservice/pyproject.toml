@@ -1,17 +1,18 @@
 [project]
 name = "swarmauri_certs_crlverifyservice"
 version = "0.1.4.dev5"
-description = "Certificate verification against CRLs"
+description = "CRL-based Swarmauri certificate verification service for RFC 5280 revocation checks and X.509 metadata parsing."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
-    "License :: OSI Approved :: Apache Software License",
-    "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -20,6 +21,10 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Topic :: Security",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
@@ -28,12 +33,20 @@ dependencies = [
 ]
 keywords = [
     "swarmauri",
-    "certs",
-    "crlverifyservice",
+    "swarmauri certs",
+    "crl",
+    "certificate revocation list",
     "certificate",
+    "certificate service",
     "verification",
-    "against",
-    "crls",
+    "revocation checking",
+    "rfc5280",
+    "x509",
+    "pem",
+    "pki",
+    "trust validation",
+    "cryptography",
+    "composable intelligence",
 ]
 
 [tool.uv.sources]
@@ -58,6 +71,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-accept-deps=pycparser"
 
 [project.entry-points.'swarmauri.cert_services']
 CrlVerifyService = "swarmauri_certs_crlverifyservice.CrlVerifyService:CrlVerifyService"

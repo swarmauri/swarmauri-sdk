@@ -13,41 +13,64 @@
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_crlverifyservice?label=swarmauri_certs_crlverifyservice&color=green" alt="PyPI - swarmauri_certs_crlverifyservice"/></a>
 </p>
 
-# swarmauri_certs_crlverifyservice
+# Swarmauri CRL Verify Service
 
-CRL-based certificate verification service for the Swarmauri SDK.
+`swarmauri_certs_crlverifyservice` provides `CrlVerifyService`, a Swarmauri certificate service for Certificate Revocation List based X.509 verification. It validates certificate validity windows, compares CRL issuers with certificate issuers, detects revoked serial numbers, and parses certificate metadata for audit and observability workflows.
 
-This package implements an `ICertService` that checks X.509 certificates
-against Certificate Revocation Lists as described in
-[RFC 5280](https://www.rfc-editor.org/rfc/rfc5280). It validates the
-certificate's validity period, issuer, and revocation status.
+## Why Swarmauri CRL Verify Service?
+
+Use this package when Swarmauri applications need a lightweight revocation-aware certificate verifier without delegating to an external OCSP responder or CA API. It gives PKI monitoring, certificate deployment checks, and compliance workflows a direct Swarmauri interface for CRL-based RFC 5280 verification.
+
+## FAQ
+
+### Q: Does this package issue or sign certificates?
+
+A: No. CSR creation, self-signed certificate creation, and certificate signing are intentionally outside this service. Use Swarmauri certificate packages such as `swarmauri_certs_x509`, `swarmauri_certs_local_ca`, `swarmauri_certs_acme`, or `swarmauri_certs_cfssl` for issuance workflows.
+
+### Q: What encodings does it accept?
+
+A: The implemented certificate path expects PEM-encoded certificates. CRLs may be PEM or DER because `verify_cert()` falls back to DER CRL loading when PEM CRL parsing fails.
+
+### Q: What does verification return?
+
+A: `verify_cert()` returns validity, reason, subject, issuer, not-before, not-after, and revoked fields. Revoked certificates return `valid=False`, `revoked=True`, and `reason="revoked"`.
+
+### Q: What metadata does parsing return?
+
+A: `parse_cert()` returns serial number, subject, issuer, validity timestamps, signature algorithm, and selected extensions such as basic constraints and key usage when present.
 
 ## Features
+
 - `CrlVerifyService` adapter dedicated to revocation-aware verification and parsing.
-- Accepts PEM or DER certificates/CRLs and normalizes them with `cryptography`.
-- Returns structured validity metadata, revocation flags, issuers, and extension details.
-- Focuses purely on verification; CSR and signing flows stay delegated to other Swarmauri services.
+- Certificate validity-window checks using caller-provided `check_time` or current UTC time.
+- CRL issuer matching before revoked serial lookup.
+- PEM certificate parsing and PEM/DER CRL parsing through `cryptography`.
+- Structured validity metadata, revocation flags, issuers, and extension details.
+- Verification-only design that delegates CSR and signing flows to other Swarmauri services.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
 ## Prerequisites
-- Python 3.10 or newer.
-- Access to up-to-date CRLs for the certificate authorities you care about.
-- Certificates and CRLs stored in PEM (Base64) or DER; the service can decode either.
-- Optional: trusted root/intermediate certificates if you plan to record issuer context alongside revocation checks.
+
+- Access to current CRLs for the certificate authorities being checked.
+- PEM-encoded leaf certificates.
+- PEM or DER CRLs.
+- Optional trusted root or intermediate certificates when the caller wants to record issuer context alongside revocation checks.
 
 ## Installation
 
+Install with `uv`:
+
 ```bash
-# pip
-pip install swarmauri_certs_crlverifyservice
-
-# poetry
-poetry add swarmauri_certs_crlverifyservice
-
-# uv (pyproject-based projects)
 uv add swarmauri_certs_crlverifyservice
 ```
 
-## Quickstart: Revocation Check
+Install with `pip`:
+
+```bash
+pip install swarmauri_certs_crlverifyservice
+```
+
+## Usage
 
 Load a certificate and its corresponding CRL, then validate the revocation status and validity window:
 
@@ -60,13 +83,9 @@ from swarmauri_certs_crlverifyservice import CrlVerifyService
 
 async def main() -> None:
     service = CrlVerifyService()
-
-    cert_bytes = Path("leaf.pem").read_bytes()
-    crl_bytes = Path("issuer.crl").read_bytes()
-
     verification = await service.verify_cert(
-        cert=cert_bytes,
-        crls=[crl_bytes],
+        cert=Path("leaf.pem").read_bytes(),
+        crls=[Path("issuer.crl").read_bytes()],
         check_revocation=True,
     )
 
@@ -78,13 +97,10 @@ async def main() -> None:
         print("Certificate failed validation:", verification["reason"])
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+asyncio.run(main())
 ```
 
-## Parsing Metadata
-
-Use `parse_cert` to surface fields needed for logging, auditing, or dashboards:
+Parse certificate metadata for logging, auditing, or dashboards:
 
 ```python
 import asyncio
@@ -93,22 +109,42 @@ from pathlib import Path
 from swarmauri_certs_crlverifyservice import CrlVerifyService
 
 
-async def describe() -> None:
+async def main() -> None:
     service = CrlVerifyService()
-    cert_bytes = Path("leaf.pem").read_bytes()
+    metadata = await service.parse_cert(Path("leaf.pem").read_bytes())
 
-    metadata = await service.parse_cert(cert_bytes)
     print("Subject:", metadata["subject"])
     print("Valid until:", metadata["not_after"])
     print("Key usage:", metadata.get("key_usage"))
 
 
-if __name__ == "__main__":
-    asyncio.run(describe())
+asyncio.run(main())
 ```
 
+## Related Packages
+
+Certificate service packages:
+
+- [swarmauri_certs_ocspverify](https://pypi.org/project/swarmauri_certs_ocspverify/)
+- [swarmauri_certs_x509](https://pypi.org/project/swarmauri_certs_x509/)
+- [swarmauri_certs_local_ca](https://pypi.org/project/swarmauri_certs_local_ca/)
+- [swarmauri_certs_self_signed](https://pypi.org/project/swarmauri_certs_self_signed/)
+- [swarmauri_certs_acme](https://pypi.org/project/swarmauri_certs_acme/)
+- [swarmauri_certs_cfssl](https://pypi.org/project/swarmauri_certs_cfssl/)
+
+Foundational packages:
+
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/) defines certificate-service interfaces.
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/) provides certificate service base behavior.
+- [swarmauri](https://pypi.org/project/swarmauri/) provides namespace imports and plugin discovery.
+
 ## Best Practices
+
 - Refresh CRLs frequently; RFC 5280 `nextUpdate` dictates how long a CRL should be considered valid.
-- Combine this service with Swarmauri signing services to perform a full lifecycle check (issue â†’ deploy â†’ monitor).
-- Cache CRLs in memory or a fast datastore to avoid repeatedly downloading them when calling `verify_cert`.
-- Log verification outputs (especially `reason` and `revoked`) to your observability pipeline to catch trust issues early.
+- Combine this service with Swarmauri signing services to perform a full lifecycle check from issue to deploy to monitor.
+- Cache CRLs in memory or a fast datastore to avoid repeatedly loading or downloading them when calling `verify_cert`.
+- Log verification outputs, especially `reason` and `revoked`, to your observability pipeline to catch trust issues early.
+
+## License
+
+Apache-2.0
