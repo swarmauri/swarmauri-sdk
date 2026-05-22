@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_llm_deepinfra"
 version = "0.1.1.dev5"
-description = "Swarmauri Deepinfra LLM adapters from swarmauri_standard."
+description = "Provider-specific Swarmauri import package for DeepInfra OpenAI-compatible chat completions with sync, async, streaming, batch, and JSON workflows."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,10 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -31,7 +35,21 @@ keywords = [
     "swarmauri",
     "llm",
     "deepinfra",
+    "deepinfra api",
+    "openai compatible",
+    "chat completions",
+    "open source models",
+    "qwen",
+    "llama",
+    "mistral",
+    "streaming llm",
+    "async llm",
+    "json mode",
+    "large language model",
+    "generative ai",
+    "swarmauri llm",
     "model",
+    "composable intelligence",
 ]
 
 [tool.uv.sources]
@@ -40,6 +58,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=numpy"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
