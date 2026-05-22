@@ -176,11 +176,13 @@ class ScepCertService(CertServiceBase):
             if cert.strip().startswith(b"-----")
             else x509.load_der_x509_certificate(cert)
         )
-        nb = int(time.mktime(c.not_valid_before.timetuple()))
-        na = int(time.mktime(c.not_valid_after.timetuple()))
+        nb = int(c.not_valid_before_utc.timestamp())
+        na = int(c.not_valid_after_utc.timestamp())
+        now = int(check_time if check_time is not None else time.time())
+        valid = nb <= now <= na
         return {
-            "valid": True,
-            "reason": None,
+            "valid": valid,
+            "reason": None if valid else "time_window",
             "issuer": c.issuer.rfc4514_string(),
             "subject": c.subject.rfc4514_string(),
             "not_before": nb,
@@ -218,6 +220,6 @@ class ScepCertService(CertServiceBase):
             "subject": c.subject.rfc4514_string(),
             "issuer": c.issuer.rfc4514_string(),
             "serial": c.serial_number,
-            "not_before": c.not_valid_before.isoformat(),
-            "not_after": c.not_valid_after.isoformat(),
+            "not_before": c.not_valid_before_utc.isoformat(),
+            "not_after": c.not_valid_after_utc.isoformat(),
         }

@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_certservice_scep"
 version = "0.8.4.dev5"
-description = "Swarmauri SCEP Certificate Service"
+description = "SCEP-oriented Swarmauri certificate service for PKCS#10 CSR creation, challenge-password enrollment requests, response capture, and X.509 parsing."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,12 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Security",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -30,10 +36,20 @@ dependencies = [
 ]
 keywords = [
     "swarmauri",
+    "swarmauri certservice",
+    "certificate service",
     "certservice",
     "scep",
-    "certificate",
-    "service",
+    "simple certificate enrollment protocol",
+    "pkcs10",
+    "csr generation",
+    "challenge password",
+    "x509",
+    "pki",
+    "device enrollment",
+    "mdm certificate enrollment",
+    "cryptography",
+    "composable intelligence",
 ]
 
 [project.optional-dependencies]
@@ -44,6 +60,7 @@ swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=pycparser"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",

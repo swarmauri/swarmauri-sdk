@@ -13,90 +13,117 @@
         <img src="https://img.shields.io/pypi/v/swarmauri_certservice_scep?label=swarmauri_certservice_scep&color=green" alt="PyPI - swarmauri_certservice_scep"/></a>
 </p>
 
-# Swarmauri Certservice SCEP
+# Swarmauri SCEP Certificate Service
 
-`ScepCertService` implements certificate enrollment using the [Simple Certificate Enrollment Protocol (SCEP)](https://datatracker.ietf.org/doc/html/rfc8894). It maps the generic `ICertService` flows onto SCEP operations so applications can request, receive, and validate X.509 certificates without dealing with protocol details.
+`swarmauri_certservice_scep` provides `ScepCertService`, a Swarmauri certificate service for Simple Certificate Enrollment Protocol style workflows. The implemented service creates PKCS#10 CSRs, optionally embeds a challenge password, posts CSR bytes to a SCEP `PKIOperation` endpoint, and parses returned X.509 certificate metadata.
+
+## Why Swarmauri SCEP Certificate Service?
+
+Use this package when Swarmauri applications need a small SCEP-oriented enrollment adapter without embedding enrollment URL construction and CSR creation in application code. It keeps CSR generation, challenge-password handling, SCEP endpoint submission, and certificate metadata extraction behind `CertServiceBase`.
+
+## FAQ
+
+### Q: Does this package build complete CMS or PKCS#7 SCEP envelopes?
+
+A: No. The current implementation posts CSR bytes directly to `pkiclient.exe?operation=PKIOperation` and returns the responder content. If your responder requires full SCEP CMS wrapping or PKCS#7 response extraction, handle that in the surrounding enrollment layer.
+
+### Q: What CSR fields are supported?
+
+A: `create_csr()` currently builds a CSR with the common name from `subject["CN"]`, DNS SAN entries, and a challenge password from the call or service constructor.
+
+### Q: What does `verify_cert()` check?
+
+A: The current verifier loads PEM or DER certificates and returns issuer, subject, serial, validity timestamps, and CA status. It does not perform chain validation or revocation checking.
+
+### Q: Which standards does the package document?
+
+A: The service docstring references SCEP from RFC 8894, PKCS#10 CSR creation from RFC 2986, and X.509 certificate metadata from RFC 5280.
 
 ## Features
 
-- Generate RFC 2986-compliant PKCS#10 certificate signing requests with challenge passwords and subject alternative names.
-- Submit CSRs to SCEP responders via `PKCSReq` and retrieve issued certificates.
-- Download issuer CA certificates and validate issued leaf certificates for time window, issuer, and CA flags.
-- Parse returned certificates into structured dictionaries for downstream automation.
+- `ScepCertService` class registered under the `swarmauri.cert_services` entry point.
+- PKCS#10 CSR creation from PEM private keys in `KeyRef.material`.
+- DNS subject alternative name support.
+- Challenge password support through the constructor or per-call argument.
+- SCEP `PKIOperation` HTTP submission through `requests`.
+- PEM and DER certificate loading for verification and parsing.
+- Basic certificate metadata extraction for issuer, subject, serial, validity, and CA status.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
 ## Prerequisites
 
-- Python 3.10 or newer.
-- An accessible SCEP server URL (for example, `https://mdm.example.com/scep`).
-- Private key material for each device or service enrolling via SCEP. Software keys can be embedded in the `KeyRef.material` field.
-- Optional: RA challenge password if your SCEP service requires one for enrollment.
+- Reachable SCEP endpoint such as `https://mdm.example.com/scep`.
+- PEM private key material for each device, service, or workload enrolling.
+- RA challenge password when required by the SCEP service.
+- Additional CMS/PKCS#7 handling in the caller when required by the SCEP responder.
 
 ## Installation
 
+Install with `uv`:
+
 ```bash
-# pip
-pip install swarmauri_certservice_scep
-
-# poetry
-poetry add swarmauri_certservice_scep
-
-# uv (pyproject-based projects)
 uv add swarmauri_certservice_scep
 ```
 
-## Quickstart: Enroll a Device Certificate
+Install with `pip`:
+
+```bash
+pip install swarmauri_certservice_scep
+```
+
+## Usage
+
+Create a CSR with a challenge password:
 
 ```python
 import asyncio
 from pathlib import Path
 
-from cryptography.hazmat.primitives import serialization
-
 from swarmauri_certservice_scep import ScepCertService
-from swarmauri_core.certs.ICertService import SubjectSpec
-from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
+from swarmauri_core.crypto.types import KeyRef
 
 
-async def enroll() -> None:
+async def main() -> None:
     service = ScepCertService(
         "https://scep.example.test",
         challenge_password="enroll-secret",
     )
+    key_ref = KeyRef(material=Path("device.key.pem").read_bytes())
 
-    key_bytes = Path("device.key.pem").read_bytes()
-    key_ref = KeyRef(
-        kid="device-key",
-        version=1,
-        type=KeyType.RSA,
-        uses=(KeyUse.SIGN,),
-        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-        material=key_bytes,
-    )
-
-    subject: SubjectSpec = {
-        "C": "US",
-        "O": "Example Corp",
-        "CN": "device-001.example.com",
-    }
-
-    csr_pem = await service.create_csr(
+    csr = await service.create_csr(
         key=key_ref,
-        subject=subject,
+        subject={"CN": "device-001.example.com"},
         san={"dns": ["device-001.example.com", "device-001"]},
     )
-
-    fullchain = await service.sign_cert(csr_pem, ca_key=key_ref)
-    Path("device.pem").write_bytes(fullchain)
-    print("Enrollment complete â†’ device.pem")
+    Path("device.csr").write_bytes(csr)
 
 
-if __name__ == "__main__":
-    asyncio.run(enroll())
+asyncio.run(main())
 ```
 
-`sign_cert` returns the DER content provided by the SCEP server. Depending on your responder, the payload may be a single certificate or a PKCS#7 chain; decode accordingly before storing.
+Submit a CSR to a SCEP endpoint:
 
-## Verify Certificates from SCEP
+```python
+import asyncio
+from pathlib import Path
+
+from swarmauri_certservice_scep import ScepCertService
+from swarmauri_core.crypto.types import KeyRef
+
+
+async def main() -> None:
+    service = ScepCertService("https://scep.example.test")
+    response_bytes = await service.sign_cert(
+        Path("device.csr").read_bytes(),
+        ca_key=KeyRef(kid="scep-ca"),
+    )
+    Path("device-response.bin").write_bytes(response_bytes)
+
+
+asyncio.run(main())
+```
+
+Parse a returned certificate:
 
 ```python
 import asyncio
@@ -105,36 +132,41 @@ from pathlib import Path
 from swarmauri_certservice_scep import ScepCertService
 
 
-async def verify() -> None:
+async def main() -> None:
     service = ScepCertService("https://scep.example.test")
+    details = await service.parse_cert(Path("device.pem").read_bytes())
 
-    device_cert = Path("device.pem").read_bytes()
-
-    result = await service.verify_cert(device_cert)
-    if result["valid"]:
-        print("Issuer:", result["issuer"])
-        print("Valid until:", result["not_after"])
-    else:
-        print("Certificate failed validation:", result["reason"])
-
-    details = await service.parse_cert(device_cert)
     print("Serial:", details["serial"])
-    print("Subject alternative names:", details.get("san"))
+    print("Subject:", details["subject"])
 
 
-if __name__ == "__main__":
-    asyncio.run(verify())
+asyncio.run(main())
 ```
 
-`verify_cert` evaluates SCEP-issued certificates for validity windows and CA constraints, while `parse_cert` extracts SAN, EKU, and key usage metadata for logging or policy engines.
+## Related Packages
 
-## Operational Tips
+Certificate service packages:
 
-- Generate distinct key pairs per device or workload, and store them securelyâ€”`KeyRef` can reference HSM-backed keys instead of raw PEM material.
-- Capture challenge passwords and sensitive enrollment secrets from a secure vault or environment variables rather than hard-coding them in scripts.
-- If your SCEP responder returns PKCS#7 payloads, feed the response into `cryptography.hazmat.primitives.serialization.pkcs7` to extract certificate chains before deployment.
-- Pair SCEP enrollment with Swarmauri revocation check services (`swarmauri_certs_ocspverify`, `swarmauri_certs_crlverifyservice`) to maintain lifecycle hygiene.
+- [swarmauri_certservice_ms_adcs](https://pypi.org/project/swarmauri_certservice_ms_adcs/)
+- [swarmauri_certservice_stepca](https://pypi.org/project/swarmauri_certservice_stepca/)
+- [swarmauri_certs_acme](https://pypi.org/project/swarmauri_certs_acme/)
+- [swarmauri_certs_crlverifyservice](https://pypi.org/project/swarmauri_certs_crlverifyservice/)
+- [swarmauri_certs_ocspverify](https://pypi.org/project/swarmauri_certs_ocspverify/)
+- [swarmauri_certs_x509](https://pypi.org/project/swarmauri_certs_x509/)
 
-## Want to help?
+Foundational packages:
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/) defines certificate interfaces and `KeyRef`.
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/) provides `CertServiceBase`.
+- [swarmauri](https://pypi.org/project/swarmauri/) provides namespace imports and plugin discovery.
+
+## Best Practices
+
+- Store challenge passwords and enrollment secrets in a secure vault.
+- Treat SCEP responses as opaque until decoded by a response parser appropriate for your responder.
+- Generate distinct key pairs per device or workload.
+- Pair SCEP enrollment with CRL or OCSP verification packages for lifecycle monitoring.
+
+## License
+
+Apache-2.0
