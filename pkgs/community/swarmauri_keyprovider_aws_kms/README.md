@@ -15,105 +15,175 @@
 
 # Swarmauri AWS KMS Key Provider
 
-Community plugin providing an AWS Key Management Service (KMS) backed `KeyProvider` for Swarmauri. It manages non-exportable customer managed keys (CMKs), exposes JWKS for downstream services, and handles key rotation workflows aligned with AWS best practices.
+`swarmauri_keyprovider_aws_kms` provides `AwsKmsKeyProvider`, a Swarmauri key provider backed by [AWS Key Management Service](https://docs.aws.amazon.com/kms/latest/APIReference/). It creates non-exportable AWS KMS keys, maintains stable and versioned aliases, returns Swarmauri `KeyRef` metadata, publishes public JWK/JWKS material for asymmetric keys, and supports rotation and scheduled deletion workflows.
+
+## Why Swarmauri AWS KMS Key Provider?
+
+Use this package when Swarmauri applications need AWS-managed key material without returning private keys to application memory. The provider maps Swarmauri `KeySpec` values to AWS KMS `KeySpec` and `KeyUsage`, keeps versioned aliases for rotation, and exposes public key metadata in a shape that downstream token, signing, and verifier components can consume.
+
+## FAQ
+
+### Q: Does this provider export private key material?
+
+A: No. AWS KMS keys created by this provider are represented as non-exportable `KeyRef` objects. `get_key(include_secret=True)` still returns metadata and public material where available, not private material.
+
+### Q: Which AWS KMS key types are supported?
+
+A: The provider supports symmetric AES-256-GCM through `SYMMETRIC_DEFAULT`, RSA OAEP SHA-256, RSA PSS SHA-256, and ECDSA P-256 SHA-256. RSA sizes map to AWS-supported 2048, 3072, or 4096 bit keys.
+
+### Q: How does rotation work?
+
+A: `rotate_key(kid)` creates a new KMS key with the same algorithm metadata, creates a new `alias/<prefix>/<kid>/vN` alias, and repoints `alias/<prefix>/<kid>` to the latest version. Older version aliases remain available.
+
+### Q: Does this package call AWS KMS Sign, Encrypt, or Decrypt?
+
+A: No. This package manages keys and public metadata. Use a signing, encryption, or envelope-encryption component for cryptographic operations that call KMS runtime APIs.
 
 ## Features
 
-- Create RSA, ECC, and AES-256 keys in AWS KMS with deterministic aliasing per `kid` and version.
-- Rotate keys by minting new KMS key versions and updating aliases, while preserving previous versions for auditing or staged cutovers.
-- Describe keys through `KeyRef` objects, including public PEM material when the key spec allows export, and RFC 7517-compliant JWKs via `get_public_jwk`/`jwks`.
-- Generate cryptographically secure random bytes and perform HKDF expansion with SHA-256 to support envelope encryption and symmetric derivation flows.
-- Destroy keys by scheduling deletion through the KMS API, maintaining Swarmauri tagging metadata for traceability.
+- `AwsKmsKeyProvider` registered under the `swarmauri.key_providers` entry point.
+- AWS KMS key creation through `boto3`.
+- Stable latest aliases and version aliases per `kid`.
+- Rotation by creating a new KMS key version and updating aliases.
+- `KeyRef` metadata with KMS key ID, region, label, algorithm, version, public PEM when supported, and fingerprint.
+- Public JWK conversion for RSA and P-256 public keys.
+- JWKS aggregation for latest key versions.
+- Scheduled key deletion with AWS KMS deletion windows.
+- Local `random_bytes()` and HKDF helpers.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
 ## Prerequisites
 
-- Python 3.10 or newer.
-- `boto3` (installed automatically with this package) and network access to the target AWS region.
-- AWS credentials with permissions such as `kms:CreateKey`, `kms:CreateAlias`, `kms:UpdateAlias`, `kms:DescribeKey`, `kms:GetPublicKey`, `kms:ListAliases`, `kms:ListResourceTags`, and `kms:ScheduleKeyDeletion`.
-- Optional: a custom key policy if you need to delegate key administration to non-root principals; pass it through the `key_policy` constructor argument.
+- AWS credentials resolvable by `boto3`.
+- IAM permissions for the KMS operations you use, commonly `kms:CreateKey`, `kms:CreateAlias`, `kms:UpdateAlias`, `kms:ListAliases`, `kms:DescribeKey`, `kms:ListResourceTags`, `kms:GetPublicKey`, and `kms:ScheduleKeyDeletion`.
+- An AWS region such as `us-east-1`.
+- Optional custom key policy when account defaults are not enough for your access model.
 
 ## Installation
 
+Install with `uv`:
+
 ```bash
-# pip
-pip install swarmauri_keyprovider_aws_kms
-
-# poetry
-poetry add swarmauri_keyprovider_aws_kms
-
-# uv (pyproject-based projects)
 uv add swarmauri_keyprovider_aws_kms
 ```
 
-## Quickstart: Create, Rotate, and Publish Keys
+Install with `pip`:
+
+```bash
+pip install swarmauri_keyprovider_aws_kms
+```
+
+## Usage
+
+Create and rotate a non-exportable AWS KMS key:
 
 ```python
 import asyncio
+
 from swarmauri_keyprovider_aws_kms import AwsKmsKeyProvider
-from swarmauri_core.key_providers.types import KeyAlg, KeyClass, KeySpec, ExportPolicy
+from swarmauri_core.key_providers.types import (
+    ExportPolicy,
+    KeyAlg,
+    KeyClass,
+    KeySpec,
+)
 
 
 async def main() -> None:
-    provider = AwsKmsKeyProvider(region="us-east-1", alias_prefix="swarmauri-demo")
-
-    rsa_spec = KeySpec(
+    provider = AwsKmsKeyProvider(
+        region="us-east-1",
+        alias_prefix="swarmauri-prod",
+    )
+    spec = KeySpec(
         klass=KeyClass.asymmetric,
         alg=KeyAlg.RSA_PSS_SHA256,
         size_bits=3072,
         export_policy=ExportPolicy.never_export_secret,
-        label="api-signing",
+        label="jwt-signing",
     )
 
-    # Create the initial version (aliases: alias/swarmauri-demo/<kid> and .../v1)
-    key_ref = await provider.create_key(rsa_spec)
-    print("KID", key_ref.kid, "version", key_ref.version)
-
-    # Surface the public JWK for JWT signing or JWKS endpoints
-    jwk = await provider.get_public_jwk(key_ref.kid)
-    print("Public JWK", jwk)
-
-    # Rotate the key â€“ new CMK in KMS, version alias bump, old alias retained
+    key_ref = await provider.create_key(spec)
     rotated = await provider.rotate_key(key_ref.kid)
-    print("Rotated to version", rotated.version)
 
-    # Publish the aggregate JWKS (includes the latest version per kid)
-    jwks_payload = await provider.jwks()
-    print("JWKS keys", [k["kid"] for k in jwks_payload["keys"]])
+    print(key_ref.kid, key_ref.version)
+    print(rotated.kid, rotated.version)
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+asyncio.run(main())
 ```
 
-## Symmetric Utilities: Random Bytes and HKDF
+Publish public JWK metadata for verifiers:
 
 ```python
 import asyncio
+
 from swarmauri_keyprovider_aws_kms import AwsKmsKeyProvider
 
 
-async def derive_data_key() -> bytes:
-    provider = AwsKmsKeyProvider(region="us-east-1")
+async def main() -> None:
+    provider = AwsKmsKeyProvider(region="us-east-1", alias_prefix="swarmauri-prod")
 
-    master_salt = await provider.random_bytes(32)
-    info = b"swarmauri/example"
+    jwk = await provider.get_public_jwk("jwt-signing-kid")
+    jwks = await provider.jwks(prefix_kids="jwt")
 
-    pseudo_random_key = await provider.random_bytes(32)
-    derived = await provider.hkdf(
-        pseudo_random_key,
-        salt=master_salt,
-        info=info,
-        length=32,
-    )
-    return derived
+    print(jwk["kid"])
+    print([key["kid"] for key in jwks["keys"]])
 
 
-# asyncio.run(derive_data_key())
+asyncio.run(main())
 ```
 
-## Operational Tips
+Use local random bytes and HKDF helpers:
 
-- `list_versions(kid)` inspects versioned aliases (`alias/<prefix>/<kid>/vN`); use it before destructive actions to ensure you capture all active CMKs.
-- Destroying a key schedules deletion for 7 days. Plan rotations ahead of time so dependent systems can migrate to the new version before you call `destroy_key`.
-- Tag metadata persisted by the provider (`saur:kid`, `saur:version`, `saur:alg`, optional `saur:label`) enables inventory checksâ€”query them from the AWS console or CLI when auditing.
-- For high-throughput signing, ensure your IAM policies, KMS quotas, and region placement match latency expectations; consider caching public JWKs from `jwks()` in your verifier services.
+```python
+import asyncio
+
+from swarmauri_keyprovider_aws_kms import AwsKmsKeyProvider
+
+
+async def main() -> None:
+    provider = AwsKmsKeyProvider(region="us-east-1")
+    salt = await provider.random_bytes(32)
+    secret = await provider.random_bytes(32)
+    derived = await provider.hkdf(
+        secret,
+        salt=salt,
+        info=b"swarmauri/aws-kms/example",
+        length=32,
+    )
+
+    print(len(derived))
+
+
+asyncio.run(main())
+```
+
+## Related Packages
+
+Key provider packages:
+
+- [swarmauri_keyprovider_gcpkms](https://pypi.org/project/swarmauri_keyprovider_gcpkms/)
+- [swarmauri_keyprovider_vaulttransit](https://pypi.org/project/swarmauri_keyprovider_vaulttransit/)
+- [swarmauri_keyprovider_file](https://pypi.org/project/swarmauri_keyprovider_file/)
+- [swarmauri_keyprovider_local](https://pypi.org/project/swarmauri_keyprovider_local/)
+- [swarmauri_keyprovider_inmemory](https://pypi.org/project/swarmauri_keyprovider_inmemory/)
+- [swarmauri_keyprovider_remote_jwks](https://pypi.org/project/swarmauri_keyprovider_remote_jwks/)
+
+Foundational packages:
+
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/) defines key provider types.
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/) provides `KeyProviderBase`.
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/) provides standard Swarmauri components.
+- [swarmauri](https://pypi.org/project/swarmauri/) provides namespace imports and plugin discovery.
+
+## Best Practices
+
+- Use narrow IAM permissions and explicit key policies for production accounts.
+- Treat scheduled deletion as destructive; inspect `list_versions(kid)` before calling `destroy_key()`.
+- Cache JWKS responses in verifier services, but refresh after planned rotations.
+- Use clear `alias_prefix` values per environment to avoid mixing development and production keys.
+- Keep cryptographic operations in dedicated signing or encryption components that can enforce operation-specific policy.
+
+## License
+
+Apache-2.0

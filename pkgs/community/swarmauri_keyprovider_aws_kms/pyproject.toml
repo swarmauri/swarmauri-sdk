@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_keyprovider_aws_kms"
 version = "0.3.4.dev5"
-description = "AWS KMS KeyProvider for Swarmauri"
+description = "AWS KMS-backed Swarmauri key provider for non-exportable key creation, alias-based rotation, KeyRef metadata, and public JWKS publishing."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,11 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Operating System :: OS Independent",
+    "Topic :: Security",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -31,9 +36,21 @@ dependencies = [
 ]
 keywords = [
     "swarmauri",
+    "swarmauri keyprovider",
+    "key provider",
     "keyprovider",
     "aws",
     "kms",
+    "aws kms",
+    "key management service",
+    "jwks",
+    "jwk",
+    "key rotation",
+    "non exportable keys",
+    "pki",
+    "cryptography",
+    "cloud kms",
+    "composable intelligence",
 ]
 
 [project.optional-dependencies]
@@ -45,6 +62,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=pycparser,jmespath,s3transfer"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
