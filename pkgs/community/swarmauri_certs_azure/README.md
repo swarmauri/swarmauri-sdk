@@ -13,38 +13,76 @@
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_azure?label=swarmauri_certs_azure&color=green" alt="PyPI - swarmauri_certs_azure"/></a>
 </p>
 
-# swarmauri_certs_azure
+# Swarmauri Azure Key Vault Certificate Service
 
-Community-maintained utilities for working with X.509 certificates via Azure Key Vault.
+`swarmauri_certs_azure` provides `AzureKeyVaultCertService`, a Swarmauri certificate-service adapter for Azure-oriented certificate workflows. The current implementation authenticates with Azure credentials, prepares an Azure Key Vault key client, and creates PKCS#10 certificate signing requests from exportable PEM private key material supplied through Swarmauri `KeyRef` objects.
+
+## Why Swarmauri Azure Key Vault Certificate Service?
+
+Use this package when a Swarmauri deployment needs certificate request generation that fits Azure Key Vault operational patterns. It gives certificate code one Swarmauri interface while preserving Azure authentication through `DefaultAzureCredential` and keeping CSR construction, RFC 5280 serial helpers, and RFC 7468 PEM formatting in a package-local certificate service.
+
+## FAQ
+
+### Q: Does this package create certificates directly in Azure Key Vault?
+
+A: Not in the current runtime implementation. It creates CSRs from exportable private key material and prepares an Azure Key Vault key client. Azure certificate creation, import, and lifecycle operations should be handled by the surrounding Azure workflow.
+
+### Q: What standards does it cover?
+
+A: The package includes PKCS#10 CSR creation, RFC 5280-style serial number generation helpers, and RFC 7468 PEM certificate formatting helpers.
+
+### Q: What credential model does it use?
+
+A: `AzureKeyVaultCertService` uses a caller-provided Azure credential or falls back to `DefaultAzureCredential`, which supports local developer login, managed identity, workload identity, and service-principal flows supported by Azure Identity.
+
+### Q: What key material is required?
+
+A: The implemented CSR path requires exportable PEM private key material in `KeyRef.material`. Non-exportable Key Vault signing is not implemented by this simplified service.
 
 ## Features
-- `AzureKeyVaultCertService` adapter that plugs into Swarmauri's certificate service architecture.
-- RFC-aligned helpers for serial number generation (RFC 5280), PEM formatting (RFC 7468), and PKCS#10 CSR creation (RFC 2986).
-- Native `DefaultAzureCredential` support so you can reuse the same authentication chain across tools.
-- Works with RSA 2048-bit key materialâ€”perfect for Key Vault-backed certificate issuance flows.
 
-## Prerequisites
-- Python 3.10 or newer.
-- An Azure Key Vault enabled for the Certificates and Keys resource providers.
-- Exportable RSA key material (PEM) or an Azure Key Vault key that can be exported for CSR signing.
-- Azure credentials configured for `DefaultAzureCredential` (e.g., `AZURE_CLIENT_ID`, managed identity, or CLI login).
+- `AzureKeyVaultCertService` class for Swarmauri certificate-service workflows.
+- Azure Identity integration through `DefaultAzureCredential` or a caller-provided credential.
+- Azure Key Vault key client construction for the configured vault URL.
+- PKCS#10 CSR creation from PEM private keys.
+- Common-name subject handling for CSR generation.
+- RFC 5280-oriented serial number helper.
+- RFC 7468 PEM certificate formatting helper.
+- Capability metadata reporting RSA-2048, RSA-SHA256, and CSR support.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
 ## Installation
 
+Install with `uv`:
+
 ```bash
-# pip
-pip install swarmauri_certs_azure
-
-# poetry
-poetry add swarmauri_certs_azure
-
-# uv (pyproject-based projects)
 uv add swarmauri_certs_azure
 ```
 
-## Quickstart
+Install with `pip`:
 
-Generate a CSR using `AzureKeyVaultCertService` and store it for downstream issuance:
+```bash
+pip install swarmauri_certs_azure
+```
+
+## Usage
+
+Create a service for an Azure Key Vault URL:
+
+```python
+from azure.identity import DefaultAzureCredential
+
+from swarmauri_certs_azure.certs import AzureKeyVaultCertService
+
+service = AzureKeyVaultCertService(
+    "https://example-vault.vault.azure.net/",
+    credential=DefaultAzureCredential(),
+)
+
+print(service.supports()["features"])
+```
+
+Generate a CSR from local exportable key material:
 
 ```python
 import asyncio
@@ -58,62 +96,54 @@ from swarmauri_core.crypto.types import KeyRef
 
 async def main() -> None:
     service = AzureKeyVaultCertService(
-        vault_url="https://example-vault.vault.azure.net/",
+        "https://example-vault.vault.azure.net/",
         credential=DefaultAzureCredential(),
     )
-
     key_ref = KeyRef(material=Path("app-private-key.pem").read_bytes())
-    csr_bytes = await service.create_csr(
+
+    csr = await service.create_csr(
         key=key_ref,
         subject={"CN": "app.example.com"},
-        san={"dns": ["app.example.com", "www.app.example.com"]},
     )
-
-    Path("app.csr").write_bytes(csr_bytes)
-    print("CSR written to app.csr")
+    Path("app.csr").write_bytes(csr)
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+asyncio.run(main())
 ```
 
-## Integrate with Azure Certificate Workflows
-
-After generating the CSR, import it into Azure Key Vault or an external CA:
+Check helper behavior for PEM output:
 
 ```python
-from pathlib import Path
+from swarmauri_certs_azure.certs.AzureKeyVaultCertService import _serial_or_random
 
-from azure.identity import DefaultAzureCredential
-from azure.keyvault.certificates import CertificateClient
-
-vault_url = "https://example-vault.vault.azure.net/"
-client = CertificateClient(vault_url=vault_url, credential=DefaultAzureCredential())
-
-csr_bytes = Path("app.csr").read_bytes()
-
-poller = client.begin_create_certificate(
-    certificate_name="app-cert",
-    policy={
-        "contentType": "application/x-pem-file",
-        "csr": csr_bytes,
-    },
-)
-
-certificate = poller.result()
-print("Certificate operation state:", certificate.properties.x509_thumbprint)
+serial = _serial_or_random(None)
+assert 0 < serial < 2**128
 ```
 
-For external issuance, submit `app.csr` to your CA, then store the returned certificate chain back in Key Vault using `set_certificate_contacts` and `import_certificate`.
+## Related Packages
 
-## Testing
-Run tests with:
-```bash
-uv run --package swarmauri_certs_azure --directory community pytest
-```
+Certificate service packages:
+
+- [swarmauri_certs_acme](https://pypi.org/project/swarmauri_certs_acme/)
+- [swarmauri_certs_local_ca](https://pypi.org/project/swarmauri_certs_local_ca/)
+- [swarmauri_certs_self_signed](https://pypi.org/project/swarmauri_certs_self_signed/)
+- [swarmauri_certs_x509](https://pypi.org/project/swarmauri_certs_x509/)
+- [swarmauri_certs_cfssl](https://pypi.org/project/swarmauri_certs_cfssl/)
+- [swarmauri_certservice_aws_kms](https://pypi.org/project/swarmauri_certservice_aws_kms/)
+
+Foundational packages:
+
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/) defines certificate interfaces and `KeyRef`.
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/) provides `CertServiceBase`.
+- [swarmauri](https://pypi.org/project/swarmauri/) provides namespace imports and plugin discovery.
 
 ## Best Practices
-- Prefer managed identities or workload identity federation over client secrets in production.
-- Scope Key Vault permissions tightly (`get`, `sign`, `unwrapKey`) for the keys used by this service.
-- Rotate keys and certificates ahead of expiry; the helper functions simplify CSR generation for renewals.
-- Persist generated CSRs and issued certificates securely to aid in auditing and disaster recovery.
+
+- Prefer managed identities or workload identity federation over long-lived client secrets.
+- Keep Key Vault permissions scoped to the minimum operations required by the surrounding workflow.
+- Store generated CSRs and issued certificate chains in auditable storage.
+- Use a dedicated cloud CA or Azure certificate workflow for issuance/import operations outside this package.
+
+## License
+
+Apache-2.0
