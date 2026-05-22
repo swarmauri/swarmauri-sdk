@@ -80,7 +80,9 @@ class PayPalBillingProvider(
         if self._access_token:
             return self._access_token
         if not (self.client_id and self.client_secret):
-            raise ValueError("client_id and client_secret are required for PayPal API calls")
+            raise ValueError(
+                "client_id and client_secret are required for PayPal API calls"
+            )
         response = requests.post(
             f"{self._base}/v1/oauth2/token",
             data={"grant_type": "client_credentials"},
@@ -88,7 +90,9 @@ class PayPalBillingProvider(
             timeout=self.timeout,
         )
         if response.status_code >= 400:
-            raise RuntimeError(f"PayPal OAuth error {response.status_code}: {response.text}")
+            raise RuntimeError(
+                f"PayPal OAuth error {response.status_code}: {response.text}"
+            )
         self._access_token = response.json()["access_token"]
         return self._access_token
 
@@ -114,7 +118,9 @@ class PayPalBillingProvider(
             timeout=self.timeout,
         )
         if response.status_code >= 400:
-            raise RuntimeError(f"PayPal API error {response.status_code}: {response.text}")
+            raise RuntimeError(
+                f"PayPal API error {response.status_code}: {response.text}"
+            )
         return response.json() if response.content else {}
 
     # --------------------------------------------------------------------- utils
@@ -175,8 +181,12 @@ class PayPalBillingProvider(
                 "billing_cycles": [
                     {
                         "frequency": {
-                            "interval_unit": price_spec.resolve("interval_unit", "MONTH"),
-                            "interval_count": int(price_spec.resolve("interval_count", 1)),
+                            "interval_unit": price_spec.resolve(
+                                "interval_unit", "MONTH"
+                            ),
+                            "interval_count": int(
+                                price_spec.resolve("interval_count", 1)
+                            ),
                         },
                         "tenure_type": "REGULAR",
                         "sequence": 1,
@@ -206,7 +216,9 @@ class PayPalBillingProvider(
     def _create_checkout(self, price: Any, request: Any) -> Mapping[str, Any]:
         success_url = request.resolve("success_url", "https://example.com/return")
         currency = getattr(price, "currency", None) or "USD"
-        amount = int(getattr(price, "unit_amount_minor", 0) or 0) * int(request.quantity)
+        amount = int(getattr(price, "unit_amount_minor", 0) or 0) * int(
+            request.quantity
+        )
         raw = self._request(
             "POST",
             "/v2/checkout/orders",
@@ -233,7 +245,11 @@ class PayPalBillingProvider(
             idempotency_key=request.resolve("idempotency_key"),
         )
         approve_url = next(
-            (link.get("href") for link in raw.get("links", []) if link.get("rel") == "approve"),
+            (
+                link.get("href")
+                for link in raw.get("links", [])
+                if link.get("rel") == "approve"
+            ),
             None,
         )
         return {
@@ -411,7 +427,9 @@ class PayPalBillingProvider(
         self, payment: Any, req: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
         amount = req.resolve("amount_minor")
-        currency = req.resolve("currency") or getattr(payment, "currency", None) or "USD"
+        currency = (
+            req.resolve("currency") or getattr(payment, "currency", None) or "USD"
+        )
         payload = {}
         if amount is not None:
             payload["amount"] = {
