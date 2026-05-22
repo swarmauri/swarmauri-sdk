@@ -1,9 +1,15 @@
-"""Authorize.Net billing provider stub for the Swarmauri SDK."""
+"""Authorize.Net billing provider for the Swarmauri SDK."""
 
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
 from typing import Any, Mapping, Optional, Sequence, cast
 from uuid import uuid4
+
+import requests
+from pydantic import Field
 
 from swarmauri_base.billing import (
     BillingProviderBase,
@@ -28,7 +34,7 @@ class AuthorizeNetBillingProvider(
     WebhooksMixin,
     BillingProviderBase,
 ):
-    """Stubbed Authorize.Net provider focusing on card transaction workflows."""
+    """Authorize.Net JSON API provider focusing on card transaction workflows."""
 
     CAPABILITIES = frozenset(
         {
@@ -42,6 +48,51 @@ class AuthorizeNetBillingProvider(
         }
     )
     component_name: str = "authorize_net"
+    login_id: str | None = Field(
+        default=None, description="Authorize.Net API login ID."
+    )
+    environment: str = Field(default="sandbox", description="Authorize.Net environment")
+
+    @property
+    def _endpoint(self) -> str:
+        if self.base_url:
+            return self.base_url.rstrip("/")
+        if self.environment.lower() == "production":
+            return "https://api.authorize.net/xml/v1/request.api"
+        return "https://apitest.authorize.net/xml/v1/request.api"
+
+    def _merchant_auth(self) -> Mapping[str, str]:
+        if not self.login_id:
+            raise ValueError("login_id is required for Authorize.Net API calls")
+        return {
+            "name": self.login_id,
+            "transactionKey": self.api_key,
+        }
+
+    def _post(self, request_name: str, payload: Mapping[str, Any]) -> Mapping[str, Any]:
+        body = {
+            request_name: {
+                "merchantAuthentication": self._merchant_auth(),
+                **dict(payload),
+            }
+        }
+        response = requests.post(
+            self._endpoint,
+            json=body,
+            headers={"Content-Type": "application/json"},
+            timeout=self.timeout,
+        )
+        if response.status_code >= 400:
+            raise RuntimeError(
+                f"Authorize.Net API error {response.status_code}: {response.text}"
+            )
+        raw = response.content.decode("utf-8-sig")
+        data = json.loads(raw)
+        result = data.get(request_name.replace("Request", "Response"), data)
+        messages = result.get("messages", {})
+        if messages.get("resultCode") == "Error":
+            raise RuntimeError(str(messages.get("message", result)))
+        return result
 
     # --------------------------------------------------------------------- utils
     @staticmethod
@@ -65,27 +116,60 @@ class AuthorizeNetBillingProvider(
     def _create_payment_intent(self, req: Any) -> Mapping[str, Any]:
         amount = int(req.resolve("amount_minor") or 0)
         currency = (req.resolve("currency") or "USD").upper()
+        metadata = dict(req.resolve("metadata") or {})
+        payment = metadata.get("payment") or metadata.get("opaque_data")
+        if not payment:
+            raise ValueError(
+                "Authorize.Net payments require metadata['payment'] or metadata['opaque_data']"
+            )
+        if "dataDescriptor" in payment or "dataValue" in payment:
+            payment_payload = {"opaqueData": payment}
+        else:
+            payment_payload = payment
+        raw = self._post(
+            "createTransactionRequest",
+            {
+                "transactionRequest": {
+                    "transactionType": "authCaptureTransaction"
+                    if req.resolve("capture")
+                    else "authOnlyTransaction",
+                    "amount": f"{amount / 100:.2f}",
+                    "payment": payment_payload,
+                    "currencyCode": currency,
+                    "order": {"invoiceNumber": req.resolve("idempotency_key")}
+                    if req.resolve("idempotency_key")
+                    else None,
+                }
+            },
+        )
+        transaction = raw.get("transactionResponse", {})
         return {
-            "id": f"anet_txn_{uuid4().hex[:10]}",
-            "status": "AUTHORIZED" if req.resolve("confirm") else "PENDING_REVIEW",
+            "id": str(transaction.get("transId") or uuid4().hex),
+            "status": transaction.get("responseCode"),
             "amount_minor": amount,
             "currency": currency,
             "provider": self.component_name,
-            "raw": self._stub("create_payment_intent", request=self._dump(req)),
+            "raw": raw,
         }
 
     def _capture_payment(
         self, payment_id: str, *, idempotency_key: Optional[str] = None
     ) -> Mapping[str, Any]:
+        raw = self._post(
+            "createTransactionRequest",
+            {
+                "transactionRequest": {
+                    "transactionType": "priorAuthCaptureTransaction",
+                    "refTransId": payment_id,
+                }
+            },
+        )
+        transaction = raw.get("transactionResponse", {})
         return {
-            "id": payment_id,
-            "status": "SETTLED",
+            "id": str(transaction.get("transId") or payment_id),
+            "status": transaction.get("responseCode"),
             "provider": self.component_name,
-            "raw": self._stub(
-                "capture_payment",
-                payment_id=payment_id,
-                idempotency_key=idempotency_key,
-            ),
+            "raw": raw,
         }
 
     def _cancel_payment(
@@ -95,59 +179,89 @@ class AuthorizeNetBillingProvider(
         reason: Optional[str] = None,
         idempotency_key: Optional[str] = None,
     ) -> Mapping[str, Any]:
+        raw = self._post(
+            "createTransactionRequest",
+            {
+                "transactionRequest": {
+                    "transactionType": "voidTransaction",
+                    "refTransId": payment_id,
+                }
+            },
+        )
+        transaction = raw.get("transactionResponse", {})
         return {
-            "id": payment_id,
-            "status": "VOIDED",
+            "id": str(transaction.get("transId") or payment_id),
+            "status": transaction.get("responseCode"),
             "provider": self.component_name,
-            "raw": self._stub(
-                "cancel_payment",
-                payment_id=payment_id,
-                reason=reason,
-                idempotency_key=idempotency_key,
-            ),
+            "raw": raw,
         }
 
     # --------------------------------------------------------------------- refund
     def _create_refund(
         self, payment: Any, req: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
+        metadata = dict(req.resolve("metadata") or {})
+        payment_payload = metadata.get("payment") or metadata.get("credit_card")
+        if not payment_payload:
+            raise ValueError("Authorize.Net refunds require payment card metadata")
+        raw = self._post(
+            "createTransactionRequest",
+            {
+                "transactionRequest": {
+                    "transactionType": "refundTransaction",
+                    "amount": f"{int(req.resolve('amount_minor') or 0) / 100:.2f}",
+                    "payment": payment_payload,
+                    "refTransId": getattr(payment, "id", ""),
+                }
+            },
+        )
+        transaction = raw.get("transactionResponse", {})
         return {
-            "id": f"anet_refund_{uuid4().hex[:10]}",
-            "status": "SUBMITTED",
+            "id": str(transaction.get("transId") or uuid4().hex),
+            "status": transaction.get("responseCode"),
             "provider": self.component_name,
-            "raw": self._stub(
-                "create_refund",
-                payment_id=getattr(payment, "id", ""),
-                request=self._dump(req),
-                idempotency_key=idempotency_key,
-            ),
+            "raw": raw,
         }
 
     def _get_refund(self, refund_id: str) -> Mapping[str, Any]:
+        raw = self._post(
+            "getTransactionDetailsRequest",
+            {"transId": refund_id},
+        )
         return {
             "id": refund_id,
-            "status": "SETTLED",
+            "status": raw.get("transaction", {}).get("transactionStatus"),
             "provider": self.component_name,
-            "raw": self._stub("get_refund", refund_id=refund_id),
+            "raw": raw,
         }
 
     # ------------------------------------------------------------------- customer
     def _create_customer(self, spec: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+        raw = self._post(
+            "createCustomerProfileRequest",
+            {
+                "profile": {
+                    "merchantCustomerId": idempotency_key,
+                    "description": spec.resolve("name", ""),
+                    "email": spec.resolve("email"),
+                }
+            },
+        )
         return {
-            "id": f"anet_customer_{uuid4().hex[:10]}",
+            "id": str(raw.get("customerProfileId") or uuid4().hex),
             "provider": self.component_name,
-            "raw": self._stub(
-                "create_customer",
-                idempotency_key=idempotency_key,
-                spec=self._dump(spec),
-            ),
+            "raw": raw,
         }
 
     def _get_customer(self, customer_id: str) -> Mapping[str, Any]:
+        raw = self._post(
+            "getCustomerProfileRequest",
+            {"customerProfileId": customer_id},
+        )
         return {
             "id": customer_id,
             "provider": self.component_name,
-            "raw": self._stub("get_customer", customer_id=customer_id),
+            "raw": raw,
         }
 
     def _attach_payment_method_to_customer(
@@ -219,7 +333,14 @@ class AuthorizeNetBillingProvider(
         self, raw_body: bytes, headers: Mapping[str, str], secret: str
     ) -> bool:
         signature = headers.get("X-ANET-Signature", "")
-        return bool(signature and secret)
+        if signature.lower().startswith("sha512="):
+            signature = signature.split("=", 1)[1]
+        digest = hmac.new(
+            bytes.fromhex(secret),
+            raw_body,
+            hashlib.sha512,
+        ).hexdigest()
+        return hmac.compare_digest(digest.upper(), signature.upper())
 
     def _list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
         if limit <= 0:
@@ -237,16 +358,15 @@ class AuthorizeNetBillingProvider(
     def _parse_event(
         self, raw_body: bytes, headers: Mapping[str, str]
     ) -> Mapping[str, Any]:
-        event_type = headers.get("X-ANET-Event-Type", "authorize_net.event")
+        payload = json.loads(raw_body.decode("utf-8"))
+        event_type = payload.get("eventType") or headers.get(
+            "X-ANET-Event-Type", "authorize_net.event"
+        )
         return {
-            "event_id": f"anet_evt_{uuid4().hex[:10]}",
+            "event_id": payload.get("notificationId", f"anet_evt_{uuid4().hex[:10]}"),
             "type": event_type,
             "provider": self.component_name,
-            "raw": self._stub(
-                "parse_event",
-                headers=dict(headers),
-                raw_body=raw_body.decode("utf-8", errors="ignore"),
-            ),
+            "raw": payload,
         }
 
 

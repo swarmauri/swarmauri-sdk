@@ -15,31 +15,35 @@
 
 # Swarmauri Billing Authorize.Net
 
-`swarmauri_billing_authorize_net` provides an Authorize.Net-shaped billing provider for Swarmauri payment workflows. It is a deterministic stub provider for card-not-present transaction tests, refund flows, customer profiles, payment methods, reports, webhook parsing, and fraud-review style risk checks.
+`swarmauri_billing_authorize_net` provides an Authorize.Net JSON API backed billing provider for Swarmauri payment workflows. It connects Swarmauri billing interfaces to Authorize.Net transaction creation, prior-auth capture, voids, refunds, customer profiles, transaction details, webhook parsing, and HMAC-SHA512 webhook validation.
 
 ## Why Swarmauri Billing Authorize.Net?
 
-`swarmauri_billing_authorize_net` gives billing integrators an Authorize.Net-shaped provider for card-not-present payment workflow tests. It keeps payment, refund, customer, payment-method, report, risk, and webhook behavior available through Swarmauri billing interfaces without requiring live gateway credentials.
+`swarmauri_billing_authorize_net` gives billing integrators an Authorize.Net payment provider behind Swarmauri billing interfaces. Applications can authorize, capture, void, refund, create customer profiles, and validate webhook notifications without hard-coding Authorize.Net request payloads throughout the codebase.
 
 ## FAQ
 
-### Q: Does this package process real Authorize.Net payments?
+### Q: Does this package call Authorize.Net APIs?
 
-A: No. It is a deterministic stub provider for tests, examples, and contract validation.
+A: Yes for transaction and customer-profile workflows. It posts JSON requests to Authorize.Net sandbox or production endpoints with merchant authentication.
 
 ### Q: Which billing areas does it cover?
 
-A: It covers online payments, refunds, customers, payment methods, reports, risk, and webhooks.
+A: It covers online payments, prior-auth capture, voids, refunds, customer profile create/get, transaction detail lookup for refunds, webhook parsing, and HMAC-SHA512 signature validation. Some payment-method and reporting helpers remain compatibility placeholders.
 
-### Q: Can it become a live Authorize.Net provider?
+### Q: What credentials are required?
 
-A: Yes, but live API behavior should be added as an explicitly documented mode with credentials, webhook validation details, and tests.
+A: Provide `login_id` for the API Login ID and `api_key` for the transaction key. Use `environment="sandbox"` for test accounts and `environment="production"` for live accounts.
 
 ## Features
 
-- Authorize.Net-style provider class registered as `AuthorizeNetBillingProvider`.
-- Supports online payment intent creation, capture, cancellation, refunds, customers, payment methods, reports, risk dispute listing, webhook signature checks, and event parsing.
-- Returns deterministic provider-shaped payloads for straightforward unit and integration assertions.
+- Authorize.Net provider class registered as `AuthorizeNetBillingProvider`.
+- JSON API transaction creation for `authCaptureTransaction` and `authOnlyTransaction`.
+- Prior authorization capture and void transaction support.
+- Refund transaction creation and transaction detail lookup.
+- Customer profile creation and retrieval.
+- HMAC-SHA512 webhook signature validation using `X-ANET-Signature`.
+- Webhook JSON event parsing.
 - Uses Swarmauri billing specs and refs from `swarmauri_base.billing`.
 - Advertises an explicit subset of `swarmauri_core.billing.Capability`.
 - Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
@@ -66,13 +70,22 @@ Create and refund an Authorize.Net-style payment:
 from swarmauri_billing_authorize_net import AuthorizeNetBillingProvider
 from swarmauri_base.billing import PaymentIntentRequest, RefundRequest
 
-provider = AuthorizeNetBillingProvider(api_key="authorize-net-test-key")
+provider = AuthorizeNetBillingProvider(
+    api_key="authorize-net-transaction-key",
+    login_id="authorize-net-login-id",
+)
 
 payment = provider.create_payment_intent(
     PaymentIntentRequest(
         amount_minor=4200,
         currency="USD",
         confirm=True,
+        metadata={
+            "opaque_data": {
+                "dataDescriptor": "COMMON.ACCEPT.INAPP.PAYMENT",
+                "dataValue": "opaque-payment-token",
+            }
+        },
     )
 )
 refund = provider.create_refund(
@@ -90,7 +103,10 @@ List payment methods for a customer reference:
 from swarmauri_base.billing import CustomerSpec, PaymentMethodSpec
 from swarmauri_billing_authorize_net import AuthorizeNetBillingProvider
 
-provider = AuthorizeNetBillingProvider(api_key="authorize-net-test-key")
+provider = AuthorizeNetBillingProvider(
+    api_key="authorize-net-transaction-key",
+    login_id="authorize-net-login-id",
+)
 customer = provider.create_customer(
     CustomerSpec(payload={"email": "buyer@example.com"}),
     idempotency_key="customer-anet-1",
@@ -108,7 +124,7 @@ print(customer.id, len(methods))
 
 ## Important Scope Notes
 
-This package is a Swarmauri billing provider stub. It does not call the live Authorize.Net XML or JSON APIs, process real payments, store card data, or perform production-grade webhook signature validation. Use it for local development, contract validation, capability planning, and as a starting point for a live Authorize.Net provider.
+This package uses live Authorize.Net JSON API calls for transaction and customer-profile workflows. Payment data should be supplied through Accept.js opaque data or other compliant tokenized payloads. Do not place raw card data in application code unless your environment is explicitly PCI scoped.
 
 ## Entry Point
 
