@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_billing_square"
 version = "0.9.3.dev5"
-description = "Square billing provider for the Swarmauri SDK."
+description = "Square-backed Swarmauri billing provider for catalog items, payment links, payments, refunds, subscriptions, invoices, app fees, and webhooks."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -12,7 +12,10 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Office/Business :: Financial",
     "Topic :: Office/Business :: Financial :: Point-Of-Sale",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -34,12 +37,20 @@ keywords = [
     "sdk",
     "billing",
     "square",
+    "square billing provider",
+    "square payments",
     "community",
     "payments",
     "point of sale",
     "payment gateway",
+    "catalog items",
+    "payment links",
+    "refunds",
     "recurring billing",
     "subscription management",
+    "invoices",
+    "app fees",
+    "webhook verification",
     "e-commerce integration",
 ]
 
