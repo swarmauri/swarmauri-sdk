@@ -13,49 +13,116 @@
         <img src="https://img.shields.io/pypi/v/swarmauri_certservice_gcpkms?label=swarmauri_certservice_gcpkms&color=green" alt="PyPI - swarmauri_certservice_gcpkms"/></a>
 </p>
 
-# swarmauri_certservice_gcpkms
+# Swarmauri Google Cloud KMS Certificate Service
 
-Google Cloud KMS backed certificate service for Swarmauri.
+`swarmauri_certservice_gcpkms` provides `GcpKmsCertService`, a Swarmauri certificate service for Google Cloud KMS oriented certificate workflows. It creates CSRs, creates self-signed certificates, signs CSRs, verifies certificate validity and signatures, and parses X.509 metadata while resolving signing keys from Google Cloud KMS key-version references.
 
-This package exposes a `GcpKmsCertService` component implementing
-`CertServiceBase`.  It can create CSRs, generate self-signed certificates,
-issue certificates from CSRs, verify certificates and parse their
-metadata while using keys stored in Google Cloud KMS.
+## Why Swarmauri Google Cloud KMS Certificate Service?
+
+Use this package when Swarmauri certificate workflows need to integrate with Google Cloud KMS key versions while preserving the common `CertServiceBase` interface. The service accepts a caller-provided KMS client or creates `KeyManagementServiceClient`, resolves key versions from `KeyRef`, and uses `cryptography` certificate builders for X.509 output.
+
+## FAQ
+
+### Q: How does the service find the Google Cloud KMS key version?
+
+A: Key versions are resolved from `KeyRef.tags["gcp_kms_key_version"]`, `KeyRef.tags["kms_key_version"]`, or `KeyRef.kid`.
+
+### Q: Does this package install Google Cloud KMS by default?
+
+A: No. The base package keeps Google Cloud KMS optional. Install `swarmauri_certservice_gcpkms[gcp]` when the runtime should create a real `KeyManagementServiceClient`.
+
+### Q: What is the current KMS signing boundary?
+
+A: Certificate operations use an internal `_make_kms_private_key(client, version)` hook to obtain a `cryptography`-compatible private-key object. Tests can patch this hook; production use should provide or extend that adapter for the selected Google Cloud KMS signing flow.
+
+### Q: What certificate operations are implemented?
+
+A: The service implements CSR creation, self-signed certificate creation, CSR signing, signature and validity-window verification, and certificate metadata parsing.
 
 ## Features
 
-- Create certificate signing requests using keys stored in KMS
-- Issue self-signed or CA-signed certificates
-- Verify signatures and validity windows
-- Parse certificate metadata including extensions
+- `GcpKmsCertService` class registered under the `swarmauri.cert_services` entry point.
+- Optional Google Cloud KMS client creation through `google-cloud-kms`.
+- Caller-provided client support for tests and custom runtimes.
+- Key-version resolution from Swarmauri `KeyRef`.
+- CSR creation with subject and DNS/IP SAN support.
+- Self-signed certificate creation with KMS-backed private-key adapter.
+- CSR signing with issuer metadata and optional extensions.
+- Certificate verification against validity window and optional trust root.
+- Certificate parsing for version, serial, signature algorithm, issuer, subject, validity, and CA status.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
 ## Prerequisites
 
-- A Google Cloud project with the Cloud KMS API enabled
-- Credentials available to the application (for example via the
-  `GOOGLE_APPLICATION_CREDENTIALS` environment variable)
-- Keys provisioned in Cloud KMS with the `AsymmetricSign` capability (RSA 2048, EC P-256, or Ed25519).
-- Python 3.10 or newer and the `google-cloud-kms` dependency (installed via the extras shown below).
-- Network access to the Google Cloud KMS endpoint for the target location.
+- Google Cloud project with the Cloud KMS API enabled.
+- Application credentials available to Google client libraries.
+- KMS key versions with asymmetric signing capability.
+- `google-cloud-kms` installed through the `gcp` extra when using the default client.
+- A runtime adapter for `_make_kms_private_key` when using live KMS signing.
 
 ## Installation
 
+Install with `uv`:
+
 ```bash
-# pip
-pip install swarmauri_certservice_gcpkms[gcp]
-
-# poetry
-poetry add swarmauri_certservice_gcpkms -E gcp
-
-# uv (pyproject-based projects)
 uv add "swarmauri_certservice_gcpkms[gcp]"
 ```
 
-The optional `gcp` extra installs the `google-cloud-kms` dependency.
+Install with `pip`:
+
+```bash
+pip install "swarmauri_certservice_gcpkms[gcp]"
+```
+
+Install the package without the Google Cloud client when injecting a test or custom client:
+
+```bash
+uv add swarmauri_certservice_gcpkms
+```
 
 ## Usage
 
-### Issue a Certificate from a CSR
+Create a service and resolve a KMS key version from `KeyRef`:
+
+```python
+from swarmauri_certservice_gcpkms import GcpKmsCertService
+from swarmauri_core.crypto.types import KeyRef
+
+service = GcpKmsCertService()
+key = KeyRef(
+    kid="projects/my-project/locations/us-central1/keyRings/pki/cryptoKeys/root/cryptoKeyVersions/1"
+)
+
+print(service.supports()["features"])
+```
+
+Generate a CSR:
+
+```python
+import asyncio
+
+from swarmauri_certservice_gcpkms import GcpKmsCertService
+from swarmauri_core.crypto.types import KeyRef
+
+
+async def main() -> None:
+    service = GcpKmsCertService()
+    key = KeyRef(
+        kid="projects/my-project/locations/us-central1/keyRings/pki/cryptoKeys/leaf/cryptoKeyVersions/1"
+    )
+
+    csr = await service.create_csr(
+        key=key,
+        subject={"CN": "leaf.example.com", "O": "Example Corp"},
+        san={"dns": ["leaf.example.com"]},
+    )
+    print(csr[:40])
+
+
+asyncio.run(main())
+```
+
+Sign a CSR after providing a KMS-compatible signing adapter:
 
 ```python
 import asyncio
@@ -66,96 +133,48 @@ from swarmauri_certservice_gcpkms import GcpKmsCertService
 from swarmauri_core.crypto.types import KeyRef
 
 
-async def issue_certificate() -> None:
+async def main() -> None:
     service = GcpKmsCertService()
-
-    csr_bytes = Path("leaf.csr").read_bytes()
-    kms_ca_key = KeyRef(
+    ca_key = KeyRef(
         kid="projects/my-project/locations/us-central1/keyRings/pki/cryptoKeys/issuing-ca/cryptoKeyVersions/1"
     )
 
-    certificate_pem = await service.sign_cert(
-        csr=csr_bytes,
-        ca_key=kms_ca_key,
+    certificate = await service.sign_cert(
+        csr=Path("leaf.csr").read_bytes(),
+        ca_key=ca_key,
         issuer={"CN": "Example GCP Issuing CA", "O": "Example Corp"},
         not_after=int((datetime.now(timezone.utc) + timedelta(days=365)).timestamp()),
     )
-
-    Path("leaf.pem").write_bytes(certificate_pem)
-    print("Issued certificate saved to leaf.pem")
+    Path("leaf.pem").write_bytes(certificate)
 
 
-if __name__ == "__main__":
-    asyncio.run(issue_certificate())
+asyncio.run(main())
 ```
 
-### Create CSRs and Self-Signed Roots
+## Related Packages
 
-```python
-import asyncio
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
+Certificate service packages:
 
-from swarmauri_certservice_gcpkms import GcpKmsCertService
-from swarmauri_core.crypto.types import KeyRef
+- [swarmauri_certservice_aws_kms](https://pypi.org/project/swarmauri_certservice_aws_kms/)
+- [swarmauri_certservice_stepca](https://pypi.org/project/swarmauri_certservice_stepca/)
+- [swarmauri_certs_azure](https://pypi.org/project/swarmauri_certs_azure/)
+- [swarmauri_certs_local_ca](https://pypi.org/project/swarmauri_certs_local_ca/)
+- [swarmauri_certs_x509](https://pypi.org/project/swarmauri_certs_x509/)
+- [swarmauri_certs_cfssl](https://pypi.org/project/swarmauri_certs_cfssl/)
 
+Foundational packages:
 
-async def bootstrap_pki() -> None:
-    service = GcpKmsCertService()
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/) defines certificate interfaces and `KeyRef`.
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/) provides `CertServiceBase` and component registration.
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/) provides standard Swarmauri components for certificate-adjacent workflows.
+- [swarmauri](https://pypi.org/project/swarmauri/) provides namespace imports and plugin discovery.
 
-    # Generate a CSR using an exportable private key
-    local_key = KeyRef(material=Path("intermediate-key.pem").read_bytes())
-    csr_pem = await service.create_csr(
-        key=local_key,
-        subject={"CN": "Intermediate CA", "O": "Example Corp"},
-        san={"dns": ["intermediate.example.com"]},
-    )
-    Path("intermediate.csr").write_bytes(csr_pem)
+## Best Practices
 
-    # Create a self-signed root using Cloud KMS
-    root_key = KeyRef(
-        kid="projects/my-project/locations/us-central1/keyRings/pki/cryptoKeys/root-ca/cryptoKeyVersions/1"
-    )
-    root_pem = await service.create_self_signed(
-        key=root_key,
-        subject={"CN": "Example Root CA", "O": "Example Corp"},
-        not_after=int((datetime.now(timezone.utc) + timedelta(days=3650)).timestamp()),
-    )
-    Path("root-ca.pem").write_bytes(root_pem)
-
-
-if __name__ == "__main__":
-    asyncio.run(bootstrap_pki())
-```
-
-### Verification and Parsing
-
-```python
-import asyncio
-from pathlib import Path
-
-from swarmauri_certservice_gcpkms import GcpKmsCertService
-
-
-async def inspect() -> None:
-    service = GcpKmsCertService()
-    cert_bytes = Path("leaf.pem").read_bytes()
-    root_bytes = Path("root-ca.pem").read_bytes()
-
-    verification = await service.verify_cert(
-        cert=cert_bytes,
-        trust_roots=[root_bytes],
-    )
-    print("Valid:", verification["valid"], "Issuer:", verification.get("issuer"))
-
-    metadata = await service.parse_cert(cert_bytes)
-    print("Subject:", metadata["subject"])
-    print("Not after:", metadata["not_after"])
-
-
-if __name__ == "__main__":
-    asyncio.run(inspect())
-```
+- Use least-privilege IAM roles for Cloud KMS signing operations.
+- Store fully qualified key-version names in `KeyRef.kid` or `KeyRef.tags`.
+- Validate that the signing adapter matches the KMS key algorithm before issuing certificates.
+- Log certificate serials, issuer metadata, and key-version references for auditability.
 
 ## License
 
