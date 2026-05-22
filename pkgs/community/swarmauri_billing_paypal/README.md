@@ -15,11 +15,11 @@
 
 # Swarmauri Billing PayPal
 
-`swarmauri_billing_paypal` provides a PayPal REST backed billing provider for Swarmauri checkout, payment, subscription, invoicing, refund, payout, reporting, and webhook workflows. It connects Swarmauri billing interfaces to PayPal products, billing plans, Checkout Orders, captures, authorisation voids, refunds, subscriptions, invoices, payouts, and webhook event parsing.
+`swarmauri_billing_paypal` provides a PayPal REST backed billing provider for Swarmauri checkout, payment, subscription, invoicing, refund, payout, reporting, dispute, and webhook workflows. It connects Swarmauri billing interfaces to PayPal products, billing plans, Checkout Orders, captures, authorisation voids, refunds, subscriptions, invoices, payouts, customer disputes, webhook signature verification, and webhook event parsing.
 
 ## Why Swarmauri Billing PayPal?
 
-`swarmauri_billing_paypal` lets Swarmauri billing workflows use PayPal REST APIs behind provider-neutral billing interfaces. Application code can create orders, capture payments, refund captures, send invoices, start payouts, and parse webhook events without hard-coding PayPal REST payloads throughout the codebase.
+`swarmauri_billing_paypal` lets Swarmauri billing workflows use PayPal REST APIs behind provider-neutral billing interfaces. Application code can create orders, capture payments, refund captures, send invoices, start payouts, verify webhook signatures, list customer disputes, and parse webhook events without hard-coding PayPal REST payloads throughout the codebase.
 
 ## FAQ
 
@@ -29,7 +29,7 @@ A: Yes. It uses PayPal OAuth client credentials and calls PayPal REST endpoints 
 
 ### Q: Which Swarmauri billing capabilities does it cover?
 
-A: It covers products, plan-like prices, hosted checkout orders, online orders, capture, authorization void, subscriptions, invoicing, refunds, payouts, and webhook event parsing. Customer, payment-method, balance, and report helpers remain compatibility placeholders where PayPal does not expose the same direct Swarmauri object shape.
+A: It covers products, plan-like prices, hosted checkout orders, online orders, capture, authorization void, subscriptions, invoicing, refunds, payouts, customer dispute listing, PayPal webhook signature verification, and webhook event parsing. Customer, payment-method, balance, and report helpers remain compatibility placeholders where PayPal does not expose the same direct Swarmauri object shape.
 
 ### Q: When should I use this package?
 
@@ -46,6 +46,8 @@ A: Use it for local billing workflows, provider strategy tests, documentation ex
 - Subscription create/cancel support.
 - Invoice create/send/cancel support.
 - Payout batch creation.
+- Customer dispute listing through PayPal's customer disputes API.
+- PayPal webhook signature verification through PayPal's verification endpoint.
 - PayPal webhook JSON event parsing.
 - Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
@@ -116,7 +118,7 @@ print(payment.status, captured.status)
 
 ## Important Scope Notes
 
-This package uses live PayPal REST API calls for products, plans, orders, captures, voids, refunds, subscriptions, invoices, payouts, and webhook parsing. Production use requires PayPal REST app credentials, correct sandbox or production environment selection, and account permissions for each enabled PayPal product.
+This package uses live PayPal REST API calls for products, plans, orders, captures, voids, refunds, subscriptions, invoices, payouts, customer disputes, webhook signature verification, and webhook parsing. Production use requires PayPal REST app credentials, correct sandbox or production environment selection, a configured PayPal webhook ID for signature verification, and account permissions for each enabled PayPal product.
 
 ## Entry Point
 

@@ -20,6 +20,7 @@ from swarmauri_base.billing import (
     ProductsPricesMixin,
     RefundsMixin,
     ReportsMixin,
+    RiskMixin,
     SubscriptionsMixin,
     WebhooksMixin,
 )
@@ -37,6 +38,7 @@ class PayPalBillingProvider(
     PaymentMethodsMixin,
     PayoutsMixin,
     ReportsMixin,
+    RiskMixin,
     WebhooksMixin,
     BillingProviderBase,
 ):
@@ -54,6 +56,7 @@ class PayPalBillingProvider(
             Capability.PAYMENT_METHODS,
             Capability.PAYOUTS,
             Capability.REPORTS,
+            Capability.RISK,
             Capability.WEBHOOKS,
         }
     )
@@ -570,6 +573,46 @@ class PayPalBillingProvider(
                 request=self._dump(req),
             ),
         }
+
+    # ------------------------------------------------------------------------ risk
+    @staticmethod
+    def _header(headers: Mapping[str, str], name: str) -> str | None:
+        lower_name = name.lower()
+        for key, value in headers.items():
+            if key.lower() == lower_name:
+                return value
+        return None
+
+    def _verify_webhook_signature(
+        self, raw_body: bytes, headers: Mapping[str, str], secret: str
+    ) -> bool:
+        webhook_id = self.webhook_id or secret
+        if not webhook_id:
+            raise ValueError(
+                "webhook_id or secret is required for PayPal webhook verification"
+            )
+        event = json.loads(raw_body.decode("utf-8"))
+        raw = self._request(
+            "POST",
+            "/v1/notifications/verify-webhook-signature",
+            payload={
+                "auth_algo": self._header(headers, "PAYPAL-AUTH-ALGO"),
+                "cert_url": self._header(headers, "PAYPAL-CERT-URL"),
+                "transmission_id": self._header(headers, "PAYPAL-TRANSMISSION-ID"),
+                "transmission_sig": self._header(headers, "PAYPAL-TRANSMISSION-SIG"),
+                "transmission_time": self._header(headers, "PAYPAL-TRANSMISSION-TIME"),
+                "webhook_id": webhook_id,
+                "webhook_event": event,
+            },
+        )
+        return raw.get("verification_status") == "SUCCESS"
+
+    def _list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
+        raw = self._request(
+            "GET",
+            f"/v1/customer/disputes?page_size={limit}",
+        )
+        return cast(Sequence[Mapping[str, Any]], raw.get("items", ()))
 
     # --------------------------------------------------------------------- webhooks
     def _parse_event(
