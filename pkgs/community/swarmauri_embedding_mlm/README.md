@@ -13,116 +13,157 @@
         <img src="https://img.shields.io/pypi/v/swarmauri_embedding_mlm?label=swarmauri_embedding_mlm&color=green" alt="PyPI - swarmauri_embedding_mlm"/></a>
 </p>
 
-# Swarmauri Embedding MLM
+# Swarmauri MLM Embedding
 
-Trainable embedding provider that fine-tunes a Hugging Face masked language model (MLM) end-to-end so Swarmauri agents can produce contextual document vectors without leaving the framework.
+`swarmauri_embedding_mlm` provides `MlmEmbedding`, a Swarmauri embedding component built on Hugging Face `transformers` and PyTorch masked language models. It can fine-tune a masked language model on local text, optionally expand the tokenizer vocabulary, and return Swarmauri `Vector` objects for retrieval, clustering, similarity search, and downstream agent memory workflows.
+
+## Why Swarmauri MLM Embedding?
+
+Use this package when you want a trainable embedding adapter inside the Swarmauri component system instead of a fixed API-only embedding provider. `MlmEmbedding` keeps model loading, masking, fine-tuning, pooling, vector wrapping, and save/load behavior behind the shared `EmbeddingBase` interface so it can plug into Swarmauri vector stores and retrieval pipelines.
+
+## FAQ
+
+### Q: Which models can this package load?
+
+A: `MlmEmbedding` uses `AutoTokenizer.from_pretrained()` and `AutoModelForMaskedLM.from_pretrained()`, so use a Hugging Face model compatible with masked language modeling, such as BERT-style or DistilBERT-style models.
+
+### Q: Does `fit()` train a complete embedding model from scratch?
+
+A: No. It fine-tunes an existing masked language model for one pass per `fit()` call using masked-token loss, AdamW, and the configured batch size and learning rate.
+
+### Q: What does `transform()` return?
+
+A: It returns a list of Swarmauri `Vector` objects. The current implementation mean-pools model outputs and falls back to mean-pooled logits when the masked-language-model output does not expose `last_hidden_state`.
+
+### Q: Can I persist a tuned model?
+
+A: Yes. Use `save_model(path)` to write the model and tokenizer, then `load_model(path)` to restore them later.
 
 ## Features
 
-- Wraps any Hugging Face masked language model (`embedding_name`) behind the Swarmauri `EmbeddingBase` interface.
-- Supports optional vocabulary expansion via `add_new_tokens` before fine-tuning to capture domain-specific terminology.
-- Handles end-to-end fine-tuning with masking, AdamW optimization, and GPU/CPU selection based on availability.
-- Exposes pooling utilities (`transform`, `infer_vector`) that average the last hidden state to yield dense vectors ready for downstream retrieval or clustering.
-- Provides `save_model`/`load_model` helpers so trained weights and tokenizers can be persisted and reloaded across workers.
+- `MlmEmbedding` registered under the `swarmauri.embeddings` entry point.
+- Hugging Face masked-language-model loading through `AutoTokenizer` and `AutoModelForMaskedLM`.
+- PyTorch training loop with automatic CUDA or CPU selection.
+- Configurable `embedding_name`, `batch_size`, `learning_rate`, `masking_ratio`, and `randomness_ratio`.
+- Optional tokenizer vocabulary expansion with `add_new_tokens=True`.
+- `fit()`, `transform()`, `fit_transform()`, and `infer_vector()` workflows.
+- `save_model()` and `load_model()` helpers for model reuse.
+- Swarmauri `Vector` outputs for vector stores and retrieval pipelines.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
 ## Prerequisites
 
-- Python 3.10 or newer.
-- PyTorch with CUDA support if you plan to train on GPU (the class falls back to CPU automatically).
-- Access to the Hugging Face model hub for downloading `embedding_name`. Set `HF_HOME`, proxies, or tokens if your environment requires authentication.
-- Enough disk space to cache the chosen MLM (e.g., `bert-base-uncased` ~420â€¯MB).
+- PyTorch installed for your target CPU or GPU environment.
+- Network access or a local Hugging Face cache for the selected model.
+- Enough disk and memory for the selected masked language model.
+- Training data as a list of text strings.
 
 ## Installation
 
+Install with `uv`:
+
 ```bash
-# pip
-pip install swarmauri_embedding_mlm
-
-# poetry
-poetry add swarmauri_embedding_mlm
-
-# uv (pyproject-based projects)
 uv add swarmauri_embedding_mlm
 ```
 
-## Quickstart: Fine-tune and Embed Documents
+Install with `pip`:
+
+```bash
+pip install swarmauri_embedding_mlm
+```
+
+## Usage
+
+Fine-tune a masked language model and embed documents:
 
 ```python
 from swarmauri_embedding_mlm import MlmEmbedding
 
-docs = [
-    "Swarmauri SDK ships modular agents.",
-    "Masked language models produce contextual embeddings.",
+documents = [
+    "Swarmauri components compose agents, memory, and tools.",
+    "Masked language models can adapt to domain terminology.",
 ]
 
 embedder = MlmEmbedding(
     embedding_name="distilbert-base-uncased",
-    batch_size=16,
+    batch_size=8,
     learning_rate=3e-5,
 )
 
-# One epoch of MLM fine-tuning on your corpus
-embedder.fit(docs)
+embedder.fit(documents)
+vectors = embedder.transform(
+    [
+        "Agents retrieve context from vector stores.",
+        "Domain adaptation improves local vocabulary coverage.",
+    ]
+)
 
-# Generate vectors for downstream tasks
-vectors = embedder.transform([
-    "Agents coordinate through shared memory",
-    "Fine-tuning improves domain recall",
-])
-
-for v in vectors:
-    print(len(v.value), v.value[:4])  # dimension and preview
-
-# Single-text inference helper
-query_vector = embedder.infer_vector("How do masked models compute embeddings?")
+print(len(vectors))
+print(vectors[0].value[:5])
 ```
 
-## Expanding the Vocabulary
-
-Set `add_new_tokens=True` to capture domain-specific terms before training. New tokens are identified via simple whitespace tokenization and appended to the tokenizer before the first epoch.
+Expand the tokenizer vocabulary before fine-tuning:
 
 ```python
 from swarmauri_embedding_mlm import MlmEmbedding
 
-domain_docs = [
-    "Neo4j graph embeddings power fraud detection",
-    "Qdrant supports hybrid sparse-dense search",
+corpus = [
+    "Swarmauri pipelines use composable intelligence infrastructure.",
+    "Qdrant and Redis vector stores support retrieval workflows.",
 ]
 
 embedder = MlmEmbedding(add_new_tokens=True)
-embedder.fit(domain_docs)
+embedder.fit(corpus)
 
-# Inspect the tokenizer to confirm additions
-print(f"Vocabulary size: {len(embedder.extract_features())}")
+print(embedder.epochs)
+print(len(embedder.extract_features()))
 ```
 
-## Persisting and Reloading Models
+Save and reload a tuned model:
 
 ```python
 from pathlib import Path
+
 from swarmauri_embedding_mlm import MlmEmbedding
 
-save_dir = Path("models/mlm-distilbert")
+model_dir = Path("models/domain-mlm")
 
-embedder = MlmEmbedding()
-embedder.fit(["short corpus", "to warm up the model"])
-embedder.save_model(save_dir.as_posix())
+embedder = MlmEmbedding(embedding_name="distilbert-base-uncased")
+embedder.fit(["short adaptation corpus"])
+embedder.save_model(model_dir.as_posix())
 
-# Later or on another machine
-restored = MlmEmbedding()
-restored.load_model(save_dir.as_posix())
+restored = MlmEmbedding(embedding_name=model_dir.as_posix())
+vector = restored.infer_vector("reuse the tuned model")
 
-embedding = restored.infer_vector("Reuse the trained weights instantly")
+print(len(vector.value))
 ```
 
-## Operational Tips
+## Related Packages
 
-- Batch and sequence length drive GPU memory usage; reduce `batch_size` or `max_length` in tokenizer calls when running on constrained hardware.
-- `fit_transform` runs a full fine-tuning pass and immediately returns embeddingsâ€”useful for one-off adaptation jobs.
-- When training on large corpora, stream documents from a generator, chunk them, or wrap the `.fit` call in your own epoch loop.
-- Run `extract_features()` to audit the tokenizer vocabulary (helpful when debugging domain token coverage).
-- Combine the generated vectors with Swarmauri vector stores (Redis, Qdrant, etc.) to build end-to-end retrieval pipelines.
+Embedding and vector packages:
 
-## Want to help?
+- [swarmauri_embedding_doc2vec](https://pypi.org/project/swarmauri_embedding_doc2vec/)
+- [swarmauri_embedding_nmf](https://pypi.org/project/swarmauri_embedding_nmf/)
+- [swarmauri_vectorstore_mlm](https://pypi.org/project/swarmauri_vectorstore_mlm/)
+- [swarmauri_vectorstore_qdrant](https://pypi.org/project/swarmauri_vectorstore_qdrant/)
+- [swarmauri_vectorstore_redis](https://pypi.org/project/swarmauri_vectorstore_redis/)
+- [swarmauri_vectorstore_pinecone](https://pypi.org/project/swarmauri_vectorstore_pinecone/)
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+Foundational packages:
+
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/) defines embedding interfaces.
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/) provides `EmbeddingBase`.
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/) provides `Vector`.
+- [swarmauri](https://pypi.org/project/swarmauri/) provides namespace imports and plugin discovery.
+
+## Best Practices
+
+- Pin `embedding_name` to a model you have tested in your deployment environment.
+- Pre-download or cache Hugging Face model weights for offline or repeatable builds.
+- Use smaller models and smaller batches on memory-constrained machines.
+- Save tuned models after adaptation so workers do not repeat fine-tuning.
+- Pair generated vectors with a Swarmauri vector store for retrieval-augmented workflows.
+
+## License
+
+Apache-2.0

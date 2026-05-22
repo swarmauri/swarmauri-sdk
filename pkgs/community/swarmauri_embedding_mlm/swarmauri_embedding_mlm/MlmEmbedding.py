@@ -110,7 +110,7 @@ class MlmEmbedding(EmbeddingBase):
                 num_added_toks = self._tokenizer.add_tokens(new_tokens)
                 if num_added_toks > 0:
                     logging.info(f"Added {num_added_toks} new tokens.")
-                    self.model.resize_token_embeddings(len(self._tokenizer))
+                    self._model.resize_token_embeddings(len(self._tokenizer))
 
         encodings = self._tokenizer(
             documents,

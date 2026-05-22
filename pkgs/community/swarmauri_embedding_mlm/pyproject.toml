@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_embedding_mlm"
 version = "0.8.3.dev5"
-description = "example community package"
+description = "Trainable Swarmauri embedding component for Hugging Face masked language models, tokenizer adaptation, local fine-tuning, and Vector output."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,10 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -31,11 +35,20 @@ dependencies = [
 ]
 keywords = [
     "swarmauri",
+    "swarmauri embedding",
     "embedding",
     "mlm",
-    "example",
-    "community",
-    "package",
+    "masked language model",
+    "hugging face",
+    "transformers",
+    "pytorch",
+    "bert",
+    "fine tuning",
+    "tokenizer",
+    "vector embeddings",
+    "retrieval augmented generation",
+    "semantic search",
+    "composable intelligence",
 ]
 
 [tool.uv.sources]
@@ -44,6 +57,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=nvidia-cublas-cu12,nvidia-cuda-cupti-cu12,nvidia-cuda-nvrtc-cu12,nvidia-cuda-runtime-cu12,nvidia-cudnn-cu12,nvidia-cufft-cu12,nvidia-cufile-cu12,nvidia-curand-cu12,nvidia-cusolver-cu12,nvidia-cusparse-cu12,nvidia-cusparselt-cu12,nvidia-nccl-cu12,nvidia-nvjitlink-cu12,nvidia-nvtx-cu12,transformers,tqdm"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
