@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_llm_falai"
 version = "0.1.1.dev5"
-description = "Swarmauri Falai LLM adapters from swarmauri_standard."
+description = "Provider-specific Swarmauri import package for fal.ai queue-backed vision-language inference, OCR, image captioning, and visual question answering."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,11 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -31,7 +36,21 @@ keywords = [
     "swarmauri",
     "llm",
     "falai",
+    "fal ai",
+    "fal.ai",
+    "vision language model",
+    "vlm",
+    "ocr",
+    "image captioning",
+    "visual question answering",
+    "image understanding",
+    "queue inference",
+    "async inference",
+    "fal queue",
+    "swarmauri llm",
+    "swarmauri vlm",
     "model",
+    "composable intelligence",
 ]
 
 [tool.uv.sources]
@@ -40,6 +59,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=numpy"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
