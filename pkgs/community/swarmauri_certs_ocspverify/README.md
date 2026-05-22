@@ -13,39 +13,62 @@
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_ocspverify?label=swarmauri_certs_ocspverify&color=green" alt="PyPI - swarmauri_certs_ocspverify"/></a>
 </p>
 
-# swarmauri_certs_ocspverify
+# Swarmauri OCSP Verify Service
 
-OCSP-based certificate verification service for the Swarmauri SDK.
+`swarmauri_certs_ocspverify` provides `OcspVerifyService`, a Swarmauri certificate service for Online Certificate Status Protocol checks. It reads OCSP responder URLs from the certificate Authority Information Access extension, builds DER OCSP requests with the issuer certificate, posts them with `httpx`, and reports whether the responder returned a GOOD certificate status.
 
-This package provides an implementation of an `ICertService` that checks
-certificate revocation status using the Online Certificate Status Protocol
-(OCSP) defined in [RFC 6960](https://www.rfc-editor.org/rfc/rfc6960) while
-remaining compatible with X.509 certificate guidelines from
-[RFC 5280](https://www.rfc-editor.org/rfc/rfc5280).
+## Why Swarmauri OCSP Verify Service?
+
+Use this package when Swarmauri applications need live revocation checks for PEM X.509 certificates. It keeps OCSP request construction, responder lookup, HTTP submission, status parsing, and basic certificate metadata extraction behind the common Swarmauri certificate-service interface.
+
+## FAQ
+
+### Q: Does this package issue or sign certificates?
+
+A: No. `create_csr()`, `create_self_signed()`, and `sign_cert()` intentionally raise `NotImplementedError`; this service is verification-only.
+
+### Q: What input does OCSP verification require?
+
+A: `verify_cert()` requires the leaf certificate as PEM bytes and the issuer certificate as the first item in `intermediates`. The issuer certificate is required to build the OCSP request.
+
+### Q: What happens when a certificate has no OCSP URL?
+
+A: The service returns `valid=False`, `reason="no_ocsp_url"`, and `ocsp_checked=False`.
+
+### Q: Which standards does this package target?
+
+A: The implementation documents RFC 6960 for OCSP behavior and RFC 5280 for X.509 certificate and Authority Information Access metadata.
 
 ## Features
-- Parse PEM certificates to extract subject, issuer and OCSP responder URLs.
-- Verify certificate status via OCSP responders advertised in the certificate's
-  Authority Information Access extension.
+
+- `OcspVerifyService` class registered under the `swarmauri.certs` entry point.
+- OCSP responder URL extraction from the Authority Information Access extension.
+- DER OCSP request construction with `cryptography.x509.ocsp.OCSPRequestBuilder`.
+- Async HTTP OCSP responder calls through `httpx.AsyncClient`.
+- GOOD-status mapping to `valid=True`.
+- `this_update` and `next_update` timestamp reporting from OCSP responses.
+- Certificate metadata parsing for subject, issuer, not-before, not-after, and OCSP URLs.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
 ## Prerequisites
-- Python 3.10 or newer.
-- Leaf certificate PEM to inspect and validate.
-- Issuer (intermediate) certificate PEM required to build the OCSP request.
-- Network access to the OCSP responder URLs exposed in the certificate's Authority Information Access extension.
-- Optional: trust root bundle if performing additional validation on issuer metadata alongside OCSP results.
+
+- PEM-encoded leaf certificate to inspect and validate.
+- PEM-encoded issuer certificate supplied through `intermediates`.
+- Network access to the OCSP responder URL embedded in the leaf certificate.
+- Application-level retry, timeout, and cache policy for production revocation checks.
 
 ## Installation
 
+Install with `uv`:
+
 ```bash
-# pip
-pip install swarmauri_certs_ocspverify
-
-# poetry
-poetry add swarmauri_certs_ocspverify
-
-# uv (pyproject-based projects)
 uv add swarmauri_certs_ocspverify
+```
+
+Install with `pip`:
+
+```bash
+pip install swarmauri_certs_ocspverify
 ```
 
 ## Usage
@@ -61,13 +84,9 @@ from swarmauri_certs_ocspverify import OcspVerifyService
 
 async def main() -> None:
     service = OcspVerifyService()
-
-    leaf_cert = Path("leaf.pem").read_bytes()
-    issuer_cert = Path("issuer.pem").read_bytes()
-
     verification = await service.verify_cert(
-        cert=leaf_cert,
-        intermediates=[issuer_cert],
+        cert=Path("leaf.pem").read_bytes(),
+        intermediates=[Path("issuer.pem").read_bytes()],
         check_revocation=True,
     )
 
@@ -78,13 +97,10 @@ async def main() -> None:
     print("Next update:", verification.get("next_update"))
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+asyncio.run(main())
 ```
 
-## Parsing OCSP Metadata
-
-Use `parse_cert` to confirm which OCSP responder URLs are embedded and to inspect the validity window:
+Inspect certificate metadata and embedded OCSP responder URLs:
 
 ```python
 import asyncio
@@ -93,22 +109,43 @@ from pathlib import Path
 from swarmauri_certs_ocspverify import OcspVerifyService
 
 
-async def describe() -> None:
+async def main() -> None:
     service = OcspVerifyService()
-    leaf_cert = Path("leaf.pem").read_bytes()
+    metadata = await service.parse_cert(Path("leaf.pem").read_bytes())
 
-    metadata = await service.parse_cert(leaf_cert)
     print("Subject:", metadata["subject"])
     print("Issuer:", metadata["issuer"])
     print("OCSP URLs:", metadata.get("ocsp_urls", []))
 
 
-if __name__ == "__main__":
-    asyncio.run(describe())
+asyncio.run(main())
 ```
 
+## Related Packages
+
+Certificate service packages:
+
+- [swarmauri_certs_crlverifyservice](https://pypi.org/project/swarmauri_certs_crlverifyservice/)
+- [swarmauri_certs_x509](https://pypi.org/project/swarmauri_certs_x509/)
+- [swarmauri_certs_local_ca](https://pypi.org/project/swarmauri_certs_local_ca/)
+- [swarmauri_certs_self_signed](https://pypi.org/project/swarmauri_certs_self_signed/)
+- [swarmauri_certs_acme](https://pypi.org/project/swarmauri_certs_acme/)
+- [swarmauri_certs_cfssl](https://pypi.org/project/swarmauri_certs_cfssl/)
+
+Foundational packages:
+
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/) defines certificate-service interfaces.
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/) provides `CertServiceBase`.
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/) provides standard Swarmauri components for certificate-adjacent workflows.
+- [swarmauri](https://pypi.org/project/swarmauri/) provides namespace imports and plugin discovery.
+
 ## Best Practices
+
 - Cache issuer certificates alongside leaf certificates so OCSP requests can be constructed quickly.
-- Respect OCSP responder rate limits; consider backoff and caching GOOD responses until `next_update`.
-- Combine OCSP checks with CRL fallbacks for authorities that support multiple revocation mechanisms.
-- Log `reason` and timestamp fields from the verification output to aid in incident response and compliance reporting.
+- Respect OCSP responder rate limits and cache GOOD responses until `next_update` when policy allows.
+- Combine OCSP checks with CRL fallback for authorities that support multiple revocation mechanisms.
+- Log `reason`, `ocsp_checked`, `this_update`, and `next_update` fields for incident response and compliance reporting.
+
+## License
+
+Apache-2.0
