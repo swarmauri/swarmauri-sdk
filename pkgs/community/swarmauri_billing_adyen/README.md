@@ -15,32 +15,35 @@
 
 # Swarmauri Billing Adyen
 
-`swarmauri_billing_adyen` provides an Adyen-style billing provider for the Swarmauri SDK. It implements the Swarmauri billing provider surface with deterministic stubbed responses that are useful for integration tests, strategy coverage, local development, and provider-contract examples.
+`swarmauri_billing_adyen` provides an Adyen Checkout API backed billing provider for the Swarmauri SDK. It connects Swarmauri billing interfaces to Adyen hosted sessions, `/payments`, captures, cancels, refunds, notification parsing, and HMAC webhook validation.
 
 ## Why Swarmauri Billing Adyen?
 
-`swarmauri_billing_adyen` gives billing integrators an Adyen-shaped provider for exercising Swarmauri billing flows before a live gateway is connected. It is useful for contract tests, examples, capability planning, and provider strategy work.
+`swarmauri_billing_adyen` gives billing integrators an Adyen payment provider behind Swarmauri billing interfaces. Applications can create Adyen Checkout Sessions, submit payment requests, capture or cancel authorized payments, refund payments, and validate Adyen notifications without coupling the rest of the codebase to Adyen request payloads.
 
 ## FAQ
 
-### Q: Does this package call the live Adyen API?
+### Q: Does this package call Adyen APIs?
 
-A: No. It is a deterministic provider stub that returns Adyen-shaped responses through Swarmauri billing interfaces.
+A: Yes for payment-oriented flows. Checkout sessions, payments, captures, cancels, and refunds call Adyen Checkout API endpoints using `X-API-Key` authentication. Some non-payment Swarmauri mixins remain local placeholders where Adyen has no direct one-to-one Checkout API object.
 
 ### Q: Which capabilities does it advertise?
 
-A: `AdyenBillingProvider` advertises `ALL_CAPABILITIES` from `swarmauri_core.billing`.
+A: The runtime-backed paths cover hosted checkout, online payments, capture, cancel, refunds, notification parsing, and webhook HMAC validation. The package still exposes the broader Swarmauri billing surface for compatibility.
 
 ### Q: When should I use this package?
 
-A: Use it when testing Swarmauri billing workflows, prototyping provider behavior, or preparing a production Adyen integration.
+A: Use it when a Swarmauri application needs Adyen Checkout payment flows while preserving provider-neutral billing interfaces.
 
 ## Features
 
-- Adyen-style provider class registered as `AdyenBillingProvider`.
-- Implements product, price, hosted checkout, online payment, subscription, invoice, marketplace, risk, refund, customer, payment method, payout, balance, transfer, report, webhook, coupon, and promotion flows through Swarmauri billing mixins.
-- Returns deterministic provider-shaped mappings and Pydantic-compatible billing refs for tests and examples.
-- Advertises capabilities from `swarmauri_core.billing.ALL_CAPABILITIES`.
+- Adyen provider class registered as `AdyenBillingProvider`.
+- Hosted Checkout Session creation through Adyen `/sessions`.
+- Payment submission through Adyen `/payments`.
+- Capture, cancel, and refund calls through Adyen payment modification endpoints.
+- Adyen notification parsing for `notificationItems` payloads.
+- HMAC webhook verification using Adyen notification signing fields.
+- Compatibility placeholders for Swarmauri billing mixins that do not have direct Adyen Checkout API equivalents.
 - Supports serialization through `swarmauri_base.billing.BillingProviderBase`.
 - Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
@@ -66,7 +69,10 @@ Create a product, price, and hosted checkout session:
 from swarmauri_billing_adyen import AdyenBillingProvider
 from swarmauri_base.billing import CheckoutRequest, PriceSpec, ProductSpec
 
-provider = AdyenBillingProvider(api_key="adyen-test-key")
+provider = AdyenBillingProvider(
+    api_key="adyen-test-key",
+    merchant_account="YourMerchantAccount",
+)
 
 product = provider.create_product(
     ProductSpec(name="Enterprise Plan"),
@@ -108,7 +114,7 @@ assert restored.api_key == provider.api_key
 
 ## Important Scope Notes
 
-This package is an Adyen-shaped Swarmauri billing provider stub. It does not perform live Adyen network requests, payment authorization, settlement, or webhook cryptographic validation. Use it for local testing, contract validation, provider strategy development, and as a starting point for a production Adyen integration.
+This package uses live Adyen Checkout API calls for payment-oriented workflows. Product, price, subscription, invoice, customer, payout, report, coupon, and promotion methods remain compatibility placeholders where Adyen Checkout does not expose a direct object matching the Swarmauri billing interface. Production use requires a valid `merchant_account`, an Adyen API key, correct test/live environment selection, and a live URL prefix for production.
 
 ## Entry Point
 

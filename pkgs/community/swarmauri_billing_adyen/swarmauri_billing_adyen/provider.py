@@ -2,8 +2,15 @@
 
 from __future__ import annotations
 
+import base64
+import hashlib
+import hmac
+import json
 from typing import Any, Mapping, Optional, Sequence
 from uuid import uuid4
+
+import requests
+from pydantic import Field
 
 from swarmauri_base.billing import (
     BalanceTransfersMixin,
@@ -44,9 +51,49 @@ class AdyenBillingProvider(
     PromotionsMixin,
     BillingProviderBase,
 ):
-    """Example Adyen provider returning deterministic stubbed responses."""
+    """Adyen Checkout API backed provider for payment-oriented billing flows."""
 
     CAPABILITIES = ALL_CAPABILITIES
+    component_name: str = "adyen"
+    merchant_account: str | None = Field(
+        default=None, description="Adyen merchant account used for Checkout requests."
+    )
+    environment: str = Field(default="test", description="Adyen environment")
+    live_url_prefix: str | None = Field(
+        default=None, description="Adyen live URL prefix for production requests."
+    )
+    api_version: str = Field(default="v71", description="Adyen Checkout API version")
+
+    @property
+    def _checkout_url(self) -> str:
+        if self.base_url:
+            return self.base_url.rstrip("/")
+        if self.environment.lower() == "live":
+            if not self.live_url_prefix:
+                raise ValueError("Adyen live environment requires live_url_prefix")
+            return f"https://{self.live_url_prefix}-checkout-live.adyenpayments.com/checkout/{self.api_version}"
+        return f"https://checkout-test.adyen.com/{self.api_version}"
+
+    def _post(self, path: str, payload: Mapping[str, Any]) -> Mapping[str, Any]:
+        response = requests.post(
+            f"{self._checkout_url}/{path.lstrip('/')}",
+            headers={
+                "X-API-Key": self.api_key,
+                "Content-Type": "application/json",
+            },
+            json=dict(payload),
+            timeout=self.timeout,
+        )
+        if response.status_code >= 400:
+            raise RuntimeError(
+                f"Adyen API error {response.status_code}: {response.text}"
+            )
+        return response.json() if response.content else {}
+
+    def _merchant(self) -> str:
+        if not self.merchant_account:
+            raise ValueError("merchant_account is required for live Adyen API calls")
+        return self.merchant_account
 
     def _stub(self, action: str, **payload: Any) -> Mapping[str, Any]:
         return {
@@ -85,32 +132,87 @@ class AdyenBillingProvider(
 
     # ---------------------------------------------------------------- Hosted Checkout
     def _create_checkout(self, price: Any, request: Any) -> Mapping[str, Any]:
+        amount_minor = getattr(price, "unit_amount_minor", None) or price.raw.get(
+            "amount", {}
+        ).get("value")
+        currency = getattr(price, "currency", None) or price.raw.get("amount", {}).get(
+            "currency", "USD"
+        )
+        payload = {
+            "merchantAccount": self._merchant(),
+            "reference": request.resolve("idempotency_key") or f"chk-{price.id}",
+            "amount": {
+                "value": int(amount_minor or 0) * int(request.quantity or 1),
+                "currency": str(currency).upper(),
+            },
+            "returnUrl": request.resolve("success_url"),
+            "countryCode": request.resolve("country_code", "US"),
+            "shopperEmail": request.resolve("customer_email"),
+            "metadata": request.resolve("metadata") or None,
+        }
+        raw = self._post(
+            "sessions", {k: v for k, v in payload.items() if v is not None}
+        )
         result = {
-            "id": f"ady_chk_{uuid4().hex[:10]}",
-            "url": "https://checkout.adyen.example/session",
-            "provider": "adyen",
-            "raw": self._stub("checkout"),
+            "id": raw["id"],
+            "url": raw.get("url"),
+            "provider": self.component_name,
+            "raw": raw,
         }
         return result
 
     # ---------------------------------------------------------------- Online Payments
     def _create_payment_intent(self, req: Any) -> Mapping[str, Any]:
+        metadata = dict(req.resolve("metadata") or {})
+        payment_method = metadata.pop("payment_method", None)
+        if not payment_method:
+            raise ValueError("Adyen payments require metadata['payment_method']")
+        reference = req.resolve("idempotency_key") or f"pay-{uuid4().hex[:12]}"
+        payload = {
+            "merchantAccount": self._merchant(),
+            "reference": reference,
+            "amount": {
+                "value": int(req.resolve("amount_minor") or 0),
+                "currency": str(req.resolve("currency") or "USD").upper(),
+            },
+            "paymentMethod": payment_method,
+            "shopperReference": metadata.pop("shopper_reference", None),
+            "shopperInteraction": metadata.pop("shopper_interaction", "Ecommerce"),
+            "recurringProcessingModel": metadata.pop(
+                "recurring_processing_model", None
+            ),
+            "returnUrl": metadata.pop("return_url", None),
+            "captureDelayHours": 0 if req.resolve("capture") else None,
+            "metadata": metadata or None,
+        }
+        raw = self._post(
+            "payments", {k: v for k, v in payload.items() if v is not None}
+        )
         result = {
-            "id": f"ady_pi_{uuid4().hex[:10]}",
-            "status": "requires_action",
-            "provider": "adyen",
-            "raw": self._stub("payment_intent"),
+            "id": raw.get("pspReference") or reference,
+            "status": raw.get("resultCode"),
+            "amount_minor": req.resolve("amount_minor"),
+            "currency": req.resolve("currency"),
+            "provider": self.component_name,
+            "raw": raw,
         }
         return result
 
     def _capture_payment(
         self, payment_id: str, *, idempotency_key: Optional[str] = None
     ) -> Mapping[str, Any]:
+        raw = self._post(
+            f"payments/{payment_id}/captures",
+            {
+                "merchantAccount": self._merchant(),
+                "reference": idempotency_key or f"cap-{payment_id}",
+            },
+        )
         result = {
-            "id": payment_id,
-            "status": "succeeded",
-            "provider": "adyen",
-            "raw": self._stub("capture", payment_id=payment_id),
+            "id": raw.get("pspReference", payment_id),
+            "status": raw.get("status", "received"),
+            "provider": self.component_name,
+            "raw": raw,
         }
         return result
 
@@ -121,11 +223,18 @@ class AdyenBillingProvider(
         reason: Optional[str] = None,
         idempotency_key: Optional[str] = None,
     ) -> Mapping[str, Any]:
+        raw = self._post(
+            f"payments/{payment_id}/cancels",
+            {
+                "merchantAccount": self._merchant(),
+                "reference": idempotency_key or f"cancel-{payment_id}",
+            },
+        )
         result = {
-            "id": payment_id,
-            "status": "canceled",
-            "provider": "adyen",
-            "raw": self._stub("cancel", payment_id=payment_id, reason=reason),
+            "id": raw.get("pspReference", payment_id),
+            "status": raw.get("status", "received"),
+            "provider": self.component_name,
+            "raw": raw,
         }
         return result
 
@@ -217,7 +326,34 @@ class AdyenBillingProvider(
     def _verify_webhook_signature(
         self, raw_body: bytes, headers: Mapping[str, str], secret: str
     ) -> bool:
-        return True
+        payload = json.loads(raw_body.decode("utf-8"))
+        items = payload.get("notificationItems") or []
+        if not items:
+            return False
+        item = items[0].get("NotificationRequestItem", items[0])
+        additional = item.get("additionalData") or {}
+        signature = additional.get("hmacSignature") or headers.get("HmacSignature", "")
+        signing_parts = [
+            item.get("pspReference", ""),
+            item.get("originalReference", ""),
+            item.get("merchantAccountCode", ""),
+            item.get("merchantReference", ""),
+            str((item.get("amount") or {}).get("value", "")),
+            (item.get("amount") or {}).get("currency", ""),
+            item.get("eventCode", ""),
+            str(item.get("success", "")).lower(),
+        ]
+        signing_string = ":".join(
+            str(part).replace("\\", "\\\\").replace(":", "\\:")
+            for part in signing_parts
+        )
+        digest = hmac.new(
+            base64.b64decode(secret),
+            signing_string.encode("utf-8"),
+            hashlib.sha256,
+        ).digest()
+        expected = base64.b64encode(digest).decode("ascii")
+        return hmac.compare_digest(expected, signature)
 
     def _list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
         disputes = [
@@ -233,7 +369,28 @@ class AdyenBillingProvider(
     def _create_refund(
         self, payment: Any, req: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
-        result = self._stub("refund_create", idempotency_key=idempotency_key)
+        raw = self._post(
+            f"payments/{payment.id}/refunds",
+            {
+                "merchantAccount": self._merchant(),
+                "reference": idempotency_key,
+                "amount": {
+                    "value": req.resolve("amount_minor")
+                    or getattr(payment, "amount_minor", None),
+                    "currency": (
+                        req.resolve("currency")
+                        or getattr(payment, "currency", None)
+                        or "USD"
+                    ).upper(),
+                },
+            },
+        )
+        result = {
+            "id": raw.get("pspReference", payment.id),
+            "status": raw.get("status", "received"),
+            "provider": self.component_name,
+            "raw": raw,
+        }
         return result
 
     def _get_refund(self, refund_id: str) -> Mapping[str, Any]:
@@ -327,11 +484,14 @@ class AdyenBillingProvider(
     def _parse_event(
         self, raw_body: bytes, headers: Mapping[str, str]
     ) -> Mapping[str, Any]:
+        payload = json.loads(raw_body.decode("utf-8"))
+        items = payload.get("notificationItems") or []
+        item = items[0].get("NotificationRequestItem", items[0]) if items else {}
         result = {
-            "event_id": f"ady_evt_{uuid4().hex[:8]}",
-            "provider": "adyen",
-            "type": "AUTHORISATION",
-            "raw": self._stub("event"),
+            "event_id": item.get("pspReference", f"ady_evt_{uuid4().hex[:8]}"),
+            "provider": self.component_name,
+            "type": item.get("eventCode"),
+            "raw": payload,
         }
         return result
 

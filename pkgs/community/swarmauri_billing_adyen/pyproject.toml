@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_billing_adyen"
 version = "0.9.3.dev5"
-description = "Adyen-style Swarmauri billing provider stub for payment, checkout, subscription, invoice, and marketplace workflow tests."
+description = "Adyen Checkout API backed Swarmauri billing provider for hosted sessions, payments, captures, cancels, refunds, and webhook validation."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -31,6 +31,7 @@ authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
+    "requests>=2.32.3",
 ]
 keywords = [
     "swarmauri",
@@ -44,13 +45,17 @@ keywords = [
     "payment gateway",
     "checkout",
     "hosted checkout",
+    "adyen checkout api",
+    "payment sessions",
+    "captures",
+    "cancellations",
     "recurring billing",
     "subscription management",
     "invoicing",
     "refunds",
     "webhooks",
     "marketplace payments",
-    "billing provider stub",
+    "webhook hmac validation",
     "merchant services",
     "e-commerce integration",
 ]
