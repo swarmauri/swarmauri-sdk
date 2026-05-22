@@ -15,21 +15,21 @@
 
 # Swarmauri Billing PayPal
 
-`swarmauri_billing_paypal` provides a PayPal-shaped billing provider for Swarmauri checkout, payment, subscription, invoicing, refund, customer, payout, reporting, and webhook workflows. It is a deterministic stub provider for local development, integration tests, provider-contract validation, and PayPal-style billing examples.
+`swarmauri_billing_paypal` provides a PayPal REST backed billing provider for Swarmauri checkout, payment, subscription, invoicing, refund, payout, reporting, and webhook workflows. It connects Swarmauri billing interfaces to PayPal products, billing plans, Checkout Orders, captures, authorisation voids, refunds, subscriptions, invoices, payouts, and webhook event parsing.
 
 ## Why Swarmauri Billing PayPal?
 
-`swarmauri_billing_paypal` lets Swarmauri billing workflows use PayPal-like IDs, statuses, checkout URLs, invoice refs, payout refs, and webhook payloads without requiring live PayPal credentials. It is useful when application code needs to exercise the same Swarmauri billing interfaces that a production PayPal provider would implement.
+`swarmauri_billing_paypal` lets Swarmauri billing workflows use PayPal REST APIs behind provider-neutral billing interfaces. Application code can create orders, capture payments, refund captures, send invoices, start payouts, and parse webhook events without hard-coding PayPal REST payloads throughout the codebase.
 
 ## FAQ
 
 ### Q: Does this package call live PayPal APIs?
 
-A: No. It returns deterministic PayPal-shaped responses and does not call PayPal REST, GraphQL, checkout, payout, or webhook verification services.
+A: Yes. It uses PayPal OAuth client credentials and calls PayPal REST endpoints for products, plans, orders, captures, voids, refunds, subscriptions, invoices, and payouts.
 
 ### Q: Which Swarmauri billing capabilities does it cover?
 
-A: It covers products, prices, hosted checkout, online payments, subscriptions, invoicing, refunds, customers, payment methods, payouts, reports, and webhooks.
+A: It covers products, plan-like prices, hosted checkout orders, online orders, capture, authorization void, subscriptions, invoicing, refunds, payouts, and webhook event parsing. Customer, payment-method, balance, and report helpers remain compatibility placeholders where PayPal does not expose the same direct Swarmauri object shape.
 
 ### Q: When should I use this package?
 
@@ -37,11 +37,16 @@ A: Use it for local billing workflows, provider strategy tests, documentation ex
 
 ## Features
 
-- PayPal-style provider class registered as `PayPalBillingProvider`.
-- Supports products, prices, hosted checkout, online payments, subscriptions, invoicing, refunds, customers, payment methods, payouts, reports, and webhooks.
-- Returns deterministic provider-shaped payloads and Swarmauri billing refs for repeatable tests.
-- Models PayPal-like payment statuses such as `CREATED`, `APPROVED`, `COMPLETED`, and `CANCELED`.
-- Provides invoice status transitions such as `DRAFT`, `SENT`, `VOIDED`, and `BAD_DEBT`.
+- PayPal provider class registered as `PayPalBillingProvider`.
+- OAuth client credentials authentication for sandbox or production.
+- Product and billing-plan creation.
+- Checkout Order creation with approval URL extraction.
+- Order capture and authorization void support.
+- Refund creation and lookup.
+- Subscription create/cancel support.
+- Invoice create/send/cancel support.
+- Payout batch creation.
+- PayPal webhook JSON event parsing.
 - Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 
 ## Installation
@@ -66,7 +71,11 @@ Create a product, price, and PayPal-style checkout session:
 from swarmauri_billing_paypal import PayPalBillingProvider
 from swarmauri_base.billing import CheckoutRequest, PriceSpec, ProductSpec
 
-provider = PayPalBillingProvider(api_key="paypal-sandbox-secret")
+provider = PayPalBillingProvider(
+    api_key="paypal",
+    client_id="paypal-client-id",
+    client_secret="paypal-client-secret",
+)
 
 product = provider.create_product(
     ProductSpec(name="Workspace"),
@@ -91,7 +100,11 @@ Create and capture a PayPal-style payment:
 from swarmauri_billing_paypal import PayPalBillingProvider
 from swarmauri_base.billing import PaymentIntentRequest
 
-provider = PayPalBillingProvider(api_key="paypal-sandbox-secret")
+provider = PayPalBillingProvider(
+    api_key="paypal",
+    client_id="paypal-client-id",
+    client_secret="paypal-client-secret",
+)
 
 payment = provider.create_payment_intent(
     PaymentIntentRequest(amount_minor=1500, currency="USD", confirm=True)
@@ -103,7 +116,7 @@ print(payment.status, captured.status)
 
 ## Important Scope Notes
 
-This package is a Swarmauri billing provider stub. It does not process real payments, create live PayPal checkout sessions, move payout funds, validate production webhook signatures, or reconcile balances with PayPal. Use it for tests, examples, strategy validation, and as a starting point for a live PayPal provider.
+This package uses live PayPal REST API calls for products, plans, orders, captures, voids, refunds, subscriptions, invoices, payouts, and webhook parsing. Production use requires PayPal REST app credentials, correct sandbox or production environment selection, and account permissions for each enabled PayPal product.
 
 ## Entry Point
 
