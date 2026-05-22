@@ -23,6 +23,8 @@ from swarmauri_base.billing import (
     ProductRef,
     ProductSpec,
     ProductsPricesMixin,
+    RefundRequest,
+    RefundsMixin,
     RiskMixin,
     SplitSpec,
     SubscriptionSpec,
@@ -37,6 +39,7 @@ class StripeBillingProvider(
     SubscriptionsMixin,
     InvoicingMixin,
     MarketplaceMixin,
+    RefundsMixin,
     RiskMixin,
     BillingProviderBase,
 ):
@@ -349,6 +352,42 @@ class StripeBillingProvider(
             "raw": pi,
         }
         return result
+
+    # ---------------------------------------------------------------- Refunds
+    def _create_refund(
+        self, payment: PaymentRef, req: RefundRequest, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
+        stripe = self._client()
+        payload: dict[str, Any] = {}
+        if payment.id.startswith("pi_"):
+            payload["payment_intent"] = payment.id
+        elif payment.id.startswith("ch_"):
+            payload["charge"] = payment.id
+        else:
+            payload["payment_intent"] = payment.id
+        refund = stripe.Refund.create(
+            **payload,
+            amount=req.amount_minor,
+            reason=req.reason,
+            metadata=req.resolve("metadata") or None,
+            idempotency_key=idempotency_key,
+        )
+        return {
+            "id": refund["id"],
+            "status": refund.get("status"),
+            "provider": self.component_name,
+            "raw": refund,
+        }
+
+    def _get_refund(self, refund_id: str) -> Mapping[str, Any]:
+        stripe = self._client()
+        refund = stripe.Refund.retrieve(refund_id)
+        return {
+            "id": refund["id"],
+            "status": refund.get("status"),
+            "provider": self.component_name,
+            "raw": refund,
+        }
 
     # ---------------------------------------------------------------- Risk
     def _verify_webhook_signature(

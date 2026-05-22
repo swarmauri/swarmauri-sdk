@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_billing_stripe"
 version = "0.10.1.dev5"
-description = "Stripe billing provider for the Swarmauri SDK."
+description = "Stripe-backed Swarmauri billing provider for checkout, payment intents, refunds, subscriptions, invoices, Connect transfers, disputes, and webhooks."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -12,7 +12,10 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Office/Business :: Financial",
     "Topic :: Office/Business :: Financial :: Point-Of-Sale",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -27,17 +30,26 @@ authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
+    "stripe>=15.0.0,<16",
 ]
 keywords = [
     "swarmauri",
     "sdk",
     "billing",
     "stripe",
+    "stripe billing provider",
+    "stripe payments",
     "standards",
     "payments",
     "payment gateway",
+    "checkout sessions",
+    "payment intents",
+    "refunds",
     "recurring billing",
     "subscription management",
+    "invoices",
+    "stripe connect",
+    "webhook verification",
     "merchant services",
     "e-commerce integration",
 ]
