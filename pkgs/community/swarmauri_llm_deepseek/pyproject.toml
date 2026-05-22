@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_llm_deepseek"
 version = "0.1.1.dev5"
-description = "Swarmauri Deepseek LLM adapters from swarmauri_standard."
+description = "Provider-specific Swarmauri import package for DeepSeek OpenAI-compatible chat completions, reasoning models, streaming, async, and batch LLM workflows."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,10 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -31,7 +35,20 @@ keywords = [
     "swarmauri",
     "llm",
     "deepseek",
+    "deepseek api",
+    "deepseek chat",
+    "deepseek reasoner",
+    "openai compatible",
+    "chat completions",
+    "reasoning model",
+    "streaming llm",
+    "async llm",
+    "batch inference",
+    "large language model",
+    "generative ai",
+    "swarmauri llm",
     "model",
+    "composable intelligence",
 ]
 
 [tool.uv.sources]
@@ -40,6 +57,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=numpy"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
