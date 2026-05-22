@@ -22,6 +22,8 @@ from swarmauri_base.billing import (
     ProductRef,
     ProductSpec,
     ProductsPricesMixin,
+    RefundRequest,
+    RefundsMixin,
     RiskMixin,
     SplitSpec,
     SubscriptionSpec,
@@ -36,6 +38,7 @@ class PaystackBillingProvider(
     SubscriptionsMixin,
     InvoicingMixin,
     MarketplaceMixin,
+    RefundsMixin,
     RiskMixin,
     BillingProviderBase,
 ):
@@ -48,23 +51,33 @@ class PaystackBillingProvider(
     _sub: Any = PrivateAttr(default=None)
     _invoice: Any = PrivateAttr(default=None)
     _split: Any = PrivateAttr(default=None)
+    _refund: Any = PrivateAttr(default=None)
 
     def _ensure(self) -> None:
         if self._tx is None:
             from paystackapi.invoice import Invoice
             from paystackapi.paystack import Paystack
             from paystackapi.product import Product
-            from paystackapi.split import Split
+            from paystackapi.refund import Refund
             from paystackapi.subscription import Subscription
             from paystackapi.transaction import Transaction
+            from paystackapi.transaction_split import TransactionSplit
 
             Paystack.SECRET_KEY = self.secret_key.get_secret_value()
-            self._tx, self._product, self._sub, self._invoice, self._split = (
+            (
+                self._tx,
+                self._product,
+                self._sub,
+                self._invoice,
+                self._split,
+                self._refund,
+            ) = (
                 Transaction,
                 Product,
                 Subscription,
                 Invoice,
-                Split,
+                TransactionSplit,
+                Refund,
             )
 
     # ---------------------------------------------------------------- Products & Prices
@@ -72,11 +85,16 @@ class PaystackBillingProvider(
         self, product_spec: ProductSpec, *, idempotency_key: str
     ) -> ProductRef:
         self._ensure()
+        payload = (
+            product_spec.payload if isinstance(product_spec.payload, Mapping) else {}
+        )
         resp = self._product.create(
             name=product_spec.name,
             description=product_spec.description or "",
-            price=0,
-            currency="NGN",
+            price=int(payload.get("price") or payload.get("unit_amount_minor") or 0),
+            currency=str(payload.get("currency") or "NGN").upper(),
+            unlimited=bool(payload.get("unlimited", True)),
+            quantity=payload.get("quantity"),
         )
         if not resp.get("status"):
             raise RuntimeError(resp.get("message", "product create failed"))
@@ -100,6 +118,7 @@ class PaystackBillingProvider(
             description=price_spec.nickname or "",
             price=price_spec.unit_amount_minor,
             currency=price_spec.currency.upper(),
+            unlimited=True,
         )
         if not resp.get("status"):
             raise RuntimeError(resp.get("message", "price create failed"))
@@ -121,10 +140,14 @@ class PaystackBillingProvider(
         self._ensure()
         init = self._tx.initialize(
             reference=request.idempotency_key or f"chk-{price.id}",
-            amount=price.raw["data"]["price"],
-            currency=price.raw["data"]["currency"],
+            amount=price.unit_amount_minor or price.raw["data"]["price"],
+            currency=(price.currency or price.raw["data"]["currency"]).upper(),
             email=request.customer_email or "buyer@example.com",
-            metadata={"product_id": price.product_id, "price_code": price.id},
+            metadata={
+                "product_id": price.product_id,
+                "price_code": price.id,
+                **(request.metadata or {}),
+            },
             callback_url=request.success_url,
         )
         if not init.get("status"):
@@ -140,12 +163,13 @@ class PaystackBillingProvider(
     # ---------------------------------------------------------------- Online Payments
     def _create_payment_intent(self, req: PaymentIntentRequest) -> PaymentRef:
         self._ensure()
+        metadata = dict(req.metadata or {})
         init = self._tx.initialize(
             reference=req.idempotency_key or "ref",
             amount=req.amount_minor,
             currency=req.currency.upper(),
-            email="buyer@example.com",
-            metadata=req.metadata,
+            email=metadata.pop("customer_email", "buyer@example.com"),
+            metadata=metadata,
         )
         if not init.get("status"):
             raise RuntimeError(init.get("message", "init failed"))
@@ -188,11 +212,15 @@ class PaystackBillingProvider(
         self, spec: SubscriptionSpec, *, idempotency_key: str
     ) -> Mapping[str, Any]:
         self._ensure()
-        authorization = spec.metadata.get("authorization")
+        if not spec.items:
+            raise ValueError("Paystack subscription creation requires a plan code")
+        metadata = dict(spec.metadata or {})
+        authorization = metadata.get("authorization")
         sub = self._sub.create(
             customer=spec.customer_id,
             plan=spec.items[0].price_id,
             authorization=authorization,
+            start_date=metadata.get("start_date"),
         )
         if not sub.get("status"):
             raise RuntimeError(sub.get("message", "subscription failed"))
@@ -208,9 +236,13 @@ class PaystackBillingProvider(
         self, subscription_id: str, *, at_period_end: bool = True
     ) -> Mapping[str, Any]:
         self._ensure()
-        res = self._sub.disable(code=subscription_id, token=None)
+        if ":" in subscription_id:
+            code, token = subscription_id.split(":", 1)
+        else:
+            code, token = subscription_id, None
+        res = self._sub.disable(code=code, token=token)
         result = {
-            "subscription_code": subscription_id,
+            "subscription_code": code,
             "status": res.get("message", "disabled"),
             "provider": self.component_name,
             "raw": res,
@@ -223,12 +255,26 @@ class PaystackBillingProvider(
     ) -> Mapping[str, Any]:
         self._ensure()
         amount = sum((line.amount_minor or 0) for line in spec.line_items)
+        line_items = [
+            {
+                "name": line.description or line.price_id or "Invoice item",
+                "amount": line.amount_minor or 0,
+                "quantity": line.quantity,
+            }
+            for line in spec.line_items
+        ]
+        metadata = dict(spec.metadata or {})
         inv = self._invoice.create(
             customer=spec.customer_id,
             amount=amount,
-            currency="NGN",
-            due_date=None,
-            description="Invoice",
+            currency=str(metadata.get("currency") or "NGN").upper(),
+            due_date=metadata.get("due_date"),
+            description=metadata.get("description", "Invoice"),
+            line_items=line_items or None,
+            send_notification=metadata.get("send_notification", True),
+            draft=metadata.get("draft", False),
+            has_invoice=metadata.get("has_invoice", True),
+            split_code=metadata.get("split_code"),
         )
         if not inv.get("status"):
             raise RuntimeError(inv.get("message", "invoice create failed"))
@@ -241,20 +287,22 @@ class PaystackBillingProvider(
         return result
 
     def _finalize_invoice(self, invoice_id: str) -> Mapping[str, Any]:
+        self._ensure()
+        res = self._invoice.finalize_draft(invoice_id)
         result = {
             "invoice_id": invoice_id,
-            "status": "finalized",
+            "status": res.get("message", "finalized"),
             "provider": self.component_name,
-            "raw": None,
+            "raw": res,
         }
         return result
 
     def _void_invoice(self, invoice_id: str) -> Mapping[str, Any]:
         self._ensure()
-        res = self._invoice.notify(invoice_code=invoice_id)
+        res = self._invoice.archive(invoice_id)
         result = {
             "invoice_id": invoice_id,
-            "status": "void_requested",
+            "status": res.get("message", "archived"),
             "provider": self.component_name,
             "raw": res,
         }
@@ -275,9 +323,11 @@ class PaystackBillingProvider(
     ) -> Mapping[str, Any]:
         self._ensure()
         entries = [{"subaccount": e.account, "share": e.share} for e in spec.entries]
+        if not entries:
+            raise ValueError("Paystack split creation requires at least one subaccount")
         sp = self._split.create(
             name=spec.name,
-            type=spec.type,
+            type=spec.type or "percentage",
             currency=spec.currency.upper(),
             subaccounts=entries,
             bearer_type="account",
@@ -317,6 +367,41 @@ class PaystackBillingProvider(
             "raw": init,
         }
         return result
+
+    # ---------------------------------------------------------------- Refunds
+    def _create_refund(
+        self, payment: PaymentRef, req: RefundRequest, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
+        self._ensure()
+        metadata = dict(req.metadata or {})
+        res = self._refund.create(
+            transaction=payment.id,
+            amount=req.amount_minor,
+            currency=(payment.currency or metadata.get("currency") or "NGN").upper(),
+            customer_note=req.reason,
+            merchant_note=metadata.get("merchant_note", req.reason),
+        )
+        if not res.get("status"):
+            raise RuntimeError(res.get("message", "refund create failed"))
+        data = res.get("data", {})
+        return {
+            "id": str(data.get("id") or data.get("refund_code") or payment.id),
+            "status": data.get("status", res.get("message")),
+            "provider": self.component_name,
+            "raw": res,
+        }
+
+    def _get_refund(self, refund_id: str) -> Mapping[str, Any]:
+        self._ensure()
+        res = self._refund.fetch(refund_id)
+        if not res.get("status"):
+            raise RuntimeError(res.get("message", "refund fetch failed"))
+        return {
+            "id": refund_id,
+            "status": res.get("data", {}).get("status"),
+            "provider": self.component_name,
+            "raw": res,
+        }
 
     # ---------------------------------------------------------------- Risk
     def _verify_webhook_signature(

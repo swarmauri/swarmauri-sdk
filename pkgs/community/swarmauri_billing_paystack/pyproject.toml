@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_billing_paystack"
 version = "0.9.3.dev5"
-description = "Paystack billing provider for the Swarmauri SDK."
+description = "Paystack-backed Swarmauri billing provider for checkout, payment initialization, subscriptions, invoices, refunds, splits, and webhook verification."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -12,7 +12,10 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Office/Business :: Financial",
     "Topic :: Office/Business :: Financial :: Point-Of-Sale",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -34,11 +37,19 @@ keywords = [
     "sdk",
     "billing",
     "paystack",
+    "paystack billing provider",
+    "paystack payments",
     "community",
     "payments",
     "payment gateway",
+    "hosted checkout",
+    "payment initialization",
     "recurring billing",
     "subscription management",
+    "invoicing",
+    "refunds",
+    "marketplace splits",
+    "webhook verification",
     "merchant services",
     "e-commerce integration",
 ]
