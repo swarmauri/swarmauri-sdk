@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_billing_mock"
 version = "0.10.1.dev5"
-description = "Mock billing provider for the Swarmauri SDK."
+description = "Deterministic in-memory Swarmauri billing provider for tests, examples, and provider contract checks."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -33,6 +33,8 @@ keywords = [
     "sdk",
     "billing",
     "mock",
+    "mock billing provider",
+    "in-memory billing",
     "community",
     "payments",
     "sandbox",
