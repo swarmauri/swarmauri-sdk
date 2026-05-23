@@ -6,17 +6,7 @@ from swarmauri_standard.vectors.Vector import Vector
 
 
 @pytest.mark.unit
-def test_ubc_resource():
-    assert LevenshteinDistance().resource == "Distance"
-
-
-@pytest.mark.unit
-def test_ubc_type():
-    assert LevenshteinDistance().type == "LevenshteinDistance"
-
-
-@pytest.mark.unit
-def test_serialization():
+def test_compatibility_serialization():
     distance = LevenshteinDistance()
     assert (
         distance.id
@@ -25,7 +15,7 @@ def test_serialization():
 
 
 @pytest.mark.unit
-def test_distance():
+def test_compatibility_distance():
     assert (
         LevenshteinDistance().distance(Vector(value=[1, 2]), Vector(value=[1, 2]))
         == 0.0

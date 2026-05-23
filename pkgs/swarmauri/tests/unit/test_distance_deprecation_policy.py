@@ -20,6 +20,16 @@ DISTANCE_PACKAGES = [
     "swamauri_metric_wasserstein",
 ]
 
+DISTANCE_WORKSPACE_PACKAGES = [
+    package_name
+    for package_name in DISTANCE_PACKAGES
+    if package_name != "swamauri_metric_wasserstein"
+]
+
+DISTANCE_WORKSPACE_MEMBERS = [
+    f'"standards/{package_name}"' for package_name in DISTANCE_WORKSPACE_PACKAGES
+]
+
 
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[4]
@@ -56,6 +66,32 @@ def test_distance_package_readmes_include_replacement_guidance():
 
         assert "Preferred package:" in readme
         assert "https://pypi.org/project/swarmauri_standard/" in readme
+
+
+@pytest.mark.unit
+def test_distance_workspace_members_have_root_sources():
+    root = _repo_root()
+    root_pyproject = (root / "pkgs" / "pyproject.toml").read_text(encoding="utf-8")
+
+    for member_path in DISTANCE_WORKSPACE_MEMBERS:
+        assert member_path in root_pyproject
+
+    for package_name in DISTANCE_WORKSPACE_PACKAGES:
+        assert f"{package_name} = {{ workspace = true }}" in root_pyproject
+
+    assert '"deprecated/swarmauri_experimental"' in root_pyproject
+    assert "swarmauri_experimental = { workspace = true }" in root_pyproject
+
+
+@pytest.mark.unit
+def test_wasserstein_metric_uses_metric_entry_point_namespace():
+    root = _repo_root()
+    pyproject = (
+        root / "pkgs" / "standards" / "swamauri_metric_wasserstein" / "pyproject.toml"
+    ).read_text(encoding="utf-8")
+
+    assert "[project.entry-points.'swarmauri.metrics']" in pyproject
+    assert "[project.entry-points.'swarmauri.distances']" not in pyproject
 
 
 @pytest.mark.unit

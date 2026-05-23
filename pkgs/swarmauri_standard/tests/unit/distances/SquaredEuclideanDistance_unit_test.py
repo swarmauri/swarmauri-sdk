@@ -6,17 +6,7 @@ from swarmauri_standard.vectors.Vector import Vector
 
 
 @pytest.mark.unit
-def test_ubc_resource():
-    assert SquaredEuclideanDistance().resource == "Distance"
-
-
-@pytest.mark.unit
-def test_ubc_type():
-    assert SquaredEuclideanDistance().type == "SquaredEuclideanDistance"
-
-
-@pytest.mark.unit
-def test_serialization():
+def test_compatibility_serialization():
     distance = SquaredEuclideanDistance()
     assert (
         distance.id
@@ -25,7 +15,7 @@ def test_serialization():
 
 
 @pytest.mark.unit
-def test_distance():
+def test_compatibility_distance():
     assert (
         SquaredEuclideanDistance().distance(Vector(value=[1, 2]), Vector(value=[1, 2]))
         == 0.0

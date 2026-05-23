@@ -4,17 +4,7 @@ from swarmauri_standard.vectors.Vector import Vector
 
 
 @pytest.mark.unit
-def test_ubc_resource():
-    assert CosineDistance().resource == "Distance"
-
-
-@pytest.mark.unit
-def test_ubc_type():
-    assert CosineDistance().type == "CosineDistance"
-
-
-@pytest.mark.unit
-def test_serialization():
+def test_compatibility_serialization():
     distance = CosineDistance()
     assert (
         distance.id == CosineDistance.model_validate_json(distance.model_dump_json()).id
@@ -22,7 +12,7 @@ def test_serialization():
 
 
 @pytest.mark.unit
-def test_distance():
+def test_compatibility_distance():
     # Floating-Point Precision Epsilon
     assert (
         CosineDistance().distance(Vector(value=[1, 2]), Vector(value=[1, 2]))

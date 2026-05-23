@@ -175,7 +175,7 @@ members = [
     "experimental/swarmauri_parser_asn1",
     "experimental/swarmauri_certs_pkcs11",
     "experimental/swarmauri_crypto_sodium",
-    # "experimental/swarmauri_experimental",
+    "deprecated/swarmauri_experimental",
     "experimental/swarmauri_keyprovider_pkcs11",
     "experimental/swarmauri_tests_loc_tersity",
     "experimental/swarmauri_tests_pylicense",
@@ -397,7 +397,6 @@ ptree_dag_extension_example = { workspace = true }
 swarmauri = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_core = { workspace = true }
-#swarmauri_experimental = { workspace = true }
 swarmauri_standard = { workspace = true }
 swarmauri_auth_idp_apple = { workspace = true }
 swarmauri_auth_idp_aws = { workspace = true }
@@ -464,7 +463,19 @@ swarmauri_crypto_paramiko = { workspace = true }
 swarmauri_crypto_pgp = { workspace = true }
 swarmauri_crypto_rust = { workspace = true }
 swarmauri_crypto_sodium = { workspace = true }
+swarmauri_distance_canberra = { workspace = true }
+swarmauri_distance_chebyshev = { workspace = true }
+swarmauri_distance_chi_squared = { workspace = true }
+swarmauri_distance_cosine = { workspace = true }
+swarmauri_distance_euclidean = { workspace = true }
+swarmauri_distance_haversine = { workspace = true }
+swarmauri_distance_jaccard_index = { workspace = true }
+swarmauri_distance_levenshtein = { workspace = true }
+swarmauri_distance_manhattan = { workspace = true }
 swarmauri_distance_minkowski = { workspace = true }
+swarmauri_distance_sorensen_dice = { workspace = true }
+swarmauri_distance_squared_euclidean = { workspace = true }
+swarmauri_experimental = { workspace = true }
 swamauri_metric_wasserstein = { workspace = true }
 swarmauri_embedding_doc2vec = { workspace = true }
 swarmauri_embedding_mlm = { workspace = true }

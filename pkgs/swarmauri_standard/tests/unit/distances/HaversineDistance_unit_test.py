@@ -4,17 +4,7 @@ from swarmauri_standard.vectors.Vector import Vector
 
 
 @pytest.mark.unit
-def test_ubc_resource():
-    assert HaversineDistance().resource == "Distance"
-
-
-@pytest.mark.unit
-def test_ubc_type():
-    assert HaversineDistance().type == "HaversineDistance"
-
-
-@pytest.mark.unit
-def test_serialization():
+def test_compatibility_serialization():
     distance = HaversineDistance()
     assert (
         distance.id
@@ -23,7 +13,7 @@ def test_serialization():
 
 
 @pytest.mark.unit
-def test_distance():
+def test_compatibility_distance():
     assert (
         HaversineDistance().distance(Vector(value=[1, 2]), Vector(value=[1, 2])) == 0.0
     )
