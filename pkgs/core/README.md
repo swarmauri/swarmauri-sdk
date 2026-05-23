@@ -44,7 +44,7 @@ Major interface families include:
 - Agents and agent APIs: `IAgent`, conversation, parser, retrieval, toolkit, and vector-store agent mixins.
 - LLM and multimodal prediction: text LLMs, tool LLMs, OCR, STT, TTS, and VLM interfaces.
 - Documents and parsing: document contracts, parser contracts, chunkers, conversations, prompts, and prompt templates.
-- Retrieval and vectors: vector, matrix, tensor, metric, distance, similarity, vector store, and document store contracts.
+- Retrieval and vectors: vector, matrix, tensor, metric, similarity, vector-store comparator, deprecated distance compatibility contracts, vector store, and document store contracts.
 - Security and trust: crypto, MRE crypto, cipher suites, signing, proof-of-possession, token services, key providers, certificates, and XMP embedding.
 - Runtime infrastructure: middleware, transports, storage adapters, publishers, rate limits, tracing, state, service registries, and pipelines.
 - Business systems: billing provider interfaces for customers, payments, invoices, subscriptions, refunds, payouts, risk, reporting, webhooks, and marketplace flows.

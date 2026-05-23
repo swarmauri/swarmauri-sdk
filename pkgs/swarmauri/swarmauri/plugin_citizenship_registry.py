@@ -107,6 +107,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.conversations.MaxSystemContextConversation": "swarmauri_standard.conversations.MaxSystemContextConversation",
         "swarmauri.conversations.SessionCacheConversation": "swarmauri_standard.conversations.SessionCacheConversation",
         "swarmauri.dataconnectors.GoogleDriveDataConnector": "swarmauri_standard.dataconnectors.GoogleDriveDataConnector",
+        # Deprecated compatibility aliases scheduled for removal in v0.12.0.
         "swarmauri.distances.CanberraDistance": "swarmauri_standard.distances.CanberraDistance",
         "swarmauri.distances.ChebyshevDistance": "swarmauri_standard.distances.ChebyshevDistance",
         "swarmauri.distances.ChiSquaredDistance": "swarmauri_standard.distances.ChiSquaredDistance",

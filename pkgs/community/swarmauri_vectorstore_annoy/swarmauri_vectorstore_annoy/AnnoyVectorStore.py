@@ -13,8 +13,10 @@ from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
 )
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_embedding_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
-from swarmauri_standard.distances.CosineDistance import CosineDistance
 from swarmauri_standard.documents.Document import Document
+from swarmauri_standard.vector_stores.CosineSimilarityComparator import (
+    CosineSimilarityComparator,
+)
 
 
 @ComponentBase.register_type(VectorStoreBase, "AnnoyVectorStore")
@@ -43,7 +45,7 @@ class AnnoyVectorStore(
 
         super().__init__(**kwargs)
         self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
-        self._distance = CosineDistance()
+        self._comparator = CosineSimilarityComparator()
         self.client = None
         self._documents = {}  # Store documents in memory since Annoy only stores vectors
         self._current_index = 0  # Track the next available index

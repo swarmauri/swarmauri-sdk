@@ -8,7 +8,10 @@ from swarmauri.embeddings.Doc2VecEmbedding import Doc2VecEmbedding
 
 from swarmauri.documents.Document import Document
 from swarmauri.chunkers.MdSnippetChunker import MdSnippetChunker
-from swarmauri.distances.EuclideanDistance import EuclideanDistance
+from swarmauri_base.vector_stores.VectorStoreComparator import (
+    MetricVectorStoreComparator,
+)
+from swarmauri_standard.metrics.EuclideanMetric import EuclideanMetric
 
 from swarmauri.messages.HumanMessage import HumanMessage
 from swarmauri.conversations.MaxSystemContextConversation import (
@@ -167,7 +170,9 @@ class IterativeMemoryAgent(
         Reloads the vector store by clearing it and loading documents from the folder.
         """
         self.vector_store = Doc2VecVectorStore()
-        self.vector_store._distance = EuclideanDistance()
+        self.vector_store._comparator = MetricVectorStoreComparator(
+            metric=EuclideanMetric()
+        )
         self.vector_store._embedder = Doc2VecEmbedding()
 
         self.load_documents_from_folder(folder_path)

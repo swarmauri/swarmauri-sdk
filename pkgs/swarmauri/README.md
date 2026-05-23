@@ -165,7 +165,7 @@ Core Swarmauri packages:
 
 - [swarmauri_core](https://pypi.org/project/swarmauri_core/) provides interface contracts used by component packages.
 - [swarmauri_base](https://pypi.org/project/swarmauri_base/) provides reusable base classes, serialization helpers, and component registration behavior.
-- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/) provides first-party standard components across agents, tools, parsers, prompts, distances, and other common resource kinds.
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/) provides first-party standard components across agents, tools, parsers, prompts, metrics, similarities, deprecated distance compatibility shims, and other common resource kinds.
 
 Related component kinds:
 

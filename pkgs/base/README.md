@@ -135,7 +135,7 @@ assert tool.batch(["a", "b"]) == ["a", "b"]
 
 - AI and agent workflow: agents, chains, conversations, prompts, prompt templates, pipelines, swarms, task management strategies, tool LLMs, tools, toolkits, LLMs, VLMs, OCR, STT, and TTS.
 - Data and retrieval: documents, document stores, embeddings, vectors, vector stores, parsers, schema converters, data connectors, state, service registries, and storage adapters.
-- Math and evaluation: distances, inner products, matrices, measurements, metrics, norms, pseudometrics, seminorms, similarities, tensors, evaluators, evaluator pools, and evaluator results.
+- Math and evaluation: vector-store comparators, deprecated distance compatibility shims, inner products, matrices, measurements, metrics, norms, pseudometrics, seminorms, similarities, tensors, evaluators, evaluator pools, and evaluator results.
 - Runtime and infrastructure: transports, middleware, publishers, rate limits, logging handlers, logging formatters, loggers, tracing-oriented mixins, services, and programs.
 - Security and trust: cert services, crypto, MRE crypto, cipher suites, signing, proof-of-possession helpers, key providers, token services, XMP embedding, and git filters.
 - Business integrations: billing provider base classes and mixins for customers, hosted checkout, payments, invoices, subscriptions, refunds, payouts, reports, promotions, risk, marketplace, and webhooks.

@@ -1,13 +1,22 @@
 from abc import ABC, abstractmethod
 from typing import List
+import warnings
 from swarmauri_core.vectors.IVector import IVector
+
+
+warnings.warn(
+    "IDistanceSimilarity is deprecated and will be removed from the active Swarmauri workspace by v0.12.0.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 class IDistanceSimilarity(ABC):
     """
-    Interface for computing distances and similarities between high-dimensional data vectors. This interface
-    abstracts the method for calculating the distance and similarity, allowing for the implementation of various
-    distance metrics such as Euclidean, Manhattan, Cosine similarity, etc.
+    Deprecated compatibility interface for computing both distances and similarities.
+
+    New code should use mathematically precise families such as metrics and
+    similarities, plus vector-store comparators for ranking behavior.
     """
 
     @abstractmethod

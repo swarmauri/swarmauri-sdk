@@ -1,5 +1,8 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
+This package is deprecated and will be removed from the active Swarmauri workspace by `0.12.0`.
+Use it only as a compatibility shim while migrating away from the deprecated `Distance` contract.
+
 <p align="center">
     <a href="https://pepy.tech/project/swamauri_metric_wasserstein/">
         <img src="https://static.pepy.tech/badge/swamauri_metric_wasserstein/month" alt="PyPI - Downloads"/></a>
@@ -18,6 +21,12 @@
 `swamauri_metric_wasserstein` provides a Swarmauri-compatible metric class
 for computing the first Wasserstein distance (Earth Mover's Distance) between
 numeric vectors.
+
+## Preferred Replacement
+
+- Preferred package: [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+- Current state: no active standalone Wasserstein replacement package exists in the workspace.
+- Migration path: keep this deprecated package only for compatibility, or vendor a project-specific metric until a correctly named active package is published.
 
 ## Features
 

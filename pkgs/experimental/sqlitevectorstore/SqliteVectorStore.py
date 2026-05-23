@@ -14,9 +14,11 @@ from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
 )
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_standard.embeddings.TfidfEmbedding import TfidfEmbedding
-from swarmauri_standard.distances.CosineDistance import CosineDistance
 from swarmauri_standard.documents.Document import Document
 from swarmauri_standard.vectors.Vector import Vector
+from swarmauri_standard.vector_stores.CosineSimilarityComparator import (
+    CosineSimilarityComparator,
+)
 
 
 @ComponentBase.register_type(VectorStoreBase, "SqliteVectorStore")
@@ -28,7 +30,7 @@ class SqliteVectorStore(
 
     def __init__(self, db_path: Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
-        self._distance = CosineDistance()
+        self._comparator = CosineSimilarityComparator()
         self._embedder = TfidfEmbedding()
         self.documents: List[Document] = []
         if db_path is not None:

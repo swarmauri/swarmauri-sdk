@@ -1,0 +1,51 @@
+[project]
+name = "swarmauri_distance_manhattan"
+version = "0.9.1.dev5"
+description = "Deprecated standalone compatibility package for manhattan distance."
+license = "Apache-2.0"
+readme = "README.md"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
+requires-python = ">=3.10,<3.15"
+classifiers = [
+    "Development Status :: 7 - Inactive",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+dependencies = [
+    "swarmauri_core<0.10.0",
+    "swarmauri_base<0.10.0",
+    "swarmauri_standard<0.10.0",
+]
+keywords = [
+    "swarmauri",
+    "distance",
+    "deprecated",
+    "compatibility",
+    "manhattan",
+]
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
+
+[tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts"]
+markers = [
+    "unit: Unit tests",
+]
+
+[project.entry-points.'swarmauri.distances']
+ManhattanDistance = "swarmauri_distance_manhattan:ManhattanDistance"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

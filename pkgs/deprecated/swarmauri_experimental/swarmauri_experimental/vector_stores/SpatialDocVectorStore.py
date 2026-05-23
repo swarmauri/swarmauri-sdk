@@ -1,7 +1,7 @@
 from typing import List, Union, Literal
 from swarmauri.documents.concrete.Document import Document
 from swarmauri.embeddings.concrete.SpatialDocEmbedding import SpatialDocEmbedding
-from swarmauri.distances.concrete.CosineDistance import CosineDistance
+from swarmauri_standard.similarities.CosineSimilarity import CosineSimilarity
 
 from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
 from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
@@ -20,7 +20,7 @@ class SpatialDocVectorStore(
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._embedder = SpatialDocEmbedding()  # Assuming this is already implemented
-        self._distance = CosineDistance()
+        self._similarity = CosineSimilarity()
         self.documents: List[Document] = []
 
     def add_document(self, document: Document) -> None:
@@ -81,11 +81,11 @@ class SpatialDocVectorStore(
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
         query_vector = self._embedder.infer_vector(query)
         document_vectors = [_d.embedding for _d in self.documents if _d.content]
-        distances = self._distance.distances(query_vector, document_vectors)
+        similarities = self._similarity.similarities(query_vector, document_vectors)
 
         # Get the indices of the top_k most similar documents
-        top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i])[
-            :top_k
-        ]
+        top_k_indices = sorted(
+            range(len(similarities)), key=lambda i: similarities[i], reverse=True
+        )[:top_k]
 
         return [self.documents[i] for i in top_k_indices]

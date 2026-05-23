@@ -15,7 +15,7 @@
 
 # Swarmauri Standard
 
-`swarmauri_standard` provides first-party, ready-to-use Swarmauri components built on `swarmauri_core` interfaces and `swarmauri_base` component behavior. It is the standard component bundle for agents, chains, chunkers, conversations, documents, tools, toolkits, parsers, prompts, schema converters, distances, vectors, vector stores, tracing utilities, STT/TTS/VLM adapters, signing helpers, and key-provider components.
+`swarmauri_standard` provides first-party, ready-to-use Swarmauri components built on `swarmauri_core` interfaces and `swarmauri_base` component behavior. It is the standard component bundle for agents, chains, chunkers, conversations, documents, tools, toolkits, parsers, prompts, schema converters, metrics, similarities, deprecated distance compatibility shims, vectors, vector stores, tracing utilities, STT/TTS/VLM adapters, signing helpers, and key-provider components.
 
 ## Why Swarmauri Standard?
 
@@ -25,7 +25,7 @@
 
 ### Q: What kinds of components are included?
 
-A: The package includes agents, chains, chunkers, conversations, documents, tools, toolkits, parsers, prompts, schema converters, distances, vectors, vector stores, tracing utilities, STT/TTS/VLM adapters, signing helpers, and key-provider components.
+A: The package includes agents, chains, chunkers, conversations, documents, tools, toolkits, parsers, prompts, schema converters, metrics, similarities, deprecated distance compatibility shims, vectors, vector stores, tracing utilities, STT/TTS/VLM adapters, signing helpers, and key-provider components.
 
 ### Q: Is this package the same as `swarmauri`?
 
@@ -41,7 +41,7 @@ A: Yes. Direct class imports and direct instantiation are the preferred document
 - Tool and toolkit components such as calculator, HTTP request, readability, code extraction, temperature conversion, weather, and accessibility utilities.
 - Parser and document components for CSV, XML, OpenAPI specs, markdown-to-HTML, URLs, regular expressions, Python code, and phone-number extraction.
 - Chunkers, conversations, prompts, prompt templates, chains, pipelines, service registries, state objects, and tracing helpers for application workflows.
-- Distance, vector, vector-store, measurement, metric, norm, similarity, and related numerical components.
+- Deprecated distance compatibility shims, vectors, vector stores, measurements, metrics, norms, similarities, and related numerical components.
 - Model adapter classes for LLM, tool LLM, embedding, image generation, STT, TTS, OCR, and VLM workflows where provider configuration is available.
 - Signing and key-provider components that align with Swarmauri's security-oriented interfaces.
 - Dynamic JSON, YAML, and TOML serialization through `ComponentBase`, `DynamicBase`, and `SubclassUnion`.
@@ -115,10 +115,25 @@ The package includes these standard component families:
 - Chains and workflow: callable chains, chain steps, context chains, prompt context chains, pipelines, service registries, swarms, and round-robin task management.
 - Text and document processing: chunkers, documents, conversations, prompts, prompt templates, parsers, messages, and schema converters.
 - Tools and toolkits: calculator, arithmetic, HTTP requests, JSON requests, code extraction, code interpretation, readability scoring, weather, temperature conversion, parameters, accessibility toolkit, and generic toolkit support.
-- Vector and numerical work: vectors, TF-IDF vector store, distances, measurements, metrics, norms, similarities, pseudometrics, seminorms, matrices, tensors, and inner products.
+- Vector and numerical work: vectors, TF-IDF vector store, deprecated distance compatibility shims, measurements, metrics, norms, similarities, pseudometrics, seminorms, matrices, tensors, and inner products.
 - AI model surfaces: LLMs, tool LLMs, embeddings, image generators, OCR, STT, TTS, and VLM classes for supported providers.
 - Runtime support: decorators, tracing, transports, state, logging, and utility classes.
 - Trust and security surfaces: signing and key-provider components that align with Swarmauri's core interfaces.
+
+## Distance Migration
+
+The `swarmauri_standard.distances` module remains available only as a deprecated compatibility surface. Prefer the active metric and similarity families instead:
+
+- `CosineDistance` -> `CosineSimilarity`
+- `EuclideanDistance` -> `EuclideanMetric`
+- `LevenshteinDistance` -> `LevenshteinMetric`
+- `JaccardIndexDistance` -> `JaccardIndexSimilarity`
+- `SorensenDiceDistance` -> `DiceSimilarity`
+- `ChebyshevDistance` -> `SupremumMetric`
+- `ManhattanDistance` -> `LpMetric(p=1)`
+- `MinkowskiDistance` -> `LpMetric(p=<order>)`
+- `SquaredEuclideanDistance` -> `EuclideanMetric` or `GaussianRBFSimilarity`, depending on whether you need metric or similarity semantics
+- `CanberraDistance`, `ChiSquaredDistance`, and `HaversineDistance` do not yet have active drop-in replacements in the workspace
 
 ## Related Packages
 
@@ -134,7 +149,7 @@ Related component packages:
 - [swarmauri_embedding_doc2vec](https://pypi.org/project/swarmauri_embedding_doc2vec/) for Doc2Vec embedding support.
 - [swarmauri_embedding_nmf](https://pypi.org/project/swarmauri_embedding_nmf/) for NMF embedding support.
 - [swarmauri_vectorstore_doc2vec](https://pypi.org/project/swarmauri_vectorstore_doc2vec/) for Doc2Vec vector-store workflows.
-- [swarmauri_distance_minkowski](https://pypi.org/project/swarmauri_distance_minkowski/) for Minkowski distance support.
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/) for the active metric, similarity, and vector-store comparator surface.
 - [swarmauri_tool_matplotlib](https://pypi.org/project/swarmauri_tool_matplotlib/) for Matplotlib tool support.
 - [swarmauri_parser_keywordextractor](https://pypi.org/project/swarmauri_parser_keywordextractor/) for keyword extraction parsing.
 - [swarmauri_signing_ed25519](https://pypi.org/project/swarmauri_signing_ed25519/) for Ed25519 signing.

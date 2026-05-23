@@ -7,7 +7,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 import warnings
 
 warnings.warn(
-    "This distance class will be deprecated in v0.10.0",
+    "This distance class will be deprecated in v0.12.0",
     DeprecationWarning,
     stacklevel=2,
 )

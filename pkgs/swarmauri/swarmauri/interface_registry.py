@@ -32,6 +32,7 @@ class InterfaceRegistry:
         "swarmauri.dataconnectors": "swarmauri_base.dataconnectors.DataConnectorBase",
         "swarmauri.billing_providers": "swarmauri_base.billing.BillingProviderBase",
         "swarmauri.decorators": None,
+        # Deprecated compatibility namespace scheduled for removal in v0.12.0.
         "swarmauri.distances": "swarmauri_base.distances.DistanceBase",
         "swarmauri.documents": "swarmauri_base.documents.DocumentBase",
         "swarmauri.embeddings": "swarmauri_base.embeddings.EmbeddingBase",

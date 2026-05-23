@@ -4,7 +4,7 @@ from gensim.models import Word2Vec
 from swarmauri_core.document_stores.IDocumentStore import IDocumentStore
 from swarmauri_core.retrievers.IRetriever import IRetriever
 from swarmauri.documents.concrete.EmbeddedDocument import EmbeddedDocument
-from swarmauri.vector_stores.concrete.CosineDistance import CosineDistance
+from swarmauri_standard.similarities.CosineSimilarity import CosineSimilarity
 from swarmauri.vectors.concrete.SimpleVector import SimpleVector
 
 
@@ -22,7 +22,7 @@ class Word2VecDocumentStore(IDocumentStore, IRetriever):
             vector_size=100, window=5, min_count=1, workers=4
         )  # Example parameters; adjust as needed
         self.documents = []
-        self.metric = CosineDistance()
+        self.similarity = CosineSimilarity()
 
     def add_document(self, document: EmbeddedDocument) -> None:
         # Check if the document already has an embedding, if not generate one using _average_word_vectors
@@ -74,7 +74,7 @@ class Word2VecDocumentStore(IDocumentStore, IRetriever):
         query_vector = self._average_word_vectors(query.split())
         print("query_vector", query_vector)
         # Compute similarity scores between the query and each document's stored embedding
-        similarities = self.metric.similarities(
+        similarities = self.similarity.similarities(
             SimpleVector(query_vector),
             [SimpleVector(doc.embedding) for doc in self.documents if doc.embedding],
         )

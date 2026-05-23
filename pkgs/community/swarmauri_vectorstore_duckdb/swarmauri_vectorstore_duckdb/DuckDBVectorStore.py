@@ -8,7 +8,9 @@ import numpy as np
 from swarmauri_standard.vectors.Vector import Vector
 from swarmauri_standard.documents.Document import Document
 from swarmauri_embedding_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
-from swarmauri_standard.distances.CosineDistance import CosineDistance
+from swarmauri_standard.vector_stores.CosineSimilarityComparator import (
+    CosineSimilarityComparator,
+)
 
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
@@ -47,7 +49,7 @@ class DuckDBVectorStore(
     def __init__(self, **data):
         super().__init__(**data)
         self._embedder = Doc2VecEmbedding()
-        self._distance = CosineDistance()
+        self._comparator = CosineSimilarityComparator()
 
         if not os.path.exists(self.persist_dir):
             os.makedirs(self.persist_dir)

@@ -6,7 +6,9 @@ from pinecone import ServerlessSpec
 
 from swarmauri_standard.documents.Document import Document
 from swarmauri_embedding_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
-from swarmauri_standard.distances.CosineDistance import CosineDistance
+from swarmauri_standard.vector_stores.CosineSimilarityComparator import (
+    CosineSimilarityComparator,
+)
 
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
@@ -46,7 +48,7 @@ class PineconeVectorStore(
         """
         super().__init__(**kwargs)
         self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
-        self._distance = CosineDistance()
+        self._comparator = CosineSimilarityComparator()
 
     def delete(self):
         """

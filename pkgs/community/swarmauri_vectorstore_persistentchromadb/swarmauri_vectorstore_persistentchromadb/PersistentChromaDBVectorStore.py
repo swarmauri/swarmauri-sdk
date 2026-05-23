@@ -5,7 +5,6 @@ from typing import List, Union, Literal
 
 from swarmauri_standard.documents.Document import Document
 from swarmauri_embedding_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
-from swarmauri_standard.distances.CosineDistance import CosineDistance
 
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
@@ -18,6 +17,9 @@ from swarmauri_base.vector_stores.VectorStorePersistentMixin import (
     VectorStorePersistentMixin,
 )
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_standard.vector_stores.CosineSimilarityComparator import (
+    CosineSimilarityComparator,
+)
 
 
 @ComponentBase.register_type(VectorStoreBase, "PersistentChromaDBVectorStore")
@@ -40,7 +42,7 @@ class PersistentChromaDBVectorStore(
         super().__init__(**kwargs)
 
         self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
-        self._distance = CosineDistance()
+        self._comparator = CosineSimilarityComparator()
 
     def connect(self) -> None:
         """

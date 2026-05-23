@@ -9,7 +9,7 @@ from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_core.document_stores.IDocumentStore import IDocumentStore
 from swarmauri_core.retrievers.IRetriever import IRetriever
 from swarmauri.documents.concrete.Document import Document
-from swarmauri.vector_stores.concrete.CosineDistance import CosineDistance
+from swarmauri_standard.similarities.CosineSimilarity import CosineSimilarity
 from swarmauri.vectors.concrete.SimpleVector import SimpleVector
 from swarmauri.vectorizers.concrete.AmpligraphVectorizer import AmpligraphVectorizer
 
@@ -29,7 +29,7 @@ class TriplesDocumentStore(IDocumentStore, IRetriever):
             self.model = restore_model(model_path)
         else:
             self.model = None
-        self.metric = CosineDistance()
+        self.similarity = CosineSimilarity()
         self._load_documents()
         if not self.model:
             self._train_model()
@@ -119,11 +119,11 @@ class TriplesDocumentStore(IDocumentStore, IRetriever):
             self.vectorizer.infer_vector(model=self.model, samples=[doc.content])[0]
             for doc in self.documents
         ]
-        similarities = self.metric.distances(
+        similarities = self.similarity.similarities(
             SimpleVector(data=query_vector),
             [SimpleVector(vector) for vector in document_vectors],
         )
-        top_k_indices = sorted(range(len(similarities)), key=lambda i: similarities[i])[
-            :top_k
-        ]
+        top_k_indices = sorted(
+            range(len(similarities)), key=lambda i: similarities[i], reverse=True
+        )[:top_k]
         return [self.documents[i] for i in top_k_indices]

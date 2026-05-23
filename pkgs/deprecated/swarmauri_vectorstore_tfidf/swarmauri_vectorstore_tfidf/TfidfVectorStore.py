@@ -1,6 +1,8 @@
 from typing import List, Union, Literal
 from swarmauri_standard.documents.Document import Document
-from swarmauri_standard.distances.CosineDistance import CosineDistance
+from swarmauri_standard.vector_stores.CosineSimilarityComparator import (
+    CosineSimilarityComparator,
+)
 
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
@@ -22,7 +24,7 @@ class TfidfVectorStore(
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._embedder = TfidfEmbedding()
-        self._distance = CosineDistance()
+        self._comparator = CosineSimilarityComparator()
         self.documents = []
 
     def add_document(self, document: Document) -> None:
@@ -65,12 +67,7 @@ class TfidfVectorStore(
 
         # The inferred vector is the last vector in the transformed_matrix
         # The rest of the matrix is what we are comparing
-        distances = self._distance.distances(
-            transform_matrix[-1], transform_matrix[:-1]
+        top_k_indices = self._comparator.top_k_indices(
+            transform_matrix[-1], transform_matrix[:-1], top_k
         )
-
-        # Get the indices of the top_k most similar (least distant) documents
-        top_k_indices = sorted(range(len(distances)), key=lambda i: distances[i])[
-            :top_k
-        ]
         return [self.documents[i] for i in top_k_indices]

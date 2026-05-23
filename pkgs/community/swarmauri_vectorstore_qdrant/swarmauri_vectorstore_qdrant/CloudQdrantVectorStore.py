@@ -11,7 +11,9 @@ from qdrant_client.models import (
 
 from swarmauri_standard.documents.Document import Document
 from swarmauri_embedding_doc2vec.Doc2VecEmbedding import Doc2VecEmbedding
-from swarmauri_standard.distances.CosineDistance import CosineDistance
+from swarmauri_standard.vector_stores.CosineSimilarityComparator import (
+    CosineSimilarityComparator,
+)
 
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
@@ -43,16 +45,16 @@ class CloudQdrantVectorStore(
     # allow arbitary types in the model config
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    # Use PrivateAttr to make _embedder and _distance private
+    # Use PrivateAttr to make _embedder and _comparator private
     _embedder: Doc2VecEmbedding = PrivateAttr()
-    _distance: CosineDistance = PrivateAttr()
+    _comparator: CosineSimilarityComparator = PrivateAttr()
     client: Union[QdrantClient, None] = Field(default=None, init=False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
-        self._distance = CosineDistance()
+        self._comparator = CosineSimilarityComparator()
 
     def connect(self) -> None:
         """

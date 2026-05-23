@@ -1,5 +1,8 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
+This package is deprecated and will be removed from the active Swarmauri workspace by `0.12.0`.
+Use it only as a compatibility shim while migrating away from the deprecated `Distance` contract.
+
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_distance_minkowski/">
         <img src="https://static.pepy.tech/badge/swarmauri_distance_minkowski/month" alt="PyPI - Downloads"/></a>
@@ -15,72 +18,33 @@
 
 # Swarmauri Distance Minkowski
 
-A Python package implementing the Minkowski distance metric for vector
-comparison within the Swarmauri ecosystem.  The metric generalizes common
-distances such as Euclidean (`p = 2`) and Manhattan (`p = 1`).
+## Preferred Replacement
 
-The distribution issues a `DeprecationWarning` announcing removal in
-`v0.10.0`.  Consume the distance through Swarmauri's plugin interfaces or
-switch to an alternative implementation before that release.
+- Preferred package: [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+- Preferred import: `swarmauri_standard.metrics.LpMetric.LpMetric`
+- Migration note: use `LpMetric(p=<order>)` for Minkowski semantics.
 
-## Features
+## Compatibility Scope
 
-- Computes Minkowski distance between vectors using `scipy.spatial.distance`.
-- Enforces matching vector dimensionality and raises `ValueError` when shapes
-  differ.
-- Offers a tunable `p` value along with batch helpers (`distances`,
-  `similarities`).
-- Derives a similarity score from distance as `1 / (1 + distance)`.
+- Re-exports the deprecated `MinkowskiDistance` compatibility shim.
+- Emits a `DeprecationWarning` on import.
+- Remains compatible only with Swarmauri packages earlier than `0.10.0`.
 
-## Installation
+## Migration Example
 
-Install the package with your preferred Python packaging tool:
+```python
+from swarmauri_standard.metrics.LpMetric import LpMetric
+
+metric = LpMetric(p=2)
+distance = metric.distance([1.0, 2.0], [1.0, 2.0])
+```
+
+## Legacy Installation
 
 ```bash
 pip install swarmauri_distance_minkowski
 ```
 
 ```bash
-poetry add swarmauri_distance_minkowski
-```
-
-```bash
 uv pip install swarmauri_distance_minkowski
 ```
-
-## Usage
-
-```python
-from swarmauri_distance_minkowski import MinkowskiDistance
-from swarmauri_standard.vectors.Vector import Vector
-
-# Create vectors for comparison
-vector_a = Vector(value=[1, 2])
-vector_b = Vector(value=[1, 2])
-
-# Initialize Minkowski distance calculator (default p=2 for Euclidean distance)
-distance_calculator = MinkowskiDistance()
-
-# Calculate distance between vectors
-distance = distance_calculator.distance(vector_a, vector_b)
-print(f"Distance: {distance}")
-
-# Calculate similarity between vectors
-similarity = distance_calculator.similarity(vector_a, vector_b)
-print(f"Similarity: {similarity}")
-```
-
-Running the example prints:
-
-```
-Distance: 0.0
-Similarity: 1.0
-```
-
-Customize the `p` value to select different Minkowski norms, or supply a
-sequence of vectors to `distances` / `similarities` for batch comparisons.
-
-## Want to help?
-
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
-

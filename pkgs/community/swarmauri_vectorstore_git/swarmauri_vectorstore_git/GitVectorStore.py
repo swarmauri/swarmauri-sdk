@@ -9,9 +9,11 @@ from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
 )
-from swarmauri_standard.distances.CosineDistance import CosineDistance
 from swarmauri_standard.documents.Document import Document
 from swarmauri_standard.embeddings.TfidfEmbedding import TfidfEmbedding
+from swarmauri_standard.vector_stores.CosineSimilarityComparator import (
+    CosineSimilarityComparator,
+)
 
 
 ScopeLiteral = Literal["head", "ref", "all_refs"]
@@ -29,13 +31,13 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
     max_commits: Optional[int] = None
     auto_index: bool = False
 
-    _distance = PrivateAttr()
+    _comparator = PrivateAttr()
     _embedder = PrivateAttr()
     _document_map = PrivateAttr()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._distance = CosineDistance()
+        self._comparator = CosineSimilarityComparator()
         self._embedder = TfidfEmbedding()
         self._document_map: Dict[str, Document] = {}
         self.documents = []
@@ -101,10 +103,9 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
 
         query_vector = self._embedder.transform([query])[0]
         document_vectors = [document.embedding for document in self.documents]
-        distances = self._distance.distances(query_vector, document_vectors)
-        top_k_indices = sorted(
-            range(len(distances)), key=lambda index: distances[index]
-        )[:top_k]
+        top_k_indices = self._comparator.top_k_indices(
+            query_vector, document_vectors, top_k
+        )
         return [self.documents[index] for index in top_k_indices]
 
     def query(self, text: str, top_k: int = 5) -> List[Document]:

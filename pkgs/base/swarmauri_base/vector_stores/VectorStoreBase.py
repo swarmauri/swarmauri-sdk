@@ -19,13 +19,17 @@ class VectorStoreBase(IVectorStore, ComponentBase):
 
     documents: List[Document] = []
     _embedder = PrivateAttr()
-    _distance = PrivateAttr()
+    _comparator = PrivateAttr(default=None)
     resource: Optional[str] = Field(default=ResourceTypes.VECTOR_STORE.value)
     type: Literal["VectorStoreBase"] = "VectorStoreBase"
 
     @property
     def embedder(self):
         return self._embedder
+
+    @property
+    def comparator(self):
+        return self._comparator
 
     @abstractmethod
     def add_document(self, document: Document) -> None:
