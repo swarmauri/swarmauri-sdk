@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_llm_hyperbolic"
 version = "0.1.1.dev5"
-description = "Swarmauri Hyperbolic LLM adapters from swarmauri_standard."
+description = "Provider-specific Swarmauri import package for Hyperbolic OpenAI-compatible chat, vision-language inference, streaming, and text-to-speech workflows."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,11 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -31,7 +36,24 @@ keywords = [
     "swarmauri",
     "llm",
     "hyperbolic",
+    "hyperbolic api",
+    "openai compatible",
+    "chat completions",
+    "vision language model",
+    "vlm",
+    "text to speech",
+    "tts",
+    "audio generation",
+    "streaming llm",
+    "async llm",
+    "qwen",
+    "llama",
+    "deepseek",
+    "large language model",
+    "generative ai",
+    "swarmauri llm",
     "model",
+    "composable intelligence",
 ]
 
 [tool.uv.sources]
@@ -40,6 +62,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=numpy"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
