@@ -13,54 +13,87 @@
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_leptonai?label=swarmauri_llm_leptonai&color=green" alt="PyPI - swarmauri_llm_leptonai"/></a>
 </p>
 
-# Swarmauri LLM LeptonAI
+# Swarmauri LeptonAI LLM
 
-Integration package for calling Lepton AI's hosted language and image generation models from Swarmauri agents. Ships LLM and image-gen adapters with synchronous, streaming, and asynchronous workflows that match Swarmauri conventions.
+`swarmauri_llm_leptonai` provides provider-specific Swarmauri imports for Lepton AI hosted chat models and SDXL image generation. The package exposes `LeptonAIModel` for synchronous, asynchronous, streaming, and batch text generation workflows, plus `LeptonAIImgGenModel` for prompt-to-image generation against Lepton-hosted image endpoints.
+
+The runtime uses model-specific Lepton endpoints in the form `https://<model>.lepton.run/api/v1/` for chat and `https://sdxl.lepton.run/run` for image generation. That keeps Lepton-specific configuration isolated in one provider package while preserving the shared Swarmauri `Conversation` and component model.
+
+## Why Use This Package?
+
+- Keep Lepton AI imports explicit in Swarmauri applications instead of importing provider implementations from broader runtime packages.
+- Run hosted chat models with sync, async, streaming, and batch interfaces that align with Swarmauri LLM conventions.
+- Generate images with a Swarmauri image generation component instead of managing raw HTTP calls directly.
+- Reuse shared Swarmauri message, conversation, and serialization behavior while keeping provider credentials and model names local to the Lepton package.
+
+## FAQ
+
+### What does `swarmauri_llm_leptonai` install?
+
+It installs two provider entry points: `LeptonAIModel` under `swarmauri.llms` and `LeptonAIImgGenModel` under `swarmauri.image_gens`.
+
+### Which Lepton AI capabilities are wrapped today?
+
+The package currently wraps hosted chat completion style inference for the allowlisted text models in `LeptonAIModel` and SDXL image generation through `LeptonAIImgGenModel`.
+
+### Does `LeptonAIModel` support streaming and async workflows?
+
+Yes. `LeptonAIModel` supports `predict`, `apredict`, `stream`, `astream`, `batch`, and `abatch`.
+
+### How does model selection work?
+
+`LeptonAIModel` builds its base URL from the configured `name`, so changing `name="llama3-8b"` to another allowlisted model switches the Lepton endpoint without changing the rest of the application code.
+
+### Does the image generator support batch workflows?
+
+Yes. `LeptonAIImgGenModel` supports `generate_image`, `agenerate_image`, `batch_generate`, and `abatch_generate`.
+
+### Where should I verify current provider model availability and pricing?
+
+Lepton's public model and pricing documentation is limited compared with other providers. Use the provider-facing surfaces in the Lepton dashboard and review [docs/LLM_PROVIDER_MODEL_PRICING_LINKS.md](../../../docs/LLM_PROVIDER_MODEL_PRICING_LINKS.md) for the current project-level documentation links before publishing model or pricing claims.
 
 ## Features
 
-- Chat completion support for Lepton AI models (e.g., `llama3-8b`, `mixtral-8x7b`) with automatic usage tracking.
-- Streaming and async token generation for latency-sensitive experiences.
-- SDXL-based image generation with convenience helpers to save or display returned bytes.
-- Single configuration surface for model name, base URL, and API key; reuse the same credential for both text and image endpoints.
-
-## Prerequisites
-
-- Python 3.10 or newer.
-- A Lepton AI API key stored outside source control (environment variables or secret stores recommended).
-- Network access to `*.lepton.run` endpoints; the `openai` Python client is installed automatically as a dependency.
+- `LeptonAIModel` for provider-hosted chat generation with sync, async, streaming, and batch execution.
+- Usage metadata capture on text responses through Swarmauri `UsageData`.
+- `LeptonAIImgGenModel` for prompt-to-image generation against Lepton-hosted SDXL endpoints.
+- Endpoint selection derived from the configured model name for text generation workflows.
+- Compatibility with Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_llm_leptonai
-
-# poetry
-poetry add swarmauri_llm_leptonai
-
-# uv (pyproject-based projects)
 uv add swarmauri_llm_leptonai
 ```
 
-## Quickstart: Chat Completions
+```bash
+pip install swarmauri_llm_leptonai
+```
+
+## Usage
+
+Set `LEPTON_API_KEY` in your environment before creating either component.
+
+### Chat Completion
 
 ```python
 import os
+
 from swarmauri_llm_leptonai import LeptonAIModel
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 
-api_key = os.environ["LEPTON_API_KEY"]
-
 conversation = Conversation()
 conversation.add_message(HumanMessage(content="Summarize Swarmauri in two sentences."))
 
-model = LeptonAIModel(api_key=api_key, name="llama3-8b")
-response = model.predict(conversation=conversation)
+model = LeptonAIModel(
+    api_key=os.environ["LEPTON_API_KEY"],
+    name="llama3-8b",
+)
+result = model.predict(conversation=conversation)
 
-print(response.get_last().content)
-print("Tokens used", response.get_last().usage.total_tokens)
+print(result.get_last().content)
+print(result.get_last().usage.total_tokens)
 ```
 
 ### Async and Streaming
@@ -68,57 +101,94 @@ print("Tokens used", response.get_last().usage.total_tokens)
 ```python
 import asyncio
 import os
+
 from swarmauri_llm_leptonai import LeptonAIModel
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 
-async def ask_async(prompt: str) -> None:
-    convo = Conversation()
-    convo.add_message(HumanMessage(content=prompt))
 
-    model = LeptonAIModel(api_key=os.environ["LEPTON_API_KEY"], name="mixtral-8x7b")
-    result = await model.apredict(conversation=convo)
+async def ask_async(prompt: str) -> None:
+    conversation = Conversation()
+    conversation.add_message(HumanMessage(content=prompt))
+
+    model = LeptonAIModel(
+        api_key=os.environ["LEPTON_API_KEY"],
+        name="mixtral-8x7b",
+    )
+    result = await model.apredict(conversation=conversation)
     print(result.get_last().content)
 
-def stream_story(prompt: str) -> None:
-    convo = Conversation()
-    convo.add_message(HumanMessage(content=prompt))
+
+def stream_text(prompt: str) -> None:
+    conversation = Conversation()
+    conversation.add_message(HumanMessage(content=prompt))
 
     model = LeptonAIModel(api_key=os.environ["LEPTON_API_KEY"])
-    for token in model.stream(conversation=convo):
+    for token in model.stream(conversation=conversation):
         print(token, end="", flush=True)
 
-# asyncio.run(ask_async("Draft a product announcement."))
-# stream_story("Write a haiku about distributed agents.")
+
+# asyncio.run(ask_async("Draft a short release note."))
+# stream_text("Write a haiku about composable AI systems.")
 ```
 
-## Generate Images with SDXL
+### Image Generation
 
 ```python
 import os
 from pathlib import Path
+
 from swarmauri_llm_leptonai import LeptonAIImgGenModel
 
-img_model = LeptonAIImgGenModel(api_key=os.environ["LEPTON_API_KEY"], model_name="sdxl")
+image_model = LeptonAIImgGenModel(
+    api_key=os.environ["LEPTON_API_KEY"],
+    model_name="sdxl",
+)
 
-prompt = "A cyberpunk skyline at blue hour in watercolor style"
-image_bytes = img_model.generate_image(prompt=prompt, width=768, height=512)
+image_bytes = image_model.generate_image(
+    prompt="A cyberpunk skyline at blue hour in watercolor style",
+    width=768,
+    height=512,
+)
 
 output = Path("leptonai_cyberpunk.png")
-img_model.save_image(image_bytes, output.as_posix())
-
-# Display in a notebook or desktop environment
-# img_model.display_image(image_bytes)
+image_model.save_image(image_bytes, output.as_posix())
 ```
 
-## Operational Tips
+## Examples
 
-- Models are invoked via `https://<model>.lepton.run/api/v1/`; updating `name` on `LeptonAIModel` switches endpoints without altering the client setup.
-- Streaming responses emit usage data at stream completion; consume the generator fully before inspecting `conversation.get_last().usage`.
-- Respect Lepton AI rate limitsâ€”add retries with exponential backoff or queue requests during traffic spikes.
-- Store API keys securely and rotate them regularly; avoid hard-coding credentials in notebooks or scripts.
-- Large image generations may take longer and consume more credits; adjust `width`, `height`, `steps`, and `guidance_scale` to balance quality versus latency.
+- Use `LeptonAIModel` for provider-hosted chat inference when you want Swarmauri `Conversation` objects and token usage data.
+- Use `LeptonAIImgGenModel` when an agent or application needs image generation without adding a separate provider package.
+- Use `stream` or `astream` for latency-sensitive user interfaces that render tokens incrementally.
 
-## Want to help?
+## Related Packages
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+- [swarmauri_llm_openai](https://pypi.org/project/swarmauri_llm_openai/)
+- [swarmauri_llm_mistral](https://pypi.org/project/swarmauri_llm_mistral/)
+- [swarmauri_llm_deepinfra](https://pypi.org/project/swarmauri_llm_deepinfra/)
+- [swarmauri_llm_hyperbolic](https://pypi.org/project/swarmauri_llm_hyperbolic/)
+- [swarmauri_llm_falai](https://pypi.org/project/swarmauri_llm_falai/)
+- [swarmauri_llm_groq](https://pypi.org/project/swarmauri_llm_groq/)
+
+## Foundational Swarmauri Packages
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [LLM provider model and pricing links](../../../docs/LLM_PROVIDER_MODEL_PRICING_LINKS.md)
+- [Lepton AI playground](https://www.lepton.ai/playground)
+
+## Best Practices
+
+- Keep `LEPTON_API_KEY` in environment variables or a secret manager.
+- Validate current provider model availability before deploying a specific allowlisted model to production.
+- Tune `width`, `height`, `steps`, and `guidance_scale` carefully for image generation to balance quality, latency, and cost.
+- Consume full streaming responses before reading usage metadata from the final conversation message.
+
+## License
+
+Apache-2.0

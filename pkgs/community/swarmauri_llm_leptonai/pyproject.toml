@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_llm_leptonai"
 version = "0.9.4.dev5"
-description = "Swarmauri Lepton AI Model"
+description = "Provider-specific Swarmauri import package for Lepton AI hosted chat models, streaming workflows, and SDXL image generation."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,11 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -31,9 +36,20 @@ dependencies = [
 keywords = [
     "swarmauri",
     "llm",
+    "swarmauri llm",
     "leptonai",
+    "lepton ai",
     "lepton",
     "model",
+    "chat completions",
+    "streaming llm",
+    "async llm",
+    "image generation",
+    "sdxl",
+    "hosted inference",
+    "large language model",
+    "generative ai",
+    "composable intelligence",
 ]
 
 [tool.uv.sources]
@@ -42,6 +58,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=tqdm"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
