@@ -37,7 +37,9 @@ class AI21StudioModel(LLMBase):
         "jamba-large",
         "jamba-mini",
         "jamba-large-1.7",
-        "jamba-mini-1.7",
+        "jamba-mini-2",
+        "jamba-large-1.7-2025-07",
+        "jamba-mini-2-2026-01",
     ]
     name: str = "jamba-large"
     type: Literal["AI21StudioModel"] = "AI21StudioModel"
@@ -430,4 +432,11 @@ class AI21StudioModel(LLMBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        return ["jamba-large", "jamba-mini", "jamba-large-1.7", "jamba-mini-1.7"]
+        return [
+            "jamba-large",
+            "jamba-mini",
+            "jamba-large-1.7",
+            "jamba-mini-2",
+            "jamba-large-1.7-2025-07",
+            "jamba-mini-2-2026-01",
+        ]

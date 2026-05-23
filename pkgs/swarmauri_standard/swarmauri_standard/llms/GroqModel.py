@@ -31,15 +31,18 @@ class GroqModel(LLMBase):
 
     api_key: SecretStr
     allowed_models: List[str] = [
+        "meta-llama/llama-4-maverick-17b-128e-instruct",
+        "meta-llama/llama-4-scout-17b-16e-instruct",
         "llama-3.3-70b-versatile",
         "llama-3.1-8b-instant",
+        "moonshotai/kimi-k2-instruct",
+        "qwen/qwen3-32b",
+        "deepseek-r1-distill-llama-70b",
         "meta-llama/llama-guard-4-12b",
         "openai/gpt-oss-120b",
         "openai/gpt-oss-20b",
-        "whisper-large-v3-turbo",
-        "whisper-large-v3",
     ]
-    name: str = "llama-3.3-70b-versatile"
+    name: str = "meta-llama/llama-4-maverick-17b-128e-instruct"
 
     type: Literal["GroqModel"] = "GroqModel"
     _client: httpx.Client = PrivateAttr(default=None)

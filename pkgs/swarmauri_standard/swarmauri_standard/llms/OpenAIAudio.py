@@ -218,8 +218,7 @@ class OpenAIAudio(LLMBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        models_data = ["whisper-1"]
-        return models_data
+        return self.allowed_models
 
     def stream(
         self,

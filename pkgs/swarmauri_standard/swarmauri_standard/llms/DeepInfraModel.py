@@ -26,14 +26,14 @@ class DeepInfraModel(LLMBase):
             Can be obtained from: https://deepinfra.com/dash/api_keys
 
         allowed_models (List[str]): List of supported model identifiers on DeepInfra
-            Full list available at: https://deepinfra.com/models/text-generation
+            Full list available at: https://api.deepinfra.com/v1/openai/models
 
         name (str): The currently selected model name
-            Defaults to "Qwen/Qwen2-72B-Instruct"
+            Defaults to "zai-org/GLM-4.6"
 
         type (Literal["DeepInfraModel"]): Type identifier for the model class
 
-    Link to Allowed Models: https://deepinfra.com/models/text-generation
+    Link to Allowed Models: https://api.deepinfra.com/v1/openai/models
     Link to API KEY: https://deepinfra.com/dash/api_keys
     """
 
@@ -43,55 +43,40 @@ class DeepInfraModel(LLMBase):
 
     api_key: SecretStr
     allowed_models: List[str] = [
-        "01-ai/Yi-34B-Chat",
-        "Gryphe/MythoMax-L2-13b",  # not consistent with results
-        "HuggingFaceH4/zephyr-orpo-141b-A35b-v0.1",
-        "Phind/Phind-CodeLlama-34B-v2",
-        "Qwen/Qwen2-72B-Instruct",
-        "Qwen/Qwen2-7B-Instruct",
-        "Qwen/Qwen2.5-72B-Instruct",
-        "Sao10K/L3-70B-Euryale-v2.1",
-        "Sao10K/L3.1-70B-Euryale-v2.2",
-        "bigcode/starcoder2-15b",
-        "bigcode/starcoder2-15b-instruct-v0.1",
-        "codellama/CodeLlama-34b-Instruct-hf",
-        "codellama/CodeLlama-70b-Instruct-hf",
-        "cognitivecomputations/dolphin-2.6-mixtral-8x7b",
-        "cognitivecomputations/dolphin-2.9.1-llama-3-70b",
-        "databricks/dbrx-instruct",
-        "google/codegemma-7b-it",
-        "google/gemma-1.1-7b-it",
-        "google/gemma-2-27b-it",
-        "google/gemma-2-9b-it",
-        "lizpreciatior/lzlv_70b_fp16_hf",  # not consistent with results
-        "mattshumer/Reflection-Llama-3.1-70B",
-        "mattshumer/Reflection-Llama-3.1-70B",
-        "meta-llama/Llama-2-13b-chat-hf",
-        "meta-llama/Llama-2-70b-chat-hf",
-        "meta-llama/Llama-2-7b-chat-hf",
-        "meta-llama/Meta-Llama-3-70B-Instruct",
-        "meta-llama/Meta-Llama-3-8B-Instruct",
-        "meta-llama/Meta-Llama-3.1-405B-Instruct",
+        "zai-org/GLM-4.6",
+        "deepseek-ai/DeepSeek-V4-Pro",
+        "Qwen/Qwen3-30B-A3B",
+        "Sao10K/L3-8B-Lunaris-v1-Turbo",
+        "Qwen/Qwen3.6-27B",
+        "nvidia/Nemotron-3-Nano-30B-A3B",
         "meta-llama/Meta-Llama-3.1-70B-Instruct",
+        "ByteDance/Seed-2.0-mini",
+        "openai/gpt-oss-120b-Turbo",
+        "zai-org/GLM-5.1",
+        "Qwen/Qwen3.5-4B",
+        "Qwen/Qwen3-235B-A22B-Instruct-2507",
+        "anthropic/claude-opus-4-7",
+        "google/gemini-3.1-flash-lite",
+        "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+        "google/gemma-3-12b-it",
+        "google/gemini-3.1-pro",
+        "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+        "Qwen/Qwen3-Max-Thinking",
+        "google/gemini-2.5-flash",
+        "nvidia/NVIDIA-Nemotron-Nano-9B-v2",
+        "Qwen/Qwen3.5-2B",
+        "deepseek-ai/DeepSeek-V3",
+        "NousResearch/Hermes-3-Llama-3.1-70B",
+        "Sao10K/L3.1-70B-Euryale-v2.2",
         "meta-llama/Meta-Llama-3.1-8B-Instruct",
-        "microsoft/Phi-3-medium-4k-instruct",
-        "microsoft/WizardLM-2-7B",
-        "microsoft/WizardLM-2-8x22B",
-        "mistralai/Mistral-7B-Instruct-v0.1",
-        "mistralai/Mistral-7B-Instruct-v0.2",
-        "mistralai/Mistral-7B-Instruct-v0.3",
-        "mistralai/Mistral-Nemo-Instruct-2407",
-        "mistralai/Mixtral-8x22B-Instruct-v0.1",
-        "mistralai/Mixtral-8x22B-v0.1",
-        "mistralai/Mixtral-8x22B-v0.1",
-        "mistralai/Mixtral-8x7B-Instruct-v0.1",
-        "nvidia/Nemotron-4-340B-Instruct",
-        "openbmb/MiniCPM-Llama3-V-2_5",
-        "openchat/openchat-3.6-8b",
-        "openchat/openchat_3.5",  # not compliant with system context
+        "zai-org/GLM-5",
+        "stepfun-ai/Step-3.5-Flash",
+        "Qwen/Qwen3-Coder-480B-A35B-Instruct-Turbo",
+        "google/gemini-2.5-pro",
+        "meta-llama/Llama-3.3-70B-Instruct-Turbo",
     ]
 
-    name: str = "01-ai/Yi-34B-Chat"
+    name: str = "zai-org/GLM-4.6"
     type: Literal["DeepInfraModel"] = "DeepInfraModel"
     timeout: float = 600.0
 

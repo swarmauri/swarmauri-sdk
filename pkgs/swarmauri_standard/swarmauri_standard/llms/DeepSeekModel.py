@@ -24,8 +24,8 @@ class DeepSeekModel(LLMBase):
 
     Attributes:
         api_key (SecretStr): The API key for authenticating with DeepSeek.
-        allowed_models (List[str]): List of models supported by DeepSeek, defaulting to ["deepseek-chat"].
-        name (str): The model name, defaulting to "deepseek-chat".
+        allowed_models (List[str]): List of models supported by DeepSeek.
+        name (str): The model name, defaulting to "deepseek-v4-flash".
         type (Literal): The class type for identifying the LLM, set to "DeepSeekModel".
 
     Link to Allowed Models: https://platform.deepseek.com/api-docs/quick_start/pricing
@@ -35,8 +35,13 @@ class DeepSeekModel(LLMBase):
     _BASE_URL: str = PrivateAttr("https://api.deepseek.com/v1")
 
     api_key: SecretStr
-    allowed_models: List[str] = ["deepseek-chat", "deepseek-reasoner"]
-    name: str = "deepseek-chat"
+    allowed_models: List[str] = [
+        "deepseek-v4-flash",
+        "deepseek-v4-pro",
+        "deepseek-chat",
+        "deepseek-reasoner",
+    ]
+    name: str = "deepseek-v4-flash"
 
     type: Literal["DeepSeekModel"] = "DeepSeekModel"
     _client: httpx.Client = PrivateAttr()

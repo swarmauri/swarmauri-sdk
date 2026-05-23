@@ -35,10 +35,12 @@ class PerplexityModel(LLMBase):
 
     api_key: SecretStr
     allowed_models: List[str] = [
+        "sonar-deep-research",
         "sonar-reasoning-pro",
         "sonar-reasoning",
         "sonar-pro",
         "sonar",
+        "r1-1776",
     ]
     name: str = "sonar"
     type: Literal["PerplexityModel"] = "PerplexityModel"
@@ -508,10 +510,4 @@ class PerplexityModel(LLMBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        models_data = [
-            "sonar-reasoning-pro",
-            "sonar-reasoning",
-            "sonar-pro",
-            "sonar",
-        ]
-        return models_data
+        return self.allowed_models

@@ -244,5 +244,4 @@ class OpenAIAudioTTS(LLMBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        models_data = ["tts-1", "tts-1-hd"]
-        return models_data
+        return self.allowed_models

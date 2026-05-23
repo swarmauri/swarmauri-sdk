@@ -46,29 +46,35 @@ class OpenAIToolModel(LLMBase):
 
     api_key: SecretStr
     allowed_models: List[str] = [
+        "gpt-5.5",
+        "gpt-5.5-2026-04-23",
+        "gpt-5.4",
+        "gpt-5.4-mini",
+        "gpt-5.4-nano",
+        "gpt-5.2",
+        "gpt-5.2-chat-latest",
+        "gpt-5.1",
+        "gpt-5.1-chat-latest",
+        "gpt-5",
         "gpt-5-2025-08-07",
+        "gpt-5-mini",
         "gpt-5-mini-2025-08-07",
+        "gpt-5-nano",
         "gpt-5-nano-2025-08-07",
+        "gpt-4.1",
         "gpt-4.1-2025-04-14",
+        "gpt-4.1-mini",
+        "gpt-4.1-nano",
         "gpt-oss-20b",
         "gpt-oss-120b",
-        "gpt-4o-mini",
-        "gpt-4o-2024-05-13",
-        "gpt-4o-2024-08-06",
-        "gpt-4o-mini-2024-07-18",
         "gpt-4o",
+        "gpt-4o-2024-08-06",
+        "gpt-4o-mini",
+        "gpt-4o-mini-2024-07-18",
         "gpt-4-turbo",
-        "gpt-4-turbo-preview",
-        "gpt-4-1106-preview",
-        "gpt-4",
-        "gpt-3.5-turbo-1106",
-        "gpt-3.5-turbo",
         "gpt-4-turbo-2024-04-09",
-        "gpt-4-0125-preview",
-        "gpt-4-0613",
-        "gpt-3.5-turbo-0125",
     ]
-    name: str = "gpt-4o-mini"
+    name: str = "gpt-5.5"
     type: Literal["OpenAIToolModel"] = "OpenAIToolModel"
     timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
@@ -471,27 +477,4 @@ class OpenAIToolModel(LLMBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        models_data = [
-            "gpt-5-2025-08-07",
-            "gpt-5-mini-2025-08-07",
-            "gpt-5-nano-2025-08-07",
-            "gpt-4.1-2025-04-14",
-            "gpt-oss-20b",
-            "gpt-oss-120b",
-            "gpt-4o-mini",
-            "gpt-4o-2024-05-13",
-            "gpt-4o-2024-08-06",
-            "gpt-4o-mini-2024-07-18",
-            "gpt-4o",
-            "gpt-4-turbo",
-            "gpt-4-turbo-preview",
-            "gpt-4-1106-preview",
-            "gpt-4",
-            "gpt-3.5-turbo-1106",
-            "gpt-3.5-turbo",
-            "gpt-4-turbo-2024-04-09",
-            "gpt-4-0125-preview",
-            "gpt-4-0613",
-            "gpt-3.5-turbo-0125",
-        ]
-        return models_data
+        return self.allowed_models

@@ -406,4 +406,4 @@ class GroqVisionModel(LLMBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        return ["llama-3.2-90b-vision-preview", "llama-3.2-11b-vision-preview"]
+        return self.allowed_models

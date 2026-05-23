@@ -23,17 +23,12 @@ class CerebrasModel(LLMBase):
 
     api_key: SecretStr
     allowed_models: List[str] = [
-        "llama-4-scout-17b-16e-instruct",
-        "llama3.1-8b",
-        "llama-3.3-70b",
-        "llama-4-maverick-17b-128e-instruct",
-        "qwen-3-32b",
-        "qwen-3-235b-a22b-instruct-2507",
-        "qwen-3-235b-a22b-thinking-2507",
-        "qwen-3-coder-480b",
+        "zai-glm-4.7",
         "gpt-oss-120b",
+        "qwen-3-235b-a22b-instruct-2507",
+        "llama3.1-8b",
     ]
-    name: str = "llama3.1-8b"
+    name: str = "gpt-oss-120b"
     type: Literal["CerebrasModel"] = "CerebrasModel"
 
     _client: httpx.Client = PrivateAttr(default=None)

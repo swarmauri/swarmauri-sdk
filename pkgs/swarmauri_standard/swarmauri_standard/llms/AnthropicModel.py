@@ -34,15 +34,18 @@ class AnthropicModel(LLMBase):
     _async_client: httpx.AsyncClient = PrivateAttr()
     api_key: SecretStr
     allowed_models: List[str] = [
-        "claude-opus-4-1",
-        "claude-opus-4-0",
-        "claude-sonnet-4-0",
-        "claude-3-7-sonnet-latest",
-        "claude-3-5-haiku-latest",
-        "claude-3-5-haiku-20241022",
+        "claude-opus-4-7",
+        "claude-sonnet-4-6",
+        "claude-haiku-4-5",
+        "claude-haiku-4-5-20251001",
+        "claude-opus-4-1-20250805",
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-20250514",
         "claude-3-7-sonnet-20250219",
+        "claude-3-5-haiku-20241022",
+        "claude-3-haiku-20240307",
     ]
-    name: str = "claude-opus-4-1"
+    name: str = "claude-opus-4-7"
     type: Literal["AnthropicModel"] = "AnthropicModel"
 
     timeout: float = 600.0

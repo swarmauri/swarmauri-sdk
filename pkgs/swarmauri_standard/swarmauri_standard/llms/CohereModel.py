@@ -36,22 +36,16 @@ class CohereModel(LLMBase):
 
     api_key: SecretStr
     allowed_models: List[str] = [
+        "command-a-plus-05-2026",
         "command-a-03-2025",
-        "command-r7b-12-2024",
-        "command-a-translate-08-2025",
         "command-a-reasoning-08-2025",
+        "command-a-translate-08-2025",
         "command-a-vision-07-2025",
-        "command-r-plus-04-2024",
-        "command-r-plus",
+        "command-r7b-12-2024",
         "command-r-08-2024",
-        "command-r-03-2024",
-        "command-r",
-        "command",
-        "command-nightly",
-        "command-light",
-        "command-light-nightly",
+        "command-r-plus-08-2024",
     ]
-    name: str = "command-a-03-2025"
+    name: str = "command-a-plus-05-2026"
     type: Literal["CohereModel"] = "CohereModel"
 
     timeout: float = 600.0

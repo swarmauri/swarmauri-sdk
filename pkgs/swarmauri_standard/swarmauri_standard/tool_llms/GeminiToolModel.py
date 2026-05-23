@@ -36,14 +36,14 @@ class GeminiToolModel(ToolLLMBase):
 
     api_key: SecretStr
     allowed_models: List[str] = [
+        "gemini-3-pro-preview",
+        "gemini-2.5-pro",
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite",
         "gemini-2.0-flash",
         "gemini-2.0-flash-lite",
-        "gemini-2.0-pro-exp-02-05",
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-8b",
-        "gemini-1.5-pro",
     ]
-    name: str = "gemini-1.5-pro"
+    name: str = "gemini-2.5-flash"
 
     type: Literal["GeminiToolModel"] = "GeminiToolModel"
     timeout: float = 600.0
@@ -788,4 +788,4 @@ class GeminiToolModel(ToolLLMBase):
         Returns:
             List[str]: A list of allowed model names.
         """
-        return ["gemini-1.5-pro", "gemini-1.5-flash"]
+        return self.allowed_models

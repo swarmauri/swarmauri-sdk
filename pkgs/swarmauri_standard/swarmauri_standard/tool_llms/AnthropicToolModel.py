@@ -50,15 +50,16 @@ class AnthropicToolModel(ToolLLMBase):
     _async_client: httpx.AsyncClient = PrivateAttr()
     api_key: SecretStr
     allowed_models: List[str] = [
-        "claude-opus-4-1",
-        "claude-opus-4-0",
-        "claude-sonnet-4-0",
+        "claude-opus-4-1-20250805",
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-20250514",
+        "claude-3-7-sonnet-20250219",
+        "claude-3-5-haiku-20241022",
+        "claude-3-haiku-20240307",
         "claude-3-7-sonnet-latest",
         "claude-3-5-haiku-latest",
-        "claude-3-5-haiku-20241022",
-        "claude-3-7-sonnet-20250219",
     ]
-    name: str = "claude-3-sonnet-20240229"
+    name: str = "claude-opus-4-1-20250805"
 
     type: Literal["AnthropicToolModel"] = "AnthropicToolModel"
 
@@ -644,17 +645,4 @@ class AnthropicToolModel(ToolLLMBase):
         Returns:
             List[str]: A list of allowed model names.
         """
-        allowed_models = [
-            "claude-3-7-sonnet-latest",
-            "claude-3-5-haiku-latest",
-            "claude-3-5-sonnet-latest",
-            "claude-3-opus-latest",
-            "claude-3-5-sonnet-20241022",
-            "claude-3-5-haiku-20241022",
-            "claude-3-7-sonnet-20250219",
-            "claude-3-5-sonnet-20240620",
-            "claude-3-opus-20240229",
-            "claude-3-sonnet-20240229",
-            "claude-3-haiku-20240307",
-        ]
-        return allowed_models
+        return self.allowed_models

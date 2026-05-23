@@ -378,8 +378,7 @@ class PlayHTModel(LLMBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        models_data = ["Play3.0-mini", "PlayHT2.0-turbo", "PlayHT1.0", "PlayHT2.0"]
-        return models_data
+        return self.allowed_models
 
     def stream(self, text: str, audio_path: str = "output.mp3") -> str:
         raise NotImplementedError("stream method not implemented for PlayHTModel")

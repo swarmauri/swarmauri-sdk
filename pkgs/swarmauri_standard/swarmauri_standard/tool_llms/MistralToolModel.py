@@ -187,8 +187,7 @@ class MistralToolModel(ToolLLMBase):
             return tool_models
         except Exception as e:
             logging.warning(f"Error fetching models from Mistral API: {e}")
-            # Return default models as fallback
-            return ["mistral-medium", "mistral-large-latest"]
+            return self.allowed_models
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
