@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_tool_webscraping"
 version = "0.10.1.dev5"
-description = "Web Scraping Tool for Swarmauri"
+description = "Swarmauri web-content extraction tool for scraping HTML pages with CSS selectors."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,11 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -34,6 +39,10 @@ keywords = [
     "webscraping",
     "web",
     "scraping",
+    "beautifulsoup",
+    "css selector",
+    "html parsing",
+    "content extraction",
 ]
 
 [tool.uv.sources]

@@ -14,127 +14,125 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool ? Web Scraping
+# Swarmauri Tool Web Scraping
 
-A Swarmauri-compatible scraper that fetches HTML with `requests`, parses it via BeautifulSoup, and extracts content with CSS selectors. Ideal for lightweight data collection, compliance checks, or enriching agent answers with live webpage snippets.
+`swarmauri_tool_webscraping` is a Swarmauri web-content extraction tool that
+fetches a page with `requests`, parses HTML with BeautifulSoup, and extracts
+text using a CSS selector. It is useful for headline capture, policy checks,
+lightweight data extraction, and agent workflows that need webpage content on
+demand.
 
-- Accepts any valid URL and CSS selector; returns joined text content from the matching nodes.
-- Handles HTTP/network failures gracefully by surfacing structured error messages.
-- Integrates with Swarmauri agents so scraping can be triggered through natural-language prompts.
+## Why Use Swarmauri Tool Web Scraping
 
-## Requirements
+- Extract targeted text from webpages using CSS selectors.
+- Add lightweight HTML scraping to Swarmauri agents and automation flows.
+- Pull site copy, headlines, notices, or metadata for downstream analysis.
+- Return structured extraction or error results without custom scraping glue.
 
-- Python 3.10 ? 3.13.
-- `requests` and `beautifulsoup4` (installed automatically with the package).
-- Respect site terms of service, robots.txt directives, and rate limits when scraping.
+## FAQ
+
+> **What inputs does the tool expect?**  
+> A `url` string and a CSS `selector` string.
+
+> **What does the tool return?**  
+> Either `{"extracted_text": ...}` or `{"error": ...}`.
+
+> **What happens when no elements match?**  
+> The tool returns an empty `extracted_text` string.
+
+> **Does it render JavaScript-driven pages?**  
+> No. It only fetches raw HTTP content and parses returned HTML.
+
+## Features
+
+- Swarmauri `ToolBase` implementation registered as `WebScrapingTool`.
+- Uses standard CSS selectors to target page elements.
+- Returns joined text content across all selector matches.
+- Handles request and parsing failures with structured error output.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
-Use your preferred packaging workflow?each command installs the dependencies above.
-
-**pip**
+```bash
+uv add swarmauri_tool_webscraping
+```
 
 ```bash
 pip install swarmauri_tool_webscraping
 ```
 
-**Poetry**
-
-```bash
-poetry add swarmauri_tool_webscraping
-```
-
-**uv**
-
-```bash
-# Add to the current project and update uv.lock
-uv add swarmauri_tool_webscraping
-
-# or install into the active environment without editing pyproject.toml
-uv pip install swarmauri_tool_webscraping
-```
-
-> Tip: In containerized or restricted environments ensure outbound HTTPS traffic is permitted; `requests` needs network access to reach target sites.
-
-## Quick Start
+## Usage
 
 ```python
 from swarmauri_tool_webscraping import WebScrapingTool
 
-scraper = WebScrapingTool()
-result = scraper(url="https://example.com", selector="h1")
+tool = WebScrapingTool()
+result = tool(url="https://example.com", selector="h1")
 
-if "extracted_text" in result:
+print(result)
+```
+
+## Examples
+
+### Extract a page headline
+
+```python
+from swarmauri_tool_webscraping import WebScrapingTool
+
+tool = WebScrapingTool()
+result = tool("https://example.com", "h1")
+
+print(result.get("extracted_text"))
+```
+
+### Inspect a status banner
+
+```python
+from swarmauri_tool_webscraping import WebScrapingTool
+
+tool = WebScrapingTool()
+result = tool("https://status.example.com", ".banner")
+
+if "error" not in result:
     print(result["extracted_text"])
-else:
-    print(result["error"])
 ```
 
-`extracted_text` concatenates matches separated by newlines. When no elements match the selector, the tool returns an empty string.
-
-## Usage Scenarios
-
-### Monitor Site Copy for Compliance
+### Register the tool in a Swarmauri collection
 
 ```python
+from swarmauri_standard.tools.ToolCollection import ToolCollection
 from swarmauri_tool_webscraping import WebScrapingTool
 
-scraper = WebScrapingTool()
-result = scraper(
-    url="https://status.vendor.com",
-    selector=".uptime-banner"
-)
-
-if "error" in result:
-    raise RuntimeError(result["error"])
-
-if "maintenance" in result["extracted_text"].lower():
-    print("Maintenance notice detected ? alert the ops team.")
+tools = ToolCollection(tools=[WebScrapingTool()])
+print(tools)
 ```
 
-### Inject Live Data Into a Swarmauri Agent Response
+## Related Packages
 
-```python
-from swarmauri_core.agent.Agent import Agent
-from swarmauri_core.messages.HumanMessage import HumanMessage
-from swarmauri_standard.tools.registry import ToolRegistry
-from swarmauri_tool_webscraping import WebScrapingTool
+- [swarmauri_tool_downloadpdf](https://pypi.org/project/swarmauri_tool_downloadpdf/)
+- [swarmauri_tool_searchword](https://pypi.org/project/swarmauri_tool_searchword/)
+- [swarmauri_tool_zapierhook](https://pypi.org/project/swarmauri_tool_zapierhook/)
 
-registry = ToolRegistry()
-registry.register(WebScrapingTool())
-agent = Agent(tool_registry=registry)
+## Swarmauri Foundations
 
-message = HumanMessage(content="Check the headline on https://example.com")
-response = agent.run(message)
-print(response)
-```
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
 
-### Batch Collect Headlines From Multiple Pages
+## More Documentation
 
-```python
-from swarmauri_tool_webscraping import WebScrapingTool
+- [Requests documentation](https://requests.readthedocs.io/)
+- [Beautiful Soup documentation](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
+- [MDN CSS selectors reference](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_selectors)
 
-scraper = WebScrapingTool()
-urls = [
-    "https://news.example.com/tech",
-    "https://news.example.com/business",
-]
+## Best Practices
 
-for url in urls:
-    result = scraper(url=url, selector="h2.article-title")
-    print(url)
-    print(result.get("extracted_text", result.get("error")))
-    print("---")
-```
-
-## Troubleshooting
-
-- **`Request error`** ? Network failures, DNS issues, or HTTP 4xx/5xx responses produce `Request error` messages. Verify connectivity, headers, or authentication if required by the site.
-- **Empty `extracted_text`** ? The selector may not match any nodes. Use browser dev tools to confirm the CSS selector or adjust the parser to target the correct element.
-- **SSL certificate problems** ? Pass `verify=False` by forking/extending the tool only when you trust the target; otherwise update CA certificates on the host.
+- Respect site terms, rate limits, and robots rules before scraping.
+- Use stable selectors and expect sites to change their markup over time.
+- Prefer dedicated APIs when a provider offers one.
+- Extend the tool if you need headers, retries, or authenticated requests.
 
 ## License
 
-`swarmauri_tool_webscraping` is released under the Apache 2.0 License. See `LICENSE` for full details.
-
-
+This project is licensed under the Apache-2.0 License.
