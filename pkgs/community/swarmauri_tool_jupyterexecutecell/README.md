@@ -16,53 +16,123 @@
 
 # Swarmauri Tool Jupyter Execute Cell
 
-Executes Python code in the active Jupyter kernel and captures stdout/stderr/errors for downstream tooling.
+`swarmauri_tool_jupyterexecutecell` is a Swarmauri code-execution tool for
+running a single code cell inside the active IPython or Jupyter environment and
+capturing stdout, stderr, and error information. It is useful for notebook
+automation, agent-directed code execution, validation workflows, and interactive
+runtime tooling.
+
+## Why Use Swarmauri Tool Jupyter Execute Cell
+
+- Execute code snippets from Swarmauri workflows in a live notebook context.
+- Capture stdout, stderr, and tracebacks in a structured response.
+- Apply timeouts to code execution to avoid hanging runs.
+- Reuse the same callable surface across automation, agents, and testing flows.
+
+## FAQ
+
+> **What inputs does the tool accept?**  
+> A code string plus an optional timeout in seconds.
+
+> **What does the tool return?**  
+> A dictionary containing `stdout`, `stderr`, and `error`.
+
+> **What happens when no active IPython kernel is available?**  
+> The tool returns an error payload indicating the kernel could not be found.
+
+> **Does the tool execute asynchronously?**  
+> No. It executes synchronously and uses a thread-backed timeout guard.
 
 ## Features
 
-- Accepts raw code strings and optionally a timeout.
-- Returns a dict with `stdout`, `stderr`, and `error` keys.
-- Built on `jupyter_client` to talk to the running kernel.
-
-## Prerequisites
-
-- Python 3.10 or newer.
-- Jupyter kernel running in the environment (IPython/Jupyter installed).
+- Swarmauri `ToolBase` implementation registered as `JupyterExecuteCellTool`.
+- Runs code in the active IPython/Jupyter environment.
+- Captures stdout, stderr, and traceback information.
+- Supports timeout-based interruption of long-running tasks.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_tool_jupyterexecutecell
-
-# poetry
-poetry add swarmauri_tool_jupyterexecutecell
-
-# uv (pyproject-based projects)
 uv add swarmauri_tool_jupyterexecutecell
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_tool_jupyterexecutecell
+```
+
+## Usage
 
 ```python
 from swarmauri_tool_jupyterexecutecell import JupyterExecuteCellTool
 
-code = "print('Hello from Swarmauri!')"
-result = JupyterExecuteCellTool()(code, timeout=60)
+tool = JupyterExecuteCellTool()
+result = tool("print('Hello from Swarmauri')", timeout=30)
 
-print("stdout:", result["stdout"])
-print("stderr:", result["stderr"])
-print("error:", result["error"])
+print(result)
 ```
 
-## Tips
+## Examples
 
-- Increase `timeout` for cells that perform long-running tasks.
-- The tool executes in the current kernel?make sure dependencies are already imported/installed in that environment.
-- Handle errors gracefully by checking the `error` field before using results.
+### Execute a quick print statement
 
-## Want to help?
+```python
+from swarmauri_tool_jupyterexecutecell import JupyterExecuteCellTool
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+tool = JupyterExecuteCellTool()
+result = tool("print(2 + 2)")
 
+print(result["stdout"])
+```
 
+### Capture a runtime error
+
+```python
+from swarmauri_tool_jupyterexecutecell import JupyterExecuteCellTool
+
+tool = JupyterExecuteCellTool()
+result = tool("raise ValueError('bad input')")
+
+print(result["error"])
+```
+
+### Register the tool in a Swarmauri collection
+
+```python
+from swarmauri_standard.tools.ToolCollection import ToolCollection
+from swarmauri_tool_jupyterexecutecell import JupyterExecuteCellTool
+
+tools = ToolCollection(tools=[JupyterExecuteCellTool()])
+print(tools)
+```
+
+## Related Packages
+
+- [swarmauri_tool_jupyterruncell](https://pypi.org/project/swarmauri_tool_jupyterruncell/)
+- [swarmauri_tool_jupyterstartkernel](https://pypi.org/project/swarmauri_tool_jupyterstartkernel/)
+- [swarmauri_tool_jupytershutdownkernel](https://pypi.org/project/swarmauri_tool_jupytershutdownkernel/)
+- [swarmauri_tool_jupyterclearoutput](https://pypi.org/project/swarmauri_tool_jupyterclearoutput/)
+
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [IPython documentation](https://ipython.readthedocs.io/)
+- [Jupyter messaging and kernels](https://jupyter-client.readthedocs.io/)
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+
+## Best Practices
+
+- Keep executed code small and purposeful when running inside agents.
+- Use timeouts for untrusted or potentially long-running cells.
+- Inspect both `stderr` and `error` before assuming success.
+- Prefer explicit kernel lifecycle management in multi-step notebook workflows.
+
+## License
+
+This project is licensed under the Apache-2.0 License.

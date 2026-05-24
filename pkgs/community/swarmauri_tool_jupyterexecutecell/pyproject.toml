@@ -1,16 +1,21 @@
 [project]
 name = "swarmauri_tool_jupyterexecutecell"
 version = "0.10.1.dev5"
-description = "A tool designed to execute a single code cell in a running Jupyter kernel using jupyter_client, capturing its output and errors."
+description = "Swarmauri code-execution tool for running notebook cells in an active IPython environment with captured output."
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterexecutecell/"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Framework :: Jupyter",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -34,19 +39,15 @@ keywords = [
     "swarmauri",
     "tool",
     "jupyterexecutecell",
-    "designed",
-    "execute",
-    "single",
     "code",
     "cell",
-    "running",
     "jupyter",
     "kernel",
-    "client",
-    "capturing",
-    "its",
+    "notebook automation",
+    "ipython",
+    "cell execution",
+    "captured output",
     "output",
-    "errors",
 ]
 
 [tool.uv.sources]
@@ -55,6 +56,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=asttokens"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
