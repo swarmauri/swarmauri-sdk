@@ -11,8 +11,7 @@
         <img src="https://img.shields.io/pypi/l/wcag-pdf-pytest" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/wcag-pdf-pytest/">
         <img src="https://img.shields.io/pypi/v/wcag-pdf-pytest?label=wcag-pdf-pytest&color=green" alt="PyPI - wcag-pdf-pytest"/></a>
-    <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+</p>
 
 # wcag-pdf-pytest moved
 
@@ -22,5 +21,6 @@ https://github.com/groupsum/wcag-pdf-test
 
 This directory remains only as a pointer for users following older
 `swarmauri-sdk/pkgs/plugins/wcag_pdf_pytest` paths.
+
 
 

@@ -11,8 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_local" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_local/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_local?label=swarmauri_keyprovider_local&color=green" alt="PyPI - swarmauri_keyprovider_local"/></a>
-    <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+</p>
 
 # LocalKeyProvider Examples
 
@@ -48,5 +47,6 @@ async def run_example() -> str:
 if __name__ == "__main__":
     print(asyncio.run(run_example()))
 ```
+
 
 

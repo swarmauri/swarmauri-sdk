@@ -11,8 +11,7 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_monorepo" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_monorepo/">
         <img src="https://img.shields.io/pypi/v/swarmauri_monorepo?label=swarmauri_monorepo&color=green" alt="PyPI - swarmauri_monorepo"/></a>
-    <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+</p>
 ---
 
 `swarmauri_monorepo` is the workspace package that groups the Swarmauri SDK's interdependent Python packages under a single `uv` workspace for local development, validation, and coordinated release management.
@@ -48,5 +47,6 @@ uv run --directory pkgs pytest
 ```bash
 uv run --directory pkgs ruff check .
 ```
+
 
 
