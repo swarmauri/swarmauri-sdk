@@ -14,59 +14,107 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Jupyter Read Notebook
+# Swarmauri Jupyter Read Notebook Tool
 
-Reads a `.ipynb` file from disk into a validated nbformat `NotebookNode` for downstream processing.
+`swarmauri_tool_jupyterreadnotebook` reads a Jupyter `.ipynb` file from disk, parses it with `nbformat`, validates the notebook schema, and returns the resulting `NotebookNode` inside a Swarmauri tool response.
+
+## Why
+
+- Load notebooks into Swarmauri pipelines before execution, export, or cleanup steps.
+- Normalize notebook ingestion around a simple tool contract.
+- Catch missing files and notebook schema issues before later notebook-processing stages.
 
 ## Features
 
-- Wraps nbformat?s `read` + validation workflow in a Swarmauri tool.
-- Returns `{ "notebook_node": NotebookNode }` on success or `{ "error": ... }` on failure.
-- Optional `as_version` argument controls notebook parsing version (default 4).
+- Reads `.ipynb` files with `nbformat.read`.
+- Validates the parsed notebook with `nbformat.validate`.
+- Returns `{"notebook_node": ...}` on success.
+- Returns `{"error": ...}` on file and validation failures.
+- Supports an `as_version` argument for controlled notebook parsing.
 
-## Prerequisites
+## FAQ
 
-- Python 3.10 or newer.
-- nbformat installed (pulled automatically).
+### What does this tool return?
+
+It returns a dictionary with either `notebook_node` containing the parsed notebook or `error` containing a failure message.
+
+### Does this tool execute the notebook?
+
+No. It only reads and validates notebook content. Pair it with execution tools when you need code-cell outputs.
+
+### When should I change `as_version`?
+
+Use `as_version` when you need to coerce notebook parsing to a specific `nbformat` version for compatibility with downstream tooling.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_tool_jupyterreadnotebook
-
-# poetry
-poetry add swarmauri_tool_jupyterreadnotebook
-
-# uv (pyproject-based projects)
 uv add swarmauri_tool_jupyterreadnotebook
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_tool_jupyterreadnotebook
+```
+
+## Usage
+
+```python
+from swarmauri_tool_jupyterreadnotebook import JupyterReadNotebookTool
+
+tool = JupyterReadNotebookTool()
+result = tool(
+    notebook_file_path="notebooks/example.ipynb",
+    as_version=4,
+)
+
+if "notebook_node" in result:
+    notebook = result["notebook_node"]
+    print(len(notebook.cells))
+else:
+    print(result["error"])
+```
+
+## Examples
+
+### Read a notebook before execution
 
 ```python
 from swarmauri_tool_jupyterreadnotebook import JupyterReadNotebookTool
 
 reader = JupyterReadNotebookTool()
-response = reader(
-    notebook_file_path="notebooks/example.ipynb",
-    as_version=4,
-)
+payload = reader("reports/daily_report.ipynb")
 
-if "notebook_node" in response:
-    nb = response["notebook_node"]
-    print("Cells:", len(nb.cells))
-else:
-    print("Error:", response["error"])
+if "notebook_node" in payload:
+    metadata = payload["notebook_node"].metadata
+    print(metadata)
 ```
 
-## Tips
+### Guard against invalid notebook files
 
-- Use with execution/export tools to build pipelines (read ? execute ? convert).
-- Handle `error` key gracefully when files are missing or malformed.
+```python
+response = JupyterReadNotebookTool()("broken.ipynb")
 
-## Want to help?
+if "error" in response:
+    print("Notebook ingestion failed:", response["error"])
+```
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+## Related Packages
 
+- [`swarmauri_tool_jupyterwritenotebook`](https://pypi.org/project/swarmauri_tool_jupyterwritenotebook/)
+- [`swarmauri_tool_jupyterexecutenotebook`](https://pypi.org/project/swarmauri_tool_jupyterexecutenotebook/)
+- [`swarmauri_tool_jupyterexecutenotebookwithparameters`](https://pypi.org/project/swarmauri_tool_jupyterexecutenotebookwithparameters/)
+- [`swarmauri_tool_jupyterexecuteandconvert`](https://pypi.org/project/swarmauri_tool_jupyterexecuteandconvert/)
+- [`swarmauri_tool_jupyterclearoutput`](https://pypi.org/project/swarmauri_tool_jupyterclearoutput/)
 
+## Foundational Swarmauri Packages
+
+- [`swarmauri`](https://pypi.org/project/swarmauri/)
+- [`swarmauri_core`](https://pypi.org/project/swarmauri_core/)
+- [`swarmauri_base`](https://pypi.org/project/swarmauri_base/)
+- [`swarmauri_standard`](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+- [nbformat documentation](https://nbformat.readthedocs.io/)
+- [Jupyter notebook format docs](https://jupyter.org/documentation)
