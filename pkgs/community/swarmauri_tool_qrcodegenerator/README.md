@@ -14,135 +14,125 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool ? QR Code Generator
+# Swarmauri Tool QR Code Generator
 
-A Swarmauri tool that converts text payloads into QR codes and returns the image data as a Base64 string. Plug it into conversational agents, marketing workflows, or automation scripts that need scannable hand-offs (URLs, Wi-Fi credentials, one-time tokens, etc.).
+`swarmauri_tool_qrcodegenerator` is a Swarmauri utility tool for generating QR
+codes from text payloads and returning the resulting image bytes as a
+base64-encoded string. It is useful for links, identifiers, tickets, device
+pairing flows, and automation pipelines that need scannable data artifacts.
 
-- Backed by `qrcode`/Pillow to produce standards-compliant QR codes.
-- Outputs Base64 so responses can be embedded directly in JSON, HTML, or rich chat messages.
-- Exposed through the standard Swarmauri tool interface for drop-in registration alongside other capabilities.
+## Why Use Swarmauri Tool QR Code Generator
 
-## Requirements
+- Turn text values into scannable QR artifacts inside Swarmauri workflows.
+- Return image data inline as base64 for transport-friendly downstream use.
+- Generate QR content for tickets, links, tokens, or device onboarding.
+- Keep QR generation available as a standard Swarmauri tool interface.
 
-- Python 3.10 ? 3.13.
-- `qrcode` (installs with its Pillow dependency) and Swarmauri base packages (`swarmauri_base`, `swarmauri_standard`, `pydantic`).
-- Optional: downstream consumers often decode the Base64 string using Pillow or write it to disk; ensure those environments can handle binary data.
+## FAQ
+
+> **What input does the tool expect?**  
+> A single string `data` value to encode.
+
+> **What does the tool return?**  
+> A dictionary with one key: `image_b64`.
+
+> **Does the tool currently write files to disk?**  
+> No. It returns encoded image bytes in memory.
+
+> **Can this be used in agent workflows?**  
+> Yes. The base64 string can be forwarded to other tools, APIs, or UI layers.
+
+## Features
+
+- Swarmauri `ToolBase` implementation registered as `QrCodeGeneratorTool`.
+- Generates QR codes from arbitrary text input.
+- Returns base64-encoded image bytes for transport and storage.
+- Useful for event, device, credential, and link-sharing workflows.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
-Choose the tooling that matches your project; each command resolves transitive dependencies.
-
-**pip**
+```bash
+uv add swarmauri_tool_qrcodegenerator
+```
 
 ```bash
 pip install swarmauri_tool_qrcodegenerator
 ```
 
-**Poetry**
-
-```bash
-poetry add swarmauri_tool_qrcodegenerator
-```
-
-**uv**
-
-```bash
-# Add to the current project and update uv.lock
-uv add swarmauri_tool_qrcodegenerator
-
-# or install into the active environment without editing pyproject.toml
-uv pip install swarmauri_tool_qrcodegenerator
-```
-
-> Tip: Pillow requires native image libraries on some Linux distributions (e.g., `libjpeg`, `zlib`). Install OS packages before running the commands above in minimal containers.
-
-## Quick Start
+## Usage
 
 ```python
-import base64
 from swarmauri_tool_qrcodegenerator import QrCodeGeneratorTool
 
-qr_tool = QrCodeGeneratorTool()
-result = qr_tool("https://docs.swarmauri.ai")
+tool = QrCodeGeneratorTool()
+result = tool("https://docs.swarmauri.com")
 
-image_b64 = result["image_b64"]
-with open("docs-qrcode.png", "wb") as f:
-    f.write(base64.b64decode(image_b64))
+print(result["image_b64"][:40])
 ```
 
-The output image uses the tool's default QR code settings (`version=1`, low error correction, black modules on white background). Adjust presentation after decoding if you need different colors or scaling.
+## Examples
 
-## Usage Scenarios
-
-### Embed QR Codes in Agent Responses
+### Generate a QR code for a URL
 
 ```python
-from swarmauri_core.agent.Agent import Agent
-from swarmauri_core.messages.HumanMessage import HumanMessage
-from swarmauri_standard.tools.registry import ToolRegistry
 from swarmauri_tool_qrcodegenerator import QrCodeGeneratorTool
 
-registry = ToolRegistry()
-registry.register(QrCodeGeneratorTool())
-agent = Agent(tool_registry=registry)
+tool = QrCodeGeneratorTool()
+result = tool("https://example.com")
 
-message = HumanMessage(content="Create a QR code for https://status.mycompany.com")
-response = agent.run(message)
-print(response)
+print(len(result["image_b64"]))
 ```
 
-Agents can attach the Base64 image to chat payloads so end users scan the code without additional steps.
-
-### Publish Dynamic Event Badges
+### Encode an onboarding token
 
 ```python
-import base64
-from pathlib import Path
 from swarmauri_tool_qrcodegenerator import QrCodeGeneratorTool
 
-qr_tool = QrCodeGeneratorTool()
-attendees = {
-    "alice": "ticket:EVT-001-A1B2",
-    "bob": "ticket:EVT-002-B3C4",
-}
+tool = QrCodeGeneratorTool()
+token = "device:pairing:ABC123XYZ"
+result = tool(token)
 
-badges_dir = Path("badges")
-badges_dir.mkdir(exist_ok=True)
-
-for name, token in attendees.items():
-    b64_img = qr_tool(token)["image_b64"]
-    (badges_dir / f"{name}.png").write_bytes(base64.b64decode(b64_img))
+print(result.keys())
 ```
 
-Generate per-attendee QR codes that scanners can translate into ticket tokens at check-in.
-
-### Serve Codes Over HTTP
+### Register the tool in a Swarmauri collection
 
 ```python
-import base64
-from fastapi import FastAPI, Response
+from swarmauri_standard.tools.ToolCollection import ToolCollection
 from swarmauri_tool_qrcodegenerator import QrCodeGeneratorTool
 
-app = FastAPI()
-qr_tool = QrCodeGeneratorTool()
-
-@app.get("/qr")
-def qr_endpoint(data: str):
-    result = qr_tool(data)
-    png_bytes = base64.b64decode(result["image_b64"])
-    return Response(content=png_bytes, media_type="image/png")
+tools = ToolCollection(tools=[QrCodeGeneratorTool()])
+print(tools)
 ```
 
-Expose an API that transforms arbitrary data into QR codes your front-end can display.
+## Related Packages
 
-## Troubleshooting
+- [swarmauri_tool_zapierhook](https://pypi.org/project/swarmauri_tool_zapierhook/)
+- [swarmauri_tool_webscraping](https://pypi.org/project/swarmauri_tool_webscraping/)
+- [swarmauri_tool_downloadpdf](https://pypi.org/project/swarmauri_tool_downloadpdf/)
 
-- **Blank or unreadable codes** ? Confirm the Base64 string is decoded to a PNG (`base64.b64decode(...)`). Avoid writing the raw Base64 text directly to file.
-- **Binary dependency errors (Pillow)** ? Install platform-specific libraries (`apt-get install libjpeg-dev zlib1g-dev`, etc.) before installing the package, especially in slim containers.
-- **Large payloads** ? Version 1 QR codes have size constraints (~17 alphanumeric characters). Fork the tool or extend it to allow larger versions if you need to encode lengthy data.
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [qrcode package documentation](https://pypi.org/project/qrcode/)
+- [Base64 encoding in Python](https://docs.python.org/3/library/base64.html)
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+
+## Best Practices
+
+- Keep encoded payloads short enough for compact QR generation.
+- Validate how your downstream consumer expects to reconstruct the returned
+  image bytes.
+- Avoid embedding secrets directly unless the QR code lifecycle is controlled.
+- Consider extending the tool if you need explicit PNG serialization options.
 
 ## License
 
-`swarmauri_tool_qrcodegenerator` is released under the Apache 2.0 License. See `LICENSE` for details.
-
-
+This project is licensed under the Apache-2.0 License.

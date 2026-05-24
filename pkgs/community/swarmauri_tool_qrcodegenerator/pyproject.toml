@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_tool_qrcodegenerator"
 version = "0.10.1.dev5"
-description = "Swarmauri QR Code Generator Tool."
+description = "Swarmauri utility tool for generating QR codes and returning base64-encoded image bytes."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,10 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -32,8 +36,11 @@ keywords = [
     "swarmauri",
     "tool",
     "qrcodegenerator",
-    "code",
-    "generator",
+    "qr code",
+    "base64",
+    "image generation",
+    "automation",
+    "ticketing",
 ]
 
 [tool.uv.sources]
