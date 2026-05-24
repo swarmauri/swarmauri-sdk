@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_llm_whisper"
 version = "0.1.1.dev5"
-description = "Swarmauri Whisper LLM adapters from swarmauri_standard."
+description = "Provider-specific Swarmauri import package for Whisper transcription, translation, async, and batch speech-to-text workflows."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,11 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -30,7 +35,19 @@ dependencies = [
 keywords = [
     "swarmauri",
     "llm",
+    "swarmauri llm",
     "whisper",
+    "speech to text",
+    "stt",
+    "transcription",
+    "translation",
+    "hugging face",
+    "huggingface inference",
+    "whisper-large-v3",
+    "audio processing",
+    "speech recognition",
+    "async stt",
+    "batch stt",
     "model",
 ]
 
