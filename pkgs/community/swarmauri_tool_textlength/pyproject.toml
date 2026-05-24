@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_tool_textlength"
 version = "0.9.1.dev5"
-description = "Text Length Tool for Swarmauri"
+description = "NLTK-powered Swarmauri text-analysis tool for counting characters, words, and sentences."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,10 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -34,6 +38,11 @@ keywords = [
     "textlength",
     "text",
     "length",
+    "nltk",
+    "word count",
+    "sentence count",
+    "content analysis",
+    "text analytics",
 ]
 
 [tool.uv.sources]
