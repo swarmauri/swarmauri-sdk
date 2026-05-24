@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_llm_perplexity"
 version = "0.1.1.dev5"
-description = "Swarmauri Perplexity LLM adapters from swarmauri_standard."
+description = "Provider-specific Swarmauri import package for Perplexity chat, streaming, async, batch, and citation-aware LLM workflows."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,10 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -30,7 +34,19 @@ dependencies = [
 keywords = [
     "swarmauri",
     "llm",
+    "swarmauri llm",
     "perplexity",
+    "perplexity api",
+    "sonar",
+    "reasoning model",
+    "chat completions",
+    "streaming llm",
+    "async llm",
+    "batch inference",
+    "citations",
+    "retrieval",
+    "large language model",
+    "generative ai",
     "model",
 ]
 
