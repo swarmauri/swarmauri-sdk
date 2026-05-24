@@ -14,65 +14,110 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Jupyter Execute Notebook With Parameters
+# Swarmauri Jupyter Execute Notebook With Parameters Tool
 
-Runs a Jupyter notebook with injected parameters using Papermill-style execution.
+`swarmauri_tool_jupyterexecutenotebookwithparameters` executes parameterized Jupyter notebooks through `papermill`, injects runtime parameters, and writes the executed notebook to a target output path.
+
+## Why
+
+- Turn notebooks into repeatable jobs with runtime inputs.
+- Generate environment-specific notebook runs without hand-editing source notebooks.
+- Use papermill-backed parameter injection inside Swarmauri workflows.
 
 ## Features
 
-- Parameterizes notebooks via Papermill and executes them end-to-end.
-- Saves the executed notebook to an output path of your choice.
-- Returns a dict containing `executed_notebook` on success or `error`/`message` when execution fails.
+- Executes `.ipynb` notebooks with `papermill.execute_notebook`.
+- Injects a dictionary of runtime parameters.
+- Writes results to a caller-provided output notebook path.
+- Validates that both input and output paths are notebook files.
+- Returns either `{"executed_notebook": ...}` or `{"error": ...}`.
 
-## Prerequisites
+## FAQ
 
-- Python 3.10 or newer.
-- Papermill, nbformat, nbconvert, swarmauri base/core packages (installed automatically).
-- Notebook dependencies must be available in the runtime environment.
+### When should I use this package instead of `swarmauri_tool_jupyterexecutenotebook`?
+
+Use this package when the notebook needs injected parameters and a persisted executed output file. Use `swarmauri_tool_jupyterexecutenotebook` for direct in-memory execution and a returned `NotebookNode`.
+
+### Does this tool require `.ipynb` paths?
+
+Yes. Both `notebook_path` and `output_notebook_path` must end with `.ipynb`, or the tool returns an error.
+
+### What does the parameter payload look like?
+
+It is a plain Python dictionary that papermill passes into the notebook parameter cell.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_tool_jupyterexecutenotebookwithparameters
-
-# poetry
-poetry add swarmauri_tool_jupyterexecutenotebookwithparameters
-
-# uv (pyproject-based projects)
 uv add swarmauri_tool_jupyterexecutenotebookwithparameters
 ```
 
-## Quickstart
-
-```python
-from swarmauri_tool_jupyterexecutenotebookwithparameters import JupyterExecuteNotebookWithParametersTool
-
-executor = JupyterExecuteNotebookWithParametersTool()
-response = executor(
-    notebook_path="templates/report.ipynb",
-    output_notebook_path="outputs/report-filled.ipynb",
-    params={
-        "input_data_path": "data/input.csv",
-        "run_mode": "production",
-    },
-    timeout=600,
-)
-
-if "executed_notebook" in response:
-    print("Notebook executed:", response["executed_notebook"])
-else:
-    print("Error:", response["error"], response.get("message"))
+```bash
+pip install swarmauri_tool_jupyterexecutenotebookwithparameters
 ```
 
-## Tips
+## Usage
 
-- Parameters can be any JSON-serializable values used inside the notebook (strings, numbers, dictionaries, etc.).
-- Increase `timeout` for notebooks with lengthy cells.
-- Combine with Swarmauri notebook cleaning/conversion tools for full pipelines (execute ? clear outputs ? convert to PDF/HTML).
+```python
+from swarmauri_tool_jupyterexecutenotebookwithparameters import (
+    JupyterExecuteNotebookWithParametersTool,
+)
 
-## Want to help?
+tool = JupyterExecuteNotebookWithParametersTool()
+result = tool(
+    notebook_path="templates/report.ipynb",
+    output_notebook_path="artifacts/report-executed.ipynb",
+    params={"region": "us", "day": "2026-05-24"},
+)
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+print(result)
+```
 
+## Examples
 
+### Execute a report notebook for a specific tenant
+
+```python
+tool = JupyterExecuteNotebookWithParametersTool()
+
+response = tool(
+    notebook_path="reports/monthly.ipynb",
+    output_notebook_path="artifacts/monthly-acme.ipynb",
+    params={"tenant_id": "acme", "month": "2026-05"},
+)
+
+print(response["executed_notebook"])
+```
+
+### Handle invalid notebook extensions
+
+```python
+response = JupyterExecuteNotebookWithParametersTool()(
+    notebook_path="reports/monthly.txt",
+    output_notebook_path="artifacts/monthly.ipynb",
+)
+
+if "error" in response:
+    print(response["error"])
+```
+
+## Related Packages
+
+- [`swarmauri_tool_jupyterexecutenotebook`](https://pypi.org/project/swarmauri_tool_jupyterexecutenotebook/)
+- [`swarmauri_tool_jupyterreadnotebook`](https://pypi.org/project/swarmauri_tool_jupyterreadnotebook/)
+- [`swarmauri_tool_jupyterwritenotebook`](https://pypi.org/project/swarmauri_tool_jupyterwritenotebook/)
+- [`swarmauri_tool_jupyterexecuteandconvert`](https://pypi.org/project/swarmauri_tool_jupyterexecuteandconvert/)
+- [`swarmauri_tool_jupyterclearoutput`](https://pypi.org/project/swarmauri_tool_jupyterclearoutput/)
+
+## Foundational Swarmauri Packages
+
+- [`swarmauri`](https://pypi.org/project/swarmauri/)
+- [`swarmauri_core`](https://pypi.org/project/swarmauri_core/)
+- [`swarmauri_base`](https://pypi.org/project/swarmauri_base/)
+- [`swarmauri_standard`](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+- [Papermill documentation](https://papermill.readthedocs.io/)
+- [Jupyter notebook documentation](https://jupyter.org/documentation)
