@@ -14,64 +14,100 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Jupyter Execute Notebook
+# Swarmauri Jupyter Execute Notebook Tool
 
-Executes all cells of a Jupyter notebook using nbclient and returns the executed `NotebookNode` with captured outputs.
+`swarmauri_tool_jupyterexecutenotebook` executes every cell in a Jupyter notebook with `nbclient`, captures notebook outputs in-place, and returns the executed `NotebookNode` for downstream processing.
+
+## Why
+
+- Run notebooks inside Swarmauri workflows without shelling out to a separate notebook runner.
+- Capture generated outputs for reporting, validation, or export steps.
+- Keep notebook execution inside a simple Python tool contract.
 
 ## Features
 
-- Runs notebooks programmatically via the Swarmauri tool interface.
-- Accepts optional per-cell timeout (default 30 seconds) and continues on cell errors.
-- Returns the executed notebook object so downstream tools can inspect outputs or save it.
+- Loads notebooks from disk with `nbformat`.
+- Executes all cells with `nbclient.NotebookClient`.
+- Returns the executed notebook object rather than a file path.
+- Supports per-cell execution timeout control.
+- Uses `allow_errors=True`, so the notebook can retain partial outputs even when a cell fails.
 
-## Prerequisites
+## FAQ
 
-- Python 3.10 or newer.
-- Jupyter/nbconvert stack available (`nbclient`, `nbformat`, `ipykernel`, etc.?installed automatically).
-- Notebook dependencies must be installed in the environment where the tool runs.
+### What does this tool return?
+
+It returns the `NotebookNode` after execution. If execution fails partway through, the tool still returns the notebook object so callers can inspect partial output.
+
+### Does it stop on the first cell error?
+
+No. The underlying client is created with `allow_errors=True`, which preserves notebook state and outputs even when cells fail.
+
+### When should I use this instead of the parameterized execution tool?
+
+Use this package for direct notebook execution. Use `swarmauri_tool_jupyterexecutenotebookwithparameters` when you need papermill-style parameter injection and an output notebook path.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_tool_jupyterexecutenotebook
-
-# poetry
-poetry add swarmauri_tool_jupyterexecutenotebook
-
-# uv (pyproject-based projects)
 uv add swarmauri_tool_jupyterexecutenotebook
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_tool_jupyterexecutenotebook
+```
+
+## Usage
 
 ```python
 from swarmauri_tool_jupyterexecutenotebook import JupyterExecuteNotebookTool
 
-executor = JupyterExecuteNotebookTool()
-executed_nb = executor(
-    notebook_path="notebooks/example.ipynb",
-    timeout=120,
-)
+tool = JupyterExecuteNotebookTool()
+executed = tool("notebooks/report.ipynb", timeout=60)
 
-# Save the executed notebook
-import nbformat, json
-from pathlib import Path
-
-Path("notebooks/example-executed.ipynb").write_text(
-    nbformat.writes(executed_nb),
-    encoding="utf-8",
-)
+for cell in executed.cells:
+    if cell.get("outputs"):
+        print(cell["outputs"])
 ```
 
-## Tips
+## Examples
 
-- Increase `timeout` for notebooks with long-running cells to avoid `CellTimeoutError`.
-- Set `allow_errors=True` (default in the tool) so execution continues after a failing cell while error traces are still recorded.
-- Combine with `JupyterClearOutputTool` or conversion tools to build end-to-end notebook pipelines.
+### Execute a notebook before export
 
-## Want to help?
+```python
+from swarmauri_tool_jupyterexecutenotebook import JupyterExecuteNotebookTool
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+tool = JupyterExecuteNotebookTool()
+notebook = tool("analytics/daily_metrics.ipynb", timeout=120)
 
+print(len(notebook.cells))
+```
 
+### Inspect partial output after a failing cell
+
+```python
+executed = JupyterExecuteNotebookTool()("debug/failing_notebook.ipynb")
+
+for index, cell in enumerate(executed.cells):
+    print(index, cell.get("outputs", []))
+```
+
+## Related Packages
+
+- [`swarmauri_tool_jupyterreadnotebook`](https://pypi.org/project/swarmauri_tool_jupyterreadnotebook/)
+- [`swarmauri_tool_jupyterwritenotebook`](https://pypi.org/project/swarmauri_tool_jupyterwritenotebook/)
+- [`swarmauri_tool_jupyterexecutenotebookwithparameters`](https://pypi.org/project/swarmauri_tool_jupyterexecutenotebookwithparameters/)
+- [`swarmauri_tool_jupyterexecuteandconvert`](https://pypi.org/project/swarmauri_tool_jupyterexecuteandconvert/)
+- [`swarmauri_tool_jupyterclearoutput`](https://pypi.org/project/swarmauri_tool_jupyterclearoutput/)
+
+## Foundational Swarmauri Packages
+
+- [`swarmauri`](https://pypi.org/project/swarmauri/)
+- [`swarmauri_core`](https://pypi.org/project/swarmauri_core/)
+- [`swarmauri_base`](https://pypi.org/project/swarmauri_base/)
+- [`swarmauri_standard`](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+- [nbclient documentation](https://nbclient.readthedocs.io/)
+- [nbformat documentation](https://nbformat.readthedocs.io/)

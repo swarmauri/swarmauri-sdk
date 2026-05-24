@@ -1,16 +1,22 @@
 [project]
 name = "swarmauri_tool_jupyterexecutenotebook"
 version = "0.10.1.dev5"
-description = "A tool designed to execute all cells in a Jupyter Notebook using nbconvert’s ExecutePreprocessor, capturing outputs for testing and reporting."
+description = "Swarmauri notebook-execution tool for running Jupyter notebooks with nbclient and capturing cell outputs."
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterexecutenotebook/"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Framework :: Jupyter",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -31,21 +37,15 @@ dependencies = [
     "swarmauri_standard",
 ]
 keywords = [
-    "swarmauri",
-    "tool",
-    "jupyterexecutenotebook",
-    "designed",
-    "execute",
-    "all",
-    "cells",
     "jupyter",
-    "notebook",
-    "nbconvert",
-    "executepreprocessor",
-    "capturing",
-    "outputs",
-    "testing",
-    "reporting",
+    "notebook execution",
+    "nbclient",
+    "ipynb",
+    "cell outputs",
+    "notebook automation",
+    "kernel execution",
+    "notebook testing",
+    "report generation",
 ]
 
 [tool.uv.sources]
@@ -72,6 +72,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-accept-deps=asttokens,defusedxml,jupyterlab-pygments,jsonschema,jsonschema-specifications,referencing,rpds-py"
 
 [project.entry-points.'swarmauri.tools']
 JupyterExecuteNotebookTool = "swarmauri_tool_jupyterexecutenotebook:JupyterExecuteNotebookTool"
