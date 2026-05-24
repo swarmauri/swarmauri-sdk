@@ -14,129 +14,131 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool ? Lexical Density
+# Swarmauri Tool Lexical Density
 
-A Swarmauri-compatible NLP utility that measures the lexical density of text?the ratio of content words (nouns, verbs, adjectives, adverbs) versus the total token count. Use it to monitor writing complexity, automate readability checks, or surface style signals inside agent conversations.
+`swarmauri_tool_lexicaldensity` is a Swarmauri NLP tool for estimating lexical
+density, the ratio of content words to total word count. It helps quantify how
+information-dense a passage is, which makes it useful for readability reviews,
+editorial QA, prompt analysis, educational tools, and agent-based writing
+assistance.
 
-- Tokenizes input with NLTK and tags parts of speech to isolate lexical items.
-- Returns a percentage score so changes in density are easy to compare between drafts.
-- Ships as a Swarmauri tool, ready for registration inside agents or pipelines.
+## Why Use Swarmauri Tool Lexical Density
 
-## Requirements
+- Measure how content-heavy or function-word-heavy a text is.
+- Compare drafts, prompts, or knowledge articles with a simple numeric signal.
+- Feed lexical-density metrics into Swarmauri quality or moderation workflows.
+- Pair lexical density with readability metrics for more complete text review.
 
-- Python 3.10 ? 3.13.
-- `nltk` with the `punkt_tab` and `averaged_perceptron_tagger_eng` resources available (downloaded at runtime).
-- `textstat` for robust lexicon counting.
-- Core dependencies (`swarmauri_base`, `swarmauri_standard`, `pydantic`).
+## FAQ
+
+> **What does lexical density measure?**  
+> It estimates the percentage of content words such as nouns, verbs,
+> adjectives, and adverbs relative to all words in the text.
+
+> **What does the tool return?**  
+> A dictionary with one key: `lexical_density`.
+
+> **Does it rely on NLTK models?**  
+> Yes. It uses NLTK tokenization and POS tagging resources.
+
+> **Is it best suited for English text?**  
+> Yes. The current POS-tagging setup is English-oriented.
+
+## Features
+
+- Swarmauri `ToolBase` implementation registered as `LexicalDensityTool`.
+- Computes lexical density as a percentage value.
+- Uses NLTK POS tagging to isolate content words.
+- Useful for editorial, educational, prompt, and corpus-analysis workflows.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
-Pick the installer that matches your project; each command resolves the transitive requirements.
-
-**pip**
+```bash
+uv add swarmauri_tool_lexicaldensity
+```
 
 ```bash
 pip install swarmauri_tool_lexicaldensity
 ```
 
-**Poetry**
-
-```bash
-poetry add swarmauri_tool_lexicaldensity
-```
-
-**uv**
-
-```bash
-# Add to the current project and update uv.lock
-uv add swarmauri_tool_lexicaldensity
-
-# or install into the running environment without touching pyproject.toml
-uv pip install swarmauri_tool_lexicaldensity
-```
-
-> Tip: If you deploy in an offline environment, download the required NLTK models during build time (`python -m nltk.downloader punkt_tab averaged_perceptron_tagger_eng`).
-
-## Quick Start
+## Usage
 
 ```python
 from swarmauri_tool_lexicaldensity import LexicalDensityTool
 
-text = "This report summarizes quarterly revenue growth across all segments."
+tool = LexicalDensityTool()
+result = tool("This report summarizes quarterly revenue growth across segments.")
 
-lexical_density_tool = LexicalDensityTool()
-result = lexical_density_tool(text)
-
-print(result)
-# {'lexical_density': 58.333333333333336}
+print(result["lexical_density"])
 ```
 
-The tool returns a floating-point percentage. Use the same instance to score multiple passages.
+## Examples
 
-## Usage Scenarios
-
-### Enforce Style Guidelines in Content Pipelines
+### Compare lexical density across drafts
 
 ```python
 from swarmauri_tool_lexicaldensity import LexicalDensityTool
 
-product_copy = "Introducing our new AI-powered workstation with modular expansion."
+tool = LexicalDensityTool()
 
-checker = LexicalDensityTool()
-score = checker(product_copy)["lexical_density"]
-
-if score < 40:
-    raise ValueError(f"Copy too simple (density={score:.1f}%). Add more substantive language.")
+for label, text in {
+    "draft": "We made a thing and it does stuff for users.",
+    "final": "The platform automates retrieval, classification, and policy enforcement.",
+}.items():
+    print(label, tool(text))
 ```
 
-Gate marketing copy or documentation PRs based on desired complexity thresholds.
-
-### Analyze Conversations in a Swarmauri Agent
+### Score a prompt before sending it to an LLM
 
 ```python
-from swarmauri_core.agent.Agent import Agent
-from swarmauri_standard.tools.registry import ToolRegistry
 from swarmauri_tool_lexicaldensity import LexicalDensityTool
 
-registry = ToolRegistry()
-registry.register(LexicalDensityTool())
-agent = Agent(tool_registry=registry)
+tool = LexicalDensityTool()
+metrics = tool("Summarize operational risks, mitigation plans, and release dependencies.")
 
-utterance = "Could you elaborate on the architectural trade-offs in the data plane?"
-result = agent.tools["LexicalDensityTool"](utterance)
-print(result)
+print(metrics)
 ```
 
-Use lexical density as a signal to adjust agent tone or escalate queries to human operators.
-
-### Batch Score Documents and Track Trends
+### Register the tool in a Swarmauri collection
 
 ```python
-from pathlib import Path
+from swarmauri_standard.tools.ToolCollection import ToolCollection
 from swarmauri_tool_lexicaldensity import LexicalDensityTool
 
-lexical_density = LexicalDensityTool()
-corpus_dir = Path("reports/")
-
-scores = []
-for doc in corpus_dir.glob("*.txt"):
-    text = doc.read_text(encoding="utf-8")
-    scores.append((doc.name, lexical_density(text)["lexical_density"]))
-
-for name, score in sorted(scores, key=lambda item: item[1], reverse=True):
-    print(f"{name}: {score:.2f}% lexical words")
+tools = ToolCollection(tools=[LexicalDensityTool()])
+print(tools)
 ```
 
-Monitor writing complexity across a corpus of articles or support responses.
+## Related Packages
 
-## Troubleshooting
+- [swarmauri_tool_textlength](https://pypi.org/project/swarmauri_tool_textlength/)
+- [swarmauri_tool_sentencecomplexity](https://pypi.org/project/swarmauri_tool_sentencecomplexity/)
+- [swarmauri_tool_smogindex](https://pypi.org/project/swarmauri_tool_smogindex/)
+- [swarmauri_tool_dalechallreadability](https://pypi.org/project/swarmauri_tool_dalechallreadability/)
 
-- **`LookupError` for NLTK resources** ? Ensure `punkt_tab` and `averaged_perceptron_tagger_eng` are downloaded prior to calling the tool (see `nltk.download(...)`).
-- **Low density on short texts** ? Very short messages yield coarse percentages. Aggregate multiple utterances or relax thresholds for brief content.
-- **Non-English text** ? POS tagging models target English. Swap in language-specific models before using the tool with multilingual corpora.
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [NLTK documentation](https://www.nltk.org/)
+- [textstat documentation](https://github.com/textstat/textstat)
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+
+## Best Practices
+
+- Pre-download NLTK models in offline or containerized deployments.
+- Compare lexical-density values across similar content types, not unrelated
+  genres.
+- Use lexical density alongside readability scores rather than as a sole
+  quality metric.
+- Expect shorter texts to produce noisier percentages.
 
 ## License
 
-`swarmauri_tool_lexicaldensity` is released under the Apache 2.0 License. See `LICENSE` for full details.
-
-
+This project is licensed under the Apache-2.0 License.
