@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_llm_playht"
 version = "0.1.1.dev5"
-description = "Swarmauri Playht LLM adapters from swarmauri_standard."
+description = "Provider-specific Swarmauri import package for PlayHT text-to-speech, voice management, async, and batch audio generation workflows."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,10 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -30,7 +34,18 @@ dependencies = [
 keywords = [
     "swarmauri",
     "llm",
+    "swarmauri llm",
     "playht",
+    "play.ht",
+    "text to speech",
+    "tts",
+    "voice cloning",
+    "speech synthesis",
+    "audio generation",
+    "voice engine",
+    "async tts",
+    "batch tts",
+    "generative audio",
     "model",
 ]
 
