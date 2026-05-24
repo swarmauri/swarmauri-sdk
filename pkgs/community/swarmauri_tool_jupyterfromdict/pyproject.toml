@@ -1,16 +1,22 @@
 [project]
 name = "swarmauri_tool_jupyterfromdict"
 version = "0.10.1.dev5"
-description = "A tool that converts a plain dictionary into a NotebookNode object using nbformat, facilitating programmatic notebook creation."
+description = "Swarmauri notebook-construction tool for converting Python dictionaries into validated Jupyter NotebookNode objects."
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterfromdict/"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Framework :: Jupyter",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -29,19 +35,14 @@ dependencies = [
     "swarmauri_standard",
 ]
 keywords = [
-    "swarmauri",
-    "tool",
-    "jupyterfromdict",
-    "converts",
-    "plain",
-    "dictionary",
+    "jupyter",
+    "notebook creation",
     "notebooknode",
-    "object",
     "nbformat",
-    "facilitating",
-    "programmatic",
-    "notebook",
-    "creation",
+    "python dictionary",
+    "ipynb construction",
+    "notebook generation",
+    "programmatic notebook",
 ]
 
 [tool.uv.sources]
@@ -68,6 +69,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-accept-deps=jsonschema,jsonschema-specifications,referencing,rpds-py"
 
 [project.entry-points.'swarmauri.tools']
 JupyterFromDictTool = "swarmauri_tool_jupyterfromdict:JupyterFromDictTool"

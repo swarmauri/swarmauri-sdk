@@ -14,67 +14,115 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Jupyter From Dict
+# Swarmauri Jupyter From Dict Tool
 
-Creates a validated Jupyter `NotebookNode` from a Python dictionary using nbformat.
+`swarmauri_tool_jupyterfromdict` converts a plain Python dictionary into a validated `NotebookNode` with `nbformat`, making it useful for programmatic notebook construction inside Swarmauri workflows.
+
+## Why
+
+- Build notebook objects from generated or transformed Python data.
+- Normalize notebook creation behind a simple tool contract.
+- Validate notebook structure at the point of conversion instead of later in the pipeline.
 
 ## Features
 
-- Validates notebook structure against nbformat schema.
-- Returns `{"notebook_node": ...}` on success or `{"error": ...}` when conversion fails.
-- Useful for programmatically building notebooks before executing/exporting them with other Swarmauri tools.
+- Accepts a plain dictionary representing notebook structure.
+- Converts the dictionary with `nbformat.from_dict`.
+- Validates the resulting notebook object with `nbformat.validate`.
+- Returns `notebook_node` on success.
+- Returns a structured error payload when conversion or validation fails.
 
-## Prerequisites
+## FAQ
 
-- Python 3.10 or newer.
-- nbformat installed (pulled automatically).
+### What input does this tool expect?
+
+It expects a Python dictionary that follows notebook structure conventions such as `nbformat`, `nbformat_minor`, `cells`, and `metadata`.
+
+### Does it return JSON?
+
+No. It returns a `NotebookNode` object in `notebook_node`.
+
+### When should I use this instead of `swarmauri_tool_jupyterreadnotebook`?
+
+Use this package when your notebook starts as in-memory Python data. Use `swarmauri_tool_jupyterreadnotebook` when the notebook already exists on disk.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_tool_jupyterfromdict
-
-# poetry
-poetry add swarmauri_tool_jupyterfromdict
-
-# uv (pyproject-based projects)
 uv add swarmauri_tool_jupyterfromdict
 ```
 
-## Quickstart
-
-```python
-import json
-from swarmauri_tool_jupyterfromdict import JupyterFromDictTool
-
-notebook_dict = {
-    "nbformat": 4,
-    "nbformat_minor": 5,
-    "metadata": {},
-    "cells": [
-        {
-            "cell_type": "markdown",
-            "metadata": {},
-            "source": ["# Hello World\n", "This is a generated notebook."],
-        }
-    ],
-}
-
-result = JupyterFromDictTool()(notebook_dict)
-if "notebook_node" in result:
-    print("NotebookNode ready", type(result["notebook_node"]))
-else:
-    print("Error:", result["error"])
+```bash
+pip install swarmauri_tool_jupyterfromdict
 ```
 
-## Tips
+## Usage
 
-- Feed the resulting `NotebookNode` directly into execution/export tools such as `JupyterExecuteNotebookTool` or nbconvert exporters.
-- Use `json.dumps`/`json.loads` if you need to persist or transmit the notebook dictionary before conversion.
+```python
+from swarmauri_tool_jupyterfromdict import JupyterFromDictTool
 
-## Want to help?
+payload = {
+    "nbformat": 4,
+    "nbformat_minor": 5,
+    "cells": [],
+    "metadata": {},
+}
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+result = JupyterFromDictTool()(notebook_dict=payload)
+print(result)
+```
 
+## Examples
 
+### Create a notebook node from generated data
+
+```python
+result = JupyterFromDictTool()(
+    notebook_dict={
+        "nbformat": 4,
+        "nbformat_minor": 5,
+        "cells": [
+            {
+                "cell_type": "markdown",
+                "metadata": {},
+                "source": ["# Generated notebook"],
+            }
+        ],
+        "metadata": {},
+    }
+)
+
+node = result["notebook_node"]
+```
+
+### Detect invalid notebook structure
+
+```python
+result = JupyterFromDictTool()(
+    notebook_dict={"cells": [], "metadata": {}}
+)
+
+if "error" in result:
+    print(result["error"])
+```
+
+## Related Packages
+
+- [`swarmauri_tool_jupytervalidatenotebook`](https://pypi.org/project/swarmauri_tool_jupytervalidatenotebook/)
+- [`swarmauri_tool_jupyterreadnotebook`](https://pypi.org/project/swarmauri_tool_jupyterreadnotebook/)
+- [`swarmauri_tool_jupyterwritenotebook`](https://pypi.org/project/swarmauri_tool_jupyterwritenotebook/)
+- [`swarmauri_tool_jupyterexecutenotebook`](https://pypi.org/project/swarmauri_tool_jupyterexecutenotebook/)
+- [`swarmauri_tool_jupyterclearoutput`](https://pypi.org/project/swarmauri_tool_jupyterclearoutput/)
+
+## Foundational Swarmauri Packages
+
+- [`swarmauri`](https://pypi.org/project/swarmauri/)
+- [`swarmauri_core`](https://pypi.org/project/swarmauri_core/)
+- [`swarmauri_base`](https://pypi.org/project/swarmauri_base/)
+- [`swarmauri_standard`](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+- [nbformat documentation](https://nbformat.readthedocs.io/)
+- [Jupyter documentation](https://jupyter.org/documentation)
