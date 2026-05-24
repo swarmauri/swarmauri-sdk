@@ -8,9 +8,10 @@ integrates seamlessly with the swarmauri tool architecture and supports automate
 testing workflows.
 """
 
-import logging
-import signal
+import concurrent.futures
+import contextlib
 import io
+import logging
 import traceback
 from typing import List, Literal, Optional, Dict, Any
 from pydantic import Field
@@ -19,16 +20,8 @@ from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
 
-# Configure a logger for this module.
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-
-def _timeout_handler(signum, frame):
-    """
-    Signal handler to raise a TimeoutError when the signal is emitted.
-    """
-    raise TimeoutError("Cell execution timed out.")
 
 
 @ComponentBase.register_type(ToolBase, "JupyterRunCellTool")
@@ -97,7 +90,6 @@ class JupyterRunCellTool(ToolBase):
                 'success': True
             }
         """
-        import contextlib
         from IPython import get_ipython
 
         logger.info("JupyterRunCellTool called with code:\n%s", code)
@@ -113,56 +105,47 @@ class JupyterRunCellTool(ToolBase):
                 "success": False,
             }
 
-        # Prepare buffers to capture stdout and stderr
-        output_buffer = io.StringIO()
-        error_buffer = io.StringIO()
+        def _run_cell() -> Dict[str, Any]:
+            output_buffer = io.StringIO()
+            error_buffer = io.StringIO()
 
-        # Set up a signal handler if a timeout is specified
-        original_handler = signal.getsignal(signal.SIGALRM)
-        if timeout and timeout > 0:
-            signal.signal(signal.SIGALRM, _timeout_handler)
-            signal.alarm(int(timeout))
+            try:
+                with (
+                    contextlib.redirect_stdout(output_buffer),
+                    contextlib.redirect_stderr(error_buffer),
+                ):
+                    shell.run_cell(code)
+                cell_output = output_buffer.getvalue()
+                error_output = error_buffer.getvalue()
+                logger.info("Cell execution completed.")
+                logger.debug("Captured stdout: %s", cell_output.strip())
+                logger.debug("Captured stderr: %s", error_output.strip())
+                return {
+                    "cell_output": cell_output,
+                    "error_output": error_output,
+                    "success": True,
+                }
+            except Exception as exc:
+                logger.error("An error occurred during cell execution: %s", str(exc))
+                traceback_str = traceback.format_exc()
+                cell_output = output_buffer.getvalue()
+                error_output = error_buffer.getvalue() + "\n" + traceback_str
+                return {
+                    "cell_output": cell_output,
+                    "error_output": error_output,
+                    "success": False,
+                }
 
-        try:
-            # Redirect stdout and stderr to capture them
-            with (
-                contextlib.redirect_stdout(output_buffer),
-                contextlib.redirect_stderr(error_buffer),
-            ):
-                shell.run_cell(code)
-            cell_output = output_buffer.getvalue()
-            error_output = error_buffer.getvalue()
-            logger.info("Cell execution completed.")
-            logger.debug("Captured stdout: %s", cell_output.strip())
-            logger.debug("Captured stderr: %s", error_output.strip())
-
-            return {
-                "cell_output": cell_output,
-                "error_output": error_output,
-                "success": True,
-            }
-
-        except TimeoutError as e:
-            logger.error("TimeoutError: %s", str(e))
-            # Attempt to gather partial outputs
-            cell_output = output_buffer.getvalue()
-            error_output = error_buffer.getvalue() + f"\nTimeoutError: {str(e)}"
-            return {
-                "cell_output": cell_output,
-                "error_output": error_output,
-                "success": False,
-            }
-        except Exception as e:
-            logger.error("An error occurred during cell execution: %s", str(e))
-            traceback_str = traceback.format_exc()
-            cell_output = output_buffer.getvalue()
-            error_output = error_buffer.getvalue() + "\n" + traceback_str
-            return {
-                "cell_output": cell_output,
-                "error_output": error_output,
-                "success": False,
-            }
-        finally:
-            # Disable the alarm and restore the original handler
-            signal.alarm(0)
-            signal.signal(signal.SIGALRM, original_handler)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(_run_cell)
+            try:
+                if timeout and timeout > 0:
+                    return future.result(timeout=timeout)
+                return future.result()
+            except concurrent.futures.TimeoutError:
+                logger.error("TimeoutError: Cell execution timed out.")
+                return {
+                    "cell_output": "",
+                    "error_output": "TimeoutError: Cell execution timed out.",
+                    "success": False,
+                }

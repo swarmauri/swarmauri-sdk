@@ -1,16 +1,21 @@
 [project]
 name = "swarmauri_tool_jupyterruncell"
 version = "0.10.1.dev5"
-description = "A tool designed to execute a single code cell in an IPython interactive shell, mimicking notebook cell execution."
+description = "Swarmauri IPython-execution tool for running code cells in an active interactive shell with captured output."
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterruncell/"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Framework :: Jupyter",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -32,17 +37,14 @@ keywords = [
     "swarmauri",
     "tool",
     "jupyterruncell",
-    "designed",
-    "execute",
-    "single",
     "code",
     "cell",
     "ipython",
-    "interactive",
-    "shell",
-    "mimicking",
+    "interactive shell",
     "notebook",
-    "execution",
+    "cell execution",
+    "captured output",
+    "timeout",
 ]
 
 [tool.uv.sources]
@@ -51,6 +53,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=asttokens"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
