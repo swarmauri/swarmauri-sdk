@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_ocr_pytesseract"
 version = "0.9.4.dev5"
-description = "Swarmauri Tesseract Image to Text Model"
+description = "Local Tesseract OCR adapter for Swarmauri with sync, async, and batch image-to-text workflows."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,7 +11,13 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Text Processing",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -30,7 +36,12 @@ keywords = [
     "tesseract",
     "image",
     "text",
-    "model",
+    "image to text",
+    "optical character recognition",
+    "document processing",
+    "text extraction",
+    "async ocr",
+    "batch ocr",
 ]
 
 [tool.uv.sources]

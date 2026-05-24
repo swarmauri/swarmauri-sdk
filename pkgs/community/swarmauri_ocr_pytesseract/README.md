@@ -16,78 +16,119 @@
 
 # Swarmauri OCR Pytesseract
 
-OCR adapter for Swarmauri built on top of [PyTesseract](https://pypi.org/project/pytesseract/). Accepts paths, bytes, or PIL images, and exposes synchronous, async, and batch APIs for extracting text.
+`swarmauri_ocr_pytesseract` is the Swarmauri OCR adapter for running local
+Tesseract-powered image-to-text extraction through a consistent Swarmauri
+`OCRBase` interface. It accepts file paths, raw bytes, or in-memory PIL images
+and supports synchronous, asynchronous, and batch OCR workflows.
+
+## Why Use Swarmauri OCR Pytesseract
+
+- Use the same OCR component shape across local and pipeline-based Swarmauri
+  workflows.
+- Run OCR on local infrastructure without routing images through a hosted API.
+- Tune Tesseract language selection and engine flags for receipts, forms,
+  scanned PDFs, screenshots, and other document images.
+- Reuse the same component in parsing, ingestion, indexing, and agent
+  workflows.
+
+## FAQ
+
+> **What does this package do?**  
+> It wraps PyTesseract and the local Tesseract binary behind Swarmauri's OCR
+> component interface.
+
+> **Does it require a hosted API key?**  
+> No. It runs locally, but the host must have the `tesseract` executable and
+> any required language packs installed.
+
+> **What image inputs are supported?**  
+> File path strings, raw image bytes, and `PIL.Image.Image` instances.
+
+> **Can it process multiple images concurrently?**  
+> Yes. Use `batch()` for synchronous lists and `abatch()` for async execution
+> with a concurrency limit.
 
 ## Features
 
-- Wraps Tesseract OCR via PyTesseract behind Swarmauri's `OCRBase` interface.
-- Supports multiple languages (`language` parameter) and custom Tesseract configs.
-- Handles individual, async, and batched OCR calls with optional concurrency limits.
-- Helper to list installed Tesseract languages through `get_supported_languages()`.
-
-## Prerequisites
-
-- Python 3.10 or newer.
-- [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) installed on the host (`tesseract` binary reachable on `PATH` or via `TESSERACT_CMD`).
-- `pytesseract`, `Pillow`, and related dependencies (installed automatically with this package).
+- Local OCR backed by [PyTesseract](https://pypi.org/project/pytesseract/) and
+  [Tesseract OCR](https://tesseract-ocr.github.io/).
+- Supports configurable `language`, `config`, and explicit `tesseract_cmd`
+  resolution.
+- Accepts paths, bytes, and PIL image objects.
+- Includes `extract_text`, `aextract_text`, `batch`, and `abatch` methods.
+- Can report installed OCR languages through `get_supported_languages()`.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_ocr_pytesseract
-
-# poetry
-poetry add swarmauri_ocr_pytesseract
-
-# uv (pyproject-based projects)
 uv add swarmauri_ocr_pytesseract
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_ocr_pytesseract
+```
+
+System requirement:
+
+- Install the native `tesseract` binary and ensure it is available on `PATH`,
+  or set `TESSERACT_CMD` to the executable location.
+
+## Usage
 
 ```python
 from swarmauri_ocr_pytesseract import PytesseractOCR
 
-ocr = PytesseractOCR(language="eng")
+ocr = PytesseractOCR(language="eng", config="--psm 6")
 text = ocr.extract_text("docs/invoice.png")
 print(text)
 ```
 
-## Processing Image Bytes
+## Examples
+
+### OCR from image bytes
 
 ```python
 from pathlib import Path
 from swarmauri_ocr_pytesseract import PytesseractOCR
 
-png_bytes = Path("receipts/ticket.png").read_bytes()
-ocr = PytesseractOCR(language="eng", config="--psm 6")
-print(ocr.extract_text(png_bytes))
+ocr = PytesseractOCR(language="eng")
+image_bytes = Path("receipts/ticket.png").read_bytes()
+text = ocr.extract_text(image_bytes)
+print(text)
 ```
 
-## Async and Batch APIs
+### OCR from a PIL image
+
+```python
+from PIL import Image
+from swarmauri_ocr_pytesseract import PytesseractOCR
+
+image = Image.open("scans/form.png")
+ocr = PytesseractOCR(language="eng", config="--oem 3 --psm 4")
+print(ocr.extract_text(image))
+```
+
+### Async batch OCR
 
 ```python
 import asyncio
 from swarmauri_ocr_pytesseract import PytesseractOCR
 
-ocr = PytesseractOCR(language="fra")
+ocr = PytesseractOCR(language="eng")
 
-async def run_async():
-    text = await ocr.aextract_text("scans/document_fr.png")
-    print(text)
+async def run():
+    results = await ocr.abatch(
+        ["scans/page1.png", "scans/page2.png", "scans/page3.png"],
+        max_concurrent=2,
+    )
+    for index, text in enumerate(results, start=1):
+        print(index, text[:120])
 
-    texts = await ocr.abatch([
-        "scans/page1.png",
-        "scans/page2.png",
-    ], max_concurrent=2)
-    for page, content in enumerate(texts, start=1):
-        print(f"Page {page}: {content[:80]}")
-
-# asyncio.run(run_async())
+asyncio.run(run())
 ```
 
-## List Available Languages
+### List installed OCR languages
 
 ```python
 from swarmauri_ocr_pytesseract import PytesseractOCR
@@ -96,15 +137,37 @@ ocr = PytesseractOCR()
 print(ocr.get_supported_languages())
 ```
 
-## Tips
+## Related Packages
 
-- Set `TESSERACT_CMD` if the binary lives outside standard locations (e.g., Windows installs).
-- Use appropriate page segmentation modes (`--psm`) and OCR engine modes (`--oem`) through the `config` parameter to improve quality.
-- Pre-process images (grayscale, thresholding) before passing them to the OCR for better accuracy.
-- When running in containers, ensure Tesseract language packs (`.traineddata`) are installed for the languages you plan to use.
+- [swarmauri_parser_fitzpdf](https://pypi.org/project/swarmauri_parser_fitzpdf/)
+- [swarmauri_parser_pypdf2](https://pypi.org/project/swarmauri_parser_pypdf2/)
+- [swarmauri_parser_pypdftk](https://pypi.org/project/swarmauri_parser_pypdftk/)
+- [swarmauri_ocr_pytesseract](https://pypi.org/project/swarmauri_ocr_pytesseract/)
 
-## Want to help?
+## Swarmauri Foundations
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [Tesseract OCR documentation](https://tesseract-ocr.github.io/)
+- [PyTesseract on PyPI](https://pypi.org/project/pytesseract/)
+- [Pillow documentation](https://pillow.readthedocs.io/)
+
+## Best Practices
+
+- Use `--psm` and `--oem` options through `config` to match the page layout you
+  expect.
+- Install the correct `.traineddata` language packs for multilingual OCR.
+- Pre-process noisy or skewed scans before OCR to improve extraction quality.
+- Use PDF parsers when a PDF already contains embedded text; use OCR when the
+  PDF or image is scan-only.
+
+## License
+
+This project is licensed under the Apache-2.0 License.
 
 
