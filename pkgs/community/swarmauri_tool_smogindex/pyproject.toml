@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_tool_smogindex"
 version = "0.10.1.dev5"
-description = "Swarmauri Smog Index Tool."
+description = "Swarmauri readability-analysis tool for calculating SMOG Index scores across text and documentation."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,11 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Text Processing :: Linguistic",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -35,6 +40,11 @@ keywords = [
     "smogindex",
     "smog",
     "index",
+    "readability",
+    "grade level",
+    "text analysis",
+    "education",
+    "documentation quality",
 ]
 
 [tool.uv.sources]
@@ -43,6 +53,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=tqdm,transformers"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
