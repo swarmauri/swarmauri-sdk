@@ -1,16 +1,22 @@
 [project]
 name = "swarmauri_tool_jupytervalidatenotebook"
 version = "0.10.1.dev5"
-description = "A tool that validates a NotebookNode object against the Jupyter Notebook schema using nbformat, ensuring structural correctness."
+description = "Swarmauri notebook-governance tool for validating Jupyter notebook objects against nbformat schema rules."
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Framework :: Jupyter",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -31,20 +37,14 @@ dependencies = [
     "swarmauri_standard",
 ]
 keywords = [
-    "swarmauri",
-    "tool",
-    "jupytervalidatenotebook",
-    "validates",
-    "notebooknode",
-    "object",
-    "against",
     "jupyter",
-    "notebook",
-    "schema",
+    "notebook validation",
     "nbformat",
-    "ensuring",
-    "structural",
-    "correctness",
+    "schema validation",
+    "notebook governance",
+    "ipynb validation",
+    "notebook quality",
+    "structure checking",
 ]
 
 [tool.uv.sources]
@@ -71,6 +71,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-accept-deps=jsonschema,jsonschema-specifications,referencing,rpds-py"
 
 [project.entry-points.'swarmauri.tools']
 JupyterValidateNotebookTool = "swarmauri_tool_jupytervalidatenotebook:JupyterValidateNotebookTool"

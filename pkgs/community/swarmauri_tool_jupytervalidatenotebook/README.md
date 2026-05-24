@@ -14,135 +14,115 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool ? Jupyter Validate Notebook
+# Swarmauri Jupyter Validate Notebook Tool
 
-A Swarmauri tool that validates Jupyter notebooks (`NotebookNode` objects) against the official nbformat JSON schema. Use it to gate notebook submissions, enforce structural best practices, or wire schema checks into automated notebook pipelines.
+`swarmauri_tool_jupytervalidatenotebook` validates a notebook object against Jupyter notebook schema rules with `nbformat` and returns a structured validity report for Swarmauri notebook workflows.
 
-- Accepts in-memory `NotebookNode` instances and produces structured success/error payloads.
-- Surfaces detailed schema violations coming from nbformat/jsonschema.
-- Integrates with Swarmauri agents via the standard tool registration workflow.
+## Why
 
-## Requirements
+- Catch notebook structure problems before execution or export.
+- Add a simple schema-validation gate to notebook automation pipelines.
+- Standardize notebook health checks behind a Swarmauri tool contract.
 
-- Python 3.10 ? 3.13.
-- `nbformat` (installed automatically) with access to the notebook JSON schema.
-- Dependencies (`jsonschema`, `swarmauri_base`, `swarmauri_standard`, `pydantic`, `typing_extensions`).
+## Features
+
+- Accepts notebook objects compatible with `nbformat`.
+- Enforces `nbformat == 4` before schema validation.
+- Validates notebook structure with `nbformat.validate`.
+- Returns `valid` and `report` fields for downstream flow control.
+- Handles validation and unexpected runtime failures explicitly.
+
+## FAQ
+
+### What does this tool return?
+
+It returns a dictionary with `valid` set to `"True"` or `"False"` and a human-readable `report` describing the outcome.
+
+### Does this tool accept notebook file paths?
+
+No. It expects a notebook object, not a path and not a JSON string.
+
+### Why does it reject notebooks with the wrong `nbformat`?
+
+The implementation explicitly requires Jupyter notebook format version 4 before calling schema validation.
 
 ## Installation
 
-Pick the installer that matches your workflow; each command resolves transitive packages.
-
-**pip**
+```bash
+uv add swarmauri_tool_jupytervalidatenotebook
+```
 
 ```bash
 pip install swarmauri_tool_jupytervalidatenotebook
 ```
 
-**Poetry**
-
-```bash
-poetry add swarmauri_tool_jupytervalidatenotebook
-```
-
-**uv**
-
-```bash
-# Add to the current project and update uv.lock
-uv add swarmauri_tool_jupytervalidatenotebook
-
-# or install into the active environment without touching pyproject.toml
-uv pip install swarmauri_tool_jupytervalidatenotebook
-```
-
-> Tip: When using uv inside this repo, run uv commands from the repository root so it can locate the shared `pyproject.toml`.
-
-## Quick Start
-
-Load a notebook with nbformat, then pass the resulting `NotebookNode` to the tool. The response dictionary contains string values for `valid` (`"True"` or `"False"`) and a human-readable `report`.
+## Usage
 
 ```python
-import nbformat
 from swarmauri_tool_jupytervalidatenotebook import JupyterValidateNotebookTool
 
-notebook = nbformat.read("analysis.ipynb", as_version=4)
-validate = JupyterValidateNotebookTool()
+notebook = {
+    "nbformat": 4,
+    "nbformat_minor": 5,
+    "cells": [],
+    "metadata": {},
+}
 
-result = validate(notebook)
+result = JupyterValidateNotebookTool()(notebook=notebook)
+print(result)
+```
+
+## Examples
+
+### Validate a notebook before execution
+
+```python
+validator = JupyterValidateNotebookTool()
+result = validator(
+    notebook={
+        "nbformat": 4,
+        "nbformat_minor": 5,
+        "cells": [],
+        "metadata": {},
+    }
+)
 
 if result["valid"] == "True":
-    print("Notebook passes schema validation")
-else:
-    raise ValueError(result["report"])
+    print("Notebook passed validation")
 ```
 
-## Usage Scenarios
-
-### Batch Validate an Entire Notebook Directory
+### Detect invalid notebook version
 
 ```python
-import nbformat
-from pathlib import Path
-from swarmauri_tool_jupytervalidatenotebook import JupyterValidateNotebookTool
-
-validator = JupyterValidateNotebookTool()
-notebook_dir = Path("notebooks")
-
-for path in notebook_dir.glob("**/*.ipynb"):
-    nb = nbformat.read(path, as_version=4)
-    result = validator(nb)
-    status = "PASS" if result["valid"] == "True" else "FAIL"
-    print(f"[{status}] {path}: {result['report']}")
-```
-
-Drop this snippet into CI to stop merges when any notebook violates the schema.
-
-### Fail a Build When Validation Fails
-
-```python
-import sys
-import nbformat
-from swarmauri_tool_jupytervalidatenotebook import JupyterValidateNotebookTool
-
-validator = JupyterValidateNotebookTool()
-notebook = nbformat.read(sys.argv[1], as_version=4)
-result = validator(notebook)
+result = JupyterValidateNotebookTool()(
+    notebook={
+        "nbformat": 3,
+        "nbformat_minor": 0,
+        "cells": [],
+        "metadata": {},
+    }
+)
 
 print(result["report"])
-if result["valid"] != "True":
-    sys.exit(1)
 ```
 
-Wire the script into a pre-commit hook or build step (`python validate.py path/to/notebook.ipynb`).
+## Related Packages
 
-### Combine With Other Swarmauri Tools
+- [`swarmauri_tool_jupyterfromdict`](https://pypi.org/project/swarmauri_tool_jupyterfromdict/)
+- [`swarmauri_tool_jupyterreadnotebook`](https://pypi.org/project/swarmauri_tool_jupyterreadnotebook/)
+- [`swarmauri_tool_jupyterwritenotebook`](https://pypi.org/project/swarmauri_tool_jupyterwritenotebook/)
+- [`swarmauri_tool_jupyterexecutenotebook`](https://pypi.org/project/swarmauri_tool_jupyterexecutenotebook/)
+- [`swarmauri_tool_jupyterclearoutput`](https://pypi.org/project/swarmauri_tool_jupyterclearoutput/)
 
-```python
-from swarmauri_tool_jupyterstartkernel import JupyterStartKernelTool
-from swarmauri_tool_jupytervalidatenotebook import JupyterValidateNotebookTool
+## Foundational Swarmauri Packages
 
-start_kernel = JupyterStartKernelTool()
-validate_notebook = JupyterValidateNotebookTool()
+- [`swarmauri`](https://pypi.org/project/swarmauri/)
+- [`swarmauri_core`](https://pypi.org/project/swarmauri_core/)
+- [`swarmauri_base`](https://pypi.org/project/swarmauri_base/)
+- [`swarmauri_standard`](https://pypi.org/project/swarmauri_standard/)
 
-launch = start_kernel()
-print(f"Launched kernel: {launch['kernel_id']}")
+## More Documentation
 
-# After generating a notebook programmatically, load and validate it
-import nbformat
-nb = nbformat.read("generated.ipynb", as_version=4)
-validation = validate_notebook(nb)
-print(validation)
-```
-
-Use the validation step after automated notebook generation/execution to ensure outputs remain schema-compliant.
-
-## Troubleshooting
-
-- **`Invalid nbformat version`** ? The tool enforces nbformat version 4. Upgrade the notebook (`nbformat.convert`) or save it with a modern Jupyter client.
-- **`Validation error`** ? Inspect the `report` field for the jsonschema path causing the failure. Missing metadata or malformed cells are common culprits.
-- **`Unexpected error`** ? Log the exception and confirm the input is an nbformat `NotebookNode`, not a raw dict or path string.
-
-## License
-
-`swarmauri_tool_jupytervalidatenotebook` is released under the Apache 2.0 License. See `LICENSE` for full text.
-
-
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+- [nbformat documentation](https://nbformat.readthedocs.io/)
+- [Jupyter documentation](https://jupyter.org/documentation)
