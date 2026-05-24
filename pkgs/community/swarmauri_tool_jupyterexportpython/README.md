@@ -14,57 +14,99 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Jupyter Export Python
+# Swarmauri Jupyter Export Python Tool
 
-Exports a Jupyter `NotebookNode` to a Python script using nbconvert?s `PythonExporter` with optional custom templates.
+`swarmauri_tool_jupyterexportpython` converts notebook objects into Python scripts through `nbconvert.PythonExporter`, making it useful for code extraction, audit, and migration workflows.
+
+## Why
+
+- Extract runnable Python from notebooks for review or reuse.
+- Bridge notebook prototypes into script-based workflows.
+- Keep notebook-to-script export inside a Swarmauri tool interface.
 
 ## Features
 
-- Accepts a notebook object (`nbformat.NotebookNode`) and returns the rendered `.py` source.
-- Supports passing an nbconvert template for custom formatting.
-- Returns `{"exported_script": ...}` on success or `{"error": ...}` on failure.
+- Accepts notebook objects compatible with `nbconvert`.
+- Exports Python source through `nbconvert.PythonExporter`.
+- Supports optional custom templates.
+- Returns the generated script as a string.
+- Returns a structured error payload on export failure.
 
-## Prerequisites
+## FAQ
 
-- Python 3.10 or newer.
-- nbconvert/nbformat installed (pulled automatically).
+### Does this package write a `.py` file?
+
+No. It returns the exported script text in `exported_script`.
+
+### What kind of input does it expect?
+
+It expects a notebook object, not a file path and not a JSON string.
+
+### When should I use a custom template?
+
+Use a custom template when you need a specific script layout, preamble, or code-cell transformation strategy.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_tool_jupyterexportpython
-
-# poetry
-poetry add swarmauri_tool_jupyterexportpython
-
-# uv (pyproject-based projects)
 uv add swarmauri_tool_jupyterexportpython
 ```
 
-## Quickstart
-
-```python
-import nbformat
-from swarmauri_tool_jupyterexportpython import JupyterExportPythonTool
-
-notebook = nbformat.read("notebooks/example.ipynb", as_version=4)
-exporter = JupyterExportPythonTool()
-result = exporter(notebook, template_file=None)
-
-if "exported_script" in result:
-    Path("notebooks/example.py").write_text(result["exported_script"], encoding="utf-8")
-else:
-    print("Error:", result["error"])
+```bash
+pip install swarmauri_tool_jupyterexportpython
 ```
 
-## Tips
+## Usage
 
-- Use custom templates to control cell separators or code comments?pass a `.tpl` file via `template_file`.
-- Pair with notebook execution tools (execute ? export to .py) to operationalize notebooks as Python scripts.
+```python
+from swarmauri_tool_jupyterexportpython import JupyterExportPythonTool
 
-## Want to help?
+notebook = {
+    "cells": [{"cell_type": "code", "metadata": {}, "source": "print('hello')", "outputs": []}],
+    "metadata": {},
+    "nbformat": 4,
+    "nbformat_minor": 5,
+}
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+result = JupyterExportPythonTool()(notebook=notebook)
+print(result["exported_script"])
+```
 
+## Examples
 
+### Export a notebook to Python
+
+```python
+result = JupyterExportPythonTool()(notebook=notebook)
+script = result["exported_script"]
+```
+
+### Export with a custom template
+
+```python
+result = JupyterExportPythonTool()(
+    notebook=notebook,
+    template_file="templates/python-export.tpl",
+)
+```
+
+## Related Packages
+
+- [`swarmauri_tool_jupyterexporthtml`](https://pypi.org/project/swarmauri_tool_jupyterexporthtml/)
+- [`swarmauri_tool_jupyterexportmarkdown`](https://pypi.org/project/swarmauri_tool_jupyterexportmarkdown/)
+- [`swarmauri_tool_jupyterexportlatex`](https://pypi.org/project/swarmauri_tool_jupyterexportlatex/)
+- [`swarmauri_tool_jupyterreadnotebook`](https://pypi.org/project/swarmauri_tool_jupyterreadnotebook/)
+- [`swarmauri_tool_jupyterwritenotebook`](https://pypi.org/project/swarmauri_tool_jupyterwritenotebook/)
+
+## Foundational Swarmauri Packages
+
+- [`swarmauri`](https://pypi.org/project/swarmauri/)
+- [`swarmauri_core`](https://pypi.org/project/swarmauri_core/)
+- [`swarmauri_base`](https://pypi.org/project/swarmauri_base/)
+- [`swarmauri_standard`](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+- [nbconvert Python exporter docs](https://nbconvert.readthedocs.io/)
+- [Jupyter documentation](https://jupyter.org/documentation)

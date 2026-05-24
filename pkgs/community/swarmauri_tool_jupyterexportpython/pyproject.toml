@@ -1,16 +1,22 @@
 [project]
 name = "swarmauri_tool_jupyterexportpython"
 version = "0.10.1.dev5"
-description = "A tool that exports a Jupyter Notebook to a Python script using nbconvert’s PythonExporter, facilitating code extraction."
+description = "Swarmauri code-extraction tool for converting Jupyter notebooks into Python scripts with nbconvert."
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterexportpython/"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Framework :: Jupyter",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -29,19 +35,14 @@ dependencies = [
     "swarmauri_standard",
 ]
 keywords = [
-    "swarmauri",
-    "tool",
-    "jupyterexportpython",
-    "exports",
     "jupyter",
-    "notebook",
-    "script",
+    "python export",
+    "notebook conversion",
     "nbconvert",
-    "pythonexporter",
-    "facilitating",
-    "code",
-    "extraction",
-    "python",
+    "code extraction",
+    "ipynb to py",
+    "notebook migration",
+    "python exporter",
 ]
 
 [tool.uv.sources]
@@ -68,6 +69,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-accept-deps=defusedxml,jupyterlab-pygments,jsonschema,jsonschema-specifications,referencing,rpds-py"
 
 [project.entry-points.'swarmauri.tools']
 JupyterExportPythonTool = "swarmauri_tool_jupyterexportpython:JupyterExportPythonTool"
