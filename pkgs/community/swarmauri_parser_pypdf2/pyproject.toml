@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_parser_pypdf2"
 version = "0.8.4.dev5"
-description = "PyPDF2 Parser for Swarmauri."
+description = "Page-by-page PDF text parser for Swarmauri using PyPDF2 with path and bytes input support."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,7 +11,13 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Office/Business",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Text Processing",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -32,6 +38,12 @@ keywords = [
     "swarmauri",
     "parser",
     "pypdf2",
+    "pdf parser",
+    "document ingestion",
+    "text extraction",
+    "pdf text extraction",
+    "page parsing",
+    "document processing",
 ]
 
 [tool.uv.sources]

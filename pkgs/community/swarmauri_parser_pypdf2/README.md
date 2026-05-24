@@ -16,33 +16,58 @@
 
 # Swarmauri Parser PyPDF2
 
-Lightweight PDF parser for Swarmauri that uses [PyPDF2](https://pypdf2.readthedocs.io/) to extract text from each page. Returns a `Document` per page with metadata describing the source file and page number.
+`swarmauri_parser_pypdf2` is the Swarmauri PDF text parser for page-by-page
+extraction using [PyPDF2](https://pypdf2.readthedocs.io/). It converts a PDF
+file path or PDF bytes into a list of Swarmauri `Document` objects, preserving
+page numbers and source metadata for downstream chunking, indexing, and agent
+workflows.
+
+## Why Use Swarmauri Parser PyPDF2
+
+- Extract embedded PDF text without introducing OCR when the document already
+  contains readable text objects.
+- Preserve page boundaries by returning one `Document` per page.
+- Accept either on-disk PDFs or PDF bytes already loaded in memory.
+- Keep document ingestion aligned with the Swarmauri parser interface used
+  across other loaders and converters.
+
+## FAQ
+
+> **What does this parser return?**  
+> A list of Swarmauri `Document` objects, usually one for each page that
+> contains extractable text.
+
+> **Can it parse PDF bytes instead of a file path?**  
+> Yes. `parse()` accepts either a string path or `bytes`.
+
+> **Does it perform OCR on scanned PDFs?**  
+> No. PyPDF2 extracts embedded text. Scanned PDFs without text objects should
+> be handled with OCR first.
+
+> **What metadata is attached to each page?**  
+> Each returned document includes `page_number` and `source`.
 
 ## Features
 
-- Handles PDF input from file paths or raw bytes.
-- Produces one `Document` per page, storing text in `content` and metadata fields (`page_number`, `source`).
-- Gracefully returns an empty list if PyPDF2 cannot extract text from a page (e.g., scanned PDFs without OCR).
-
-## Prerequisites
-
-- Python 3.10 or newer.
-- PyPDF2 (installed automatically). For encrypted PDFs, ensure you provide access credentials before parsing.
+- Page-by-page PDF text extraction through PyPDF2.
+- Supports parsing from local file paths and raw PDF bytes.
+- Returns Swarmauri `Document` objects with `content`, `page_number`, and
+  `source`.
+- Clean fit for ingestion pipelines, retrieval systems, and document analysis
+  workflows.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_parser_pypdf2
-
-# poetry
-poetry add swarmauri_parser_pypdf2
-
-# uv (pyproject-based projects)
 uv add swarmauri_parser_pypdf2
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_parser_pypdf2
+```
+
+## Usage
 
 ```python
 from swarmauri_parser_pypdf2 import PyPDF2Parser
@@ -50,31 +75,71 @@ from swarmauri_parser_pypdf2 import PyPDF2Parser
 parser = PyPDF2Parser()
 documents = parser.parse("manuals/device.pdf")
 
-for doc in documents:
-    print(doc.metadata["page_number"], doc.content[:120])
+for document in documents:
+    print(document.metadata["page_number"])
+    print(document.content[:160])
 ```
 
-## Parsing PDF Bytes
+## Examples
+
+### Parse a PDF from bytes
+
+```python
+from pathlib import Path
+from swarmauri_parser_pypdf2 import PyPDF2Parser
+
+pdf_bytes = Path("reports/statement.pdf").read_bytes()
+parser = PyPDF2Parser()
+pages = parser.parse(pdf_bytes)
+
+for page in pages:
+    print(page.metadata)
+```
+
+### Send parsed pages to downstream chunking
 
 ```python
 from swarmauri_parser_pypdf2 import PyPDF2Parser
 
-with open("statements/bank.pdf", "rb") as f:
-    pdf_bytes = f.read()
-
 parser = PyPDF2Parser()
-pages = parser.parse(pdf_bytes)
-print(len(pages), "pages parsed from bytes")
+pages = parser.parse("contracts/master-service-agreement.pdf")
+
+for page in pages:
+    if page.content.strip():
+        print(page.metadata["page_number"], len(page.content))
 ```
 
-## Tips
+## Related Packages
 
-- PyPDF2 extracts text only when the PDF contains accessible text objects. For scanned documents, run OCR first (e.g., with `swarmauri_ocr_pytesseract`).
-- Remove or handle password protection before parsing; PyPDF2 cannot decrypt files without the password.
-- Combine this parser with Swarmauri chunkers or summarizers to process large documents efficiently.
+- [swarmauri_parser_fitzpdf](https://pypi.org/project/swarmauri_parser_fitzpdf/)
+- [swarmauri_parser_pypdftk](https://pypi.org/project/swarmauri_parser_pypdftk/)
+- [swarmauri_ocr_pytesseract](https://pypi.org/project/swarmauri_ocr_pytesseract/)
+- [swarmauri_parser_pypdf2](https://pypi.org/project/swarmauri_parser_pypdf2/)
 
-## Want to help?
+## Swarmauri Foundations
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [PyPDF2 text extraction guide](https://pypdf2.readthedocs.io/en/3.x/user/extract-text.html)
+- [PyPDF2 documentation](https://pypdf2.readthedocs.io/)
+- [PyPDF2 on PyPI](https://pypi.org/project/PyPDF2/)
+
+## Best Practices
+
+- Use this parser when the PDF already contains embedded text.
+- Use OCR first for scan-only PDFs, then parse or post-process the OCR output.
+- Validate encrypted, malformed, or image-only PDFs earlier in the ingestion
+  pipeline so downstream processing can route them correctly.
+- Keep in mind that page text extraction quality depends on the PDF's internal
+  structure and reading order.
+
+## License
+
+This project is licensed under the Apache-2.0 License.
 
 
