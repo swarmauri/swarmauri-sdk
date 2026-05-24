@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_state_clipboard"
 version = "0.9.1.dev5"
-description = "Swarmauri Community Clipboard State"
+description = "Clipboard-backed Swarmauri state provider for transient desktop workflows and local automation."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,12 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Desktop Environment",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -28,6 +34,11 @@ keywords = [
     "state",
     "clipboard",
     "community",
+    "desktop automation",
+    "local workflow",
+    "transient state",
+    "state management",
+    "clipboard state",
 ]
 
 [tool.uv.sources]

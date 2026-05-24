@@ -16,71 +16,130 @@
 
 # Swarmauri State Clipboard
 
-`ClipboardState` implements Swarmauri's `StateBase` interface using the system clipboard as storage. Useful for quick demos or sharing state between desktop tools without running an external datastore.
+`swarmauri_state_clipboard` provides a Swarmauri `StateBase` implementation
+that stores state in the system clipboard. It is useful for desktop
+prototyping, local demos, quick workflow handoffs, and lightweight
+human-in-the-loop tooling where a full database or cache would be unnecessary.
+
+## Why Use Swarmauri State Clipboard
+
+- Persist small state payloads without adding external infrastructure.
+- Bridge state between local tools, notebooks, shells, and GUI apps.
+- Prototype Swarmauri stateful flows quickly on Windows, macOS, or Linux.
+- Keep local development loops simple when you only need transient state.
+
+## FAQ
+
+> **What does this package store?**  
+> It stores dictionary-shaped data by serializing it to the system clipboard.
+
+> **Which platforms are supported?**  
+> Windows uses `clip` and PowerShell `Get-Clipboard`, macOS uses `pbcopy` and
+> `pbpaste`, and Linux uses `xclip`.
+
+> **Is this suitable for production workloads?**  
+> Usually no. The clipboard is global, user-facing, and not designed for
+> secure or concurrent application state.
+
+> **How is clipboard data parsed when reading?**  
+> The package uses `ast.literal_eval` to parse string content into Python
+> literals.
 
 ## Features
 
-- Reads/writes clipboard contents via platform commands (`clip`, `pbcopy`/`pbpaste`, `xclip`).
-- Stores JSON-like dictionaries as string representations; uses `ast.literal_eval` when reading.
-- Provides `write`, `read`, `update`, `reset`, and `deep_copy` helpers.
-
-## Prerequisites
-
-- Python 3.10 or newer.
-- OS clipboard utilities available:
-  - Windows: `clip` (built-in) and PowerShell `Get-Clipboard`.
-  - macOS: `pbcopy`/`pbpaste` (built-in).
-  - Linux: `xclip` installed (`apt install xclip` or equivalent).
+- Swarmauri `StateBase` implementation registered as `ClipboardState`.
+- Cross-platform clipboard access through built-in OS utilities.
+- Read, write, update, reset, and deep-copy state helpers.
+- No third-party runtime dependency beyond core Swarmauri packages.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_state_clipboard
-
-# poetry
-poetry add swarmauri_state_clipboard
-
-# uv (pyproject-based projects)
 uv add swarmauri_state_clipboard
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_state_clipboard
+```
+
+## Usage
 
 ```python
 from swarmauri_state_clipboard import ClipboardState
 
 state = ClipboardState()
-state.write({"key1": "value1", "counter": 42})
+state.write({"session": "abc123", "step": 1})
+
 print(state.read())
 
-state.update({"counter": 43})
+state.update({"step": 2})
 print(state.read())
+```
 
+## Examples
+
+### Use clipboard state in a local prototype
+
+```python
+from swarmauri_state_clipboard import ClipboardState
+
+state = ClipboardState()
+state.write({"draft": "ready", "owner": "local-user"})
+
+print(state.read())
+```
+
+### Reset state after a task completes
+
+```python
+from swarmauri_state_clipboard import ClipboardState
+
+state = ClipboardState()
+state.write({"job": "complete"})
 state.reset()
+
 print(state.read())  # {}
 ```
 
-## Deep Copy
+### Clone the current state for a second workflow branch
 
 ```python
-state = ClipboardState()
-state.write({"session": "abc123"})
-clone = state.deep_copy()
-clone.update({"session": "xyz789"})
+from swarmauri_state_clipboard import ClipboardState
 
-print(state.read())   # {'session': 'abc123'}
-print(clone.read())    # {'session': 'xyz789'}
+state = ClipboardState()
+state.write({"request_id": "req-001", "status": "queued"})
+
+forked_state = state.deep_copy()
+forked_state.update({"status": "processed"})
+
+print(state.read())
+print(forked_state.read())
 ```
 
-## Tips
+## Related Packages
 
-- Clipboard overwrites are global; avoid using this state provider in multi-user or production environments where clipboard privacy matters.
-- Contents are stored as Python literal strings?avoid writing untrusted data to the clipboard to prevent evaluation issues (though `ast.literal_eval` mitigates code execution risks).
-- Ensure required system commands exist before running in CI or containers (install `xclip` for Linux builds).
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+- [swarmauri_workflow_statedriven](https://pypi.org/project/swarmauri_workflow_statedriven/)
 
-## Want to help?
+## Swarmauri Foundations
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
 
+## More Documentation
 
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+- [Python `ast.literal_eval` documentation](https://docs.python.org/3/library/ast.html#ast.literal_eval)
+
+## Best Practices
+
+- Keep clipboard payloads small and short-lived.
+- Avoid storing secrets or sensitive tokens in clipboard-backed state.
+- Install `xclip` explicitly on Linux hosts and CI runners.
+- Prefer a durable state backend for concurrent, remote, or production flows.
+
+## License
+
+This project is licensed under the Apache-2.0 License.
