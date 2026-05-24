@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_pop_x509" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_pop_x509/">
         <img src="https://img.shields.io/pypi/v/swarmauri_pop_x509?label=swarmauri_pop_x509&color=green" alt="PyPI - swarmauri_pop_x509"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri PoP X.509
 
@@ -108,3 +109,5 @@ repository security policy.
 ## License
 
 Apache License 2.0. See the [LICENSE](./LICENSE) file for details.
+
+

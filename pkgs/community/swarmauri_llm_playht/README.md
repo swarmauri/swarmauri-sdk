@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_llm_playht" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_llm_playht/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_playht?label=swarmauri_llm_playht&color=green" alt="PyPI - swarmauri_llm_playht"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # swarmauri_llm_playht
 
@@ -52,3 +53,5 @@ model = PlayHTModel()
 - These adapters intentionally mirror the corresponding classes in `swarmauri_standard`.
 - Use the provider package that matches your deployment and credential setup.
 - Install only the provider packages you need to keep dependencies minimal.
+
+

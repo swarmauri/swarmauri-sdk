@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_transport_h2mux" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_h2mux/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_h2mux?label=swarmauri_transport_h2mux&color=green" alt="PyPI - swarmauri_transport_h2mux"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Transport â€“ H2 Multiplexer
 
@@ -49,3 +50,5 @@ asyncio.run(main())
 ```
 
 Use the multiplexer when you need direct stream controlâ€”for example to build custom RPC layers or bridge Swarmauri agents over HTTP/2 without binding to REST semantics.
+
+

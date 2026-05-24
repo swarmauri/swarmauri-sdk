@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_middleware_securityheaders" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_securityheaders/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_securityheaders?label=swarmauri_middleware_securityheaders&color=green" alt="PyPI - swarmauri_middleware_securityheaders"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Middleware Security Headers
 
@@ -86,3 +87,5 @@ the security headers listed above.
 ## Want to help?
 
 If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md) that will help you get started.
+
+

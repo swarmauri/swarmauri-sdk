@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_storage_file" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_file/">
         <img src="https://img.shields.io/pypi/v/swarmauri_storage_file?label=swarmauri_storage_file&color=green" alt="PyPI - swarmauri_storage_file"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri File Storage Adapter
 
@@ -95,3 +96,4 @@ tools that understand ``file://`` locations.
 If you want to contribute to swarmauri-sdk, read up on our
 [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
 that will help you get started.
+

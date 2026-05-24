@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_certs_crlverifyservice" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_crlverifyservice/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_crlverifyservice?label=swarmauri_certs_crlverifyservice&color=green" alt="PyPI - swarmauri_certs_crlverifyservice"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri CRL Verify Service
 
@@ -148,3 +149,5 @@ Foundational packages:
 ## License
 
 Apache-2.0
+
+

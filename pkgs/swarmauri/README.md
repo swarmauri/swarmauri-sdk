@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri/">
         <img src="https://img.shields.io/pypi/v/swarmauri?label=swarmauri&color=green" alt="PyPI - swarmauri"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri
 
@@ -194,3 +195,5 @@ Apache-2.0
 ## Contributing
 
 Contributions are welcome. Before adding a new public namespace path, update the interface and citizenship registries, add package-level tests for import resolution, and follow the [Swarmauri SDK contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md).
+
+

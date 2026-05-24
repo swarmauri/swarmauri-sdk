@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri/">
         <img src="https://img.shields.io/pypi/v/swarmauri?label=swarmauri&color=green" alt="PyPI - swarmauri"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri SDK
 
@@ -252,3 +253,6 @@ class YourVectorStore(VectorStoreBase):
 ## License
 
 The Swarmauri SDK is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
+
+
+

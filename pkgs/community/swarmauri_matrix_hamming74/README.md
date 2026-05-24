@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_matrix_hamming74" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_matrix_hamming74/">
         <img src="https://img.shields.io/pypi/v/swarmauri_matrix_hamming74?label=swarmauri_matrix_hamming74&color=green" alt="PyPI - swarmauri_matrix_hamming74"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Matrix Hamming(7,4)
 
@@ -64,3 +65,5 @@ print(nearest)  # Recovers the original codeword
 ## Contributing
 
 We welcome contributions! Please submit issues and pull requests through the [Swarmauri SDK GitHub repository](https://github.com/swarmauri/swarmauri-sdk).
+
+

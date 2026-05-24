@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_pop_cwt" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_pop_cwt/">
         <img src="https://img.shields.io/pypi/v/swarmauri_pop_cwt?label=swarmauri_pop_cwt&color=green" alt="PyPI - swarmauri_pop_cwt"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri PoP CWT
 
@@ -150,3 +151,5 @@ repository security policy.
 ## License
 
 Apache License 2.0. See the [LICENSE](./LICENSE) file for details.
+
+

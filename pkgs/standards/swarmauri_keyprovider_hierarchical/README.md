@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_hierarchical" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_hierarchical/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_hierarchical?label=swarmauri_keyprovider_hierarchical&color=green" alt="PyPI - swarmauri_keyprovider_hierarchical"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Hierarchical Key Provider
 
@@ -177,3 +178,4 @@ registered provider is used for both random bytes and HKDF requests.
 If you want to contribute to swarmauri-sdk, read up on our
 [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
 that will help you get started.
+

@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_experimental" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_experimental/">
         <img src="https://img.shields.io/pypi/v/swarmauri_experimental?label=swarmauri_experimental&color=green" alt="PyPI - swarmauri_experimental"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 Endpoints
 - Openwebui
@@ -21,4 +22,6 @@ Endpoints
 - Fastapi jinja2
 - Celery
 - Flowise
+
+
 

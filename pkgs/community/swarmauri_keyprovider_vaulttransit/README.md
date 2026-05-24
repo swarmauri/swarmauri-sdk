@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_vaulttransit" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_vaulttransit/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_vaulttransit?label=swarmauri_keyprovider_vaulttransit&color=green" alt="PyPI - swarmauri_keyprovider_vaulttransit"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Vault Transit Key Provider
 
@@ -199,3 +200,5 @@ Foundational packages:
 ## License
 
 Apache-2.0
+
+

@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_xmp_jpeg" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_xmp_jpeg/">
         <img src="https://img.shields.io/pypi/v/swarmauri_xmp_jpeg?label=swarmauri_xmp_jpeg&color=green" alt="PyPI - swarmauri_xmp_jpeg"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # swarmauri_xmp_jpeg
 
@@ -66,3 +67,5 @@ clean_bytes = handler.remove_xmp(updated_bytes)
 
 - Source: <https://github.com/swarmauri/swarmauri-sdk>
 - License: Apache 2.0
+
+

@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/EmbeddedSigner" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/EmbeddedSigner/">
         <img src="https://img.shields.io/pypi/v/EmbeddedSigner?label=EmbeddedSigner&color=green" alt="PyPI - EmbeddedSigner"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Embed metadata into a file and write it back in place.
 signer.embed_file("image.png", xmp_xml)
@@ -92,3 +93,5 @@ embedded-signer embed-sign example.png \
 
 EmbeddedSigner is released under the Apache 2.0 License. See the
 [LICENSE](LICENSE) file for details.
+
+

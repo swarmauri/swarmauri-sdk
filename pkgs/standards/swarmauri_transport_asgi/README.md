@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_transport_asgi" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_asgi/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_asgi?label=swarmauri_transport_asgi&color=green" alt="PyPI - swarmauri_transport_asgi"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Transport â€“ ASGI Server
 
@@ -53,3 +54,5 @@ asyncio.run(main())
 ```
 
 Configure Uvicorn parameters such as TLS context or worker count through the `server(...)` context manager arguments.
+
+

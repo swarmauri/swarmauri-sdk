@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swm_example_plugin" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swm_example_plugin/">
         <img src="https://img.shields.io/pypi/v/swm_example_plugin?label=swm_example_plugin&color=green" alt="PyPI - swm_example_plugin"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 The Swarmauri Example Plugin is a lightweight reference package that shows how to
 ship a plugin ready for the Swarmauri ecosystem. It demonstrates how to declare
@@ -76,3 +77,5 @@ custom functionality into the Swarmauri plugin registry.
 - Issues: <https://github.com/swarmauri/swarmauri-sdk/issues>
 - Releases: <https://github.com/swarmauri/swarmauri-sdk/releases>
 - Discussions: <https://github.com/orgs/swarmauri/discussions>
+
+

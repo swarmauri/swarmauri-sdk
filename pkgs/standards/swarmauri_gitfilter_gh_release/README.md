@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_gitfilter_gh_release" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_gitfilter_gh_release/">
         <img src="https://img.shields.io/pypi/v/swarmauri_gitfilter_gh_release?label=swarmauri_gitfilter_gh_release&color=green" alt="PyPI - swarmauri_gitfilter_gh_release"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Git Filter GitHub Release
 
@@ -94,3 +95,4 @@ Combine these helpers to move trained models, prompts, or configuration bundles 
 If you want to contribute to swarmauri-sdk, read up on our
 [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
 that will help you get started.
+

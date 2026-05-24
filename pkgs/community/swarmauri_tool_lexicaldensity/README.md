@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_lexicaldensity" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_lexicaldensity/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_lexicaldensity?label=swarmauri_tool_lexicaldensity&color=green" alt="PyPI - swarmauri_tool_lexicaldensity"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Tool Â· Lexical Density
 
@@ -137,3 +138,5 @@ Monitor writing complexity across a corpus of articles or support responses.
 ## License
 
 `swarmauri_tool_lexicaldensity` is released under the Apache 2.0 License. See `LICENSE` for full details.
+
+

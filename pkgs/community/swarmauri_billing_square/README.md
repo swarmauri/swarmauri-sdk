@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_billing_square" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_billing_square/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_square?label=swarmauri_billing_square&color=green" alt="PyPI - swarmauri_billing_square"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Billing Square
 
@@ -196,3 +197,5 @@ Apache-2.0
 ## Contributing
 
 When expanding Square coverage, align each method with the current Square Python SDK, document required permissions and account settings, and add tests for each changed runtime path.
+
+

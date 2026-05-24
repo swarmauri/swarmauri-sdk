@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/layout_engine_atoms" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/layout_engine_atoms/">
         <img src="https://img.shields.io/pypi/v/layout_engine_atoms?label=layout_engine_atoms&color=green" alt="PyPI - layout_engine_atoms"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Layout Engine Atoms & Vue Runtime
 
@@ -201,3 +202,5 @@ uv run --directory pkgs/experimental/layout_engine_atoms --package layout-engine
 ## License
 
 Apache License 2.0. See [LICENSE](./LICENSE) for full terms.
+
+

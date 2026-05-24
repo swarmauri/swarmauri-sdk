@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_certs_composite" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_composite/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_composite?label=swarmauri_certs_composite&color=green" alt="PyPI - swarmauri_certs_composite"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 ## Swarmauri Certs Composite
 
@@ -123,3 +124,5 @@ for details.
 ## Entry point
 
 The provider is registered under the `swarmauri.certs` entry-point as `CompositeCertService`.
+
+

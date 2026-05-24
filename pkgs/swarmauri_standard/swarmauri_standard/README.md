@@ -11,8 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri-standard" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri-standard/">
         <img src="https://img.shields.io/pypi/v/swarmauri-standard?label=swarmauri-standard&color=green" alt="PyPI - swarmauri-standard"/></a>
-
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Standard Library
 
@@ -51,3 +51,5 @@ Your contributions can help the Standard Library grow! Whether it's adding new t
 ## License
 
 Please see the `LICENSE` file in the repository for details.
+
+

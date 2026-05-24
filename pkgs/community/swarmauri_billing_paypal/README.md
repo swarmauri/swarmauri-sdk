@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_billing_paypal" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_billing_paypal/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_paypal?label=swarmauri_billing_paypal&color=green" alt="PyPI - swarmauri_billing_paypal"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Billing PayPal
 
@@ -155,3 +156,5 @@ Apache-2.0
 ## Contributing
 
 If you connect this provider to live PayPal APIs, preserve deterministic tests, document required credentials and webhook behavior, and add coverage for each supported billing capability.
+
+

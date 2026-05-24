@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_billing_stripe" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_billing_stripe/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_stripe?label=swarmauri_billing_stripe&color=green" alt="PyPI - swarmauri_billing_stripe"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Billing Stripe
 
@@ -181,3 +182,5 @@ Apache-2.0
 ## Contributing
 
 When expanding Stripe coverage, keep each Swarmauri billing method aligned with the official Stripe Python SDK, document required Stripe account configuration, and add tests for each changed runtime path.
+
+

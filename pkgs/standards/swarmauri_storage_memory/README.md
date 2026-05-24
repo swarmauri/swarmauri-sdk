@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_storage_memory" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_memory/">
         <img src="https://img.shields.io/pypi/v/swarmauri_storage_memory?label=swarmauri_storage_memory&color=green" alt="PyPI - swarmauri_storage_memory"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Memory Storage Adapter
 
@@ -67,3 +68,5 @@ bulk transfers when you need to stage many artifacts in memory at once.
 If you want to contribute to swarmauri-sdk, read up on our
 [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
 that will help you get started.
+
+

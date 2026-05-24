@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_toolkit_jupytertoolkit" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_toolkit_jupytertoolkit/">
         <img src="https://img.shields.io/pypi/v/swarmauri_toolkit_jupytertoolkit?label=swarmauri_toolkit_jupytertoolkit&color=green" alt="PyPI - swarmauri_toolkit_jupytertoolkit"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Toolkit Â· Jupyter Toolkit
 
@@ -160,3 +161,5 @@ Run multiple exporters without manually instantiating each tool.
 ## License
 
 `swarmauri_toolkit_jupytertoolkit` is released under the Apache 2.0 License. See `LICENSE` for details.
+
+

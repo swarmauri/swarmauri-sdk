@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_signing_dsse" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_dsse/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_dsse?label=swarmauri_signing_dsse&color=green" alt="PyPI - swarmauri_signing_dsse"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Signing DSSE
 
@@ -71,3 +72,5 @@ assert await dsse_signer.verify_envelope(envelope, signatures)
 ## License
 
 This project is licensed under the [Apache License 2.0](LICENSE).
+
+

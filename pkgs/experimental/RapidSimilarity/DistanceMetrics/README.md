@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/DistanceMetrics" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/DistanceMetrics/">
         <img src="https://img.shields.io/pypi/v/DistanceMetrics?label=DistanceMetrics&color=green" alt="PyPI - DistanceMetrics"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 ## Purpose
 The `DistanceMetrics` package provides core distance and similarity measures, including implementations of various distance functions such as Euclidean distance and cosine similarity to evaluate similarity between high-dimensional vectors.
@@ -99,3 +100,4 @@ The `DistanceMetrics` package relies on the following Python packages:
 - `pybind11`
 
 Make sure to install these dependencies before building the package.
+

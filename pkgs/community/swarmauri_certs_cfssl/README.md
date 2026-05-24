@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_certs_cfssl" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_cfssl/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_cfssl?label=swarmauri_certs_cfssl&color=green" alt="PyPI - swarmauri_certs_cfssl"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri CFSSL Certificate Service
 
@@ -181,3 +182,5 @@ Foundational packages:
 ## License
 
 Apache-2.0
+
+

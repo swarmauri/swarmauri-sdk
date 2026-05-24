@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_transport_tls_unicast" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_tls_unicast/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_tls_unicast?label=swarmauri_transport_tls_unicast&color=green" alt="PyPI - swarmauri_transport_tls_unicast"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # srv_ctx.verify_mode = ssl.CERT_REQUIRED
 # srv_ctx.load_verify_locations("ca.pem")
@@ -41,3 +42,5 @@ asyncio.run(main())
 
 Configure the SSL contexts with your own certificates (and CA trust) to enable
 TLS or full mTLS verification.
+
+

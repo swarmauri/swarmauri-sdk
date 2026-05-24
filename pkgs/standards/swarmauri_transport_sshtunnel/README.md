@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_transport_sshtunnel" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_sshtunnel/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_sshtunnel?label=swarmauri_transport_sshtunnel&color=green" alt="PyPI - swarmauri_transport_sshtunnel"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Transport â€“ SSH Tunnel
 
@@ -48,3 +49,5 @@ asyncio.run(tunnel())
 ```
 
 Ensure SSH credentials, host keys, and jump host policies are configured on the machine executing the transport.
+
+

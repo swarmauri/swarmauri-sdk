@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_prompt_j2prompttemplate" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_prompt_j2prompttemplate/">
         <img src="https://img.shields.io/pypi/v/swarmauri_prompt_j2prompttemplate?label=swarmauri_prompt_j2prompttemplate&color=green" alt="PyPI - swarmauri_prompt_j2prompttemplate"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Prompt J2PromptTemplate
 
@@ -84,3 +85,5 @@ template's own directory.
 ## Want to help?
 
 If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md) that will help you get started.
+
+

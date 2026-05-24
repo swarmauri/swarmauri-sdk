@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_tokens_jwt" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_jwt/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tokens_jwt?label=swarmauri_tokens_jwt&color=green" alt="PyPI - swarmauri_tokens_jwt"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # swarmauri_tokens_jwt
 
@@ -145,3 +146,4 @@ surface.
 If you want to contribute to swarmauri-sdk, read up on our
 [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
 that will help you get started.
+

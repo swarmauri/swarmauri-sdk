@@ -11,8 +11,11 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_httploaded" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_httploaded/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_httploaded?label=swarmauri_tool_httploaded&color=green" alt="PyPI - swarmauri_tool_httploaded"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Tool HTTPLoaded
 
 Load components from a remote YAML manifest at instantiation time.
+
+

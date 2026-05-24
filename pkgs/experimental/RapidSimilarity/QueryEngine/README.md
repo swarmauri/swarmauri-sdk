@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/QueryEngine" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/QueryEngine/">
         <img src="https://img.shields.io/pypi/v/QueryEngine?label=QueryEngine&color=green" alt="PyPI - QueryEngine"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 ## Description
 The `QueryEngine` package provides a Python interface for performing both exact and approximate similarity searches on indexes built by the `IndexBuilder`. The underlying implementation leverages C++ optimizations for enhanced speed and efficiency.
@@ -142,3 +143,4 @@ pytest tests/
 ```
 
 Make sure to check for any failing tests and validate the output accordingly.
+

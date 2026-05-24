@@ -14,7 +14,8 @@ Use it only as a compatibility shim while migrating away from the deprecated `Di
         <img src="https://img.shields.io/pypi/l/swamauri_metric_wasserstein" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swamauri_metric_wasserstein/">
         <img src="https://img.shields.io/pypi/v/swamauri_metric_wasserstein?label=swamauri_metric_wasserstein&color=green" alt="PyPI - swamauri_metric_wasserstein"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swamauri Metric Wasserstein
 
@@ -68,3 +69,5 @@ print(f"Similarity: {similarity}")
 If you want to contribute to swarmauri-sdk, read up on our
 [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md)
 that will help you get started.
+
+

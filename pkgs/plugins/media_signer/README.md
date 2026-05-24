@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/MediaSigner" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/MediaSigner/">
         <img src="https://img.shields.io/pypi/v/MediaSigner?label=MediaSigner&color=green" alt="PyPI - MediaSigner"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 MediaSigner packages the asynchronous `Signer` facade that orchestrates registered
 `SigningBase` providers. Moving the facade into a standalone plugin keeps the
@@ -154,3 +155,5 @@ materials matching the selected plugin.
 - Issues: <https://github.com/swarmauri/swarmauri-sdk/issues>
 - Releases: <https://github.com/swarmauri/swarmauri-sdk/releases>
 - Discussions: <https://github.com/orgs/swarmauri/discussions>
+
+

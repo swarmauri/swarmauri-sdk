@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/tigr" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/tigr/">
         <img src="https://img.shields.io/pypi/v/tigr?label=tigr&color=green" alt="PyPI - tigr"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # or
 pip install tigr
@@ -24,3 +25,5 @@ from tigr import placeholder
 
 print(placeholder())
 ```
+
+

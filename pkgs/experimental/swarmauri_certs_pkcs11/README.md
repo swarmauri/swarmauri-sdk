@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_certs_pkcs11" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_pkcs11/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_pkcs11?label=swarmauri_certs_pkcs11&color=green" alt="PyPI - swarmauri_certs_pkcs11"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Certs PKCS#11
 
@@ -27,3 +28,5 @@ pip install swarmauri_certs_pkcs11
 ## Entry Point
 
 The service registers under the `swarmauri.cert_services` entry point as `Pkcs11CertService`.
+
+

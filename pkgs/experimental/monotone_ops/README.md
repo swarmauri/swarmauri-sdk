@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/monotone-ops" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/monotone-ops/">
         <img src="https://img.shields.io/pypi/v/monotone-ops?label=monotone-ops&color=green" alt="PyPI - monotone-ops"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # monotone-ops
 
@@ -126,3 +127,5 @@ Primary references used while shaping the catalog:
 - Nutt, *Datalog with Negation*, Foundations of Database Systems lecture notes.
 - Mohri, *Semiring Frameworks and Algorithms for Shortest-Distance Problems*.
 - Astral `uv` documentation for project and build-backend structure.
+
+

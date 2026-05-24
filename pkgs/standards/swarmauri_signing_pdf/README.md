@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_signing_pdf" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_pdf/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_pdf?label=swarmauri_signing_pdf&color=green" alt="PyPI - swarmauri_signing_pdf"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Signing PDF
 
@@ -63,3 +64,5 @@ standardised `Signature` payloads ready to embed into PDF workflows.
 Please read the
 [contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
 if you would like to contribute improvements or documentation.
+
+

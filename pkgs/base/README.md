@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_base" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_base/">
         <img src="https://img.shields.io/pypi/v/swarmauri_base?label=swarmauri_base&color=green" alt="PyPI - swarmauri_base"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Base
 
@@ -178,3 +179,5 @@ Apache-2.0
 ## Contributing
 
 When adding or changing a base class, keep it aligned with the corresponding `swarmauri_core` interface, preserve direct plugin instantiation patterns, update exports and tests, and follow the [Swarmauri SDK contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md).
+
+

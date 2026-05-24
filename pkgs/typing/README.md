@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_typing" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_typing/">
         <img src="https://img.shields.io/pypi/v/swarmauri_typing?label=swarmauri_typing&color=green" alt="PyPI - swarmauri_typing"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Typing
 
@@ -165,3 +166,5 @@ Apache-2.0
 ## Contributing
 
 When changing these helpers, keep the API small and compatible with Pydantic metadata usage in `swarmauri_base`, add focused tests for generated annotations, and follow the [Swarmauri SDK contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md).
+
+

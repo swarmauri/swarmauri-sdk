@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_cipher_suite_tls13" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_tls13/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_tls13?label=swarmauri_cipher_suite_tls13&color=green" alt="PyPI - swarmauri_cipher_suite_tls13"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Cipher Tls13
 
@@ -72,3 +73,5 @@ The suite registers under the `swarmauri.cipher_suites` entry point as `Tls13Cip
 If you want to contribute to swarmauri-sdk, read up on our
 [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
 that will help you get started.
+
+

@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_tokens_rotatingjwt" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_rotatingjwt/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tokens_rotatingjwt?label=swarmauri_tokens_rotatingjwt&color=green" alt="PyPI - swarmauri_tokens_rotatingjwt"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # swarmauri_tokens_rotatingjwt
 
@@ -65,3 +66,4 @@ JWKS endpoint that includes previous keys so existing tokens remain valid.
 If you want to contribute to swarmauri-sdk, read up on our
 [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
 that will help you get started.
+

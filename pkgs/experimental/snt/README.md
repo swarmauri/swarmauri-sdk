@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/snt" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/snt/">
         <img src="https://img.shields.io/pypi/v/snt?label=snt&color=green" alt="PyPI - snt"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swm Example Package
 
@@ -31,3 +32,5 @@ from swarmauri.{resource_name}.{MainClass} import {MainClass}
 ## Want to help?
 
 If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+
+

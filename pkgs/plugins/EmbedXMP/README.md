@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/EmbedXMP" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/EmbedXMP/">
         <img src="https://img.shields.io/pypi/v/EmbedXMP?label=EmbedXMP&color=green" alt="PyPI - EmbedXMP"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 EmbedXMP collects every installed `EmbedXmpBase` implementation, discovers them via Swarmauri's dynamic registry, and exposes a unified manager that can embed, read, or remove XMP packets without worrying about container formats.
 
@@ -92,3 +93,5 @@ asyncio.run(embed_all(["one.png", "two.svg"], "<x:xmpmeta>...</x:xmpmeta>"))
 - Issues: <https://github.com/swarmauri/swarmauri-sdk/issues>
 - Releases: <https://github.com/swarmauri/swarmauri-sdk/releases>
 - Discussions: <https://github.com/orgs/swarmauri/discussions>
+
+

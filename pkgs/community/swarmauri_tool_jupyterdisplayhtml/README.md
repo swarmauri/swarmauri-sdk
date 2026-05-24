@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupyterdisplayhtml" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupyterdisplayhtml/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterdisplayhtml?label=swarmauri_tool_jupyterdisplayhtml&color=green" alt="PyPI - swarmauri_tool_jupyterdisplayhtml"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Tool Jupyter Display HTML
 
@@ -49,7 +50,8 @@ from swarmauri_tool_jupyterdisplayhtml import JupyterDisplayHTMLTool
 tool = JupyterDisplayHTMLTool()
 result = tool("""
 <h2>Swarmauri</h2>
-<p>This HTML was rendered by JupyterDisplayHTMLTool.</p>
+<p>This HTML was rendered by JupyterDisplayHTMLTool.
+</p>
 """)
 print(result)
 ```
@@ -63,3 +65,5 @@ print(result)
 ## Want to help?
 
 If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+
+

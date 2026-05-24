@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_transport_udp" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_udp/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_udp?label=swarmauri_transport_udp&color=green" alt="PyPI - swarmauri_transport_udp"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri UDP Transport
 
@@ -70,3 +71,5 @@ asyncio.run(main())
 Adjust the `bind` address and multicast groups to suit your environment. The
 transport leaves socket configuration open so you can customize TTL, reuse,
 and other behaviors as needed.
+
+

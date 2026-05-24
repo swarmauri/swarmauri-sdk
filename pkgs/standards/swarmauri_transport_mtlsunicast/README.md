@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_transport_mtlsunicast" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_mtlsunicast/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_mtlsunicast?label=swarmauri_transport_mtlsunicast&color=green" alt="PyPI - swarmauri_transport_mtlsunicast"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Transport â€“ Mutual TLS Unicast
 
@@ -53,3 +54,5 @@ asyncio.run(secure_client())
 ```
 
 Customize the SSL context for your environmentâ€”pin certificates, enable ALPN, or integrate with service mesh trust stores.
+
+

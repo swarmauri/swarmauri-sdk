@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/tigrbl_api_cron" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/tigrbl_api_cron/">
         <img src="https://img.shields.io/pypi/v/tigrbl_api_cron?label=tigrbl_api_cron&color=green" alt="PyPI - tigrbl_api_cron"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Tigrbl API Cron ⏰
 
@@ -83,3 +84,5 @@ asyncio.run(execute_due_jobs(app, now=datetime.now(timezone.utc)))
 ## 📄 License
 
 This project is licensed under the terms of the [Apache 2.0](LICENSE) license.
+
+

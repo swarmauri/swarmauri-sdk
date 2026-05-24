@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_transport_quic" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_quic/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_quic?label=swarmauri_transport_quic&color=green" alt="PyPI - swarmauri_transport_quic"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri QUIC Transport
 
@@ -77,3 +78,5 @@ asyncio.run(main())
 
 Replace the placeholders with concrete QUIC operations once your chosen
 library is integrated.
+
+

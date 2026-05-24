@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_certs_self_signed" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_self_signed/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_self_signed?label=swarmauri_certs_self_signed&color=green" alt="PyPI - swarmauri_certs_self_signed"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Self-Signed Certificate Builder
 
@@ -91,3 +92,4 @@ This package registers `SelfSignedCertificate` under both the `swarmauri.cert_se
 If you want to contribute to swarmauri-sdk, read up on our
 [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
 that will help you get started.
+

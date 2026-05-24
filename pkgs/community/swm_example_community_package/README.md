@@ -11,6 +11,9 @@
         <img src="https://img.shields.io/pypi/l/swm_example_community_package" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swm_example_community_package/">
         <img src="https://img.shields.io/pypi/v/swm_example_community_package?label=swm_example_community_package&color=green" alt="PyPI - swm_example_community_package"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swm Example Community Package
+
+

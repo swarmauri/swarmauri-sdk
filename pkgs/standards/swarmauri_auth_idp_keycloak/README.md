@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_auth_idp_keycloak" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_keycloak/">
         <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_keycloak?label=swarmauri_auth_idp_keycloak&color=green" alt="PyPI - swarmauri_auth_idp_keycloak"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Auth IDP Keycloak
 
@@ -93,3 +94,5 @@ asyncio.run(run_flow())
 To contribute to swarmauri-sdk, review the
 [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
 which cover development workflow, testing, and coding standards.
+
+

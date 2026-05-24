@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_transport_stdio" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_stdio/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_stdio?label=swarmauri_transport_stdio&color=green" alt="PyPI - swarmauri_transport_stdio"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Transport â€“ STDIO Bridge
 
@@ -47,3 +48,5 @@ asyncio.run(run_tool())
 ```
 
 Wrap any CLI-friendly model or service and adapt its IO using the Swarmauri transport interfaces.
+
+

@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_canon_http" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_canon_http/">
         <img src="https://img.shields.io/pypi/v/swarmauri_canon_http?label=swarmauri_canon_http&color=green" alt="PyPI - swarmauri_canon_http"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 `swarmauri_canon_http` is a lightweight canonical HTTP client implementation that tracks a subset of `httpx` behavior for parity checks and incremental feature alignment.
 
@@ -87,3 +88,5 @@ asyncio.run(main())
 ## Python support
 
 This package targets Python 3.10 through 3.12 in project-level documentation.
+
+

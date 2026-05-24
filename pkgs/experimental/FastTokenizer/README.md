@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/FastTokenizer" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/FastTokenizer/">
         <img src="https://img.shields.io/pypi/v/FastTokenizer?label=FastTokenizer&color=green" alt="PyPI - FastTokenizer"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # `FastTokenizer`
 
@@ -314,3 +315,4 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 ```
+

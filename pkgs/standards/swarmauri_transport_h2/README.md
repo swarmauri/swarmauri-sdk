@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_transport_h2" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_h2/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_h2?label=swarmauri_transport_h2&color=green" alt="PyPI - swarmauri_transport_h2"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Transport â€“ HTTP/2 Adapter
 
@@ -47,3 +48,5 @@ asyncio.run(run_request())
 ```
 
 The adapter lets you reuse a single HTTP/2 connection for multiple requests, plug in custom channel management, or proxy calls to Swarmauri agents.
+
+

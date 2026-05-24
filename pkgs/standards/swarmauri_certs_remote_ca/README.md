@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_certs_remote_ca" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_remote_ca/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_remote_ca?label=swarmauri_certs_remote_ca&color=green" alt="PyPI - swarmauri_certs_remote_ca"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Remote CA Cert Service
 
@@ -109,3 +110,4 @@ through the `auth` argument and override request or response formats via the
 If you want to contribute to swarmauri-sdk, read up on our
 [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
 that will help you get started.
+

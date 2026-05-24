@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_llm_falai" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_llm_falai/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_falai?label=swarmauri_llm_falai&color=green" alt="PyPI - swarmauri_llm_falai"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri fal.ai Vision Model
 
@@ -180,3 +181,5 @@ print(text)
 ## License
 
 Apache-2.0
+
+

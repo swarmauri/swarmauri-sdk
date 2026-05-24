@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_sentencecomplexity" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_sentencecomplexity/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_sentencecomplexity?label=swarmauri_tool_sentencecomplexity&color=green" alt="PyPI - swarmauri_tool_sentencecomplexity"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Tool Â· Sentence Complexity
 
@@ -133,3 +134,5 @@ Track whether edits are making the writing clearer or more complex.
 ## License
 
 `swarmauri_tool_sentencecomplexity` is released under the Apache 2.0 License. See `LICENSE` for details.
+
+

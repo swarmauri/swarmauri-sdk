@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_tests_griffe" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tests_griffe/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tests_griffe?label=swarmauri_tests_griffe&color=green" alt="PyPI - swarmauri_tests_griffe"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # swarmauri_tests_griffe
 
@@ -84,3 +85,5 @@ addopts = "--griffe-package swarmauri_core --griffe-package swarmauri_tests_grif
 
 With the options saved, every pytest run enforces the same quality gates across
 your codebase without extra setup.
+
+

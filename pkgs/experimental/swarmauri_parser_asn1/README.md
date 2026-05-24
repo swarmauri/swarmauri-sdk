@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_parser_asn1" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_parser_asn1/">
         <img src="https://img.shields.io/pypi/v/swarmauri_parser_asn1?label=swarmauri_parser_asn1&color=green" alt="PyPI - swarmauri_parser_asn1"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # swarmauri-asn1
 
@@ -61,3 +62,4 @@ print(docs[0].content)
 ```
 
 > Ensure you have `swarmauri-sdk` installed; this package registers via entry points.
+

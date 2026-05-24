@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_zapierhook" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_zapierhook/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_zapierhook?label=swarmauri_tool_zapierhook&color=green" alt="PyPI - swarmauri_tool_zapierhook"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Tool Â· Zapier Hook
 
@@ -144,3 +145,5 @@ Replay queued events into Zapier when systems come back online.
 ## License
 
 `swarmauri_tool_zapierhook` is released under the Apache 2.0 License. See `LICENSE` for full details.
+
+

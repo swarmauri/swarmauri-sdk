@@ -11,5 +11,8 @@
         <img src="https://img.shields.io/pypi/l/ptree_dag_extension_example" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/ptree_dag_extension_example/">
         <img src="https://img.shields.io/pypi/v/ptree_dag_extension_example?label=ptree_dag_extension_example&color=green" alt="PyPI - ptree_dag_extension_example"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+
+
 

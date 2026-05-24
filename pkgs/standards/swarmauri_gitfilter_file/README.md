@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_gitfilter_file" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_gitfilter_file/">
         <img src="https://img.shields.io/pypi/v/swarmauri_gitfilter_file?label=swarmauri_gitfilter_file&color=green" alt="PyPI - swarmauri_gitfilter_file"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Git Filter File
 
@@ -66,3 +67,4 @@ digest used to deduplicate objects on disk.
 If you want to contribute to swarmauri-sdk, read up on our
 [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
 that will help you get started.
+

@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_aws_kms" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_aws_kms/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_aws_kms?label=swarmauri_keyprovider_aws_kms&color=green" alt="PyPI - swarmauri_keyprovider_aws_kms"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri AWS KMS Key Provider
 
@@ -187,3 +188,5 @@ Foundational packages:
 ## License
 
 Apache-2.0
+
+

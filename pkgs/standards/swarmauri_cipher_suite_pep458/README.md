@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_cipher_suite_pep458" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_pep458/">
         <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_pep458?label=swarmauri_cipher_suite_pep458&color=green" alt="PyPI - swarmauri_cipher_suite_pep458"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # swarmauri_cipher_suite_pep458
 
@@ -97,3 +98,5 @@ performs the cryptographic operations.
 ## License
 
 This project is licensed under the [Apache License 2.0](LICENSE).
+
+

@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/IndexBuilder" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/IndexBuilder/">
         <img src="https://img.shields.io/pypi/v/IndexBuilder?label=IndexBuilder&color=green" alt="PyPI - IndexBuilder"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 ## Purpose
 
@@ -99,3 +100,4 @@ For development, you may also install:
 - uv
 
 This package is intended for users looking to implement high-dimensional indexing for similarity searches in their applications.
+

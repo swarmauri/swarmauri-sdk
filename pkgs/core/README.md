@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_core" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_core/">
         <img src="https://img.shields.io/pypi/v/swarmauri_core?label=swarmauri_core&color=green" alt="PyPI - swarmauri_core"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Core
 
@@ -167,3 +168,5 @@ Apache-2.0
 ## Contributing
 
 When adding or changing a core interface, keep the contract narrow, update downstream base classes where needed, add focused tests, and follow the [Swarmauri SDK contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md).
+
+

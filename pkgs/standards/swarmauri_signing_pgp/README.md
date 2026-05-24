@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_signing_pgp" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_pgp/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_pgp?label=swarmauri_signing_pgp&color=green" alt="PyPI - swarmauri_signing_pgp"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Signing PGP
 
@@ -139,3 +140,5 @@ await signer.verify_envelope(
 Use `canon="cbor"` to opt into CBOR canonicalization. The `supports()` helper
 exposes the available algorithms, canonicalization formats, and feature flags at
 runtime.
+
+

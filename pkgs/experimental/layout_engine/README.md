@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/layout_engine" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/layout_engine/">
         <img src="https://img.shields.io/pypi/v/layout_engine?label=layout_engine&color=green" alt="PyPI - layout_engine"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Layout Engine (Core)
 
@@ -637,3 +638,5 @@ uv run --directory experimental/layout_engine --package layout-engine pytest -q
 ## License
 
 Apache License 2.0. See [LICENSE](./LICENSE) for full terms.
+
+

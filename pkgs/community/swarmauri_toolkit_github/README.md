@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_toolkit_github" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_toolkit_github/">
         <img src="https://img.shields.io/pypi/v/swarmauri_toolkit_github?label=swarmauri_toolkit_github&color=green" alt="PyPI - swarmauri_toolkit_github"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Toolkit Â· GitHub
 
@@ -163,3 +164,5 @@ Keep a backlog tidy by automatically nudging stale tickets.
 ## License
 
 `swarmauri_toolkit_github` is released under the Apache 2.0 License. See `LICENSE` for full details.
+
+

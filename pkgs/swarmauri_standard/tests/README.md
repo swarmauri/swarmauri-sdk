@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_standard" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_standard/">
         <img src="https://img.shields.io/pypi/v/swarmauri_standard?label=swarmauri_standard&color=green" alt="PyPI - swarmauri_standard"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri-SDK Test Cases
 This project demonstrates how to classify pytest errors using GitHub Actions and handle the workflow based on the severity of the failures.
@@ -30,3 +31,5 @@ The tests can be run locally using pytest:
 ```sh
 pytest --junitxml=results.xml
 python classify_test_results.py results.xml
+
+

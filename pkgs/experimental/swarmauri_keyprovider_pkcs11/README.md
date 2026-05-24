@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_pkcs11" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_pkcs11/">
         <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_pkcs11?label=swarmauri_keyprovider_pkcs11&color=green" alt="PyPI - swarmauri_keyprovider_pkcs11"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri PKCS#11 Key Provider
 
@@ -22,3 +23,5 @@ Hardware-backed key provider using PKCS#11 devices.
 ```bash
 pip install swarmauri_keyprovider_pkcs11
 ```
+
+

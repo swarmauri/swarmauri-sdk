@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_crypto_pgp" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_pgp/">
         <img src="https://img.shields.io/pypi/v/swarmauri_crypto_pgp?label=swarmauri_crypto_pgp&color=green" alt="PyPI - swarmauri_crypto_pgp"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 ## Swarmauri Crypto PGP
 
@@ -114,3 +115,4 @@ The provider is registered under the `swarmauri.cryptos` entry-point as
 If you want to contribute to swarmauri-sdk, read up on our
 [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
 that will help you get started.
+

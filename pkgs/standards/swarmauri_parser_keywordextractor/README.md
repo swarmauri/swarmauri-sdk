@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_parser_keywordextractor" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_parser_keywordextractor/">
         <img src="https://img.shields.io/pypi/v/swarmauri_parser_keywordextractor?label=swarmauri_parser_keywordextractor&color=green" alt="PyPI - swarmauri_parser_keywordextractor"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Parser Keywordextractor
 
@@ -66,4 +67,6 @@ can feed them directly into downstream Swarmauri pipelines.
 ## Want to help?
 
 If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+
+
 

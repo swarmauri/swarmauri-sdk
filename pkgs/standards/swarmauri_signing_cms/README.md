@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_signing_cms" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_cms/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_cms?label=swarmauri_signing_cms&color=green" alt="PyPI - swarmauri_signing_cms"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Signing CMS
 
@@ -328,3 +329,5 @@ chain.
 Pull requests and issue reports are welcome! Please review the
 [contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
 before submitting changes.
+
+

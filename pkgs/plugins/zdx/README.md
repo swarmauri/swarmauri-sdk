@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/zdx" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/zdx/">
         <img src="https://img.shields.io/pypi/v/zdx?label=zdx&color=green" alt="PyPI - zdx"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # ZDX
 
@@ -124,3 +125,5 @@ per public class. Pages land in
 `docs/api/<name>/<module path>/<Class>.md` and a simple `index.md` is created if
 one does not exist. The navigation section for the target is appended to
 `mkdocs.yml`, ensuring the new pages appear in the rendered site.
+
+

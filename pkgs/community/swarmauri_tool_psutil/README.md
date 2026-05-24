@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_psutil" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_psutil/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_psutil?label=swarmauri_tool_psutil&color=green" alt="PyPI - swarmauri_tool_psutil"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Tool Â· psutil
 
@@ -152,3 +153,5 @@ Capture periodic snapshots that can be loaded into notebooks, dashboards, or ano
 ## License
 
 `swarmauri_tool_psutil` is released under the Apache 2.0 License. See `LICENSE` for details.
+
+

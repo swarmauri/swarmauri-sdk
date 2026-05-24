@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_certs_acme" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_acme/">
         <img src="https://img.shields.io/pypi/v/swarmauri_certs_acme?label=swarmauri_certs_acme&color=green" alt="PyPI - swarmauri_certs_acme"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri ACME Certificate Service
 
@@ -194,3 +195,5 @@ Foundational packages:
 ## License
 
 Apache-2.0
+
+

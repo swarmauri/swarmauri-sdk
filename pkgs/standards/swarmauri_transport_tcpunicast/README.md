@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_transport_tcpunicast" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_tcpunicast/">
         <img src="https://img.shields.io/pypi/v/swarmauri_transport_tcpunicast?label=swarmauri_transport_tcpunicast&color=green" alt="PyPI - swarmauri_transport_tcpunicast"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Transport â€“ TCP Unicast
 
@@ -47,3 +48,5 @@ asyncio.run(echo_server())
 ```
 
 Swap in your own handlers to forward traffic, feed LLM pipelines, or compose with other Swarmauri transports.
+
+

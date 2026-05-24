@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_signing_openpgp" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_openpgp/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_openpgp?label=swarmauri_signing_openpgp&color=green" alt="PyPI - swarmauri_signing_openpgp"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Signing OpenPGP
 
@@ -63,3 +64,5 @@ as extension points for future OpenPGP envelope handling.
 Contributions are welcome! See the
 [contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
 for details.
+
+

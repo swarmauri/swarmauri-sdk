@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_llm_ai21" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_llm_ai21/">
         <img src="https://img.shields.io/pypi/v/swarmauri_llm_ai21?label=swarmauri_llm_ai21&color=green" alt="PyPI - swarmauri_llm_ai21"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri AI21 LLM
 
@@ -167,3 +168,5 @@ Foundational packages:
 ## License
 
 Apache-2.0
+
+

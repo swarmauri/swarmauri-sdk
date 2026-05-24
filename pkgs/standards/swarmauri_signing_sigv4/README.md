@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_signing_sigv4" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_sigv4/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_sigv4?label=swarmauri_signing_sigv4&color=green" alt="PyPI - swarmauri_signing_sigv4"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Signing SigV4
 
@@ -99,3 +100,5 @@ The signer registers under the `swarmauri.signings` entry point as `SigV4Signing
 ## Want to help?
 
 If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md) that will help you get started.
+
+

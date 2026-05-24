@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_containernewsession" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_containernewsession/">
         <img src="https://img.shields.io/pypi/v/swarmauri_tool_containernewsession?label=swarmauri_tool_containernewsession&color=green" alt="PyPI - swarmauri_tool_containernewsession"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Tool ContainerNewSession
 
@@ -32,3 +33,5 @@ tool = ContainerNewSessionTool(container_name="my-container", image="ubuntu:late
 result = tool()
 print(result["stdout"])
 ```
+
+

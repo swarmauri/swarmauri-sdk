@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_billing_razorpay" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_billing_razorpay/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_razorpay?label=swarmauri_billing_razorpay&color=green" alt="PyPI - swarmauri_billing_razorpay"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Billing Razorpay
 
@@ -191,3 +192,5 @@ Apache-2.0
 ## Contributing
 
 When expanding Razorpay coverage, keep each Swarmauri billing method aligned with the corresponding Razorpay SDK resource, document required credentials and account configuration, and add tests for each changed runtime path.
+
+

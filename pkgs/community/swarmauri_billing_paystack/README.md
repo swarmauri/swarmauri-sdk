@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_billing_paystack" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_billing_paystack/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_paystack?label=swarmauri_billing_paystack&color=green" alt="PyPI - swarmauri_billing_paystack"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Billing Paystack
 
@@ -185,3 +186,5 @@ Apache-2.0
 ## Contributing
 
 Contributions that expand Paystack coverage or improve resiliency are welcome. Include request and response traces with secrets redacted, update usage examples, and add tests for each billing capability you change.
+
+

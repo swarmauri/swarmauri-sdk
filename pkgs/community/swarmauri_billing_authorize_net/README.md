@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_billing_authorize_net" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_billing_authorize_net/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_authorize_net?label=swarmauri_billing_authorize_net&color=green" alt="PyPI - swarmauri_billing_authorize_net"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Billing Authorize.Net
 
@@ -161,3 +162,5 @@ Apache-2.0
 ## Contributing
 
 If you connect this provider to live Authorize.Net APIs, keep the stub behavior separately testable, document required credentials and webhook behavior, and add tests for every supported billing capability.
+
+

@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_billing_adyen" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_billing_adyen/">
         <img src="https://img.shields.io/pypi/v/swarmauri_billing_adyen?label=swarmauri_billing_adyen&color=green" alt="PyPI - swarmauri_billing_adyen"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Billing Adyen
 
@@ -151,3 +152,5 @@ Apache-2.0
 ## Contributing
 
 Community contributions are welcome. Keep behavior deterministic unless adding an explicitly documented live-client mode, preserve the Swarmauri billing interfaces, and add tests for new billing capability methods.
+
+

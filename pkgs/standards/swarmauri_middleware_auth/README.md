@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_middleware_auth" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_auth/">
         <img src="https://img.shields.io/pypi/v/swarmauri_middleware_auth?label=swarmauri_middleware_auth&color=green" alt="PyPI - swarmauri_middleware_auth"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # `swarmauri_middleware_auth`
 
@@ -167,4 +168,6 @@ middleware plumbing. The method returns the decoded payload when valid and
 ## Want to help?
 
 If you want to contribute to swarmauri-sdk, read our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md).
+
+
 

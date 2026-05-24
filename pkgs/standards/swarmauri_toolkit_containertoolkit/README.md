@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_toolkit_containertoolkit" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_toolkit_containertoolkit/">
         <img src="https://img.shields.io/pypi/v/swarmauri_toolkit_containertoolkit?label=swarmauri_toolkit_containertoolkit&color=green" alt="PyPI - swarmauri_toolkit_containertoolkit"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Toolkit ContainerToolkit
 
@@ -31,3 +32,5 @@ from swarmauri_toolkit_containertoolkit import ContainerToolkit
 toolkit = ContainerToolkit(container_name="my-container", image="ubuntu:latest")
 print(toolkit.tools.keys())
 ```
+
+

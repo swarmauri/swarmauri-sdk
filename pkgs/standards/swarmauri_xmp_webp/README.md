@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_xmp_webp" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_xmp_webp/">
         <img src="https://img.shields.io/pypi/v/swarmauri_xmp_webp?label=swarmauri_xmp_webp&color=green" alt="PyPI - swarmauri_xmp_webp"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # swarmauri_xmp_webp
 
@@ -57,3 +58,5 @@ except NotImplementedError:
 
 - Source: <https://github.com/swarmauri/swarmauri-sdk>
 - License: Apache 2.0
+
+

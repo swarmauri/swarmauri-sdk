@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_metric_hamming" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_metric_hamming/">
         <img src="https://img.shields.io/pypi/v/swarmauri_metric_hamming?label=swarmauri_metric_hamming&color=green" alt="PyPI - swarmauri_metric_hamming"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Metric Hamming
 
@@ -64,3 +65,5 @@ assert metric.check_triangle_inequality(codeword, received, codeword)
 ## Contributing
 
 We welcome contributions! Please submit issues and pull requests through the [Swarmauri SDK GitHub repository](https://github.com/swarmauri/swarmauri-sdk).
+
+

@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_mre_crypto_keyring" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_mre_crypto_keyring/">
         <img src="https://img.shields.io/pypi/v/swarmauri_mre_crypto_keyring?label=swarmauri_mre_crypto_keyring&color=green" alt="PyPI - swarmauri_mre_crypto_keyring"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri MRE Crypto Keyring
 
@@ -99,3 +100,5 @@ recovers the original plaintext using the same keyring client.
 ## Want to help?
 
 If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+
+

@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_signing_xmld" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_xmld/">
         <img src="https://img.shields.io/pypi/v/swarmauri_signing_xmld?label=swarmauri_signing_xmld&color=green" alt="PyPI - swarmauri_signing_xmld"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Installation
 
@@ -44,3 +45,5 @@ signature = await signer.sign_bytes(
     payload=xml_payload,
 )
 ```
+
+

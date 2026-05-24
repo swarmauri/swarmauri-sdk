@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_toolkit_runtime" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_toolkit_runtime/">
         <img src="https://img.shields.io/pypi/v/swarmauri_toolkit_runtime?label=swarmauri_toolkit_runtime&color=green" alt="PyPI - swarmauri_toolkit_runtime"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Toolkit RuntimeToolkit
 
@@ -147,4 +148,6 @@ The `__call__` value is evaluated against the declared parameter names. A body s
 ## License
 
 `swarmauri_toolkit_runtime` is released under the Apache 2.0 License. See `LICENSE` for details.
+
+
 

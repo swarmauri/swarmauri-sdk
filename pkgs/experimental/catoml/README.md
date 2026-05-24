@@ -11,5 +11,8 @@
         <img src="https://img.shields.io/pypi/l/catoml" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/catoml/">
         <img src="https://img.shields.io/pypi/v/catoml?label=catoml&color=green" alt="PyPI - catoml"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+
+
 

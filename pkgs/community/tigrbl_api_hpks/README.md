@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/tigrbl_api_hpks" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/tigrbl_api_hpks/">
         <img src="https://img.shields.io/pypi/v/tigrbl_api_hpks?label=tigrbl_api_hpks&color=green" alt="PyPI - tigrbl_api_hpks"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Tigrbl API HPKS 🔐
 
@@ -80,3 +81,5 @@ uv run --package tigrbl_api_hpks --directory pkgs/community/tigrbl_api_hpks pyte
 ## 📄 License
 
 This project is licensed under the terms of the [Apache 2.0](LICENSE) license.
+
+

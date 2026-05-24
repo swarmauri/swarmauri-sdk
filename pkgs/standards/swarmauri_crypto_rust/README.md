@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_crypto_rust" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_rust/">
         <img src="https://img.shields.io/pypi/v/swarmauri_crypto_rust?label=swarmauri_crypto_rust&color=green" alt="PyPI - swarmauri_crypto_rust"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 ## Swarmauri Crypto Rust
 
@@ -231,3 +232,5 @@ Contributions are welcome! Please see [CONTRIBUTING.md](../../../CONTRIBUTING.md
 - Multi-recipient envelope support
 - Maturin build system integration
 - Comprehensive test suite
+
+

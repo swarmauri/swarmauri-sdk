@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/mto" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/mto/">
         <img src="https://img.shields.io/pypi/v/mto?label=mto&color=green" alt="PyPI - mto"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # mto
 
@@ -65,3 +66,5 @@ uv run --directory pkgs --package mto ruff format experimental/mto
 uv run --directory pkgs --package mto ruff check experimental/mto --fix
 uv run --directory pkgs --package mto pytest experimental/mto/tests
 ```
+
+

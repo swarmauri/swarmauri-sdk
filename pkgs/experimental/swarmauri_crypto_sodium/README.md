@@ -11,7 +11,8 @@
         <img src="https://img.shields.io/pypi/l/swarmauri_crypto_sodium" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_sodium/">
         <img src="https://img.shields.io/pypi/v/swarmauri_crypto_sodium?label=swarmauri_crypto_sodium&color=green" alt="PyPI - swarmauri_crypto_sodium"/></a>
-</p>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Crypto Sodium
 
@@ -57,4 +58,6 @@ The provider registers under the `swarmauri.cryptos` entry point as `SodiumCrypt
 ## License
 
 This project is licensed under the terms of the [MIT License](LICENSE).
+
+
 
