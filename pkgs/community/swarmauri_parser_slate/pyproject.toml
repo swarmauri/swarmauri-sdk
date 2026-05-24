@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_parser_slate"
 version = "0.3.1.dev5"
-description = "A parser for extracting text from PDFs using Slate."
+description = "Page-by-page PDF text parser for Swarmauri using slate3k over local file-path inputs."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,7 +11,13 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Office/Business",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Text Processing",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -32,9 +38,12 @@ keywords = [
     "swarmauri",
     "parser",
     "slate",
-    "extracting",
-    "text",
-    "pdfs",
+    "slate3k",
+    "pdf parser",
+    "pdf text extraction",
+    "document ingestion",
+    "page parsing",
+    "document processing",
 ]
 
 [tool.uv.sources]

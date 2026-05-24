@@ -16,34 +16,55 @@
 
 # Swarmauri Parser Slate
 
-PDF text parser for Swarmauri using [Slate3k](https://pypi.org/project/slate3k/) (a lightweight PDFMiner wrapper). Extracts text from each PDF page and returns `Document` instances with page metadata.
+`swarmauri_parser_slate` is the Swarmauri PDF parser for page-by-page text
+extraction using [slate3k](https://pypi.org/project/slate3k/), a lightweight
+wrapper around PDFMiner. It reads a local PDF path, extracts text for each
+page, and returns Swarmauri `Document` objects with source and page metadata.
+
+## Why Use Swarmauri Parser Slate
+
+- Parse text-based PDFs into page-scoped `Document` objects for chunking,
+  retrieval, and downstream agent workflows.
+- Keep document ingestion aligned with the Swarmauri parser interface.
+- Use a small PDF extraction dependency when `slate3k` is sufficient for the
+  target document set.
+- Preserve page numbers so later indexing, annotation, or citation workflows
+  can map text back to the source file.
+
+## FAQ
+
+> **What input does this parser accept?**  
+> A local PDF file path as a string.
+
+> **Does it support raw PDF bytes?**  
+> No. The current implementation is path-only and raises `TypeError` for other
+> input types.
+
+> **What does it return?**  
+> A list of Swarmauri `Document` objects, usually one per extracted page.
+
+> **Does it perform OCR on scanned PDFs?**  
+> No. It is intended for PDFs that already contain extractable text.
 
 ## Features
 
-- Opens PDFs with Slate3k and returns a `Document` per page (`content` = text, `metadata` includes `page_number` and `source`).
-- Accepts file paths (string). Raises a `TypeError` when given anything else to prevent silent failures.
-- Returns an empty list if Slate encounters parsing errors, logging the exception to stdout.
-
-## Prerequisites
-
-- Python 3.10 or newer.
-- Slate3k depends on `pdfminer.six`; make sure operating-system libraries required by PDFMiner (e.g., `libxml2`, `libxslt` on Linux) are installed.
-- Read access to the PDF path you pass in.
+- Page-by-page PDF text extraction through `slate3k`.
+- Returns `Document` objects with `page_number` and `source` metadata.
+- Provides a clear `TypeError` for unsupported input types.
+- Fits Swarmauri ingestion, parsing, and retrieval pipelines.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_parser_slate
-
-# poetry
-poetry add swarmauri_parser_slate
-
-# uv (pyproject-based projects)
 uv add swarmauri_parser_slate
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_parser_slate
+```
+
+## Usage
 
 ```python
 from swarmauri_parser_slate import SlateParser
@@ -51,30 +72,68 @@ from swarmauri_parser_slate import SlateParser
 parser = SlateParser()
 documents = parser.parse("pdfs/handbook.pdf")
 
-for doc in documents:
-    print(doc.metadata["page_number"], doc.content[:120])
+for document in documents:
+    print(document.metadata["page_number"], document.content[:120])
 ```
 
-## Handling Errors
+## Examples
+
+### Parse a handbook PDF
 
 ```python
+from swarmauri_parser_slate import SlateParser
+
 parser = SlateParser()
-try:
-    docs = parser.parse("missing.pdf")
-    if not docs:
-        print("No pages parsed or Slate returned no text.")
-except TypeError as exc:
-    print(f"Bad input: {exc}")
+pages = parser.parse("manuals/employee-handbook.pdf")
+
+for page in pages:
+    print(page.metadata["page_number"], len(page.content))
 ```
 
-## Tips
+### Handle missing files and invalid inputs
 
-- Slate3k works best on text-based PDFs. For scanned/bitmap PDFs, run OCR first (e.g., `swarmauri_ocr_pytesseract`).
-- Large PDFs can consume memory; consider chunking results or streaming pages to downstream processors.
-- Combine with token counting or summarization measurements in Swarmauri to further process the extracted content.
+```python
+from swarmauri_parser_slate import SlateParser
 
-## Want to help?
+parser = SlateParser()
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+print(parser.parse("missing.pdf"))
+
+try:
+    parser.parse(b"%PDF-1.7 ...")
+except TypeError as exc:
+    print(exc)
+```
+
+## Related Packages
+
+- [swarmauri_parser_pypdf2](https://pypi.org/project/swarmauri_parser_pypdf2/)
+- [swarmauri_parser_fitzpdf](https://pypi.org/project/swarmauri_parser_fitzpdf/)
+- [swarmauri_parser_pypdftk](https://pypi.org/project/swarmauri_parser_pypdftk/)
+- [swarmauri_ocr_pytesseract](https://pypi.org/project/swarmauri_ocr_pytesseract/)
+
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [slate3k on PyPI](https://pypi.org/project/slate3k/)
+- [pdfminer.six documentation](https://pdfminersix.readthedocs.io/)
+
+## Best Practices
+
+- Use this parser for PDFs that already contain selectable text.
+- Route scan-only or image-based PDFs through OCR before parsing.
+- Keep page-granular output when later stages need per-page provenance.
+- Validate representative PDFs first because extraction quality depends on the
+  original PDF structure.
+
+## License
+
+This project is licensed under the Apache-2.0 License.
 
 
