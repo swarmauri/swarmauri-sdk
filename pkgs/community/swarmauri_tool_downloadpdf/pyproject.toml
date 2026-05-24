@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_tool_downloadpdf"
 version = "0.10.1.dev5"
-description = "Swarmauri Community Download PDF Tool"
+description = "Swarmauri document-ingestion tool for downloading PDFs and returning base64-encoded content."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,11 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Office/Business",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -27,9 +32,12 @@ keywords = [
     "swarmauri",
     "tool",
     "downloadpdf",
-    "community",
     "download",
     "pdf",
+    "base64",
+    "document ingestion",
+    "http download",
+    "pdf workflow",
 ]
 
 [tool.uv.sources]

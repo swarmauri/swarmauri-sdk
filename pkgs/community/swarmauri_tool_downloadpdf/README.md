@@ -16,58 +16,128 @@
 
 # Swarmauri Tool Download PDF
 
-Tool that downloads a PDF by URL and returns the file contents as a base64-encoded string, enabling downstream storage or inline embedding without touching disk.
+`swarmauri_tool_downloadpdf` is a Swarmauri document-ingestion tool for
+fetching a PDF from a URL and returning its contents as a base64-encoded
+string. It is useful for agent workflows, document capture, API handoffs, and
+pipelines that need PDF content in memory without writing directly to disk.
+
+## Why Use Swarmauri Tool Download PDF
+
+- Retrieve PDFs from remote URLs inside Swarmauri workflows.
+- Keep document transfer in-memory with base64 output.
+- Hand off downloaded PDF content to parsers, storage layers, or APIs.
+- Surface structured success or error responses from HTTP downloads.
+
+## FAQ
+
+> **What does the tool return on success?**  
+> A dictionary with `message` and base64-encoded `content`.
+
+> **Does it save files to disk?**  
+> No. It downloads bytes into memory and returns them encoded as base64.
+
+> **What input does it expect?**  
+> The callable runtime surface currently expects a single `url` string.
+
+> **How are download failures reported?**  
+> The tool returns an `error` key with a descriptive message.
 
 ## Features
 
-- Uses `requests` to stream PDF bytes.
-- Encodes the result into base64 (`content` field) and includes a success message.
-- Returns an `error` key when download or processing fails.
-
-## Prerequisites
-
-- Python 3.10 or newer.
-- `requests` (installed automatically).
-- Network access to the target PDF URL.
+- Swarmauri `ToolBase` implementation registered as `DownloadPDFTool`.
+- Fetches PDF bytes with `requests`.
+- Returns PDF content as base64 for easy transport.
+- Avoids filesystem writes in the default flow.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_tool_downloadpdf
-
-# poetry
-poetry add swarmauri_tool_downloadpdf
-
-# uv (pyproject-based projects)
 uv add swarmauri_tool_downloadpdf
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_tool_downloadpdf
+```
+
+## Usage
 
 ```python
-import base64
-from pathlib import Path
 from swarmauri_tool_downloadpdf import DownloadPDFTool
 
 tool = DownloadPDFTool()
 result = tool("https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf")
 
-if "error" in result:
-    print(result["error"])
-else:
-    pdf_bytes = base64.b64decode(result["content"])
-    Path("downloaded.pdf").write_bytes(pdf_bytes)
+print(result.keys())
 ```
 
-## Tips
+## Examples
 
-- Always check for the `error` key before assuming the download succeeded.
-- Large PDFs load into memory?consider chunking or alternative tools if you need to stream huge files directly to disk.
-- Validate URLs to avoid downloading untrusted content when wiring this tool into automated pipelines.
+### Decode the returned PDF payload
 
-## Want to help?
+```python
+import base64
+from swarmauri_tool_downloadpdf import DownloadPDFTool
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+tool = DownloadPDFTool()
+result = tool("https://example.com/report.pdf")
 
+if "content" in result:
+    pdf_bytes = base64.b64decode(result["content"])
+    print(len(pdf_bytes))
+```
 
+### Send PDF content to another API
+
+```python
+import requests
+from swarmauri_tool_downloadpdf import DownloadPDFTool
+
+tool = DownloadPDFTool()
+result = tool("https://example.com/form.pdf")
+
+if "content" in result:
+    requests.post("https://api.example.com/upload", json=result)
+```
+
+### Use the tool in a Swarmauri collection
+
+```python
+from swarmauri_standard.tools.ToolCollection import ToolCollection
+from swarmauri_tool_downloadpdf import DownloadPDFTool
+
+tools = ToolCollection(tools=[DownloadPDFTool()])
+print(tools)
+```
+
+## Related Packages
+
+- [swarmauri_parser_pypdf2](https://pypi.org/project/swarmauri_parser_pypdf2/)
+- [swarmauri_parser_fitzpdf](https://pypi.org/project/swarmauri_parser_fitzpdf/)
+- [swarmauri_parser_pypdftk](https://pypi.org/project/swarmauri_parser_pypdftk/)
+- [swarmauri_tool_webscraping](https://pypi.org/project/swarmauri_tool_webscraping/)
+
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [Requests documentation](https://requests.readthedocs.io/)
+- [Base64 encoding in Python](https://docs.python.org/3/library/base64.html)
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+
+## Best Practices
+
+- Validate and sanitize URLs before downloading untrusted documents.
+- Guard against large PDFs if memory pressure matters in your runtime.
+- Check for `error` before decoding returned content.
+- Hand base64 output directly to downstream services when possible to avoid
+  unnecessary temporary files.
+
+## License
+
+This project is licensed under the Apache-2.0 License.
