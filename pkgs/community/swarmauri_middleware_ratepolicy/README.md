@@ -14,44 +14,59 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Middleware Ratepolicy
+# Swarmauri Middleware Rate Policy
 
-Retry-policy middleware for Swarmauri services. Provides exponential backoff with configurable retry attempts and wait intervals so unreliable upstream calls can be retried transparently.
+`swarmauri_middleware_ratepolicy` is the Swarmauri retry-policy middleware for
+wrapping request-like call flows with bounded retry attempts and exponential
+backoff. It provides a synchronous `dispatch(request, call_next)` surface that
+retries failing operations before finally re-raising the exception.
+
+## Why Use Swarmauri Middleware Rate Policy
+
+- Retry flaky upstream operations with a consistent middleware surface.
+- Bound retry counts while still applying exponential backoff.
+- Add basic resilience to synchronous request-processing or job-execution
+  pipelines.
+- Combine with circuit breakers and logging to build layered fault handling.
+
+## FAQ
+
+> **What parameters does this middleware expose?**  
+> `max_retries` and `initial_wait`.
+
+> **How is the wait interval calculated?**  
+> The middleware sleeps for `initial_wait * 2**attempts` between retries.
+
+> **Is the middleware async?**  
+> No. The current implementation is synchronous.
+
+> **What happens after the retry limit is reached?**  
+> The last exception is re-raised.
 
 ## Features
 
-- Implements Swarmauri's `MiddlewareBase` contract; wrap any callable sequence (FastAPI routes, job runners, etc.).
-- Configurable `max_retries` and `initial_wait` seconds. Wait time doubles on each retry (`initial_wait * 2**attempt`).
-- Emits structured logs on retry attempts and successes for observability.
-- Simple synchronous dispatch; wrap async callables by providing a sync shim that executes the coroutine (see example below).
-
-## Prerequisites
-
-- Python 3.10 or newer.
-- A Swarmauri application or FastAPI project that supports middleware registration.
+- Bounded retry loops over a synchronous `call_next` callable.
+- Exponential backoff using `initial_wait`.
+- Log messages for processing, retry attempts, and success.
+- Swarmauri `MiddlewareBase` integration for reusable resilience flows.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_middleware_ratepolicy
-
-# poetry
-poetry add swarmauri_middleware_ratepolicy
-
-# uv (pyproject-based projects)
 uv add swarmauri_middleware_ratepolicy
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_middleware_ratepolicy
+```
+
+## Usage
 
 ```python
-import logging
 from swarmauri_middleware_ratepolicy import RetryPolicyMiddleware
 
-logging.basicConfig(level=logging.INFO)
-
-retry_middleware = RetryPolicyMiddleware(max_retries=3, initial_wait=0.5)
+retry = RetryPolicyMiddleware(max_retries=3, initial_wait=0.5)
 
 class RequestEnvelope:
     def __init__(self, payload: str):
@@ -59,33 +74,35 @@ class RequestEnvelope:
 
 request = RequestEnvelope("work-item-123")
 
-def call_next(req: RequestEnvelope):
+def call_next(req):
     raise RuntimeError("Simulated upstream failure")
 
-retry_middleware.dispatch(request, call_next)
+retry.dispatch(request, call_next)
 ```
 
-With Swarmauri's middleware stack (or FastAPI), register it just like other Swarmauri middleware:
+## Examples
 
-```python
-from swarmauri_app.middleware import middleware_stack
-from swarmauri_middleware_ratepolicy import RetryPolicyMiddleware
-
-middleware_stack.add_middleware(
-    RetryPolicyMiddleware,
-    max_retries=4,
-    initial_wait=0.25,
-)
-```
-
-## Example: Wrapping an External API Call
+### Retry a failing operation
 
 ```python
 import logging
-import requests
 from swarmauri_middleware_ratepolicy import RetryPolicyMiddleware
 
 logging.basicConfig(level=logging.INFO)
+
+retry = RetryPolicyMiddleware(max_retries=3, initial_wait=0.25)
+
+def unstable(_request):
+    raise RuntimeError("Temporary failure")
+
+retry.dispatch({"task": "sync"}, unstable)
+```
+
+### Wrap an external API call
+
+```python
+import requests
+from swarmauri_middleware_ratepolicy import RetryPolicyMiddleware
 
 retry = RetryPolicyMiddleware(max_retries=4, initial_wait=0.25)
 
@@ -93,24 +110,51 @@ class RequestWrapper:
     def __init__(self, url: str):
         self.url = url
 
-wrapper = RequestWrapper("https://api.example.com/data")
-
 response = retry.dispatch(
-    wrapper,
+    RequestWrapper("https://api.example.com/data"),
     lambda req: requests.get(req.url, timeout=5),
 )
+
 print(response.status_code)
 ```
 
-## Tips
+### Register in a larger middleware stack
 
-- Keep `max_retries` small for user-facing endpoints to avoid long wait chains; rely on background queues for bulk retries.
-- Combine with the circuit breaker middleware for layered resilience (circuit breaker opens when repeated retries fail).
-- When wrapping async callables, convert them to sync functions using `asyncio.run` or `anyio.from_thread` to fit the middleware signature.
-- Capture logs at INFO level to trace retry attempts in production.
+```python
+from swarmauri_middleware_ratepolicy import RetryPolicyMiddleware
 
-## Want to help?
+middleware = RetryPolicyMiddleware(max_retries=2, initial_wait=1.0)
+print(middleware.type)
+```
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+## Related Packages
+
+- [swarmauri_middleware_circuitbreaker](https://pypi.org/project/swarmauri_middleware_circuitbreaker/)
+- [swarmauri_state_clipboard](https://pypi.org/project/swarmauri_state_clipboard/)
+- [swarmauri_middleware_ratepolicy](https://pypi.org/project/swarmauri_middleware_ratepolicy/)
+
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [Tenacity documentation](https://tenacity.readthedocs.io/en/stable/index.html)
+
+## Best Practices
+
+- Keep retry counts small for latency-sensitive user requests.
+- Use circuit breakers when a dependency is consistently unhealthy instead of
+  only increasing retries.
+- Apply retries around idempotent operations whenever possible.
+- Convert async flows deliberately if you need to wrap them with this
+  synchronous middleware surface.
+
+## License
+
+This project is licensed under the Apache-2.0 License.
 
 

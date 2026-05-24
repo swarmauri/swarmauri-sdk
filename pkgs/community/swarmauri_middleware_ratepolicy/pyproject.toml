@@ -1,16 +1,20 @@
 [project]
 name = "swarmauri_middleware_ratepolicy"
 version = "0.8.4.dev5"
-description = "A middleware implementing rate policy and retry logic for Swarmauri"
+description = "Synchronous retry-policy middleware for Swarmauri with bounded attempts and exponential backoff."
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/pkgs/swarmauri_middleware_ratepolicy/"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -34,13 +38,11 @@ keywords = [
     "ratepolicy",
     "retry",
     "tenacity",
-    "async",
-    "api",
-    "framework",
-    "implementing",
-    "rate",
-    "policy",
-    "logic",
+    "backoff",
+    "resilience",
+    "fault tolerance",
+    "request middleware",
+    "retry policy",
 ]
 
 [tool.uv.sources]
@@ -49,6 +51,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=tenacity"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
