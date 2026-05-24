@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_parser_textblob"
 version = "0.10.1.dev5"
-description = "TextBlob Parser for Swarmauri."
+description = "Lightweight sentence and noun-phrase parsing package for Swarmauri built on TextBlob and NLTK."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,7 +11,13 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Text Processing",
+    "Topic :: Text Processing :: Linguistic",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -33,6 +39,12 @@ keywords = [
     "swarmauri",
     "parser",
     "textblob",
+    "sentence parser",
+    "noun phrase extraction",
+    "nlp preprocessing",
+    "text segmentation",
+    "nltk",
+    "document processing",
 ]
 
 [tool.uv.sources]
@@ -41,6 +53,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=tqdm"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",

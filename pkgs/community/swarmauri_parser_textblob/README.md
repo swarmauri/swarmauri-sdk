@@ -16,67 +16,146 @@
 
 # Swarmauri Parser TextBlob
 
-TextBlob-backed parsers for Swarmauri that split text into sentences or extract noun phrases. Ships two components: `TextBlobSentenceParser` and `TextBlobNounParser`.
+`swarmauri_parser_textblob` provides two Swarmauri text parsing components built
+on [TextBlob](https://textblob.readthedocs.io/): `TextBlobSentenceParser` for
+sentence segmentation and `TextBlobNounParser` for noun-phrase extraction. It
+is designed for lightweight NLP preprocessing before chunking, retrieval,
+classification, or agent workflows.
+
+## Why Use Swarmauri Parser TextBlob
+
+- Split long passages into sentence-level documents for downstream processing.
+- Extract noun phrases without introducing a larger transformer stack.
+- Keep lightweight linguistic preprocessing aligned with the Swarmauri parser
+  interface.
+- Use simple NLP enrichment before embeddings, retrieval, or task routing.
+
+## FAQ
+
+> **What parser classes are included?**  
+> `TextBlobSentenceParser` and `TextBlobNounParser`.
+
+> **What does the sentence parser return?**  
+> A `Document` per detected sentence, with metadata indicating the parser.
+
+> **What does the noun parser return?**  
+> A single `Document` containing the original text and a `noun_phrases` list in
+> metadata.
+
+> **Does it require NLTK resources?**  
+> Yes. The package downloads required NLTK corpora during initialization unless
+> they are already present.
 
 ## Features
 
-- Sentence parser returns a `Document` per sentence with metadata identifying the parser.
-- Noun phrase parser returns the original text plus `metadata['noun_phrases']` containing the phrases discovered by TextBlob.
-- Auto-downloads required NLTK corpora (`punkt_tab`) during initialization.
-
-## Prerequisites
-
-- Python 3.10 or newer.
-- [TextBlob](https://textblob.readthedocs.io/) and its NLTK dependencies (installed automatically).
-- Internet access on first run so NLTK can download tokenizer data (or pre-download via `python -m textblob.download_corpora`).
+- Sentence segmentation through `TextBlobSentenceParser`.
+- Noun phrase extraction through `TextBlobNounParser`.
+- Fits Swarmauri ingestion and preprocessing workflows using parser-style
+  components.
+- Useful for lightweight English NLP pipelines where a smaller dependency stack
+  is preferred.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_parser_textblob
-
-# poetry
-poetry add swarmauri_parser_textblob
-
-# uv (pyproject-based projects)
 uv add swarmauri_parser_textblob
 ```
 
-## Sentence Parsing
+```bash
+pip install swarmauri_parser_textblob
+```
+
+Optional setup:
+
+```bash
+python -m textblob.download_corpora
+```
+
+## Usage
+
+### Sentence parsing
 
 ```python
 from swarmauri_parser_textblob import TextBlobSentenceParser
 
 parser = TextBlobSentenceParser()
-text = "One more large chapula please. It should be extra spicy!"
+documents = parser.parse("One more large chapula please. It should be extra spicy!")
 
-sentences = parser.parse(text)
-for doc in sentences:
-    print(doc.content)
+for document in documents:
+    print(document.content)
 ```
 
-## Noun Phrase Extraction
+### Noun phrase extraction
 
 ```python
 from swarmauri_parser_textblob import TextBlobNounParser
 
 parser = TextBlobNounParser()
-docs = parser.parse("One more large chapula please.")
+documents = parser.parse("One more large chapula please.")
 
-for doc in docs:
-    print(doc.content)
-    print(doc.metadata["noun_phrases"])
+print(documents[0].content)
+print(documents[0].metadata["noun_phrases"])
 ```
 
-## Tips
+## Examples
 
-- TextBlob uses simple heuristics?it works well for general English text but may struggle with domain-specific jargon.
-- Download corpora once in CI/CD or container builds (`python -m textblob.download_corpora`) to avoid runtime downloads.
-- Combine sentence and noun parsers to build structured representations of documents before vectorization or downstream NLP tasks.
+### Prepare sentence-level documents
 
-## Want to help?
+```python
+from swarmauri_parser_textblob import TextBlobSentenceParser
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+parser = TextBlobSentenceParser()
+sentences = parser.parse(
+    "Swarmauri coordinates tools. It also routes data through composable components."
+)
 
+for sentence in sentences:
+    print(sentence.metadata["parser"], sentence.content)
+```
+
+### Extract noun phrases for downstream tagging
+
+```python
+from swarmauri_parser_textblob import TextBlobNounParser
+
+parser = TextBlobNounParser()
+docs = parser.parse("The Swarmauri agent indexed a customer support knowledge base.")
+
+print(docs[0].metadata["noun_phrases"])
+```
+
+## Related Packages
+
+- [swarmauri_parser_entityrecognition](https://pypi.org/project/swarmauri_parser_entityrecognition/)
+- [swarmauri_tool_entityrecognition](https://pypi.org/project/swarmauri_tool_entityrecognition/)
+- [swarmauri_tool_sentimentanalysis](https://pypi.org/project/swarmauri_tool_sentimentanalysis/)
+- [swarmauri_parser_bertembedding](https://pypi.org/project/swarmauri_parser_bertembedding/)
+
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [TextBlob documentation](https://textblob.readthedocs.io/)
+- [NLTK documentation](https://www.nltk.org/)
+
+## Best Practices
+
+- Pre-download NLTK corpora in CI, containers, or production images to avoid
+  runtime setup costs.
+- Use these parsers for lightweight English NLP tasks; domain-specific or
+  multilingual corpora may require a different component.
+- Combine sentence parsing with embeddings or vector stores when building
+  retrieval-oriented pipelines.
+- Treat noun phrase extraction as heuristic enrichment rather than a strict
+  ontology or entity-linking system.
+
+## License
+
+This project is licensed under the Apache-2.0 License.
 
