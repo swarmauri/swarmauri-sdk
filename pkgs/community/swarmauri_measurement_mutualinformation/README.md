@@ -16,40 +16,61 @@
 
 # Swarmauri Measurement Mutual Information
 
-Mutual-information measurement plugin for Swarmauri pipelines. Computes the average mutual information (in bits) between every feature column and a target column, letting you rank signal strength before training models.
+`swarmauri_measurement_mutualinformation` is the Swarmauri feature-signal
+measurement for supervised classification datasets. It wraps
+`sklearn.feature_selection.mutual_info_classif` and returns the average mutual
+information across all non-target columns in a Pandas DataFrame.
+
+## Why Use Swarmauri Measurement Mutual Information
+
+- Estimate how strongly each feature depends on a discrete target before model
+  training.
+- Reduce low-signal columns earlier in a Swarmauri data or evaluation pipeline.
+- Reuse a standard `MeasurementBase` component instead of hand-wiring feature
+  scoring logic.
+- Pair feature screening with downstream metrics, vectorization, or model
+  selection flows.
+
+## FAQ
+
+> **What input does this measurement expect?**  
+> A Pandas `DataFrame` plus the name of the target column.
+
+> **What does it return?**  
+> A single float: the mean of the per-feature mutual-information scores
+> produced by `mutual_info_classif`.
+
+> **Does it return one score per feature?**  
+> No. This component averages the feature scores. If you need per-feature
+> values, call `mutual_info_classif` directly.
+
+> **What units are the underlying scores in?**  
+> Scikit-learn documents `mutual_info_classif` outputs in natural-log units.
 
 ## Features
 
-- Wraps `sklearn.feature_selection.mutual_info_classif` behind the standard `MeasurementBase` API.
-- Supports Pandas DataFrame inputs; automatically excludes the target column from the feature set.
-- Returns the average mutual information across all features (in bits) for quick screening.
-
-## Prerequisites
-
-- Python 3.10 or newer.
-- `scikit-learn` and `pandas` installed (pulled in as dependencies of this package).
-- Clean, pre-processed categorical data (encode non-numeric columns before calling) since `mutual_info_classif` expects numerical inputs.
+- Supervised mutual-information scoring for discrete targets.
+- Automatic exclusion of the target column from the feature matrix.
+- Returns one aggregate score that is easy to log, compare, or threshold.
+- Uses the Swarmauri measurement interface for pipeline compatibility.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_measurement_mutualinformation
-
-# poetry
-poetry add swarmauri_measurement_mutualinformation
-
-# uv (pyproject-based projects)
 uv add swarmauri_measurement_mutualinformation
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_measurement_mutualinformation
+```
+
+## Usage
 
 ```python
 import pandas as pd
 from swarmauri_measurement_mutualinformation import MutualInformationMeasurement
 
-# Example dataset
 frame = pd.DataFrame(
     {
         "feature_a": [0, 1, 1, 0, 1, 0],
@@ -58,42 +79,72 @@ frame = pd.DataFrame(
     }
 )
 
-mi = MutualInformationMeasurement()
-avg_mi = mi.calculate(frame, target_column="target")
-print(f"Average mutual information: {avg_mi:.4f} bits")
+measurement = MutualInformationMeasurement()
+score = measurement.calculate(frame, target_column="target")
+print(score)
 ```
 
-## Per-Feature Scores
+## Examples
 
-If you need the individual MI score per feature, compute it directly and inspect the array:
+### Screen a small classification dataset
 
 ```python
 import pandas as pd
-from sklearn.feature_selection import mutual_info_classif
+from swarmauri_measurement_mutualinformation import MutualInformationMeasurement
 
-frame = pd.DataFrame(
+data = pd.DataFrame(
     {
-        "feat1": [0, 1, 1, 0, 1, 0],
-        "feat2": [5.1, 5.0, 4.9, 5.2, 5.1, 5.0],
-        "target": [0, 1, 1, 0, 1, 0],
+        "clicked_email": [1, 0, 1, 1, 0, 0],
+        "days_active": [4, 2, 5, 6, 1, 2],
+        "plan_tier": [2, 1, 2, 3, 1, 1],
+        "converted": [1, 0, 1, 1, 0, 0],
     }
 )
 
-scores = mutual_info_classif(frame[["feat1", "feat2"]], frame["target"])
-for column, score in zip(["feat1", "feat2"], scores):
+measurement = MutualInformationMeasurement()
+print(measurement.calculate(data, target_column="converted"))
+```
+
+### Inspect per-feature scores directly
+
+```python
+from sklearn.feature_selection import mutual_info_classif
+
+X = frame.drop(columns=["target"])
+y = frame["target"]
+
+scores = mutual_info_classif(X, y)
+for column, score in zip(X.columns, scores):
     print(column, score)
 ```
 
-Use the per-feature scores to filter low-signal columns before passing the DataFrame back through Swarmauri.
+## Related Packages
 
-## Tips
+- [swarmauri_measurement_tokencountestimator](https://pypi.org/project/swarmauri_measurement_tokencountestimator/)
+- [swarmauri_metric_hamming](https://pypi.org/project/swarmauri_metric_hamming/)
+- [swarmauri_measurement_mutualinformation](https://pypi.org/project/swarmauri_measurement_mutualinformation/)
 
-- Normalize or discretize continuous features when comparing very different scales; mutual information is sensitive to distribution assumptions.
-- Handle missing values before calling `calculate`; `mutual_info_classif` does not accept NaNs.
-- Binary targets work out of the box; for multi-class targets, ensure `target_column` contains integer encodings.
+## Swarmauri Foundations
 
-## Want to help?
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+## More Documentation
+
+- [scikit-learn `mutual_info_classif` docs](https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.mutual_info_classif.html)
+- [Pandas documentation](https://pandas.pydata.org/docs/)
+
+## Best Practices
+
+- Encode categorical columns numerically before calling this measurement.
+- Remove or impute missing values before scoring.
+- Use a stable preprocessing pipeline when comparing MI across experiments.
+- Inspect the raw per-feature scores if feature-level ranking matters more than
+  a single aggregate summary.
+
+## License
+
+This project is licensed under the Apache-2.0 License.
 
 

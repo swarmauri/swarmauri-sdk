@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_measurement_mutualinformation"
 version = "0.9.4.dev2"
-description = "Swarmauri Mutual Information Measurement Community Package."
+description = "Mutual-information feature screening measurement for Swarmauri classification datasets using scikit-learn."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,7 +11,12 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Information Analysis",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -34,8 +39,11 @@ keywords = [
     "mutualinformation",
     "mutual",
     "information",
-    "community",
-    "package",
+    "feature selection",
+    "mutual information",
+    "scikit-learn",
+    "classification analytics",
+    "information analysis",
 ]
 
 [tool.uv.sources]
