@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_middleware_circuitbreaker"
 version = "0.7.4.dev5"
-description = "Circuit Breaker Middleware for Swarmauri"
+description = "Async circuit-breaker middleware for Swarmauri and FastAPI request flows backed by pybreaker."
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
@@ -11,6 +11,10 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -34,6 +38,11 @@ keywords = [
     "circuitbreaker",
     "circuit",
     "breaker",
+    "fastapi",
+    "resilience",
+    "fault tolerance",
+    "pybreaker",
+    "request middleware",
 ]
 
 [tool.uv.sources]
@@ -42,6 +51,7 @@ swarmauri_base = {workspace = true}
 swarmauri_standard = {workspace = true}
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=starlette"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
