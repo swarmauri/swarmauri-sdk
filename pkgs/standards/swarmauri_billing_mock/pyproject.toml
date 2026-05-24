@@ -1,10 +1,10 @@
 [project]
 name = "swarmauri_billing_mock"
 version = "0.10.1.dev5"
-description = "Deterministic in-memory Swarmauri billing provider for tests, examples, and provider contract checks."
+description = "Deterministic in-memory Swarmauri billing provider for testing, examples, and full billing capability contract checks."
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
     "Development Status :: 1 - Planning",
@@ -12,8 +12,12 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Testing",
     "Topic :: Office/Business :: Financial :: Point-Of-Sale",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -35,13 +39,15 @@ keywords = [
     "mock",
     "mock billing provider",
     "in-memory billing",
-    "community",
+    "standards",
     "payments",
     "sandbox",
     "testing",
+    "contract testing",
     "subscription management",
-    "developer tooling",
-    "e-commerce integration",
+    "checkout testing",
+    "refund testing",
+    "provider simulation",
 ]
 
 [tool.uv.sources]
