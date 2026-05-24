@@ -21,14 +21,13 @@ class ChainContextBase(IChainContext, ComponentBase):
         return self.context.get(key)
 
     def _resolve_fstring(self, template: str) -> str:
-        pattern = re.compile(r"{([^}]+)}")
+        pattern = re.compile(r"\{([^}]+)\}")
 
         def replacer(match):
-            expression = match.group(1)
+            expression = match.group(1).strip()
             try:
-                return str(eval(expression, {}, self.context))
-            except Exception as e:
-                print(f"Failed to resolve expression: {expression}. Error: {e}")
+                return str(self.context[expression])
+            except KeyError:
                 return f"{{{expression}}}"
 
         return pattern.sub(replacer, template)
