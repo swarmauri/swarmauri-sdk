@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_tool_zapierhook"
 version = "0.9.1.dev5"
-description = "Zapier Hook Tool"
+description = "Swarmauri integration tool for posting payloads to Zapier catch-hook webhooks."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,11 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Office/Business",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -29,6 +34,10 @@ keywords = [
     "zapierhook",
     "zapier",
     "hook",
+    "webhook",
+    "automation",
+    "integration",
+    "workflow trigger",
 ]
 
 [tool.uv.sources]

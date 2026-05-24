@@ -14,136 +14,126 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool ? Zapier Hook
+# Swarmauri Tool Zapier Hook
 
-A Swarmauri tool that triggers Zapier catch webhooks from within agent workflows. Use it to hand off conversation state to Zapier automations?send notifications, update CRMs, open tickets, or kick off custom Zaps with a single function call.
+`swarmauri_tool_zapierhook` is a Swarmauri integration tool for posting payloads
+to a Zapier catch-hook URL. It is useful for pushing agent outputs into Zapier
+automations, handing off events to SaaS workflows, and bridging Swarmauri
+systems with no-code operational pipelines.
 
-- Accepts JSON payloads as strings and posts them to a Zapier webhook URL.
-- Surfaces the Zapier HTTP response (success or failure) in a structured dictionary.
-- Built on `requests` so you can extend headers, authentication, or timeout behaviour if required.
+## Why Use Swarmauri Tool Zapier Hook
 
-## Requirements
+- Forward events from Swarmauri into Zapier automations.
+- Trigger downstream notifications, CRM updates, tickets, or task flows.
+- Keep Zapier integration behind a reusable Swarmauri tool interface.
+- Return structured responses from webhook execution.
 
-- Python 3.10 ? 3.13.
-- A Zapier webhook URL (copy from Zap setup ? **Webhooks by Zapier** ? **Catch Hook**). Store it securely (environment variables, secrets manager).
-- Dependencies (`requests`, `swarmauri_base`, `swarmauri_standard`, `pydantic`) install automatically with the package.
+## FAQ
+
+> **What input does the tool expect at runtime?**  
+> A single string `payload`, plus a configured `zap_url` on the tool instance.
+
+> **How is the payload sent?**  
+> The tool posts JSON in the shape `{"data": payload}`.
+
+> **What does the tool return?**  
+> A dictionary containing `zap_response`.
+
+> **How are webhook failures handled?**  
+> Non-200 responses raise the underlying HTTP error.
+
+## Features
+
+- Swarmauri `ToolBase` implementation registered as `ZapierHookTool`.
+- Posts JSON payloads to Zapier catch-hook URLs.
+- Keeps webhook URL configuration on the tool instance.
+- Returns the Zapier response body as serialized JSON.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
-Pick the packaging workflow that fits your project; each command installs dependencies.
-
-**pip**
+```bash
+uv add swarmauri_tool_zapierhook
+```
 
 ```bash
 pip install swarmauri_tool_zapierhook
 ```
 
-**Poetry**
-
-```bash
-poetry add swarmauri_tool_zapierhook
-```
-
-**uv**
-
-```bash
-# Add to the current project and update uv.lock
-uv add swarmauri_tool_zapierhook
-
-# or install into the active environment without editing pyproject.toml
-uv pip install swarmauri_tool_zapierhook
-```
-
-> Tip: Treat the webhook URL like a secret. Avoid hardcoding it in source control and prefer environment variables.
-
-## Quick Start
+## Usage
 
 ```python
-import json
-import os
 from swarmauri_tool_zapierhook import ZapierHookTool
 
-zap_url = os.environ["ZAPIER_WEBHOOK_URL"]
-zap_tool = ZapierHookTool(zap_url=zap_url)
+tool = ZapierHookTool(zap_url="https://hooks.zapier.com/hooks/catch/...")
+result = tool('{"event":"demo"}')
 
-payload = json.dumps({
-    "message": "Hello from Swarmauri!",
-    "source": "webhook-demo"
-})
-
-result = zap_tool(payload)
 print(result["zap_response"])
 ```
 
-`ZapierHookTool` wraps the payload in a JSON object (`{"data": payload}`) before posting, matching the expectations of most Zapier catch hooks.
+## Examples
 
-## Usage Scenarios
-
-### Forward Agent Decisions to Zapier
+### Trigger a Zap from agent output
 
 ```python
-from swarmauri_core.agent.Agent import Agent
-from swarmauri_core.messages.HumanMessage import HumanMessage
-from swarmauri_standard.tools.registry import ToolRegistry
 from swarmauri_tool_zapierhook import ZapierHookTool
 
-registry = ToolRegistry()
-registry.register(ZapierHookTool(zap_url=os.environ["ZAPIER_WEBHOOK_URL"]))
-agent = Agent(tool_registry=registry)
+tool = ZapierHookTool(zap_url="https://hooks.zapier.com/hooks/catch/...")
+payload = '{"lead":"alice@example.com","source":"agent"}'
 
-message = HumanMessage(content="log a follow-up task for the sales team")
-response = agent.run(message)
-print(response)
+print(tool(payload))
 ```
 
-The agent can serialize conversation context, send it to Zapier, and continue the dialogue with confirmation details.
-
-### Escalate Incidents From Monitoring Scripts
+### Send a monitoring alert
 
 ```python
-import json
-import os
 from swarmauri_tool_zapierhook import ZapierHookTool
 
-zap_tool = ZapierHookTool(zap_url=os.environ["INCIDENT_ZAP_URL"])
-alert = {
-    "service": "payments",
-    "severity": "critical",
-    "message": "Latency exceeded threshold"
-}
+tool = ZapierHookTool(zap_url="https://hooks.zapier.com/hooks/catch/...")
+alert = '{"service":"payments","severity":"critical"}'
 
-result = zap_tool(json.dumps(alert))
-print("Zapier response:", result["zap_response"])
+tool(alert)
 ```
 
-Trigger a Zap that files tickets, posts to Slack, or updates status pages when your monitoring detects issues.
-
-### Batch Replay Events
+### Register the tool in a Swarmauri collection
 
 ```python
-import json
-import os
+from swarmauri_standard.tools.ToolCollection import ToolCollection
 from swarmauri_tool_zapierhook import ZapierHookTool
 
-zap_tool = ZapierHookTool(zap_url=os.environ["EVENT_ZAP_URL"])
-with open("events.json") as fh:
-    events = json.load(fh)
-
-for event in events:
-    payload = json.dumps(event)
-    zap_tool(payload)
+tools = ToolCollection(
+    tools=[ZapierHookTool(zap_url="https://hooks.zapier.com/hooks/catch/...")]
+)
+print(tools)
 ```
 
-Replay queued events into Zapier when systems come back online.
+## Related Packages
 
-## Troubleshooting
+- [swarmauri_tool_webscraping](https://pypi.org/project/swarmauri_tool_webscraping/)
+- [swarmauri_tool_psutil](https://pypi.org/project/swarmauri_tool_psutil/)
+- [swarmauri_tool_qrcodegenerator](https://pypi.org/project/swarmauri_tool_qrcodegenerator/)
 
-- **`requests.exceptions.HTTPError`** ? Zapier returned a non-200 status (often 401 due to malformed or revoked URLs). Check the webhook URL and payload format.
-- **Timeouts or connection errors** ? Ensure the environment has outbound internet access and consider wrapping the tool to set explicit timeouts or retries.
-- **Zap expects structured JSON** ? The tool sends `{"data": payload}`. Adjust your Zap?s ?Catch Hook? step or extend the tool if you need different envelope fields.
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [Zapier Webhooks documentation](https://zapier.com/apps/webhook/help)
+- [Requests documentation](https://requests.readthedocs.io/)
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+
+## Best Practices
+
+- Treat the Zapier hook URL as a secret.
+- Validate payload structure before shipping high-value events.
+- Wrap calls with retries or circuit breakers if delivery reliability matters.
+- Extend the tool if your Zap requires headers, timeouts, or a different JSON
+  envelope.
 
 ## License
 
-`swarmauri_tool_zapierhook` is released under the Apache 2.0 License. See `LICENSE` for full details.
-
-
+This project is licensed under the Apache-2.0 License.
