@@ -14,144 +14,124 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool ? psutil
+# Swarmauri Tool Psutil
 
-A Swarmauri-compatible system inspection tool powered by `psutil`. Use it to surface CPU, memory, disk, network, and sensor telemetry inside agents, observability workflows, or health checks.
+`swarmauri_tool_psutil` is a Swarmauri operations tool for retrieving system
+telemetry using `psutil`. It exposes CPU, memory, disk, network, and sensor
+metrics through a single tool interface, making it useful for observability,
+health checks, diagnostics, and agent-driven operations workflows.
 
-- Wraps rich `psutil` APIs behind a single callable interface.
-- Returns structured dictionaries that mirror psutil's native data models (converted to plain Python objects for JSON serialization).
-- Handles common permission gaps gracefully (e.g., network connections, sensors) so calls do not crash automation.
+## Why Use Swarmauri Tool Psutil
 
-## Requirements
+- Expose host telemetry inside Swarmauri agents and automations.
+- Retrieve CPU, memory, disk, network, and sensor data on demand.
+- Return structured system data without custom psutil glue code.
+- Support local diagnostics, service health checks, and runtime audits.
 
-- Python 3.10 ? 3.13.
-- `psutil` installed (pulled automatically with the package).
-- Optional platform support: some sensor endpoints require root/admin privileges or may not exist on virtualized hosts.
+## FAQ
+
+> **What input does the tool expect?**  
+> A single `info_type` string: `cpu`, `memory`, `disk`, `network`, or
+> `sensors`.
+
+> **What does the tool return?**  
+> A dictionary of metrics for the requested system-information family.
+
+> **How are permission-restricted metrics handled?**  
+> Network connections and some sensor fields degrade gracefully when access is
+> denied.
+
+> **Is it suitable for agents?**  
+> Yes. The output is already converted into plain Python objects for easy
+> serialization.
+
+## Features
+
+- Swarmauri `ToolBase` implementation registered as `PsutilTool`.
+- Collects CPU, memory, disk, network, and sensor metrics.
+- Returns plain dictionary/list structures derived from psutil namedtuples.
+- Handles common permission or platform gaps for sensors and connections.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
-Select the installer that matches your environment; each command resolves transitive dependencies.
-
-**pip**
+```bash
+uv add swarmauri_tool_psutil
+```
 
 ```bash
 pip install swarmauri_tool_psutil
 ```
 
-**Poetry**
-
-```bash
-poetry add swarmauri_tool_psutil
-```
-
-**uv**
-
-```bash
-# Add to the current project and update uv.lock
-uv add swarmauri_tool_psutil
-
-# or install directly into the active environment without editing pyproject.toml
-uv pip install swarmauri_tool_psutil
-```
-
-> Tip: psutil needs native build tooling on some platforms (musl-based containers, Alpine). Install the OS-level prerequisites before running the package install command.
-
-## Quick Start
+## Usage
 
 ```python
-from pprint import pprint
 from swarmauri_tool_psutil import PsutilTool
 
-psutil_tool = PsutilTool()
+tool = PsutilTool()
+cpu = tool("cpu")
 
-cpu = psutil_tool("cpu")
-mem = psutil_tool("memory")
-
-print("CPU summary:")
-pprint(cpu)
-
-print("Memory summary:")
-pprint(mem)
+print(cpu.keys())
 ```
 
-Each call returns a dictionary keyed by metrics families (e.g., `cpu_times`, `virtual_memory`). Use only the sections you need in downstream automations.
+## Examples
 
-## Usage Scenarios
-
-### Build a Lightweight Health Endpoint
+### Inspect memory metrics
 
 ```python
-from fastapi import FastAPI
 from swarmauri_tool_psutil import PsutilTool
 
-app = FastAPI()
-ps_tool = PsutilTool()
+tool = PsutilTool()
+memory = tool("memory")
 
-@app.get("/health/system")
-def system_health():
-    return {
-        "cpu": ps_tool("cpu"),
-        "memory": ps_tool("memory"),
-        "disk": ps_tool("disk"),
-    }
+print(memory["virtual_memory"])
 ```
 
-Expose system metrics to dashboards or probes without wiring psutil manually.
-
-### Enrich Swarmauri Agent Responses With Telemetry
+### Gather network telemetry
 
 ```python
-from swarmauri_core.agent.Agent import Agent
-from swarmauri_core.messages.HumanMessage import HumanMessage
-from swarmauri_standard.tools.registry import ToolRegistry
 from swarmauri_tool_psutil import PsutilTool
 
-registry = ToolRegistry()
-registry.register(PsutilTool())
-agent = Agent(tool_registry=registry)
+tool = PsutilTool()
+network = tool("network")
 
-message = HumanMessage(content="report system cpu load and memory usage")
-response = agent.run(message)
-print(response)
+print(network["network_io_counters"])
 ```
 
-Register the tool alongside other Swarmauri capabilities so agents can answer operational questions on demand.
-
-### Archive High-Usage Events for Later Analysis
+### Register the tool in a Swarmauri collection
 
 ```python
-import json
-import time
-from pathlib import Path
+from swarmauri_standard.tools.ToolCollection import ToolCollection
 from swarmauri_tool_psutil import PsutilTool
 
-ps_tool = PsutilTool()
-log_dir = Path("telemetry_logs")
-log_dir.mkdir(exist_ok=True)
-
-while True:
-    snapshot = {
-        "ts": time.time(),
-        "cpu": ps_tool("cpu"),
-        "memory": ps_tool("memory"),
-        "network": ps_tool("network"),
-    }
-    (log_dir / f"snapshot-{int(snapshot['ts'])}.json").write_text(
-        json.dumps(snapshot, indent=2)
-    )
-    time.sleep(60)
+tools = ToolCollection(tools=[PsutilTool()])
+print(tools)
 ```
 
-Capture periodic snapshots that can be loaded into notebooks, dashboards, or anomaly detection jobs.
+## Related Packages
 
-## Troubleshooting
+- [swarmauri_tool_webscraping](https://pypi.org/project/swarmauri_tool_webscraping/)
+- [swarmauri_tool_zapierhook](https://pypi.org/project/swarmauri_tool_zapierhook/)
 
-- **`ValueError: Invalid info_type`** ? Only `"cpu"`, `"memory"`, `"disk"`, `"network"`, and `"sensors"` are supported. Validate user input before calling the tool.
-- **`Permission denied` retrieving connections/sensors** ? Run with elevated privileges or filter out those sections. The tool returns a descriptive string when it cannot access the data.
-- **`psutil.AccessDenied` on containerized hosts** ? Grant the container additional capabilities (e.g., `SYS_PTRACE`) or restrict to metrics that do not require elevated rights.
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [psutil documentation](https://psutil.readthedocs.io/)
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+
+## Best Practices
+
+- Expect platform-specific differences in sensor availability.
+- Run with elevated privileges only when you truly need restricted telemetry.
+- Keep sampling frequency reasonable in long-running monitoring loops.
+- Validate `info_type` before invoking the tool from untrusted user input.
 
 ## License
 
-`swarmauri_tool_psutil` is released under the Apache 2.0 License. See `LICENSE` for details.
-
-
+This project is licensed under the Apache-2.0 License.
