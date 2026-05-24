@@ -1,3 +1,5 @@
+import re
+import string
 from typing import Dict, List, Union, Optional, Literal
 from pydantic import Field
 
@@ -37,7 +39,16 @@ class PromptTemplateBase(IPromptTemplate, ComponentBase):
 
     def fill(self, variables: Dict[str, str] = None) -> str:
         variables = variables or self.variables
-        return self.template.format(**variables)
+        safe_vars = {}
+        for key, value in variables.items():
+            if not isinstance(key, str) or not key.isidentifier():
+                raise ValueError(f"Invalid variable name: {key!r}")
+            safe_vars[key] = value
+        template = string.Template(self.template)
+        try:
+            return template.substitute(safe_vars)
+        except KeyError as e:
+            raise KeyError(f"Missing template variable: {e.args[0]}") from e
 
     def __call__(self, variables: Optional[Dict[str, str]] = None) -> str:
         """
