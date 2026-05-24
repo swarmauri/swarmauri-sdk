@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_tool_sentencecomplexity"
 version = "0.10.1.dev5"
-description = "This repository includes an example of a First Class Swarmauri Example."
+description = "NLTK-powered Swarmauri writing-analysis tool for estimating sentence length and clause complexity."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,11 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Text Processing :: Linguistic",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -32,11 +37,11 @@ keywords = [
     "swarmauri",
     "tool",
     "sentencecomplexity",
-    "repository",
-    "includes",
-    "example",
-    "first",
-    "class",
+    "sentence complexity",
+    "readability",
+    "clause analysis",
+    "nltk",
+    "text analysis",
 ]
 
 [tool.uv.sources]
@@ -45,6 +50,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=tqdm"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",

@@ -14,125 +14,130 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool ? Sentence Complexity
+# Swarmauri Tool Sentence Complexity
 
-A Swarmauri NLP tool that evaluates sentence complexity by measuring average sentence length and estimating clause counts. Use it to monitor writing style, enforce readability requirements, or trigger editorial suggestions in agents.
+`swarmauri_tool_sentencecomplexity` is a Swarmauri NLP tool for estimating how
+complex a passage is by measuring average sentence length and average clauses
+per sentence. It is useful for editorial review, readability scoring, prompt
+inspection, educational feedback, and agent workflows that need quick writing
+complexity signals.
 
-- Tokenizes text with NLTK to compute sentence and word counts.
-- Approximates clause density via punctuation and coordinating/subordinating conjunctions.
-- Returns structured metrics suitable for analytics dashboards or conversational feedback.
+## Why Use Swarmauri Tool Sentence Complexity
 
-## Requirements
+- Quantify whether writing is becoming harder or easier to parse.
+- Detect long, clause-heavy sentences in documentation or prompts.
+- Add sentence-level style checks to agent or publishing workflows.
+- Pair structural complexity metrics with other readability measures.
 
-- Python 3.10 ? 3.13.
-- `nltk` (downloads the `punkt_tab` tokenizer data on first import).
-- Core Swarmauri dependencies (`swarmauri_base`, `swarmauri_standard`, `pydantic`).
+## FAQ
+
+> **What does the tool return?**  
+> A dictionary with `average_sentence_length` and
+> `average_clauses_per_sentence`.
+
+> **How are clauses estimated?**  
+> The current heuristic uses punctuation and a list of common conjunctions.
+
+> **What happens with empty input?**  
+> The tool raises `ValueError` if the input text is empty or whitespace only.
+
+> **Does this replace full linguistic parsing?**  
+> No. It provides a lightweight heuristic, not a full syntactic analysis.
+
+## Features
+
+- Swarmauri `ToolBase` implementation registered as `SentenceComplexityTool`.
+- Calculates average sentence length in words.
+- Estimates average clause count per sentence using simple heuristics.
+- Useful for prompt QA, editorial review, and readability checks.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
-Choose the packaging workflow that matches your project; each command resolves the dependencies.
-
-**pip**
+```bash
+uv add swarmauri_tool_sentencecomplexity
+```
 
 ```bash
 pip install swarmauri_tool_sentencecomplexity
 ```
 
-**Poetry**
-
-```bash
-poetry add swarmauri_tool_sentencecomplexity
-```
-
-**uv**
-
-```bash
-# Add to the current project and update uv.lock
-uv add swarmauri_tool_sentencecomplexity
-
-# or install into the active environment without modifying pyproject.toml
-uv pip install swarmauri_tool_sentencecomplexity
-```
-
-> Tip: Pre-download the NLTK tokenizer resources in deployment images (`python -m nltk.downloader punkt_tab`) to avoid runtime network calls.
-
-## Quick Start
+## Usage
 
 ```python
 from swarmauri_tool_sentencecomplexity import SentenceComplexityTool
 
-text = "This is a simple sentence. This is another sentence, with a clause."
+tool = SentenceComplexityTool()
+metrics = tool("This is a simple sentence. This is another sentence, with a clause.")
 
-complexity_tool = SentenceComplexityTool()
-result = complexity_tool(text)
-
-print(result)
-# {
-#   'average_sentence_length': 7.5,
-#   'average_clauses_per_sentence': 1.5
-# }
+print(metrics)
 ```
 
-The tool raises `ValueError` when the input text is empty or whitespace.
+## Examples
 
-## Usage Scenarios
-
-### Flag Long Sentences During Editing
+### Flag overly complex prose
 
 ```python
 from swarmauri_tool_sentencecomplexity import SentenceComplexityTool
 
-complexity = SentenceComplexityTool()
-article = Path("drafts/whitepaper.txt").read_text(encoding="utf-8")
-metrics = complexity(article)
+tool = SentenceComplexityTool()
+metrics = tool("While the system scales across regions, it introduces queues, retries, and latency spikes.")
 
 if metrics["average_sentence_length"] > 25:
-    print("Consider splitting long sentences to improve readability.")
+    print("Sentence length is high.")
 ```
 
-### Integrate With a Swarmauri Agent for Style Coaching
-
-```python
-from swarmauri_core.agent.Agent import Agent
-from swarmauri_core.messages.HumanMessage import HumanMessage
-from swarmauri_standard.tools.registry import ToolRegistry
-from swarmauri_tool_sentencecomplexity import SentenceComplexityTool
-
-registry = ToolRegistry()
-registry.register(SentenceComplexityTool())
-agent = Agent(tool_registry=registry)
-
-message = HumanMessage(content="Analyze the complexity of: 'While the system scales, it may introduce latency delays.'")
-response = agent.run(message)
-print(response)
-```
-
-### Compare Versions of a Document Over Time
+### Compare two revisions of a document
 
 ```python
 from swarmauri_tool_sentencecomplexity import SentenceComplexityTool
 
-complexity = SentenceComplexityTool()
-versions = {
-    "draft": open("draft.txt").read(),
-    "final": open("final.txt").read(),
-}
+tool = SentenceComplexityTool()
 
-for label, text in versions.items():
-    metrics = complexity(text)
-    print(f"{label}: {metrics['average_sentence_length']:.1f} words, {metrics['average_clauses_per_sentence']:.2f} clauses")
+draft = "The system runs. It works."
+final = "Although the system runs reliably, it requires careful coordination across services."
+
+print("draft", tool(draft))
+print("final", tool(final))
 ```
 
-Track whether edits are making the writing clearer or more complex.
+### Register the tool in a Swarmauri collection
 
-## Troubleshooting
+```python
+from swarmauri_standard.tools.ToolCollection import ToolCollection
+from swarmauri_tool_sentencecomplexity import SentenceComplexityTool
 
-- **`LookupError: Resource punkt_tab not found`** ? Run `python -m nltk.downloader punkt_tab` before executing the tool, especially in offline environments.
-- **Low clause counts for technical prose** ? The heuristic relies on commas/semicolons and common conjunctions; adjust or extend the tool if you need domain-specific parsing.
-- **Non-English text** ? Tokenization models are optimized for English. Supply language-appropriate tokenizers before using the tool for other languages.
+tools = ToolCollection(tools=[SentenceComplexityTool()])
+print(tools)
+```
+
+## Related Packages
+
+- [swarmauri_tool_textlength](https://pypi.org/project/swarmauri_tool_textlength/)
+- [swarmauri_tool_lexicaldensity](https://pypi.org/project/swarmauri_tool_lexicaldensity/)
+- [swarmauri_tool_smogindex](https://pypi.org/project/swarmauri_tool_smogindex/)
+- [swarmauri_tool_dalechallreadability](https://pypi.org/project/swarmauri_tool_dalechallreadability/)
+
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [NLTK documentation](https://www.nltk.org/)
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+
+## Best Practices
+
+- Use this metric as a heuristic, not as a full grammar parser.
+- Compare results across texts of similar genre and purpose.
+- Pre-download NLTK tokenizer data in offline environments.
+- Pair sentence complexity with lexical density and readability scores for a
+  broader text-quality view.
 
 ## License
 
-`swarmauri_tool_sentencecomplexity` is released under the Apache 2.0 License. See `LICENSE` for details.
-
-
+This project is licensed under the Apache-2.0 License.
