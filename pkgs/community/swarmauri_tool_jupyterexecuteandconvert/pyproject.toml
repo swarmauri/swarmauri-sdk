@@ -1,17 +1,23 @@
 [project]
 name = "swarmauri_tool_jupyterexecuteandconvert"
 version = "0.10.1.dev5"
-description = "A tool that programmatically executes and converts a Jupyter Notebook using nbconvert's CLI functionality, enabling automated notebook execution and format conversion."
+description = "Swarmauri notebook publishing tool for executing Jupyter notebooks and converting them to rendered output formats."
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterexecuteandconvert/"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Framework :: Jupyter",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Text Processing :: Markup",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -29,22 +35,15 @@ dependencies = [
     "swarmauri_standard",
 ]
 keywords = [
-    "swarmauri",
-    "tool",
-    "jupyterexecuteandconvert",
-    "programmatically",
-    "executes",
-    "converts",
     "jupyter",
-    "notebook",
     "nbconvert",
-    "cli",
-    "functionality",
-    "enabling",
-    "automated",
-    "execution",
-    "format",
-    "conversion",
+    "notebook execution",
+    "notebook conversion",
+    "html export",
+    "pdf export",
+    "report publishing",
+    "ipynb automation",
+    "rendered notebook",
 ]
 
 [tool.uv.sources]
@@ -71,6 +70,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-accept-deps=defusedxml,jupyterlab-pygments,jsonschema,jsonschema-specifications,referencing,rpds-py"
 
 [project.entry-points.'swarmauri.tools']
 JupyterExecuteAndConvertTool = "swarmauri_tool_jupyterexecuteandconvert:JupyterExecuteAndConvertTool"

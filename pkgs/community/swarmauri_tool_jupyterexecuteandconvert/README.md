@@ -14,63 +14,107 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Jupyter Execute & Convert
+# Swarmauri Jupyter Execute And Convert Tool
 
-Executes a Jupyter notebook and converts the output to HTML or PDF using nbconvert?packaged as a Swarmauri tool.
+`swarmauri_tool_jupyterexecuteandconvert` runs a notebook through the `jupyter nbconvert` CLI, writes an executed notebook artifact, and then converts that executed notebook to a target output format such as HTML or PDF.
+
+## Why
+
+- Execute notebooks and publish rendered artifacts in one Swarmauri tool call.
+- Keep notebook reporting workflows inside a simple automation surface.
+- Produce web or document outputs from the exact executed notebook state.
 
 ## Features
 
-- Runs notebooks with configurable execution timeout.
-- Converts executed notebooks to `html` or `pdf` via nbconvert.
-- Returns a status dictionary with the converted file path or error details.
+- Verifies the source notebook exists before execution.
+- Executes notebooks with `jupyter nbconvert --execute`.
+- Converts the executed notebook in a second `nbconvert` step.
+- Supports `html` and `pdf` output formats.
+- Returns either `{"converted_file": ..., "status": "success"}` or an error payload.
 
-## Prerequisites
+## FAQ
 
-- Python 3.10 or newer.
-- `nbconvert`, `nbformat`, and Jupyter runtime (installed automatically).
-- Notebook dependencies must be available in the execution environment.
+### What file does this tool convert?
+
+It first creates an executed notebook named `executed_<original>.ipynb`, then converts that executed notebook to the requested format.
+
+### Does this return notebook content?
+
+No. It returns metadata about the produced converted file, not the notebook object itself.
+
+### When should I use this instead of `swarmauri_tool_jupyterexecutenotebook`?
+
+Use this package when you want rendered artifacts like HTML or PDF. Use `swarmauri_tool_jupyterexecutenotebook` when you want the executed `NotebookNode` in memory.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_tool_jupyterexecuteandconvert
-
-# poetry
-poetry add swarmauri_tool_jupyterexecuteandconvert
-
-# uv (pyproject-based projects)
 uv add swarmauri_tool_jupyterexecuteandconvert
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_tool_jupyterexecuteandconvert
+```
+
+## Usage
 
 ```python
 from swarmauri_tool_jupyterexecuteandconvert import JupyterExecuteAndConvertTool
 
 tool = JupyterExecuteAndConvertTool()
-response = tool(
-    notebook_path="notebooks/analysis.ipynb",
+result = tool(
+    notebook_path="reports/weekly.ipynb",
+    output_format="html",
+    execution_timeout=300,
+)
+
+print(result)
+```
+
+## Examples
+
+### Execute a notebook and export HTML
+
+```python
+response = JupyterExecuteAndConvertTool()(
+    notebook_path="reports/status.ipynb",
+    output_format="html",
+    execution_timeout=120,
+)
+
+print(response["converted_file"])
+```
+
+### Execute a notebook and export PDF
+
+```python
+response = JupyterExecuteAndConvertTool()(
+    notebook_path="reports/board_packet.ipynb",
     output_format="pdf",
     execution_timeout=600,
 )
 
-if response.get("status") == "success":
-    print("Converted file:", response["converted_file"])
-else:
-    print("Error:", response.get("error"))
-    print("Message:", response.get("message"))
+if "error" in response:
+    print(response["message"])
 ```
 
-## Tips
+## Related Packages
 
-- Set `execution_timeout` high enough for long-running notebooks; nbconvert defaults to 600 seconds.
-- Ensure notebooks run headlessly: avoid widgets or interactive inputs that pause execution.
-- Install LaTeX (`tectonic`, `texlive`) if exporting to PDF on systems where nbconvert requires it.
-- Combine with `JupyterClearOutputTool` to strip outputs after conversion if you want clean notebooks and rich artifacts.
+- [`swarmauri_tool_jupyterexecutenotebook`](https://pypi.org/project/swarmauri_tool_jupyterexecutenotebook/)
+- [`swarmauri_tool_jupyterexecutenotebookwithparameters`](https://pypi.org/project/swarmauri_tool_jupyterexecutenotebookwithparameters/)
+- [`swarmauri_tool_jupyterexporthtml`](https://pypi.org/project/swarmauri_tool_jupyterexporthtml/)
+- [`swarmauri_tool_jupyterexportlatex`](https://pypi.org/project/swarmauri_tool_jupyterexportlatex/)
+- [`swarmauri_tool_jupyterexportpython`](https://pypi.org/project/swarmauri_tool_jupyterexportpython/)
 
-## Want to help?
+## Foundational Swarmauri Packages
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+- [`swarmauri`](https://pypi.org/project/swarmauri/)
+- [`swarmauri_core`](https://pypi.org/project/swarmauri_core/)
+- [`swarmauri_base`](https://pypi.org/project/swarmauri_base/)
+- [`swarmauri_standard`](https://pypi.org/project/swarmauri_standard/)
 
+## More Documentation
 
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+- [nbconvert documentation](https://nbconvert.readthedocs.io/)
+- [Jupyter documentation](https://jupyter.org/documentation)
