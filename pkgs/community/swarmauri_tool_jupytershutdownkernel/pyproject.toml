@@ -1,16 +1,21 @@
 [project]
 name = "swarmauri_tool_jupytershutdownkernel"
 version = "0.9.1.dev5"
-description = "A tool designed to shut down a running Jupyter kernel programmatically using jupyter_client, releasing all associated resources."
+description = "Swarmauri notebook-lifecycle tool for shutting down Jupyter kernels programmatically with jupyter_client."
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytershutdownkernel/"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Framework :: Jupyter",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -32,18 +37,13 @@ keywords = [
     "swarmauri",
     "tool",
     "jupytershutdownkernel",
-    "designed",
-    "shut",
-    "down",
-    "running",
     "jupyter",
     "kernel",
-    "programmatically",
-    "client",
-    "releasing",
-    "all",
-    "associated",
-    "resources",
+    "kernel management",
+    "notebook automation",
+    "jupyter_client",
+    "resource cleanup",
+    "teardown",
 ]
 
 [tool.uv.sources]

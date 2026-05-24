@@ -14,123 +14,128 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool ? Jupyter Shutdown Kernel
+# Swarmauri Tool Jupyter Shutdown Kernel
 
-A Swarmauri-compatible utility that performs graceful or forced shutdowns of running Jupyter kernels. It is ideal for automated resource clean-up, CI workflows that recycle kernels between test suites, and agents that need to reclaim compute when a conversation finishes.
+`swarmauri_tool_jupytershutdownkernel` is a Swarmauri notebook-lifecycle tool
+for shutting down Jupyter kernels programmatically. It is useful for notebook
+automation cleanup, CI teardown, resource reclamation, and agent workflows that
+must terminate kernels after execution.
 
-- Supports graceful and forced shutdown paths with configurable timeouts.
-- Returns structured status payloads suitable for orchestration pipelines.
-- Builds on `swarmauri_base`/`swarmauri_standard` abstractions so it can be registered like any other tool inside a Swarmauri agent graph.
+## Why Use Swarmauri Tool Jupyter Shutdown Kernel
 
-## Requirements
+- Stop Jupyter kernels cleanly after execution workflows complete.
+- Reclaim compute and runtime resources in automated notebook pipelines.
+- Provide a standard Swarmauri tool surface for kernel teardown.
+- Return structured shutdown status suitable for orchestration and logging.
 
-- Python 3.10 ? 3.13.
-- Local access to the target kernel's connection file (typically lives in Jupyter's runtime directory on the same host).
-- Dependencies (`jupyter_client`, `swarmauri_base`, `swarmauri_standard`, `pydantic`) install automatically with the package.
+## FAQ
+
+> **What inputs does the tool expect?**  
+> A `kernel_id` string and an optional `shutdown_timeout`.
+
+> **What does the tool return?**  
+> A dictionary with `kernel_id`, `status`, and `message`.
+
+> **How does it behave when graceful shutdown fails?**  
+> It attempts a forced shutdown if the kernel stays alive after the timeout.
+
+> **What if the kernel cannot be found?**  
+> The tool returns an error status with a descriptive message.
+
+## Features
+
+- Swarmauri `ToolBase` implementation registered as `JupyterShutdownKernelTool`.
+- Supports graceful shutdown with forced fallback.
+- Reports structured success and error states.
+- Useful for CI cleanup, notebook automation, and agent-managed kernels.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
-Install the package with the workflow that matches your environment. All commands below resolve transitive dependencies.
-
-**pip**
+```bash
+uv add swarmauri_tool_jupytershutdownkernel
+```
 
 ```bash
 pip install swarmauri_tool_jupytershutdownkernel
 ```
 
-**Poetry**
-
-```bash
-poetry add swarmauri_tool_jupytershutdownkernel
-```
-
-**uv**
-
-```bash
-# Add to the current project and lockfile
-uv add swarmauri_tool_jupytershutdownkernel
-
-# or install into the active environment without editing pyproject.toml
-uv pip install swarmauri_tool_jupytershutdownkernel
-```
-
-> Tip: When using uv inside this repository, run commands from the repository root so `uv` can discover the consolidated `pyproject.toml`.
-
-## Quick Start
-
-The tool exposes a callable interface. Instantiate it and provide the kernel identifier along with an optional timeout (seconds). The identifier should match the `kernel_id` used by Jupyter when the connection file `kernel-<kernel_id>.json` is created.
+## Usage
 
 ```python
-from jupyter_client import KernelManager
 from swarmauri_tool_jupytershutdownkernel import JupyterShutdownKernelTool
 
-# 1. Launch a kernel (acts as stand-in for an existing notebook kernel).
-km = KernelManager(kernel_name="python3")
-km.start_kernel()
+tool = JupyterShutdownKernelTool()
+result = tool(kernel_id="example-kernel-id", shutdown_timeout=5)
 
-# 2. Capture the kernel identifier Jupyter assigned (UUID-style string).
-kernel_identifier = km.kernel_id or km.connection_file.split("kernel-")[-1].split(".json")[0]
-print(f"Kernel identifier: {kernel_identifier}")
-
-# 3. Shut the kernel down with the Swarmauri tool.
-shutdown_tool = JupyterShutdownKernelTool()
-response = shutdown_tool(kernel_id=kernel_identifier, shutdown_timeout=10)
-print(response)
-```
-
-The returned dictionary always contains `kernel_id`, `status`, and `message`. A `status` of `error` indicates the tool attempted a forced shutdown or encountered an issue loading the connection file.
-
-## Usage Scenarios
-
-### Automate Notebook Clean-up After Batch Execution
-
-```python
-import json
-from pathlib import Path
-from swarmauri_tool_jupytershutdownkernel import JupyterShutdownKernelTool
-
-runtime_dir = Path.home() / ".local" / "share" / "jupyter" / "runtime"
-shutdown_tool = JupyterShutdownKernelTool()
-
-for connection_file in runtime_dir.glob("kernel-*.json"):
-    kernel_id = connection_file.stem.replace("kernel-", "")
-    result = shutdown_tool(kernel_id=kernel_id, shutdown_timeout=5)
-    print(json.dumps(result, indent=2))
-```
-
-This script discovers every live kernel connection file on the current host and attempts to close it gracefully. It is useful for CI jobs that leave stray kernels active between notebook test suites.
-
-### Shut Down Kernels Started Via `MultiKernelManager`
-
-```python
-from jupyter_client import MultiKernelManager
-from swarmauri_tool_jupytershutdownkernel import JupyterShutdownKernelTool
-
-multi = MultiKernelManager()
-
-# Start a new kernel for an integration test and capture its UUID.
-kernel_id = multi.start_kernel(kernel_name="python3")
-print(f"Started kernel with id={kernel_id}")
-
-# Run your test suite against the kernel ...
-
-# When finished, shut it down through the Swarmauri tool.
-shutdown_tool = JupyterShutdownKernelTool()
-result = shutdown_tool(kernel_id=kernel_id, shutdown_timeout=8)
 print(result)
 ```
 
-Because `MultiKernelManager` stores connection files under the standard `kernel-<kernel_id>.json` naming pattern, the shutdown tool can resolve the same kernel and close it without needing direct access to the `MultiKernelManager` instance that launched it.
+## Examples
 
-## Troubleshooting
+### Shut down a kernel by ID
 
-- **`No such kernel`** ? The tool could not locate a matching connection file. Make sure the process has read access to Jupyter's runtime directory and that you pass the raw identifier (for example, `03c7d8f9-ec4d-4a8a-8a90-cdb35ff9e6c9`).
-- **`Connection file not found`** ? The connection file was deleted or the kernel lives on a different machine. Run the shutdown tool on the same host where the kernel was started.
-- **Forced shutdowns** ? If the kernel remains alive after the timeout expires, the tool switches to a forced shutdown. You can increase `shutdown_timeout` to give busy kernels more time to finish.
-- **Sandboxed environments** ? Some containerized or restricted environments may block the network ports that Jupyter kernels use. In those cases, start kernels with appropriate permissions before attempting to shut them down programmatically.
+```python
+from swarmauri_tool_jupytershutdownkernel import JupyterShutdownKernelTool
+
+tool = JupyterShutdownKernelTool()
+result = tool("kernel-uuid-value", 5)
+
+print(result["status"])
+```
+
+### Use after a start-kernel workflow
+
+```python
+from swarmauri_tool_jupyterstartkernel import JupyterStartKernelTool
+from swarmauri_tool_jupytershutdownkernel import JupyterShutdownKernelTool
+
+starter = JupyterStartKernelTool()
+shutdown = JupyterShutdownKernelTool()
+
+launch = starter()
+cleanup = shutdown(launch["kernel_id"])
+
+print(cleanup)
+```
+
+### Register the tool in a Swarmauri collection
+
+```python
+from swarmauri_standard.tools.ToolCollection import ToolCollection
+from swarmauri_tool_jupytershutdownkernel import JupyterShutdownKernelTool
+
+tools = ToolCollection(tools=[JupyterShutdownKernelTool()])
+print(tools)
+```
+
+## Related Packages
+
+- [swarmauri_tool_jupyterstartkernel](https://pypi.org/project/swarmauri_tool_jupyterstartkernel/)
+- [swarmauri_tool_jupyterexecutecell](https://pypi.org/project/swarmauri_tool_jupyterexecutecell/)
+- [swarmauri_tool_jupyterruncell](https://pypi.org/project/swarmauri_tool_jupyterruncell/)
+- [swarmauri_tool_jupyterclearoutput](https://pypi.org/project/swarmauri_tool_jupyterclearoutput/)
+
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [jupyter_client documentation](https://jupyter-client.readthedocs.io/)
+- [Jupyter kernels overview](https://docs.jupyter.org/en/latest/projects/kernels.html)
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+
+## Best Practices
+
+- Keep track of the kernel ID returned by your startup workflow.
+- Use explicit shutdown in CI and automation even when processes are short-lived.
+- Increase the timeout for busy kernels that may need a little longer to exit.
+- Run shutdown logic on the same host that owns the kernel runtime files.
 
 ## License
 
-`swarmauri_tool_jupytershutdownkernel` is released under the Apache 2.0 License. See `LICENSE` for details.
-
-
+This project is licensed under the Apache-2.0 License.
