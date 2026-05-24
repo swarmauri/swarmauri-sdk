@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_tool_sentimentanalysis"
 version = "0.9.1.dev2"
-description = "Sentiment Analysis Tool"
+description = "Transformer-based sentiment analysis tool for Swarmauri with compact label-only dictionary output."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,7 +11,13 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Text Processing",
+    "Topic :: Text Processing :: Linguistic",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -37,6 +43,11 @@ keywords = [
     "sentimentanalysis",
     "sentiment",
     "analysis",
+    "transformers",
+    "hugging face",
+    "sequence classification",
+    "text classification",
+    "sentiment analysis",
 ]
 
 [tool.uv.sources]
@@ -45,6 +56,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=tensorflow,tf-keras,transformers,tqdm"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
