@@ -16,34 +16,57 @@
 
 # Swarmauri Parser Fitz PDF
 
-PDF-to-text parser for Swarmauri built on [PyMuPDF (`pymupdf`)](https://pymupdf.readthedocs.io/). Extracts text from every page of a PDF and returns a `Document` object with the aggregated content and source metadata.
+`swarmauri_parser_fitzpdf` is the Swarmauri PDF parser for high-performance
+text extraction using [PyMuPDF](https://pymupdf.readthedocs.io/). It opens a
+PDF, extracts text from every page, and returns a single Swarmauri `Document`
+with the aggregated content and source metadata.
+
+## Why Use Swarmauri Parser Fitz PDF
+
+- Use PyMuPDF's fast document engine for PDF extraction inside Swarmauri
+  ingestion and indexing pipelines.
+- Produce one normalized `Document` for whole-file workflows such as
+  summarization, classification, or chunking after parse.
+- Keep PDF parsing logic aligned with the Swarmauri parser interface used by
+  other loaders and processors.
+- Stay flexible if you later need PyMuPDF-specific extraction modes or OCR
+  augmentation upstream.
+
+## FAQ
+
+> **What does this parser return?**  
+> A list containing one Swarmauri `Document` whose `content` holds the combined
+> extracted text for the PDF.
+
+> **Does it return one document per page?**  
+> No. This parser aggregates all page text into a single document.
+
+> **Can it parse scanned PDFs with no text layer?**  
+> Not by itself. PyMuPDF extracts text objects already present in the document.
+> Scan-only PDFs should be OCR'd first.
+
+> **What input type does it expect?**  
+> A file path string pointing to a local PDF.
 
 ## Features
 
-- Opens PDFs via PyMuPDF and collects text per page.
-- Emits a single `Document` with `content` containing the combined text and `metadata['source']` holding the file path.
-- Raises a clear error if the input is not a file path string; returns an empty list if PyMuPDF encounters parsing failures.
-
-## Prerequisites
-
-- Python 3.10 or newer.
-- PyMuPDF (`pymupdf`) along with system dependencies (X11 libraries on Linux, poppler on some distros). Install OS packages listed in [PyMuPDF docs](https://pymupdf.readthedocs.io/en/latest/installation.html) before pip installing if needed.
-- Read access to the PDF files you plan to parse.
+- Aggregated PDF text extraction through PyMuPDF.
+- Preserves the original source path in document metadata.
+- Uses a lightweight Swarmauri parser surface for document pipelines.
+- Appropriate for whole-document ingestion, chunking, and retrieval setup.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_parser_fitzpdf
-
-# poetry
-poetry add swarmauri_parser_fitzpdf
-
-# uv (pyproject-based projects)
 uv add swarmauri_parser_fitzpdf
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_parser_fitzpdf
+```
+
+## Usage
 
 ```python
 from swarmauri_parser_fitzpdf import FitzPdfParser
@@ -51,33 +74,71 @@ from swarmauri_parser_fitzpdf import FitzPdfParser
 parser = FitzPdfParser()
 documents = parser.parse("reports/quarterly.pdf")
 
-for doc in documents:
-    print(doc.metadata["source"])
-    print(doc.content[:500])
+for document in documents:
+    print(document.metadata["source"])
+    print(document.content[:500])
 ```
 
-## Handling Errors
+## Examples
+
+### Parse a PDF into a single document
 
 ```python
 from swarmauri_parser_fitzpdf import FitzPdfParser
 
 parser = FitzPdfParser()
+docs = parser.parse("whitepapers/roadmap.pdf")
+
+if docs:
+    print(len(docs[0].content))
+```
+
+### Handle invalid input safely
+
+```python
+from swarmauri_parser_fitzpdf import FitzPdfParser
+
+parser = FitzPdfParser()
+
 try:
     docs = parser.parse("missing.pdf")
     if not docs:
-        print("Parsing failed or returned no content.")
+        print("Parsing failed or returned no text.")
 except ValueError as exc:
-    print(f"Bad input: {exc}")
+    print(exc)
 ```
 
-## Tips
+## Related Packages
 
-- Pre-process PDFs (deskew, OCR) before parsing if they contain scanned pages without embedded text; PyMuPDF only extracts existing text objects.
-- For multi-document pipelines, pair this parser with Swarmauri token-count measurements or summarizers to chunk large PDFs.
-- Cache parsed output if the same PDF is accessed frequently?parsing large documents repeatedly is expensive.
+- [swarmauri_parser_pypdf2](https://pypi.org/project/swarmauri_parser_pypdf2/)
+- [swarmauri_parser_pypdftk](https://pypi.org/project/swarmauri_parser_pypdftk/)
+- [swarmauri_ocr_pytesseract](https://pypi.org/project/swarmauri_ocr_pytesseract/)
+- [swarmauri_parser_fitzpdf](https://pypi.org/project/swarmauri_parser_fitzpdf/)
 
-## Want to help?
+## Swarmauri Foundations
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
 
+## More Documentation
+
+- [PyMuPDF basics](https://pymupdf.readthedocs.io/en/latest/the-basics.html)
+- [PyMuPDF text extraction details](https://pymupdf.readthedocs.io/en/latest/app1.html)
+- [PyMuPDF text recipes](https://pymupdf.readthedocs.io/en/latest/recipes-text.html)
+
+## Best Practices
+
+- Use this parser when you want a whole-document text payload rather than
+  page-by-page output.
+- Use OCR earlier in the flow for scan-only documents that have no extractable
+  text layer.
+- Cache parse output for large PDFs if the same files are processed repeatedly.
+- If reading order matters, verify the extracted output on representative
+  documents because PDF text order depends on document structure.
+
+## License
+
+This project is licensed under the Apache-2.0 License.
 

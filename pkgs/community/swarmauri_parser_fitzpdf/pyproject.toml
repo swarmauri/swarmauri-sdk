@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_parser_fitzpdf"
 version = "0.8.4.dev5"
-description = "Fitz PDF Parser for Swarmauri."
+description = "High-performance PDF text parser for Swarmauri using PyMuPDF with aggregated whole-document output."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,7 +11,13 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Office/Business",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Text Processing",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -34,6 +40,11 @@ keywords = [
     "fitzpdf",
     "fitz",
     "pdf",
+    "pymupdf",
+    "pdf parser",
+    "text extraction",
+    "document ingestion",
+    "document processing",
 ]
 
 [tool.uv.sources]
@@ -42,6 +53,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=PyMuPDF"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
