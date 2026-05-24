@@ -1,16 +1,21 @@
 [project]
 name = "swarmauri_tool_jupyterclearoutput"
 version = "0.10.1.dev5"
-description = "A tool designed to clear all outputs from a Jupyter Notebook using nbconvert’s ClearOutputPreprocessor, preparing the notebook for sharing or version control."
+description = "Swarmauri notebook-cleanup tool for clearing code-cell outputs and execution counts from Jupyter notebooks."
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterclearoutput/"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Framework :: Jupyter",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -32,18 +37,15 @@ keywords = [
     "swarmauri",
     "tool",
     "jupyterclearoutput",
-    "designed",
     "clear",
-    "all",
     "outputs",
     "jupyter",
     "notebook",
     "nbconvert",
-    "clearoutputpreprocessor",
-    "preparing",
-    "sharing",
-    "version",
-    "control",
+    "notebook cleanup",
+    "execution count",
+    "version control",
+    "artifact sanitation",
 ]
 
 [tool.uv.sources]
@@ -70,6 +72,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-accept-deps=defusedxml,jupyterlab-pygments,jsonschema,jsonschema-specifications,referencing,rpds-py"
 
 [project.entry-points.'swarmauri.tools']
 JupyterClearOutputTool = "swarmauri_tool_jupyterclearoutput:JupyterClearOutputTool"
