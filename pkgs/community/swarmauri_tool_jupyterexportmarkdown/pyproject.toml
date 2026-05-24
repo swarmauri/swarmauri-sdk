@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_tool_jupyterexportmarkdown"
 version = "1.4.1.dev5"
-description = "A Swarmauri tool designed to export Jupyter Notebooks to Markdown."
+description = "Swarmauri Markdown publishing tool for converting Jupyter notebooks into documentation-ready Markdown."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,12 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Framework :: Jupyter",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Text Processing :: Markup :: Markdown",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -29,14 +35,14 @@ dependencies = [
     "swarmauri_standard",
 ]
 keywords = [
-    "swarmauri",
-    "tool",
-    "jupyterexportmarkdown",
-    "designed",
-    "export",
     "jupyter",
-    "notebooks",
-    "markdown",
+    "markdown export",
+    "notebook publishing",
+    "nbconvert",
+    "documentation pipeline",
+    "static site content",
+    "ipynb conversion",
+    "markdown exporter",
 ]
 
 [tool.uv.sources]
@@ -63,6 +69,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-accept-deps=aiohappyeyeballs,aiohttp,aiosignal,ansicolors,entrypoints,jsonschema,jsonschema-specifications,referencing,rpds-py,tenacity,tqdm"
 
 [project.entry-points.'swarmauri.tools']
 JupyterExportMarkdownTool = "swarmauri_tool_jupyterexportmarkdown:JupyterExportMarkdownTool"

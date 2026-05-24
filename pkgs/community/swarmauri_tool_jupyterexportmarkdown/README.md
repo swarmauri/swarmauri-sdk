@@ -14,65 +14,110 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Jupyter Export Markdown
+# Swarmauri Jupyter Export Markdown Tool
 
-Converts a Jupyter `NotebookNode` to Markdown using nbconvert?s `MarkdownExporter`. Injectable CSS and JS snippets let you tweak the output for static publishing.
+`swarmauri_tool_jupyterexportmarkdown` converts a Jupyter notebook dictionary into Markdown using `nbconvert.MarkdownExporter`, with optional template selection and inline style resources for static publishing workflows.
+
+## Why
+
+- Convert notebooks into documentation-friendly Markdown.
+- Feed notebook output into static-site, docs, and content pipelines.
+- Keep notebook-to-Markdown generation inside a Swarmauri tool interface.
 
 ## Features
 
-- Accepts a notebook JSON string and returns rendered Markdown.
-- Optional inline CSS/JS injection to customize the exported document.
-- Returns a dict with `exported_markdown` or `error` if conversion fails.
+- Accepts notebook content as a Python dictionary.
+- Normalizes list-based cell sources before export.
+- Exports with `nbconvert.MarkdownExporter`.
+- Supports optional custom templates.
+- Supports optional style resources for embedded export customization.
 
-## Prerequisites
+## FAQ
 
-- Python 3.10 or newer.
-- nbconvert/nbformat installed (pulled in automatically).
+### What kind of input does this tool expect?
+
+It expects a JSON-like Python dictionary representing a notebook, not a raw file path and not a JSON string.
+
+### Does it write a `.md` file?
+
+No. It returns Markdown content in `exported_markdown`.
+
+### What is the `styles` argument for?
+
+It lets callers pass style content into the nbconvert resources structure for custom Markdown export workflows.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_tool_jupyterexportmarkdown
-
-# poetry
-poetry add swarmauri_tool_jupyterexportmarkdown
-
-# uv (pyproject-based projects)
 uv add swarmauri_tool_jupyterexportmarkdown
 ```
 
-## Quickstart
-
-```python
-import json
-import nbformat
-from swarmauri_tool_jupyterexportmarkdown import JupyterExportMarkdownTool
-
-notebook = nbformat.read("notebooks/example.ipynb", as_version=4)
-notebook_json = json.dumps(notebook)
-
-exporter = JupyterExportMarkdownTool()
-response = exporter(
-    notebook_json=notebook_json,
-    extra_css="blockquote { color: gray; }",
-    extra_js="console.log('Markdown ready');",
-)
-
-if "exported_markdown" in response:
-    Path("notebooks/example.md").write_text(response["exported_markdown"], encoding="utf-8")
-else:
-    print("Error:", response["error"])
+```bash
+pip install swarmauri_tool_jupyterexportmarkdown
 ```
 
-## Tips
+## Usage
 
-- Use Markdown export when preparing notebooks for static docs, blogs, or README content.
-- Apply lightweight CSS/JS to adjust styling when the Markdown is embedded in HTML environments.
-- Combine with notebook execution tools to build pipelines (execute ? convert to Markdown ? publish).
+```python
+from swarmauri_tool_jupyterexportmarkdown import JupyterExportMarkdownTool
 
-## Want to help?
+notebook = {
+    "cells": [
+        {"cell_type": "markdown", "metadata": {}, "source": ["# Demo"]},
+        {
+            "cell_type": "code",
+            "metadata": {},
+            "execution_count": None,
+            "outputs": [],
+            "source": ["print('hello')"],
+        },
+    ],
+    "metadata": {},
+    "nbformat": 4,
+    "nbformat_minor": 5,
+}
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+result = JupyterExportMarkdownTool()(notebook_json=notebook)
+print(result["exported_markdown"])
+```
 
+## Examples
 
+### Export Markdown with a custom template
+
+```python
+result = JupyterExportMarkdownTool()(
+    notebook_json=notebook,
+    template="lab",
+)
+```
+
+### Export Markdown with custom styles
+
+```python
+result = JupyterExportMarkdownTool()(
+    notebook_json=notebook,
+    styles="pre { font-size: 0.9rem; }",
+)
+```
+
+## Related Packages
+
+- [`swarmauri_tool_jupyterexporthtml`](https://pypi.org/project/swarmauri_tool_jupyterexporthtml/)
+- [`swarmauri_tool_jupyterexportlatex`](https://pypi.org/project/swarmauri_tool_jupyterexportlatex/)
+- [`swarmauri_tool_jupyterexportpython`](https://pypi.org/project/swarmauri_tool_jupyterexportpython/)
+- [`swarmauri_tool_jupyterexecuteandconvert`](https://pypi.org/project/swarmauri_tool_jupyterexecuteandconvert/)
+- [`swarmauri_tool_jupyterreadnotebook`](https://pypi.org/project/swarmauri_tool_jupyterreadnotebook/)
+
+## Foundational Swarmauri Packages
+
+- [`swarmauri`](https://pypi.org/project/swarmauri/)
+- [`swarmauri_core`](https://pypi.org/project/swarmauri_core/)
+- [`swarmauri_base`](https://pypi.org/project/swarmauri_base/)
+- [`swarmauri_standard`](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+- [nbconvert Markdown exporter docs](https://nbconvert.readthedocs.io/)
+- [Jupyter documentation](https://jupyter.org/documentation)
