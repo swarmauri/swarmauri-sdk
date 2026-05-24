@@ -14,66 +14,107 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Jupyter Export HTML
+# Swarmauri Jupyter Export HTML Tool
 
-Converts a Jupyter notebook (passed in as JSON) to HTML using nbconvert?s `HTMLExporter` with optional custom templates, CSS, and JavaScript.
+`swarmauri_tool_jupyterexporthtml` converts Jupyter notebook JSON into HTML using `nbconvert.HTMLExporter`, with optional template selection and inline CSS or JavaScript injection.
+
+## Why
+
+- Publish notebooks as web-ready HTML artifacts.
+- Apply presentation-specific HTML templates without rewriting notebook content.
+- Add inline CSS or JavaScript for branded notebook presentation workflows.
 
 ## Features
 
-- Accepts notebook data as a JSON string (e.g., from `json.dumps(nbformat.read(...))`).
-- Supports optional template, inline CSS, and inline JS injection.
-- Returns a dict containing `exported_html` or `error` when conversion fails.
+- Parses notebook JSON into a `NotebookNode`.
+- Exports notebook content through `nbconvert.HTMLExporter`.
+- Supports optional `template_file` overrides.
+- Can inject inline CSS into the document head.
+- Can inject inline JavaScript before the closing body tag.
 
-## Prerequisites
+## FAQ
 
-- Python 3.10 or newer.
-- `nbconvert`, `nbformat`, and Swarmauri base/core packages (installed automatically).
+### What input does this tool accept?
+
+It expects a JSON string representing the notebook, not a file path and not a Python dictionary.
+
+### Does it write an HTML file?
+
+No. It returns the generated HTML string in `exported_html`.
+
+### When should I use extra CSS or extra JS?
+
+Use them when the exported notebook needs lightweight presentation customization without managing a full custom exporter package.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_tool_jupyterexporthtml
-
-# poetry
-poetry add swarmauri_tool_jupyterexporthtml
-
-# uv (pyproject-based projects)
 uv add swarmauri_tool_jupyterexporthtml
 ```
 
-## Quickstart
-
-```python
-import json
-import nbformat
-from swarmauri_tool_jupyterexporthtml import JupyterExportHTMLTool
-
-notebook = nbformat.read("notebooks/example.ipynb", as_version=4)
-notebook_json = json.dumps(notebook)
-
-exporter = JupyterExportHTMLTool()
-response = exporter(
-    notebook_json=notebook_json,
-    template_file=None,
-    extra_css="body { font-family: Arial; }",
-    extra_js="console.log('Export complete');",
-)
-
-if "exported_html" in response:
-    Path("notebooks/example.html").write_text(response["exported_html"], encoding="utf-8")
-else:
-    print("Error:", response["error"])
+```bash
+pip install swarmauri_tool_jupyterexporthtml
 ```
 
-## Tips
+## Usage
 
-- nbconvert templates let you customize the layout; pass a `.tpl` file to `template_file`.
-- Keep `extra_css`/`extra_js` lightweight to avoid bloating the HTML output.
-- Combine with notebook execution tools (execute ? export ? publish) for end-to-end pipelines.
+```python
+from swarmauri_tool_jupyterexporthtml import JupyterExportHtmlTool
 
-## Want to help?
+notebook_json = """
+{
+  "cells": [{"cell_type": "markdown", "metadata": {}, "source": ["# Demo"]}],
+  "metadata": {},
+  "nbformat": 4,
+  "nbformat_minor": 5
+}
+"""
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+tool = JupyterExportHtmlTool()
+result = tool(notebook_json=notebook_json)
 
+print(result["exported_html"][:200])
+```
 
+## Examples
+
+### Export HTML with custom CSS
+
+```python
+result = JupyterExportHtmlTool()(
+    notebook_json=notebook_json,
+    extra_css="body { max-width: 960px; margin: 0 auto; }",
+)
+
+html = result["exported_html"]
+```
+
+### Export HTML with custom JavaScript
+
+```python
+result = JupyterExportHtmlTool()(
+    notebook_json=notebook_json,
+    extra_js="console.log('Notebook rendered');",
+)
+```
+
+## Related Packages
+
+- [`swarmauri_tool_jupyterexecuteandconvert`](https://pypi.org/project/swarmauri_tool_jupyterexecuteandconvert/)
+- [`swarmauri_tool_jupyterexportmarkdown`](https://pypi.org/project/swarmauri_tool_jupyterexportmarkdown/)
+- [`swarmauri_tool_jupyterexportlatex`](https://pypi.org/project/swarmauri_tool_jupyterexportlatex/)
+- [`swarmauri_tool_jupyterexportpython`](https://pypi.org/project/swarmauri_tool_jupyterexportpython/)
+- [`swarmauri_tool_jupyterexecutenotebook`](https://pypi.org/project/swarmauri_tool_jupyterexecutenotebook/)
+
+## Foundational Swarmauri Packages
+
+- [`swarmauri`](https://pypi.org/project/swarmauri/)
+- [`swarmauri_core`](https://pypi.org/project/swarmauri_core/)
+- [`swarmauri_base`](https://pypi.org/project/swarmauri_base/)
+- [`swarmauri_standard`](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+- [nbconvert HTMLExporter docs](https://nbconvert.readthedocs.io/en/latest/usage.html)
+- [Jupyter documentation](https://jupyter.org/documentation)
