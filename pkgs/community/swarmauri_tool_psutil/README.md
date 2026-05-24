@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Â· psutil
+# Swarmauri Tool ? psutil
 
 A Swarmauri-compatible system inspection tool powered by `psutil`. Use it to surface CPU, memory, disk, network, and sensor telemetry inside agents, observability workflows, or health checks.
 
@@ -24,7 +24,7 @@ A Swarmauri-compatible system inspection tool powered by `psutil`. Use it to sur
 
 ## Requirements
 
-- Python 3.10 â€“ 3.13.
+- Python 3.10 ? 3.13.
 - `psutil` installed (pulled automatically with the package).
 - Optional platform support: some sensor endpoints require root/admin privileges or may not exist on virtualized hosts.
 
@@ -146,9 +146,9 @@ Capture periodic snapshots that can be loaded into notebooks, dashboards, or ano
 
 ## Troubleshooting
 
-- **`ValueError: Invalid info_type`** â€“ Only `"cpu"`, `"memory"`, `"disk"`, `"network"`, and `"sensors"` are supported. Validate user input before calling the tool.
-- **`Permission denied` retrieving connections/sensors** â€“ Run with elevated privileges or filter out those sections. The tool returns a descriptive string when it cannot access the data.
-- **`psutil.AccessDenied` on containerized hosts** â€“ Grant the container additional capabilities (e.g., `SYS_PTRACE`) or restrict to metrics that do not require elevated rights.
+- **`ValueError: Invalid info_type`** ? Only `"cpu"`, `"memory"`, `"disk"`, `"network"`, and `"sensors"` are supported. Validate user input before calling the tool.
+- **`Permission denied` retrieving connections/sensors** ? Run with elevated privileges or filter out those sections. The tool returns a descriptive string when it cannot access the data.
+- **`psutil.AccessDenied` on containerized hosts** ? Grant the container additional capabilities (e.g., `SYS_PTRACE`) or restrict to metrics that do not require elevated rights.
 
 ## License
 

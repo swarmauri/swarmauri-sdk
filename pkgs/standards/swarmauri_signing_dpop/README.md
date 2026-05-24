@@ -108,8 +108,8 @@ Use the `jkt` helper when comparing against `cnf.jkt` values embedded in access 
 
 Keys are provided using the `KeyRef` mapping expected by other Swarmauri signing packages:
 
-- `{ "kind": "pem", "priv": <PEM bytes|str> }` â€” RSA/EC keys and Ed25519 PKCS8 PEM.
-- `{ "kind": "jwk", "priv": <private JWK dict> }` â€” accepts EC, RSA, or OKP keys with private fields.
+- `{ "kind": "pem", "priv": <PEM bytes|str> }` ? RSA/EC keys and Ed25519 PKCS8 PEM.
+- `{ "kind": "jwk", "priv": <private JWK dict> }` ? accepts EC, RSA, or OKP keys with private fields.
 
 For Ed25519 material, both formats are supported; the signer derives and embeds the public JWK automatically.
 

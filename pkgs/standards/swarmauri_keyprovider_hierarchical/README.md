@@ -27,20 +27,20 @@ class.
 routes every key operation to the correct child according to declarative
 policies.  It offers:
 
-- **Create/import routing** â€“ specify ordered [`CreateRule`](#routing-policy)
+- **Create/import routing** ? specify ordered [`CreateRule`](#routing-policy)
   objects that match key class, algorithm, usage, or export policy. The first
   rule that matches a `KeySpec` wins.
-- **Automatic discovery** â€“ when looking up an unknown key identifier (KID)
+- **Automatic discovery** ? when looking up an unknown key identifier (KID)
   the provider probes each child until it finds the owning provider and caches
   the association for future calls.
-- **Persistent indexing** â€“ optionally persist the learned KID â†’ provider map
+- **Persistent indexing** ? optionally persist the learned KID ? provider map
   to JSON via the `index_file` argument so the routing cache survives process
   restarts.
-- **Capability passthrough** â€“ rotate, destroy, list, JWKS, HKDF, and random
+- **Capability passthrough** ? rotate, destroy, list, JWKS, HKDF, and random
   byte requests are forwarded transparently to the owning (or designated)
   child provider. JWKS responses are merged across children while avoiding
   duplicate KIDs.
-- **Heuristic fallback** â€“ if no policy matches a create/import request the
+- **Heuristic fallback** ? if no policy matches a create/import request the
   provider falls back to sensible defaults: asymmetric keys prefer children
   named like KMS/PKCS#11, symmetric keys prefer local/file providers, and
   otherwise the first registered child is used.
@@ -160,7 +160,7 @@ is not supplied, create rules are re-used for imports.
 
 ## Index persistence & discovery
 
-Pass `index_file` to persist the in-memory KID â†’ provider cache as JSON. On
+Pass `index_file` to persist the in-memory KID ? provider cache as JSON. On
 startup, any known mappings are re-loaded (invalid provider names are skipped).
 When a lookup is made for an unknown KID the provider probes each child with a
 `get_key` call; if a child recognizes the KID the mapping is remembered and

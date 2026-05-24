@@ -16,7 +16,7 @@
 
 # Swarmauri Tool Dale-Chall Readability
 
-Tool wrapper around [`textstat`](https://pypi.org/project/textstat/) to compute the Daleâ€“Chall readability score for a block of text via the Swarmauri tool interface.
+Tool wrapper around [`textstat`](https://pypi.org/project/textstat/) to compute the Dale?Chall readability score for a block of text via the Swarmauri tool interface.
 
 ## Features
 
@@ -66,7 +66,7 @@ def grade_paragraph(paragraph: str) -> float:
 
 ## Tips
 
-- Daleâ€“Chall scores roughly map to U.S. grade levels; lower scores indicate easier reading.
+- Dale?Chall scores roughly map to U.S. grade levels; lower scores indicate easier reading.
 - Pre-clean text (remove markup, normalize whitespace) for consistent scoring.
 - Combine with Swarmauri measurements or parsers to evaluate readability across multiple documents.
 

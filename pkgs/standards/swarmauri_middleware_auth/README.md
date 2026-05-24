@@ -53,15 +53,15 @@ uv pip install swarmauri_middleware_auth
 
 `AuthMiddleware` accepts the following arguments:
 
-- `secret_key` (**required**) â€“ shared secret used to validate
+- `secret_key` (**required**) ? shared secret used to validate
   HMAC-signed JWTs (must be at least 32 bytes for HMAC algorithms).
-- `algorithm` (default `"HS256"`) â€“ JWT algorithm identifier supported by
+- `algorithm` (default `"HS256"`) ? JWT algorithm identifier supported by
   `swarmauri_signing_jws`.
-- `verify_exp` (default `True`) â€“ toggle to enforce the `exp` claim.
-- `verify_aud` (default `False`) â€“ toggle to enforce the `aud` claim
+- `verify_exp` (default `True`) ? toggle to enforce the `exp` claim.
+- `verify_aud` (default `False`) ? toggle to enforce the `aud` claim
   matches the provided `audience`.
-- `audience` â€“ expected `aud` claim when `verify_aud` is enabled.
-- `issuer` â€“ expected `iss` claim.
+- `audience` ? expected `aud` claim when `verify_aud` is enabled.
+- `issuer` ? expected `iss` claim.
 - Additional keyword arguments are forwarded to `MiddlewareBase`.
 
 Tokens missing required claims (`sub`, `iat`) or failing any validation

@@ -16,7 +16,7 @@
 
 # Swarmauri Tool Jupyter Execute & Convert
 
-Executes a Jupyter notebook and converts the output to HTML or PDF using nbconvertâ€”packaged as a Swarmauri tool.
+Executes a Jupyter notebook and converts the output to HTML or PDF using nbconvert?packaged as a Swarmauri tool.
 
 ## Features
 

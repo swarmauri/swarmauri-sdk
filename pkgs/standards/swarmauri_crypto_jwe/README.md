@@ -101,9 +101,9 @@ crypto = pm.load("swarmauri.cryptos", "JweCrypto")
 
 **Parameters**
 
-- `alg` â€“ `JWAAlg` member describing the key management algorithm (`JWAAlg.RSA_OAEP_256`, `JWAAlg.DIR`, etc.).
-- `enc` â€“ `JWAAlg` member describing the content encryption algorithm (`JWAAlg.A256GCM`, `JWAAlg.A128GCM`, etc.).
-- `key` â€“ mapping containing the key material used for encryption:
+- `alg` ? `JWAAlg` member describing the key management algorithm (`JWAAlg.RSA_OAEP_256`, `JWAAlg.DIR`, etc.).
+- `enc` ? `JWAAlg` member describing the content encryption algorithm (`JWAAlg.A256GCM`, `JWAAlg.A128GCM`, etc.).
+- `key` ? mapping containing the key material used for encryption:
   - `{"k": bytes}` for direct symmetric keys (`dir`).
   - `{"pub": rsa_public_key}` for RSA OAEP, where the public key may be PEM bytes or an `RSAPublicKey` instance.
   - `{"pub": ec_public_key}` for ECDH-ES with PEM, JWK, or key objects.

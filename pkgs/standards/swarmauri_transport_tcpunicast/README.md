@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Transport â€“ TCP Unicast
+# Swarmauri Transport ? TCP Unicast
 
 `swarmauri-transport-tcpunicast` offers a lightweight TCP harness for prototyping Swarmauri agents.
 

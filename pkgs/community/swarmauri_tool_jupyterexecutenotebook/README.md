@@ -27,7 +27,7 @@ Executes all cells of a Jupyter notebook using nbclient and returns the executed
 ## Prerequisites
 
 - Python 3.10 or newer.
-- Jupyter/nbconvert stack available (`nbclient`, `nbformat`, `ipykernel`, etc.â€”installed automatically).
+- Jupyter/nbconvert stack available (`nbclient`, `nbformat`, `ipykernel`, etc.?installed automatically).
 - Notebook dependencies must be installed in the environment where the tool runs.
 
 ## Installation

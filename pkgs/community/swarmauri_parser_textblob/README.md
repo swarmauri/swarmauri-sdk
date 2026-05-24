@@ -71,7 +71,7 @@ for doc in docs:
 
 ## Tips
 
-- TextBlob uses simple heuristicsâ€”it works well for general English text but may struggle with domain-specific jargon.
+- TextBlob uses simple heuristics?it works well for general English text but may struggle with domain-specific jargon.
 - Download corpora once in CI/CD or container builds (`python -m textblob.download_corpora`) to avoid runtime downloads.
 - Combine sentence and noun parsers to build structured representations of documents before vectorization or downstream NLP tasks.
 

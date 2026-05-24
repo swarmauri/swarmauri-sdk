@@ -14,9 +14,9 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Inâ€‘Memory Key Provider
+# Swarmauri In-Memory Key Provider
 
-Volatile, inâ€‘memory key provider for Swarmauri. All key material is kept strictly in process memory (no disk writes). Ideal for testing, CI, and ephemeral gateways where persistence is not desired. Not intended for longâ€‘term or production storage of secrets.
+Volatile, in-memory key provider for Swarmauri. All key material is kept strictly in process memory (no disk writes). Ideal for testing, CI, and ephemeral gateways where persistence is not desired. Not intended for long-term or production storage of secrets.
 
 ## Installation
 
@@ -57,7 +57,7 @@ async def main() -> None:
     # Create a symmetric key kept only in memory
     spec = KeySpec(
         klass=KeyClass.symmetric,
-        alg=KeyAlg.AES256_GCM,             # optional hint â€“ not strictly enforced
+        alg=KeyAlg.AES256_GCM,             # optional hint ? not strictly enforced
         uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
         export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,  # material may be present
         label="session-key",

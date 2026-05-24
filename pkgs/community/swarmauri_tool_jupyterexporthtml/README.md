@@ -16,7 +16,7 @@
 
 # Swarmauri Tool Jupyter Export HTML
 
-Converts a Jupyter notebook (passed in as JSON) to HTML using nbconvertâ€™s `HTMLExporter` with optional custom templates, CSS, and JavaScript.
+Converts a Jupyter notebook (passed in as JSON) to HTML using nbconvert?s `HTMLExporter` with optional custom templates, CSS, and JavaScript.
 
 ## Features
 
@@ -70,7 +70,7 @@ else:
 
 - nbconvert templates let you customize the layout; pass a `.tpl` file to `template_file`.
 - Keep `extra_css`/`extra_js` lightweight to avoid bloating the HTML output.
-- Combine with notebook execution tools (execute â†’ export â†’ publish) for end-to-end pipelines.
+- Combine with notebook execution tools (execute ? export ? publish) for end-to-end pipelines.
 
 ## Want to help?
 

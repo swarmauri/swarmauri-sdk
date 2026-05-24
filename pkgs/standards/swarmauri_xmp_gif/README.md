@@ -20,9 +20,9 @@
 
 ## Features
 
-- **Registry native** â€“ extends `EmbedXmpBase` so managers such as `EmbedXMP` can discover it through Swarmauri's dynamic registry.
-- **Block aware** â€“ iterates GIF sub-blocks safely and terminates on sentinel bytes to avoid corrupting animations.
-- **Spec aligned** â€“ writes uncompressed UTF-8 payloads that match Adobe's guidance for GIF metadata.
+- **Registry native** ? extends `EmbedXmpBase` so managers such as `EmbedXMP` can discover it through Swarmauri's dynamic registry.
+- **Block aware** ? iterates GIF sub-blocks safely and terminates on sentinel bytes to avoid corrupting animations.
+- **Spec aligned** ? writes uncompressed UTF-8 payloads that match Adobe's guidance for GIF metadata.
 
 ## Installation
 
@@ -59,9 +59,9 @@ clean_bytes = handler.remove_xmp(updated_bytes)
 
 ### Why it works
 
-- **Standards-based** â€“ uses the XMP-defined App ID and Auth Code from Adobe's reference implementation.
-- **Chunk-aware** â€“ scans GIF sub-blocks safely, terminating on sentinel bytes and ignoring malformed payloads.
-- **Registry-native** â€“ inherits from `EmbedXmpBase`, so managers only need to query the component registry.
+- **Standards-based** ? uses the XMP-defined App ID and Auth Code from Adobe's reference implementation.
+- **Chunk-aware** ? scans GIF sub-blocks safely, terminating on sentinel bytes and ignoring malformed payloads.
+- **Registry-native** ? inherits from `EmbedXmpBase`, so managers only need to query the component registry.
 
 ## Project Resources
 

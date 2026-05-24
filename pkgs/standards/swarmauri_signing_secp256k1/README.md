@@ -22,17 +22,17 @@ canonicalized envelopes.
 
 ## Features
 
-- **Asynchronous API** â€“ `sign_bytes`, `verify_bytes`, `sign_envelope`, and
+- **Asynchronous API** ? `sign_bytes`, `verify_bytes`, `sign_envelope`, and
   `verify_envelope` operate with `asyncio` and return canonical Swarmauri
   signature payloads.
-- **Multiple canonicalizations** â€“ JSON canonicalization is always
+- **Multiple canonicalizations** ? JSON canonicalization is always
   available, while CBOR canonicalization can be enabled with the optional
   `cbor2` dependency.
-- **Flexible key loading** â€“ accepts PEM strings/paths, JWK dictionaries, or
+- **Flexible key loading** ? accepts PEM strings/paths, JWK dictionaries, or
   native `cryptography` key objects via the `KeyRef` protocol.
-- **Deterministic verification requirements** â€“ verification expects one or
+- **Deterministic verification requirements** ? verification expects one or
   more secp256k1 public keys provided through `opts["pubkeys"]`.
-- **Signature format control** â€“ DER encoding is returned by default; supply
+- **Signature format control** ? DER encoding is returned by default; supply
   `opts={"format": "RAW"}` when signing or verifying to work with
   JOSE-style `r || s` concatenated signatures.
 

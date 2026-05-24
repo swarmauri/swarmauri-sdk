@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Transport â€“ HTTP/2 Adapter
+# Swarmauri Transport ? HTTP/2 Adapter
 
 `swarmauri-transport-h2` layers HTTP semantics on top of the reusable `H2MuxTransport`, giving you request/response helpers while preserving multiplexed channel control.
 

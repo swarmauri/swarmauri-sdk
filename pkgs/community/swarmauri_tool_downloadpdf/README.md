@@ -63,7 +63,7 @@ else:
 ## Tips
 
 - Always check for the `error` key before assuming the download succeeded.
-- Large PDFs load into memoryâ€”consider chunking or alternative tools if you need to stream huge files directly to disk.
+- Large PDFs load into memory?consider chunking or alternative tools if you need to stream huge files directly to disk.
 - Validate URLs to avoid downloading untrusted content when wiring this tool into automated pipelines.
 
 ## Want to help?

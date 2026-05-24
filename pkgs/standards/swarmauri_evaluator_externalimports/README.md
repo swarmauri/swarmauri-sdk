@@ -16,7 +16,7 @@
 
 # Swarmauri Evaluator External Imports
 
-Evaluator that detects and penalizes nonâ€“standard-library imports in Python source files.
+Evaluator that detects and penalizes non?standard-library imports in Python source files.
 
 ## Purpose
 

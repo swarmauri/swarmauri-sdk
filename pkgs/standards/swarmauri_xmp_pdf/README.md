@@ -20,9 +20,9 @@
 
 ## Features
 
-- **Future-proof** â€“ defines the API surface for PDF metadata before implementation begins.
-- **Registry-integrated** â€“ extends `EmbedXmpBase`, so discovery happens automatically once functionality ships.
-- **Clear guidance** â€“ explicit errors communicate the current development status to downstream users.
+- **Future-proof** ? defines the API surface for PDF metadata before implementation begins.
+- **Registry-integrated** ? extends `EmbedXmpBase`, so discovery happens automatically once functionality ships.
+- **Clear guidance** ? explicit errors communicate the current development status to downstream users.
 
 ## Installation
 
@@ -49,9 +49,9 @@ except NotImplementedError:
 
 ### Why it works
 
-- **Future-proof** â€“ defines the API surface for PDF metadata before implementation begins.
-- **Registry-integrated** â€“ extends `EmbedXmpBase`, so discovery happens automatically once functionality ships.
-- **Clear guidance** â€“ explicit errors communicate the current development status to downstream users.
+- **Future-proof** ? defines the API surface for PDF metadata before implementation begins.
+- **Registry-integrated** ? extends `EmbedXmpBase`, so discovery happens automatically once functionality ships.
+- **Clear guidance** ? explicit errors communicate the current development status to downstream users.
 
 ## Project Resources
 

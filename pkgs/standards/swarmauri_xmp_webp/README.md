@@ -20,9 +20,9 @@
 
 ## Features
 
-- **Forward compatible** â€“ establishes class signatures today so future implementations slot straight into existing workflows.
-- **Registry aligned** â€“ inherits from `EmbedXmpBase`, enabling automatic discovery through Swarmauri's dynamic registry.
-- **Clear contracts** â€“ raises `NotImplementedError` for read/write/remove until the RIFF logic is complete.
+- **Forward compatible** ? establishes class signatures today so future implementations slot straight into existing workflows.
+- **Registry aligned** ? inherits from `EmbedXmpBase`, enabling automatic discovery through Swarmauri's dynamic registry.
+- **Clear contracts** ? raises `NotImplementedError` for read/write/remove until the RIFF logic is complete.
 
 ## Installation
 
@@ -50,9 +50,9 @@ except NotImplementedError:
 
 ### Why it works
 
-- **Forward compatible** â€“ declaring the handler today reserves the RIFF chunk namespace for future work.
-- **Registry alignment** â€“ subclassing `EmbedXmpBase` means discovery logic will work without code changes once implemented.
-- **Clear contracts** â€“ explicit `NotImplementedError` exceptions communicate the remaining work to contributors.
+- **Forward compatible** ? declaring the handler today reserves the RIFF chunk namespace for future work.
+- **Registry alignment** ? subclassing `EmbedXmpBase` means discovery logic will work without code changes once implemented.
+- **Clear contracts** ? explicit `NotImplementedError` exceptions communicate the remaining work to contributors.
 
 ## Project Resources
 

@@ -20,10 +20,10 @@ The `swarmauri_metric_hamming` package delivers a production-ready implementatio
 
 ## Features
 
-- âœ… Fully compliant `MetricBase` implementation for binary sequences.
-- ðŸ” Pairwise and batched distance calculations for matrices, vectors, and iterables.
-- ðŸ§ª Built-in validation helpers for metric axioms and input compatibility checks.
-- ðŸ§° Utility conversion helpers for strings, dictionaries, NumPy arrays, and Swarmauri matrices/vectors.
+- Fully compliant `MetricBase` implementation for binary sequences.
+- Pairwise and batched distance calculations for matrices, vectors, and iterables.
+- Built-in validation helpers for metric axioms and input compatibility checks.
+- Utility conversion helpers for strings, dictionaries, NumPy arrays, and Swarmauri matrices/vectors.
 
 ## Installation
 

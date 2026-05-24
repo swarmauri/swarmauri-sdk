@@ -97,13 +97,13 @@ print(claims["sub"])
 
 ### Cache management helpers
 
-- `refresh(force: bool = False)` â€” trigger a JWKS refresh immediately when
+- `refresh(force: bool = False)` ? trigger a JWKS refresh immediately when
   `force` is true or the cache has expired.
-- `invalidate(kid: Optional[str] = None)` â€” drop either a specific key or the
+- `invalidate(kid: Optional[str] = None)` ? drop either a specific key or the
   entire cache, including overrides.
-- `inject_override_key(kid, key_obj)` / `inject_override_jwk(kid, jwk)` â€” add
+- `inject_override_key(kid, key_obj)` / `inject_override_jwk(kid, jwk)` ? add
   temporary key material that bypasses JWKS fetching when resolving by `kid`.
-- `key_resolver()` â€” obtain a callable suitable for advanced PyJWT usage when
+- `key_resolver()` ? obtain a callable suitable for advanced PyJWT usage when
   integrating with other verification flows.
 
 ## Entry Point

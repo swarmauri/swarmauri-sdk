@@ -56,7 +56,7 @@ uv pip install swarmauri_certs_local_ca
 
 ## Usage
 
-Below is a minimal endâ€‘toâ€‘end example that issues and verifies a leaf
+Below is a minimal end-to-end example that issues and verifies a leaf
 certificate signed by a local certificate authority.  The helper function
 `_key` creates the ``KeyRef`` objects required by the service.
 

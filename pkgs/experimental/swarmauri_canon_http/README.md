@@ -32,16 +32,16 @@ The parity tests are organized into `tests/parity/httpx/` and `tests/parity/requ
 
 | Feature area | httpx | swarmauri_canon_http |
 | --- | --- | --- |
-| Auth (`auth=`) | âœ… | âŒ (not implemented) |
-| Cookies (`cookies=`) | âœ… | âŒ (not implemented) |
-| Rich Request/Response model | âœ… | âŒ (primitive tuple/string responses) |
-| `request(...)` generic API | âœ… | âš ï¸ (`sync_request`/`async_request` only) |
-| Streaming API (`stream`) | âœ… | âŒ |
-| HTTP/1 + HTTP/2 toggles | âœ… | âš ï¸ (`version="1.1"` or `"2"`) |
-| HTTP/3 | âŒ | âŒ |
-| WebSocket schemes (`ws://`, `wss://`) | âŒ | âŒ |
-| SSL verify/cert keyword options | âœ… | âŒ (constructor does not accept `verify`/`cert`) |
-| Async client support | âœ… | âœ… |
+| Auth (`auth=`) | Yes | No (not implemented) |
+| Cookies (`cookies=`) | Yes | No (not implemented) |
+| Rich Request/Response model | Yes | No (primitive tuple/string responses) |
+| `request(...)` generic API | Yes | Partial (`sync_request`/`async_request` only) |
+| Streaming API (`stream`) | Yes | No |
+| HTTP/1 + HTTP/2 toggles | Yes | Partial (`version="1.1"` or `"2"`) |
+| HTTP/3 | No | No |
+| WebSocket schemes (`ws://`, `wss://`) | No | No |
+| SSL verify/cert keyword options | Yes | No (constructor does not accept `verify`/`cert`) |
+| Async client support | Yes | Yes |
 
 ## Installation
 

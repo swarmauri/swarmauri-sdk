@@ -29,7 +29,7 @@ Shamir Secret Sharing based multi-recipient encryption (MRE) provider for the Sw
 
 The plugin supports optional canonicalization extras:
 
-- `cbor` â€“ enables CBOR canonicalization via `cbor2`
+- `cbor` ? enables CBOR canonicalization via `cbor2`
 
 ## Installation
 

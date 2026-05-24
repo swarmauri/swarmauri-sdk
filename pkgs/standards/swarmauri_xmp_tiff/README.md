@@ -20,9 +20,9 @@
 
 ## Features
 
-- **Future ready** â€“ codifies the contract for TIFF/DNG metadata manipulation ahead of implementation work.
-- **Registry connected** â€“ extends `EmbedXmpBase`, so the handler is automatically registered for discovery.
-- **Explicit messaging** â€“ each method raises `NotImplementedError`, clarifying expectations for contributors.
+- **Future ready** ? codifies the contract for TIFF/DNG metadata manipulation ahead of implementation work.
+- **Registry connected** ? extends `EmbedXmpBase`, so the handler is automatically registered for discovery.
+- **Explicit messaging** ? each method raises `NotImplementedError`, clarifying expectations for contributors.
 
 ## Installation
 
@@ -49,9 +49,9 @@ except NotImplementedError:
 
 ### Why it works
 
-- **Future ready** â€“ codifies the contract for TIFF/DNG metadata manipulation ahead of implementation work.
-- **Registry connected** â€“ extends `EmbedXmpBase`, so the handler is automatically registered for discovery.
-- **Explicit messaging** â€“ each method raises `NotImplementedError`, clarifying expectations for contributors.
+- **Future ready** ? codifies the contract for TIFF/DNG metadata manipulation ahead of implementation work.
+- **Registry connected** ? extends `EmbedXmpBase`, so the handler is automatically registered for discovery.
+- **Explicit messaging** ? each method raises `NotImplementedError`, clarifying expectations for contributors.
 
 ## Project Resources
 

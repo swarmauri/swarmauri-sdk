@@ -20,7 +20,7 @@ Reads a `.ipynb` file from disk into a validated nbformat `NotebookNode` for dow
 
 ## Features
 
-- Wraps nbformatâ€™s `read` + validation workflow in a Swarmauri tool.
+- Wraps nbformat?s `read` + validation workflow in a Swarmauri tool.
 - Returns `{ "notebook_node": NotebookNode }` on success or `{ "error": ... }` on failure.
 - Optional `as_version` argument controls notebook parsing version (default 4).
 
@@ -62,7 +62,7 @@ else:
 
 ## Tips
 
-- Use with execution/export tools to build pipelines (read â†’ execute â†’ convert).
+- Use with execution/export tools to build pipelines (read ? execute ? convert).
 - Handle `error` key gracefully when files are missing or malformed.
 
 ## Want to help?

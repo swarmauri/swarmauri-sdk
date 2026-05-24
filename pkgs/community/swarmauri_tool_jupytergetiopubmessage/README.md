@@ -16,7 +16,7 @@
 
 # Swarmauri Tool Jupyter Get IOPub Message
 
-Listens to a Jupyter kernelâ€™s IOPub channel and collects stdout/stderr/log messages for downstream processing.
+Listens to a Jupyter kernel?s IOPub channel and collects stdout/stderr/log messages for downstream processing.
 
 ## Features
 

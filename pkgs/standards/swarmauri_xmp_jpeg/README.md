@@ -20,9 +20,9 @@
 
 ## Features
 
-- **Immediate discovery** â€“ derives from `EmbedXmpBase` so dynamic registry consumers can import it automatically.
-- **Header accuracy** â€“ produces APP1 payloads prefixed with `http://ns.adobe.com/xap/1.0/\x00` as required by the specification.
-- **Defensive parsing** â€“ iterates markers safely and halts at SOS to avoid corrupting scan data.
+- **Immediate discovery** ? derives from `EmbedXmpBase` so dynamic registry consumers can import it automatically.
+- **Header accuracy** ? produces APP1 payloads prefixed with `http://ns.adobe.com/xap/1.0/\x00` as required by the specification.
+- **Defensive parsing** ? iterates markers safely and halts at SOS to avoid corrupting scan data.
 
 ## Installation
 
@@ -59,9 +59,9 @@ clean_bytes = handler.remove_xmp(updated_bytes)
 
 ### Why it works
 
-- **APP1 discipline** â€“ the implementation builds a compliant APP1 segment with the canonical XMP namespace string.
-- **Dynamic registration** â€“ inheriting from `EmbedXmpBase` means the handler is registered automatically for plugin discovery.
-- **Robust parsing** â€“ helper iterators validate segment structure, stopping safely at SOS or malformed markers.
+- **APP1 discipline** ? the implementation builds a compliant APP1 segment with the canonical XMP namespace string.
+- **Dynamic registration** ? inheriting from `EmbedXmpBase` means the handler is registered automatically for plugin discovery.
+- **Robust parsing** ? helper iterators validate segment structure, stopping safely at SOS or malformed markers.
 
 ## Project Resources
 

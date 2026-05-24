@@ -74,7 +74,7 @@ except ValueError as exc:
 
 - Pre-process PDFs (deskew, OCR) before parsing if they contain scanned pages without embedded text; PyMuPDF only extracts existing text objects.
 - For multi-document pipelines, pair this parser with Swarmauri token-count measurements or summarizers to chunk large PDFs.
-- Cache parsed output if the same PDF is accessed frequentlyâ€”parsing large documents repeatedly is expensive.
+- Cache parsed output if the same PDF is accessed frequently?parsing large documents repeatedly is expensive.
 
 ## Want to help?
 

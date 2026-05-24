@@ -14,9 +14,9 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Toolkit Â· GitHub
+# Swarmauri Toolkit ? GitHub
 
-A Swarmauri toolkit that wraps PyGithub behind Swarmauriâ€™s agent/tool abstractions. Authenticate once and gain access to repository, issue, pull request, branch, and commit helpersâ€”ready for scripted automation or conversational agents.
+A Swarmauri toolkit that wraps PyGithub behind Swarmauri?s agent/tool abstractions. Authenticate once and gain access to repository, issue, pull request, branch, and commit helpers?ready for scripted automation or conversational agents.
 
 - Creates a shared GitHub client so every tool call reuses the same token and rate-limit state.
 - Normalizes responses into dictionaries so downstream logic can inspect status messages or raw PyGithub payloads.
@@ -24,7 +24,7 @@ A Swarmauri toolkit that wraps PyGithub behind Swarmauriâ€™s agent/tool abs
 
 ## Requirements
 
-- Python 3.10 â€“ 3.13.
+- Python 3.10 ? 3.13.
 - GitHub personal access token (classic or fine-grained) with the scopes your workflow requires. Store it in an environment variable such as `GITHUB_TOKEN`.
 - Runtime dependencies (`PyGithub`, `python-dotenv`, and the Swarmauri base/standard packages) install automatically with the toolkit.
 
@@ -54,7 +54,7 @@ uv add swarmauri_toolkit_github
 uv pip install swarmauri_toolkit_github
 ```
 
-> Tip: `python-dotenv` is imported automaticallyâ€”drop your token into a local `.env` file (`GITHUB_TOKEN=ghp_...`) for quick experimentation.
+> Tip: `python-dotenv` is imported automatically?drop your token into a local `.env` file (`GITHUB_TOKEN=ghp_...`) for quick experimentation.
 
 ## Quick Start
 
@@ -157,9 +157,9 @@ Keep a backlog tidy by automatically nudging stale tickets.
 
 ## Troubleshooting
 
-- **`ValueError: Invalid Token or Missing api_token`** â€“ Pass the token explicitly (`GithubToolkit(api_token=...)`) or export `GITHUB_TOKEN` before instantiating the toolkit.
-- **PyGithub exception messages** â€“ Most actions bubble up PyGithub errors verbatim (permission issues, missing branches, etc.). Inspect the text in the returned string to resolve scope or naming problems.
-- **GitHub rate limits** â€“ PyGithub tracks remaining requests; consider batching actions or sleeping when `Github.get_rate_limit()` indicates low headroom.
+- **`ValueError: Invalid Token or Missing api_token`** ? Pass the token explicitly (`GithubToolkit(api_token=...)`) or export `GITHUB_TOKEN` before instantiating the toolkit.
+- **PyGithub exception messages** ? Most actions bubble up PyGithub errors verbatim (permission issues, missing branches, etc.). Inspect the text in the returned string to resolve scope or naming problems.
+- **GitHub rate limits** ? PyGithub tracks remaining requests; consider batching actions or sleeping when `Github.get_rate_limit()` indicates low headroom.
 
 ## License
 

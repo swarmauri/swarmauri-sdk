@@ -14,9 +14,9 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Â· Zapier Hook
+# Swarmauri Tool ? Zapier Hook
 
-A Swarmauri tool that triggers Zapier catch webhooks from within agent workflows. Use it to hand off conversation state to Zapier automationsâ€”send notifications, update CRMs, open tickets, or kick off custom Zaps with a single function call.
+A Swarmauri tool that triggers Zapier catch webhooks from within agent workflows. Use it to hand off conversation state to Zapier automations?send notifications, update CRMs, open tickets, or kick off custom Zaps with a single function call.
 
 - Accepts JSON payloads as strings and posts them to a Zapier webhook URL.
 - Surfaces the Zapier HTTP response (success or failure) in a structured dictionary.
@@ -24,8 +24,8 @@ A Swarmauri tool that triggers Zapier catch webhooks from within agent workflows
 
 ## Requirements
 
-- Python 3.10 â€“ 3.13.
-- A Zapier webhook URL (copy from Zap setup â†’ **Webhooks by Zapier** â†’ **Catch Hook**). Store it securely (environment variables, secrets manager).
+- Python 3.10 ? 3.13.
+- A Zapier webhook URL (copy from Zap setup ? **Webhooks by Zapier** ? **Catch Hook**). Store it securely (environment variables, secrets manager).
 - Dependencies (`requests`, `swarmauri_base`, `swarmauri_standard`, `pydantic`) install automatically with the package.
 
 ## Installation
@@ -138,9 +138,9 @@ Replay queued events into Zapier when systems come back online.
 
 ## Troubleshooting
 
-- **`requests.exceptions.HTTPError`** â€“ Zapier returned a non-200 status (often 401 due to malformed or revoked URLs). Check the webhook URL and payload format.
-- **Timeouts or connection errors** â€“ Ensure the environment has outbound internet access and consider wrapping the tool to set explicit timeouts or retries.
-- **Zap expects structured JSON** â€“ The tool sends `{"data": payload}`. Adjust your Zapâ€™s â€œCatch Hookâ€ step or extend the tool if you need different envelope fields.
+- **`requests.exceptions.HTTPError`** ? Zapier returned a non-200 status (often 401 due to malformed or revoked URLs). Check the webhook URL and payload format.
+- **Timeouts or connection errors** ? Ensure the environment has outbound internet access and consider wrapping the tool to set explicit timeouts or retries.
+- **Zap expects structured JSON** ? The tool sends `{"data": payload}`. Adjust your Zap?s ?Catch Hook? step or extend the tool if you need different envelope fields.
 
 ## License
 

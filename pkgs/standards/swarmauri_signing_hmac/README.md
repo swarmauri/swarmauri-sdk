@@ -92,12 +92,12 @@ Verification requires providing one or more keys via `opts["keys"]`.
 
 `HmacEnvelopeSigner` accepts multiple `KeyRef` forms:
 
-- `{"kind": "raw", "key": <bytes-or-str>}` â€“ direct secret material.
-- `{"kind": "hex", "key": <hex str>}` â€“ hex encoded secret.
-- `{"kind": "env", "name": <ENV_NAME>}` â€“ loads the secret from an environment
+- `{"kind": "raw", "key": <bytes-or-str>}` ? direct secret material.
+- `{"kind": "hex", "key": <hex str>}` ? hex encoded secret.
+- `{"kind": "env", "name": <ENV_NAME>}` ? loads the secret from an environment
   variable.
 - `{"kind": "derived", "key": <bytes-or-str>, "hkdf": {"salt": ..., "info": ...}}`
-  â€“ derives the signing secret with HKDF.
+  ? derives the signing secret with HKDF.
 
 Provide an optional `"kid"` to control the key identifier or specify
 `"alg"` when verifying to override the default `HS256` digest for a key entry.

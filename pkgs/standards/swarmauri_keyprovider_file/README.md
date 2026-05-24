@@ -82,7 +82,7 @@ async def run_example() -> str:
 asyncio.run(run_example())
 ```
 
-`FileKeyProvider` is asynchronousâ€”every lifecycle method returns a
+`FileKeyProvider` is asynchronous?every lifecycle method returns a
 `KeyRef`. Use `include_secret=True` when retrieving keys that allow private
 material export so symmetric key bytes are loaded from disk.
 

@@ -20,9 +20,9 @@
 
 ## Features
 
-- **Design-first** â€“ establishes the interface contract for ISO-BMFF metadata operations.
-- **Registry-native** â€“ extends `EmbedXmpBase`, ensuring managers can discover it automatically.
-- **Expectation management** â€“ explicit `NotImplementedError` keeps integrators aware of remaining work.
+- **Design-first** ? establishes the interface contract for ISO-BMFF metadata operations.
+- **Registry-native** ? extends `EmbedXmpBase`, ensuring managers can discover it automatically.
+- **Expectation management** ? explicit `NotImplementedError` keeps integrators aware of remaining work.
 
 ## Installation
 
@@ -49,9 +49,9 @@ except NotImplementedError:
 
 ### Why it works
 
-- **Design-first** â€“ establishes the interface contract for ISO-BMFF metadata operations.
-- **Registry-native** â€“ extends `EmbedXmpBase`, ensuring managers can discover it automatically.
-- **Expectation management** â€“ explicit `NotImplementedError` keeps integrators aware of remaining work.
+- **Design-first** ? establishes the interface contract for ISO-BMFF metadata operations.
+- **Registry-native** ? extends `EmbedXmpBase`, ensuring managers can discover it automatically.
+- **Expectation management** ? explicit `NotImplementedError` keeps integrators aware of remaining work.
 
 ## Project Resources
 

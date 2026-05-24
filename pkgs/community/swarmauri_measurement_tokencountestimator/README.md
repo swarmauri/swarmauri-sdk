@@ -93,7 +93,7 @@ except ValueError:
 ## Tips
 
 - Token counts can change as tokenizers evolve; pin `tiktoken` to a known version for stable measurements.
-- Normalize whitespace if your prompt assembly adds or strips spacesâ€”tokenizers are sensitive to exact byte sequences.
+- Normalize whitespace if your prompt assembly adds or strips spaces?tokenizers are sensitive to exact byte sequences.
 - For batch estimation, combine this measurement with Pandas or list comprehensions to preprocess entire prompt sets before sending them to an LLM.
 
 ## Want to help?

@@ -20,9 +20,9 @@
 
 ## Features
 
-- **Registry ready** â€“ derives from `EmbedXmpBase` so Swarmauri runtimes discover it through the dynamic registry.
-- **XML aware** â€“ uses `ElementTree` to place metadata deterministically as the first child of `<svg>`.
-- **Text fallback** â€“ gracefully injects raw strings when the SVG cannot be parsed structurally.
+- **Registry ready** ? derives from `EmbedXmpBase` so Swarmauri runtimes discover it through the dynamic registry.
+- **XML aware** ? uses `ElementTree` to place metadata deterministically as the first child of `<svg>`.
+- **Text fallback** ? gracefully injects raw strings when the SVG cannot be parsed structurally.
 
 ## Installation
 
@@ -59,9 +59,9 @@ clean_bytes = handler.remove_xmp(updated_bytes)
 
 ### Why it works
 
-- **XML aware** â€“ parsing via `ElementTree` ensures metadata lands as the first child under `<svg>`.
-- **Resilient fallback** â€“ gracefully degrades to text insertion when the document cannot be parsed as XML.
-- **Registry ready** â€“ inherits from `EmbedXmpBase`, making runtime discovery effortless.
+- **XML aware** ? parsing via `ElementTree` ensures metadata lands as the first child under `<svg>`.
+- **Resilient fallback** ? gracefully degrades to text insertion when the document cannot be parsed as XML.
+- **Registry ready** ? inherits from `EmbedXmpBase`, making runtime discovery effortless.
 
 ## Project Resources
 

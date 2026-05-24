@@ -49,7 +49,7 @@ uv add swarmauri_middleware_cors
 
 ## Usage
 
-Configure the middleware with the exact origins, methods, and headers you want to allow. Origins are matched literallyâ€”if you use the default `['*']` setting, every request must send an `Origin: *` header. In practice you should list the concrete origins your frontend sends.
+Configure the middleware with the exact origins, methods, and headers you want to allow. Origins are matched literally?if you use the default `['*']` setting, every request must send an `Origin: *` header. In practice you should list the concrete origins your frontend sends.
 
 ### Python example
 

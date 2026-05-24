@@ -21,7 +21,7 @@ A FastAPI middleware that wraps Groq's ``llama-guard-3-8b`` model to provide end
 ## Features
 
 - Real-time scanning of incoming request bodies and outgoing responses (including streaming responses).
-- Configurable language model injection â€“ provide your own :class:`~swarmauri_standard.llms.GroqModel` or let the middleware create one for you.
+- Configurable language model injection ? provide your own :class:`~swarmauri_standard.llms.GroqModel` or let the middleware create one for you.
 - Graceful degradation when no model is configured (traffic is allowed but logged).
 
 ## Middleware behavior

@@ -60,7 +60,7 @@ print(uri)  # github://my-org/my-repo/README.md
 
 ### Behavior and limitations
 
-- `upload()` does not persist dataâ€”it simply echoes the key back as a
+- `upload()` does not persist data?it simply echoes the key back as a
   `github://` URI.
 - `download()`, `upload_dir()`, and `download_dir()` raise
   `NotImplementedError` to signal that full GitHub support is intentionally out

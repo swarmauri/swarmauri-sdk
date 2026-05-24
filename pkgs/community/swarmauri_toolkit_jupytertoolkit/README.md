@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Toolkit Â· Jupyter Toolkit
+# Swarmauri Toolkit ? Jupyter Toolkit
 
 A one-stop Swarmauri toolkit that bundles the Jupyter kernel, execution, export, and validation tools under a single interface. Instantiate `JupyterToolkit` and you instantly gain access to twenty standalone tools covering notebook lifecycle tasks: launching kernels, running cells, converting notebooks, exporting formats, and more.
 
@@ -24,7 +24,7 @@ A one-stop Swarmauri toolkit that bundles the Jupyter kernel, execution, export,
 
 ## Requirements
 
-- Python 3.10 â€“ 3.13.
+- Python 3.10 ? 3.13.
 - The underlying Jupyter tool packages (installed automatically as dependencies).
 - Access to a local or remote Jupyter runtime for kernel operations.
 
@@ -112,7 +112,7 @@ def execute(data: dict, background: BackgroundTasks):
     return {"status": "queued", "notebook": nb_path}
 ```
 
-Trigger parameterized notebook runs via HTTP and reuse the toolkitâ€™s pre-wired execution tool.
+Trigger parameterized notebook runs via HTTP and reuse the toolkit?s pre-wired execution tool.
 
 ### Enhance a Swarmauri Agent With Notebook Skills
 
@@ -154,9 +154,9 @@ Run multiple exporters without manually instantiating each tool.
 
 ## Troubleshooting
 
-- **Kernel start failures** â€“ Ensure the environment has a working Jupyter kernelspec (e.g., `python3`). Check permissions when running inside containers or restricted hosts.
-- **Export errors** â€“ Some exporters (LaTeX/PDF) require external dependencies. Install TeX Live or pandoc as appropriate.
-- **Tool lookup mistakes** â€“ Use `toolkit.tools.keys()` to inspect available tool names; they map 1:1 to the underlying packages (`JupyterExecuteNotebookTool`, `JupyterValidateNotebookTool`, etc.).
+- **Kernel start failures** ? Ensure the environment has a working Jupyter kernelspec (e.g., `python3`). Check permissions when running inside containers or restricted hosts.
+- **Export errors** ? Some exporters (LaTeX/PDF) require external dependencies. Install TeX Live or pandoc as appropriate.
+- **Tool lookup mistakes** ? Use `toolkit.tools.keys()` to inspect available tool names; they map 1:1 to the underlying packages (`JupyterExecuteNotebookTool`, `JupyterValidateNotebookTool`, etc.).
 
 ## License
 

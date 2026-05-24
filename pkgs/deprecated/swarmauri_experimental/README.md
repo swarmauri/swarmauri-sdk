@@ -16,7 +16,7 @@
 
 # Swarmauri Experimental
 
-> âš ï¸ **Inactive Package**
+> **Inactive Package**
 >
 > Experimental packages are now released as standalone distributions. Further support for the `swarmauri-experimental` namespace package is not planned.
 

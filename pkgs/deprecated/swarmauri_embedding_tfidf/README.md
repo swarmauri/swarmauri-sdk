@@ -16,7 +16,7 @@
 
 # Swarmauri Embedding TFIDF
 
-> **âš ï¸ Deprecated:** This package is maintained for backward compatibility. Consider using a supported embedding implementation from the Swarmauri SDK for new projects.
+> **Deprecated:** This package is maintained for backward compatibility. Consider using a supported embedding implementation from the Swarmauri SDK for new projects.
 
 A TF-IDF (Term Frequency-Inverse Document Frequency) embedding implementation for the Swarmauri SDK, providing document vectorization capabilities.
 

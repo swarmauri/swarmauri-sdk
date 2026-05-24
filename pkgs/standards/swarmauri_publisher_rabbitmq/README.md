@@ -46,12 +46,12 @@ uv add swarmauri_publisher_rabbitmq
 
 | Field | Required | Description |
 | --- | --- | --- |
-| `exchange` | âœ… | The exchange name to declare and publish to. Declared as a durable direct exchange. |
-| `uri` | âšªï¸ | Full AMQP URI. When provided, omit `host`/`port`/`username`/`password`. |
-| `host` | âšªï¸ | RabbitMQ host. Required when `uri` is omitted. |
-| `port` | âšªï¸ | RabbitMQ port. Supply the broker port (for example `5672`); the publisher does not insert a default when constructing the URI. |
-| `username` | âšªï¸ | Username used in the URI when `uri` is omitted. Automatically URL-encoded. |
-| `password` | âšªï¸ | Password used in the URI when `uri` is omitted. Automatically URL-encoded. |
+| `exchange` | Yes | The exchange name to declare and publish to. Declared as a durable direct exchange. |
+| `uri` | Optional | Full AMQP URI. When provided, omit `host`/`port`/`username`/`password`. |
+| `host` | Optional | RabbitMQ host. Required when `uri` is omitted. |
+| `port` | Optional | RabbitMQ port. Supply the broker port (for example `5672`); the publisher does not insert a default when constructing the URI. |
+| `username` | Optional | Username used in the URI when `uri` is omitted. Automatically URL-encoded. |
+| `password` | Optional | Password used in the URI when `uri` is omitted. Automatically URL-encoded. |
 
 The `publish(channel, payload)` method treats `channel` as the RabbitMQ routing key. `payload` must be JSON serialisable because it is serialized with `json.dumps` before publishing.
 

@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Transport â€“ WebSocket JSON-RPC
+# Swarmauri Transport ? WebSocket JSON-RPC
 
 `swarmauri-transport-wsjsonrpcmux` provides a JSON-RPC 2.0 dispatcher over WebSockets for browser-friendly agent communication.
 

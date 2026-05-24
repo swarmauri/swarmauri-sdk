@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Transport â€“ SSH Tunnel
+# Swarmauri Transport ? SSH Tunnel
 
 `swarmauri-transport-sshtunnel` wraps `ssh -W` to forward TCP streams through bastion hosts while keeping the Swarmauri transport API.
 

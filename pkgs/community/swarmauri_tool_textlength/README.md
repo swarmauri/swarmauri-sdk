@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Â· Text Length
+# Swarmauri Tool ? Text Length
 
 A Swarmauri-ready helper that measures text length in characters, words, and sentences using NLTK tokenization. Drop it into content pipelines, moderation bots, or editorial agents to monitor message size and cadence.
 
@@ -24,7 +24,7 @@ A Swarmauri-ready helper that measures text length in characters, words, and sen
 
 ## Requirements
 
-- Python 3.10 â€“ 3.13.
+- Python 3.10 ? 3.13.
 - `nltk` with the `punkt_tab` resource available (downloaded automatically on import).
 - Core Swarmauri dependencies (`swarmauri_base`, `swarmauri_standard`, `pydantic`).
 
@@ -123,9 +123,9 @@ Scan an entire documentation set to identify sprawling sections or under-documen
 
 ## Troubleshooting
 
-- **`LookupError: Resource punkt_tab not found`** â€“ Run `python -m nltk.downloader punkt_tab` ahead of time, especially in air-gapped deployments.
-- **Unexpected character counts** â€“ The tool excludes spaces; adjust the implementation if you need raw length including whitespace.
-- **Non-English text** â€“ NLTKâ€™s default tokenizers target English. Swap in language-specific tokenizers if needed.
+- **`LookupError: Resource punkt_tab not found`** ? Run `python -m nltk.downloader punkt_tab` ahead of time, especially in air-gapped deployments.
+- **Unexpected character counts** ? The tool excludes spaces; adjust the implementation if you need raw length including whitespace.
+- **Non-English text** ? NLTK?s default tokenizers target English. Swap in language-specific tokenizers if needed.
 
 ## License
 

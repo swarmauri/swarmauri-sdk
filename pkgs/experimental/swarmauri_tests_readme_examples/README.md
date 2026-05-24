@@ -52,10 +52,10 @@ E   README.md::block-3 raised ValueError('boom')
 
 You can control the scan through CLI options or `pyproject.toml`:
 
-* `--readme-files` â€“ comma/newline separated Markdown files (default: `README.md`)
-* `--readme-languages` â€“ languages to execute (default: `python`, `py`, `pycon`)
-* `--readme-mode` â€“ `parameterized` (default) or `aggregate`
-* `--readme-skip-markers` â€“ comment markers that skip a block when they appear on the first non-empty line
+* `--readme-files` ? comma/newline separated Markdown files (default: `README.md`)
+* `--readme-languages` ? languages to execute (default: `python`, `py`, `pycon`)
+* `--readme-mode` ? `parameterized` (default) or `aggregate`
+* `--readme-skip-markers` ? comment markers that skip a block when they appear on the first non-empty line
 
 `pyproject.toml` example (under `[tool.pytest.ini_options]`):
 

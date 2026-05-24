@@ -46,11 +46,11 @@ uv pip install swarmauri_certs_remote_ca
 
 `RemoteCaCertService` accepts the following arguments:
 
-- `endpoint` â€“ Base URL of the remote CA sign endpoint.
-- `auth` â€“ Optional mapping of HTTP headers or an `httpx.Auth` instance for
+- `endpoint` ? Base URL of the remote CA sign endpoint.
+- `auth` ? Optional mapping of HTTP headers or an `httpx.Auth` instance for
   authentication.
-- `timeout_s` â€“ HTTP timeout in seconds (default `10`).
-- `ca_chain` â€“ Optional sequence of cached trust anchors exposed during
+- `timeout_s` ? HTTP timeout in seconds (default `10`).
+- `ca_chain` ? Optional sequence of cached trust anchors exposed during
   verification and parsing.
 
 ## Entry Point

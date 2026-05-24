@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Â· Jupyter Validate Notebook
+# Swarmauri Tool ? Jupyter Validate Notebook
 
 A Swarmauri tool that validates Jupyter notebooks (`NotebookNode` objects) against the official nbformat JSON schema. Use it to gate notebook submissions, enforce structural best practices, or wire schema checks into automated notebook pipelines.
 
@@ -24,7 +24,7 @@ A Swarmauri tool that validates Jupyter notebooks (`NotebookNode` objects) again
 
 ## Requirements
 
-- Python 3.10 â€“ 3.13.
+- Python 3.10 ? 3.13.
 - `nbformat` (installed automatically) with access to the notebook JSON schema.
 - Dependencies (`jsonschema`, `swarmauri_base`, `swarmauri_standard`, `pydantic`, `typing_extensions`).
 
@@ -137,9 +137,9 @@ Use the validation step after automated notebook generation/execution to ensure 
 
 ## Troubleshooting
 
-- **`Invalid nbformat version`** â€“ The tool enforces nbformat version 4. Upgrade the notebook (`nbformat.convert`) or save it with a modern Jupyter client.
-- **`Validation error`** â€“ Inspect the `report` field for the jsonschema path causing the failure. Missing metadata or malformed cells are common culprits.
-- **`Unexpected error`** â€“ Log the exception and confirm the input is an nbformat `NotebookNode`, not a raw dict or path string.
+- **`Invalid nbformat version`** ? The tool enforces nbformat version 4. Upgrade the notebook (`nbformat.convert`) or save it with a modern Jupyter client.
+- **`Validation error`** ? Inspect the `report` field for the jsonschema path causing the failure. Missing metadata or malformed cells are common culprits.
+- **`Unexpected error`** ? Log the exception and confirm the input is an nbformat `NotebookNode`, not a raw dict or path string.
 
 ## License
 

@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Â· QR Code Generator
+# Swarmauri Tool ? QR Code Generator
 
 A Swarmauri tool that converts text payloads into QR codes and returns the image data as a Base64 string. Plug it into conversational agents, marketing workflows, or automation scripts that need scannable hand-offs (URLs, Wi-Fi credentials, one-time tokens, etc.).
 
@@ -24,7 +24,7 @@ A Swarmauri tool that converts text payloads into QR codes and returns the image
 
 ## Requirements
 
-- Python 3.10 â€“ 3.13.
+- Python 3.10 ? 3.13.
 - `qrcode` (installs with its Pillow dependency) and Swarmauri base packages (`swarmauri_base`, `swarmauri_standard`, `pydantic`).
 - Optional: downstream consumers often decode the Base64 string using Pillow or write it to disk; ensure those environments can handle binary data.
 
@@ -137,9 +137,9 @@ Expose an API that transforms arbitrary data into QR codes your front-end can di
 
 ## Troubleshooting
 
-- **Blank or unreadable codes** â€“ Confirm the Base64 string is decoded to a PNG (`base64.b64decode(...)`). Avoid writing the raw Base64 text directly to file.
-- **Binary dependency errors (Pillow)** â€“ Install platform-specific libraries (`apt-get install libjpeg-dev zlib1g-dev`, etc.) before installing the package, especially in slim containers.
-- **Large payloads** â€“ Version 1 QR codes have size constraints (~17 alphanumeric characters). Fork the tool or extend it to allow larger versions if you need to encode lengthy data.
+- **Blank or unreadable codes** ? Confirm the Base64 string is decoded to a PNG (`base64.b64decode(...)`). Avoid writing the raw Base64 text directly to file.
+- **Binary dependency errors (Pillow)** ? Install platform-specific libraries (`apt-get install libjpeg-dev zlib1g-dev`, etc.) before installing the package, especially in slim containers.
+- **Large payloads** ? Version 1 QR codes have size constraints (~17 alphanumeric characters). Fork the tool or extend it to allow larger versions if you need to encode lengthy data.
 
 ## License
 

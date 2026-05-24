@@ -26,8 +26,8 @@ X.509 certificate service plugin for Swarmauri using the `cryptography` library.
 - Parse certificates to extract subject, issuer, validity, and extension metadata
 
 ## RFC References
-- [RFC 2986](https://datatracker.ietf.org/doc/html/rfc2986) â€“ PKCS #10 Certification Request Syntax
-- [RFC 5280](https://datatracker.ietf.org/doc/html/rfc5280) â€“ Internet X.509 Public Key Infrastructure Certificate and CRL Profile
+- [RFC 2986](https://datatracker.ietf.org/doc/html/rfc2986) ? PKCS #10 Certification Request Syntax
+- [RFC 5280](https://datatracker.ietf.org/doc/html/rfc5280) ? Internet X.509 Public Key Infrastructure Certificate and CRL Profile
 
 ## Installation
 

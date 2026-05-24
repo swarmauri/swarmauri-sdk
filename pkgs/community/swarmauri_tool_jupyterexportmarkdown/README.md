@@ -16,7 +16,7 @@
 
 # Swarmauri Tool Jupyter Export Markdown
 
-Converts a Jupyter `NotebookNode` to Markdown using nbconvertâ€™s `MarkdownExporter`. Injectable CSS and JS snippets let you tweak the output for static publishing.
+Converts a Jupyter `NotebookNode` to Markdown using nbconvert?s `MarkdownExporter`. Injectable CSS and JS snippets let you tweak the output for static publishing.
 
 ## Features
 
@@ -69,7 +69,7 @@ else:
 
 - Use Markdown export when preparing notebooks for static docs, blogs, or README content.
 - Apply lightweight CSS/JS to adjust styling when the Markdown is embedded in HTML environments.
-- Combine with notebook execution tools to build pipelines (execute â†’ convert to Markdown â†’ publish).
+- Combine with notebook execution tools to build pipelines (execute ? convert to Markdown ? publish).
 
 ## Want to help?
 

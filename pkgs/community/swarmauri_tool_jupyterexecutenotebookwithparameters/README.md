@@ -69,7 +69,7 @@ else:
 
 - Parameters can be any JSON-serializable values used inside the notebook (strings, numbers, dictionaries, etc.).
 - Increase `timeout` for notebooks with lengthy cells.
-- Combine with Swarmauri notebook cleaning/conversion tools for full pipelines (execute â†’ clear outputs â†’ convert to PDF/HTML).
+- Combine with Swarmauri notebook cleaning/conversion tools for full pipelines (execute ? clear outputs ? convert to PDF/HTML).
 
 ## Want to help?
 

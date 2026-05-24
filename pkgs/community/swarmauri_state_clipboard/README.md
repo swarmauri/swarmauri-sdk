@@ -76,7 +76,7 @@ print(clone.read())    # {'session': 'xyz789'}
 ## Tips
 
 - Clipboard overwrites are global; avoid using this state provider in multi-user or production environments where clipboard privacy matters.
-- Contents are stored as Python literal stringsâ€”avoid writing untrusted data to the clipboard to prevent evaluation issues (though `ast.literal_eval` mitigates code execution risks).
+- Contents are stored as Python literal strings?avoid writing untrusted data to the clipboard to prevent evaluation issues (though `ast.literal_eval` mitigates code execution risks).
 - Ensure required system commands exist before running in CI or containers (install `xclip` for Linux builds).
 
 ## Want to help?

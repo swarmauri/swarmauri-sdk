@@ -22,11 +22,11 @@
 
 ## Features
 
-- **Contract-driven architecture** â€“ abstract base classes define the interfaces for rendering, exporting, and serving layout primitives.
-- **Atom & micro-frontend registries** â€“ manage SSR-ready atoms and remote module manifests with predictable defaults.
-- **Format agnostic targets** â€“ render HTML, SVG, PDF, and code artifacts using interchangeable exporters.
-- **Extensible site composition** â€“ compose grids, tiles, and slots declaratively with Pydantic specs for validation and serialization.
-- **Optional realtime bridge** â€“ opt into FastAPI, Uvicorn, and WebSocket extras for live preview or event streaming.
+- **Contract-driven architecture** ? abstract base classes define the interfaces for rendering, exporting, and serving layout primitives.
+- **Atom & micro-frontend registries** ? manage SSR-ready atoms and remote module manifests with predictable defaults.
+- **Format agnostic targets** ? render HTML, SVG, PDF, and code artifacts using interchangeable exporters.
+- **Extensible site composition** ? compose grids, tiles, and slots declaratively with Pydantic specs for validation and serialization.
+- **Optional realtime bridge** ? opt into FastAPI, Uvicorn, and WebSocket extras for live preview or event streaming.
 
 ## Installation
 
@@ -91,9 +91,9 @@ instances, so runtime atoms receive fully-prepared payloads.
 
 ### Examples
 
-- [`examples/basic_usage.py`](./examples/basic_usage.py) â€“ minimal quick-start
+- [`examples/basic_usage.py`](./examples/basic_usage.py) ? minimal quick-start
   script that writes a manifest JSON file and exports an HTML preview.
-- [`examples/dashboard.py`](./examples/dashboard.py) â€“ larger end-to-end demo
+- [`examples/dashboard.py`](./examples/dashboard.py) ? larger end-to-end demo
   showcasing multiple roles and a custom theme.
 
 Run either script with:
@@ -108,10 +108,10 @@ artifacts directly from the repository.
 
 ## Core Concepts
 
-- **First-class objects** â€“ `site`, `page`, `slot`, `grid`, `tile`, `atom`, and `remote` provide the building blocks for any layout.
-- **Contracts** â€“ objects expose `.render(...)`, `.export(...)`, and optional `.server(...)` methods to support SSR, SSG, and service endpoints.
-- **Registries** â€“ manage atom defaults and micro-frontend remotes with predictable merge semantics.
-- **Site-aware routing helpers** â€“ `layout_engine.targets.SiteRouter` produces SSR HTML shells, manifest JSON payloads, and ESM
+- **First-class objects** ? `site`, `page`, `slot`, `grid`, `tile`, `atom`, and `remote` provide the building blocks for any layout.
+- **Contracts** ? objects expose `.render(...)`, `.export(...)`, and optional `.server(...)` methods to support SSR, SSG, and service endpoints.
+- **Registries** ? manage atom defaults and micro-frontend remotes with predictable merge semantics.
+- **Site-aware routing helpers** ? `layout_engine.targets.SiteRouter` produces SSR HTML shells, manifest JSON payloads, and ESM
   import maps you can bind directly to FastAPI, Starlette, or any HTTP framework route handlers.
 
 ### Unified manifest schema
@@ -203,7 +203,7 @@ parameters, and streams tile-level events over a multiplexed WebSocket transport
 
 ### 1. Compose registries and site metadata
 
-Start by defining the atom registry (for local role â†’ module mappings) and the remote registry
+Start by defining the atom registry (for local role ? module mappings) and the remote registry
 that powers the import map consumed by Vue's module loader. Defaults defined on each atom are
 merged with tile props every time a manifest is built, so downstream atoms always receive a
 complete prop payload.
@@ -218,7 +218,7 @@ from layout_engine import AtomRegistry, register_swarma_atoms
 
 atoms = register_swarma_atoms(AtomRegistry(), catalog="vue")
 
-# optional overrides â€” merged instead of replaced
+# optional overrides ? merged instead of replaced
 atoms.override("swarmakit:vue:button", defaults={"size": "lg"})
 ```
 
@@ -405,7 +405,7 @@ def build_manifest(page: PageSpec, ctx: Mapping[str, Any]) -> Manifest:
 
 The snippet shows how atom defaults (`showPrice`, `badgeStyle`) are merged with dynamic props
 (`isActive`, `filters`) before the manifest reaches the client. State changes (for example selecting
-an item or refining a search query) happen entirely in the context stepâ€”no Vue-specific logic is
+an item or refining a search query) happen entirely in the context step?no Vue-specific logic is
 required on the server to keep props synchronized.
 
 ### 3. Serve shells, manifests, and import maps with `SiteRouter`
@@ -477,11 +477,11 @@ async def import_map() -> JSONResponse:
 
 This wiring enables:
 
-- **SPA manifest** â€“ `GET /spa/manifest.json?status=paused` updates dashboard props while keeping a
+- **SPA manifest** ? `GET /spa/manifest.json?status=paused` updates dashboard props while keeping a
   single HTML shell.
-- **MPA manifests** â€“ each catalog page calls `/catalog/â€¦/manifest.json` so static HTML routes can
+- **MPA manifests** ? each catalog page calls `/catalog/.../manifest.json` so static HTML routes can
   hydrate independently, while still sharing atom defaults from the registry.
-- **Import maps** â€“ Vue clients can consume the generated map before calling `createApp` to ensure
+- **Import maps** ? Vue clients can consume the generated map before calling `createApp` to ensure
   micro-frontend remotes resolve correctly.
 
 ### 4. Vue client consumption with query params and navigation

@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Transport â€“ Server-Sent Events
+# Swarmauri Transport ? Server-Sent Events
 
 `swarmauri-transport-sseoutbound` hosts a lightweight SSE endpoint for broadcasting real-time updates to browsers or other streaming clients.
 

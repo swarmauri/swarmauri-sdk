@@ -58,7 +58,7 @@ print("error:", result["error"])
 ## Tips
 
 - Increase `timeout` for cells that perform long-running tasks.
-- The tool executes in the current kernelâ€”make sure dependencies are already imported/installed in that environment.
+- The tool executes in the current kernel?make sure dependencies are already imported/installed in that environment.
 - Handle errors gracefully by checking the `error` field before using results.
 
 ## Want to help?

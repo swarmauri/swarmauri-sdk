@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Â· Search Word
+# Swarmauri Tool ? Search Word
 
 A Swarmauri utility for counting case-insensitive word or phrase occurrences in text files. The tool highlights matching lines and returns both the count and the decorated text so you can surface findings in agent conversations or CI logs.
 
@@ -24,7 +24,7 @@ A Swarmauri utility for counting case-insensitive word or phrase occurrences in 
 
 ## Requirements
 
-- Python 3.10 â€“ 3.13.
+- Python 3.10 ? 3.13.
 - No external libraries beyond the core Swarmauri dependencies (`swarmauri_base`, `swarmauri_standard`, `pydantic`).
 
 ## Installation
@@ -127,9 +127,9 @@ Quickly scan multiple configuration files when performing security reviews.
 
 ## Troubleshooting
 
-- **`FileNotFoundError`** â€“ Confirm the path is correct and accessible. Relative paths are resolved from the current working directory of the process invoking the tool.
-- **`Invalid input`** â€“ The tool only accepts string file paths and search terms. Validate arguments if they originate from user prompts.
-- **ANSI escape codes in output** â€“ If your consumer cannot render ANSI, strip the escape sequences before displaying (e.g., with `re.sub(r'\x1b\[[0-9;]*m', '', line)`).
+- **`FileNotFoundError`** ? Confirm the path is correct and accessible. Relative paths are resolved from the current working directory of the process invoking the tool.
+- **`Invalid input`** ? The tool only accepts string file paths and search terms. Validate arguments if they originate from user prompts.
+- **ANSI escape codes in output** ? If your consumer cannot render ANSI, strip the escape sequences before displaying (e.g., with `re.sub(r'\x1b\[[0-9;]*m', '', line)`).
 
 ## License
 

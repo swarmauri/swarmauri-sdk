@@ -71,9 +71,9 @@ zdx generate --on-error warn
 
 Valid values are:
 
-* `fail` â€“ stop immediately if a package installation or API build fails
-* `warn` â€“ print a warning but keep going
-* `ignore` â€“ suppress warnings and continue
+* `fail` ? stop immediately if a package installation or API build fails
+* `warn` ? print a warning but keep going
+* `ignore` ? suppress warnings and continue
 
 You can also define the `ZDX_FAILURE_MODE` environment variable to set the
 default for every invocation. For example, the provided Docker assets default to
@@ -113,7 +113,7 @@ Every field controls a different part of the generation process:
 
 | Field | Description |
 | --- | --- |
-| `name` | Label used for the topâ€‘level navigation item and the folder under `docs/api/`. |
+| `name` | Label used for the top-level navigation item and the folder under `docs/api/`. |
 | `search_path` | Directory containing the source package(s). The generator scans this path for modules. |
 | `package` | Root import name when documenting a single package. Omit when using `discover`. |
 | `discover` | When `true`, automatically finds all packages under `search_path` and builds docs for each. Generates separate folders and nav entries per package. |

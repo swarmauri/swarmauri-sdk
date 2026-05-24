@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Â· Jupyter Shutdown Kernel
+# Swarmauri Tool ? Jupyter Shutdown Kernel
 
 A Swarmauri-compatible utility that performs graceful or forced shutdowns of running Jupyter kernels. It is ideal for automated resource clean-up, CI workflows that recycle kernels between test suites, and agents that need to reclaim compute when a conversation finishes.
 
@@ -24,7 +24,7 @@ A Swarmauri-compatible utility that performs graceful or forced shutdowns of run
 
 ## Requirements
 
-- Python 3.10 â€“ 3.13.
+- Python 3.10 ? 3.13.
 - Local access to the target kernel's connection file (typically lives in Jupyter's runtime directory on the same host).
 - Dependencies (`jupyter_client`, `swarmauri_base`, `swarmauri_standard`, `pydantic`) install automatically with the package.
 
@@ -124,10 +124,10 @@ Because `MultiKernelManager` stores connection files under the standard `kernel-
 
 ## Troubleshooting
 
-- **`No such kernel`** â€“ The tool could not locate a matching connection file. Make sure the process has read access to Jupyter's runtime directory and that you pass the raw identifier (for example, `03c7d8f9-ec4d-4a8a-8a90-cdb35ff9e6c9`).
-- **`Connection file not found`** â€“ The connection file was deleted or the kernel lives on a different machine. Run the shutdown tool on the same host where the kernel was started.
-- **Forced shutdowns** â€“ If the kernel remains alive after the timeout expires, the tool switches to a forced shutdown. You can increase `shutdown_timeout` to give busy kernels more time to finish.
-- **Sandboxed environments** â€“ Some containerized or restricted environments may block the network ports that Jupyter kernels use. In those cases, start kernels with appropriate permissions before attempting to shut them down programmatically.
+- **`No such kernel`** ? The tool could not locate a matching connection file. Make sure the process has read access to Jupyter's runtime directory and that you pass the raw identifier (for example, `03c7d8f9-ec4d-4a8a-8a90-cdb35ff9e6c9`).
+- **`Connection file not found`** ? The connection file was deleted or the kernel lives on a different machine. Run the shutdown tool on the same host where the kernel was started.
+- **Forced shutdowns** ? If the kernel remains alive after the timeout expires, the tool switches to a forced shutdown. You can increase `shutdown_timeout` to give busy kernels more time to finish.
+- **Sandboxed environments** ? Some containerized or restricted environments may block the network ports that Jupyter kernels use. In those cases, start kernels with appropriate permissions before attempting to shut them down programmatically.
 
 ## License
 

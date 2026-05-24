@@ -31,7 +31,7 @@ and integration testing.
   Extended Key Usage (EKU) values.
 - `verify_cert` performs a timestamp check and one-hop signature
   validation against provided trust roots or intermediates.
-- Designed for basic validation flows â€“ revocation checking and complex
+- Designed for basic validation flows ? revocation checking and complex
   path building are intentionally out of scope and reported as
   `revocation_checked=False` in the response.
 

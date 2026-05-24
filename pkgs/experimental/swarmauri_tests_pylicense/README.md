@@ -96,7 +96,7 @@ pytest --pylicense-package=<your-package> --pylicense-accept-deps=cffi
 ```
 
 This tells the plugin to treat `cffi` as pre-approved. Any license issues for
-`cffi`â€”including unknown or non-standard licensesâ€”are ignored while other
+`cffi`?including unknown or non-standard licenses?are ignored while other
 dependencies continue to be validated normally.
 
 ## License

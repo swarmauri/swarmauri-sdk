@@ -47,7 +47,7 @@ The package exposes an async API, so ensure your environment includes an event l
 
 ## Usage
 
-The example below demonstrates how to exercise the service with a mocked introspection endpoint. The same API works against a live OAuth 2.0 Authorization Serverâ€”simply omit the mock transport and let `httpx` reach your configured `endpoint`.
+The example below demonstrates how to exercise the service with a mocked introspection endpoint. The same API works against a live OAuth 2.0 Authorization Server?simply omit the mock transport and let `httpx` reach your configured `endpoint`.
 
 ```python
 """Execute the README example with `python README_example.py`."""
@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
 ## License
 
-`Apache-2.0` Â© Swarmauri
+`Apache-2.0` ? Swarmauri
 
 ## Want to help?
 

@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Transport â€“ Mutual TLS Unicast
+# Swarmauri Transport ? Mutual TLS Unicast
 
 `swarmauri-transport-mtlsunicast` scaffolds mutually authenticated TLS channels for Swarmauri agents.
 
@@ -53,6 +53,6 @@ async def secure_client() -> None:
 asyncio.run(secure_client())
 ```
 
-Customize the SSL context for your environmentâ€”pin certificates, enable ALPN, or integrate with service mesh trust stores.
+Customize the SSL context for your environment?pin certificates, enable ALPN, or integrate with service mesh trust stores.
 
 

@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Transport â€“ STDIO Bridge
+# Swarmauri Transport ? STDIO Bridge
 
 `swarmauri-transport-stdio` spawns subprocesses and communicates over standard input/output so command-line tools can act as Swarmauri peers.
 

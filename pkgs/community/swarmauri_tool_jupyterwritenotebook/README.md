@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Â· Jupyter Write Notebook
+# Swarmauri Tool ? Jupyter Write Notebook
 
 A Swarmauri automation tool that serializes Jupyter `NotebookNode` objects (or compatible dictionaries) to disk using the nbformat JSON schema. It encapsulates validation, encoding, and integrity checks so pipelines can persist generated notebooks with confidence.
 
@@ -24,13 +24,13 @@ A Swarmauri automation tool that serializes Jupyter `NotebookNode` objects (or c
 
 ## Requirements
 
-- Python 3.10 â€“ 3.13.
+- Python 3.10 ? 3.13.
 - `nbformat` for working with notebook structures.
 - Dependencies (`swarmauri_base`, `swarmauri_standard`, `pydantic`). These install automatically with the package.
 
 ## Installation
 
-Choose the installer that matches your workflowâ€”each command pulls transitive dependencies.
+Choose the installer that matches your workflow?each command pulls transitive dependencies.
 
 **pip**
 
@@ -158,9 +158,9 @@ Validate the notebook schema first, then persist the approved version for distri
 
 ## Troubleshooting
 
-- **`An error occurred during notebook write operation`** â€“ The tool surfaces file-system exceptions verbatim. Check write permissions and ensure the target directory exists.
-- **Empty file after execution** â€“ Read-back verification triggers when the file cannot be parsed as JSON. Confirm the notebook structure is JSON serializable (e.g., use nbformat helper constructors).
-- **Unexpected characters** â€“ The tool writes with `ensure_ascii=False` so non-ASCII text remains intact. If your environment cannot handle UTF-8, pass a different `encoding` argument.
+- **`An error occurred during notebook write operation`** ? The tool surfaces file-system exceptions verbatim. Check write permissions and ensure the target directory exists.
+- **Empty file after execution** ? Read-back verification triggers when the file cannot be parsed as JSON. Confirm the notebook structure is JSON serializable (e.g., use nbformat helper constructors).
+- **Unexpected characters** ? The tool writes with `ensure_ascii=False` so non-ASCII text remains intact. If your environment cannot handle UTF-8, pass a different `encoding` argument.
 
 ## License
 

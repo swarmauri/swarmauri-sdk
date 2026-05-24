@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Transport â€“ H2 Multiplexer
+# Swarmauri Transport ? H2 Multiplexer
 
 `swarmauri-transport-h2mux` exposes raw HTTP/2 stream management to Swarmauri transports. It handles connection setup, stream lifecycle, and data flow so higher-level protocols can be layered on top.
 
@@ -49,6 +49,6 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-Use the multiplexer when you need direct stream controlâ€”for example to build custom RPC layers or bridge Swarmauri agents over HTTP/2 without binding to REST semantics.
+Use the multiplexer when you need direct stream control?for example to build custom RPC layers or bridge Swarmauri agents over HTTP/2 without binding to REST semantics.
 
 

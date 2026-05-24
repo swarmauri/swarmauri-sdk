@@ -16,7 +16,7 @@
 
 # Swarmauri Tool Jupyter Export Python
 
-Exports a Jupyter `NotebookNode` to a Python script using nbconvertâ€™s `PythonExporter` with optional custom templates.
+Exports a Jupyter `NotebookNode` to a Python script using nbconvert?s `PythonExporter` with optional custom templates.
 
 ## Features
 
@@ -60,8 +60,8 @@ else:
 
 ## Tips
 
-- Use custom templates to control cell separators or code commentsâ€”pass a `.tpl` file via `template_file`.
-- Pair with notebook execution tools (execute â†’ export to .py) to operationalize notebooks as Python scripts.
+- Use custom templates to control cell separators or code comments?pass a `.tpl` file via `template_file`.
+- Pair with notebook execution tools (execute ? export to .py) to operationalize notebooks as Python scripts.
 
 ## Want to help?
 

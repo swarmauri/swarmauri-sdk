@@ -14,7 +14,7 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Transport â€“ Mesh Sidecar HTTP/2
+# Swarmauri Transport ? Mesh Sidecar HTTP/2
 
 `swarmauri-transport-meshsidecarhttp2` connects to local service mesh sidecars that already terminate mutual TLS.
 
