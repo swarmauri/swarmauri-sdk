@@ -14,143 +14,127 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool ? Jupyter Start Kernel
+# Swarmauri Tool Jupyter Start Kernel
 
-A Swarmauri orchestration tool that spins up Jupyter kernels on demand using `jupyter_client`. The helper wraps connection-file management, kernel specification, and timeout handling so automation pipelines, notebook CI, or Swarmauri agents can acquire fresh kernels with one function call.
+`swarmauri_tool_jupyterstartkernel` is a Swarmauri notebook-orchestration tool
+for starting a Jupyter kernel programmatically through `jupyter_client`. It is
+useful for notebook automation, code-execution workflows, agent-controlled
+kernel sessions, and CI flows that need a fresh kernel before running cells.
 
-- Launches kernels with configurable names and kernel-spec overrides.
-- Surfaces ready-to-use connection metadata for downstream orchestration.
-- Keeps a reference to the underlying `KernelManager` so you can interact with the kernel lifecycle after launch.
+## Why Use Swarmauri Tool Jupyter Start Kernel
 
-## Requirements
+- Start isolated Jupyter kernels inside Swarmauri workflows.
+- Acquire a kernel ID programmatically for downstream notebook tooling.
+- Prepare execution environments for cell-running and notebook-conversion tools.
+- Keep kernel lifecycle control behind a reusable Swarmauri tool interface.
 
-- Python 3.10 ? 3.13.
-- The environment must have Jupyter kernel specs installed (for example the default `python3`).
-- Dependencies (`jupyter_client`, `swarmauri_base`, `swarmauri_standard`, `pydantic`) install automatically.
+## FAQ
+
+> **What inputs does the tool accept?**  
+> `kernel_name` and an optional `kernel_spec` dictionary.
+
+> **What does the tool return on success?**  
+> A dictionary containing `kernel_name` and `kernel_id`.
+
+> **Does the tool expose the running `KernelManager`?**  
+> Yes. The instance stores the active manager and exposes it through
+> `get_kernel_manager()`.
+
+> **How are startup failures reported?**  
+> The tool returns `{"error": ...}` if the kernel cannot be started.
+
+## Features
+
+- Swarmauri `ToolBase` implementation registered as `JupyterStartKernelTool`.
+- Starts Jupyter kernels by kernel name, defaulting to `python3`.
+- Stores the active `KernelManager` for follow-on interactions.
+- Returns simple, orchestration-friendly kernel identity metadata.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
-Install via the packaging tool that matches your workflow. Each command fetches transitive dependencies.
-
-**pip**
+```bash
+uv add swarmauri_tool_jupyterstartkernel
+```
 
 ```bash
 pip install swarmauri_tool_jupyterstartkernel
 ```
 
-**Poetry**
-
-```bash
-poetry add swarmauri_tool_jupyterstartkernel
-```
-
-**uv**
-
-```bash
-# Add to the current project and update uv.lock
-uv add swarmauri_tool_jupyterstartkernel
-
-# or install into the active environment without touching pyproject.toml
-uv pip install swarmauri_tool_jupyterstartkernel
-```
-
-> Tip: When using uv inside this repository, run commands from the repository root so `uv` can resolve the shared `pyproject.toml`.
-
-## Quick Start
-
-The tool behaves like a callable. Instantiate it and optionally pass a `kernel_name`, timeout, or kernel spec.
+## Usage
 
 ```python
 from swarmauri_tool_jupyterstartkernel import JupyterStartKernelTool
 
-start_kernel = JupyterStartKernelTool()
-result = start_kernel()  # defaults to python3
+tool = JupyterStartKernelTool()
+result = tool(kernel_name="python3")
 
 print(result)
-# {
-#   'status': 'success',
-#   'kernel_id': '03c7d8f9-ec4d-4a8a-8a90-cdb35ff9e6c9',
-#   'kernel_name': 'python3',
-#   'connection_file': '/Users/.../jupyter/runtime/kernel-03c7d8f9.json'
-# }
 ```
 
-A non-success status signals the kernel failed to spawn (missing kernelspec, permission issue, etc.).
+## Examples
 
-## Usage Scenarios
-
-### Launch With Custom Specification
+### Start a default Python kernel
 
 ```python
 from swarmauri_tool_jupyterstartkernel import JupyterStartKernelTool
 
-start_kernel = JupyterStartKernelTool()
-config = {
-    "env": {"EXPERIMENT_FLAG": "1"},
-    "resource_limits": {"memory": "1G"}
-}
+tool = JupyterStartKernelTool()
+result = tool()
 
-custom = start_kernel(kernel_name="python3", kernel_spec=config, startup_timeout=20)
-
-if custom["status"] == "success":
-    print(f"Kernel ready at {custom['connection_file']}")
-else:
-    raise RuntimeError(custom["message"])
+print(result["kernel_id"])
 ```
 
-Pass a `kernel_spec` dict to tweak environment variables or other launch parameters that the underlying `KernelManager` accepts.
-
-### Pair With the Shutdown Tool in an Automated Flow
+### Start a kernel and keep the manager reference
 
 ```python
 from swarmauri_tool_jupyterstartkernel import JupyterStartKernelTool
-from swarmauri_tool_jupytershutdownkernel import JupyterShutdownKernelTool
 
-start_kernel = JupyterStartKernelTool()
-shutdown_kernel = JupyterShutdownKernelTool()
+tool = JupyterStartKernelTool()
+result = tool("python3")
+manager = tool.get_kernel_manager()
 
-launch = start_kernel(kernel_name="python3")
-if launch["status"] != "success":
-    raise RuntimeError(launch["message"])
-
-kernel_id = launch["kernel_id"]
-print(f"Kernel started: {kernel_id}")
-
-# ... run your notebook execution workflow ...
-
-cleanup = shutdown_kernel(kernel_id=kernel_id, shutdown_timeout=10)
-print(cleanup)
+print(result, manager)
 ```
 
-Use this pairing in CI pipelines or agent flows that must guarantee kernels are torn down after execution.
-
-### Integrate Inside a Swarmauri Agent
+### Register the tool in a Swarmauri collection
 
 ```python
-from swarmauri_core.agent.Agent import Agent
-from swarmauri_core.messages.HumanMessage import HumanMessage
-from swarmauri_standard.tools.registry import ToolRegistry
+from swarmauri_standard.tools.ToolCollection import ToolCollection
 from swarmauri_tool_jupyterstartkernel import JupyterStartKernelTool
 
-registry = ToolRegistry()
-registry.register(JupyterStartKernelTool())
-
-agent = Agent(tool_registry=registry)
-message = HumanMessage(content="start a python3 kernel for my notebook batch job")
-response = agent.run(message)
-print(response)
+tools = ToolCollection(tools=[JupyterStartKernelTool()])
+print(tools)
 ```
 
-The agent resolves the registered tool, starts a kernel, and returns the connection metadata to the conversation context.
+## Related Packages
 
-## Troubleshooting
+- [swarmauri_tool_jupytershutdownkernel](https://pypi.org/project/swarmauri_tool_jupytershutdownkernel/)
+- [swarmauri_tool_jupyterexecutecell](https://pypi.org/project/swarmauri_tool_jupyterexecutecell/)
+- [swarmauri_tool_jupyterruncell](https://pypi.org/project/swarmauri_tool_jupyterruncell/)
+- [swarmauri_tool_jupyterclearoutput](https://pypi.org/project/swarmauri_tool_jupyterclearoutput/)
 
-- **`No such kernel`** ? The requested `kernel_name` is not installed. Check `jupyter kernelspec list`.
-- **`Kernel start timeout exceeded`** ? Increase `startup_timeout` for slow environments or pre-warm interpreters.
-- **Permission errors** ? Ensure the process can create files inside Jupyter's runtime directory (usually `~/.local/share/jupyter/runtime`).
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [jupyter_client documentation](https://jupyter-client.readthedocs.io/)
+- [IPython kernel documentation](https://ipython.readthedocs.io/)
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+
+## Best Practices
+
+- Ensure the requested kernelspec exists before starting automation flows.
+- Shut down kernels explicitly after use to avoid orphaned processes.
+- Keep per-task kernels isolated when multiple workflows run concurrently.
+- Store the returned kernel ID if other tools need to interact with the same
+  session later.
 
 ## License
 
-`swarmauri_tool_jupyterstartkernel` is released under the Apache 2.0 License. See `LICENSE` for details.
-
-
+This project is licensed under the Apache-2.0 License.

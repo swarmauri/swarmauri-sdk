@@ -1,16 +1,21 @@
 [project]
 name = "swarmauri_tool_jupyterstartkernel"
 version = "0.10.1.dev5"
-description = "A tool designed to start a new Jupyter kernel programmatically using jupyter_client, enabling execution of notebook cells."
+description = "Swarmauri notebook-orchestration tool for starting Jupyter kernels programmatically with jupyter_client."
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterstartkernel/"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Framework :: Jupyter",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -33,17 +38,13 @@ keywords = [
     "swarmauri",
     "tool",
     "jupyterstartkernel",
-    "designed",
-    "start",
-    "new",
     "jupyter",
     "kernel",
-    "programmatically",
-    "client",
-    "enabling",
-    "execution",
+    "kernel management",
+    "notebook automation",
+    "jupyter_client",
+    "execution environment",
     "notebook",
-    "cells",
 ]
 
 [tool.uv.sources]
@@ -52,6 +53,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=asttokens"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
