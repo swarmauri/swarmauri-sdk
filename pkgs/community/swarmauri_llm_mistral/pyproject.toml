@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_llm_mistral"
 version = "0.1.1.dev5"
-description = "Swarmauri Mistral LLM adapters from swarmauri_standard."
+description = "Provider-specific Swarmauri import package for Mistral chat, tool-calling, streaming, async, and batch LLM workflows."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,10 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -30,7 +34,20 @@ dependencies = [
 keywords = [
     "swarmauri",
     "llm",
+    "swarmauri llm",
     "mistral",
+    "mistral ai",
+    "tool calling",
+    "function calling",
+    "chat completions",
+    "streaming llm",
+    "async llm",
+    "batch inference",
+    "codestral",
+    "pixtral",
+    "devstral",
+    "large language model",
+    "generative ai",
     "model",
 ]
 
