@@ -14,125 +14,130 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool ? Search Word
+# Swarmauri Tool Search Word
 
-A Swarmauri utility for counting case-insensitive word or phrase occurrences in text files. The tool highlights matching lines and returns both the count and the decorated text so you can surface findings in agent conversations or CI logs.
+`swarmauri_tool_searchword` is a Swarmauri file-analysis tool for finding
+case-insensitive word or phrase matches inside UTF-8 text files. It returns the
+total match count and a line-by-line view with matching lines highlighted, which
+makes it useful for documentation QA, terminology enforcement, audit workflows,
+and agent-assisted text review.
 
-- Accepts any UTF-8 text file and performs case-insensitive matching.
-- Preserves surrounding context by returning the full line with ANSI highlighting (red) when a match is found.
-- Ships as a Swarmauri tool, so it can be registered alongside other agent capabilities.
+## Why Use Swarmauri Tool Search Word
 
-## Requirements
+- Count repeated terms or phrases inside local text files.
+- Surface matching lines for agent answers, reviews, and diagnostics.
+- Enforce style-guide or terminology rules in docs and content pipelines.
+- Reuse a simple search primitive inside larger Swarmauri toolchains.
 
-- Python 3.10 ? 3.13.
-- No external libraries beyond the core Swarmauri dependencies (`swarmauri_base`, `swarmauri_standard`, `pydantic`).
+## FAQ
+
+> **What inputs does the tool expect?**  
+> It expects a string `file_path` and a string `search_word`.
+
+> **Is the search case-sensitive?**  
+> No. Matching is case-insensitive.
+
+> **What does the tool return?**  
+> A dictionary with `count` and `lines`, where `lines` contains every line from
+> the file and highlights matching lines with ANSI color codes.
+
+> **Does it only search single words?**  
+> No. It can search multi-word phrases as well.
+
+## Features
+
+- Case-insensitive search across UTF-8 text files.
+- Returns both total occurrence count and full-file line output.
+- Highlights matching lines using ANSI escape codes.
+- Simple Swarmauri `ToolBase` interface for scripting and agents.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
-Choose the installer that matches your workflow; each command collects the required dependencies.
-
-**pip**
+```bash
+uv add swarmauri_tool_searchword
+```
 
 ```bash
 pip install swarmauri_tool_searchword
 ```
 
-**Poetry**
-
-```bash
-poetry add swarmauri_tool_searchword
-```
-
-**uv**
-
-```bash
-# Add to the current project and update uv.lock
-uv add swarmauri_tool_searchword
-
-# or install into the active environment without editing pyproject.toml
-uv pip install swarmauri_tool_searchword
-```
-
-> Tip: The tool reads files from disk, so ensure the executing process has permission to access the target path.
-
-## Quick Start
+## Usage
 
 ```python
 from swarmauri_tool_searchword import SearchWordTool
 
-search = SearchWordTool()
-result = search(file_path="docs/README.md", search_word="swarmauri")
+tool = SearchWordTool()
+result = tool(file_path="docs/README.md", search_word="swarmauri")
 
 print(result["count"])
-# e.g., 5
-
-for line in result["lines"]:
-    print(line)
 ```
 
-Matching lines are wrapped with ANSI escape codes (red foreground). When piping to logs or terminals that render ANSI, matches stand out immediately.
+## Examples
 
-## Usage Scenarios
-
-### Enforce Terminology in CI Pipelines
+### Scan documentation for banned terminology
 
 ```python
 from pathlib import Path
 from swarmauri_tool_searchword import SearchWordTool
 
-search = SearchWordTool()
+tool = SearchWordTool()
 
-for file in Path("docs").rglob("*.md"):
-    result = search(file_path=str(file), search_word="utilize")
-    if result["count"] > 0:
-        raise SystemExit(f"Forbidden term found in {file}: {result['count']} occurrences")
-```
-
-Stop merges when banned words or phrases appear in documentation.
-
-### Provide Explanations in an Agent Response
-
-```python
-from swarmauri_core.agent.Agent import Agent
-from swarmauri_core.messages.HumanMessage import HumanMessage
-from swarmauri_standard.tools.registry import ToolRegistry
-from swarmauri_tool_searchword import SearchWordTool
-
-registry = ToolRegistry()
-registry.register(SearchWordTool())
-agent = Agent(tool_registry=registry)
-
-message = HumanMessage(content="How many times do we mention 'latency' in docs/overview.txt?")
-response = agent.run(message)
-print(response)
-```
-
-Agents can report both the count and the highlighted context back to the user.
-
-### Audit Configuration Files for Secrets
-
-```python
-from swarmauri_tool_searchword import SearchWordTool
-
-search = SearchWordTool()
-config_files = [".env", "config/production.ini"]
-
-for path in config_files:
-    result = search(file_path=path, search_word="api_key")
+for path in Path("docs").rglob("*.md"):
+    result = tool(str(path), "utilize")
     if result["count"]:
-        print(f"Potential secret reference in {path}: {result['count']} matches")
+        print(path, result["count"])
 ```
 
-Quickly scan multiple configuration files when performing security reviews.
+### Highlight policy terms in a compliance file
 
-## Troubleshooting
+```python
+from swarmauri_tool_searchword import SearchWordTool
 
-- **`FileNotFoundError`** ? Confirm the path is correct and accessible. Relative paths are resolved from the current working directory of the process invoking the tool.
-- **`Invalid input`** ? The tool only accepts string file paths and search terms. Validate arguments if they originate from user prompts.
-- **ANSI escape codes in output** ? If your consumer cannot render ANSI, strip the escape sequences before displaying (e.g., with `re.sub(r'\x1b\[[0-9;]*m', '', line)`).
+tool = SearchWordTool()
+result = tool("policies/security.txt", "retention period")
+
+for line in result["lines"]:
+    print(line)
+```
+
+### Use the tool in a Swarmauri workflow
+
+```python
+from swarmauri_standard.tools.ToolCollection import ToolCollection
+from swarmauri_tool_searchword import SearchWordTool
+
+tools = ToolCollection(tools=[SearchWordTool()])
+print(tools)
+```
+
+## Related Packages
+
+- [swarmauri_tool_textlength](https://pypi.org/project/swarmauri_tool_textlength/)
+- [swarmauri_tool_lexicaldensity](https://pypi.org/project/swarmauri_tool_lexicaldensity/)
+- [swarmauri_tool_sentencecomplexity](https://pypi.org/project/swarmauri_tool_sentencecomplexity/)
+- [swarmauri_tool_smogindex](https://pypi.org/project/swarmauri_tool_smogindex/)
+- [swarmauri_tool_dalechallreadability](https://pypi.org/project/swarmauri_tool_dalechallreadability/)
+
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+- [Python `re` module documentation](https://docs.python.org/3/library/re.html)
+
+## Best Practices
+
+- Strip ANSI sequences before rendering in interfaces that do not support them.
+- Use absolute or well-scoped relative paths in CI jobs.
+- Reserve this tool for text files encoded as UTF-8.
+- Combine match counts with readability tools when reviewing large content sets.
 
 ## License
 
-`swarmauri_tool_searchword` is released under the Apache 2.0 License. See `LICENSE` for full details.
-
-
+This project is licensed under the Apache-2.0 License.

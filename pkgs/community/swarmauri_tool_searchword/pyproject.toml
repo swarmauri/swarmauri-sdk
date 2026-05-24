@@ -1,17 +1,21 @@
 [project]
 name = "swarmauri_tool_searchword"
 version = "0.4.1.dev5"
-description = "A tool for searching a specific word or phrase in a file."
+description = "Case-insensitive Swarmauri file-search tool for counting and highlighting word or phrase matches."
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/pkgs/community/swarmauri_tool_searchword/"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -23,16 +27,17 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 keywords = [
+    "swarmauri",
     "search",
     "tool",
     "word",
     "phrase",
     "file",
     "highlight",
-    "swarmauri",
     "searchword",
-    "searching",
-    "specific",
+    "text search",
+    "content audit",
+    "documentation qa",
 ]
 
 # Dependencies
