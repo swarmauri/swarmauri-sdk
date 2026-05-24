@@ -1,17 +1,24 @@
 [project]
 name = "swarmauri_tool_jupyterexportlatex"
 version = "0.9.1.dev5"
-description = "A tool that exports a Jupyter Notebook to LaTeX format using nbconvert’s LatexExporter, enabling further conversion to PDF."
+description = "Swarmauri publication-export tool for converting Jupyter notebooks into LaTeX and optional PDF artifacts."
 license = "Apache-2.0"
 readme = "README.md"
-repository = "https://github.com/swarmauri/swarmauri-sdk/tree/mono/dev/pkgs/swarmauri_tool_jupyterexportlatex/"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Framework :: Jupyter",
+    "Topic :: Printing",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Text Processing :: Markup :: LaTeX",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -29,20 +36,15 @@ dependencies = [
     "swarmauri_standard",
 ]
 keywords = [
-    "swarmauri",
-    "tool",
-    "jupyterexportlatex",
-    "exports",
     "jupyter",
-    "notebook",
-    "latex",
-    "format",
+    "latex export",
+    "pdf export",
     "nbconvert",
-    "latexexporter",
-    "enabling",
-    "further",
-    "conversion",
-    "pdf",
+    "academic publishing",
+    "notebook publication",
+    "xelatex",
+    "report typesetting",
+    "latex exporter",
 ]
 
 [tool.uv.sources]
@@ -69,6 +71,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-accept-deps=defusedxml,jupyterlab-pygments,jsonschema,jsonschema-specifications,referencing,rpds-py"
 
 [project.entry-points.'swarmauri.tools']
 JupyterExportLatexTool = "swarmauri_tool_jupyterexportlatex:JupyterExportLatexTool"

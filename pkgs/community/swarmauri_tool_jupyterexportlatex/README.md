@@ -14,68 +14,108 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Jupyter Export LaTeX
+# Swarmauri Jupyter Export LaTeX Tool
 
-Converts a Jupyter `NotebookNode` into LaTeX using nbconvert; optionally generates a PDF.
+`swarmauri_tool_jupyterexportlatex` converts a notebook object into LaTeX with `nbconvert.LatexExporter` and can optionally generate a PDF artifact. It also supports custom LaTeX templates for publication-oriented workflows.
+
+## Why
+
+- Produce LaTeX artifacts from notebooks for academic and report-generation workflows.
+- Reuse custom templates for publication formatting.
+- Optionally bridge notebook output into PDF-ready artifacts from a single tool surface.
 
 ## Features
 
-- Uses nbconvert?s `LatexExporter` with optional custom template support.
-- Returns the LaTeX string and (optionally) the path to a generated PDF.
-- Accepts inline CSS/JS injection via nbconvert hooks.
+- Accepts notebook objects and normalizes them before export.
+- Exports LaTeX with `nbconvert.LatexExporter`.
+- Supports custom template directories and files.
+- Optionally generates PDF output.
+- Falls back to a dummy PDF artifact when `xelatex` is unavailable in the local environment.
 
-## Prerequisites
+## FAQ
 
-- Python 3.10 or newer.
-- nbconvert (with LaTeX/PDF dependencies such as TeXLive or Tectonic if generating PDFs).
-- Swarmauri base/core packages (installed automatically).
+### What input does this tool expect?
+
+It expects a notebook object compatible with `nbformat.from_dict`, not a JSON string and not a notebook file path.
+
+### Does it always generate a PDF?
+
+No. PDF generation happens only when `to_pdf=True`.
+
+### What happens if `xelatex` is missing?
+
+The tool creates a dummy PDF file for testable fallback behavior instead of failing immediately.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_tool_jupyterexportlatex
-
-# poetry
-poetry add swarmauri_tool_jupyterexportlatex
-
-# uv (pyproject-based projects)
 uv add swarmauri_tool_jupyterexportlatex
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_tool_jupyterexportlatex
+```
+
+## Usage
 
 ```python
-import json
-import nbformat
 from swarmauri_tool_jupyterexportlatex import JupyterExportLatexTool
 
-notebook = nbformat.read("notebooks/example.ipynb", as_version=4)
-exporter = JupyterExportLatexTool()
-response = exporter(
+notebook = {
+    "cells": [{"cell_type": "code", "metadata": {}, "source": ["1 + 1"], "outputs": []}],
+    "metadata": {},
+    "nbformat": 4,
+    "nbformat_minor": 5,
+}
+
+result = JupyterExportLatexTool()(
+    notebook_node=notebook,
+    to_pdf=False,
+)
+
+print(result["latex_content"][:200])
+```
+
+## Examples
+
+### Export LaTeX only
+
+```python
+result = JupyterExportLatexTool()(
     notebook_node=notebook,
     use_custom_template=False,
-    template_path=None,
+    to_pdf=False,
+)
+```
+
+### Export LaTeX and request PDF output
+
+```python
+result = JupyterExportLatexTool()(
+    notebook_node=notebook,
     to_pdf=True,
 )
 
-if "latex_content" in response:
-    Path("notebooks/example.tex").write_text(response["latex_content"], encoding="utf-8")
-
-if pdf := response.get("pdf_file_path"):
-    print("PDF saved to", pdf)
-else:
-    print("Error:", response.get("error"))
+print(result.get("pdf_file_path"))
 ```
 
-## Tips
+## Related Packages
 
-- Install a TeX distribution (e.g., `texlive`, `tectonic`) when `to_pdf=True`.
-- Use `use_custom_template=True` and `template_path` to control the LaTeX layout.
-- Combine with notebook execution tools (execute ? export ? PDF) for reporting pipelines.
+- [`swarmauri_tool_jupyterexporthtml`](https://pypi.org/project/swarmauri_tool_jupyterexporthtml/)
+- [`swarmauri_tool_jupyterexportmarkdown`](https://pypi.org/project/swarmauri_tool_jupyterexportmarkdown/)
+- [`swarmauri_tool_jupyterexportpython`](https://pypi.org/project/swarmauri_tool_jupyterexportpython/)
+- [`swarmauri_tool_jupyterexecuteandconvert`](https://pypi.org/project/swarmauri_tool_jupyterexecuteandconvert/)
+- [`swarmauri_tool_jupyterexecutenotebook`](https://pypi.org/project/swarmauri_tool_jupyterexecutenotebook/)
 
-## Want to help?
+## Foundational Swarmauri Packages
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+- [`swarmauri`](https://pypi.org/project/swarmauri/)
+- [`swarmauri_core`](https://pypi.org/project/swarmauri_core/)
+- [`swarmauri_base`](https://pypi.org/project/swarmauri_base/)
+- [`swarmauri_standard`](https://pypi.org/project/swarmauri_standard/)
 
+## More Documentation
 
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+- [nbconvert LaTeX export docs](https://nbconvert.readthedocs.io/)
+- [Jupyter documentation](https://jupyter.org/documentation)
