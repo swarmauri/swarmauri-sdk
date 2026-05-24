@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_metric_hamming"
 version = "0.9.3.dev5"
-description = "Swarmauri Hamming distance metric community package."
+description = "Hamming-distance metric for Swarmauri with raw mismatch counts, batched comparisons, and metric-axiom helpers."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,7 +11,12 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Mathematics",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -32,8 +37,11 @@ keywords = [
     "metric",
     "hamming",
     "distance",
-    "community",
-    "package",
+    "binary distance",
+    "sequence comparison",
+    "error correcting codes",
+    "discrete metrics",
+    "information analysis",
 ]
 
 [tool.uv.sources]

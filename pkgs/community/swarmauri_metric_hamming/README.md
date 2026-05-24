@@ -16,24 +16,53 @@
 
 # Swarmauri Metric Hamming
 
-The `swarmauri_metric_hamming` package delivers a production-ready implementation of the Hamming distance that integrates seamlessly with the Swarmauri metric ecosystem. It extends `MetricBase` with binary vector validation, pairwise distance calculations, and axiom verification utilities designed for error-correcting code workflows.
+`swarmauri_metric_hamming` is the Swarmauri metric implementation for Hamming
+distance. It compares equal-length sequences and returns the count of positions
+that differ, while also exposing batched distance helpers and metric-axiom
+checks for downstream validation workflows.
+
+## Why Use Swarmauri Metric Hamming
+
+- Measure discrete sequence differences inside Swarmauri retrieval, coding,
+  validation, or comparison workflows.
+- Compare binary vectors, strings, NumPy arrays, and Swarmauri vector or matrix
+  surfaces through one metric component.
+- Reuse a metric implementation that also exposes symmetry, identity, and
+  triangle-inequality checks.
+- Build exact distance-based workflows for error-correcting codes, bitstring
+  analysis, and symbolic comparison.
+
+## FAQ
+
+> **What does `distance()` return?**  
+> A float equal to the number of differing positions between two equal-length
+> inputs.
+
+> **What input types are supported?**  
+> Strings, bytes, dictionaries, NumPy arrays, generic sequences, and
+> Swarmauri matrix/vector interfaces.
+
+> **Does it normalize the distance?**  
+> No. The current implementation returns the raw count of mismatched positions.
+
+> **Can it compare batches of vectors?**  
+> Yes. Use `distances()` to generate pairwise distance rows across collections.
 
 ## Features
 
-- Fully compliant `MetricBase` implementation for binary sequences.
-- Pairwise and batched distance calculations for matrices, vectors, and iterables.
-- Built-in validation helpers for metric axioms and input compatibility checks.
-- Utility conversion helpers for strings, dictionaries, NumPy arrays, and Swarmauri matrices/vectors.
+- Raw Hamming distance for equal-length sequences.
+- Pairwise `distances()` support for collections of vectors.
+- Input normalization for strings, bytes, dicts, arrays, matrices, and
+  vectors.
+- Metric-axiom helpers: non-negativity, symmetry, identity of indiscernibles,
+  and triangle inequality.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
-### Using `uv`
-
 ```bash
-uv pip install swarmauri_metric_hamming
+uv add swarmauri_metric_hamming
 ```
-
-### Using `pip`
 
 ```bash
 pip install swarmauri_metric_hamming
@@ -45,25 +74,92 @@ pip install swarmauri_metric_hamming
 from swarmauri_metric_hamming import HammingMetric
 
 metric = HammingMetric()
-
 codeword = [1, 0, 1, 1, 0, 0, 1]
 received = [1, 1, 1, 1, 0, 0, 1]
 
-# Compute the Hamming distance between two binary vectors
-print(metric.distance(codeword, received))  # 1.0
-
-# Verify the metric axioms for the provided inputs
-assert metric.check_symmetry(codeword, received)
-assert metric.check_triangle_inequality(codeword, received, codeword)
+print(metric.distance(codeword, received))
 ```
 
-## Support
+## Examples
 
-- Python 3.10, 3.11, and 3.12
-- Licensed under the Apache-2.0 license
+### Compare binary vectors
 
-## Contributing
+```python
+from swarmauri_metric_hamming import HammingMetric
 
-We welcome contributions! Please submit issues and pull requests through the [Swarmauri SDK GitHub repository](https://github.com/swarmauri/swarmauri-sdk).
+metric = HammingMetric()
+print(metric.distance([1, 0, 1, 1], [1, 1, 0, 1]))
+```
 
+### Compare strings and arrays
+
+```python
+import numpy as np
+from swarmauri_metric_hamming import HammingMetric
+
+metric = HammingMetric()
+left = "1011001"
+right = np.array([1, 0, 1, 0, 0, 0, 1])
+
+print(metric.distance(left, right))
+```
+
+### Compute pairwise distances across collections
+
+```python
+from swarmauri_metric_hamming import HammingMetric
+
+metric = HammingMetric()
+left = [[0, 0, 0], [1, 1, 1]]
+right = [[0, 0, 1], [1, 0, 1]]
+
+print(metric.distances(left, right))
+```
+
+### Verify metric axioms
+
+```python
+from swarmauri_metric_hamming import HammingMetric
+
+metric = HammingMetric()
+x = [0, 1, 0, 1]
+y = [0, 0, 1, 1]
+z = [1, 0, 1, 0]
+
+assert metric.check_non_negativity(x, y)
+assert metric.check_symmetry(x, y)
+assert metric.check_triangle_inequality(x, y, z)
+```
+
+## Related Packages
+
+- [swarmauri_measurement_mutualinformation](https://pypi.org/project/swarmauri_measurement_mutualinformation/)
+- [swarmauri_measurement_tokencountestimator](https://pypi.org/project/swarmauri_measurement_tokencountestimator/)
+- [swarmauri_metric_hamming](https://pypi.org/project/swarmauri_metric_hamming/)
+
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+
+## More Documentation
+
+- [Hamming distance overview](https://en.wikipedia.org/wiki/Hamming_distance)
+- [NumPy documentation](https://numpy.org/doc/)
+
+## Best Practices
+
+- Validate equal-length inputs before calling `distance()` in external
+  pipelines.
+- Use raw Hamming counts when exact mismatch positions matter more than a
+  normalized ratio.
+- Normalize heterogeneous input types consistently before comparing large
+  collections.
+- Pair this metric with domain-specific encoders when comparing symbolic or
+  categorical data.
+
+## License
+
+This project is licensed under the Apache-2.0 License.
 
