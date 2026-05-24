@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_llm_openai"
 version = "0.1.1.dev5"
-description = "Swarmauri Openai LLM adapters from swarmauri_standard."
+description = "Provider-specific Swarmauri import package for OpenAI chat, reasoning, tool-calling, transcription, and text-to-speech workflows."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,11 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -30,7 +35,22 @@ dependencies = [
 keywords = [
     "swarmauri",
     "llm",
+    "swarmauri llm",
     "openai",
+    "openai api",
+    "chat completions",
+    "reasoning model",
+    "tool calling",
+    "function calling",
+    "speech to text",
+    "transcription",
+    "text to speech",
+    "tts",
+    "audio generation",
+    "gpt-5",
+    "gpt-4o",
+    "large language model",
+    "generative ai",
     "model",
 ]
 
