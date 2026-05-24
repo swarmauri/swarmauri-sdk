@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_measurement_tokencountestimator"
 version = "0.9.4.dev5"
-description = "This repository includes an example of a First Class Swarmauri Example."
+description = "Token-budget estimation measurement for Swarmauri using tiktoken encodings and prompt-length preflight checks."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,6 +11,10 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -27,11 +31,11 @@ keywords = [
     "swarmauri",
     "measurement",
     "tokencountestimator",
-    "repository",
-    "includes",
-    "example",
-    "first",
-    "class",
+    "token count",
+    "tiktoken",
+    "prompt budgeting",
+    "context window",
+    "llm cost estimation",
 ]
 
 [tool.uv.sources]
