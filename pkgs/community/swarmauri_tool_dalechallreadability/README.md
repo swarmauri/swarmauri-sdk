@@ -16,62 +16,130 @@
 
 # Swarmauri Tool Dale-Chall Readability
 
-Tool wrapper around [`textstat`](https://pypi.org/project/textstat/) to compute the Dale?Chall readability score for a block of text via the Swarmauri tool interface.
+`swarmauri_tool_dalechallreadability` is a Swarmauri readability-analysis tool
+that wraps `textstat` to calculate the Dale-Chall readability score for a block
+of text. It is useful for education content, public-sector language review,
+documentation QA, prompt inspection, and workflows that need a familiar
+readability benchmark.
+
+## Why Use Swarmauri Tool Dale-Chall Readability
+
+- Estimate whether writing is easy enough for the intended audience.
+- Add readability gates to content and documentation pipelines.
+- Reuse a standard readability metric inside Swarmauri agents and tools.
+- Compare revisions or content sets with a consistent score.
+
+## FAQ
+
+> **What does the tool return?**  
+> A dictionary with one key: `dale_chall_score`.
+
+> **What input shape does it expect?**  
+> The current implementation expects a dictionary containing `input_text`.
+
+> **What library does it use?**  
+> It uses `textstat.dale_chall_readability_score`.
+
+> **What does a lower score mean?**  
+> Lower Dale-Chall scores generally indicate easier reading.
 
 ## Features
 
-- Accepts an `input_text` parameter and returns `{"dale_chall_score": <float>}`.
-- Uses `textstat.dale_chall_readability_score` under the hood.
-- Input validation ensures the required parameter is present before calculation.
-
-## Prerequisites
-
-- Python 3.10 or newer.
-- `textstat` and `pyphen` dictionaries (installed automatically). Some textstat metrics may download additional word lists on first use.
+- Swarmauri `ToolBase` implementation registered as `DaleChallReadabilityTool`.
+- Returns a standard Dale-Chall readability score.
+- Works well for educational, policy, and editorial review workflows.
+- Thin wrapper over `textstat`, keeping usage simple and predictable.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_tool_dalechallreadability
-
-# poetry
-poetry add swarmauri_tool_dalechallreadability
-
-# uv (pyproject-based projects)
 uv add swarmauri_tool_dalechallreadability
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_tool_dalechallreadability
+```
+
+## Usage
 
 ```python
 from swarmauri_tool_dalechallreadability import DaleChallReadabilityTool
 
-text = "This is a simple sentence for testing purposes."
 tool = DaleChallReadabilityTool()
-result = tool({"input_text": text})
-print(result)
+result = tool({"input_text": "This is a simple sentence for testing purposes."})
+
+print(result["dale_chall_score"])
 ```
 
-## Usage in Tool Chains
+## Examples
+
+### Score a policy paragraph
 
 ```python
 from swarmauri_tool_dalechallreadability import DaleChallReadabilityTool
 
-def grade_paragraph(paragraph: str) -> float:
-    tool = DaleChallReadabilityTool()
-    score = tool({"input_text": paragraph})["dale_chall_score"]
-    return score
+tool = DaleChallReadabilityTool()
+score = tool(
+    {
+        "input_text": "Applicants must complete the registration form and provide identity verification before approval."
+    }
+)
+
+print(score)
 ```
 
-## Tips
+### Compare plain-language and technical versions
 
-- Dale?Chall scores roughly map to U.S. grade levels; lower scores indicate easier reading.
-- Pre-clean text (remove markup, normalize whitespace) for consistent scoring.
-- Combine with Swarmauri measurements or parsers to evaluate readability across multiple documents.
+```python
+from swarmauri_tool_dalechallreadability import DaleChallReadabilityTool
 
-## Want to help?
+tool = DaleChallReadabilityTool()
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+plain = {"input_text": "Read the guide and follow the steps."}
+technical = {"input_text": "Administrative verification shall precede credential issuance and service activation."}
 
+print("plain", tool(plain))
+print("technical", tool(technical))
+```
 
+### Register the tool in a Swarmauri collection
+
+```python
+from swarmauri_standard.tools.ToolCollection import ToolCollection
+from swarmauri_tool_dalechallreadability import DaleChallReadabilityTool
+
+tools = ToolCollection(tools=[DaleChallReadabilityTool()])
+print(tools)
+```
+
+## Related Packages
+
+- [swarmauri_tool_smogindex](https://pypi.org/project/swarmauri_tool_smogindex/)
+- [swarmauri_tool_sentencecomplexity](https://pypi.org/project/swarmauri_tool_sentencecomplexity/)
+- [swarmauri_tool_lexicaldensity](https://pypi.org/project/swarmauri_tool_lexicaldensity/)
+- [swarmauri_tool_textlength](https://pypi.org/project/swarmauri_tool_textlength/)
+
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [textstat documentation](https://github.com/textstat/textstat)
+- [Dale-Chall readability formula](https://en.wikipedia.org/wiki/Dale%E2%80%93Chall_readability_formula)
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+
+## Best Practices
+
+- Clean markup and normalize whitespace before scoring text.
+- Use the score comparatively across similar content types.
+- Pair Dale-Chall with structural metrics for better editorial judgment.
+- Wrap the input text into the expected `{"input_text": ...}` shape.
+
+## License
+
+This project is licensed under the Apache-2.0 License.
