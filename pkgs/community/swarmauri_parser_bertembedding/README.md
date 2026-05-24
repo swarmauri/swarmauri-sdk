@@ -16,95 +16,153 @@
 
 # Swarmauri Parser Bert Embedding
 
-Parser that converts text into embeddings using a Hugging Face BERT encoder. Produces `Document` objects whose metadata carries the averaged token embedding so downstream Swarmauri pipelines can work with dense vectors.
+`swarmauri_parser_bertembedding` is the Swarmauri embedding parser for turning
+text into dense vector representations with Hugging Face BERT models. It
+returns Swarmauri `Document` objects whose `content` keeps the original text
+and whose metadata stores the generated embedding vector.
+
+## Why Use Swarmauri Parser Bert Embedding
+
+- Generate dense semantic vectors inside a Swarmauri parser-style workflow.
+- Keep original text and embedding output together in a single `Document`
+  object.
+- Swap BERT model names when you need a different encoder surface.
+- Feed embeddings into retrieval, clustering, semantic search, reranking, or
+  downstream vector store pipelines.
+
+## FAQ
+
+> **What does this parser output?**  
+> Swarmauri `Document` objects containing the original text and an averaged BERT
+> embedding stored in `metadata["embedding"]`.
+
+> **What model does it use by default?**  
+> `bert-base-uncased`.
+
+> **Can it parse a batch of strings?**  
+> Yes. The current implementation accepts a single string or a list of strings.
+
+> **Does it download model weights?**  
+> Yes. On first use, Hugging Face model and tokenizer assets are downloaded if
+> they are not already cached locally.
 
 ## Features
 
-- Uses `transformers.BertModel` + `BertTokenizer` (default `bert-base-uncased`).
-- Accepts single strings or lists of strings and emits `Document` instances with original text and embedding metadata.
-- Runs in inference (`eval`) mode with automatic `torch.no_grad()` handling.
-- Works on CPU by default; configure PyTorch device settings to leverage GPU.
-
-## Prerequisites
-
-- Python 3.10 or newer.
-- PyTorch compatible with your hardware (installed automatically via `transformers` if not present; install CUDA-enabled wheels manually when needed).
-- Internet access on first run so Hugging Face downloads tokenizer/model weights (or warm the cache ahead of time).
+- Dense embedding generation using `BertTokenizer` and `BertModel`.
+- Supports single-string and batch-text parsing.
+- Stores the original text alongside the embedding vector in each document.
+- Uses inference mode with `torch.no_grad()` and mean token pooling.
+- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
 
 ```bash
-# pip
-pip install swarmauri_parser_bertembedding
-
-# poetry
-poetry add swarmauri_parser_bertembedding
-
-# uv (pyproject-based projects)
 uv add swarmauri_parser_bertembedding
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_parser_bertembedding
+```
+
+Notes:
+
+- First-run model downloads come from Hugging Face.
+- Install a CUDA-enabled PyTorch build separately if GPU execution is required.
+
+## Usage
 
 ```python
 from swarmauri_parser_bertembedding import BERTEmbeddingParser
 
 parser = BERTEmbeddingParser(parser_model_name="bert-base-uncased")
+documents = parser.parse(
+    [
+        "Swarmauri agents cooperate over shared memory.",
+        "Dense embeddings power semantic search.",
+    ]
+)
 
-documents = parser.parse([
-    "Swarmauri agents cooperate over shared memory.",
-    "Dense embeddings power semantic search.",
-])
-
-for doc in documents:
-    vector = doc.metadata["embedding"]
-    print(doc.content)
-    print(len(vector), vector[:5])
+for document in documents:
+    embedding = document.metadata["embedding"]
+    print(document.content)
+    print(len(embedding), embedding[:5])
 ```
 
-## Custom Models & Devices
+## Examples
+
+### Embed a single sentence
 
 ```python
-import torch
-from swarmauri_parser_bertembedding import BERTEmbeddingParser
-from transformers import BertModel
-
-class GPUParser(BERTEmbeddingParser):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._model = BertModel.from_pretrained(self.parser_model_name).to("cuda")
-
-parser = GPUParser(parser_model_name="bert-base-multilingual-cased")
-parser._model.eval()
-```
-
-## Batch Embeddings at Scale
-
-```python
-from tqdm import tqdm
 from swarmauri_parser_bertembedding import BERTEmbeddingParser
 
-texts = [f"Paragraph {i}" for i in range(1000)]
 parser = BERTEmbeddingParser()
+documents = parser.parse("Composable intelligence infrastructure")
 
-batched_docs = []
-batch_size = 32
-for start in tqdm(range(0, len(texts), batch_size)):
-    batch = texts[start:start + batch_size]
-    batched_docs.extend(parser.parse(batch))
+print(documents[0].id)
+print(documents[0].metadata["source"])
+print(documents[0].metadata["embedding"].shape)
 ```
 
-Persist the resulting vectors into Swarmauri vector stores (Redis, Qdrant, etc.) via the metadata field.
+### Embed a batch for downstream storage
 
-## Tips
+```python
+from swarmauri_parser_bertembedding import BERTEmbeddingParser
 
-- Preprocess text to match model expectations (lowercase for uncased BERT, language-specific cleanup for multilingual models).
-- For extremely long documents, consider chunking before calling `parse` to respect the 512 token limit.
-- Use PyTorch's `to("cuda")` or `to("mps")` to execute on GPUs or Apple silicon accelerators.
-- Cache Hugging Face weights in CI/CD environments (`HF_HOME=/cache/hf`) to avoid repeated downloads.
+texts = [
+    "Customer support workflows need retrieval.",
+    "Embeddings support semantic matching.",
+    "Vector stores preserve nearest-neighbor search state.",
+]
 
-## Want to help?
+parser = BERTEmbeddingParser()
+documents = parser.parse(texts)
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+for document in documents:
+    vector = document.metadata["embedding"]
+    print(document.id, len(vector))
+```
+
+### Use an alternate BERT model name
+
+```python
+from swarmauri_parser_bertembedding import BERTEmbeddingParser
+
+parser = BERTEmbeddingParser(parser_model_name="bert-base-multilingual-cased")
+docs = parser.parse("Bonjour tout le monde")
+print(docs[0].metadata["embedding"][:5])
+```
+
+## Related Packages
+
+- [swarmauri_embedding_mlm](https://pypi.org/project/swarmauri_embedding_mlm/)
+- [swarmauri_vectorstore_mlm](https://pypi.org/project/swarmauri_vectorstore_mlm/)
+- [swarmauri_vectorstore_qdrant](https://pypi.org/project/swarmauri_vectorstore_qdrant/)
+- [swarmauri_vectorstore_pinecone](https://pypi.org/project/swarmauri_vectorstore_pinecone/)
+
+## Swarmauri Foundations
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+## More Documentation
+
+- [Hugging Face Transformers BERT docs](https://huggingface.co/docs/transformers/model_doc/bert)
+- [Transformers AutoTokenizer and tokenization docs](https://huggingface.co/docs/transformers/main_classes/tokenizer)
+- [PyTorch documentation](https://pytorch.org/docs/stable/index.html)
+
+## Best Practices
+
+- Chunk very long texts before parsing so they stay within the BERT token limit.
+- Cache Hugging Face assets in CI and deployment environments to avoid repeated
+  model downloads.
+- Use a model variant aligned to your language and domain.
+- Persist vectors into a Swarmauri vector store if you plan to search or reuse
+  them beyond a single process.
+
+## License
+
+This project is licensed under the Apache-2.0 License.
 
 

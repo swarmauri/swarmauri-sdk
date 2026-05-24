@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_parser_bertembedding"
 version = "0.8.4.dev5"
-description = "Swarmauri Bert Embedding Parser"
+description = "BERT-based dense embedding parser for Swarmauri with batch text encoding and document metadata vectors."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -11,7 +11,12 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Text Processing",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -35,6 +40,12 @@ keywords = [
     "bertembedding",
     "bert",
     "embedding",
+    "transformers",
+    "semantic search",
+    "vector embeddings",
+    "document embeddings",
+    "hugging face",
+    "dense retrieval",
 ]
 
 [tool.uv.sources]
@@ -43,6 +54,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
+addopts = "--pylicense-accept-deps=transformers,tqdm"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
