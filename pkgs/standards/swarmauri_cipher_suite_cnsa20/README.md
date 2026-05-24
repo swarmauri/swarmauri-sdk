@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_cipher_suite_cnsa20/">
@@ -6,81 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suite_cnsa20/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suite_cnsa20.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_cnsa20/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_cnsa20/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_cipher_suite_cnsa20" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_cipher_suite_cnsa20" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_cnsa20/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_cnsa20?label=swarmauri_cipher_suite_cnsa20&color=green" alt="PyPI - swarmauri_cipher_suite_cnsa20"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_cnsa20?label=swarmauri_cipher_suite_cnsa20&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# Swarmauri Cipher Cnsa20
+# Swarmauri Cipher Suite CNSA 2.0
 
-CNSA 2.0-aligned cipher suite skeleton for high-assurance deployments.
+CNSA 2.0 policy cipher suite with classical and post-quantum algorithms.
 
 ## Features
 
-- Enumerates classical (ES384/PS384) and post-quantum (ML-DSA, SLH-DSA, ML-KEM)
-  selections from the CNSA 2.0 profile
-- Surfaces NIST security level metadata for ML-DSA, SLH-DSA, and ML-KEM
-  algorithms to support downstream policy checks
-- Provides consistent normalization across signing, encryption, and key
-  encapsulation operations with JWA and provider dialect mappings
+- CNSA 2.0 policy cipher suite with classical and post-quantum algorithms.
+- Exposes discoverable runtime entry points for `swarmauri.cipher_suites` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
 
 ## Installation
 
-### pip
-
-```bash
-pip install swarmauri_cipher_suite_cnsa20
-```
-
-### Poetry
-
-```bash
-poetry add swarmauri_cipher_suite_cnsa20
-```
-
-### uv
-
-To add the dependency to a `pyproject.toml` managed by `uv`:
+Install this package with `uv` or `pip`.
 
 ```bash
 uv add swarmauri_cipher_suite_cnsa20
 ```
 
-Or install it into the active environment:
-
 ```bash
-uv pip install swarmauri_cipher_suite_cnsa20
+pip install swarmauri_cipher_suite_cnsa20
 ```
 
 ## Usage
 
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+
 ```python
 from swarmauri_cipher_suite_cnsa20 import Cnsa20CipherSuite
 
-suite = Cnsa20CipherSuite(name="demo-cnsa20")
-
-# Inspect the available operations and defaults
-print(suite.features()["ops"].keys())
-
-# Normalize a post-quantum signing request
-descriptor = suite.normalize(op="sign", alg="ML-DSA-65")
-print(descriptor["alg"], descriptor["constraints"]["nistLevel"])  # -> 3
+exports = ['Cnsa20CipherSuite']
+print(exports)
 ```
 
-The suite returns normalized descriptors that include canonical algorithm names,
-per-dialect mappings, and policy metadata so providers can focus on execution.
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-## Entry Point
-
-The suite registers under the `swarmauri.cipher_suites` entry point as `Cnsa20CipherSuite`.
-
-## Contributing
-
-If you want to contribute to swarmauri-sdk, read up on our
-[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
-that will help you get started.
-
-
+License: Apache-2.0. See `LICENSE`.

@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_signing_xmld/">
@@ -6,23 +6,32 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_xmld/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_xmld.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_xmld/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_xmld/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_signing_xmld" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_signing_xmld" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_xmld/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_signing_xmld?label=swarmauri_signing_xmld&color=green" alt="PyPI - swarmauri_signing_xmld"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_signing_xmld?label=swarmauri_signing_xmld&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# Installation
+# Swarmauri Signing XMLD
 
-### uv
+XML Digital Signature implementation for the Swarmauri SigningBase registry.
+
+## Features
+
+- XML Digital Signature implementation for the Swarmauri SigningBase registry.
+- Centers its public API around `XMLDSigner` so downstream code can import the package directly without extra registry glue.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+
+## Installation
+
+Install this package with `uv` or `pip`.
 
 ```bash
-uv pip install swarmauri_signing_xmld
+uv add swarmauri_signing_xmld
 ```
-
-### pip
 
 ```bash
 pip install swarmauri_signing_xmld
@@ -30,20 +39,15 @@ pip install swarmauri_signing_xmld
 
 ## Usage
 
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+
 ```python
 from swarmauri_signing_xmld import XMLDSigner
 
-signer = XMLDSigner()
-xml_payload = """<note><to>Alice</to><from>Bob</from></note>""".encode()
-
-signature = await signer.sign_bytes(
-    key={
-        "kind": "pem",
-        "private_key": "/path/to/private_key.pem",
-        "certificate": "/path/to/certificate.pem",
-    },
-    payload=xml_payload,
-)
+exports = ['XMLDSigner']
+print(exports)
 ```
 
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
+License: Apache-2.0. See `LICENSE`.

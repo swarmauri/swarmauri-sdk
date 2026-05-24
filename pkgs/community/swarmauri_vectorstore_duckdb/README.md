@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_vectorstore_duckdb/">
@@ -6,19 +6,32 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_duckdb/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_duckdb.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_duckdb/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_duckdb/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_vectorstore_duckdb" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_vectorstore_duckdb" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_duckdb/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_duckdb?label=swarmauri_vectorstore_duckdb&color=green" alt="PyPI - swarmauri_vectorstore_duckdb"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_duckdb?label=swarmauri_vectorstore_duckdb&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
 # Swarmauri Vectorstore Duckdb
 
-A vector store implementation using DuckDB as the backend for efficient document storage and similarity search.
+A DuckDB based Vector Store.
+
+## Features
+
+- A DuckDB based Vector Store.
+- Exposes discoverable runtime entry points for `swarmauri.vector_stores` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Lives in the community package lane for optional integrations that extend the main Swarmauri SDK surface.
 
 ## Installation
+
+Install this package with `uv` or `pip`.
+
+```bash
+uv add swarmauri_vectorstore_duckdb
+```
 
 ```bash
 pip install swarmauri_vectorstore_duckdb
@@ -26,32 +39,15 @@ pip install swarmauri_vectorstore_duckdb
 
 ## Usage
 
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+
 ```python
-from swarmauri.vector_stores.DuckDBVectorStore import DuckDBVectorStore
-from swarmauri.documents.Document import Document
+from swarmauri_vectorstore_duckdb import DuckDBVectorStore
 
-# Initialize vector store
-vector_store = DuckDBVectorStore(database_name="my_vectors.db")
-vector_store.connect()
-
-# Add documents
-doc = Document(
-    id="doc1",
-    content="The quick brown fox jumps over the lazy dog",
-    metadata={"type": "example"}
-)
-vector_store.add_document(doc)
-
-# Retrieve similar documents
-results = vector_store.retrieve("fox jumping", top_k=2)
-
-# Clean up
-vector_store.disconnect()
+exports = ['DuckDBVectorStore']
+print(exports)
 ```
 
-## Want to help?
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
-
-
-
+License: Apache-2.0. See `LICENSE`.

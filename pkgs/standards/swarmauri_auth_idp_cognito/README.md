@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_auth_idp_cognito/">
@@ -6,94 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_auth_idp_cognito/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_auth_idp_cognito.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_cognito/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_cognito/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_auth_idp_cognito" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_auth_idp_cognito" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_cognito/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_cognito?label=swarmauri_auth_idp_cognito&color=green" alt="PyPI - swarmauri_auth_idp_cognito"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_cognito?label=swarmauri_auth_idp_cognito&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
 # Swarmauri Auth IDP Cognito
 
-AWS Cognito OAuth 2.0, OAuth 2.1, and OIDC 1.0 login and app-client flows packaged for the Swarmauri ecosystem.
+AWS Cognito OAuth 2.0 / OAuth 2.1 / OIDC 1.0 identity provider implementations for Swarmauri.
 
 ## Features
 
-- PKCE-enabled authorization code logins with signed state payloads to prevent tampering.
-- Automatic discovery of Cognito endpoints with resilient HTTP retry semantics.
-- ID token verification against Cognito JWKS with graceful fallback to the UserInfo endpoint.
-- Machine-to-machine app clients supporting shared secrets or JWT-based client assertions.
-- ComponentBase-registered classes for seamless Swarmauri plugin discovery and configuration.
+- AWS Cognito OAuth 2.0 / OAuth 2.1 / OIDC 1.0 identity provider implementations for Swarmauri.
+- Exposes discoverable runtime entry points for `swarmauri.auth_idp` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
 
 ## Installation
 
-### pip
-
-```bash
-pip install swarmauri_auth_idp_cognito
-```
-
-### uv (project)
+Install this package with `uv` or `pip`.
 
 ```bash
 uv add swarmauri_auth_idp_cognito
 ```
 
-### uv (environment)
-
 ```bash
-uv pip install swarmauri_auth_idp_cognito
+pip install swarmauri_auth_idp_cognito
 ```
 
 ## Usage
 
-Instantiate the login classes with your Cognito issuer, app client credentials, and redirect URI.
-Persist the returned state between `auth_url` and `exchange*` calls to prevent replay attacks.
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
 ```python
-from pydantic import SecretBytes, SecretStr
-from swarmauri_auth_idp_cognito import CognitoOAuth21Login
+from swarmauri_auth_idp_cognito import CognitoOAuth20AppClient, CognitoOAuth20Login, CognitoOAuth21AppClient, CognitoOAuth21Login
 
-login = CognitoOAuth21Login(
-    issuer="https://example-domain.auth.us-east-1.amazoncognito.com",
-    client_id="example-client-id",
-    client_secret=SecretStr("example-secret"),
-    redirect_uri="https://example.com/callback",
-    state_secret=SecretBytes(b"super-secret-state-key"),
-)
-
-# Within an async context:
-# auth_payload = await login.auth_url()
-# identity = await login.exchange_and_identity(code, auth_payload["state"])
-print(login.client_id)
+exports = ['CognitoOAuth20AppClient', 'CognitoOAuth20Login', 'CognitoOAuth21AppClient', 'CognitoOAuth21Login']
+print(exports)
 ```
 
-### Expected Workflow
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-1. Call `auth_url()` and redirect the user agent to the returned authorization URL.
-2. Persist the state value and later validate it when Cognito posts back to your callback.
-3. Call `exchange_and_identity()` (or `exchange()` for the OIDC login) to normalize identity claims.
-4. Use the normalized payload to provision sessions, issue downstream tokens, or audit login activity.
-
-App client classes expose the same `access_token` coroutine to support background services
-and machine-to-machine integrations.
-
-## Entry Points
-
-The distribution registers the following entry points:
-
-- `swarmauri.auth_idp:CognitoOAuth20Login`
-- `swarmauri.auth_idp:CognitoOAuth21Login`
-- `swarmauri.auth_idp:CognitoOIDC10Login`
-- `swarmauri.auth_idp:CognitoOAuth20AppClient`
-- `swarmauri.auth_idp:CognitoOAuth21AppClient`
-- `swarmauri.auth_idp:CognitoOIDC10AppClient`
-
-## Contributing
-
-To contribute to swarmauri-sdk, review the
-[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md),
-including development workflow, testing, and coding standards.
-
-
+License: Apache-2.0. See `LICENSE`.

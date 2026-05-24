@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/EmbeddedSigner/">
@@ -6,92 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/embedded_signer/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/embedded_signer.svg"/></a>
     <a href="https://pypi.org/project/EmbeddedSigner/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/EmbeddedSigner/">
-        <img src="https://img.shields.io/pypi/l/EmbeddedSigner" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/EmbeddedSigner" alt="License"/></a>
     <a href="https://pypi.org/project/EmbeddedSigner/">
-        <img src="https://img.shields.io/pypi/v/EmbeddedSigner?label=EmbeddedSigner&color=green" alt="PyPI - EmbeddedSigner"/></a>
+        <img src="https://img.shields.io/pypi/v/EmbeddedSigner?label=EmbeddedSigner&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# Embed metadata into a file and write it back in place.
-signer.embed_file("image.png", xmp_xml)
+# EmbeddedSigner
 
-# Read embedded metadata without materialising the bytes in memory.
-print(signer.read_xmp_file("image.png"))
+Embed XMP metadata and sign media assets using Swarmauri plugins.
 
-# Remove metadata and persist the stripped bytes to a new path.
-signer.remove_xmp_file("image.png", write_back=True)
+## Features
 
-# Sign file contents without manual IO boilerplate.
-signatures = asyncio.run(
-    signer.sign_file(
-        "image.png",
-        fmt="JWSSigner",
-        key="LocalKeyProvider://img-key",
-        attached=True,
-    )
-)
-```
+- Embed XMP metadata and sign media assets using Swarmauri plugins.
+- Ships with a package-local command or integration surface that can be installed independently from the rest of the workspace.
+- Supports direct plugin instantiation from application code; avoid `PluginManager` unless a task explicitly requires it.
 
-### Command line interface
+## Installation
 
-Installing the package exposes an `embedded-signer` executable that wraps the
-most common workflows:
+Install this package with `uv` or `pip`.
 
 ```bash
-# Embed metadata from a file into an image in place.
-embedded-signer embed example.png --xmp-file metadata.xmp
-
-# Read metadata to stdout (non-zero exit if none is embedded).
-embedded-signer read example.png
-
-# Remove metadata and write the result to a new file.
-embedded-signer remove example.png --output clean.png
-
-# Sign using a key reference exposed by a provider plugin.
-embedded-signer sign example.png --format JWSSigner --key-ref local://img-key
-
-# Embed and sign in one step, writing signatures to JSON.
-embedded-signer embed-sign example.png \
-  --xmp-file metadata.xmp \
-  --format JWSSigner \
-  --key-ref local://img-key \
-  --signature-output signatures.json
+uv add EmbeddedSigner
 ```
 
-## Development
+```bash
+pip install EmbeddedSigner
+```
 
-1. Install development dependencies:
+## Usage
 
-   ```bash
-   uv pip install -e ".[dev]"
-   ```
+Instantiate the exported plugin classes directly in your application or test harness. Do not route plugin setup through `PluginManager` unless you were explicitly asked to do so.
 
-2. Format and lint code with `ruff`:
+```python
+from EmbeddedSigner import EmbedSigner
 
-   ```bash
-   uv run ruff format .
-   uv run ruff check . --fix
-   ```
+exports = ['EmbedSigner']
+print(exports)
+```
 
-3. Run the unit tests in isolation:
+Installed command-line entry points: `embedded-signer`.
 
-   ```bash
-   uv run --package EmbeddedSigner --directory plugins/embedded_signer pytest
-   ```
-
-## Project Resources
-
-- Source: <https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/embedded_signer>
-- Documentation: <https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/embedded_signer#readme>
-- Issues: <https://github.com/swarmauri/swarmauri-sdk/issues>
-- Releases: <https://github.com/swarmauri/swarmauri-sdk/releases>
-- Discussions: <https://github.com/orgs/swarmauri/discussions>
-
-## License
-
-EmbeddedSigner is released under the Apache 2.0 License. See the
-[LICENSE](LICENSE) file for details.
-
-
+License: Apache-2.0. See `LICENSE`.

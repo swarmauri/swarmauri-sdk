@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_auth_idp_aws/">
@@ -6,86 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_auth_idp_aws/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_auth_idp_aws.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_aws/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_aws/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_auth_idp_aws" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_auth_idp_aws" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_aws/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_aws?label=swarmauri_auth_idp_aws&color=green" alt="PyPI - swarmauri_auth_idp_aws"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_aws?label=swarmauri_auth_idp_aws&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
 # Swarmauri Auth IDP AWS
 
-AWS IAM Identity Center OAuth 2.0 / 2.1 logins packaged for Swarmauri deployments.
+AWS IAM Identity Center OAuth 2.0 / 2.1 login implementations for Swarmauri.
 
 ## Features
 
-- PKCE-enabled authorization URL generation with signed state payloads.
-- Token exchange helpers that return normalized payloads for downstream services.
-- Optional identity resolver that hydrates user details via AWS Identity Store.
-- ComponentBase-compatible models that register under `swarmauri.auth_idp` entry points.
-- Retry-aware HTTP client tuned for AWS IAM Identity Center endpoints.
+- AWS IAM Identity Center OAuth 2.0 / 2.1 login implementations for Swarmauri.
+- Exposes discoverable runtime entry points for `swarmauri.auth_idp` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
 
 ## Installation
 
-### pip
-
-```bash
-pip install swarmauri_auth_idp_aws
-```
-
-### uv (project)
+Install this package with `uv` or `pip`.
 
 ```bash
 uv add swarmauri_auth_idp_aws
 ```
 
-### uv (environment)
-
 ```bash
-uv pip install swarmauri_auth_idp_aws
+pip install swarmauri_auth_idp_aws
 ```
 
 ## Usage
 
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+
 ```python
-import asyncio
-from swarmauri_auth_idp_aws import AwsOAuth21Login
-from pydantic import SecretStr
+from swarmauri_auth_idp_aws import AwsIdentityResolver, AwsOAuth20Login, AwsOAuth21Login
 
-login = AwsOAuth21Login(
-    authorization_endpoint="https://example.awsapps.com/start/oauth2/authorize",
-    token_endpoint="https://example.awsapps.com/start/oauth2/token",
-    client_id="client-id",
-    client_secret=SecretStr("client-secret"),
-    redirect_uri="https://app.example.com/callback",
-    state_secret=b"aws-workforce-state-key",
-)
-
-async def flow() -> None:
-    auth = await login.auth_url()
-    # Redirect the user to auth["url"], then capture the returned code/state.
-    print(auth["url"])
-
-asyncio.run(flow())
+exports = ['AwsIdentityResolver', 'AwsOAuth20Login', 'AwsOAuth21Login']
+print(exports)
 ```
 
-### Workflow Summary
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-1. Call `auth_url()` and redirect the browser to the returned URL.
-2. Persist the `state` and compare it when handling the callback.
-3. Exchange the authorization code via `exchange_and_identity()` to obtain tokens.
-4. Optionally use `AwsIdentityResolver` to enrich identity details for the session.
-
-## Entry Points
-
-- `swarmauri.auth_idp:AwsOAuth20Login`
-- `swarmauri.auth_idp:AwsOAuth21Login`
-
-## Contributing
-
-To contribute to swarmauri-sdk, review the
-[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
-which cover development workflow, testing, and coding standards.
-
-
+License: Apache-2.0. See `LICENSE`.

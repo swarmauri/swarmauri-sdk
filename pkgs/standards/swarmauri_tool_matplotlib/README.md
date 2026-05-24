@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_matplotlib/">
@@ -6,19 +6,32 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tool_matplotlib/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tool_matplotlib.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_matplotlib/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_matplotlib/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tool_matplotlib" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_matplotlib" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_matplotlib/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tool_matplotlib?label=swarmauri_tool_matplotlib&color=green" alt="PyPI - swarmauri_tool_matplotlib"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_matplotlib?label=swarmauri_tool_matplotlib&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
 # Swarmauri Tool Matplotlib
 
-A Swarmauri package that provides tools for generating plots using Matplotlib. Includes support for basic plots and CSV data visualization.
+Matplotlib tool for Swarmauri.
+
+## Features
+
+- Matplotlib tool for Swarmauri.
+- Exposes discoverable runtime entry points for `swarmauri.tools` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
 
 ## Installation
+
+Install this package with `uv` or `pip`.
+
+```bash
+uv add swarmauri_tool_matplotlib
+```
 
 ```bash
 pip install swarmauri_tool_matplotlib
@@ -26,44 +39,15 @@ pip install swarmauri_tool_matplotlib
 
 ## Usage
 
-### Basic Plotting
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+
 ```python
-from swarmauri.tools.MatplotlibTool import MatplotlibTool
+from swarmauri_tool_matplotlib import MatplotlibCsvTool, MatplotlibTool
 
-# Create a tool instance
-tool = MatplotlibTool()
-
-# Generate a line plot
-result = tool(
-    plot_type="line",
-    x_data=[1, 2, 3],
-    y_data=[4, 5, 6],
-    title="Line Plot",
-    x_label="X-axis",
-    y_label="Y-axis",
-    save_path="plot.png"
-)
+exports = ['MatplotlibCsvTool', 'MatplotlibTool']
+print(exports)
 ```
 
-### CSV Data Plotting
-```python
-from swarmauri_tool_matplotlib.MatplotlibCsvTool import MatplotlibCsvTool
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-# Create a CSV tool instance
-csv_tool = MatplotlibCsvTool()
-
-# Generate a plot from CSV data
-result = csv_tool(
-    csv_file="data.csv",
-    x_column="x",
-    y_column="y",
-    output_file="csv_plot.png"
-)
-```
-
-## Want to help?
-
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
-
-
-
+License: Apache-2.0. See `LICENSE`.

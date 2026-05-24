@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_monorepo/">
@@ -6,31 +6,32 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_monorepo/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_monorepo/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_monorepo" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_monorepo" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_monorepo/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_monorepo?label=swarmauri_monorepo&color=green" alt="PyPI - swarmauri_monorepo"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_monorepo?label=swarmauri_monorepo&color=green" alt="Release Version"/></a>
+    <a href="https://discord.gg/N4UpBuQv8T">
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
 </p>
----
 
-`swarmauri_monorepo` is the workspace package that groups the Swarmauri SDK's interdependent Python packages under a single `uv` workspace for local development, validation, and coordinated release management.
+# Swarmauri Monorepo
+
+Monorepo for multiple interdependent Swarmauri Python packages.
 
 ## Features
 
-- Centralizes the `pkgs/` workspace manifest for the Swarmauri SDK package fleet.
-- Provides one install surface for local workspace development across standards, community, experimental, and plugin packages.
-- Keeps shared dependency and tooling constraints aligned for Python 3.10 through 3.12.
+- Monorepo for multiple interdependent Swarmauri Python packages.
+- Keeps the package surface isolated so you can install only the capability you need instead of the full workspace.
+- Aligns with the current workspace packaging model so the package can participate cleanly in larger Swarmauri SDK builds.
 
 ## Installation
 
-### `uv`
+Install this package with `uv` or `pip`.
 
 ```bash
-uv sync --directory pkgs
+uv add swarmauri_monorepo
 ```
-
-### `pip`
 
 ```bash
 pip install swarmauri_monorepo
@@ -38,15 +39,14 @@ pip install swarmauri_monorepo
 
 ## Usage
 
-Use the workspace package when you need to install or validate the entire `pkgs/` tree as one coordinated environment.
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
-```bash
-uv run --directory pkgs pytest
+```python
+import swarmauri_monorepo
+
+print(swarmauri_monorepo.__name__)
 ```
 
-```bash
-uv run --directory pkgs ruff check .
-```
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-
-
+License: Apache-2.0. See `LICENSE`.

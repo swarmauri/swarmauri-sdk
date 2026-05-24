@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/EmbedXMP/">
@@ -6,33 +6,32 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/EmbedXMP/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/EmbedXMP.svg"/></a>
     <a href="https://pypi.org/project/EmbedXMP/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/EmbedXMP/">
-        <img src="https://img.shields.io/pypi/l/EmbedXMP" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/EmbedXMP" alt="License"/></a>
     <a href="https://pypi.org/project/EmbedXMP/">
-        <img src="https://img.shields.io/pypi/v/EmbedXMP?label=EmbedXMP&color=green" alt="PyPI - EmbedXMP"/></a>
+        <img src="https://img.shields.io/pypi/v/EmbedXMP?label=EmbedXMP&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-EmbedXMP collects every installed `EmbedXmpBase` implementation, discovers them via Swarmauri's dynamic registry, and exposes a unified manager that can embed, read, or remove XMP packets without worrying about container formats.
+# EmbedXMP
+
+Dynamic XMP embed/read/remove orchestration for Swarmauri handlers.
 
 ## Features
 
-- **Dynamic discovery** - lazily imports modules named `swarmauri_xmp_*` and collects subclasses registered under `EmbedXmpBase`.
-- **Unified interface** - delegates to the first handler whose `supports` method confirms compatibility with the payload.
-- **Convenience wrappers** - module-level helpers (`embed`, `read`, `remove`) keep high-level workflows succinct.
-- **Async-friendly APIs** - integrate inside event loops without blocking when calling out to plugin hooks.
-- **Media-format coverage** - load handlers for PNG, GIF, JPEG, SVG, WEBP, TIFF, PDF, and MP4 assets through extras.
+- Dynamic XMP embed/read/remove orchestration for Swarmauri handlers.
+- Centers its public API around `Path`, `Iterable`, `List`, `Sequence` so downstream code can import the package directly without extra registry glue.
+- Supports direct plugin instantiation from application code; avoid `PluginManager` unless a task explicitly requires it.
 
 ## Installation
 
-### Using `uv`
+Install this package with `uv` or `pip`.
 
 ```bash
 uv add EmbedXMP
 ```
-
-### Using `pip`
 
 ```bash
 pip install EmbedXMP
@@ -40,58 +39,15 @@ pip install EmbedXMP
 
 ## Usage
 
-```python
-from pathlib import Path
-
-from EmbedXMP import EmbedXMP, embed, embed_file, read, read_file_xmp
-
-manager = EmbedXMP()
-image = Path("example.png")
-packet = """<x:xmpmeta xmlns:x='adobe:ns:meta/'><rdf:RDF>...</rdf:RDF></x:xmpmeta>"""
-
-# Embed into the file in place.
-embed_file(image, packet)
-
-# Inspect metadata via the manager API.
-xmp_text = manager.read(image.read_bytes(), str(image))
-print(xmp_text)
-
-# Remove metadata from the file when it is no longer required.
-manager.remove(image.read_bytes(), str(image))
-```
-
-> **Note**
-> You can provide either a `path` or a `hint` keyword argument when calling
-> `embed`, `read`, or `remove` to help the manager pick the correct handler. The
-> values are interchangeable as long as they match when both are supplied.
-
-### Async orchestration
-
-EmbedXMP's manager can be shared inside asynchronous workflows by deferring media-aware work to plugin hooks:
+Instantiate the exported plugin classes directly in your application or test harness. Do not route plugin setup through `PluginManager` unless you were explicitly asked to do so.
 
 ```python
-import asyncio
-from pathlib import Path
+from EmbedXMP import Path, Iterable, List, Sequence
 
-from EmbedXMP import EmbedXMP, embed
-
-
-async def embed_all(paths: list[str], packet: str) -> None:
-    manager = EmbedXMP()
-    for path in paths:
-        data = Path(path).read_bytes()
-        await asyncio.to_thread(embed, data, packet, hint=path)
-
-
-asyncio.run(embed_all(["one.png", "two.svg"], "<x:xmpmeta>...</x:xmpmeta>"))
+exports = ['Path', 'Iterable', 'List', 'Sequence']
+print(exports)
 ```
 
-## Project Resources
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-- Source: <https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/EmbedXMP>
-- Documentation: <https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/plugins/EmbedXMP#readme>
-- Issues: <https://github.com/swarmauri/swarmauri-sdk/issues>
-- Releases: <https://github.com/swarmauri/swarmauri-sdk/releases>
-- Discussions: <https://github.com/orgs/swarmauri/discussions>
-
-
+License: Apache-2.0. See `LICENSE`.

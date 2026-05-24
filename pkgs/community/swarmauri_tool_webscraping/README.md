@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_webscraping/">
@@ -6,52 +6,28 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_webscraping/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_webscraping.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_webscraping/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_webscraping/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tool_webscraping" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_webscraping" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_webscraping/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tool_webscraping?label=swarmauri_tool_webscraping&color=green" alt="PyPI - swarmauri_tool_webscraping"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_webscraping?label=swarmauri_tool_webscraping&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# Swarmauri Tool Web Scraping
+# Swarmauri Tool Webscraping
 
-`swarmauri_tool_webscraping` is a Swarmauri web-content extraction tool that
-fetches a page with `requests`, parses HTML with BeautifulSoup, and extracts
-text using a CSS selector. It is useful for headline capture, policy checks,
-lightweight data extraction, and agent workflows that need webpage content on
-demand.
-
-## Why Use Swarmauri Tool Web Scraping
-
-- Extract targeted text from webpages using CSS selectors.
-- Add lightweight HTML scraping to Swarmauri agents and automation flows.
-- Pull site copy, headlines, notices, or metadata for downstream analysis.
-- Return structured extraction or error results without custom scraping glue.
-
-## FAQ
-
-> **What inputs does the tool expect?**  
-> A `url` string and a CSS `selector` string.
-
-> **What does the tool return?**  
-> Either `{"extracted_text": ...}` or `{"error": ...}`.
-
-> **What happens when no elements match?**  
-> The tool returns an empty `extracted_text` string.
-
-> **Does it render JavaScript-driven pages?**  
-> No. It only fetches raw HTTP content and parses returned HTML.
+Swarmauri web-content extraction tool for scraping HTML pages with CSS selectors.
 
 ## Features
 
-- Swarmauri `ToolBase` implementation registered as `WebScrapingTool`.
-- Uses standard CSS selectors to target page elements.
-- Returns joined text content across all selector matches.
-- Handles request and parsing failures with structured error output.
-- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
+- Swarmauri web-content extraction tool for scraping HTML pages with CSS selectors.
+- Exposes discoverable runtime entry points for `swarmauri.tools` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Lives in the community package lane for optional integrations that extend the main Swarmauri SDK surface.
 
 ## Installation
+
+Install this package with `uv` or `pip`.
 
 ```bash
 uv add swarmauri_tool_webscraping
@@ -63,76 +39,15 @@ pip install swarmauri_tool_webscraping
 
 ## Usage
 
-```python
-from swarmauri_tool_webscraping import WebScrapingTool
-
-tool = WebScrapingTool()
-result = tool(url="https://example.com", selector="h1")
-
-print(result)
-```
-
-## Examples
-
-### Extract a page headline
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
 ```python
 from swarmauri_tool_webscraping import WebScrapingTool
 
-tool = WebScrapingTool()
-result = tool("https://example.com", "h1")
-
-print(result.get("extracted_text"))
+exports = ['WebScrapingTool']
+print(exports)
 ```
 
-### Inspect a status banner
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-```python
-from swarmauri_tool_webscraping import WebScrapingTool
-
-tool = WebScrapingTool()
-result = tool("https://status.example.com", ".banner")
-
-if "error" not in result:
-    print(result["extracted_text"])
-```
-
-### Register the tool in a Swarmauri collection
-
-```python
-from swarmauri_standard.tools.ToolCollection import ToolCollection
-from swarmauri_tool_webscraping import WebScrapingTool
-
-tools = ToolCollection(tools=[WebScrapingTool()])
-print(tools)
-```
-
-## Related Packages
-
-- [swarmauri_tool_downloadpdf](https://pypi.org/project/swarmauri_tool_downloadpdf/)
-- [swarmauri_tool_searchword](https://pypi.org/project/swarmauri_tool_searchword/)
-- [swarmauri_tool_zapierhook](https://pypi.org/project/swarmauri_tool_zapierhook/)
-
-## Swarmauri Foundations
-
-- [swarmauri](https://pypi.org/project/swarmauri/)
-- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
-- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
-- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
-
-## More Documentation
-
-- [Requests documentation](https://requests.readthedocs.io/)
-- [Beautiful Soup documentation](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
-- [MDN CSS selectors reference](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_selectors)
-
-## Best Practices
-
-- Respect site terms, rate limits, and robots rules before scraping.
-- Use stable selectors and expect sites to change their markup over time.
-- Prefer dedicated APIs when a provider offers one.
-- Extend the tool if you need headers, retries, or authenticated requests.
-
-## License
-
-This project is licensed under the Apache-2.0 License.
+License: Apache-2.0. See `LICENSE`.

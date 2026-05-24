@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_auth_idp_salesforce/">
@@ -6,124 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_auth_idp_salesforce/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_auth_idp_salesforce.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_salesforce/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_salesforce/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_auth_idp_salesforce" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_auth_idp_salesforce" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_salesforce/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_salesforce?label=swarmauri_auth_idp_salesforce&color=green" alt="PyPI - swarmauri_auth_idp_salesforce"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_salesforce?label=swarmauri_auth_idp_salesforce&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
 # Swarmauri Auth IDP Salesforce
 
-Salesforce OAuth 2.0 / OAuth 2.1 / OIDC 1.0 identity providers packaged for Swarmauri deployments.
+Salesforce OAuth 2.0 / OAuth 2.1 / OIDC 1.0 identity provider implementations for Swarmauri.
 
 ## Features
 
-- PKCE-enabled Authorization Code flows that integrate with Salesforce authorization servers.
-- JWT bearer app clients for Salesforce OAuth 2.0, OAuth 2.1, and OIDC 1.0 machine identities.
-- Discovery-driven OAuth 2.1/OIDC login that verifies ID tokens against Salesforce JWKS.
-- UserInfo and Identity URL fallbacks for normalized profile payloads.
-- Retry-aware HTTP integration tuned for Salesforce REST endpoints.
-- ComponentBase-compatible models registered under `swarmauri.auth_idp` entry points.
+- Salesforce OAuth 2.0 / OAuth 2.1 / OIDC 1.0 identity provider implementations for Swarmauri.
+- Exposes discoverable runtime entry points for `swarmauri.auth_idp` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
 
 ## Installation
 
-### pip
-
-```bash
-pip install swarmauri_auth_idp_salesforce
-```
-
-### uv (project)
+Install this package with `uv` or `pip`.
 
 ```bash
 uv add swarmauri_auth_idp_salesforce
 ```
 
-### uv (environment)
-
 ```bash
-uv pip install swarmauri_auth_idp_salesforce
+pip install swarmauri_auth_idp_salesforce
 ```
 
 ## Usage
 
-### Authorization Code logins
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
 ```python
-import asyncio
-from pydantic import SecretBytes, SecretStr
-from swarmauri_auth_idp_salesforce import SalesforceOAuth20Login
+from swarmauri_auth_idp_salesforce import SalesforceOAuth20AppClient, SalesforceOAuth20Login, SalesforceOAuth21AppClient, SalesforceOAuth21Login
 
-login = SalesforceOAuth20Login(
-    base_url="https://login.salesforce.com",
-    client_id="salesforce-client-id",
-    client_secret=SecretStr("salesforce-client-secret"),
-    redirect_uri="https://app.example.com/callback",
-    state_secret=SecretBytes(b"replace-with-random-bytes"),
-)
-
-# Optional discovery cache when running without network access.
-login.discovery_cache = {
-    "authorization_endpoint": "https://login.salesforce.com/services/oauth2/authorize",
-    "token_endpoint": "https://login.salesforce.com/services/oauth2/token",
-    "userinfo_endpoint": "https://login.salesforce.com/services/oauth2/userinfo",
-}
-
-async def run_flow() -> None:
-    auth = await login.auth_url()
-    print(auth["url"])
-    # Redirect the browser to `auth["url"]`, then capture the callback `code` and `state`.
-    # Later, call `login.exchange_and_identity(code, state)` inside your callback handler.
-
-asyncio.run(run_flow())
+exports = ['SalesforceOAuth20AppClient', 'SalesforceOAuth20Login', 'SalesforceOAuth21AppClient', 'SalesforceOAuth21Login']
+print(exports)
 ```
 
-### Workflow Summary
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-1. Call `auth_url()` and redirect the browser to the returned URL.
-2. Persist the `state` and verify it during the callback handler.
-3. Exchange the authorization code through `exchange_and_identity()` to obtain tokens and profile metadata.
-
-### Server-to-server JWT bearer tokens
-
-```python
-import asyncio
-from pydantic import SecretStr
-from swarmauri_auth_idp_salesforce import SalesforceOAuth20AppClient
-
-client = SalesforceOAuth20AppClient(
-    token_endpoint="https://login.salesforce.com/services/oauth2/token",
-    client_id="connected-app-id",
-    user="integration.user@example.com",
-    private_key_pem=SecretStr("-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"),
-)
-
-async def fetch_token() -> None:
-    access_token = await client.access_token()
-    print(access_token)
-
-asyncio.run(fetch_token())
-```
-
-Use `SalesforceOAuth21AppClient` when your integration manages keys as JWKs, or
-`SalesforceOIDC10AppClient` to discover tenant-specific endpoints before
-requesting JWT bearer tokens.
-
-## Entry Points
-
-- `swarmauri.auth_idp:SalesforceOAuth20AppClient`
-- `swarmauri.auth_idp:SalesforceOAuth20Login`
-- `swarmauri.auth_idp:SalesforceOAuth21AppClient`
-- `swarmauri.auth_idp:SalesforceOAuth21Login`
-- `swarmauri.auth_idp:SalesforceOIDC10AppClient`
-- `swarmauri.auth_idp:SalesforceOIDC10Login`
-
-## Contributing
-
-To contribute to swarmauri-sdk, review the
-[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
-which cover development workflow, testing, and coding standards.
-
-
+License: Apache-2.0. See `LICENSE`.

@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_embedding_tfidf/">
@@ -6,21 +6,32 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_embedding_tfidf/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_embedding_tfidf.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_embedding_tfidf/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_embedding_tfidf/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_embedding_tfidf" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_embedding_tfidf" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_embedding_tfidf/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_embedding_tfidf?label=swarmauri_embedding_tfidf&color=green" alt="PyPI - swarmauri_embedding_tfidf"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_embedding_tfidf?label=swarmauri_embedding_tfidf&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# Swarmauri Embedding TFIDF
+# Swarmauri Embedding TF-IDF
 
-> **Deprecated:** This package is maintained for backward compatibility. Consider using a supported embedding implementation from the Swarmauri SDK for new projects.
+Tfidf Embedding for Swarmauri.
 
-A TF-IDF (Term Frequency-Inverse Document Frequency) embedding implementation for the Swarmauri SDK, providing document vectorization capabilities.
+## Features
+
+- Tfidf Embedding for Swarmauri.
+- Preserves legacy imports and package boundaries so older integrations can keep running while you migrate to active packages.
+- Aligns with the current workspace packaging model so the package can participate cleanly in larger Swarmauri SDK builds.
 
 ## Installation
+
+Install this package with `uv` or `pip`.
+
+```bash
+uv add swarmauri_embedding_tfidf
+```
 
 ```bash
 pip install swarmauri_embedding_tfidf
@@ -28,27 +39,15 @@ pip install swarmauri_embedding_tfidf
 
 ## Usage
 
+Use this package only as a compatibility bridge while moving callers onto active packages in the workspace.
+
 ```python
-from swarmauri_embedding_tfidf.TfidfEmbedding import TfidfEmbedding
+from swarmauri_embedding_tfidf import TfidfEmbedding
 
-# Initialize the embedder
-embedder = TfidfEmbedding()
-
-# Prepare documents
-documents = ["this is a sample", "another example text", "third document here"]
-
-# Fit and transform documents
-vectors = embedder.fit_transform(documents)
-
-# Infer vector for new text
-query_vector = embedder.infer_vector("new document", documents)
-
-# Extract features
-features = embedder.extract_features()
+exports = ['TfidfEmbedding']
+print(exports)
 ```
 
-## Want to help?
+Expect legacy imports to continue working, but plan migration work because the package is retained for compatibility rather than long-term growth.
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
-
-
+License: Apache-2.0. See `LICENSE`.

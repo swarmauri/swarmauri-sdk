@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_keyproviders_mirrored/">
@@ -6,139 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyproviders_mirrored/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyproviders_mirrored.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_keyproviders_mirrored/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_keyproviders_mirrored/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_keyproviders_mirrored" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_keyproviders_mirrored" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_keyproviders_mirrored/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_keyproviders_mirrored?label=swarmauri_keyproviders_mirrored&color=green" alt="PyPI - swarmauri_keyproviders_mirrored"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_keyproviders_mirrored?label=swarmauri_keyproviders_mirrored&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# Swarmauri Mirrored Key Provider
+# Swarmauri Keyproviders Mirrored
 
-An asynchronous failover key provider that keeps a primary provider as the
-system of record while best-effort mirroring material to a secondary provider
-for redundancy.
+Mirrored key provider for Swarmauri.
 
 ## Features
 
-- Write operations (`create`, `import`, `rotate`, `destroy`) execute on the
-  primary provider first and then mirror to the secondary provider when
-  possible.
-- `mirror_mode` governs what is replicated: `public_only` (default) mirrors only
-  public material, `full` attempts to replicate private material when export
-  policy allows, and `none` disables replication while retaining read
-  failover.
-- Read operations (`get_key`, `get_public_jwk`, `jwks`, `list_versions`,
-  `random_bytes`, `hkdf`) favor the primary provider and fail over to the
-  secondary provider when `fail_open_reads` is enabled.
-- JWKS responses merge keys from both providers, preferring primary entries when
-  the same `kid` appears in both sets.
-- Maintains an in-memory mapping of mirrored key identifiers to coordinate
-  destroy operations and failover reads?persist or rebuild this mapping if you
-  need cross-process continuity.
-- Optional extras add canonical JSON (`jsoncanon`) and CBOR (`cbor`) support for
-  consumers that require deterministic encodings.
+- Mirrored key provider for Swarmauri.
+- Exposes discoverable runtime entry points for `peagen.plugins.key_providers, swarmauri.key_providers` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
 
 ## Installation
 
-Install the package with your preferred Python packaging tool:
+Install this package with `uv` or `pip`.
+
+```bash
+uv add swarmauri_keyproviders_mirrored
+```
 
 ```bash
 pip install swarmauri_keyproviders_mirrored
 ```
 
-```bash
-poetry add swarmauri_keyproviders_mirrored
-```
-
-```bash
-uv pip install swarmauri_keyproviders_mirrored
-```
-
-Enable extras for canonicalization when needed:
-
-```bash
-pip install swarmauri_keyproviders_mirrored[jsoncanon]
-```
-
-```bash
-pip install swarmauri_keyproviders_mirrored[cbor]
-```
-
 ## Usage
 
-The provider mirrors newly created keys to the secondary provider and fails open
-on reads when the primary becomes unavailable.
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
 ```python
-import asyncio
-
 from swarmauri_keyproviders_mirrored import MirroredKeyProvider
-from swarmauri_keyprovider_local import LocalKeyProvider
-from swarmauri_core.key_providers.types import KeySpec, KeyAlg, KeyClass, ExportPolicy
-from swarmauri_core.crypto.types import KeyUse
 
-
-async def main() -> None:
-    primary = LocalKeyProvider()
-    secondary = LocalKeyProvider()
-    provider = MirroredKeyProvider(
-        primary,
-        secondary,
-        mirror_mode="public_only",
-        fail_open_reads=True,
-    )
-
-    spec = KeySpec(
-        klass=KeyClass.asymmetric,
-        alg=KeyAlg.ED25519,
-        uses=(KeyUse.SIGN, KeyUse.VERIFY),
-        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-    )
-
-    created = await provider.create_key(spec)
-    jwk = await provider.get_public_jwk(created.kid, created.version)
-
-    await primary.destroy_key(created.kid, created.version)
-    mirrored = await provider.get_public_jwk(created.kid, created.version)
-
-    assert mirrored["x"] == jwk["x"]
-    print(f"Failover retrieved Ed25519 key from secondary provider: {mirrored['kid']}")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+exports = ['MirroredKeyProvider']
+print(exports)
 ```
 
-In the example above the primary key is destroyed after mirroring, forcing
-`MirroredKeyProvider` to serve the public key from the secondary provider.
-Although mirrored keys may have different `kid` values, the public material
-remains identical and ready for verification.
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-## Mirror Modes
-
-- `public_only` *(default)* ? Mirrors public key material and JWKS entries when
-  available.
-- `full` ? Attempts to mirror private material when export policy permits,
-  falling back to public-only replication otherwise.
-- `none` ? Disables replication while still permitting read failover to the
-  secondary provider.
-
-## Failover Semantics
-
-The `fail_open_reads` flag controls whether read operations fall back to the
-secondary provider when the primary raises an exception. Disable it to surface
-primary errors immediately.
-
-## Entry Point
-
-The provider registers under the `swarmauri.key_providers` entry point as
-`MirroredKeyProvider`.
-
-## Want to help?
-
-If you want to contribute to swarmauri-sdk, read up on our
-[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
-that will help you get started.
-
+License: Apache-2.0. See `LICENSE`.

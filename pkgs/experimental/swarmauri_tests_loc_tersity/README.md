@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tests_loc_tersity/">
@@ -6,77 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_tests_loc_tersity/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_tests_loc_tersity.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tests_loc_tersity/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_tests_loc_tersity/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tests_loc_tersity" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tests_loc_tersity" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_tests_loc_tersity/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tests_loc_tersity?label=swarmauri_tests_loc_tersity&color=green" alt="PyPI - swarmauri_tests_loc_tersity"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tests_loc_tersity?label=swarmauri_tests_loc_tersity&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-## Overview
+# Swarmauri Tests Loc Tersity
 
-`swarmauri_tests_loc_tersity` is a [pytest](https://docs.pytest.org/) plugin that
-keeps modules small and readable. It scans a package for Python files and
-asserts that each file stays under a configurable line-of-code (LOC) limit
-(docstrings included). The default limit is **400 lines**.
+Pytest plugin enforcing line count limits.
 
-The plugin runs in *parameterized* mode by default, turning every file into an
-individual test case. You can also switch to an *aggregate* mode that reports
-all failures as a single test.
+## Features
+
+- Pytest plugin enforcing line count limits.
+- Exposes discoverable runtime entry points for `pytest11` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Provides an experimental workspace surface for early validation before functionality graduates into a more stable package lane.
 
 ## Installation
+
+Install this package with `uv` or `pip`.
+
+```bash
+uv add swarmauri_tests_loc_tersity
+```
 
 ```bash
 pip install swarmauri_tests_loc_tersity
 ```
 
-`pytest` automatically discovers the plugin once it is installed.
-
 ## Usage
 
-### Parameterized (default)
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
-Run `pytest` normally to create one LOC check per Python file:
+```python
+from swarmauri_tests_loc_tersity import Path
 
-```bash
-pytest
+exports = ['Path']
+print(exports)
 ```
 
-Example failure:
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-```
-E   AssertionError: pkg/example.py has 425 lines (>400)
-```
-
-### Aggregate
-
-Use the `--loc-mode=aggregate` flag to consolidate checks into one test that
-lists every file exceeding the threshold:
-
-```bash
-pytest --loc-mode=aggregate
-```
-
-Example output:
-
-```
-E   pkg/example.py has 425 lines (>400)
-E   pkg/other.py has 410 lines (>400)
-```
-
-### Customizing
-
-* `--loc-root PATH` ? directory to scan (defaults to the package root)
-* `--loc-max-lines N` ? change the maximum line count
-
-```bash
-pytest --loc-root=src --loc-max-lines=200
-```
-
-## License
-
-Licensed under the [Apache 2.0 License](LICENSE).
-
-
-
+License: Apache-2.0. See `LICENSE`.

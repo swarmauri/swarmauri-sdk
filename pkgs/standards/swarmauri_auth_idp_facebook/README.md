@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_auth_idp_facebook/">
@@ -6,79 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_auth_idp_facebook/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_auth_idp_facebook.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_facebook/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_facebook/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_auth_idp_facebook" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_auth_idp_facebook" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_facebook/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_facebook?label=swarmauri_auth_idp_facebook&color=green" alt="PyPI - swarmauri_auth_idp_facebook"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_facebook?label=swarmauri_auth_idp_facebook&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
 # Swarmauri Auth IDP Facebook
 
-Facebook (Meta) OAuth 2.0, OAuth 2.1, and OIDC 1.0 login flows packaged for Swarmauri deployments.
+Facebook OAuth 2.0 / OAuth 2.1 / OIDC 1.0 login implementations for Swarmauri.
 
 ## Features
 
-- PKCE-enabled authorization URL generation with signed state payloads.
-- Token exchange helpers that normalize identity data via Graph `/me` or verified ID tokens.
-- Built-in retrying HTTP client tuned for Facebook authorization and Graph endpoints.
-- ComponentBase-compatible models registering under `swarmauri.auth_idp` entry points.
-- Support for both user-facing browser flows and confidential client OIDC integrations.
+- Facebook OAuth 2.0 / OAuth 2.1 / OIDC 1.0 login implementations for Swarmauri.
+- Exposes discoverable runtime entry points for `swarmauri.auth_idp` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
 
 ## Installation
 
-### pip
-
-```bash
-pip install swarmauri_auth_idp_facebook
-```
-
-### uv (project)
+Install this package with `uv` or `pip`.
 
 ```bash
 uv add swarmauri_auth_idp_facebook
 ```
 
-### uv (environment)
-
 ```bash
-uv pip install swarmauri_auth_idp_facebook
+pip install swarmauri_auth_idp_facebook
 ```
 
 ## Usage
 
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+
 ```python
-from pydantic import SecretStr
-from swarmauri_auth_idp_facebook import FacebookOAuth21Login
+from swarmauri_auth_idp_facebook import FacebookOAuth20Login, FacebookOAuth21Login, FacebookOIDC10Login, FacebookOAuth20AppClient
 
-login = FacebookOAuth21Login(
-    client_id="1234567890",
-    client_secret=SecretStr("app-secret"),
-    redirect_uri="https://app.example.com/auth/callback",
-    state_secret=b"facebook-state-key",
-)
-
-print(login.client_id)
+exports = ['FacebookOAuth20Login', 'FacebookOAuth21Login', 'FacebookOIDC10Login', 'FacebookOAuth20AppClient']
+print(exports)
 ```
 
-### Workflow Summary
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-1. Call `auth_url()` and redirect the browser to the returned Facebook login URL.
-2. Persist the `state` token and validate it when handling the callback.
-3. Exchange the authorization code via `exchange_and_identity()` to obtain tokens and profile data.
-4. Persist the returned identity details to drive session and authorization workflows.
-
-## Entry Points
-
-- `swarmauri.auth_idp:FacebookOAuth20Login`
-- `swarmauri.auth_idp:FacebookOAuth21Login`
-- `swarmauri.auth_idp:FacebookOIDC10Login`
-
-## Contributing
-
-To contribute to swarmauri-sdk, review the
-[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
-which cover development workflow, testing, and coding standards.
-
-
+License: Apache-2.0. See `LICENSE`.

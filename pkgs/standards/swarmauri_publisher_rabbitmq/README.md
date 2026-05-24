@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_publisher_rabbitmq/">
@@ -6,107 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_publisher_rabbitmq/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_publisher_rabbitmq.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_publisher_rabbitmq/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_publisher_rabbitmq/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_publisher_rabbitmq" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_publisher_rabbitmq" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_publisher_rabbitmq/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_publisher_rabbitmq?label=swarmauri_publisher_rabbitmq&color=green" alt="PyPI - swarmauri_publisher_rabbitmq"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_publisher_rabbitmq?label=swarmauri_publisher_rabbitmq&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# Swarmauri RabbitMQ Publisher
+# Swarmauri Publisher RabbitMQ
 
-`RabbitMQPublisher` is the Swarmauri `PublishBase` implementation for RabbitMQ. The publisher opens a `pika.BlockingConnection`, ensures the target exchange exists, and emits JSON payloads using persistent delivery semantics.
+A RabbitMQ publisher implementation for Swarmauri.
 
-## Highlights
+## Features
 
-- Configure using either a full AMQP URI or discrete host/port credential fields. Supplying both styles raises `ValueError`.
-- Declares the target exchange as a durable direct exchange during instantiation.
-- Serializes payloads with `json.dumps` and publishes with `delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE` so messages survive broker restarts.
-- On `pika.exceptions.AMQPConnectionError` or `ChannelClosedByBroker` the publisher reconnects once, re-declares the exchange, and retries the publish.
+- A RabbitMQ publisher implementation for Swarmauri.
+- Exposes discoverable runtime entry points for `swarmauri.publishers` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
 
 ## Installation
 
-Choose the tool that fits your workflow:
+Install this package with `uv` or `pip`.
 
 ```bash
-# pip
-pip install swarmauri_publisher_rabbitmq
-
-# Poetry
-poetry add swarmauri_publisher_rabbitmq
-
-# uv
 uv add swarmauri_publisher_rabbitmq
 ```
 
-## Configuration
-
-`RabbitMQPublisher` extends `PublishBase` and supports the following fields:
-
-| Field | Required | Description |
-| --- | --- | --- |
-| `exchange` | Yes | The exchange name to declare and publish to. Declared as a durable direct exchange. |
-| `uri` | Optional | Full AMQP URI. When provided, omit `host`/`port`/`username`/`password`. |
-| `host` | Optional | RabbitMQ host. Required when `uri` is omitted. |
-| `port` | Optional | RabbitMQ port. Supply the broker port (for example `5672`); the publisher does not insert a default when constructing the URI. |
-| `username` | Optional | Username used in the URI when `uri` is omitted. Automatically URL-encoded. |
-| `password` | Optional | Password used in the URI when `uri` is omitted. Automatically URL-encoded. |
-
-The `publish(channel, payload)` method treats `channel` as the RabbitMQ routing key. `payload` must be JSON serialisable because it is serialized with `json.dumps` before publishing.
-
-## Quickstart
-
-Ensure RabbitMQ is reachable and that you have permission to declare the exchange. The example below shows the host/port configuration path.
-
-```python
-# README Quickstart Example
-from swarmauri_publisher_rabbitmq import RabbitMQPublisher
-
-publisher = RabbitMQPublisher(
-    host="localhost",
-    port=5672,
-    username="guest",
-    password="guest",
-    exchange="demo_exchange",
-)
-
-publisher.publish(
-    channel="demo.routing.key",
-    payload={"message": "Hello RabbitMQ!"},
-)
+```bash
+pip install swarmauri_publisher_rabbitmq
 ```
 
-The constructor builds the AMQP URI from the supplied parts, opens a blocking connection, and declares `demo_exchange` as a durable direct exchange. Each call to `publish` JSON-encodes the payload and requests persistent delivery so the message survives broker restarts.
+## Usage
 
-### Connecting with an AMQP URI
-
-If you already have an AMQP URI, provide it directly and omit the individual connection fields:
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
 ```python
 from swarmauri_publisher_rabbitmq import RabbitMQPublisher
 
-publisher = RabbitMQPublisher(
-    uri="amqp://guest:guest@localhost:5672/",
-    exchange="demo_exchange",
-)
-
-publisher.publish(
-    channel="demo.routing.key",
-    payload={"message": "Hello RabbitMQ via URI!"},
-)
+exports = ['RabbitMQPublisher']
+print(exports)
 ```
 
-## Behavior notes
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-- Credentials are URL-encoded via `urllib.parse.quote_plus` when constructing an AMQP URI from discrete fields, and a username can be supplied without a password if the broker permits it.
-- `pika.BasicProperties` is called with `delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE`.
-- If RabbitMQ closes the channel or the connection drops, the publisher closes the connection, recreates it with the original URI, re-declares the exchange, and retries the publish once.
-- When the publisher instance is garbage-collected it closes the open connection if it is still active.
-
-## Want to help?
-
-If you want to contribute to swarmauri-sdk, read up on our
-[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
-that will help you get started.
-
+License: Apache-2.0. See `LICENSE`.

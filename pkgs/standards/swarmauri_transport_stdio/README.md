@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_transport_stdio/">
@@ -6,47 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_stdio/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_stdio.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_stdio/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_stdio/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_transport_stdio" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_transport_stdio" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_stdio/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_transport_stdio?label=swarmauri_transport_stdio&color=green" alt="PyPI - swarmauri_transport_stdio"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_transport_stdio?label=swarmauri_transport_stdio&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# Swarmauri Transport ? STDIO Bridge
+# Swarmauri Transport Stdio
 
-`swarmauri-transport-stdio` spawns subprocesses and communicates over standard input/output so command-line tools can act as Swarmauri peers.
+STDIO bridge transport for spawning Swarmauri-compatible subprocesses.
+
+## Features
+
+- STDIO bridge transport for spawning Swarmauri-compatible subprocesses.
+- Centers its public API around `StdioTransport` so downstream code can import the package directly without extra registry glue.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
 
 ## Installation
 
-### Using `uv`
+Install this package with `uv` or `pip`.
 
 ```bash
-uv pip install swarmauri-transport-stdio --index-url https://pypi.org/simple
+uv add swarmauri_transport_stdio
 ```
 
-### Using `pip`
-
 ```bash
-pip install swarmauri-transport-stdio
+pip install swarmauri_transport_stdio
 ```
 
 ## Usage
 
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+
 ```python
-import asyncio
 from swarmauri_transport_stdio import StdioTransport
 
-async def run_tool() -> None:
-    transport = StdioTransport(["python", "script.py"])
-    async with transport.client():
-        await transport.send("tool", b"input\n")
-        print(await transport.recv())
-
-asyncio.run(run_tool())
+exports = ['StdioTransport']
+print(exports)
 ```
 
-Wrap any CLI-friendly model or service and adapt its IO using the Swarmauri transport interfaces.
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-
+License: Apache-2.0. See `LICENSE`.

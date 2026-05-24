@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_transport_tls_unicast/">
@@ -6,41 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_tls_unicast/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_tls_unicast.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_tls_unicast/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_tls_unicast/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_transport_tls_unicast" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_transport_tls_unicast" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_tls_unicast/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_transport_tls_unicast?label=swarmauri_transport_tls_unicast&color=green" alt="PyPI - swarmauri_transport_tls_unicast"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_transport_tls_unicast?label=swarmauri_transport_tls_unicast&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# srv_ctx.verify_mode = ssl.CERT_REQUIRED
-# srv_ctx.load_verify_locations("ca.pem")
+# Swarmauri Transport TLS Unicast
 
-cli_ctx = ssl.create_default_context()
-# cli_ctx.load_cert_chain("cli.pem", "cli.key")
+TLS / mTLS unicast transport for Swarmauri.
 
-async def main():
-    server = TlsUnicastTransport(srv_ctx)
+## Features
 
-    async def run_server():
-        async with server.server(host="0.0.0.0", port=8443):
-            data = await server.recv()
-            await server.send("peer", b"tls:" + data)
+- TLS / mTLS unicast transport for Swarmauri.
+- Centers its public API around `TlsUnicastTransport` so downstream code can import the package directly without extra registry glue.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
 
-    async def run_client():
-        client = TlsUnicastTransport(cli_ctx, sni="localhost")
-        async with client.client(host="127.0.0.1", port=8443):
-            await client.send("server", b"hello")
-            response = await client.recv()
-            print(response.decode())
+## Installation
 
-    await asyncio.gather(run_server(), run_client())
+Install this package with `uv` or `pip`.
 
-asyncio.run(main())
+```bash
+uv add swarmauri_transport_tls_unicast
 ```
 
-Configure the SSL contexts with your own certificates (and CA trust) to enable
-TLS or full mTLS verification.
+```bash
+pip install swarmauri_transport_tls_unicast
+```
 
+## Usage
 
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+
+```python
+from swarmauri_transport_tls_unicast import TlsUnicastTransport
+
+exports = ['TlsUnicastTransport']
+print(exports)
+```
+
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+
+License: Apache-2.0. See `LICENSE`.

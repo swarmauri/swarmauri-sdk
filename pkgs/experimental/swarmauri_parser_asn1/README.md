@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_parser_asn1/">
@@ -6,60 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_parser_asn1/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_parser_asn1.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_parser_asn1/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_parser_asn1/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_parser_asn1" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_parser_asn1" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_parser_asn1/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_parser_asn1?label=swarmauri_parser_asn1&color=green" alt="PyPI - swarmauri_parser_asn1"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_parser_asn1?label=swarmauri_parser_asn1&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# swarmauri-asn1
+# Swarmauri Parser ASN.1
 
-Grammar-driven ASN.1 schema parsing (X.680) + minimal DER decoding (X.690) for `swarmauri-sdk`.
-- Parser uses **Lark Earley** (MIT-only path; no standalone LALR).
-- Includes a minimal DER TLV decoder covering common UNIVERSAL types, SEQUENCE/SET[/OF], CHOICE, OPTIONAL/DEFAULT, and basic tagging.
+Grammar-driven ASN.1 (X.680/X.690 DER subset) parser plugin for swarmauri-sdk using Lark Earley.
 
-## Layout
+## Features
 
-```
-swarmauri_asn1/
-  ├─ swarmauri_asn1/
-  │  ├─ grammar/asn1.lark
-  │  ├─ parser.py
-  │  ├─ tool.py
-  │  ├─ der_codec.py
-  │  ├─ transformer.py
-  │  ├─ ir.py
-  │  └─ __init__.py
-  ├─ specs/Example.asn
-  ├─ examples/standalone_decode.py
-  └─ examples/data/question.der
-```
+- Grammar-driven ASN.1 (X.680/X.690 DER subset) parser plugin for swarmauri-sdk using Lark Earley.
+- Exposes discoverable runtime entry points for `swarmauri.parsers, swarmauri.tools` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Provides an experimental workspace surface for early validation before functionality graduates into a more stable package lane.
 
-## Quick demo (standalone)
+## Installation
+
+Install this package with `uv` or `pip`.
 
 ```bash
-python examples/standalone_decode.py
+uv add swarmauri_parser_asn1
 ```
 
-Expected output:
-
-```json
-{"id": 42, "question": "Hello"}
+```bash
+pip install swarmauri_parser_asn1
 ```
 
-## swarmauri integration
+## Usage
 
-Install into the same environment as `swarmauri-sdk`, then instantiate the parser:
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
 ```python
-from swarmauri.parsers import ASN1Parser
+from swarmauri_parser_asn1 import parser, tool, der_codec, transformer
 
-parser = ASN1Parser(asn1_files=["./specs/Example.asn"])
-docs = parser.parse("examples/data/question.der", type_name="Question")
-print(docs[0].content)
+exports = ['parser', 'tool', 'der_codec', 'transformer']
+print(exports)
 ```
 
-> Ensure you have `swarmauri-sdk` installed; this package registers via entry points.
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
+License: Apache-2.0. See `LICENSE`.

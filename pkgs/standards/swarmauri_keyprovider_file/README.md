@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_keyprovider_file/">
@@ -6,93 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_file/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_file.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_file/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_file/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_file" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_file" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_file/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_file?label=swarmauri_keyprovider_file&color=green" alt="PyPI - swarmauri_keyprovider_file"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_file?label=swarmauri_keyprovider_file&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# Swarmauri File Key Provider
+# Swarmauri Keyprovider File
 
-`FileKeyProvider` is a file-backed implementation of the `KeyProviderBase`
-interface. It persists each key beneath a `keys/<kid>/v<version>/` directory,
-captures metadata in `meta.json`, and exports public material in PEM or JWK
-form. The provider supports the same lifecycle semantics as the in-memory
-providers, but every operation is durable on disk.
+File-backed key provider for Swarmauri.
 
-## Highlights
+## Features
 
-- Generate symmetric AES-256-GCM keys and asymmetric Ed25519, X25519, RSA
-  (OAEP/PSS), or ECDSA (P-256) key material.
-- Import existing keys while preserving private material when allowed by the
-  selected `ExportPolicy`.
-- Rotate versions in-place, destroy versions or entire keys, and list
-  historical versions stored on disk.
-- Publish public material as individual JWKs or aggregate JWKS documents and
-  expose HKDF and random byte helpers.
+- File-backed key provider for Swarmauri.
+- Exposes discoverable runtime entry points for `peagen.plugins.key_providers, swarmauri.key_providers` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
 
 ## Installation
 
-Choose the tool that matches your workflow:
+Install this package with `uv` or `pip`.
 
 ```bash
-# pip
-pip install swarmauri_keyprovider_file
-
-# Poetry
-poetry add swarmauri_keyprovider_file
-
-# uv
 uv add swarmauri_keyprovider_file
+```
+
+```bash
+pip install swarmauri_keyprovider_file
 ```
 
 ## Usage
 
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+
 ```python
-import asyncio
-from tempfile import TemporaryDirectory
-
 from swarmauri_keyprovider_file import FileKeyProvider
-from swarmauri_core.key_providers.types import (
-    ExportPolicy,
-    KeyAlg,
-    KeyClass,
-    KeySpec,
-)
-from swarmauri_core.crypto.types import KeyUse
 
-
-async def run_example() -> str:
-    with TemporaryDirectory() as tmp:
-        provider = FileKeyProvider(tmp)
-        spec = KeySpec(
-            klass=KeyClass.symmetric,
-            alg=KeyAlg.AES256_GCM,
-            uses=(KeyUse.ENCRYPT,),
-            export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-        )
-        created = await provider.create_key(spec)
-        provider2 = FileKeyProvider(tmp)
-        loaded = await provider2.get_key(created.kid, include_secret=True)
-        print(f"Loaded key: {loaded.kid}")
-
-
-asyncio.run(run_example())
+exports = ['FileKeyProvider']
+print(exports)
 ```
 
-`FileKeyProvider` is asynchronous?every lifecycle method returns a
-`KeyRef`. Use `include_secret=True` when retrieving keys that allow private
-material export so symmetric key bytes are loaded from disk.
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-## Entry Point
-
-The provider registers under the `swarmauri.key_providers` entry point as `FileKeyProvider`.
-
-## Want to help?
-
-If you want to contribute to swarmauri-sdk, read up on our
-[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
-that will help you get started.
-
+License: Apache-2.0. See `LICENSE`.

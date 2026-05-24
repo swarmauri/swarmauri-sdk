@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_jupytershutdownkernel/">
@@ -6,51 +6,28 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_jupytershutdownkernel/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_jupytershutdownkernel.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupytershutdownkernel/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupytershutdownkernel/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupytershutdownkernel" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupytershutdownkernel" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupytershutdownkernel/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupytershutdownkernel?label=swarmauri_tool_jupytershutdownkernel&color=green" alt="PyPI - swarmauri_tool_jupytershutdownkernel"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupytershutdownkernel?label=swarmauri_tool_jupytershutdownkernel&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# Swarmauri Tool Jupyter Shutdown Kernel
+# Swarmauri Tool Jupytershutdownkernel
 
-`swarmauri_tool_jupytershutdownkernel` is a Swarmauri notebook-lifecycle tool
-for shutting down Jupyter kernels programmatically. It is useful for notebook
-automation cleanup, CI teardown, resource reclamation, and agent workflows that
-must terminate kernels after execution.
-
-## Why Use Swarmauri Tool Jupyter Shutdown Kernel
-
-- Stop Jupyter kernels cleanly after execution workflows complete.
-- Reclaim compute and runtime resources in automated notebook pipelines.
-- Provide a standard Swarmauri tool surface for kernel teardown.
-- Return structured shutdown status suitable for orchestration and logging.
-
-## FAQ
-
-> **What inputs does the tool expect?**  
-> A `kernel_id` string and an optional `shutdown_timeout`.
-
-> **What does the tool return?**  
-> A dictionary with `kernel_id`, `status`, and `message`.
-
-> **How does it behave when graceful shutdown fails?**  
-> It attempts a forced shutdown if the kernel stays alive after the timeout.
-
-> **What if the kernel cannot be found?**  
-> The tool returns an error status with a descriptive message.
+Swarmauri notebook-lifecycle tool for shutting down Jupyter kernels programmatically with jupyter_client.
 
 ## Features
 
-- Swarmauri `ToolBase` implementation registered as `JupyterShutdownKernelTool`.
-- Supports graceful shutdown with forced fallback.
-- Reports structured success and error states.
-- Useful for CI cleanup, notebook automation, and agent-managed kernels.
-- Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
+- Swarmauri notebook-lifecycle tool for shutting down Jupyter kernels programmatically with jupyter_client.
+- Exposes discoverable runtime entry points for `swarmauri.tools` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Lives in the community package lane for optional integrations that extend the main Swarmauri SDK surface.
 
 ## Installation
+
+Install this package with `uv` or `pip`.
 
 ```bash
 uv add swarmauri_tool_jupytershutdownkernel
@@ -62,80 +39,15 @@ pip install swarmauri_tool_jupytershutdownkernel
 
 ## Usage
 
-```python
-from swarmauri_tool_jupytershutdownkernel import JupyterShutdownKernelTool
-
-tool = JupyterShutdownKernelTool()
-result = tool(kernel_id="example-kernel-id", shutdown_timeout=5)
-
-print(result)
-```
-
-## Examples
-
-### Shut down a kernel by ID
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
 ```python
 from swarmauri_tool_jupytershutdownkernel import JupyterShutdownKernelTool
 
-tool = JupyterShutdownKernelTool()
-result = tool("kernel-uuid-value", 5)
-
-print(result["status"])
+exports = ['JupyterShutdownKernelTool']
+print(exports)
 ```
 
-### Use after a start-kernel workflow
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-```python
-from swarmauri_tool_jupyterstartkernel import JupyterStartKernelTool
-from swarmauri_tool_jupytershutdownkernel import JupyterShutdownKernelTool
-
-starter = JupyterStartKernelTool()
-shutdown = JupyterShutdownKernelTool()
-
-launch = starter()
-cleanup = shutdown(launch["kernel_id"])
-
-print(cleanup)
-```
-
-### Register the tool in a Swarmauri collection
-
-```python
-from swarmauri_standard.tools.ToolCollection import ToolCollection
-from swarmauri_tool_jupytershutdownkernel import JupyterShutdownKernelTool
-
-tools = ToolCollection(tools=[JupyterShutdownKernelTool()])
-print(tools)
-```
-
-## Related Packages
-
-- [swarmauri_tool_jupyterstartkernel](https://pypi.org/project/swarmauri_tool_jupyterstartkernel/)
-- [swarmauri_tool_jupyterexecutecell](https://pypi.org/project/swarmauri_tool_jupyterexecutecell/)
-- [swarmauri_tool_jupyterruncell](https://pypi.org/project/swarmauri_tool_jupyterruncell/)
-- [swarmauri_tool_jupyterclearoutput](https://pypi.org/project/swarmauri_tool_jupyterclearoutput/)
-
-## Swarmauri Foundations
-
-- [swarmauri](https://pypi.org/project/swarmauri/)
-- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
-- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
-- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
-
-## More Documentation
-
-- [jupyter_client documentation](https://jupyter-client.readthedocs.io/)
-- [Jupyter kernels overview](https://docs.jupyter.org/en/latest/projects/kernels.html)
-- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
-
-## Best Practices
-
-- Keep track of the kernel ID returned by your startup workflow.
-- Use explicit shutdown in CI and automation even when processes are short-lived.
-- Increase the timeout for busy kernels that may need a little longer to exit.
-- Run shutdown logic on the same host that owns the kernel runtime files.
-
-## License
-
-This project is licensed under the Apache-2.0 License.
+License: Apache-2.0. See `LICENSE`.

@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/IndexBuilder/">
@@ -6,98 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/RapidSimilarity/IndexBuilder/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/RapidSimilarity/IndexBuilder.svg"/></a>
     <a href="https://pypi.org/project/IndexBuilder/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/IndexBuilder/">
-        <img src="https://img.shields.io/pypi/l/IndexBuilder" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/IndexBuilder" alt="License"/></a>
     <a href="https://pypi.org/project/IndexBuilder/">
-        <img src="https://img.shields.io/pypi/v/IndexBuilder?label=IndexBuilder&color=green" alt="PyPI - IndexBuilder"/></a>
+        <img src="https://img.shields.io/pypi/v/IndexBuilder?label=IndexBuilder&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-## Purpose
+# IndexBuilder
 
-The `IndexBuilder` package provides efficient algorithms for building indexes (e.g., tree-based or hash-based structures) to accelerate similarity queries over large datasets.
+Configuration for package IndexBuilder with C++ extensions using Meson build system.
+
+## Features
+
+- Configuration for package IndexBuilder with C++ extensions using Meson build system.
+- Centers its public API around `tree_index`, `hash_index` so downstream code can import the package directly without extra registry glue.
+- Provides an experimental workspace surface for early validation before functionality graduates into a more stable package lane.
 
 ## Installation
 
-To install the `IndexBuilder` package, you need to have Python 3.10 or later, along with Meson and Ninja build systems.
+Install this package with `uv` or `pip`.
 
-1. Ensure you have `meson` and `ninja` installed:
-   ```bash
-   pip install meson ninja
-   ```
-
-2. Clone the repository and navigate into the directory:
-   ```bash
-   git clone <repository-url>
-   cd IndexBuilder
-   ```
-
-3. Build the package:
-   ```bash
-   meson setup builddir
-   meson compile -C builddir
-   ```
-
-4. Install the package:
-   ```bash
-   meson install -C builddir
-   ```
-
-## Usage 
-
-### C++ Extensions
-
-The `IndexBuilder` package includes C++ extensions for both tree-based and hash-based indexing.
-
-#### Example: KDTree
-
-Here is an example of how to use the KDTree implementation through the Python interface:
-
-```python
-import numpy as np
-from kdtree import nearestNeighbor
-
-# Example dataset
-points = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
-target = np.array([3.5, 4.5])
-
-# Find the nearest neighbor
-nearest = nearestNeighbor(points.tolist(), target.tolist())
-print("Nearest Neighbor:", nearest)
+```bash
+uv add IndexBuilder
 ```
 
-#### Example: LSHIndex
-
-Using the LSHIndex for approximate nearest neighbor search:
-
-```python
-import numpy as np
-from lsh import insert, query
-
-# Insert points into the LSH index
-data_points = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
-for point in data_points:
-    insert(point.tolist(), num_hashes=5, bucket_size=10)
-
-# Query the LSH index
-query_point = np.array([3.5, 4.5])
-results = query(query_point.tolist())
-print("LSH Query Results:", results)
+```bash
+pip install IndexBuilder
 ```
 
-### Dependencies
+## Usage
 
-The `IndexBuilder` package has the following dependencies:
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
-- Python 3.10 or later
-- NumPy
-- SciPy
+```python
+from IndexBuilder import tree_index, hash_index
 
-For development, you may also install:
+exports = ['tree_index', 'hash_index']
+print(exports)
+```
 
-- pytest
-- uv
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-This package is intended for users looking to implement high-dimensional indexing for similarity searches in their applications.
-
+License: Apache-2.0. See `LICENSE`.

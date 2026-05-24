@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_canon_http/">
@@ -6,87 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_canon_http/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_canon_http.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_canon_http/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_canon_http/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_canon_http" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_canon_http" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_canon_http/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_canon_http?label=swarmauri_canon_http&color=green" alt="PyPI - swarmauri_canon_http"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_canon_http?label=swarmauri_canon_http&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-`swarmauri_canon_http` is a lightweight canonical HTTP client implementation that tracks a subset of `httpx` behavior for parity checks and incremental feature alignment.
+# Swarmauri Canon Http
+
+Add your description here.
 
 ## Features
 
-- Sync request helpers: `get`, `post`, `put`, `patch`, `delete`, `head`, `options`
-- Async request helpers: `aget`, `apost`, `aput`, `apatch`, `adelete`, `ahead`, `aoptions`
-- Query parameter support (`params`)
-- Header support (`headers`)
-- JSON body serialization (`json_data`)
-- HTTP/1.1 support
-- Experimental HTTP/2 pathway
-
-### HTTPX surface parity map
-
-The parity tests are organized into `tests/parity/httpx/` and `tests/parity/requests/`, and use shared parity helpers to document supported and currently-missing surface area.
-
-| Feature area | httpx | swarmauri_canon_http |
-| --- | --- | --- |
-| Auth (`auth=`) | Yes | No (not implemented) |
-| Cookies (`cookies=`) | Yes | No (not implemented) |
-| Rich Request/Response model | Yes | No (primitive tuple/string responses) |
-| `request(...)` generic API | Yes | Partial (`sync_request`/`async_request` only) |
-| Streaming API (`stream`) | Yes | No |
-| HTTP/1 + HTTP/2 toggles | Yes | Partial (`version="1.1"` or `"2"`) |
-| HTTP/3 | No | No |
-| WebSocket schemes (`ws://`, `wss://`) | No | No |
-| SSL verify/cert keyword options | Yes | No (constructor does not accept `verify`/`cert`) |
-| Async client support | Yes | Yes |
+- Add your description here.
+- Centers its public API around `metadata`, `Any`, `HttpClient`, `REGISTERED_TRANSPORTS` so downstream code can import the package directly without extra registry glue.
+- Provides an experimental workspace surface for early validation before functionality graduates into a more stable package lane.
 
 ## Installation
 
-### With `uv`
+Install this package with `uv` or `pip`.
 
 ```bash
-uv add swarmauri-canon-http
+uv add swarmauri_canon_http
 ```
 
-### With `pip`
-
 ```bash
-pip install swarmauri-canon-http
+pip install swarmauri_canon_http
 ```
 
 ## Usage
 
-### Sync workflow
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
 ```python
-from swarmauri_canon_http import HttpClient
+from swarmauri_canon_http import metadata, Any, HttpClient, REGISTERED_TRANSPORTS
 
-client = HttpClient(base_url="https://example.com", timeout=5)
-status, headers, body = client.get("/health", params={"full": "1"})
-print(status, body)
+exports = ['metadata', 'Any', 'HttpClient', 'REGISTERED_TRANSPORTS']
+print(exports)
 ```
 
-### Async workflow
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-```python
-import asyncio
-from swarmauri_canon_http import HttpClient
-
-
-async def main():
-    client = HttpClient(base_url="https://example.com", timeout=5)
-    raw_response = await client.aget("/health")
-    print(raw_response)
-
-
-asyncio.run(main())
-```
-
-## Python support
-
-This package targets Python 3.10 through 3.12 in project-level documentation.
-
-
+License: Apache-2.0. See `LICENSE`.

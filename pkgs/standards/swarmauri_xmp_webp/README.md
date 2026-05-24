@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_xmp_webp/">
@@ -6,57 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_xmp_webp/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_xmp_webp.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_xmp_webp/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_xmp_webp/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_xmp_webp" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_xmp_webp" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_xmp_webp/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_xmp_webp?label=swarmauri_xmp_webp&color=green" alt="PyPI - swarmauri_xmp_webp"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_xmp_webp?label=swarmauri_xmp_webp&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# swarmauri_xmp_webp
+# Swarmauri XMP Webp
 
-`swarmauri_xmp_webp` declares the `WebPXMP` handler scaffold for RIFF/WEBP containers and prepares the dynamic registry for a full implementation.
+WebP handler scaffold for embedding and extracting XMP packets in Swarmauri runtimes.
 
 ## Features
 
-- **Forward compatible** ? establishes class signatures today so future implementations slot straight into existing workflows.
-- **Registry aligned** ? inherits from `EmbedXmpBase`, enabling automatic discovery through Swarmauri's dynamic registry.
-- **Clear contracts** ? raises `NotImplementedError` for read/write/remove until the RIFF logic is complete.
+- WebP handler scaffold for embedding and extracting XMP packets in Swarmauri runtimes.
+- Exposes discoverable runtime entry points for `swarmauri.xmp_handlers` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
 
 ## Installation
 
-```bash
-# pip
-pip install swarmauri_xmp_webp
+Install this package with `uv` or `pip`.
 
-# uv
+```bash
 uv add swarmauri_xmp_webp
+```
+
+```bash
+pip install swarmauri_xmp_webp
 ```
 
 ## Usage
 
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+
 ```python
-from swarmauri_xmp_webp import WebPXMP
+from swarmauri_xmp_webp import ClassVar, Iterator, Tuple, register_type
 
-handler = WebPXMP()
-
-# Raises NotImplementedError until read/write/remove are implemented
-try:
-    handler.read_xmp(b"RIFF....WEBP")
-except NotImplementedError:
-    print("WebP XMP support is forthcoming.")
+exports = ['ClassVar', 'Iterator', 'Tuple', 'register_type']
+print(exports)
 ```
 
-### Why it works
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-- **Forward compatible** ? declaring the handler today reserves the RIFF chunk namespace for future work.
-- **Registry alignment** ? subclassing `EmbedXmpBase` means discovery logic will work without code changes once implemented.
-- **Clear contracts** ? explicit `NotImplementedError` exceptions communicate the remaining work to contributors.
-
-## Project Resources
-
-- Source: <https://github.com/swarmauri/swarmauri-sdk>
-- License: Apache 2.0
-
-
+License: Apache-2.0. See `LICENSE`.

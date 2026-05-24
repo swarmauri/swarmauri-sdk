@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_workflow_statedriven/">
@@ -6,19 +6,32 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_workflow_statedriven/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_workflow_statedriven.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_workflow_statedriven/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_workflow_statedriven/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_workflow_statedriven" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_workflow_statedriven" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_workflow_statedriven/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_workflow_statedriven?label=swarmauri_workflow_statedriven&color=green" alt="PyPI - swarmauri_workflow_statedriven"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_workflow_statedriven?label=swarmauri_workflow_statedriven&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
 # Swarmauri Workflow Statedriven
 
-An experimental state-driven workflow engine for building graph-based processes using nodes and transitions. It supports conditions, join strategies, merge strategies and input modes to control execution flow.
+Swarmauri's StateDrivenWorkflow.
+
+## Features
+
+- Swarmauri's StateDrivenWorkflow.
+- Keeps the package surface isolated so you can install only the capability you need instead of the full workspace.
+- Provides an experimental workspace surface for early validation before functionality graduates into a more stable package lane.
 
 ## Installation
+
+Install this package with `uv` or `pip`.
+
+```bash
+uv add swarmauri_workflow_statedriven
+```
 
 ```bash
 pip install swarmauri_workflow_statedriven
@@ -26,14 +39,14 @@ pip install swarmauri_workflow_statedriven
 
 ## Usage
 
-```python
-from swarmauri_workflow_statedriven.graph import WorkflowGraph
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
-workflow = WorkflowGraph()
-# Define nodes and transitions...
-result = workflow.execute(start="start", initial_input={})
+```python
+import swarmauri_workflow_statedriven
+
+print(swarmauri_workflow_statedriven.__name__)
 ```
 
-For more details, see the `docs` directory.
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-
+License: Apache-2.0. See `LICENSE`.

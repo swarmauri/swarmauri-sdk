@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_middleware_jwksverifier/">
@@ -6,114 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_jwksverifier/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_jwksverifier.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_jwksverifier/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_jwksverifier/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_jwksverifier" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_jwksverifier" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_jwksverifier/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_jwksverifier?label=swarmauri_middleware_jwksverifier&color=green" alt="PyPI - swarmauri_middleware_jwksverifier"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_jwksverifier?label=swarmauri_middleware_jwksverifier&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# Swarmauri Middleware JWKS Verifier
+# Swarmauri Middleware Jwksverifier
 
-A middleware component providing JWT verification using a cached JWKS with TTL
-and LRU eviction.
+JWKS-based JWT verification middleware for Swarmauri.
 
 ## Features
 
-- Parses RSA, EC, Ed25519, and HMAC keys from JWKS documents (RFC 7517).
-- Thread-safe cache with configurable TTL refresh and LRU eviction limits.
-- Optional constructor guards for allowed algorithms and issuer values.
-- Manual cache controls for forced refreshes, invalidation, and overrides.
+- JWKS-based JWT verification middleware for Swarmauri.
+- Exposes discoverable runtime entry points for `swarmauri.middlewares` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
 
 ## Installation
 
-Install the package with your preferred Python packaging tool:
+Install this package with `uv` or `pip`.
+
+```bash
+uv add swarmauri_middleware_jwksverifier
+```
 
 ```bash
 pip install swarmauri_middleware_jwksverifier
 ```
 
-```bash
-poetry add swarmauri_middleware_jwksverifier
-```
+## Usage
 
-```bash
-uv pip install swarmauri_middleware_jwksverifier
-```
-
-## Quickstart
-
-`CachedJWKSVerifier` expects a callable that returns a JWKS document. The fetch
-callback is invoked whenever the cache expires (default `ttl_s=300` seconds) or
-when a forced refresh is requested.
-
-The verifier exposes a `verify` helper that performs signature validation and
-standard PyJWT checks. Pass the algorithms you are willing to accept by
-supplying the `algorithms_whitelist` parameter on every verification call. If
-you do not provide an explicit `issuer`, the first value from
-`allowed_issuers` (if configured during construction) is used.
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
 ```python
-import base64
+from swarmauri_middleware_jwksverifier import OrderedDict, Any, Callable, Dict
 
-import jwt
-
-from swarmauri_middleware_jwksverifier import CachedJWKSVerifier
-
-SECRET = b"super-secret-signing-key"
-
-
-def fetch_jwks() -> dict[str, object]:
-    return {
-        "keys": [
-            {
-                "kty": "oct",
-                "kid": "demo",
-                "k": base64.urlsafe_b64encode(SECRET).rstrip(b"=").decode("ascii"),
-                "alg": "HS256",
-            }
-        ]
-    }
-
-
-verifier = CachedJWKSVerifier(fetch=fetch_jwks, ttl_s=60)
-
-token = jwt.encode(
-    {"sub": "user-123", "aud": "example-service"},
-    SECRET,
-    algorithm="HS256",
-    headers={"kid": "demo"},
-)
-
-claims = verifier.verify(
-    token,
-    algorithms_whitelist=["HS256"],
-    audience="example-service",
-)
-
-print(claims["sub"])
+exports = ['OrderedDict', 'Any', 'Callable', 'Dict']
+print(exports)
 ```
 
-### Cache management helpers
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-- `refresh(force: bool = False)` ? trigger a JWKS refresh immediately when
-  `force` is true or the cache has expired.
-- `invalidate(kid: Optional[str] = None)` ? drop either a specific key or the
-  entire cache, including overrides.
-- `inject_override_key(kid, key_obj)` / `inject_override_jwk(kid, jwk)` ? add
-  temporary key material that bypasses JWKS fetching when resolving by `kid`.
-- `key_resolver()` ? obtain a callable suitable for advanced PyJWT usage when
-  integrating with other verification flows.
-
-## Entry Point
-
-The middleware registers under the `swarmauri.middlewares` entry point as
-`CachedJWKSVerifier`.
-
-## Want to help?
-
-If you want to contribute to swarmauri-sdk, read up on our
-[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
-that will help you get started.
-
+License: Apache-2.0. See `LICENSE`.

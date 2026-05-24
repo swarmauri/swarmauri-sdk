@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_jupytergetshellmessage/">
@@ -6,66 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_jupytergetshellmessage/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_jupytergetshellmessage.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupytergetshellmessage/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupytergetshellmessage/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupytergetshellmessage" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupytergetshellmessage" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupytergetshellmessage/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupytergetshellmessage?label=swarmauri_tool_jupytergetshellmessage&color=green" alt="PyPI - swarmauri_tool_jupytergetshellmessage"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupytergetshellmessage?label=swarmauri_tool_jupytergetshellmessage&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# Swarmauri Tool Jupyter Get Shell Message
+# Swarmauri Tool Jupytergetshellmessage
 
-Retrieves shell-channel messages from a running Jupyter kernel using `jupyter_client`.
+A tool designed to retrieve shell messages from a running Jupyter kernel using jupyter_client, useful for debugging execution responses.
 
 ## Features
 
-- Listens on the Jupyter kernel shell channel and captures raw message dicts.
-- Returns a dict containing `messages` or an `error` key.
-- Helpful for debugging live kernel communication during automated notebook workflows.
-
-## Prerequisites
-
-- Python 3.10 or newer.
-- Access to a running Jupyter kernel (Notebook server, JupyterLab, etc.).
-- `jupyter_client` and `websocket-client` (installed automatically).
+- A tool designed to retrieve shell messages from a running Jupyter kernel using jupyter_client, useful for debugging execution responses.
+- Exposes discoverable runtime entry points for `swarmauri.tools` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Lives in the community package lane for optional integrations that extend the main Swarmauri SDK surface.
 
 ## Installation
 
+Install this package with `uv` or `pip`.
+
 ```bash
-# pip
-pip install swarmauri_tool_jupytergetshellmessage
-
-# poetry
-poetry add swarmauri_tool_jupytergetshellmessage
-
-# uv (pyproject-based projects)
 uv add swarmauri_tool_jupytergetshellmessage
 ```
 
-## Quickstart
+```bash
+pip install swarmauri_tool_jupytergetshellmessage
+```
+
+## Usage
+
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
 ```python
 from swarmauri_tool_jupytergetshellmessage import JupyterGetShellMessageTool
 
-channels_url = "ws://localhost:8888/api/kernels/<kernel-id>/channels"
-result = JupyterGetIOPubMessageTool()(channels_url, timeout=5.0)
-
-if "messages" in result:
-    for msg in result["messages"]:
-        print(msg)
-else:
-    print("Error:", result.get("error"))
+exports = ['JupyterGetShellMessageTool']
+print(exports)
 ```
 
-## Tips
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-- Ensure you pass the correct kernel channels URL (including security tokens/cookies if your server requires them).
-- Increase `timeout` if you expect long-running cells before shell replies are sent.
-- Combine with notebook execution tools to capture both SHELL and IOPub messages for full observability.
-
-## Want to help?
-
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
-
-
+License: Apache-2.0. See `LICENSE`.

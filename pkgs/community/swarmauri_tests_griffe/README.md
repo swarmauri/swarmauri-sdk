@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tests_griffe/">
@@ -6,84 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tests_griffe/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tests_griffe.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tests_griffe/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_tests_griffe/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tests_griffe" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tests_griffe" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_tests_griffe/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tests_griffe?label=swarmauri_tests_griffe&color=green" alt="PyPI - swarmauri_tests_griffe"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tests_griffe?label=swarmauri_tests_griffe&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# swarmauri_tests_griffe
+# Swarmauri Tests Griffe
 
-`swarmauri_tests_griffe` is a [pytest](https://pytest.org) plugin that loads your
-package metadata with [Griffe](https://github.com/mkdocstrings/griffe). The
-plugin converts any warnings generated during inspection into failing tests so
-that documentation, annotations, and runtime signatures stay in sync across the
-Swarmauri ecosystem.
+Pytest plugin that turns Griffe inspection warnings into failing quality gates for Swarmauri packages.
 
 ## Features
 
-- **Python 3.10?3.12 coverage** ? verified across the supported Swarmauri
-  runtime range so you can keep consistent quality gates on every maintained
-  interpreter.
-- **Warning-to-test enforcement** ? automatically escalates Griffe warnings to
-  failing pytest checks to stop documentation drift before it ships.
-- **Zero-config discovery** ? the plugin registers as a pytest entry point and
-  loads without additional setup once installed.
-- **Flexible targeting** ? tune the inspection scope with command-line flags or
-  persistent `pyproject.toml` settings.
+- Pytest plugin that turns Griffe inspection warnings into failing quality gates for Swarmauri packages.
+- Exposes discoverable runtime entry points for `pytest11` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Lives in the community package lane for optional integrations that extend the main Swarmauri SDK surface.
 
 ## Installation
 
-Choose the installer that best fits your workflow:
-
-### Using `uv`
+Install this package with `uv` or `pip`.
 
 ```bash
-uv add swarmauri-tests-griffe
+uv add swarmauri_tests_griffe
 ```
-
-### Using `pip`
 
 ```bash
-pip install swarmauri-tests-griffe
+pip install swarmauri_tests_griffe
 ```
-
-Both commands add the plugin as a dependency of your project. Because the plugin
-uses pytest entry points, it is automatically discovered the next time your test
-suite runs?no manual configuration required.
-
-> **Supported Python versions:** The plugin is tested and published for Python
-> 3.10, 3.11, and 3.12 across the Swarmauri platform.
 
 ## Usage
 
-After installation, execute your test suite as normal and a dynamic Griffe check
-is injected for each configured package. By default, the package defined in
-`pyproject.toml` is inspected. You can target additional packages or limit the
-scope with command-line options:
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
-```bash
-pytest --griffe-package your_package --griffe-package another_package
+```python
+from swarmauri_tests_griffe import dataclass, Path, GriffeWarningsItem, GriffeTarget
+
+exports = ['dataclass', 'Path', 'GriffeWarningsItem', 'GriffeTarget']
+print(exports)
 ```
 
-Each `--griffe-package` argument adds a module to the inspection list. If
-Griffe produces warnings while processing any module, the corresponding dynamic
-test fails and the collected warnings are rendered in the pytest output, making
-it easy to pinpoint the files that need attention.
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-### Configuring defaults
-
-For larger projects, keep the configuration in `pyproject.toml` to avoid
-repeating command-line flags:
-
-```toml
-[tool.pytest.ini_options]
-addopts = "--griffe-package swarmauri_core --griffe-package swarmauri_tests_griffe"
-```
-
-With the options saved, every pytest run enforces the same quality gates across
-your codebase without extra setup.
-
-
+License: Apache-2.0. See `LICENSE`.

@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_crypto_ecdh_es_a128kw/">
@@ -6,108 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_crypto_ecdh_es_a128kw/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_crypto_ecdh_es_a128kw.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_ecdh_es_a128kw/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_ecdh_es_a128kw/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_crypto_ecdh_es_a128kw" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_crypto_ecdh_es_a128kw" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_ecdh_es_a128kw/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_crypto_ecdh_es_a128kw?label=swarmauri_crypto_ecdh_es_a128kw&color=green" alt="PyPI - swarmauri_crypto_ecdh_es_a128kw"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_crypto_ecdh_es_a128kw?label=swarmauri_crypto_ecdh_es_a128kw&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# swarmauri_crypto_ecdh_es_a128kw
+# Swarmauri Crypto ECDH Es A128kw
 
-ECDH-ES+A128KW key wrapping provider for Swarmauri.
+ECDH-ES+A128KW crypto provider for Swarmauri.
 
-## Highlights
+## Features
 
-- Implements the JSON Web Encryption ECDH-ES key agreement combined with AES Key Wrap using a 128-bit KEK (`ECDH-ES+A128KW`).
-- Accepts `KeyRef` objects whose `public` attribute carries an EC public key in PEM format for wrapping and whose `material` attribute provides the corresponding private key for unwrapping.
-- Derives a one-time key-encryption key via Concat KDF with SHA-256 and serializes results as JSON containing the ephemeral public key (`epk`) and wrapped DEK (`kw`), both Base64URL encoded.
-- Generates a fresh 16-byte DEK when one is not provided so you can delegate symmetric key generation to the provider.
+- ECDH-ES+A128KW crypto provider for Swarmauri.
+- Exposes discoverable runtime entry points for `peagen.plugins.cryptos, swarmauri.cryptos` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
 
 ## Installation
 
-Choose the tool that matches your workflow:
+Install this package with `uv` or `pip`.
 
 ```bash
-# pip
-pip install swarmauri_crypto_ecdh_es_a128kw
-
-# Poetry
-poetry add swarmauri_crypto_ecdh_es_a128kw
-
-# uv
 uv add swarmauri_crypto_ecdh_es_a128kw
 ```
 
-## Quickstart
-
-The example below creates a recipient EC key pair, wraps a deterministic 128-bit DEK, and then unwraps it again to demonstrate the round trip. Run it with `python quickstart.py` or paste it into a REPL.
-
-```python
-import asyncio
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
-
-from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
-from swarmauri_crypto_ecdh_es_a128kw import ECDHESA128KWCrypto
-
-
-def make_recipient_key() -> KeyRef:
-    private_key = ec.generate_private_key(ec.SECP256R1())
-    public_key = private_key.public_key()
-
-    return KeyRef(
-        kid="recipient-key",
-        version=1,
-        type=KeyType.EC,
-        uses=(KeyUse.WRAP, KeyUse.UNWRAP),
-        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-        material=private_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption(),
-        ),
-        public=public_key.public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo,
-        ),
-    )
-
-
-async def main() -> None:
-    crypto = ECDHESA128KWCrypto()
-    recipient = make_recipient_key()
-    dek = b"0123456789ABCDEF"  # 16 byte content encryption key
-
-    wrapped = await crypto.wrap(recipient, dek=dek)
-    recovered = await crypto.unwrap(recipient, wrapped)
-
-    print("Wrapped payload:", wrapped.wrapped.decode("utf-8"))
-    assert recovered == dek
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+```bash
+pip install swarmauri_crypto_ecdh_es_a128kw
 ```
 
-### What to expect
+## Usage
 
-- `wrap` derives an ephemeral ECDH shared secret with the recipient public key, hashes it with Concat KDF (SHA-256) to produce a 128-bit KEK, and AES-KW wraps the provided DEK.
-- The returned `WrappedKey` stores a JSON document containing the ephemeral public key (`epk`) and the wrapped DEK (`kw`), both Base64URL encoded.
-- `unwrap` repeats the derivation using the recipient private key (`KeyRef.material`) and returns the original DEK bytes.
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
-## License
+```python
+from swarmauri_crypto_ecdh_es_a128kw import ECDHESA128KWCrypto
 
-`swarmauri_crypto_ecdh_es_a128kw` is licensed under the Apache License 2.0. See the [LICENSE](https://github.com/swarmauri/swarmauri-sdk/blob/master/LICENSE) file for details.
+exports = ['ECDHESA128KWCrypto']
+print(exports)
+```
 
-## Entry point
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-The provider is registered under the `swarmauri.cryptos` entry point as `ECDHESA128KWCrypto`.
-
-## Want to help?
-
-If you want to contribute to swarmauri-sdk, read up on our
-[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
-that will help you get started.
-
+License: Apache-2.0. See `LICENSE`.

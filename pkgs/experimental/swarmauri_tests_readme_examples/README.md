@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tests_readme_examples/">
@@ -6,97 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_tests_readme_examples/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_tests_readme_examples.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tests_readme_examples/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_tests_readme_examples/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tests_readme_examples" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tests_readme_examples" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_tests_readme_examples/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tests_readme_examples?label=swarmauri_tests_readme_examples&color=green" alt="PyPI - swarmauri_tests_readme_examples"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tests_readme_examples?label=swarmauri_tests_readme_examples&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-## Overview
+# Swarmauri Tests Readme Examples
 
-`swarmauri_tests_readme_examples` is a [pytest](https://docs.pytest.org/) plugin that
-turns Markdown code blocks into executable tests. It scans README (or other
-documentation) files for Python examples and verifies that every runnable block
-still executes successfully. This keeps documentation trustworthy without
-hand-maintained `test_readme_example.py` scaffolding.
+Pytest plugin that executes README code examples.
 
-The plugin works out of the box for Python code blocks (` ```python `, ` ```py `,
-` ```pycon `) and exposes command-line flags and `pyproject.toml` settings so you can
-fine-tune which files and languages are exercised.
+## Features
+
+- Pytest plugin that executes README code examples.
+- Exposes discoverable runtime entry points for `pytest11` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Provides an experimental workspace surface for early validation before functionality graduates into a more stable package lane.
 
 ## Installation
+
+Install this package with `uv` or `pip`.
+
+```bash
+uv add swarmauri_tests_readme_examples
+```
 
 ```bash
 pip install swarmauri_tests_readme_examples
 ```
 
-`pytest` discovers the plugin automatically after installation.
+## Usage
 
-## Quick Start
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
-Run `pytest` as usual to execute every Python code block in `README.md`:
-
-```bash
-pytest
-```
-
-Sample failure output:
-
-```
-E   README.md::block-3 raised ValueError('boom')
-```
-
-## Configuration
-
-You can control the scan through CLI options or `pyproject.toml`:
-
-* `--readme-files` ? comma/newline separated Markdown files (default: `README.md`)
-* `--readme-languages` ? languages to execute (default: `python`, `py`, `pycon`)
-* `--readme-mode` ? `parameterized` (default) or `aggregate`
-* `--readme-skip-markers` ? comment markers that skip a block when they appear on the first non-empty line
-
-`pyproject.toml` example (under `[tool.pytest.ini_options]`):
-
-```toml
-[tool.pytest.ini_options]
-readme_files = """
-    README.md
-    docs/guide.md
-"""
-readme_languages = """
-    python
-    py
-"""
-readme_mode = "aggregate"
-readme_skip_markers = """
-    # pytest: skip-example
-    # docs: skip
-"""
-```
-
-## Skipping Blocks
-
-Place one of the configured skip markers on the first non-empty line to leave a
-code block out of execution:
-
-````markdown
 ```python
-# pytest: skip-example
-print("shown in docs, ignored in tests")
+from swarmauri_tests_readme_examples import redirect_stdout, dataclass, Path, Iterable
+
+exports = ['redirect_stdout', 'dataclass', 'Path', 'Iterable']
+print(exports)
 ```
-````
 
-## Aggregate Mode
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-Switch to `--readme-mode=aggregate` (or set `readme_mode = "aggregate"`) to
-collapse all README checks into a single pytest item that aggregates every
-failure message. This is handy when you want a brief summary rather than many
-individual tests.
-
-## License
-
-Licensed under the [Apache 2.0 License](LICENSE).
-
-
+License: Apache-2.0. See `LICENSE`.

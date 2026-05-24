@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_storage_github/">
@@ -6,69 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_storage_github/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_storage_github.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_github/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_github/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_storage_github" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_storage_github" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_github/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_storage_github?label=swarmauri_storage_github&color=green" alt="PyPI - swarmauri_storage_github"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_storage_github?label=swarmauri_storage_github&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# Swarmauri GitHub Storage Adapter
+# Swarmauri Storage GitHub
 
-`GithubStorageAdapter` is a lightweight placeholder storage adapter for Peagen.
-It returns deterministic `github://` URIs for uploaded objects without making
-any network calls to GitHub. The class is useful for demos, tests, and for
-validating code paths that rely on the storage adapter interface.
+GitHub storage adapter stub for Peagen.
+
+## Features
+
+- GitHub storage adapter stub for Peagen.
+- Exposes discoverable runtime entry points for `peagen.plugins.storage_adapters, swarmauri.storage_adapters` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
 
 ## Installation
 
-Choose the tool that matches your workflow:
+Install this package with `uv` or `pip`.
 
 ```bash
-# pip
-pip install swarmauri_storage_github
-
-# Poetry
-poetry add swarmauri_storage_github
-
-# uv
 uv add swarmauri_storage_github
 ```
 
-## Quickstart
-
-`GithubStorageAdapter.upload()` accepts a key and a binary file-like object. It
-returns the key formatted as a `github://` URI so callers can wire the adapter
-into pipelines that expect GitHub-backed storage without performing any remote
-I/O.
-
-```python
-from io import BytesIO
-
-from swarmauri_storage_github import GithubStorageAdapter
-
-
-adapter = GithubStorageAdapter()
-
-# The adapter only inspects the key, so any binary stream is acceptable.
-payload = BytesIO(b"# Example README\nThis payload would be uploaded to GitHub.")
-uri = adapter.upload("my-org/my-repo/README.md", payload)
-
-print(uri)  # github://my-org/my-repo/README.md
+```bash
+pip install swarmauri_storage_github
 ```
 
-### Behavior and limitations
+## Usage
 
-- `upload()` does not persist data?it simply echoes the key back as a
-  `github://` URI.
-- `download()`, `upload_dir()`, and `download_dir()` raise
-  `NotImplementedError` to signal that full GitHub support is intentionally out
-  of scope for this stub.
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
-## Want to help?
+```python
+from swarmauri_storage_github import GithubStorageAdapter
 
-If you want to contribute to swarmauri-sdk, read up on our
-[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
-that will help you get started.
+exports = ['GithubStorageAdapter']
+print(exports)
+```
 
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+
+License: Apache-2.0. See `LICENSE`.

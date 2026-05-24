@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/mto/">
@@ -6,40 +6,32 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/mto/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/mto.svg"/></a>
     <a href="https://pypi.org/project/mto/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/mto/">
-        <img src="https://img.shields.io/pypi/l/mto" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/mto" alt="License"/></a>
     <a href="https://pypi.org/project/mto/">
-        <img src="https://img.shields.io/pypi/v/mto?label=mto&color=green" alt="PyPI - mto"/></a>
+        <img src="https://img.shields.io/pypi/v/mto?label=mto&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# mto
+# Mto
 
-`mto` is a planning-stage placeholder reservation for monotone operators.
-
-The package reserves the short `mto` distribution and import coordinate while the operator
-catalog is governed and finalized. The intended scope is a compact monotone-operator toolkit
-for deterministic aggregation, lattice and semilattice joins, CRDT-style state merges,
-fixpoint workflows, evidence rollups, and related positive dataflow patterns.
-
-`mto` supports Python 3.10 through 3.12.
+Planning-stage placeholder reservation for monotone operators.
 
 ## Features
 
-- Reserves the `mto` package coordinate for monotone-operator work.
-- Documents the intended monotone-operator scope without exposing provisional APIs.
-- Provides a typed import package with placeholder metadata for downstream planning checks.
+- Planning-stage placeholder reservation for monotone operators.
+- Centers its public API around `INTENDED_SCOPE`, `PLANNING_STAGE` so downstream code can import the package directly without extra registry glue.
+- Provides an experimental workspace surface for early validation before functionality graduates into a more stable package lane.
 
 ## Installation
 
-### uv
+Install this package with `uv` or `pip`.
 
 ```bash
 uv add mto
 ```
-
-### pip
 
 ```bash
 pip install mto
@@ -47,24 +39,15 @@ pip install mto
 
 ## Usage
 
-The package module is `mto`.
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
 ```python
-import mto
+from mto import INTENDED_SCOPE, PLANNING_STAGE
 
-assert mto.__version__ == "0.1.0"
-assert mto.PLANNING_STAGE is True
+exports = ['INTENDED_SCOPE', 'PLANNING_STAGE']
+print(exports)
 ```
 
-No monotone-operator APIs are committed yet. Future APIs should be added only after the
-operator catalog, naming, and compatibility surface are finalized.
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-## Development
-
-```bash
-uv run --directory pkgs --package mto ruff format experimental/mto
-uv run --directory pkgs --package mto ruff check experimental/mto --fix
-uv run --directory pkgs --package mto pytest experimental/mto/tests
-```
-
-
+License: Apache-2.0. See `LICENSE`.

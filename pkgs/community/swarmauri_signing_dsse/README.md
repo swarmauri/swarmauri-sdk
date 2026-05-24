@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_signing_dsse/">
@@ -6,38 +6,32 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_signing_dsse/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_signing_dsse.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_dsse/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_dsse/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_signing_dsse" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_signing_dsse" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_dsse/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_signing_dsse?label=swarmauri_signing_dsse&color=green" alt="PyPI - swarmauri_signing_dsse"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_signing_dsse?label=swarmauri_signing_dsse&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
 # Swarmauri Signing DSSE
 
-`DSSESigner` layers the [in-toto DSSE](https://github.com/secure-systems-lab/dsse) envelope format on top of any existing Swarmauri
-signer. It computes the Pre-Authentication Encoding (PAE) defined by the spec, delegates raw signing and verification to the
-wrapped provider, and exposes helpers for serializing envelopes in the DSSE JSON representation.
+Composable DSSE envelope adapter that layers Pre-Authentication Encoding onto Swarmauri signing providers.
 
 ## Features
 
-- Adds the `dsse-pae` canonicalization surface to any `SigningBase` provider.
-- Supports detached signature workflows for bytes, digests, streams, and envelopes.
-- Includes a strict JSON codec with typed helpers for building and inspecting DSSE envelopes.
-- Maintains the inner signer's capability matrix while declaring DSSE-specific features (`detached_only`, `multi`).
+- Composable DSSE envelope adapter that layers Pre-Authentication Encoding onto Swarmauri signing providers.
+- Exposes discoverable runtime entry points for `peagen.plugins.signings, swarmauri.signings` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Lives in the community package lane for optional integrations that extend the main Swarmauri SDK surface.
 
 ## Installation
 
-Install the package with your preferred Python packaging tool:
-
-### Using `uv`
+Install this package with `uv` or `pip`.
 
 ```bash
 uv add swarmauri_signing_dsse
 ```
-
-### Using `pip`
 
 ```bash
 pip install swarmauri_signing_dsse
@@ -45,32 +39,15 @@ pip install swarmauri_signing_dsse
 
 ## Usage
 
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+
 ```python
-import base64
+from swarmauri_signing_dsse import DSSESigner, dsse_pae, DSSEEnvelope, DSSESignatureRecord
 
-from swarmauri_signing_dsse import DSSESigner, DSSEEnvelope
-from swarmauri_signing_ed25519 import Ed25519EnvelopeSigner
-
-# Wrap an existing Swarmauri signer.
-inner_signer = Ed25519EnvelopeSigner()
-dsse_signer = DSSESigner(inner_signer)
-
-# Prepare a DSSE envelope.
-payload = b"example payload"
-payload_b64 = base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
-envelope = DSSEEnvelope(payload_type="text/plain", payload_b64=payload_b64)
-
-# Sign and verify using DSSE PAE over the payload.
-key_ref = {"kind": "raw_ed25519_sk", "bytes": b"\x01" * 32}
-signatures = await dsse_signer.sign_envelope(key_ref, envelope)
-assert await dsse_signer.verify_envelope(envelope, signatures)
+exports = ['DSSESigner', 'dsse_pae', 'DSSEEnvelope', 'DSSESignatureRecord']
+print(exports)
 ```
 
-`DSSESigner` accepts existing DSSE JSON mappings or bytes anywhere an envelope is expected. The helper methods
-`encode_envelope()` and `decode_envelope()` let you round-trip envelopes without reimplementing JSON handling.
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-## License
-
-This project is licensed under the [Apache License 2.0](LICENSE).
-
-
+License: Apache-2.0. See `LICENSE`.

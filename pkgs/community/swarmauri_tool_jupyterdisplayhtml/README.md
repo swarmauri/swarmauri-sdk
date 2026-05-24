@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_jupyterdisplayhtml/">
@@ -6,64 +6,48 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_jupyterdisplayhtml/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_jupyterdisplayhtml.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupyterdisplayhtml/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupyterdisplayhtml/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupyterdisplayhtml" alt="PyPI - License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupyterdisplayhtml" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupyterdisplayhtml/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterdisplayhtml?label=swarmauri_tool_jupyterdisplayhtml&color=green" alt="PyPI - swarmauri_tool_jupyterdisplayhtml"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterdisplayhtml?label=swarmauri_tool_jupyterdisplayhtml&color=green" alt="Release Version"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
+</p>
 
-# Swarmauri Tool Jupyter Display HTML
+# Swarmauri Tool Jupyterdisplayhtml
 
-Specialized wrapper for displaying HTML snippets in Jupyter notebooks via IPython's `HTML` display helper.
+A tool designed to render HTML content within a Jupyter Notebook using IPython's HTML display method.
 
 ## Features
 
-- Accepts raw HTML strings and renders them inline in Jupyter.
-- Returns status information (`success`/`error`) for integration with larger tool flows.
-- Subclass of `ToolBase`, so it plugs into Swarmauri toolchains seamlessly.
-
-## Prerequisites
-
-- Python 3.10 or newer.
-- Jupyter/IPython environment with display capabilities.
+- A tool designed to render HTML content within a Jupyter Notebook using IPython's HTML display method.
+- Exposes discoverable runtime entry points for `swarmauri.tools` so the package can be wired into Swarmauri or Tigrbl workflows.
+- Lives in the community package lane for optional integrations that extend the main Swarmauri SDK surface.
 
 ## Installation
 
+Install this package with `uv` or `pip`.
+
 ```bash
-# pip
-pip install swarmauri_tool_jupyterdisplayhtml
-
-# poetry
-poetry add swarmauri_tool_jupyterdisplayhtml
-
-# uv (pyproject-based projects)
 uv add swarmauri_tool_jupyterdisplayhtml
 ```
 
-## Quickstart
-
-```python
-from swarmauri_tool_jupyterdisplayhtml import JupyterDisplayHTMLTool
-
-tool = JupyterDisplayHTMLTool()
-result = tool("""
-<h2>Swarmauri</h2>
-<p>This HTML was rendered by JupyterDisplayHTMLTool.
-</p>
-""")
-print(result)
+```bash
+pip install swarmauri_tool_jupyterdisplayhtml
 ```
 
-## Tips
+## Usage
 
-- Wrap the call in Swarmauri agents to surface generated HTML reports or tables.
-- Validate user-provided HTML before rendering to avoid XSS issues in shared notebooks.
-- Combine with other tools that produce HTML (e.g., Folium maps) to display results inline.
+Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
 
-## Want to help?
+```python
+from swarmauri_tool_jupyterdisplayhtml import JupyterDisplayHtmlTool
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+exports = ['JupyterDisplayHtmlTool']
+print(exports)
+```
 
+After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
+License: Apache-2.0. See `LICENSE`.
