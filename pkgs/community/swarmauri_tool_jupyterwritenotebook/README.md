@@ -14,156 +14,120 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool ? Jupyter Write Notebook
+# Swarmauri Jupyter Write Notebook Tool
 
-A Swarmauri automation tool that serializes Jupyter `NotebookNode` objects (or compatible dictionaries) to disk using the nbformat JSON schema. It encapsulates validation, encoding, and integrity checks so pipelines can persist generated notebooks with confidence.
+`swarmauri_tool_jupyterwritenotebook` writes notebook data to disk as JSON, then reads the file back to confirm the notebook artifact is not empty. It is useful when Swarmauri workflows materialize generated or transformed notebooks.
 
-- Writes notebooks with pretty-printed JSON (`indent=2`) and `ensure_ascii=False` for readable diffs and Unicode safety.
-- Performs a read-back verification step to guarantee the file contains valid JSON data.
-- Slots directly into agent workflows via the standard Swarmauri tool registration system.
+## Why
 
-## Requirements
+- Persist notebook data generated in memory by other notebook tools.
+- Save cleaned, parameterized, or post-processed notebook artifacts to versioned paths.
+- Add a simple write-and-verify step to notebook automation pipelines.
 
-- Python 3.10 ? 3.13.
-- `nbformat` for working with notebook structures.
-- Dependencies (`swarmauri_base`, `swarmauri_standard`, `pydantic`). These install automatically with the package.
+## Features
+
+- Accepts notebook content as a dictionary or `NotebookNode`-compatible structure.
+- Writes `.ipynb` JSON with configurable text encoding.
+- Performs a read-back verification step after the write.
+- Returns a success payload with the output file path.
+- Returns `{"error": ...}` when writing or verification fails.
+
+## FAQ
+
+### Does this tool validate notebook schema?
+
+No. It writes the provided structure as JSON and verifies that the file can be read back. Pair it with notebook-read or notebook-validation steps if you need strict schema checks.
+
+### What happens if the notebook payload is empty?
+
+The tool writes the file, then fails verification and returns an error because the round-tripped content is empty.
+
+### Can I choose the output encoding?
+
+Yes. The `encoding` parameter defaults to `utf-8`, but you can override it when needed.
 
 ## Installation
 
-Choose the installer that matches your workflow?each command pulls transitive dependencies.
-
-**pip**
+```bash
+uv add swarmauri_tool_jupyterwritenotebook
+```
 
 ```bash
 pip install swarmauri_tool_jupyterwritenotebook
 ```
 
-**Poetry**
-
-```bash
-poetry add swarmauri_tool_jupyterwritenotebook
-```
-
-**uv**
-
-```bash
-# Add to the active project and update uv.lock
-uv add swarmauri_tool_jupyterwritenotebook
-
-# or install into the current environment without modifying pyproject.toml
-uv pip install swarmauri_tool_jupyterwritenotebook
-```
-
-> Tip: When using uv in this repository, run commands from the repo root so uv can resolve the shared `pyproject.toml`.
-
-## Quick Start
-
-Generate a notebook programmatically and persist it with the tool. The response dictionary includes either a success message and file path or an error string.
+## Usage
 
 ```python
-from nbformat.v4 import new_notebook, new_markdown_cell, new_code_cell
 from swarmauri_tool_jupyterwritenotebook import JupyterWriteNotebookTool
 
-nb = new_notebook(
-    cells=[
-        new_markdown_cell("# Metrics Report"),
-        new_code_cell("print('accuracy:', 0.91)")
-    ],
-    metadata={
-        "kernelspec": {
-            "display_name": "Python 3",
-            "language": "python",
-            "name": "python3"
-        }
-    }
+tool = JupyterWriteNotebookTool()
+result = tool(
+    notebook_data={
+        "nbformat": 4,
+        "nbformat_minor": 5,
+        "metadata": {},
+        "cells": [],
+    },
+    output_file="artifacts/output.ipynb",
 )
 
-write_notebook = JupyterWriteNotebookTool()
-result = write_notebook(notebook_data=nb, output_file="reports/metrics.ipynb")
-
 print(result)
-# {'message': 'Notebook written successfully', 'file_path': 'reports/metrics.ipynb'}
 ```
 
-## Usage Scenarios
+## Examples
 
-### Persist Notebook Output From an Agent
+### Save a transformed notebook
 
 ```python
-from swarmauri_core.agent.Agent import Agent
-from swarmauri_standard.tools.registry import ToolRegistry
 from swarmauri_tool_jupyterwritenotebook import JupyterWriteNotebookTool
 
-registry = ToolRegistry()
-registry.register(JupyterWriteNotebookTool())
-agent = Agent(tool_registry=registry)
-
-# Agent actions produce notebook JSON (truncated for brevity)
-notebook_payload = {
-    "cells": [
-        {"cell_type": "code", "source": "print('done')", "metadata": {}, "outputs": []}
-    ],
-    "metadata": {"kernelspec": {"name": "python3"}},
+notebook = {
     "nbformat": 4,
-    "nbformat_minor": 5
+    "nbformat_minor": 5,
+    "metadata": {},
+    "cells": [
+        {"cell_type": "markdown", "metadata": {}, "source": ["# Report"]},
+    ],
 }
 
-response = agent.tools["JupyterWriteNotebookTool"](
-    notebook_data=notebook_payload,
-    output_file="runs/output.ipynb"
+response = JupyterWriteNotebookTool()(
+    notebook_data=notebook,
+    output_file="reports/report.ipynb",
 )
-print(response)
+
+print(response["file_path"])
 ```
 
-Register the tool alongside other Swarmauri components so agents can emit notebooks as part of a conversation or workflow.
-
-### Convert Executed Notebooks to Artifacts
+### Handle write failures
 
 ```python
-import nbformat
-from nbformat import NotebookNode
-from swarmauri_tool_jupyterwritenotebook import JupyterWriteNotebookTool
+response = JupyterWriteNotebookTool()(
+    notebook_data={},
+    output_file="reports/empty.ipynb",
+)
 
-# Assume executed_notebook is a NotebookNode returned by nbconvert or papermill
-executed_notebook: NotebookNode = nbformat.read("executed.ipynb", as_version=4)
-executed_notebook.metadata.setdefault("tags", []).append("validated")
-
-writer = JupyterWriteNotebookTool()
-artifact = writer(notebook_data=executed_notebook, output_file="artifacts/executed.ipynb")
-print(artifact)
+if "error" in response:
+    print(response["error"])
 ```
 
-This pattern is useful for CI systems that run notebooks and archive the executed results for review.
+## Related Packages
 
-### Chain With Validation Before Publishing
+- [`swarmauri_tool_jupyterreadnotebook`](https://pypi.org/project/swarmauri_tool_jupyterreadnotebook/)
+- [`swarmauri_tool_jupyterexecutenotebook`](https://pypi.org/project/swarmauri_tool_jupyterexecutenotebook/)
+- [`swarmauri_tool_jupyterexecutenotebookwithparameters`](https://pypi.org/project/swarmauri_tool_jupyterexecutenotebookwithparameters/)
+- [`swarmauri_tool_jupyterexecuteandconvert`](https://pypi.org/project/swarmauri_tool_jupyterexecuteandconvert/)
+- [`swarmauri_tool_jupyterclearoutput`](https://pypi.org/project/swarmauri_tool_jupyterclearoutput/)
 
-```python
-import nbformat
-from swarmauri_tool_jupytervalidatenotebook import JupyterValidateNotebookTool
-from swarmauri_tool_jupyterwritenotebook import JupyterWriteNotebookTool
+## Foundational Swarmauri Packages
 
-nb = nbformat.read("draft.ipynb", as_version=4)
-validate = JupyterValidateNotebookTool()
-write = JupyterWriteNotebookTool()
+- [`swarmauri`](https://pypi.org/project/swarmauri/)
+- [`swarmauri_core`](https://pypi.org/project/swarmauri_core/)
+- [`swarmauri_base`](https://pypi.org/project/swarmauri_base/)
+- [`swarmauri_standard`](https://pypi.org/project/swarmauri_standard/)
 
-validation = validate(nb)
-if validation["valid"] != "True":
-    raise RuntimeError(validation["report"])
+## More Documentation
 
-result = write(notebook_data=nb, output_file="dist/published.ipynb")
-print(result)
-```
-
-Validate the notebook schema first, then persist the approved version for distribution.
-
-## Troubleshooting
-
-- **`An error occurred during notebook write operation`** ? The tool surfaces file-system exceptions verbatim. Check write permissions and ensure the target directory exists.
-- **Empty file after execution** ? Read-back verification triggers when the file cannot be parsed as JSON. Confirm the notebook structure is JSON serializable (e.g., use nbformat helper constructors).
-- **Unexpected characters** ? The tool writes with `ensure_ascii=False` so non-ASCII text remains intact. If your environment cannot handle UTF-8, pass a different `encoding` argument.
-
-## License
-
-`swarmauri_tool_jupyterwritenotebook` is released under the Apache 2.0 License. See `LICENSE` for the full text.
-
-
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+- [nbformat documentation](https://nbformat.readthedocs.io/)
+- [Jupyter notebook format docs](https://jupyter.org/documentation)

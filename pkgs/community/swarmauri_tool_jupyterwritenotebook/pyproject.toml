@@ -1,16 +1,22 @@
 [project]
 name = "swarmauri_tool_jupyterwritenotebook"
 version = "0.9.1.dev5"
-description = "A tool that writes a NotebookNode object to a file in JSON format, preserving the notebook structure."
+description = "Swarmauri notebook-output tool for writing Jupyter notebook data to disk with read-back verification."
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterwritenotebook/"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.15"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Framework :: Jupyter",
+    "Topic :: Scientific/Engineering",
+    "Topic :: File Formats :: JSON",
+    "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -29,18 +35,15 @@ dependencies = [
     "swarmauri_standard",
 ]
 keywords = [
-    "swarmauri",
-    "tool",
-    "jupyterwritenotebook",
-    "writes",
-    "notebooknode",
-    "object",
-    "file",
-    "json",
-    "format",
-    "preserving",
+    "jupyter",
     "notebook",
-    "structure",
+    "ipynb",
+    "notebook output",
+    "notebook writer",
+    "nbformat",
+    "json notebook",
+    "artifact generation",
+    "read-back verification",
 ]
 
 [tool.uv.sources]
@@ -67,6 +70,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-accept-deps=jsonschema,jsonschema-specifications,referencing,rpds-py"
 
 [project.entry-points.'swarmauri.tools']
 JupyterWriteNotebookTool = "swarmauri_tool_jupyterwritenotebook:JupyterWriteNotebookTool"
