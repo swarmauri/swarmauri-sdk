@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_signing_ecdsa/">
@@ -6,48 +6,114 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_ecdsa/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_ecdsa.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_ecdsa/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_ecdsa/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_signing_ecdsa" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_signing_ecdsa" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_ecdsa/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_signing_ecdsa?label=swarmauri_signing_ecdsa&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_signing_ecdsa?label=swarmauri_signing_ecdsa&color=green" alt="PyPI - swarmauri_signing_ecdsa"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Signing ECDSA
 
-ECDSA-based signer for Swarmauri.
+An asynchronous ECDSA-based signer that implements the `ISigning` interface for
+detached signatures over raw bytes and canonicalized envelopes.
 
 ## Features
 
-- ECDSA-based signer for Swarmauri.
-- Exposes discoverable runtime entry points for `peagen.plugins.signings, swarmauri.signings` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- JSON canonicalization built in, with optional CBOR canonicalization via
+  [`cbor2`](https://pypi.org/project/cbor2/)
+- Supports the `ECDSA-P256-SHA256`, `ECDSA-P384-SHA384`, and
+  `ECDSA-P521-SHA512` curves provided by
+  [`cryptography`](https://pypi.org/project/cryptography/)
+- Multi-signature aware verification with opt-in algorithm restrictions through
+  the `require` mapping
+- Detached signature generation for both raw byte payloads and Swarmauri
+  envelopes
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_signing_ecdsa
-```
+### pip
 
 ```bash
 pip install swarmauri_signing_ecdsa
+# Optional CBOR support
+pip install "swarmauri_signing_ecdsa[cbor]"
+```
+
+### Poetry
+
+```bash
+poetry add swarmauri_signing_ecdsa
+# Optional CBOR support
+poetry add "swarmauri_signing_ecdsa[cbor]"
+```
+
+### uv
+
+```bash
+# Install uv if it is not already available on your system
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install the signer package
+uv pip install swarmauri_signing_ecdsa
+# Optional CBOR support
+uv pip install "swarmauri_signing_ecdsa[cbor]"
 ```
 
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+The signer operates asynchronously and expects private keys to be supplied via
+the `KeyRef` mappings defined in `swarmauri_core`. When verifying, provide the
+corresponding public keys through the `opts={"pubkeys": [...]}` option.
 
 ```python
+import asyncio
+from cryptography.hazmat.primitives.asymmetric import ec
+
 from swarmauri_signing_ecdsa import EcdsaEnvelopeSigner
 
-exports = ['EcdsaEnvelopeSigner']
-print(exports)
+
+async def main() -> None:
+    signer = EcdsaEnvelopeSigner()
+
+    # Provide the private key as a KeyRef understood by swarmauri_core
+    private_key = ec.generate_private_key(ec.SECP256R1())
+    key_ref = {"kind": "cryptography_obj", "obj": private_key}
+
+    envelope = {
+        "headers": {"kid": "example"},
+        "payload": {"message": "signed hello"},
+    }
+
+    signatures = await signer.sign_envelope(
+        key_ref,
+        envelope,
+        canon="json",
+    )
+
+    is_valid = await signer.verify_envelope(
+        envelope,
+        signatures,
+        canon="json",
+        opts={"pubkeys": [private_key.public_key()]},
+    )
+
+    print(f"Signature valid? {is_valid}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+## Entry Point
 
-License: Apache-2.0. See `LICENSE`.
+The signer registers under the `swarmauri.signings` entry point as
+`EcdsaEnvelopeSigner`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

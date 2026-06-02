@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_cipher_suite_jwa/">
@@ -6,48 +6,98 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suite_jwa/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suite_jwa.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_jwa/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_jwa/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_cipher_suite_jwa" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_cipher_suite_jwa" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_jwa/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_jwa?label=swarmauri_cipher_suite_jwa&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_jwa?label=swarmauri_cipher_suite_jwa&color=green" alt="PyPI - swarmauri_cipher_suite_jwa"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Cipher Suite Jwa
+# Swarmauri Cipher JWA
 
-JWA-focused cipher suite for Swarmauri.
+Normalization-centric cipher suite that maps JSON Web Algorithm (JWA) names
+into provider-friendly descriptors for Swarmauri crypto and signing
+implementations.
+
+Implements the algorithm profiles defined in
+[RFC 7518: JSON Web Algorithms (JWA)](https://datatracker.ietf.org/doc/html/rfc7518).
 
 ## Features
 
-- JWA-focused cipher suite for Swarmauri.
-- Exposes discoverable runtime entry points for `swarmauri.cipher_suites` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Centralizes JWA algorithm allow-lists for signing, encryption, and key
+  management operations
+- Provides dialect translation helpers for COSE identifiers and provider
+  metadata
+- Supplies sensible defaults so crypto providers can delegate algorithm
+  selection to the suite
+- Enforces consistent tag lengths and parameter shapes for AES-GCM and RSA-PSS
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_cipher_suite_jwa
-```
+### pip
 
 ```bash
 pip install swarmauri_cipher_suite_jwa
 ```
 
-## Usage
+### Poetry
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+```bash
+poetry add swarmauri_cipher_suite_jwa
+```
+
+### uv
+
+To add the dependency to a `pyproject.toml` managed by `uv`:
+
+```bash
+uv add swarmauri_cipher_suite_jwa
+```
+
+Or install it into the active environment:
+
+```bash
+uv pip install swarmauri_cipher_suite_jwa
+```
+
+## Usage
 
 ```python
 from swarmauri_cipher_suite_jwa import JwaCipherSuite
+from swarmauri_core.crypto.types import KeyRef, KeyType, KeyUse, ExportPolicy
 
-exports = ['JwaCipherSuite']
-print(exports)
+# Construct a key reference representative of the caller's key inventory
+key = KeyRef(
+    kid="demo-rsa",
+    version=1,
+    type=KeyType.RSA,
+    uses=(KeyUse.SIGN, KeyUse.VERIFY),
+    export_policy=ExportPolicy.PUBLIC_ONLY,
+)
+
+suite = JwaCipherSuite(name="default-jwa")
+
+# Resolve the provider-facing descriptor for a signing request
+descriptor = suite.normalize(op="sign", alg="PS256", key=key)
+print(descriptor["mapped"]["provider"])  # -> "PS256"
+print(descriptor["params"]["saltBits"])   # -> 256 (derived default)
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+`normalize` returns a structured dictionary containing the canonical algorithm,
+per-dialect aliases, policy constraints, and defaulted parameters. Crypto and
+signing providers consume this descriptor to select the correct primitives
+without re-implementing JWA policy logic.
 
-License: Apache-2.0. See `LICENSE`.
+## Entry Point
+
+The suite registers under the `swarmauri.cipher_suites` entry point as
+`JwaCipherSuite`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+
+

@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_parser_keywordextractor/">
@@ -6,48 +6,67 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_parser_keywordextractor/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_parser_keywordextractor.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_parser_keywordextractor/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_parser_keywordextractor/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_parser_keywordextractor" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_parser_keywordextractor" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_parser_keywordextractor/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_parser_keywordextractor?label=swarmauri_parser_keywordextractor&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_parser_keywordextractor?label=swarmauri_parser_keywordextractor&color=green" alt="PyPI - swarmauri_parser_keywordextractor"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Parser Keywordextractor
 
-Keyword Extractor Parser for Swarmauri.
+`KeywordExtractorParser` wraps the [YAKE](https://github.com/LIAAD/yake) keyword
+extraction library to turn arbitrary text into a ranked list of
+`swarmauri_standard.documents.Document` instances. Each returned document stores
+the detected keyword in `content` and the YAKE importance score in
+`metadata["score"]`.
 
-## Features
-
-- Keyword Extractor Parser for Swarmauri.
-- Exposes discoverable runtime entry points for `swarmauri.parsers` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+The parser normalizes any input into a string before analysis and, by default,
+extracts up to 10 keywords using the English language model, three-word maximum
+phrases, and YAKE's sequence-matching deduplication (`dedupLim=0.9`). Override
+`lang` or `num_keywords` when instantiating the parser to tailor the output to
+your dataset.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
+Choose the tool that matches your workflow:
 
 ```bash
-uv add swarmauri_parser_keywordextractor
-```
-
-```bash
+# pip
 pip install swarmauri_parser_keywordextractor
+
+# Poetry
+poetry add swarmauri_parser_keywordextractor
+
+# uv
+uv add swarmauri_parser_keywordextractor
 ```
 
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+Here's a basic example of how to use the `KeywordExtractorParser`:
 
 ```python
 from swarmauri_parser_keywordextractor import KeywordExtractorParser
 
-exports = ['KeywordExtractorParser']
-print(exports)
+# Initialize the parser for three keywords in English
+parser = KeywordExtractorParser(num_keywords=3, lang="en")
+
+text = "Artificial intelligence and machine learning are transforming technology"
+documents = parser.parse(text)
+
+for document in documents:
+    score = document.metadata["score"]
+    print(f"Keyword: {document.content}, Score: {score:.4f}")
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+Each call to `parse` returns a list of `Document` objects ranked by YAKE so you
+can feed them directly into downstream Swarmauri pipelines.
 
-License: Apache-2.0. See `LICENSE`.
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+
+
+

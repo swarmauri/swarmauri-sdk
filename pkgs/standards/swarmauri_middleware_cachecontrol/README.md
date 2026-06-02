@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_middleware_cachecontrol/">
@@ -6,14 +6,13 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_cachecontrol/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_cachecontrol.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_cachecontrol/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_cachecontrol/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_cachecontrol" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_cachecontrol" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_cachecontrol/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_cachecontrol?label=swarmauri_middleware_cachecontrol&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_cachecontrol?label=swarmauri_middleware_cachecontrol&color=green" alt="PyPI - swarmauri_middleware_cachecontrol"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Middleware Cachecontrol
 
@@ -21,33 +20,77 @@ Middleware for managing HTTP cache headers and client-side caching behavior.
 
 ## Features
 
-- Middleware for managing HTTP cache headers and client-side caching behavior.
-- Exposes discoverable runtime entry points for `swarmauri.middlewares` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Configurable `max_age` that controls how long clients may cache responses.
+- Toggle caching on or off at runtime with the `enabled` flag.
+- Adds `Cache-Control`, timestamp-based `ETag`, and `Vary: Accept-Encoding` headers to successful responses.
+- Inspects `If-Modified-Since` and `If-None-Match` request headers to short-circuit unchanged responses with `304 Not Modified`.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_middleware_cachecontrol
-```
+Install the package with your preferred Python packaging tool:
 
 ```bash
 pip install swarmauri_middleware_cachecontrol
 ```
 
-## Usage
-
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
-```python
-from swarmauri_middleware_cachecontrol import CacheControlMiddleware
-
-exports = ['CacheControlMiddleware']
-print(exports)
+```bash
+poetry add swarmauri_middleware_cachecontrol
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+```bash
+uv pip install swarmauri_middleware_cachecontrol
+```
 
-License: Apache-2.0. See `LICENSE`.
+## Usage
+
+`CacheControlMiddleware` accepts two primary configuration options:
+
+- `max_age`: Maximum cache lifetime (in seconds) communicated to clients. Defaults to `3600`.
+- `enabled`: When `False`, the middleware skips all cache headers and lets responses pass through untouched. Defaults to `True`.
+
+When enabled, the middleware injects cache headers into outgoing responses and mirrors conditional request headers to return `304 Not Modified` when the client already has fresh content. Integrate it with FastAPI or Starlette by instantiating the middleware once and delegating to its `dispatch` method from an `@app.middleware("http")` handler.
+
+### Example
+
+The snippet below shows how to register the middleware with FastAPI and inspect the generated headers using `TestClient`:
+
+```python
+from fastapi import FastAPI, Request
+from fastapi.testclient import TestClient
+
+from swarmauri_middleware_cachecontrol import CacheControlMiddleware
+
+app = FastAPI()
+cache_control = CacheControlMiddleware(max_age=60)
+
+
+@app.middleware("http")
+async def apply_cache_control(request: Request, call_next):
+    return await cache_control.dispatch(request, call_next)
+
+
+@app.get("/status")
+def status() -> dict[str, str]:
+    return {"state": "fresh"}
+
+
+def main() -> None:
+    client = TestClient(app)
+    response = client.get("/status")
+    response.raise_for_status()
+
+    print("Cache-Control:", response.headers["Cache-Control"])
+    print("ETag:", response.headers["ETag"])
+    print("Vary:", response.headers["Vary"])
+    print("Payload:", response.json())
+
+
+if __name__ == "__main__":
+    main()
+```
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md) that will help you get started.
+
+

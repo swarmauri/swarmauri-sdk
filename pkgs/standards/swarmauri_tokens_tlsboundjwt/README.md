@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tokens_tlsboundjwt/">
@@ -6,32 +6,25 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_tlsboundjwt/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_tlsboundjwt.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_tlsboundjwt/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_tlsboundjwt/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tokens_tlsboundjwt" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tokens_tlsboundjwt" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_tlsboundjwt/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tokens_tlsboundjwt?label=swarmauri_tokens_tlsboundjwt&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tokens_tlsboundjwt?label=swarmauri_tokens_tlsboundjwt&color=green" alt="PyPI - swarmauri_tokens_tlsboundjwt"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Tokens TLS-Bound JWT
 
-mTLS-bound JWT token service for Swarmauri.
+A mutual-TLS bound JWT token service per [RFC 8705](https://www.rfc-editor.org/rfc/rfc8705).
+It derives the `x5t#S256` confirmation claim from the current client certificate
+and verifies that presented certificates match the token binding.
 
-## Features
-
-- mTLS-bound JWT token service for Swarmauri.
-- Exposes discoverable runtime entry points for `peagen.plugins.tokens, swarmauri.tokens` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+Features:
+- Automatic `cnf` claim insertion with the SHA-256 thumbprint of the client certificate
+- Verification that rejects tokens when the live certificate is missing or mismatched
 
 ## Installation
-
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_tokens_tlsboundjwt
-```
 
 ```bash
 pip install swarmauri_tokens_tlsboundjwt
@@ -39,15 +32,22 @@ pip install swarmauri_tokens_tlsboundjwt
 
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
 ```python
-from swarmauri_tokens_tlsboundjwt import TlsBoundJWTTokenService, x5tS256_from_der
+from swarmauri_core.crypto.types import JWAAlg
+from swarmauri_tokens_tlsboundjwt import TlsBoundJWTTokenService
 
-exports = ['TlsBoundJWTTokenService', 'x5tS256_from_der']
-print(exports)
+svc = TlsBoundJWTTokenService(key_provider, client_cert_der_getter=my_cert_getter)
+await svc.mint({"sub": "alice"}, alg=JWAAlg.HS256)
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+## Entry Point
 
-License: Apache-2.0. See `LICENSE`.
+The service registers under the `swarmauri.tokens` entry point as
+`TlsBoundJWTTokenService`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

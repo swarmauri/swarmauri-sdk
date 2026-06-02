@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tokens_sshsig/">
@@ -6,32 +6,27 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_sshsig/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_sshsig.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_sshsig/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_sshsig/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tokens_sshsig" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tokens_sshsig" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_sshsig/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tokens_sshsig?label=swarmauri_tokens_sshsig&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tokens_sshsig?label=swarmauri_tokens_sshsig&color=green" alt="PyPI - swarmauri_tokens_sshsig"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tokens SSH Sig
+# swarmauri_tokens_sshsig
 
-SSH signature token service for Swarmauri.
+An SSH signature token service for the Swarmauri framework. This service
+implements minting and verifying tokens signed with SSH-compatible
+algorithms such as Ed25519 and ECDSA P-256.
 
 ## Features
 
-- SSH signature token service for Swarmauri.
-- Exposes discoverable runtime entry points for `peagen.plugins.tokens, swarmauri.tokens` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Mint and verify compact `SSHSIG` tokens
+- Supports `ssh-ed25519` and `ecdsa-sha2-nistp256`
+- Integrates with the Swarmauri token management framework
 
 ## Installation
-
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_tokens_sshsig
-```
 
 ```bash
 pip install swarmauri_tokens_sshsig
@@ -39,15 +34,25 @@ pip install swarmauri_tokens_sshsig
 
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
 ```python
 from swarmauri_tokens_sshsig import SshSigTokenService
+from swarmauri_core.key_providers import IKeyProvider
 
-exports = ['SshSigTokenService']
-print(exports)
+key_provider: IKeyProvider = ...  # Provide an implementation of IKeyProvider
+svc = SshSigTokenService(key_provider, default_issuer="example.com")
+
+token = await svc.mint({"sub": "alice"}, alg="ssh-ed25519", kid="ed1")
+claims = await svc.verify(token, issuer="example.com")
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+The token format uses a compact three-part structure similar to JWT but relies
+on SSH signature algorithms. The payload is encoded as deterministic JSON and
+bound to a namespace before signing, providing interoperability with existing
+SSH key infrastructures.
 
-License: Apache-2.0. See `LICENSE`.
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

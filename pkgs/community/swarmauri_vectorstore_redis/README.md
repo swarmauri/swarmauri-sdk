@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_vectorstore_redis/">
@@ -6,32 +6,19 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_redis/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_redis.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_redis/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_redis/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_vectorstore_redis" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_vectorstore_redis" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_redis/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_redis?label=swarmauri_vectorstore_redis&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_redis?label=swarmauri_vectorstore_redis&color=green" alt="PyPI - swarmauri_vectorstore_redis"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Vectorstore Redis
 
-Swarmauri Redis Vector Store.
-
-## Features
-
-- Swarmauri Redis Vector Store.
-- Exposes discoverable runtime entry points for `swarmauri.retrievers, swarmauri.vector_stores` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Lives in the community package lane for optional integrations that extend the main Swarmauri SDK surface.
+A Redis-based vector store implementation for the Swarmauri SDK that enables efficient storage and retrieval of document embeddings.
 
 ## Installation
-
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_vectorstore_redis
-```
 
 ```bash
 pip install swarmauri_vectorstore_redis
@@ -39,15 +26,35 @@ pip install swarmauri_vectorstore_redis
 
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+Basic example of using RedisVectorStore:
 
 ```python
-from swarmauri_vectorstore_redis import RedisVectorStore, RedisDocumentRetriever
+from swarmauri.vector_stores.RedisVectorStore import RedisVectorStore
+from swarmauri.documents.Document import Document
 
-exports = ['RedisVectorStore', 'RedisDocumentRetriever']
-print(exports)
+# Initialize the vector store
+vector_store = RedisVectorStore(
+    redis_host="localhost",
+    redis_port=6379,
+    redis_password="your_password",
+    embedding_dimension=8000
+)
+
+# Add documents
+document = Document(
+    id="doc1",
+    content="Sample document content",
+    metadata={"category": "sample"}
+)
+vector_store.add_document(document)
+
+# Retrieve similar documents
+similar_docs = vector_store.retrieve("sample content", top_k=5)
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+## Want to help?
 
-License: Apache-2.0. See `LICENSE`.
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+
+
+

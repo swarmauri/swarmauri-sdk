@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_xmp_svg/">
@@ -6,48 +6,66 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_xmp_svg/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_xmp_svg.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_xmp_svg/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_xmp_svg/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_xmp_svg" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_xmp_svg" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_xmp_svg/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_xmp_svg?label=swarmauri_xmp_svg&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_xmp_svg?label=swarmauri_xmp_svg&color=green" alt="PyPI - swarmauri_xmp_svg"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri XMP SVG
+# swarmauri_xmp_svg
 
-SVG handler for embedding and extracting XMP packets in Swarmauri runtimes.
+`swarmauri_xmp_svg` provides the `SVGXMP` handler so vector graphics can embed, retrieve, and remove RDF/XML metadata via `<metadata>` elements.
 
 ## Features
 
-- SVG handler for embedding and extracting XMP packets in Swarmauri runtimes.
-- Exposes discoverable runtime entry points for `swarmauri.xmp_handlers` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- **Registry ready** ? derives from `EmbedXmpBase` so Swarmauri runtimes discover it through the dynamic registry.
+- **XML aware** ? uses `ElementTree` to place metadata deterministically as the first child of `<svg>`.
+- **Text fallback** ? gracefully injects raw strings when the SVG cannot be parsed structurally.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
 ```bash
-uv add swarmauri_xmp_svg
-```
-
-```bash
+# pip
 pip install swarmauri_xmp_svg
+
+# uv
+uv add swarmauri_xmp_svg
 ```
 
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
 ```python
-from swarmauri_xmp_svg import register_type, EmbedXmpBase, SVGXMP
+from pathlib import Path
 
-exports = ['register_type', 'EmbedXmpBase', 'SVGXMP']
-print(exports)
+from swarmauri_xmp_svg import SVGXMP
+
+handler = SVGXMP()
+svg_path = Path("example.svg")
+xmp_packet = """<x:xmpmeta xmlns:x='adobe:ns:meta/'><rdf:RDF>...</rdf:RDF></x:xmpmeta>"""
+
+# Insert metadata into the SVG root element
+updated_bytes = handler.write_xmp(svg_path.read_bytes(), xmp_packet)
+svg_path.write_bytes(updated_bytes)
+
+# Read the packet back
+restored_xml = handler.read_xmp(updated_bytes)
+print(restored_xml)
+
+# Remove it if necessary
+clean_bytes = handler.remove_xmp(updated_bytes)
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+### Why it works
 
-License: Apache-2.0. See `LICENSE`.
+- **XML aware** ? parsing via `ElementTree` ensures metadata lands as the first child under `<svg>`.
+- **Resilient fallback** ? gracefully degrades to text insertion when the document cannot be parsed as XML.
+- **Registry ready** ? inherits from `EmbedXmpBase`, making runtime discovery effortless.
+
+## Project Resources
+
+- Source: <https://github.com/swarmauri/swarmauri-sdk>
+- License: Apache 2.0
+
+

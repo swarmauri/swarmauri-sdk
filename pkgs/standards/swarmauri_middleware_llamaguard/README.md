@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_middleware_llamaguard/">
@@ -6,48 +6,127 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_llamaguard/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_llamaguard.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_llamaguard/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_llamaguard/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_llamaguard" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_llamaguard" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_llamaguard/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_llamaguard?label=swarmauri_middleware_llamaguard&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_llamaguard?label=swarmauri_middleware_llamaguard&color=green" alt="PyPI - swarmauri_middleware_llamaguard"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Middleware Llama Guard
+# Swarmauri Middleware LlamaGuard
 
-Middleware for inspecting and filtering unsafe content using LlamaGuard.
+A FastAPI middleware that wraps Groq's ``llama-guard-3-8b`` model to provide end-to-end content inspection for both inbound requests and outbound responses. The middleware is designed to slot into any FastAPI application and enforce safety policies before your handlers are invoked.
 
 ## Features
 
-- Middleware for inspecting and filtering unsafe content using LlamaGuard.
-- Exposes discoverable runtime entry points for `swarmauri.middlewares` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Real-time scanning of incoming request bodies and outgoing responses (including streaming responses).
+- Configurable language model injection ? provide your own :class:`~swarmauri_standard.llms.GroqModel` or let the middleware create one for you.
+- Graceful degradation when no model is configured (traffic is allowed but logged).
+
+## Middleware behavior
+
+``LlamaGuardMiddleware`` inspects content by default with Groq's ``llama-guard-3-8b`` model. Provide an API key via the ``api_key`` argument or the ``GROQ_API_KEY`` environment variable to enable enforcement. When no model is available the middleware logs a warning and treats all content as safe so that applications can continue to function while you configure credentials.
+
+Both JSON responses and streaming responses are inspected. Unsafe content results in an HTTP 400 response with a descriptive error payload.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
+Choose the workflow that matches your project tooling:
 
-```bash
-uv add swarmauri_middleware_llamaguard
-```
+- **pip**
 
-```bash
-pip install swarmauri_middleware_llamaguard
-```
+  ```bash
+  pip install swarmauri_middleware_llamaguard
+  ```
 
-## Usage
+- **poetry**
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+  ```bash
+  poetry add swarmauri_middleware_llamaguard
+  ```
+
+- **uv**
+
+  ```bash
+  uv add swarmauri_middleware_llamaguard
+  ```
+
+## Quickstart
+
+1. Configure your Groq API key (either export ``GROQ_API_KEY`` or pass ``api_key`` when constructing the middleware).
+2. Attach the middleware to your FastAPI application:
 
 ```python
+from fastapi import FastAPI, Request
+
 from swarmauri_middleware_llamaguard import LlamaGuardMiddleware
 
-exports = ['LlamaGuardMiddleware']
-print(exports)
+app = FastAPI()
+middleware = LlamaGuardMiddleware()  # Uses GROQ_API_KEY from the environment
+
+
+@app.middleware("http")
+async def llama_guard(request: Request, call_next):
+    return await middleware.dispatch(request, call_next)
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+The middleware will block requests or responses when ``llama-guard-3-8b`` labels the payload as ``unsafe``.
 
-License: Apache-2.0. See `LICENSE`.
+## Example: Local safety checks without Groq
+
+The middleware also accepts a custom language model implementation. The following self-contained example demonstrates how to supply a stub model for local development or tests while still benefiting from end-to-end request inspection.
+
+```python
+# README Example: Basic request filtering
+from fastapi import FastAPI, Request
+from fastapi.testclient import TestClient
+
+from swarmauri_middleware_llamaguard import LlamaGuardMiddleware
+from swarmauri_standard.messages.AgentMessage import AgentMessage
+
+
+class StubGuardModel:
+    def predict(self, conversation, *args, **kwargs):
+        latest = str(conversation.get_last().content).lower()
+        verdict = "unsafe" if "malicious" in latest else "safe"
+        conversation.add_message(AgentMessage(content=verdict))
+
+
+app = FastAPI()
+middleware = LlamaGuardMiddleware(llm=StubGuardModel())
+
+
+@app.middleware("http")
+async def llama_guard(request: Request, call_next):
+    return await middleware.dispatch(request, call_next)
+
+
+@app.post("/echo")
+def echo(payload: dict) -> dict:
+    return payload
+
+
+with TestClient(app) as client:
+    assert client.post("/echo", json={"message": "hello"}).status_code == 200
+    assert (
+        client.post("/echo", json={"message": "malicious content"}).status_code
+        == 400
+    )
+```
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

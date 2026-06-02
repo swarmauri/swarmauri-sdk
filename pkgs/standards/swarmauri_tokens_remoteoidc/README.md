@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tokens_remoteoidc/">
@@ -6,48 +6,177 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_remoteoidc/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_remoteoidc.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_remoteoidc/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_remoteoidc/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tokens_remoteoidc" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tokens_remoteoidc" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_remoteoidc/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tokens_remoteoidc?label=swarmauri_tokens_remoteoidc&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tokens_remoteoidc?label=swarmauri_tokens_remoteoidc&color=green" alt="PyPI - swarmauri_tokens_remoteoidc"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tokens Remoteoidc
+# swarmauri_tokens_remoteoidc
 
-Remote OIDC token verification service.
+Remote OIDC token verification service for Swarmauri.
+
+This package provides a verification-only token service that retrieves
+JSON Web Key Sets (JWKS) from a remote OpenID Connect (OIDC) issuer and
+validates JWTs in accordance with RFC 7517 and RFC 7519. It implements
+`ITokenService` and exposes an entry point named
+`RemoteOIDCTokenService`.
 
 ## Features
 
-- Remote OIDC token verification service.
-- Exposes discoverable runtime entry points for `peagen.plugins.tokens, swarmauri.tokens` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Remote OIDC discovery with JWKS caching and conditional revalidation
+  (ETag / Last-Modified).
+- Audience and issuer validation with configurable clock-skew leeway.
+- Optional extras for additional canonicalisation formats via the `cbor`
+  extra.
+- Manual refresh hook for cache priming plus a `jwks()` helper for
+  introspection.
+- Verification-only surface: `mint()` deliberately raises
+  `NotImplementedError`.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_tokens_remoteoidc
-```
+### pip
 
 ```bash
 pip install swarmauri_tokens_remoteoidc
 ```
 
-## Usage
+### Poetry
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
-```python
-from swarmauri_tokens_remoteoidc import RemoteOIDCTokenService
-
-exports = ['RemoteOIDCTokenService']
-print(exports)
+```bash
+poetry add swarmauri_tokens_remoteoidc
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+### uv
 
-License: Apache-2.0. See `LICENSE`.
+```bash
+uv add swarmauri_tokens_remoteoidc
+```
+
+Install the optional CBOR canonicalisation helpers with the `cbor`
+extra if needed:
+
+```bash
+pip install swarmauri_tokens_remoteoidc[cbor]
+poetry add --extras cbor swarmauri_tokens_remoteoidc
+uv add swarmauri_tokens_remoteoidc[cbor]
+```
+
+## Usage
+
+1. Provide the expected OIDC issuer URL. Optionally override
+   `jwks_url` to skip discovery when you already know the JWKS endpoint.
+2. Call `refresh()` to prime caches when your process boots or after a
+   rotation signal.
+3. Await `verify()` with the JWT to validate signatures, issuer, and
+   optional audience or nonce constraints.
+
+### Example
+
+The snippet below boots a minimal HTTP server that hosts a JWKS
+containing a symmetric key. It then mints a short-lived HS256 token and
+verifies it using `RemoteOIDCTokenService`.
+
+```python
+import asyncio
+import json
+import threading
+import time
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+import jwt
+from jwt.utils import base64url_encode
+
+from swarmauri_tokens_remoteoidc import RemoteOIDCTokenService
+
+SECRET = b"super-secret-key"
+KEY_ID = "demo-key"
+
+
+def make_handler(jwks: dict):
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path != "/jwks.json":
+                self.send_response(404)
+                self.end_headers()
+                return
+
+            body = json.dumps(jwks).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, format, *args):  # pragma: no cover - quiet server
+            return
+
+    return Handler
+
+
+async def main() -> None:
+    jwks = {
+        "keys": [
+            {
+                "kty": "oct",
+                "kid": KEY_ID,
+                "k": base64url_encode(SECRET).decode("ascii"),
+                "alg": "HS256",
+            }
+        ]
+    }
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(jwks))
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+
+    try:
+        issuer = "https://issuer.example.com"
+        jwks_url = f"http://127.0.0.1:{server.server_address[1]}/jwks.json"
+
+        service = RemoteOIDCTokenService(
+            issuer=issuer,
+            jwks_url=jwks_url,
+            expected_alg_whitelist=("HS256",),
+        )
+
+        now = int(time.time())
+        token = jwt.encode(
+            {
+                "iss": issuer,
+                "aud": "my-audience",
+                "sub": "user-123",
+                "iat": now,
+                "exp": now + 60,
+            },
+            SECRET,
+            algorithm="HS256",
+            headers={"kid": KEY_ID},
+        )
+
+        service.refresh(force=True)
+        claims = await service.verify(token, audience="my-audience")
+        print(f"Verified subject: {claims['sub']}")
+    finally:
+        server.shutdown()
+        thread.join()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+The service performs JWKS discovery or fetch, validates the token
+signature and issuer, and returns the decoded claims when verification
+succeeds. Cache entries refresh automatically based on `cache_ttl_s` or
+manually via `refresh(force=True)`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

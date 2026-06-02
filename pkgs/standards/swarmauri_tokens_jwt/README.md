@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tokens_jwt/">
@@ -6,48 +6,144 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_jwt/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_jwt.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_jwt/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_jwt/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tokens_jwt" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tokens_jwt" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_jwt/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tokens_jwt?label=swarmauri_tokens_jwt&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tokens_jwt?label=swarmauri_tokens_jwt&color=green" alt="PyPI - swarmauri_tokens_jwt"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tokens JWT
+# swarmauri_tokens_jwt
 
-JWT token service for Swarmauri.
-
-## Features
-
-- JWT token service for Swarmauri.
-- Exposes discoverable runtime entry points for `peagen.plugins.tokens, swarmauri.tokens` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+A standard JWT token service for the Swarmauri framework. This service
+implements minting and verifying JSON Web Tokens and exposes a JWKS
+endpoint for public key discovery.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_tokens_jwt
-```
+Install the service with your preferred Python packaging tool:
 
 ```bash
 pip install swarmauri_tokens_jwt
 ```
 
-## Usage
-
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
-```python
-from swarmauri_tokens_jwt import JWTTokenService
-
-exports = ['JWTTokenService']
-print(exports)
+```bash
+poetry add swarmauri_tokens_jwt
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+```bash
+uv pip install swarmauri_tokens_jwt
+```
 
-License: Apache-2.0. See `LICENSE`.
+## Features
+
+- Mint and verify JWS/JWT tokens backed by any :class:`~swarmauri_core.key_providers.IKeyProvider`
+- Supports algorithms like **HS256**, **RS256**, **ES256**, **PS256** and **EdDSA**
+- Adds standard temporal claims (`iat`, `nbf`, and optional `exp`) plus issuer,
+  subject, audience and scope defaults when minting tokens
+- Validates expiration, not-before, issuer and audience claims during
+  verification
+- Publishes a JWKS endpoint for public key discovery through your key provider
+- Install the optional ``cryptography`` dependency to enable RSA, ECDSA and
+  EdDSA signing keys
+
+## Usage
+
+`JWTTokenService` requires an asynchronous `IKeyProvider` to supply signing
+material. The example below shows how to mint and verify a symmetric **HS256**
+token using a minimal in-memory key provider.
+
+```python
+import asyncio
+import base64
+from swarmauri_tokens_jwt import JWTTokenService
+from swarmauri_core.key_providers import (
+    ExportPolicy,
+    IKeyProvider,
+    KeyRef,
+    KeyUse,
+)
+from swarmauri_core.crypto.types import JWAAlg, KeyType
+
+
+class InMemoryKeyProvider(IKeyProvider):
+    def __init__(self) -> None:
+        self.secret = b"secret"
+        self.kid = "sym"
+        self.version = 1
+
+    def supports(self) -> dict[str, list[str]]:
+        return {}
+
+    async def create_key(self, spec):
+        raise NotImplementedError
+
+    async def import_key(self, spec, material, *, public=None):
+        raise NotImplementedError
+
+    async def rotate_key(self, kid, *, spec_overrides=None):
+        raise NotImplementedError
+
+    async def destroy_key(self, kid, version=None) -> bool:
+        return False
+
+    async def get_key(self, kid, version=None, *, include_secret=False) -> KeyRef:
+        material = self.secret if include_secret else None
+        return KeyRef(
+            kid=self.kid,
+            version=self.version,
+            type=KeyType.OPAQUE,
+            uses=(KeyUse.SIGN,),
+            export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+            material=material,
+        )
+
+    async def list_versions(self, kid):
+        return (self.version,)
+
+    async def get_public_jwk(self, kid, version=None):
+        return {}
+
+    async def jwks(self) -> dict:
+        k = base64.urlsafe_b64encode(self.secret).rstrip(b"=").decode()
+        return {"keys": [{"kty": "oct", "kid": f"{self.kid}.{self.version}", "k": k}]}
+
+    async def random_bytes(self, n: int) -> bytes:
+        return b"\x00" * n
+
+    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+        return b"\x00" * length
+
+
+async def main() -> None:
+    svc = JWTTokenService(InMemoryKeyProvider(), default_issuer="issuer")
+    token = await svc.mint(
+        {"sub": "alice"},
+        alg=JWAAlg.HS256,
+        kid="sym",
+        lifetime_s=600,  # override the default one-hour lifetime if needed
+    )
+    claims = await svc.verify(token, issuer="issuer")
+    assert claims["sub"] == "alice"
+
+
+asyncio.run(main())
+```
+
+`verify` retrieves the JSON Web Key Set from the provider and enforces
+expiration, not-before, issuer and audience checks before returning the decoded
+claims. Expose the service's :meth:`jwks` coroutine to publish the active public
+keys from your provider.
+
+The service also supports asymmetric algorithms such as **RS256**, **ES256** and
+**EdDSA** when the key provider exposes the appropriate keys. See the
+docstrings in :mod:`swarmauri_tokens_jwt` for additional details on the API
+surface.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

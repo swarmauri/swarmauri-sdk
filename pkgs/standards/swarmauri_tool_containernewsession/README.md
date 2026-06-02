@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_containernewsession/">
@@ -6,32 +6,19 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tool_containernewsession/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tool_containernewsession.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_containernewsession/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_containernewsession/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tool_containernewsession" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_containernewsession" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_containernewsession/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tool_containernewsession?label=swarmauri_tool_containernewsession&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_containernewsession?label=swarmauri_tool_containernewsession&color=green" alt="PyPI - swarmauri_tool_containernewsession"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Containernewsession
+# Swarmauri Tool ContainerNewSession
 
-Create a new Docker or Kubernetes session.
-
-## Features
-
-- Create a new Docker or Kubernetes session.
-- Exposes discoverable runtime entry points for `swarmauri.tools` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+A tool for starting a new Docker or Kubernetes session from your Swarmauri agents.
 
 ## Installation
-
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_tool_containernewsession
-```
 
 ```bash
 pip install swarmauri_tool_containernewsession
@@ -39,15 +26,12 @@ pip install swarmauri_tool_containernewsession
 
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
 ```python
 from swarmauri_tool_containernewsession import ContainerNewSessionTool
 
-exports = ['ContainerNewSessionTool']
-print(exports)
+tool = ContainerNewSessionTool(container_name="my-container", image="ubuntu:latest")
+result = tool()
+print(result["stdout"])
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
 
-License: Apache-2.0. See `LICENSE`.

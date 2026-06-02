@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_storage_github_release/">
@@ -6,32 +6,62 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_storage_github_release/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_storage_github_release.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_github_release/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_github_release/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_storage_github_release" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_storage_github_release" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_github_release/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_storage_github_release?label=swarmauri_storage_github_release&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_storage_github_release?label=swarmauri_storage_github_release&color=green" alt="PyPI - swarmauri_storage_github_release"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Storage GitHub Release
+# Swarmauri GitHub Release Storage Adapter
 
-GitHub Release storage adapter for Peagen.
+Stores and retrieves artifacts as assets on a GitHub release. The adapter is
+designed to plug directly into the Swarmauri/Peagen storage interfaces while
+still being usable as a standalone utility.
 
 ## Features
 
-- GitHub Release storage adapter for Peagen.
-- Exposes discoverable runtime entry points for `peagen.plugins.storage_adapters, swarmauri.storage_adapters` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- **Automatic release management** ? a release is created on-demand when the
+  requested tag does not already exist.
+- **`ghrel://` addressing** ? the adapter exposes a `root_uri` and returns
+  fully-qualified URIs (e.g. `ghrel://org/repo/tag/path`) from `upload` calls.
+- **Prefix-aware paths** ? supply an optional `prefix` to group related assets
+  underneath a pseudo-directory on the release.
+- **Bulk helpers** ? use `upload_dir` and `download_dir` to synchronise entire
+  directories, or `iter_prefix` to discover stored assets.
+- **Configuration friendly** ? `GithubReleaseStorageAdapter.from_uri` reads
+  credentials from the `GITHUB_TOKEN` environment variable for simple
+  environment-driven configuration in workflows.
+
+## Requirements
+
+- A GitHub personal access token (PAT) or GitHub App token with sufficient
+  permissions to view, create and manage releases on the target repository.
+- Network access to the GitHub REST API (provided by `PyGithub`).
+- Python 3.10 through 3.12.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
+### Install uv (optional)
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+### Add the package with uv
 
 ```bash
 uv add swarmauri_storage_github_release
 ```
+
+### Add with Poetry
+
+```bash
+poetry add swarmauri_storage_github_release
+```
+
+### Install with pip
 
 ```bash
 pip install swarmauri_storage_github_release
@@ -39,15 +69,82 @@ pip install swarmauri_storage_github_release
 
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
 ```python
+from io import BytesIO
+
+from pydantic import SecretStr
+
 from swarmauri_storage_github_release import GithubReleaseStorageAdapter
 
-exports = ['GithubReleaseStorageAdapter']
-print(exports)
+adapter = GithubReleaseStorageAdapter(
+    token=SecretStr("ghp_example-token"),
+    org="example-org",
+    repo="example-repo",
+    tag="v1.0.0",
+    prefix="artifacts",
+    release_name="Example release",
+    message="Artifacts published by our workflow.",
+)
+
+print(adapter.root_uri)
+
+uri = adapter.upload("artifact.txt", BytesIO(b"important payload"))
+downloaded_payload = adapter.download("artifact.txt").read()
+assets = list(adapter.iter_prefix(""))
+
+print(uri)
+print(downloaded_payload)
+print(assets)
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+The code above demonstrates:
 
-License: Apache-2.0. See `LICENSE`.
+- `SecretStr` support for securely passing tokens.
+- Automatic release creation when the `v1.0.0` tag does not exist.
+- Prefix-aware uploads that produce the URI
+  `ghrel://example-org/example-repo/v1.0.0/artifacts/artifacts/artifact.txt`
+  (the asset key itself contains the prefix, so it appears in the base URI and
+  the returned asset key).
+- Round-tripping an asset and enumerating stored keys via `iter_prefix`.
+
+## Working with directories
+
+Use the bulk helper methods to synchronise entire directory trees:
+
+```python
+adapter.upload_dir("dist", prefix="binaries")
+adapter.download_dir("binaries", "./downloads")
+```
+
+Both helpers respect the adapter-level prefix and will mirror nested folders.
+
+## Using `ghrel://` URIs and configuration
+
+The `from_uri` class method creates adapters from an address such as:
+
+```python
+adapter = GithubReleaseStorageAdapter.from_uri(
+    "ghrel://example-org/example-repo/v1.0.0/artifacts",
+)
+```
+
+When invoked this way the adapter builds an unauthenticated client
+(`token=""`).
+
+Any prefix encoded in the URI is respected, and the resulting instance exposes
+the same API shown above. For private repositories or higher rate limits,
+instantiate the adapter directly and provide a token.
+
+### Controlling release metadata
+
+The constructor accepts additional keyword arguments to fine tune release
+creation, including `release_name`, `message`, `draft`, and `prerelease`. These
+parameters map directly to GitHub's release settings, allowing you to reuse the
+adapter for production, staging, or nightly build workflows.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

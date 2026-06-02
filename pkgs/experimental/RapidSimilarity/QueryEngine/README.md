@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/QueryEngine/">
@@ -6,48 +6,141 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/RapidSimilarity/QueryEngine/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/RapidSimilarity/QueryEngine.svg"/></a>
     <a href="https://pypi.org/project/QueryEngine/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/QueryEngine/">
-        <img src="https://img.shields.io/pypi/l/QueryEngine" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/QueryEngine" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/QueryEngine/">
-        <img src="https://img.shields.io/pypi/v/QueryEngine?label=QueryEngine&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/QueryEngine?label=QueryEngine&color=green" alt="PyPI - QueryEngine"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# QueryEngine
+## Description
+The `QueryEngine` package provides a Python interface for performing both exact and approximate similarity searches on indexes built by the `IndexBuilder`. The underlying implementation leverages C++ optimizations for enhanced speed and efficiency.
 
-Configuration for package QueryEngine with C++ extensions using Meson build system.
+## Purpose
+The primary purpose of this package is to execute similarity search queries over pre-built indexes, allowing users to efficiently retrieve similar items based on various criteria.
 
-## Features
-
-- Configuration for package QueryEngine with C++ extensions using Meson build system.
-- Centers its public API around `exact_query`, `approx_query` so downstream code can import the package directly without extra registry glue.
-- Provides an experimental workspace surface for early validation before functionality graduates into a more stable package lane.
+## Authors
+- Michael Nwogha
 
 ## Installation
+To install the `QueryEngine` package, ensure you have the following dependencies installed:
 
-Install this package with `uv` or `pip`.
+- Python 3.10 or later
+- Meson build system
+- Ninja build system
+- NumPy
+- Pybind11
+
+You can install the necessary packages via pip:
 
 ```bash
-uv add QueryEngine
+pip install numpy pybind11 meson
 ```
 
+After installing the required dependencies, clone the repository and navigate to the project directory. You can then build and install the package using Meson:
+
 ```bash
-pip install QueryEngine
+meson setup build
+meson compile -C build
+meson install -C build
 ```
 
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+### Exact Similarity Search
+To perform an exact similarity search, utilize the `exact_nearest_neighbors` function. Here is how you can do it:
 
 ```python
-from QueryEngine import exact_query, approx_query
+import numpy as np
+from QueryEngine import exact_nearest_neighbors
 
-exports = ['exact_query', 'approx_query']
-print(exports)
+# Example dataset
+data = np.array([1.0, 2.5, 3.3, 4.8], dtype=np.float32)
+query_value = 3.0
+k = 2
+
+# Perform exact similarity search
+neighbors = exact_nearest_neighbors(data, query_value, k)
+print("Exact Neighbors:", neighbors)
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+### Approximate Similarity Search
+For approximate searches, use the `approx_query` function. Below is an example of how to perform an approximate query:
 
-License: Apache-2.0. See `LICENSE`.
+```python
+import numpy as np
+from QueryEngine import approx_query
+
+# Example dataset and query
+dataset = [[1.0, 2.0], [1.5, 2.5], [3.0, 4.0], [5.0, 6.0]]
+query_point = [1.2, 2.1]
+num_neighbors = 2
+accuracy = 0.9
+
+# Perform approximate similarity search
+approx_neighbors = approx_query(dataset, query_point, num_neighbors, accuracy)
+print("Approximate Neighbors:", approx_neighbors)
+```
+
+## C++ Build Instructions
+The C++ components of `QueryEngine` are built using the Meson build system. Ensure you have configured the `meson.build` file correctly to include necessary dependencies. The following code snippets illustrate the core structure of the C++ implementation.
+
+### C++ File Example: `exact_query.cpp`
+```cpp
+#include <Python.h>
+#include <numpy/arrayobject.h>
+#include <vector>
+#include <algorithm>
+
+// Function to find exact nearest neighbors
+std::vector<int> exact_nearest_neighbors(const std::vector<float>& dataset, float query, size_t k) {
+    // Implementation here
+}
+
+// Python wrapper for exact_nearest_neighbors
+static PyObject* py_exact_nearest_neighbors(PyObject* self, PyObject* args) {
+    // Implementation here
+}
+
+// Module initialization
+PyMODINIT_FUNC PyInit_QueryEngine(void) {
+    import_array();  // Initialize NumPy API
+    return PyModule_Create(&queryenginemodule);
+}
+```
+
+### C++ File Example: `approx_query.cpp`
+```cpp
+#include <Python.h>
+#include <numpy/arrayobject.h>
+#include <vector>
+#include <algorithm>
+
+// Class for approximate nearest neighbor search
+class ApproximateQueryEngine {
+public:
+    // Implementation here
+};
+
+// Python interface for the ApproximateQueryEngine
+static PyObject* approx_query(PyObject* self, PyObject* args) {
+    // Implementation here
+}
+
+// Module initialization
+PyMODINIT_FUNC PyInit_approx_query(void) {
+    import_array(); // Initialize NumPy API
+    return PyModule_Create(&approxquerymodule);
+}
+```
+
+## Testing and Validation
+The package includes unit tests to ensure functionality and correctness. You can run the tests using pytest:
+
+```bash
+pytest tests/
+```
+
+Make sure to check for any failing tests and validate the output accordingly.
+

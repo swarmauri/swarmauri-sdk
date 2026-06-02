@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_signing_ed25519/">
@@ -6,48 +6,122 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_ed25519/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_ed25519.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_ed25519/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_ed25519/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_signing_ed25519" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_signing_ed25519" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_ed25519/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_signing_ed25519?label=swarmauri_signing_ed25519&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_signing_ed25519?label=swarmauri_signing_ed25519&color=green" alt="PyPI - swarmauri_signing_ed25519"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Signing Ed25519
 
-Ed25519-based signer for Swarmauri.
+`swarmauri_signing_ed25519` provides an Ed25519 implementation of the
+`ISigning` interface for creating detached signatures over byte payloads and
+canonicalized envelopes.
 
 ## Features
 
-- Ed25519-based signer for Swarmauri.
-- Exposes discoverable runtime entry points for `peagen.plugins.signings, swarmauri.signings` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Deterministic JSON canonicalization is always available, ensuring stable
+  digests for dictionary-based envelopes.
+- Optional CBOR canonicalization can be enabled with the `[cbor]` extra to
+  install the `cbor2` dependency.
+- Detached signatures are produced with `cryptography`'s Ed25519 primitives and
+  returned as sequences so multi-signature workflows remain possible.
+- Verification accepts multiple public keys via `opts["pubkeys"]` and honours
+  `require={"min_signers": N}` for quorum checks.
+- Ed25519 private keys can be supplied either as cryptography objects or raw
+  seed bytes using the `KeyRef` helper structure from `swarmauri_core`.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_signing_ed25519
-```
+### pip
 
 ```bash
 pip install swarmauri_signing_ed25519
 ```
 
-## Usage
+### Poetry
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
-```python
-from swarmauri_signing_ed25519 import Ed25519EnvelopeSigner
-
-exports = ['Ed25519EnvelopeSigner']
-print(exports)
+```bash
+poetry add swarmauri_signing_ed25519
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+### uv
 
-License: Apache-2.0. See `LICENSE`.
+```bash
+uv add swarmauri_signing_ed25519
+```
+
+Install with the `[cbor]` extra when CBOR canonicalization is required:
+
+```bash
+pip install "swarmauri_signing_ed25519[cbor]"
+poetry add swarmauri_signing_ed25519[cbor]
+uv add swarmauri_signing_ed25519[cbor]
+```
+
+## Usage
+
+The package exposes a single entry point, `Ed25519EnvelopeSigner`, implementing
+`ISigning`. The signer reports JSON (and optionally CBOR) support via
+`supports()`, canonicalizes envelopes through `canonicalize_envelope`, and
+produces detached signatures using `sign_bytes`/`sign_envelope`. Verification
+expects the relevant public keys to be supplied using `opts["pubkeys"]`.
+
+### Key references
+
+`Ed25519EnvelopeSigner` accepts Ed25519 private keys using `KeyRef` values. The
+two supported forms are:
+
+- `{"kind": "cryptography_obj", "obj": Ed25519PrivateKey}` for in-memory
+  cryptography objects.
+- `{"kind": "raw_ed25519_sk", "bytes": seed}` where `seed` is the 32-byte
+  private key seed (or the 64-byte expanded secret key).
+
+## Example
+
+The example below signs a JSON envelope and verifies the detached signature with
+the generated public key.
+
+<!-- example-start -->
+```python
+import asyncio
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+from swarmauri_signing_ed25519 import Ed25519EnvelopeSigner
+
+
+async def main() -> bool:
+    signer = Ed25519EnvelopeSigner()
+    private_key = Ed25519PrivateKey.generate()
+    key_ref = {"kind": "cryptography_obj", "obj": private_key}
+
+    envelope = {"subject": "alice", "scope": ["inbox:read"]}
+    signatures = await signer.sign_envelope(key_ref, envelope)
+
+    public_key = private_key.public_key()
+    verified = await signer.verify_envelope(
+        envelope,
+        signatures,
+        opts={"pubkeys": [public_key]},
+    )
+    return verified
+
+
+verified = asyncio.run(main())
+print(f"Signature verified? {verified}")
+```
+<!-- example-end -->
+
+## Entry Point
+
+The signer registers under the `swarmauri.signings` entry point as
+`Ed25519EnvelopeSigner`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

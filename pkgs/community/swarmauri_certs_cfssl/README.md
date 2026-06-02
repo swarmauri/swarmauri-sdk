@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_certs_cfssl/">
@@ -6,48 +6,181 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_certs_cfssl/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_certs_cfssl.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_cfssl/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_cfssl/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_certs_cfssl" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_certs_cfssl" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_cfssl/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_certs_cfssl?label=swarmauri_certs_cfssl&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_certs_cfssl?label=swarmauri_certs_cfssl&color=green" alt="PyPI - swarmauri_certs_cfssl"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Certs CFSSL
+# Swarmauri CFSSL Certificate Service
 
-CFSSL REST backed Swarmauri certificate service for CSR signing, bundle verification, PEM/DER conversion, and X.509 parsing.
+`swarmauri_certs_cfssl` provides `CfsslCertService`, a Swarmauri certificate-service adapter for Cloudflare CFSSL. It uses `httpx.AsyncClient` to call CFSSL REST endpoints for CSR signing and certificate bundling, and it uses `cryptography` to parse X.509 certificate metadata, convert PEM/DER encodings, and inspect certificate extensions.
+
+## Why Swarmauri CFSSL Certificate Service?
+
+Use this package when Swarmauri applications need certificate signing through an existing CFSSL deployment. It keeps CFSSL profile routing, label routing, authentication headers, certificate parsing, verification, and connection reuse behind the common Swarmauri certificate-service interface.
+
+## FAQ
+
+### Q: Does this package create CSRs?
+
+A: No. `CfsslCertService.create_csr()` raises `NotImplementedError`. Generate CSRs with `swarmauri_certs_x509`, `swarmauri_certs_acme`, another Swarmauri certificate service, or existing PKI tooling, then submit the CSR to CFSSL with `sign_cert()`.
+
+### Q: Which CFSSL endpoints does it use?
+
+A: The runtime calls `/api/v1/cfssl/sign` for signing and `/api/v1/cfssl/bundle` for bundle-backed verification when `use_bundle_for_verify` is enabled.
+
+### Q: How are CFSSL profiles and labels selected?
+
+A: Constructor defaults can set `default_profile` and `default_label`. Per-request `opts` or `KeyRef.tags` can override them when calling `sign_cert()`.
+
+### Q: What certificate details can it parse?
+
+A: `parse_cert()` returns subject, issuer, serial number, validity timestamps, basic constraints, SAN entries, key usage, extended key usage, subject key identifier, and authority key identifier when those extensions are present.
 
 ## Features
 
-- CFSSL REST backed Swarmauri certificate service for CSR signing, bundle verification, PEM/DER conversion, and X.509 parsing.
-- Exposes discoverable runtime entry points for `swarmauri.cert_services` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Lives in the community package lane for optional integrations that extend the main Swarmauri SDK surface.
+- `CfsslCertService` adapter that wraps the CFSSL REST API for signing, parsing, and verifying certificates.
+- Supports RSA, ECDSA P-256/P-384, and Ed25519 capability metadata with profile and label routing.
+- Optional certificate bundling during verification to ensure complete chains before deployment.
+- Detailed parsing utilities that expose SANs, key usage, EKU, Subject/Authority Key Identifiers, and more.
+- Bearer-token, custom auth-header, and custom-header support for protected CFSSL endpoints.
+- Async connection reuse with explicit `aclose()` cleanup.
+- Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
+
+## Prerequisites
+- Python 3.10 or newer.
+- A reachable CFSSL instance (standalone binary, Kubernetes deployment, or the Cloudflare Docker image).
+- Valid CFSSL signing profile(s) configured for your use case (e.g., `www`, `client`, `code_signing`).
+- If your CFSSL endpoint is protected, API credentials or access tokens for the headers you plan to use.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
+Install with `uv`:
 
 ```bash
 uv add swarmauri_certs_cfssl
 ```
 
+Install with `pip`:
+
 ```bash
 pip install swarmauri_certs_cfssl
 ```
 
-## Usage
+## Quickstart: Issue a Certificate
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+`CfsslCertService` consumes CSRs generated by other Swarmauri certificate services (for example, the Azure or ACME packages). The example below submits a CSR to CFSSL and saves the issued certificate:
 
 ```python
-from swarmauri_certs_cfssl import CfsslCertService
+import asyncio
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
-exports = ['CfsslCertService']
-print(exports)
+from swarmauri_certs_cfssl import CfsslCertService
+from swarmauri_core.crypto.types import KeyRef
+
+
+async def main() -> None:
+    service = CfsslCertService(
+        base_url="https://cfssl.internal",
+        default_profile="www",
+        timeout_s=15.0,
+        auth_header=("X-Auth-Key", "super-secret-token"),
+    )
+
+    csr_bytes = Path("site.csr").read_bytes()
+
+    # KeyRef tags allow you to override CFSSL profile/label per request
+    ca_key = KeyRef(material=b"", tags={"profile": "www", "label": "primary"})
+
+    certificate_pem = await service.sign_cert(
+        csr=csr_bytes,
+        ca_key=ca_key,
+        extensions={
+            "subject_alt_name": {"dns": ["site.example.com", "www.site.example.com"]}
+        },
+        not_after=int((datetime.now(timezone.utc) + timedelta(days=90)).timestamp()),
+    )
+
+    Path("site.pem").write_bytes(certificate_pem)
+    await service.aclose()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+## Verify and Parse Certificates
 
-License: Apache-2.0. See `LICENSE`.
+Leverage CFSSL's bundling API to confirm a certificate's trust chain, then inspect the returned metadata:
+
+```python
+import asyncio
+from pathlib import Path
+
+from swarmauri_certs_cfssl import CfsslCertService
+
+
+async def verify_and_parse() -> None:
+    service = CfsslCertService(
+        base_url="https://cfssl.internal",
+        use_bundle_for_verify=True,
+    )
+
+    cert_bytes = Path("site.pem").read_bytes()
+
+    verification = await service.verify_cert(
+        cert=cert_bytes,
+        trust_roots=[Path("root.pem").read_bytes()],
+    )
+    print("Valid:", verification["valid"], "Chain length:", verification["chain_len"])
+
+    parsed = await service.parse_cert(cert_bytes)
+    print("Subject CN:", parsed["subject"].get("CN"))
+    print("SAN entries:", parsed.get("san", {}))
+
+    await service.aclose()
+
+
+if __name__ == "__main__":
+    asyncio.run(verify_and_parse())
+```
+
+## Related Packages
+
+Certificate service packages:
+
+- [swarmauri_certs_acme](https://pypi.org/project/swarmauri_certs_acme/)
+- [swarmauri_certs_azure](https://pypi.org/project/swarmauri_certs_azure/)
+- [swarmauri_certs_local_ca](https://pypi.org/project/swarmauri_certs_local_ca/)
+- [swarmauri_certs_self_signed](https://pypi.org/project/swarmauri_certs_self_signed/)
+- [swarmauri_certs_x509](https://pypi.org/project/swarmauri_certs_x509/)
+- [swarmauri_certs_composite](https://pypi.org/project/swarmauri_certs_composite/)
+
+Foundational packages:
+
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/) defines the certificate-service interfaces and `KeyRef` types.
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/) provides `CertServiceBase`, `ComponentBase`, and registration support.
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/) provides standard Swarmauri components used alongside certificate workflows.
+- [swarmauri](https://pypi.org/project/swarmauri/) provides namespace imports and plugin discovery.
+
+## Notes
+
+- `CfsslCertService` focuses on signing and validation. Generate CSRs with other Swarmauri services (e.g., `swarmauri_certs_acme`, `swarmauri_certs_azure`) or your existing PKI tooling.
+- The client uses `httpx.AsyncClient`; reuse a service instance for multiple operations and call `aclose()` when finished to release connections.
+- Profile and label defaults can be set globally in the constructor or dynamically by attaching tags to the `KeyRef` passed into `sign_cert`.
+
+## Best Practices
+- Store CFSSL credentials outside source control (environment variables, secret stores, or Swarmauri state providers).
+- Enable TLS on the CFSSL API and pin the certificate when connecting over untrusted networks.
+- Use dedicated CFSSL profiles for each application tier and rotate them regularly.
+- Capture verification results (e.g., bundle size, expiry) in metrics to stay ahead of certificate renewals.
+
+## License
+
+Apache-2.0
+
+

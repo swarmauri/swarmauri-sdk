@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_folium/">
@@ -6,48 +6,68 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_folium/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_folium.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_folium/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_folium/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tool_folium" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_folium" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_folium/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tool_folium?label=swarmauri_tool_folium&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_folium?label=swarmauri_tool_folium&color=green" alt="PyPI - swarmauri_tool_folium"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Tool Folium
 
-This repository includes an example of a First Class Swarmauri Example.
+Generates an interactive Folium map with optional markers and returns the HTML as a base64-encoded string. Designed for embedding maps in Swarmauri workflows or downstream UIs.
 
 ## Features
 
-- This repository includes an example of a First Class Swarmauri Example.
-- Exposes discoverable runtime entry points for `swarmauri.tools` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Lives in the community package lane for optional integrations that extend the main Swarmauri SDK surface.
+- Accepts a map center `(lat, lon)` plus an optional list of markers `(lat, lon, popup)`.
+- Creates a Folium map (HTML) and returns `{"image_b64": <base64-html>}`.
+- Easy to extend with additional Folium layers/tiles by subclassing.
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- [`folium`](https://python-visualization.github.io/folium/) (installed automatically).
+- Network access if Folium needs to load tiles from external providers at render time.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
 ```bash
+# pip
+pip install swarmauri_tool_folium
+
+# poetry
+poetry add swarmauri_tool_folium
+
+# uv (pyproject-based projects)
 uv add swarmauri_tool_folium
 ```
 
-```bash
-pip install swarmauri_tool_folium
-```
-
-## Usage
-
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+## Quickstart
 
 ```python
+import base64
+from pathlib import Path
 from swarmauri_tool_folium import FoliumTool
 
-exports = ['FoliumTool']
-print(exports)
+map_center = (40.7128, -74.0060)
+markers = [(40.7128, -74.0060, "Marker 1"), (40.7328, -74.0010, "Marker 2")]
+
+result = FoliumTool()(map_center, markers)
+html_bytes = base64.b64decode(result["image_b64"])
+Path("map.html").write_bytes(html_bytes)
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+Open `map.html` in a browser to interact with the generated map.
 
-License: Apache-2.0. See `LICENSE`.
+## Tips
+
+- Customize map appearance by subclassing and adjusting `folium.Map` parameters (`tiles`, `zoom_start`, etc.).
+- Add other Folium layers (heatmaps, choropleths) before saving to build richer visualizations.
+- When serving maps via APIs, return the base64 string directly or write to a temporary HTML file and send its path.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+
+

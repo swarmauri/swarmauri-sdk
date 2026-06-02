@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_auth_idp_azure/">
@@ -6,48 +6,80 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_auth_idp_azure/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_auth_idp_azure.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_azure/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_azure/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_auth_idp_azure" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_auth_idp_azure" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_auth_idp_azure/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_azure?label=swarmauri_auth_idp_azure&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_auth_idp_azure?label=swarmauri_auth_idp_azure&color=green" alt="PyPI - swarmauri_auth_idp_azure"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Auth IDP Azure
+# Swarmauri Auth IDP Azure AD
 
-Azure Active Directory OAuth 2.0 / 2.1 / OIDC 1.0 login implementations for Swarmauri deployments.
+Azure Active Directory / Entra ID OAuth 2.0, OAuth 2.1, and OIDC 1.0 login flows packaged for Swarmauri deployments.
 
 ## Features
 
-- Azure Active Directory OAuth 2.0 / 2.1 / OIDC 1.0 login implementations for Swarmauri deployments.
-- Exposes discoverable runtime entry points for `swarmauri.auth_idp` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- PKCE-enabled authorization URL generation with signed state payloads to protect verifiers.
+- Token exchange helpers that return normalized identity details from Microsoft Graph.
+- Built-in retrying HTTP client for resilient calls against Azure AD and Graph endpoints.
+- ComponentBase-compatible models that register under `swarmauri.auth_idp` entry points.
+- Support for both interactive browser logins and confidential client OIDC workflows.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_auth_idp_azure
-```
+### pip
 
 ```bash
 pip install swarmauri_auth_idp_azure
 ```
 
-## Usage
+### uv (project)
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
-```python
-from swarmauri_auth_idp_azure import AzureOAuth20Login, AzureOAuth21Login, AzureOIDC10Login
-
-exports = ['AzureOAuth20Login', 'AzureOAuth21Login', 'AzureOIDC10Login']
-print(exports)
+```bash
+uv add swarmauri_auth_idp_azure
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+### uv (environment)
 
-License: Apache-2.0. See `LICENSE`.
+```bash
+uv pip install swarmauri_auth_idp_azure
+```
+
+## Usage
+
+```python
+from pydantic import SecretStr
+from swarmauri_auth_idp_azure import AzureOAuth21Login
+
+login = AzureOAuth21Login(
+    tenant="organizations",
+    client_id="00000000-0000-0000-0000-000000000000",
+    client_secret=SecretStr("client-secret"),
+    redirect_uri="https://app.example.com/auth/callback",
+    state_secret=b"azure-ad-state-key",
+)
+
+print(login.client_id)
+```
+
+### Workflow Summary
+
+1. Call `auth_url()` and redirect the browser to the returned Microsoft login URL.
+2. Persist the `state` token and compare it when handling the callback.
+3. Exchange the authorization code via `exchange_and_identity()` to obtain tokens and Graph profile data.
+4. Persist the returned tokens or computed identity details for session and authorization workflows.
+
+## Entry Points
+
+- `swarmauri.auth_idp:AzureOAuth20Login`
+- `swarmauri.auth_idp:AzureOAuth21Login`
+- `swarmauri.auth_idp:AzureOIDC10Login`
+
+## Contributing
+
+To contribute to swarmauri-sdk, review the
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+which cover development workflow, testing, and coding standards.
+
+

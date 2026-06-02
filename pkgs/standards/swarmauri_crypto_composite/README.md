@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_crypto_composite/">
@@ -6,48 +6,129 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_crypto_composite/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_crypto_composite.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_composite/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_composite/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_crypto_composite" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_crypto_composite" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_composite/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_crypto_composite?label=swarmauri_crypto_composite&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_crypto_composite?label=swarmauri_crypto_composite&color=green" alt="PyPI - swarmauri_crypto_composite"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Crypto Composite
+## Swarmauri Crypto Composite
 
-Algorithm-routing crypto provider for Swarmauri.
+`CompositeCrypto` is an algorithm-routing crypto provider that delegates encryption
+operations to the first child provider that advertises support for the requested
+algorithm. Its behaviour is defined entirely by the wrapped providers:
 
-## Features
-
-- Algorithm-routing crypto provider for Swarmauri.
-- Exposes discoverable runtime entry points for `peagen.plugins.cryptos, swarmauri.cryptos` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Aggregates each provider's `supports()` capabilities and removes duplicates.
+- Normalises requested algorithms before routing so stylistic variants still match.
+- Requires at least one child provider to be supplied at construction time.
+- Exposes the full asynchronous `ICrypto` surface area (encrypt, wrap, seal, etc.).
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_crypto_composite
-```
+Choose the tool that best fits your workflow:
 
 ```bash
 pip install swarmauri_crypto_composite
 ```
 
-## Usage
-
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
-```python
-from swarmauri_crypto_composite import CompositeCrypto
-
-exports = ['CompositeCrypto']
-print(exports)
+```bash
+poetry add swarmauri_crypto_composite
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+```bash
+uv add swarmauri_crypto_composite
+```
 
-License: Apache-2.0. See `LICENSE`.
+## Usage
+
+```python
+"""Route crypto operations to the provider that supports the requested algorithm."""
+import asyncio
+
+from swarmauri_crypto_composite import CompositeCrypto
+from swarmauri_core.crypto.ICrypto import ICrypto
+from swarmauri_core.crypto.types import (
+    AEADCiphertext,
+    ExportPolicy,
+    KeyRef,
+    KeyType,
+    KeyUse,
+)
+
+
+class DummyCrypto(ICrypto):
+    def __init__(self, name: str, alg: str) -> None:
+        self._name = name
+        self._alg = alg
+
+    def supports(self):
+        return {"encrypt": (self._alg,)}
+
+    async def encrypt(self, key, pt, *, alg=None, aad=None, nonce=None):
+        return AEADCiphertext(
+            kid="dummy",
+            version=1,
+            alg=alg or self._alg,
+            nonce=b"",
+            ct=self._name.encode(),
+            tag=b"",
+        )
+
+    async def decrypt(self, key, ct, *, aad=None):  # pragma: no cover - demo only
+        raise NotImplementedError
+
+    async def wrap(self, kek, *, dek=None, wrap_alg=None, nonce=None):  # pragma: no cover - demo only
+        raise NotImplementedError
+
+    async def unwrap(self, kek, wrapped):  # pragma: no cover - demo only
+        raise NotImplementedError
+
+    async def seal(self, recipient, pt, *, alg=None):  # pragma: no cover - demo only
+        raise NotImplementedError
+
+    async def unseal(self, recipient_priv, sealed, *, alg=None):  # pragma: no cover - demo only
+        raise NotImplementedError
+
+    async def encaps(self, recipient, *, alg=None):  # pragma: no cover - demo only
+        raise NotImplementedError
+
+    async def decaps(self, recipient_priv, encapsulated_key, *, alg=None):  # pragma: no cover - demo only
+        raise NotImplementedError
+
+
+async def main() -> None:
+    # Compose two providers that advertise different algorithms.
+    chacha = DummyCrypto("chacha", "CHACHA20-POLY1305")
+    aes = DummyCrypto("aes", "A256GCM")
+    composite = CompositeCrypto([chacha, aes])
+
+    key = KeyRef(
+        kid="k",
+        version=1,
+        type=KeyType.SYMMETRIC,
+        uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+        material=b"\x00" * 32,
+    )
+
+    ciphertext = await composite.encrypt(key, b"payload", alg="A256GCM")
+    print(f"Selected provider: {ciphertext.ct.decode()}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Entry point
+
+The provider is registered under the `swarmauri.cryptos` entry-point as `CompositeCrypto`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+
+

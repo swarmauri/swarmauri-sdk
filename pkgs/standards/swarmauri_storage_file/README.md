@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_storage_file/">
@@ -6,48 +6,94 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_storage_file/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_storage_file.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_file/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_file/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_storage_file" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_storage_file" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_file/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_storage_file?label=swarmauri_storage_file&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_storage_file?label=swarmauri_storage_file&color=green" alt="PyPI - swarmauri_storage_file"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Storage File
+# Swarmauri File Storage Adapter
 
-Filesystem storage adapter for Peagen.
+Filesystem-based storage adapter for Peagen that stores binary artifacts on the
+local disk.
 
 ## Features
 
-- Filesystem storage adapter for Peagen.
-- Exposes discoverable runtime entry points for `peagen.plugins.storage_adapters, swarmauri.storage_adapters` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Resolves and prepares the configured ``output_dir`` on instantiation so
+  uploads can run without additional filesystem setup.
+- Supports an optional ``prefix`` to scope all keys inside a nested directory
+  tree while keeping the same adapter instance.
+- ``upload`` writes files atomically by copying into a temporary file before an
+  atomic rename, ensuring partially written data is never observed.
+- ``download`` returns a :class:`io.BytesIO` handle positioned at the start of
+  the stored content for immediate consumption by downstream tooling.
+- Convenience helpers such as ``upload_dir``, ``download_dir``, ``iter_prefix``
+  and ``from_uri`` mirror the behavior of :class:`pathlib.Path` operations and
+  make it easy to bulk transfer artifacts.
+- ``root_uri`` exposes the workspace as a ``file://`` URI which is used when
+  constructing the URIs returned by ``upload``.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_storage_file
-```
+Install the package with your preferred Python packaging tool:
 
 ```bash
 pip install swarmauri_storage_file
 ```
 
-## Usage
-
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
-```python
-from swarmauri_storage_file import FileStorageAdapter
-
-exports = ['FileStorageAdapter']
-print(exports)
+```bash
+poetry add swarmauri_storage_file
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+```bash
+uv pip install swarmauri_storage_file
+```
 
-License: Apache-2.0. See `LICENSE`.
+## Usage
+
+```python
+from pathlib import Path
+import io
+
+from swarmauri_storage_file import FileStorageAdapter
+
+workspace = Path("./artifacts").resolve()
+adapter = FileStorageAdapter(output_dir=workspace)
+
+root_uri = adapter.root_uri
+print("Root URI:", root_uri)
+
+uri = adapter.upload("example.txt", io.BytesIO(b"hello world"))
+print("Stored at:", uri)
+
+downloaded = adapter.download("example.txt").read().decode("utf-8")
+print("Contents:", downloaded)
+
+keys = list(adapter.iter_prefix(""))
+print("Keys:", keys)
+```
+
+The snippet above resolves a local workspace, uploads an artifact, reads it
+back as text and inspects the stored keys.  URIs returned by ``upload`` reuse
+``root_uri`` (with the relative key appended) so they can be dereferenced by
+tools that understand ``file://`` locations.
+
+### Additional helpers
+
+- ``upload_dir`` recursively walks a source directory and stores each file
+  under an optional destination prefix.
+- ``download_dir`` materializes a stored prefix into a destination directory,
+  recreating any nested structure.
+- ``iter_prefix`` yields keys rooted at ``output_dir`` (including any configured
+  prefix) which is useful for inventory or cleanup tasks.
+- ``from_uri`` rebuilds an adapter from a ``file://`` URI previously emitted by
+  ``root_uri`` or ``upload``.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

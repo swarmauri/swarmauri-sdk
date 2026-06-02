@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_middleware_auth/">
@@ -6,48 +6,168 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_auth/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_auth.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_auth/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_auth/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_auth" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_auth" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_auth/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_auth?label=swarmauri_middleware_auth&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_auth?label=swarmauri_middleware_auth&color=green" alt="PyPI - swarmauri_middleware_auth"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Middleware Auth
+# `swarmauri_middleware_auth`
 
-Middleware for handling authentication in Swarmauri applications.
+JWT authentication middleware for Swarmauri and FastAPI applications.
 
 ## Features
 
-- Middleware for handling authentication in Swarmauri applications.
-- Exposes discoverable runtime entry points for `swarmauri.middlewares` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Accepts HTTP `Authorization` headers with `Bearer` tokens and rejects
+  missing or malformed credentials with a `401` response.
+- Verifies JWT signatures through `swarmauri_signing_jws.JwsSignerVerifier`
+  using the configured secret and algorithm (default `HS256`).
+- Enforces expiration by default and can optionally require matching
+  audience (`aud`) and issuer (`iss`) claims.
+- Requires `sub` and `iat` claims and exposes
+  `_validate_custom_claims` for additional validation logic.
+- Stores the decoded payload on `request.state.user` for downstream
+  handlers.
+- Provides a `verify_token_manually` utility to inspect tokens outside of
+  the middleware lifecycle.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_middleware_auth
-```
+Install the package with your preferred Python packaging tool:
 
 ```bash
 pip install swarmauri_middleware_auth
 ```
 
-## Usage
-
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
-```python
-from swarmauri_middleware_auth import AuthMiddleware
-
-exports = ['AuthMiddleware']
-print(exports)
+```bash
+poetry add swarmauri_middleware_auth
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+```bash
+uv pip install swarmauri_middleware_auth
+```
 
-License: Apache-2.0. See `LICENSE`.
+## Configuration
+
+`AuthMiddleware` accepts the following arguments:
+
+- `secret_key` (**required**) ? shared secret used to validate
+  HMAC-signed JWTs (must be at least 32 bytes for HMAC algorithms).
+- `algorithm` (default `"HS256"`) ? JWT algorithm identifier supported by
+  `swarmauri_signing_jws`.
+- `verify_exp` (default `True`) ? toggle to enforce the `exp` claim.
+- `verify_aud` (default `False`) ? toggle to enforce the `aud` claim
+  matches the provided `audience`.
+- `audience` ? expected `aud` claim when `verify_aud` is enabled.
+- `issuer` ? expected `iss` claim.
+- Additional keyword arguments are forwarded to `MiddlewareBase`.
+
+Tokens missing required claims (`sub`, `iat`) or failing any validation
+step raise an `HTTPException` with a `401` status code.
+
+## Usage
+
+Instantiate `AuthMiddleware` and delegate to its `dispatch` coroutine from a
+FastAPI middleware hook. Use FastAPI's HTTP exception handler to translate
+authentication failures into proper responses:
+
+```python
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exception_handlers import http_exception_handler
+
+from swarmauri_middleware_auth import AuthMiddleware
+
+SECRET_KEY = "supersecret-key-with-32-bytes-min!"
+ISSUER = "my-service"
+AUDIENCE = "my-audience"
+
+auth_middleware = AuthMiddleware(
+    secret_key=SECRET_KEY,
+    issuer=ISSUER,
+    audience=AUDIENCE,
+    verify_aud=True,
+)
+
+app = FastAPI()
+
+
+@app.middleware("http")
+async def auth_guard(request: Request, call_next):
+    try:
+        return await auth_middleware.dispatch(request, call_next)
+    except HTTPException as exc:
+        return await http_exception_handler(request, exc)
+
+
+@app.get("/protected")
+async def protected(request: Request):
+    return {"subject": request.state.user["sub"]}
+```
+
+## Issuing tokens for local testing
+
+The middleware expects tokens to include `sub`, `iat`, and (by default)
+`exp`. The snippet below produces a short-lived token compatible with the
+configuration above:
+
+```python
+import asyncio
+import time
+
+from swarmauri_core.crypto.types import JWAAlg
+from swarmauri_signing_jws import JwsSignerVerifier
+
+SECRET_KEY = "supersecret-key-with-32-bytes-min!"
+ISSUER = "my-service"
+AUDIENCE = "my-audience"
+
+
+async def issue_token() -> str:
+    signer = JwsSignerVerifier()
+    return await signer.sign_compact(
+        payload={
+            "sub": "user123",
+            "iat": int(time.time()),
+            "exp": int(time.time()) + 300,
+            "aud": AUDIENCE,
+            "iss": ISSUER,
+        },
+        alg=JWAAlg.HS256,
+        key={"kind": "raw", "key": SECRET_KEY, "alg": "HS256"},
+        typ="JWT",
+    )
+
+
+token = asyncio.run(issue_token())
+```
+
+## Custom claim validation
+
+Override `_validate_custom_claims` to enforce additional rules. Raise
+`InvalidTokenError` when a token should be rejected:
+
+```python
+from swarmauri_middleware_auth import AuthMiddleware, InvalidTokenError
+
+
+class RoleCheckingMiddleware(AuthMiddleware):
+    def _validate_custom_claims(self, payload: dict) -> None:
+        super()._validate_custom_claims(payload)
+        if payload.get("role") != "admin":
+            raise InvalidTokenError("Admin role is required")
+```
+
+## Manual verification helper
+
+Use `verify_token_manually` to synchronously inspect tokens without FastAPI
+middleware plumbing. The method returns the decoded payload when valid and
+`None` otherwise.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md).
+
+
+

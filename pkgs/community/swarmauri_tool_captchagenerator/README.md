@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_captchagenerator/">
@@ -6,48 +6,71 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_captchagenerator/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_captchagenerator.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_captchagenerator/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_captchagenerator/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tool_captchagenerator" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_captchagenerator" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_captchagenerator/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tool_captchagenerator?label=swarmauri_tool_captchagenerator&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_captchagenerator?label=swarmauri_tool_captchagenerator&color=green" alt="PyPI - swarmauri_tool_captchagenerator"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Captchagenerator
+# Swarmauri Tool Captcha Generator
 
-Swarmauri Community Captcha Generator Tool.
+Tool that generates CAPTCHA images from text using the [`captcha`](https://pypi.org/project/captcha/) library. Returns the rendered PNG as a base64-encoded string so it can be stored or embedded inline.
 
 ## Features
 
-- Swarmauri Community Captcha Generator Tool.
-- Exposes discoverable runtime entry points for `swarmauri.tools` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Lives in the community package lane for optional integrations that extend the main Swarmauri SDK surface.
+- Accepts a single parameter (`text`) and produces an ImageCaptcha output.
+- Returns a dictionary with `image_b64` containing the PNG bytes encoded as base64.
+- Can be wired into larger Swarmauri toolchains to produce human challenges dynamically.
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- Pillow and captcha dependencies (installed automatically with this package).
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
 ```bash
+# pip
+pip install swarmauri_tool_captchagenerator
+
+# poetry
+poetry add swarmauri_tool_captchagenerator
+
+# uv (pyproject-based projects)
 uv add swarmauri_tool_captchagenerator
 ```
 
-```bash
-pip install swarmauri_tool_captchagenerator
-```
-
-## Usage
-
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+## Quickstart
 
 ```python
+import base64
+from pathlib import Path
 from swarmauri_tool_captchagenerator import CaptchaGeneratorTool
 
-exports = ['CaptchaGeneratorTool']
-print(exports)
+captcha_tool = CaptchaGeneratorTool()
+result = captcha_tool("Verify42")
+
+image_b64 = result["image_b64"]
+image_bytes = base64.b64decode(image_b64)
+Path("captcha.png").write_bytes(image_bytes)
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+Displaying inline (e.g., in a HTML response):
 
-License: Apache-2.0. See `LICENSE`.
+```python
+html = f"<img src='data:image/png;base64,{image_b64}' alt='captcha' />"
+```
+
+## Tips
+
+- Customize CAPTCHA rendering (fonts, size) by subclassing and configuring `ImageCaptcha` (e.g., `ImageCaptcha(width=280, height=90)`).
+- Store the generated solution (`Verify42` in the example) securely server-side to validate client responses later.
+- For high throughput, reuse the tool instance rather than instantiating per request to avoid repeated font loading overhead.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+
+

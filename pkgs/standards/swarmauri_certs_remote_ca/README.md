@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_certs_remote_ca/">
@@ -6,48 +6,108 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_certs_remote_ca/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_certs_remote_ca.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_remote_ca/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_remote_ca/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_certs_remote_ca" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_certs_remote_ca" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_certs_remote_ca/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_certs_remote_ca?label=swarmauri_certs_remote_ca&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_certs_remote_ca?label=swarmauri_certs_remote_ca&color=green" alt="PyPI - swarmauri_certs_remote_ca"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Certs Remote CA
+# Swarmauri Remote CA Cert Service
 
-Remote CA certificate service for Swarmauri.
+A certificate enrollment bridge implementing the `ICertService` interface and
+forwarding CSRs to a remote Certificate Authority.
 
 ## Features
 
-- Remote CA certificate service for Swarmauri.
-- Exposes discoverable runtime entry points for `swarmauri.certs` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Posts CSRs to a remote endpoint and returns issued certificates.
+- Minimal parsing helpers for certificate snippets.
+- Designed around X.509 as defined in RFC 5280 and Enrollment over Secure
+  Transport (EST) in RFC 7030.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_certs_remote_ca
-```
+Install the package with your preferred Python packaging tool:
 
 ```bash
 pip install swarmauri_certs_remote_ca
 ```
 
-## Usage
-
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
-```python
-from swarmauri_certs_remote_ca import RemoteCaCertService
-
-exports = ['RemoteCaCertService']
-print(exports)
+```bash
+poetry add swarmauri_certs_remote_ca
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+```bash
+uv pip install swarmauri_certs_remote_ca
+```
 
-License: Apache-2.0. See `LICENSE`.
+## Configuration
+
+`RemoteCaCertService` accepts the following arguments:
+
+- `endpoint` ? Base URL of the remote CA sign endpoint.
+- `auth` ? Optional mapping of HTTP headers or an `httpx.Auth` instance for
+  authentication.
+- `timeout_s` ? HTTP timeout in seconds (default `10`).
+- `ca_chain` ? Optional sequence of cached trust anchors exposed during
+  verification and parsing.
+
+## Entry Point
+
+The service registers under the `swarmauri.certs` entry point as
+`RemoteCaCertService`.
+
+## Usage
+
+The service is asynchronous and expects an existing CSR (certificate signing
+request) in PEM or DER form.  Configure the remote CA endpoint and submit the
+CSR to receive the issued certificate:
+
+```python
+import asyncio
+import base64
+import json
+
+import httpx
+
+from swarmauri_certs_remote_ca import RemoteCaCertService
+
+csr = b"example-csr"
+cert_bytes = b"example-cert"
+
+
+async def main() -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        data = json.loads(request.content)
+        assert base64.b64decode(data["csr"]) == csr
+        return httpx.Response(
+            200,
+            json={"cert": base64.b64encode(cert_bytes).decode("ascii")},
+        )
+
+    svc = RemoteCaCertService("https://ca.example/sign")
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        svc._client = client  # Inject mock transport for the example.
+        certificate = await svc.sign_cert(csr, {"kind": "dummy"})
+        print(certificate)
+
+
+asyncio.run(main())
+```
+
+The example above mocks a CA using `httpx.MockTransport`.  In real scenarios
+`RemoteCaCertService` posts the CSR to the configured endpoint and returns the
+certificate bytes supplied by the remote CA.
+
+When used against a real service, provide any required authentication headers
+through the `auth` argument and override request or response formats via the
+`opts` parameter of `sign_cert`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

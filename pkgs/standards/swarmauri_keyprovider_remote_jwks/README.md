@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_keyprovider_remote_jwks/">
@@ -6,48 +6,188 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_remote_jwks/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_remote_jwks.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_remote_jwks/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_remote_jwks/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_remote_jwks" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_remote_jwks" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_remote_jwks/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_remote_jwks?label=swarmauri_keyprovider_remote_jwks&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_remote_jwks?label=swarmauri_keyprovider_remote_jwks&color=green" alt="PyPI - swarmauri_keyprovider_remote_jwks"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Keyprovider Remote JWKS
+# Swarmauri Remote JWKS Key Provider
 
-Remote JWKS-backed key provider for verification-only use.
+Key provider backed by a remote JWKS endpoint with local key management.
 
 ## Features
 
-- Remote JWKS-backed key provider for verification-only use.
-- Exposes discoverable runtime entry points for `peagen.plugins.key_providers, swarmauri.key_providers` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Accepts either a direct JWKS URL or an OpenID Connect issuer and resolves the
+  discovery document automatically.
+- Caches the remote JWKS in memory with TTL support, conditional requests, and
+  thread-safe refreshes through `refresh(force=True)`.
+- Supports versioned key identifiers such as `kid.version` when discovering
+  remote public keys.
+- Embeds the standard `LocalKeyProvider` so that services can create, rotate,
+  import, and destroy local keys without leaving memory.
+- Exposes convenience helpers like `random_bytes()` and `hkdf()` for local
+  cryptographic operations alongside the remote verification flow.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_keyprovider_remote_jwks
-```
+Install the package with your preferred Python packaging tool:
 
 ```bash
 pip install swarmauri_keyprovider_remote_jwks
 ```
 
-## Usage
-
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
-```python
-from swarmauri_keyprovider_remote_jwks import RemoteJwksKeyProvider
-
-exports = ['RemoteJwksKeyProvider']
-print(exports)
+```bash
+poetry add swarmauri_keyprovider_remote_jwks
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+```bash
+uv pip install swarmauri_keyprovider_remote_jwks
+```
 
-License: Apache-2.0. See `LICENSE`.
+## Usage
+
+The provider fetches verification keys from a remote JWKS URL or through an
+OpenID Connect (OIDC) issuer.  It also embeds an in-memory key provider to
+create and manage local keys.  The example below fetches a JWK from a JWKS
+endpoint and prints its public fields:
+
+```python
+import asyncio
+from swarmauri_keyprovider_remote_jwks import RemoteJwksKeyProvider
+
+
+async def main() -> None:
+    provider = RemoteJwksKeyProvider(
+        jwks_url="https://example.com/.well-known/jwks.json"
+    )
+
+    # Optional: pre-fetch the JWKS; otherwise the first key lookup triggers it
+    provider.refresh(force=True)
+
+    jwk = await provider.get_public_jwk("test", version=1)
+    print(jwk)
+
+
+asyncio.run(main())
+```
+
+You can also construct the provider from an OIDC issuer.  The provider resolves
+the issuer's discovery document to find the JWKS URL:
+
+```python
+RemoteJwksKeyProvider(issuer="https://issuer.example.com")
+```
+
+Locally created keys are available via the standard key provider APIs and are
+included alongside remote keys when calling `jwks()`.
+
+### Local vs remote keys
+
+Remote keys and locally created keys serve different purposes:
+
+- **Remote keys** are read-only public keys discovered from the JWKS endpoint.
+  They normally belong to an external identity provider and are used only for
+  verification. The provider never has access to their private material.
+- **Local keys** are generated by the embedded `LocalKeyProvider`. They include
+  secret material (when permitted by the `ExportPolicy`) and can be used for
+  signing, encryption, or key agreement. These keys live only in memory unless
+  you export them.
+
+The following examples illustrate both flows.
+
+#### Working with remote keys
+
+```python
+import asyncio
+import jwt
+from swarmauri_keyprovider_remote_jwks import RemoteJwksKeyProvider
+
+
+async def main() -> None:
+    provider = RemoteJwksKeyProvider(
+        jwks_url="https://example.com/.well-known/jwks.json",
+    )
+
+    # Fetch a remote public key
+    jwk = await provider.get_public_jwk("remote-kid")
+    public_key = jwt.algorithms.RSAAlgorithm.from_jwk(jwk)
+
+    token = "..."  # JWT issued by the remote service
+    payload = jwt.decode(token, public_key, algorithms=["RS256"], audience="api")
+    print(payload)
+
+
+asyncio.run(main())
+```
+
+#### Managing local keys
+
+Local keys can be created, rotated, and destroyed without network calls. They are
+ideal when your service needs to issue tokens or perform encryption.
+
+The snippet below signs and verifies a JWT using an HMAC key that never leaves
+memory:
+
+```python
+import asyncio
+import jwt
+from swarmauri_keyprovider_remote_jwks import RemoteJwksKeyProvider
+from swarmauri_core.key_providers.types import KeySpec, KeyClass, KeyAlg, ExportPolicy
+from swarmauri_core.crypto.types import KeyUse
+
+
+async def main() -> None:
+    provider = RemoteJwksKeyProvider(
+        jwks_url="https://example.com/.well-known/jwks.json",
+    )
+
+    spec = KeySpec(
+        klass=KeyClass.symmetric,
+        alg=KeyAlg.HMAC_SHA256,
+        uses=(KeyUse.SIGN,),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+    )
+    key = await provider.create_key(spec)
+    ref = await provider.get_key(key.kid, include_secret=True)
+
+    token = jwt.encode({"sub": "123"}, ref.material, algorithm="HS256")
+    decoded = jwt.decode(token, ref.material, algorithms=["HS256"])
+    print(decoded)
+
+
+asyncio.run(main())
+```
+
+Locally generated keys appear next to remote keys when exporting a JWKS:
+
+```python
+jwks = await provider.jwks()
+print(jwks)
+```
+
+### Refreshing remote keys
+
+Remote keys are cached for `cache_ttl_s` seconds. Call `refresh(force=True)` to
+fetch the latest JWKS before a latency-sensitive operation:
+
+```python
+provider = RemoteJwksKeyProvider(
+    jwks_url="https://example.com/.well-known/jwks.json",
+    cache_ttl_s=60,            # default: 300 seconds
+    request_timeout_s=2,       # default: 5 seconds
+    user_agent="MyGateway/1.0",
+)
+
+# Block until the JWKS has been refreshed
+provider.refresh(force=True)
+```
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

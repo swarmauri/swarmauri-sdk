@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_signing_hmac/">
@@ -6,48 +6,109 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_hmac/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_hmac.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_hmac/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_hmac/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_signing_hmac" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_signing_hmac" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_hmac/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_signing_hmac?label=swarmauri_signing_hmac&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_signing_hmac?label=swarmauri_signing_hmac&color=green" alt="PyPI - swarmauri_signing_hmac"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Signing HMAC
 
-HMAC-based signer for Swarmauri.
+An HMAC-based signer implementing the `ISigning` interface for detached
+signatures over raw bytes and canonicalized envelopes.
 
 ## Features
 
-- HMAC-based signer for Swarmauri.
-- Exposes discoverable runtime entry points for `peagen.plugins.signings, swarmauri.signings` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- JSON canonicalization (always available)
+- Optional CBOR canonicalization via `cbor2`
+- Detached signatures using standard library `hmac`
+- Supports raw, hex, environment, and HKDF-derived `KeyRef` secrets.
+
+## Security Notes
+
+- Supports HMAC-SHA-256/384/512 only.
+- Keys must be at least 32 bytes (256 bits).
+- Tags default to the hash digest size and may be truncated via
+  `opts["tag_size"]` but not below 16 bytes (128 bits).
+- Secrets shorter than 32 bytes are rejected even when using a longer digest.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_signing_hmac
-```
+Install the package with your preferred Python packaging tool:
 
 ```bash
 pip install swarmauri_signing_hmac
 ```
 
-## Usage
-
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
-```python
-from swarmauri_signing_hmac import HmacEnvelopeSigner
-
-exports = ['HmacEnvelopeSigner']
-print(exports)
+```bash
+poetry add swarmauri_signing_hmac
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+```bash
+uv pip install swarmauri_signing_hmac
+```
 
-License: Apache-2.0. See `LICENSE`.
+Install `cbor2` to enable CBOR canonicalization:
+
+```bash
+pip install cbor2
+```
+
+## Usage
+
+```python
+import asyncio
+from swarmauri_signing_hmac import HmacEnvelopeSigner
+from swarmauri_core.crypto.types import JWAAlg
+
+
+async def main() -> None:
+    signer = HmacEnvelopeSigner()
+
+    # KeyRef with a raw 32-byte secret; see swarmauri_core for more options
+    key = {"kind": "raw", "key": "a" * 32}
+
+    # Sign and verify raw bytes
+    payload = b"hello"
+    sigs = await signer.sign_bytes(key, payload, alg=JWAAlg.HS256, opts={"tag_size": 16})
+    assert await signer.verify_bytes(payload, sigs, opts={"keys": [key]})
+
+    # Sign and verify a JSON envelope
+    env = {"msg": "hello"}
+    sigs_env = await signer.sign_envelope(
+        key, env, alg=JWAAlg.HS256, canon="json", opts={"tag_size": 16}
+    )
+    assert await signer.verify_envelope(env, sigs_env, canon="json", opts={"keys": [key]})
+
+
+asyncio.run(main())
+```
+
+Verification requires providing one or more keys via `opts["keys"]`.
+
+### Key references
+
+`HmacEnvelopeSigner` accepts multiple `KeyRef` forms:
+
+- `{"kind": "raw", "key": <bytes-or-str>}` ? direct secret material.
+- `{"kind": "hex", "key": <hex str>}` ? hex encoded secret.
+- `{"kind": "env", "name": <ENV_NAME>}` ? loads the secret from an environment
+  variable.
+- `{"kind": "derived", "key": <bytes-or-str>, "hkdf": {"salt": ..., "info": ...}}`
+  ? derives the signing secret with HKDF.
+
+Provide an optional `"kid"` to control the key identifier or specify
+`"alg"` when verifying to override the default `HS256` digest for a key entry.
+
+## Entry Point
+
+The signer registers under the `swarmauri.signings` entry point as `HmacEnvelopeSigner`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

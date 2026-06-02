@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_xmp_gif/">
@@ -6,48 +6,66 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_xmp_gif/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_xmp_gif.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_xmp_gif/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_xmp_gif/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_xmp_gif" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_xmp_gif" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_xmp_gif/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_xmp_gif?label=swarmauri_xmp_gif&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_xmp_gif?label=swarmauri_xmp_gif&color=green" alt="PyPI - swarmauri_xmp_gif"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri XMP Gif
+# swarmauri_xmp_gif
 
-GIF handler for embedding and extracting XMP packets in Swarmauri runtimes.
+`swarmauri_xmp_gif` includes the `GIFXMP` handler that preserves XMP packets inside GIF89a application extensions using the canonical `XMP Data` identifier and `XMP` authentication code.
 
 ## Features
 
-- GIF handler for embedding and extracting XMP packets in Swarmauri runtimes.
-- Exposes discoverable runtime entry points for `swarmauri.xmp_handlers` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- **Registry native** ? extends `EmbedXmpBase` so managers such as `EmbedXMP` can discover it through Swarmauri's dynamic registry.
+- **Block aware** ? iterates GIF sub-blocks safely and terminates on sentinel bytes to avoid corrupting animations.
+- **Spec aligned** ? writes uncompressed UTF-8 payloads that match Adobe's guidance for GIF metadata.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
 ```bash
-uv add swarmauri_xmp_gif
-```
-
-```bash
+# pip
 pip install swarmauri_xmp_gif
+
+# uv
+uv add swarmauri_xmp_gif
 ```
 
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
 ```python
-from swarmauri_xmp_gif import ClassVar, register_type, EmbedXmpBase, GIFXMP
+from pathlib import Path
 
-exports = ['ClassVar', 'register_type', 'EmbedXmpBase', 'GIFXMP']
-print(exports)
+from swarmauri_xmp_gif import GIFXMP
+
+handler = GIFXMP()
+gif_path = Path("example.gif")
+xmp_packet = """<x:xmpmeta xmlns:x='adobe:ns:meta/'><rdf:RDF>...</rdf:RDF></x:xmpmeta>"""
+
+# Embed using an application extension block
+updated_bytes = handler.write_xmp(gif_path.read_bytes(), xmp_packet)
+gif_path.write_bytes(updated_bytes)
+
+# Retrieve the RDF/XML payload
+restored_xml = handler.read_xmp(updated_bytes)
+print(restored_xml)
+
+# Remove the extension again
+clean_bytes = handler.remove_xmp(updated_bytes)
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+### Why it works
 
-License: Apache-2.0. See `LICENSE`.
+- **Standards-based** ? uses the XMP-defined App ID and Auth Code from Adobe's reference implementation.
+- **Chunk-aware** ? scans GIF sub-blocks safely, terminating on sentinel bytes and ignoring malformed payloads.
+- **Registry-native** ? inherits from `EmbedXmpBase`, so managers only need to query the component registry.
+
+## Project Resources
+
+- Source: <https://github.com/swarmauri/swarmauri-sdk>
+- License: Apache 2.0
+
+

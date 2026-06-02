@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_middleware_bulkhead/">
@@ -6,48 +6,91 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_bulkhead/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_bulkhead.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_bulkhead/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_bulkhead/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_bulkhead" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_bulkhead" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_middleware_bulkhead/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_bulkhead?label=swarmauri_middleware_bulkhead&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_bulkhead?label=swarmauri_middleware_bulkhead&color=green" alt="PyPI - swarmauri_middleware_bulkhead"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Middleware Bulkhead
 
-Bulkhead middleware implementation for Swarmauri.
+Concurrency isolation middleware for FastAPI applications. Limit the number of simultaneous requests to protect resources from overload and ensure reliable service operation.
 
 ## Features
 
-- Bulkhead middleware implementation for Swarmauri.
-- Exposes discoverable runtime entry points for `swarmauri.middlewares` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- **Concurrency control** restricts the number of in-flight requests using an `asyncio.Semaphore`.
+- **Configurable limits** let you tune `max_concurrency` (default: 10) to match service capacity.
+- **Fail-fast validation** guards against non-positive concurrency limits at initialization.
+- **Structured logging** surfaces request flow and failure details for easier diagnostics.
+- **FastAPI compatibility** enables seamless integration into ASGI middleware stacks.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
+Choose the tool that matches your workflow:
 
 ```bash
+# pip
+pip install swarmauri_middleware_bulkhead
+
+# Poetry
+poetry add swarmauri_middleware_bulkhead
+
+# uv
 uv add swarmauri_middleware_bulkhead
 ```
 
-```bash
-pip install swarmauri_middleware_bulkhead
-```
+## Quickstart
 
-## Usage
-
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+The middleware wraps a `call_next` handler and ensures that no more than `max_concurrency` requests execute at once. Run the example below with `python quickstart.py` to see the concurrency ceiling in action.
 
 ```python
+import asyncio
+
+from fastapi import Request
+
 from swarmauri_middleware_bulkhead import BulkheadMiddleware
 
-exports = ['BulkheadMiddleware']
-print(exports)
+
+async def main() -> None:
+    bulkhead = BulkheadMiddleware(max_concurrency=2)
+    active_requests = 0
+    peak_active_requests = 0
+    lock = asyncio.Lock()
+
+    async def call_next(request: Request):
+        nonlocal active_requests, peak_active_requests
+        async with lock:
+            active_requests += 1
+            peak_active_requests = max(peak_active_requests, active_requests)
+
+        try:
+            await asyncio.sleep(0.05)
+            return {"path": request.scope.get("path"), "handled": True}
+        finally:
+            async with lock:
+                active_requests -= 1
+
+    async def simulate_request(idx: int):
+        request = Request(scope={"type": "http", "path": f"/task/{idx}"})
+        return await bulkhead.dispatch(request, call_next)
+
+    responses = await asyncio.gather(*(simulate_request(i) for i in range(5)))
+
+    assert peak_active_requests <= bulkhead.max_concurrency
+    print("Peak concurrent requests:", peak_active_requests)
+    print("Responses:", responses)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+## Want to help?
 
-License: Apache-2.0. See `LICENSE`.
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+
+

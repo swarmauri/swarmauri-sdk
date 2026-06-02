@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tests_pylicense/">
@@ -6,48 +6,101 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_tests_pylicense/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_tests_pylicense.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tests_pylicense/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tests_pylicense/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tests_pylicense" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tests_pylicense" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tests_pylicense/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tests_pylicense?label=swarmauri_tests_pylicense&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tests_pylicense?label=swarmauri_tests_pylicense&color=green" alt="PyPI - swarmauri_tests_pylicense"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tests Pylicense
+## Overview
 
-Pytest plugin reporting dependency licenses.
+`swarmauri_tests_pylicense` is a [pytest](https://docs.pytest.org/) plugin that
+scans a package's full dependency tree and ensures each dependency declares a
+license. The plugin resolves dependencies recursively, checking every
+transitive requirement. It inspects both the `License` metadata field and
+any `Classifier` entries that declare a license.
 
-## Features
-
-- Pytest plugin reporting dependency licenses.
-- Exposes discoverable runtime entry points for `pytest11` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Provides an experimental workspace surface for early validation before functionality graduates into a more stable package lane.
+By default, the plugin runs in *parameterized* mode which creates one test per
+dependency. An *aggregate* mode is also available that reports all missing
+licenses in a single test.
 
 ## Installation
-
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_tests_pylicense
-```
 
 ```bash
 pip install swarmauri_tests_pylicense
 ```
 
+`pytest` automatically discovers the plugin once it is installed.
+
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+### Parameterized (default)
 
-```python
-from swarmauri_tests_pylicense import deque, dataclass, Path, Dict
+Run `pytest` with the package name to scan its dependency licenses:
 
-exports = ['deque', 'dataclass', 'Path', 'Dict']
-print(exports)
+```bash
+pytest --pylicense-package=<your-package>
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+Each generated test encodes the full dependency path, the resolved version,
+and the detected license of the terminal package. For example:
 
-License: Apache-2.0. See `LICENSE`.
+```
+swarmauri_tests_pylicense:license::pkg::depA::depB==1.2.3 [Apache-2.0]
+```
+
+### Aggregate
+
+Use the `--pylicense-mode=aggregate` flag to consolidate checks into one test:
+
+```bash
+pytest --pylicense-package=<your-package> --pylicense-mode=aggregate
+```
+
+### Allow and Disallow Lists
+
+To restrict acceptable licenses, provide a comma-separated allow list or
+disallow list. These can be passed via command-line options or environment
+variables.
+
+Command-line:
+
+```bash
+pytest --pylicense-package=<your-package> --pylicense-allow-list=MIT,Apache-2.0
+pytest --pylicense-package=<your-package> --pylicense-disallow-list=GPL
+```
+
+Environment variables:
+
+```bash
+export PYLICENSE_ALLOW_LIST="MIT,Apache-2.0"
+export PYLICENSE_DISALLOW_LIST="GPL"
+pytest --pylicense-package=<your-package>
+```
+
+If both are provided, any license not in the allow list or explicitly present
+in the disallow list will cause a test failure. By default, all licenses are
+allowed and none are disallowed.
+
+### Accepting Specific Dependencies
+
+Some transitive dependencies may ship with unusual or proprietary licenses that
+are acceptable for your project. Use `--pylicense-accept-deps` (or the
+`PYLICENSE_ACCEPT_DEPS` environment variable) with a comma-separated list to
+explicitly bypass those packages. For example:
+
+```bash
+pytest --pylicense-package=<your-package> --pylicense-accept-deps=cffi
+```
+
+This tells the plugin to treat `cffi` as pre-approved. Any license issues for
+`cffi`?including unknown or non-standard licenses?are ignored while other
+dependencies continue to be validated normally.
+
+## License
+
+Licensed under the [Apache 2.0 License](LICENSE).
+
+

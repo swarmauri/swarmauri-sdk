@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_transport_quic/">
@@ -6,32 +6,37 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_quic/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_quic.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_quic/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_quic/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_transport_quic" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_transport_quic" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_transport_quic/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_transport_quic?label=swarmauri_transport_quic&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_transport_quic?label=swarmauri_transport_quic&color=green" alt="PyPI - swarmauri_transport_quic"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Transport QUIC
+# Swarmauri QUIC Transport
 
-QUIC multiplex transport skeleton for Swarmauri.
+![Transport Icon](https://img.shields.io/badge/transport-quic-4B8BF4.svg)
+![Multiplex](https://img.shields.io/badge/feature-multiplexing-9B59B6.svg)
+![Lifecycle](https://img.shields.io/badge/lifecycle-async%20contexts-1E90FF.svg)
 
-## Features
+The **Swarmauri QUIC Transport** outlines a multiplexed, encrypted transport
+based on QUIC. It shares the unified lifecycle helpers so that future
+implementations can expose `.server(...)`, `.client(...)`, and channel-aware
+APIs directly on the transport instance.
 
-- QUIC multiplex transport skeleton for Swarmauri.
-- Centers its public API around `QuicTransport` so downstream code can import the package directly without extra registry glue.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+> **Note**: This package currently ships a skeleton with `NotImplementedError`
+> placeholders so downstream teams can integrate their preferred QUIC stack.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
+### Using `uv`
 
 ```bash
-uv add swarmauri_transport_quic
+uv add --directory pkgs/standards/swarmauri_transport_quic swarmauri_transport_quic
 ```
+
+### Using `pip`
 
 ```bash
 pip install swarmauri_transport_quic
@@ -39,15 +44,39 @@ pip install swarmauri_transport_quic
 
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+The example below demonstrates the lifecycle of a QUIC transport once the
+implementation details are filled in.
 
 ```python
+import asyncio
 from swarmauri_transport_quic import QuicTransport
 
-exports = ['QuicTransport']
-print(exports)
+async def main():
+    server = QuicTransport(cert="srv.pem", key="srv.key")
+    client = QuicTransport(server_name="localhost")
+
+    async def run_server():
+        async with server.server(host="0.0.0.0", port=4433):
+            channel = await server.open_channel()
+            await server.send_on(channel, b"welcome")
+            data = await server.recv_on(channel)
+            await server.send_on(channel, b"ack:" + data)
+            await server.close_channel(channel)
+
+    async def run_client():
+        async with client.client(host="127.0.0.1", port=4433):
+            channel = await client.open_channel()
+            await client.send_on(channel, b"hi-quic")
+            response = await client.recv_on(channel)
+            print(response.decode())
+            await client.close_channel(channel)
+
+    await asyncio.gather(run_server(), run_client())
+
+asyncio.run(main())
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+Replace the placeholders with concrete QUIC operations once your chosen
+library is integrated.
 
-License: Apache-2.0. See `LICENSE`.
+

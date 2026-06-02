@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_vectorstore_tfidf/">
@@ -6,32 +6,19 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_vectorstore_tfidf/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_vectorstore_tfidf.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_tfidf/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_tfidf/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_vectorstore_tfidf" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_vectorstore_tfidf" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_tfidf/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_tfidf?label=swarmauri_vectorstore_tfidf&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_tfidf?label=swarmauri_vectorstore_tfidf&color=green" alt="PyPI - swarmauri_vectorstore_tfidf"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Vectorstore TF-IDF
+# Swarmauri Vectorstore Tfidf
 
-A Tfidf based Vector Store and Tfidf Based Embedding Model.
-
-## Features
-
-- A Tfidf based Vector Store and Tfidf Based Embedding Model.
-- Preserves legacy imports and package boundaries so older integrations can keep running while you migrate to active packages.
-- Aligns with the current workspace packaging model so the package can participate cleanly in larger Swarmauri SDK builds.
+A vector store implementation using TF-IDF (Term Frequency-Inverse Document Frequency) for document embedding and retrieval. This package provides efficient document storage and similarity-based retrieval using the TF-IDF algorithm.
 
 ## Installation
-
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_vectorstore_tfidf
-```
 
 ```bash
 pip install swarmauri_vectorstore_tfidf
@@ -39,15 +26,29 @@ pip install swarmauri_vectorstore_tfidf
 
 ## Usage
 
-Use this package only as a compatibility bridge while moving callers onto active packages in the workspace.
+Here's a basic example of how to use the TF-IDF Vector Store:
 
 ```python
-from swarmauri_vectorstore_tfidf import TfidfVectorStore
+from swarmauri.vector_stores.TfidfVectorStore import TfidfVectorStore
+from swarmauri.documents.Document import Document
 
-exports = ['TfidfVectorStore']
-print(exports)
+# Initialize the vector store
+vector_store = TfidfVectorStore()
+
+# Add documents
+documents = [
+    Document(content="Machine learning basics"),
+    Document(content="Python programming guide"),
+    Document(content="Data science tutorial")
+]
+vector_store.add_documents(documents)
+
+# Retrieve similar documents
+results = vector_store.retrieve(query="python tutorial", top_k=2)
 ```
 
-Expect legacy imports to continue working, but plan migration work because the package is retained for compatibility rather than long-term growth.
+## Want to help?
 
-License: Apache-2.0. See `LICENSE`.
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+
+

@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_crypto_pgp/">
@@ -6,48 +6,113 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_crypto_pgp/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_crypto_pgp.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_pgp/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_pgp/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_crypto_pgp" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_crypto_pgp" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_crypto_pgp/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_crypto_pgp?label=swarmauri_crypto_pgp&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_crypto_pgp?label=swarmauri_crypto_pgp&color=green" alt="PyPI - swarmauri_crypto_pgp"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Crypto PGP
+## Swarmauri Crypto PGP
 
-OpenPGP (GnuPG) + AES-GCM crypto provider for Swarmauri.
+`PGPCrypto` is an OpenPGP (GnuPG-backed) crypto provider that implements the
+`ICrypto` contract from `swarmauri_core`. It combines modern AEAD primitives
+with OpenPGP public-key operations so that the same component can handle
+symmetrical encryption, public-key key wrapping, and hybrid envelopes.
 
-## Features
+### Features at a glance
 
-- OpenPGP (GnuPG) + AES-GCM crypto provider for Swarmauri.
-- Exposes discoverable runtime entry points for `peagen.plugins.cryptos, swarmauri.cryptos` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- **Symmetric AEAD** ? AES-256-GCM powers `encrypt` and `decrypt`.
+- **Key wrapping** ? `wrap` and `unwrap` delegate to GnuPG to protect random or
+  supplied key material with a recipient's public/private key pair.
+- **Hybrid envelopes** ? `encrypt_for_many` supports both traditional
+  KEM+AEAD (shared ciphertext + wrapped session key) and OpenPGP sealed mode for
+  per-recipient ciphertexts.
+- **Sealing convenience** ? `seal` and `unseal` provide single-recipient
+  OpenPGP public-key encryption without managing the envelope structure.
+
+### System requirements
+
+- Python 3.10 ? 3.13.
+- [GnuPG](https://gnupg.org/) available on the `PATH` (required by
+  `python-gnupg`).
+
+### Key material expectations
+
+- `encrypt` / `decrypt`: `KeyRef.material` must be 16/24/32 bytes for AES-GCM.
+- `wrap` / `encrypt_for_many`: `KeyRef.public` must be ASCII-armored OpenPGP
+  public key bytes.
+- `unwrap` / `unseal`: `KeyRef.material` must be ASCII-armored OpenPGP private
+  key bytes. Supply a passphrase via `KeyRef.tags["passphrase"]` when needed.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
+Choose the tool that matches your workflow:
 
 ```bash
+# pip
+pip install swarmauri_crypto_pgp
+
+# Poetry
+poetry add swarmauri_crypto_pgp
+
+# uv
 uv add swarmauri_crypto_pgp
 ```
 
-```bash
-pip install swarmauri_crypto_pgp
-```
+## Quickstart
 
-## Usage
-
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+The snippet below mirrors the asynchronous usage exercised in the tests. It
+creates a symmetric `KeyRef`, encrypts plaintext, and decrypts the resulting
+`AEADCiphertext` back to bytes.
 
 ```python
-from swarmauri_crypto_pgp import PGPCrypto
+import asyncio
 
-exports = ['PGPCrypto']
-print(exports)
+from swarmauri_crypto_pgp import PGPCrypto
+from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
+
+
+async def main() -> None:
+    crypto = PGPCrypto()
+
+    # Symmetric key for AES-256-GCM
+    sym = KeyRef(
+        kid="sym1",
+        version=1,
+        type=KeyType.SYMMETRIC,
+        uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+        material=b"\x00" * 32,
+    )
+
+    ct = await crypto.encrypt(sym, b"hello OpenPGP")
+    pt = await crypto.decrypt(sym, ct)
+
+    print(pt)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+### Working with recipients
 
-License: Apache-2.0. See `LICENSE`.
+- Call `encrypt_for_many` with recipient public keys to either produce an
+  AES-GCM ciphertext with OpenPGP-wrapped session keys (default) or
+  per-recipient sealed blobs by passing `enc_alg="OpenPGP-SEAL"`.
+- Use `seal` / `unseal` for single-recipient OpenPGP public-key encryption.
+- `wrap` and `unwrap` offer direct access to OpenPGP-based key encapsulation.
+
+## Entry point
+
+The provider is registered under the `swarmauri.cryptos` entry-point as
+`PGPCrypto`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

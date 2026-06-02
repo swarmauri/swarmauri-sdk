@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_signing_pgp/">
@@ -6,48 +6,139 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_pgp/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_pgp.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_pgp/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_pgp/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_signing_pgp" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_signing_pgp" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_pgp/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_signing_pgp?label=swarmauri_signing_pgp&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_signing_pgp?label=swarmauri_signing_pgp&color=green" alt="PyPI - swarmauri_signing_pgp"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Signing PGP
 
-OpenPGP envelope signer for Swarmauri.
+The `swarmauri_signing_pgp` package provides an OpenPGP signer for the Swarmauri
+SDK. It creates and verifies detached signatures over raw byte payloads or
+structured envelopes that are canonicalized to JSON or, optionally, CBOR.
 
 ## Features
 
-- OpenPGP envelope signer for Swarmauri.
-- Exposes discoverable runtime entry points for `swarmauri.signings` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Detached OpenPGP signatures for bytes and envelopes
+- JSON canonicalization with optional CBOR support via `cbor2`
+- Multi-signer verification with configurable minimum signer requirements
+- Private key loading from in-memory `pgpy` objects or ASCII-armored blobs
+- Passphrase handling for locked private keys
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_signing_pgp
-```
+Install the package with your preferred Python packaging tool:
 
 ```bash
 pip install swarmauri_signing_pgp
 ```
 
-## Usage
-
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
-```python
-from swarmauri_signing_pgp import PgpEnvelopeSigner
-
-exports = ['PgpEnvelopeSigner']
-print(exports)
+```bash
+poetry add swarmauri_signing_pgp
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+```bash
+uv pip install swarmauri_signing_pgp
+```
 
-License: Apache-2.0. See `LICENSE`.
+### Optional CBOR support
+
+Enable canonicalization to CBOR by installing the optional dependency group:
+
+```bash
+pip install "swarmauri_signing_pgp[cbor]"
+```
+
+```bash
+poetry add swarmauri_signing_pgp -E cbor
+```
+
+```bash
+uv pip install "swarmauri_signing_pgp[cbor]"
+```
+
+## Usage
+
+The signer exposes asynchronous methods from the Swarmauri signing base class.
+Key references are dictionaries describing how to load private keys. For `pgpy`
+objects, the signer expects a mapping such as `{"kind": "pgpy_key", "priv":
+pgpy_key}`. Verification requires the corresponding public keys supplied in the
+`opts={"pubkeys": [...]}` argument.
+
+### Sign and verify raw bytes
+
+```python
+import asyncio
+
+from pgpy import PGPKey, PGPUID
+from pgpy.constants import (
+    CompressionAlgorithm,
+    HashAlgorithm,
+    KeyFlags,
+    PubKeyAlgorithm,
+    SymmetricKeyAlgorithm,
+)
+
+from swarmauri_signing_pgp import PgpEnvelopeSigner
+
+
+def make_demo_key() -> PGPKey:
+    key = PGPKey.new(PubKeyAlgorithm.RSAEncryptOrSign, 2048)
+    uid = PGPUID.new("Example User", email="user@example.com")
+    key.add_uid(
+        uid,
+        usage={KeyFlags.Sign},
+        hashes=[HashAlgorithm.SHA256],
+        ciphers=[SymmetricKeyAlgorithm.AES256],
+        compression=[CompressionAlgorithm.ZLIB],
+    )
+    return key
+
+
+async def main() -> None:
+    signer = PgpEnvelopeSigner()
+    key = make_demo_key()
+    key_ref = {"kind": "pgpy_key", "priv": key}
+    payload = b"openpgp demo"
+
+    signatures = await signer.sign_bytes(key_ref, payload)
+    verified = await signer.verify_bytes(
+        payload,
+        signatures,
+        opts={"pubkeys": [key.pubkey]},
+    )
+    print("Verified:", verified)
+
+
+asyncio.run(main())
+```
+
+The signer returns detached signatures that include both binary and ASCII-armored
+representations. Passphrases for locked private keys can be supplied through
+`opts={"passphrase": "secret"}`.
+
+### Sign envelopes
+
+Envelopes are canonicalized before signing. JSON canonicalization is always
+available and CBOR becomes available when the optional dependency group is
+installed:
+
+```python
+envelope = {"subject": "demo", "body": "hello"}
+signatures = await signer.sign_envelope(key_ref, envelope, canon="json")
+await signer.verify_envelope(
+    envelope,
+    signatures,
+    canon="json",
+    opts={"pubkeys": [key.pubkey]},
+)
+```
+
+Use `canon="cbor"` to opt into CBOR canonicalization. The `supports()` helper
+exposes the available algorithms, canonicalization formats, and feature flags at
+runtime.
+
+

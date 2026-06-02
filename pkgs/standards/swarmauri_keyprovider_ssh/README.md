@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_keyprovider_ssh/">
@@ -6,48 +6,105 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_ssh/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_ssh.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_ssh/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_ssh/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_ssh" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_ssh" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_keyprovider_ssh/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_ssh?label=swarmauri_keyprovider_ssh&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_ssh?label=swarmauri_keyprovider_ssh&color=green" alt="PyPI - swarmauri_keyprovider_ssh"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Keyprovider SSH
+# Swarmauri SSH Key Provider
 
-SSH-based key provider for Swarmauri.
+An asynchronous `KeyProviderBase` implementation that keeps SSH key material in
+memory and bridges it to Swarmauri's signing abstractions.
 
 ## Features
 
-- SSH-based key provider for Swarmauri.
-- Exposes discoverable runtime entry points for `peagen.plugins.key_providers, swarmauri.key_providers` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Generate new Ed25519, RSA-PSS (SHA-256), or ECDSA P-256 key pairs on demand.
+- Import existing private keys (PEM) or public keys (OpenSSH) while respecting
+  each key's `ExportPolicy`.
+- Rotate keys, enumerate versions, and optionally destroy specific versions or
+  entire key identifiers.
+- Export public keys as RFC 7517-compliant JWKs/JWKS with OpenSSH fingerprints
+  embedded in the `tags` metadata.
+- Produce random bytes and derive keying material using the HKDF construction
+  (RFC 5869).
 
 ## Installation
 
-Install this package with `uv` or `pip`.
+Choose the tool that matches your workflow:
 
 ```bash
-uv add swarmauri_keyprovider_ssh
-```
-
-```bash
+# pip
 pip install swarmauri_keyprovider_ssh
+
+# Poetry
+poetry add swarmauri_keyprovider_ssh
+
+# uv
+uv add swarmauri_keyprovider_ssh
 ```
 
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+The provider exposes an asynchronous interface for creating and managing
+SSH-based signing keys.  The snippet below creates a new Ed25519 key and
+exports its public component as a JSON Web Key (JWK):
 
 ```python
+import asyncio
 from swarmauri_keyprovider_ssh import SshKeyProvider
+from swarmauri_core.key_providers.types import (
+    KeySpec,
+    KeyAlg,
+    KeyClass,
+    ExportPolicy,
+    KeyUse,
+)
 
-exports = ['SshKeyProvider']
-print(exports)
+
+async def main() -> None:
+    provider = SshKeyProvider()
+    spec = KeySpec(
+        klass=KeyClass.asymmetric,
+        alg=KeyAlg.ED25519,
+        uses=(KeyUse.SIGN, KeyUse.VERIFY),
+        export_policy=ExportPolicy.PUBLIC_ONLY,
+    )
+    ref = await provider.create_key(spec)
+    jwk = await provider.get_public_jwk(ref.kid)
+    print(jwk)
+
+
+asyncio.run(main())
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+Keys can also be rotated, and the provider will track key versions:
 
-License: Apache-2.0. See `LICENSE`.
+```python
+ref = await provider.create_key(spec)
+await provider.rotate_key(ref.kid)
+assert await provider.list_versions(ref.kid) == (1, 2)
+```
+
+Use `destroy_key()` to remove an entire key identifier or just a single
+version, and `jwks(prefix_kids=...)` when you need to emit a filtered JWKS for
+downstream consumers.
+
+Existing keys can be imported from PEM or OpenSSH data and exposed via JWKS:
+
+```python
+from pathlib import Path
+
+pem = Path("id_ed25519").read_bytes()
+ref = await provider.import_key(spec, pem)
+jwks = await provider.jwks()
+```
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

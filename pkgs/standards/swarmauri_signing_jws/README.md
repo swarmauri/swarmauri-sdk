@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_signing_jws/">
@@ -6,48 +6,131 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_jws/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_jws.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_jws/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_jws/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_signing_jws" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_signing_jws" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_jws/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_signing_jws?label=swarmauri_signing_jws&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_signing_jws?label=swarmauri_signing_jws&color=green" alt="PyPI - swarmauri_signing_jws"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
 # Swarmauri Signing JWS
 
-Composite JWS signer/verifier for Swarmauri.
+Composite JSON Web Signature (JWS) signer and verifier that orchestrates
+multiple Swarmauri signing providers behind a single asynchronous API.
 
 ## Features
 
-- Composite JWS signer/verifier for Swarmauri.
-- Exposes discoverable runtime entry points for `peagen.plugins.signings, swarmauri.signings` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Async helpers for both compact and general JSON JWS serialization
+- Algorithm routing across HMAC (HS256/384/512), RSA (RS*/PS*), ECDSA
+  (ES256/384/512), Ed25519 (EdDSA), and optional secp256k1 (ES256K when the
+  `secp256k1` extra is installed)
+- Works with direct key material, Swarmauri signer objects, or a JWKS resolver
+  while returning the protected header and payload via `JwsResult`
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_signing_jws
-```
+### pip
 
 ```bash
 pip install swarmauri_signing_jws
 ```
 
-## Usage
+### Poetry
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
-```python
-from swarmauri_signing_jws import JwsSignerVerifier, JwsResult, JWSSigner
-
-exports = ['JwsSignerVerifier', 'JwsResult', 'JWSSigner']
-print(exports)
+```bash
+poetry add swarmauri_signing_jws
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+### uv
 
-License: Apache-2.0. See `LICENSE`.
+To add the dependency to a `pyproject.toml` managed by `uv`:
+
+```bash
+uv add swarmauri_signing_jws
+```
+
+Or install it into the active environment:
+
+```bash
+uv pip install swarmauri_signing_jws
+```
+
+Optional extras:
+
+- `secp256k1` enables ES256K support through `swarmauri_signing_secp256k1`
+
+## Usage
+
+```python
+import asyncio
+from swarmauri_signing_jws import JwsSignerVerifier
+
+
+async def main() -> None:
+    signer = JwsSignerVerifier()
+    key = {"kind": "raw", "key": "0" * 32}
+
+    compact = await signer.sign_compact(
+        payload={"msg": "hi"},
+        alg="HS256",
+        key=key,
+    )
+
+    result = await signer.verify_compact(
+        compact,
+        hmac_keys=[key],
+    )
+
+    print(result.payload.decode("utf-8"))
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+The public methods accept either raw strings or `JWAAlg` enum values for the
+`alg` parameter. Compact verification returns a `JwsResult` dataclass containing
+the parsed header and payload bytes so applications can safely forward or decode
+the authenticated message.
+
+## API highlights
+
+- `sign_compact(...)` / `verify_compact(...)` wrap the standard compact
+  serialization, including optional allowlists and JWKS resolvers.
+- `sign_general_json(...)` / `verify_general_json(...)` operate on the general
+  JSON serialization and support multi-signer verification with `min_signers`
+  thresholds.
+- Each algorithm family accepts dedicated key collections (`hmac_keys`,
+  `rsa_pubkeys`, `ec_pubkeys`, `ed_pubkeys`, `k1_pubkeys`) or a `jwks_resolver`
+  callback for dynamic key retrieval.
+
+## HMAC key requirements
+
+All HMAC-based operations **require a secret of at least 32 bytes (256 bits)**.  
+Shorter keys are rejected to avoid truncation mistakes and to keep forgery
+probabilities negligible even after many verification attempts.  
+
+Rationale:
+
+- Forgery success scales with tag length; a 256-bit tag keeps the chance
+  negligible even after many tries ([NIST SP 800-107 Rev.1](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-107r1.pdf)).
+- [RFC 7518](https://datatracker.ietf.org/doc/html/rfc7518) already mandates
+  HS256 keys >= 256 bits; using the full HMAC-SHA-256 output avoids
+  inadvertent strength reduction.
+- A full 32-byte tag preserves approximately 128-bit security even under generic quantum
+  search speedups ([NIST IR 8547](https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8547.ipd.pdf)).
+- Fixed-length tags simplify constant-time verification and prevent
+  configuration mismatches.
+
+## Entry Point
+
+The signer registers under the `swarmauri.signings` entry point as
+`JwsSignerVerifier`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tool_jupyterclearoutput/">
@@ -6,48 +6,64 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_jupyterclearoutput/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_jupyterclearoutput.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupyterclearoutput/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupyterclearoutput/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupyterclearoutput" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupyterclearoutput" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupyterclearoutput/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterclearoutput?label=swarmauri_tool_jupyterclearoutput&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterclearoutput?label=swarmauri_tool_jupyterclearoutput&color=green" alt="PyPI - swarmauri_tool_jupyterclearoutput"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tool Jupyterclearoutput
+# Swarmauri Tool Jupyter Clear Output
 
-Swarmauri notebook-cleanup tool for clearing code-cell outputs and execution counts from Jupyter notebooks.
+Removes outputs and execution counts from Jupyter notebooks using a Swarmauri tool wrapper. Ideal for cleaning notebooks before publishing or committing to version control.
 
 ## Features
 
-- Swarmauri notebook-cleanup tool for clearing code-cell outputs and execution counts from Jupyter notebooks.
-- Exposes discoverable runtime entry points for `swarmauri.tools` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Lives in the community package lane for optional integrations that extend the main Swarmauri SDK surface.
+- Clears output arrays from all code cells and resets `execution_count` to `None`.
+- Leaves markdown and raw cells untouched.
+- Works with notebooks already loaded into memory (dict/JSON structure).
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- Dependencies: `nbconvert`, `swarmauri_base`, `swarmauri_standard` (installed automatically).
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
 ```bash
+# pip
+pip install swarmauri_tool_jupyterclearoutput
+
+# poetry
+poetry add swarmauri_tool_jupyterclearoutput
+
+# uv (pyproject-based projects)
 uv add swarmauri_tool_jupyterclearoutput
 ```
 
-```bash
-pip install swarmauri_tool_jupyterclearoutput
-```
-
-## Usage
-
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+## Quickstart
 
 ```python
+import json
 from swarmauri_tool_jupyterclearoutput import JupyterClearOutputTool
 
-exports = ['JupyterClearOutputTool']
-print(exports)
+notebook_data = json.loads(Path("notebooks/example.ipynb").read_text())
+
+cleaner = JupyterClearOutputTool()
+clean_notebook = cleaner(notebook_data)
+
+Path("notebooks/example-clean.ipynb").write_text(json.dumps(clean_notebook, indent=2))
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+## Tips
 
-License: Apache-2.0. See `LICENSE`.
+- Run this tool before committing notebooks to keep diffs small and avoid leaking secrets in output cells.
+- Combine with Swarmauri pipelines that regenerate notebooks (e.g., parameterized runs) to ensure clean artifacts.
+- For large notebooks, consider streaming to disk rather than loading entirely into memory before clearing.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+
+

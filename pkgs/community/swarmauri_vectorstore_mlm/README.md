@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_vectorstore_mlm/">
@@ -6,32 +6,19 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_mlm/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_vectorstore_mlm.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_mlm/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_mlm/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_vectorstore_mlm" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_vectorstore_mlm" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_vectorstore_mlm/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_mlm?label=swarmauri_vectorstore_mlm&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_vectorstore_mlm?label=swarmauri_vectorstore_mlm&color=green" alt="PyPI - swarmauri_vectorstore_mlm"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Vectorstore MLM
+# Swarmauri Vectorstore Mlm
 
-Swarmauri MLM Vector Store.
-
-## Features
-
-- Swarmauri MLM Vector Store.
-- Exposes discoverable runtime entry points for `swarmauri.vector_stores` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Lives in the community package lane for optional integrations that extend the main Swarmauri SDK surface.
+A vector store implementation using MLM (Masked Language Model) embeddings for document storage and retrieval.
 
 ## Installation
-
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_vectorstore_mlm
-```
 
 ```bash
 pip install swarmauri_vectorstore_mlm
@@ -39,15 +26,32 @@ pip install swarmauri_vectorstore_mlm
 
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+Here's a basic example of how to use the MLM Vector Store:
 
 ```python
-from swarmauri_vectorstore_mlm import MlmVectorStore
+from swarmauri.documents.Document import Document
+from swarmauri.vector_stores.MlmVectorStore import MlmVectorStore
 
-exports = ['MlmVectorStore']
-print(exports)
+# Initialize the vector store
+vs = MlmVectorStore()
+
+# Create some documents
+documents = [
+    Document(content="first document"),
+    Document(content="second document"),
+    Document(content="third document")
+]
+
+# Add documents to the store
+vs.add_documents(documents)
+
+# Retrieve similar documents
+results = vs.retrieve(query="document", top_k=2)
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+## Want to help?
 
-License: Apache-2.0. See `LICENSE`.
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+
+
+

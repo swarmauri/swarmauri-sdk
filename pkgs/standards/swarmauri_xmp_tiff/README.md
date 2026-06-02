@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_xmp_tiff/">
@@ -6,48 +6,56 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_xmp_tiff/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_xmp_tiff.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_xmp_tiff/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_xmp_tiff/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_xmp_tiff" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_xmp_tiff" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_xmp_tiff/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_xmp_tiff?label=swarmauri_xmp_tiff&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_xmp_tiff?label=swarmauri_xmp_tiff&color=green" alt="PyPI - swarmauri_xmp_tiff"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri XMP TIFF
+# swarmauri_xmp_tiff
 
-TIFF/DNG handler scaffold for embedding and extracting XMP packets in Swarmauri runtimes.
+`swarmauri_xmp_tiff` introduces the `TIFFXMP` handler scaffold for managing XMP metadata in TIFF and DNG images via tag 700.
 
 ## Features
 
-- TIFF/DNG handler scaffold for embedding and extracting XMP packets in Swarmauri runtimes.
-- Exposes discoverable runtime entry points for `swarmauri.xmp_handlers` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- **Future ready** ? codifies the contract for TIFF/DNG metadata manipulation ahead of implementation work.
+- **Registry connected** ? extends `EmbedXmpBase`, so the handler is automatically registered for discovery.
+- **Explicit messaging** ? each method raises `NotImplementedError`, clarifying expectations for contributors.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
 ```bash
-uv add swarmauri_xmp_tiff
-```
-
-```bash
+# pip
 pip install swarmauri_xmp_tiff
+
+# uv
+uv add swarmauri_xmp_tiff
 ```
 
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
 ```python
-from swarmauri_xmp_tiff import register_type, EmbedXmpBase, TIFFXMP
+from swarmauri_xmp_tiff import TIFFXMP
 
-exports = ['register_type', 'EmbedXmpBase', 'TIFFXMP']
-print(exports)
+handler = TIFFXMP()
+
+try:
+    handler.read_xmp(b"II*\x00...")
+except NotImplementedError:
+    print("TIFF XMP support is planned and currently unimplemented.")
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+### Why it works
 
-License: Apache-2.0. See `LICENSE`.
+- **Future ready** ? codifies the contract for TIFF/DNG metadata manipulation ahead of implementation work.
+- **Registry connected** ? extends `EmbedXmpBase`, so the handler is automatically registered for discovery.
+- **Explicit messaging** ? each method raises `NotImplementedError`, clarifying expectations for contributors.
+
+## Project Resources
+
+- Source: <https://github.com/swarmauri/swarmauri-sdk>
+- License: Apache 2.0
+
+

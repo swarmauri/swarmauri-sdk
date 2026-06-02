@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_cipher_suite_yubikey/">
@@ -6,48 +6,123 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suite_yubikey/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suite_yubikey.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_yubikey/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_yubikey/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_cipher_suite_yubikey" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_cipher_suite_yubikey" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_yubikey/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_yubikey?label=swarmauri_cipher_suite_yubikey&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_yubikey?label=swarmauri_cipher_suite_yubikey&color=green" alt="PyPI - swarmauri_cipher_suite_yubikey"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Cipher Suite YubiKey
+# Swarmauri Cipher Suites YubiKey
 
-YubiKey-backed cipher suite for Swarmauri PIV signing and key transport.
+`YubiKeyCipherSuite` models a conservative YubiKey configuration that focuses on
+PIV-backed signing and key transport. It exposes the algorithms commonly
+available on non-FIPS YubiKey models without promising token-side bulk
+encryption.
 
 ## Features
 
-- YubiKey-backed cipher suite for Swarmauri PIV signing and key transport.
-- Exposes discoverable runtime entry points for `swarmauri.cipher_suites` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Normalizes YubiKey signing (`sign`/`verify`) and key wrap (`wrap`/`unwrap`)
+  operations.
+- Provides policy defaults for RSA-PSS and ECDSA, including default hash
+  coupling and salt lengths.
+- Surfaces dialect metadata so crypto providers can route requests to the PIV
+  driver (`piv:<alg>`), including optional slot tagging.
+- Documents token policy (allowed curves, hash functions, attestation
+  expectations) in a single place.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_cipher_suite_yubikey
-```
+### pip
 
 ```bash
 pip install swarmauri_cipher_suite_yubikey
 ```
 
+### uv (dependency)
+
+```bash
+uv add swarmauri_cipher_suite_yubikey
+```
+
+### uv (environment)
+
+```bash
+uv pip install swarmauri_cipher_suite_yubikey
+```
+
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+### 1. Instantiate the suite
 
 ```python
 from swarmauri_cipher_suite_yubikey import YubiKeyCipherSuite
 
-exports = ['YubiKeyCipherSuite']
-print(exports)
+suite = YubiKeyCipherSuite(name="piv-default")
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+The suite accepts a friendly name so you can register multiple policy variants
+if you run different tokens.
 
-License: Apache-2.0. See `LICENSE`.
+### 2. Normalize a signing request
+
+```python
+from swarmauri_cipher_suite_yubikey import YubiKeyCipherSuite
+from swarmauri_core.cipher_suites.types import KeyRef
+
+suite = YubiKeyCipherSuite(name="piv-default")
+key = KeyRef(kid="sig-slot-9c", slot="9c")
+descriptor = suite.normalize(op="sign", alg="ES256", key=key)
+
+print(descriptor["mapped"]["provider"])  # -> "piv:ES256:slot=9c"
+print(descriptor["params"]["hash"])       # -> "SHA256" (defaulted)
+```
+
+`normalize` returns a dictionary with the canonical algorithm, provider
+identifier, defaulted parameter set, and suite policy. Crypto providers can
+forward these values directly to the PIV driver without re-implementing
+YubiKey-specific logic.
+
+### 3. Wrap a key for transport
+
+```python
+from swarmauri_cipher_suite_yubikey import YubiKeyCipherSuite
+
+suite = YubiKeyCipherSuite(name="piv-default")
+transport_descriptor = suite.normalize(op="wrap")
+print(transport_descriptor["mapped"]["provider"])  # -> "piv:RSA-OAEP-256"
+print(transport_descriptor["params"])              # -> {"mgf1Hash": "SHA256"}
+```
+
+When no algorithm is supplied, the suite picks sensible defaults (`ES256` for
+signing, `RSA-OAEP-256` for key wrap) while still respecting the policy limits.
+
+### 4. Inspect supported algorithms and features
+
+```python
+from swarmauri_cipher_suite_yubikey import YubiKeyCipherSuite
+
+suite = YubiKeyCipherSuite(name="piv-default")
+
+for op, algs in suite.supports().items():
+    print(op, sorted(algs))
+
+print(suite.features()["notes"][0])
+```
+
+These helpers allow orchestration layers to discover the token capabilities,
+render documentation, or validate client requests before invoking the hardware.
+
+## Entry Point
+
+The suite registers under the `swarmauri.cipher_suites` entry point as
+`YubiKeyCipherSuite`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+
+

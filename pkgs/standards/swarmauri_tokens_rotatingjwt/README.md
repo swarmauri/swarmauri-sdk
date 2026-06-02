@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tokens_rotatingjwt/">
@@ -6,48 +6,64 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_rotatingjwt/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_rotatingjwt.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_rotatingjwt/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_rotatingjwt/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tokens_rotatingjwt" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_tokens_rotatingjwt" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tokens_rotatingjwt/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tokens_rotatingjwt?label=swarmauri_tokens_rotatingjwt&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_tokens_rotatingjwt?label=swarmauri_tokens_rotatingjwt&color=green" alt="PyPI - swarmauri_tokens_rotatingjwt"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Tokens Rotatingjwt
+# swarmauri_tokens_rotatingjwt
 
-Rotating JWT token service for Swarmauri.
+Rotating JWT token service plugin for Swarmauri.
+
+This package provides a token issuer/verifier that automatically rotates its
+signing key.  It exposes a `RotatingJWTTokenService` implementing
+`ITokenService` and conforms to RFC 7515, 7517, 7518 and 7519.
 
 ## Features
 
-- Rotating JWT token service for Swarmauri.
-- Exposes discoverable runtime entry points for `peagen.plugins.tokens, swarmauri.tokens` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Supports RS256, PS256, ES256, EdDSA and HS256 algorithms.
+- Automatic key rotation based on time or token count.
+- JWKS publication retaining previous key versions.
 
 ## Installation
-
-Install this package with `uv` or `pip`.
 
 ```bash
 uv add swarmauri_tokens_rotatingjwt
 ```
 
+Optional extras are available for specific signing canons:
+
 ```bash
-pip install swarmauri_tokens_rotatingjwt
+uv add swarmauri_tokens_rotatingjwt[rsa]
+uv add swarmauri_tokens_rotatingjwt[ecdsa]
+uv add swarmauri_tokens_rotatingjwt[eddsa]
+uv add swarmauri_tokens_rotatingjwt[hmac]
 ```
 
 ## Usage
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
-
 ```python
 from swarmauri_tokens_rotatingjwt import RotatingJWTTokenService
+from swarmauri_keyprovider_inmemory import InMemoryKeyProvider
+from swarmauri_core.crypto.types import JWAAlg
 
-exports = ['RotatingJWTTokenService']
-print(exports)
+kp = InMemoryKeyProvider()
+service = RotatingJWTTokenService(kp, alg=JWAAlg.RS256)
+
+token = await service.mint({"sub": "alice"}, alg=JWAAlg.RS256)
+claims = await service.verify(token)
+jwks = await service.jwks()
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+The service handles key rotation based on time or token volume and exposes a
+JWKS endpoint that includes previous keys so existing tokens remain valid.
 
-License: Apache-2.0. See `LICENSE`.
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+

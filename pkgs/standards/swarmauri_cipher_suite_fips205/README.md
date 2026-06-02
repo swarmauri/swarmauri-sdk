@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_cipher_suite_fips205/">
@@ -6,48 +6,78 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suite_fips205/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suite_fips205.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_fips205/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_fips205/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_cipher_suite_fips205" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_cipher_suite_fips205" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_fips205/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_fips205?label=swarmauri_cipher_suite_fips205&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_fips205?label=swarmauri_cipher_suite_fips205&color=green" alt="PyPI - swarmauri_cipher_suite_fips205"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Cipher Suite Fips205
+# Swarmauri Cipher Suite FIPS 205
 
-FIPS 205 SLH-DSA cipher suite bindings for Swarmauri.
+SLH-DSA (SPHINCS+) signature suite aligned with NIST FIPS 205.
 
 ## Features
 
-- FIPS 205 SLH-DSA cipher suite bindings for Swarmauri.
-- Exposes discoverable runtime entry points for `swarmauri.cipher_suites` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+- Exposes all SHA2 and SHAKE based SLH-DSA parameter sets from the standard
+- Provides security level metadata for downstream admission control
+- Supplies provider-oriented descriptors for Swarmauri signing flows
+- Publishes an entry point for automatic suite discovery and registration
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_cipher_suite_fips205
-```
+### pip
 
 ```bash
 pip install swarmauri_cipher_suite_fips205
 ```
 
-## Usage
+### Poetry
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+```bash
+poetry add swarmauri_cipher_suite_fips205
+```
+
+### uv
+
+To add the dependency to a `pyproject.toml` managed by `uv`:
+
+```bash
+uv add swarmauri_cipher_suite_fips205
+```
+
+Or install it into the active environment:
+
+```bash
+uv pip install swarmauri_cipher_suite_fips205
+```
+
+## Usage
 
 ```python
 from swarmauri_cipher_suite_fips205 import Fips205CipherSuite
 
-exports = ['Fips205CipherSuite']
-print(exports)
+suite = Fips205CipherSuite(name="slhdsa")
+
+# Normalise a SLH-DSA-SHAKE-192s signing request
+descriptor = suite.normalize(op="sign", alg="SLH-DSA-SHAKE-192s")
+print(descriptor["constraints"]["nistLevel"])  # -> 3
+print(descriptor["mapped"]["provider"])       # -> slh-dsa:SLH-DSA-SHAKE-192s
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+Requests for non-SLH-DSA algorithms raise `ValueError`, surfacing the policy
+violation early.
 
-License: Apache-2.0. See `LICENSE`.
+## Entry Point
+
+The suite registers under the `swarmauri.cipher_suites` entry point as
+`Fips205CipherSuite`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+
+

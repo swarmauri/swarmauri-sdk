@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_cipher_suite_tls13/">
@@ -6,48 +6,72 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suite_tls13/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suite_tls13.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_tls13/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_tls13/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_cipher_suite_tls13" alt="License"/></a>
+        <img src="https://img.shields.io/pypi/l/swarmauri_cipher_suite_tls13" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_cipher_suite_tls13/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_tls13?label=swarmauri_cipher_suite_tls13&color=green" alt="Release Version"/></a>
+        <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_tls13?label=swarmauri_cipher_suite_tls13&color=green" alt="PyPI - swarmauri_cipher_suite_tls13"/></a>
     <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a>
-</p>
+        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Cipher Suite Tls13
+# Swarmauri Cipher Tls13
 
-TLS 1.3 cipher suite policy for Swarmauri.
-
-## Features
-
-- TLS 1.3 cipher suite policy for Swarmauri.
-- Exposes discoverable runtime entry points for `swarmauri.cipher_suites` so the package can be wired into Swarmauri or Tigrbl workflows.
-- Fits the standards package lane so the capability can be added to a project as a focused, separately versioned dependency.
+TLS 1.3 cipher suite metadata for record protection policy alignment.
 
 ## Installation
 
-Install this package with `uv` or `pip`.
-
-```bash
-uv add swarmauri_cipher_suite_tls13
-```
+### pip
 
 ```bash
 pip install swarmauri_cipher_suite_tls13
 ```
 
-## Usage
+### Poetry
 
-Start by importing the public package surface, then configure the exported type or callable inside the workflow that consumes it.
+```bash
+poetry add swarmauri_cipher_suite_tls13
+```
+
+### uv
+
+To add the dependency to a `pyproject.toml` managed by `uv`:
+
+```bash
+uv add swarmauri_cipher_suite_tls13
+```
+
+Or install it into the active environment:
+
+```bash
+uv pip install swarmauri_cipher_suite_tls13
+```
+
+## Usage
 
 ```python
 from swarmauri_cipher_suite_tls13 import Tls13CipherSuite
 
-exports = ['Tls13CipherSuite']
-print(exports)
+suite = Tls13CipherSuite(name="demo-tls13")
+
+# Inspect the available operations and defaults
+print(suite.features()["ops"].keys())
+
+# Normalize an operation
+descriptor = suite.normalize(op=list(suite.supports().keys())[0])
+print(descriptor["alg"], descriptor["params"])
 ```
 
-After import, pass the exported objects into the surrounding Swarmauri or Tigrbl code that owns configuration, credentials, transport, or storage details.
+The suite returns normalized descriptors that include canonical algorithm names,
+per-dialect mappings, and policy metadata so providers can focus on execution.
 
-License: Apache-2.0. See `LICENSE`.
+## Entry Point
+
+The suite registers under the `swarmauri.cipher_suites` entry point as `Tls13CipherSuite`.
+
+## Contributing
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
+
+
