@@ -320,6 +320,8 @@ members = [
     "standards/swarmauri_storage_github_release",
     "standards/swarmauri_storage_memory",
     "standards/swarmauri_storage_minio",
+    "standards/swarmauri_storage_s3",
+    "standards/swarmauri_storage_s3fs",
     "standards/swarmauri_tokens_composite",
     "standards/swarmauri_tokens_dpopboundjwt",
     "standards/swarmauri_tokens_introspection",
@@ -587,6 +589,8 @@ swarmauri_storage_github = { workspace = true }
 swarmauri_storage_github_release = { workspace = true }
 swarmauri_storage_memory = { workspace = true }
 swarmauri_storage_minio = { workspace = true }
+swarmauri_storage_s3 = { workspace = true }
+swarmauri_storage_s3fs = { workspace = true }
 swarmauri_tests_griffe = { workspace = true }
 swarmauri_tests_loc_tersity = { workspace = true }
 swarmauri_tests_pylicense = { workspace = true }
