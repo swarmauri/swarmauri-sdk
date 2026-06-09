@@ -43,3 +43,21 @@ node_modules/
 /.tmp/
 .tmp*
 *.tmp*
+
+# Local generated caches and temporary package artifacts
+.tmp/
+.tmp*/
+tmp/
+.uv-cache*/
+.uv-python*/
+.venv*/
+.venv-gitvs*/
+generation_examples/
+dist/
+build/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
