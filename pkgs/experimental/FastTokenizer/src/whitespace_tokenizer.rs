@@ -11,9 +11,7 @@ impl WhitespaceTokenizer {
     }
 
     fn tokenize(&self, input: &str) -> PyResult<Vec<String>> {
-        let tokens: Vec<String> = input.split_whitespace()
-            .map(|s| s.to_string())
-            .collect();
+        let tokens: Vec<String> = input.split_whitespace().map(|s| s.to_string()).collect();
         Ok(tokens)
     }
 }

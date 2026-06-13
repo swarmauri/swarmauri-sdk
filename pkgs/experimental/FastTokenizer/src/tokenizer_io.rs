@@ -21,15 +21,17 @@ impl TokenizerIO {
                 let mut reader = BufReader::new(file);
                 let mut content = String::new();
                 if let Err(e) = reader.read_to_string(&mut content) {
-                    return Err(PyErr::new::<pyo3::exceptions::PyIOError, _>(
-                        format!("Failed to read file: {}", e)
-                    ));
+                    return Err(PyErr::new::<pyo3::exceptions::PyIOError, _>(format!(
+                        "Failed to read file: {}",
+                        e
+                    )));
                 }
                 Ok(content)
-            },
-            Err(e) => Err(PyErr::new::<pyo3::exceptions::PyIOError, _>(
-                format!("Failed to open file: {}", e)
-            ))
+            }
+            Err(e) => Err(PyErr::new::<pyo3::exceptions::PyIOError, _>(format!(
+                "Failed to open file: {}",
+                e
+            ))),
         }
     }
 }

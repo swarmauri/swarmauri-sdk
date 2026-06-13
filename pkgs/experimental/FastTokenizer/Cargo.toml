@@ -13,7 +13,7 @@ name = "fasttokenizer"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.18", features = ["extension-module"] }
+pyo3 = { version = "0.29.0", features = ["extension-module"] }
 regex = "1.9"
 log = "0.4"
 unicode-normalization = "0.1.22"

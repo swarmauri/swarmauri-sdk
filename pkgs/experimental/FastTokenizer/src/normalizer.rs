@@ -12,7 +12,11 @@ pub fn lowercase<'a>(text: &'a str) -> PyResult<Cow<'a, str>> {
 #[pyfunction]
 pub fn remove_punctuation<'a>(text: &'a str) -> PyResult<Cow<'a, str>> {
     // Remove punctuation from the input string
-    Ok(Cow::from(text.chars().filter(|c| !c.is_ascii_punctuation()).collect::<String>()))
+    Ok(Cow::from(
+        text.chars()
+            .filter(|c| !c.is_ascii_punctuation())
+            .collect::<String>(),
+    ))
 }
 
 #[pyfunction]
@@ -31,17 +35,18 @@ impl Normalizer {
     fn new() -> Self {
         Normalizer {}
     }
-    
+
     fn lowercase(&self, text: &str) -> PyResult<String> {
         Ok(text.to_lowercase())
     }
-    
+
     fn remove_punctuation(&self, text: &str) -> PyResult<String> {
-        Ok(text.chars()
+        Ok(text
+            .chars()
             .filter(|c| !c.is_ascii_punctuation())
             .collect::<String>())
     }
-    
+
     fn normalize_unicode(&self, text: &str) -> PyResult<String> {
         Ok(text.to_lowercase().nfc().collect::<String>())
     }

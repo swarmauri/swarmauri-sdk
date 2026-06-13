@@ -1,11 +1,10 @@
-use pyo3::prelude::*;
-use pyo3::types::PyType;
-use regex::Regex;
 use log::info;
+use pyo3::prelude::*;
+use regex::Regex;
 
 /// High-speed regex-based tokenizer.
 ///
-/// This class provides an implementation of a Rust-accelerated tokenizer 
+/// This class provides an implementation of a Rust-accelerated tokenizer
 /// that leverages optimized regex processing for extremely fast token extraction.
 #[pyclass]
 pub struct RegexTokenizer {
@@ -20,9 +19,10 @@ impl RegexTokenizer {
     fn new(pattern: &str) -> PyResult<Self> {
         match Regex::new(pattern) {
             Ok(regex) => Ok(RegexTokenizer { pattern: regex }),
-            Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                format!("Invalid regex pattern: {}", e)
-            ))
+            Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                "Invalid regex pattern: {}",
+                e
+            ))),
         }
     }
 
@@ -35,9 +35,11 @@ impl RegexTokenizer {
     ///     List[str]: A list of extracted tokens.
     fn tokenize(&self, input: &str) -> PyResult<Vec<String>> {
         info!("Tokenizing input string...");
-        let tokens: Vec<String> = self.pattern.find_iter(input)
-           .map(|m| m.as_str().to_string())
-           .collect();
+        let tokens: Vec<String> = self
+            .pattern
+            .find_iter(input)
+            .map(|m| m.as_str().to_string())
+            .collect();
         Ok(tokens)
     }
 
@@ -48,7 +50,7 @@ impl RegexTokenizer {
     fn get_pattern(&self) -> PyResult<String> {
         Ok(self.pattern.as_str().to_string())
     }
-    
+
     /// Class documentation for Python
     #[classattr]
     fn __doc__() -> &'static str {
