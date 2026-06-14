@@ -31,7 +31,7 @@ class S3FSFilter(StorageAdapterBase, GitFilterBase):
     ) -> None:
         super().__init__(**kwargs)
         self._bucket = bucket
-        self._prefix = prefix.lstrip("/")
+        self._prefix = self.normalize_prefix(prefix)
 
         k = key.get_secret_value() if isinstance(key, SecretStr) else key
         s = secret.get_secret_value() if isinstance(secret, SecretStr) else secret
@@ -49,9 +49,7 @@ class S3FSFilter(StorageAdapterBase, GitFilterBase):
         )
 
     def _full_key(self, key: str) -> str:
-        key = key.lstrip("/")
-        if self._prefix:
-            key = f"{self._prefix.rstrip('/')}/{key}"
+        key = self.compose_key(self._prefix, key, allow_empty=True)
         return f"{self._bucket}/{key}"
 
     @property
@@ -61,10 +59,11 @@ class S3FSFilter(StorageAdapterBase, GitFilterBase):
         return uri.rstrip("/") + "/"
 
     def upload(self, key: str, data: BinaryIO) -> str:
+        normalized_key = self.normalize_key(key)
         dest = self._full_key(key)
         with self._fs.open(dest, "wb") as fh:
             shutil.copyfileobj(data, fh)
-        return f"{self.root_uri}{key.lstrip('/')}"
+        return f"{self.root_uri}{normalized_key}"
 
     def download(self, key: str) -> BinaryIO:
         src = self._full_key(key)
@@ -75,7 +74,7 @@ class S3FSFilter(StorageAdapterBase, GitFilterBase):
         for path in base.rglob("*"):
             if path.is_file():
                 rel = path.relative_to(base).as_posix()
-                key = f"{prefix.rstrip('/')}/{rel}" if prefix else rel
+                key = self.compose_key(prefix, rel)
                 with path.open("rb") as fh:
                     self.upload(key, fh)
 
@@ -90,7 +89,7 @@ class S3FSFilter(StorageAdapterBase, GitFilterBase):
     def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
         dest = Path(dest_dir)
         for rel_key in self.iter_prefix(prefix):
-            target = dest / rel_key
+            target = self.download_target_for_key(dest, rel_key)
             target.parent.mkdir(parents=True, exist_ok=True)
             data = self.download(rel_key)
             with target.open("wb") as fh:

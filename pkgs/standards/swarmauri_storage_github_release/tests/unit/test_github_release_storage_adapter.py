@@ -1,5 +1,7 @@
 import io
 
+import pytest
+
 
 from swarmauri_storage_github_release import GithubReleaseStorageAdapter
 
@@ -110,3 +112,15 @@ def test_push_pull(monkeypatch, tmp_path):
     adapter.pull("prefix", dest)
 
     assert (dest / "nested.txt").read_bytes() == b"hello"
+
+
+def test_pull_rejects_path_traversal_asset(monkeypatch, tmp_path):
+    adapter = create_adapter(monkeypatch)
+    adapter._release.assets.append(DummyAsset("prefix/../escaped.txt", b"owned"))
+    dest = tmp_path / "dest"
+    outside = tmp_path / "escaped.txt"
+
+    with pytest.raises(ValueError, match="unsafe storage key"):
+        adapter.pull("prefix", dest)
+
+    assert not outside.exists()

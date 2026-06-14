@@ -138,7 +138,7 @@ def test_usage_example_executes(monkeypatch: pytest.MonkeyPatch) -> None:
     exec(compile(example_code, str(readme_path), "exec"), namespace)
 
     assert namespace["uri"] == (
-        "ghrel://example-org/example-repo/v1.0.0/artifacts/artifacts/artifact.txt"
+        "ghrel://example-org/example-repo/v1.0.0/artifacts/artifact.txt"
     )
     assert namespace["downloaded_payload"] == b"important payload"
     assert namespace["assets"] == ["artifact.txt"]

@@ -6,6 +6,7 @@ import os
 import re
 import tempfile
 from contextlib import contextmanager
+from pathlib import Path
 from typing import BinaryIO, Iterator, Optional, Literal
 from pydantic import Field
 
@@ -20,6 +21,70 @@ class StorageAdapterBase(IStorageAdapter, ComponentBase):
         default=ResourceTypes.STORAGE_ADAPTER.value, frozen=True
     )
     type: Literal["StorageAdapterBase"] = "StorageAdapterBase"
+
+    # ------------------------------------------------------------------
+    def normalize_key(self, key: str, *, allow_empty: bool = False) -> str:
+        """Return a normalized logical storage key."""
+        normalized = str(key)
+        if "\\" in normalized:
+            raise ValueError(f"unsafe storage key: {key!r}")
+        if normalized.startswith("/"):
+            raise ValueError(f"unsafe storage key: {key!r}")
+        if re.match(r"^[A-Za-z]:($|/)", normalized):
+            raise ValueError(f"unsafe storage key: {key!r}")
+        if not normalized:
+            if allow_empty:
+                return ""
+            raise ValueError("storage key must not be empty")
+
+        parts = normalized.split("/")
+        if any(part in {"", ".", ".."} for part in parts):
+            raise ValueError(f"unsafe storage key: {key!r}")
+        return "/".join(parts)
+
+    # ------------------------------------------------------------------
+    def normalize_prefix(self, prefix: str) -> str:
+        """Return a normalized logical storage prefix."""
+        normalized = str(prefix).strip("/")
+        return self.normalize_key(normalized, allow_empty=True)
+
+    # ------------------------------------------------------------------
+    def compose_key(self, *parts: str, allow_empty: bool = False) -> str:
+        """Join logical storage key parts into a normalized key."""
+        normalized_parts = []
+        for part in parts:
+            normalized_part = self.normalize_prefix(part)
+            if normalized_part:
+                normalized_parts.append(normalized_part)
+        return self.normalize_key("/".join(normalized_parts), allow_empty=allow_empty)
+
+    # ------------------------------------------------------------------
+    def storage_path_for_key(
+        self,
+        root: str | os.PathLike,
+        key: str,
+        *,
+        allow_empty: bool = False,
+    ) -> Path:
+        """Resolve *key* beneath local storage *root*."""
+        resolved_root = Path(root).expanduser().resolve()
+        normalized_key = self.normalize_key(key, allow_empty=allow_empty)
+        if not normalized_key:
+            return resolved_root
+        target = (resolved_root / Path(*normalized_key.split("/"))).resolve()
+        if not target.is_relative_to(resolved_root):
+            raise ValueError(f"storage key escapes root: {key!r}")
+        return target
+
+    # ------------------------------------------------------------------
+    def download_target_for_key(self, dest_dir: str | os.PathLike, key: str) -> Path:
+        """Resolve a downloaded object key beneath *dest_dir*."""
+        root = Path(dest_dir).expanduser().resolve()
+        normalized_key = self.normalize_key(key)
+        target = (root / Path(*normalized_key.split("/"))).resolve()
+        if not target.is_relative_to(root):
+            raise ValueError(f"object key escapes destination: {key!r}")
+        return target
 
     # ------------------------------------------------------------------
     def upload(self, key: str, data: BinaryIO) -> str:

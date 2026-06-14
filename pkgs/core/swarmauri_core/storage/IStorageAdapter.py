@@ -4,11 +4,49 @@ from abc import ABC, abstractmethod
 from contextlib import AbstractContextManager
 import mmap
 import os
+from pathlib import Path
 from typing import BinaryIO
 
 
 class IStorageAdapter(ABC):
     """Interface for basic storage adapter operations."""
+
+    @abstractmethod
+    def normalize_key(
+        self, key: str, *, allow_empty: bool = False
+    ) -> str:  # pragma: no cover - interface
+        """Return a normalized logical storage key."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def normalize_prefix(self, prefix: str) -> str:  # pragma: no cover - interface
+        """Return a normalized logical storage prefix."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def compose_key(
+        self, *parts: str, allow_empty: bool = False
+    ) -> str:  # pragma: no cover - interface
+        """Join logical storage key parts into a normalized key."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def storage_path_for_key(
+        self,
+        root: str | os.PathLike,
+        key: str,
+        *,
+        allow_empty: bool = False,
+    ) -> Path:  # pragma: no cover - interface
+        """Resolve *key* beneath local storage *root*."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def download_target_for_key(
+        self, dest_dir: str | os.PathLike, key: str
+    ) -> Path:  # pragma: no cover - interface
+        """Resolve a downloaded object key beneath *dest_dir*."""
+        raise NotImplementedError
 
     @abstractmethod
     def upload(self, key: str, data: BinaryIO) -> str:  # pragma: no cover - interface

@@ -24,13 +24,11 @@ class FileStorageAdapter(StorageAdapterBase):
         super().__init__(**kwargs)
         self._root = Path(output_dir).expanduser().resolve()
         self._root.mkdir(parents=True, exist_ok=True)
-        self._prefix = prefix.lstrip("/")
+        self._prefix = self.normalize_prefix(prefix)
 
-    def _full_key(self, key: str) -> Path:
-        key = key.lstrip("/")
-        if self._prefix:
-            return self._root / self._prefix / key
-        return self._root / key
+    def _full_key(self, key: str, *, allow_empty: bool = True) -> Path:
+        full_key = self.compose_key(self._prefix, key, allow_empty=allow_empty)
+        return self.storage_path_for_key(self._root, full_key, allow_empty=allow_empty)
 
     @property
     def root_uri(self) -> str:
@@ -41,7 +39,8 @@ class FileStorageAdapter(StorageAdapterBase):
     # ---------------------------------------------------------------- upload
     def upload(self, key: str, data: BinaryIO) -> str:
         """Copy *data* to ``${root_dir}/${key}`` atomically and return the artifact URI."""
-        dest = self._full_key(key)
+        normalized_key = self.normalize_key(key)
+        dest = self._full_key(key, allow_empty=False)
         dest.parent.mkdir(parents=True, exist_ok=True)
 
         tmp = dest.with_suffix(dest.suffix + ".tmp")
@@ -50,12 +49,12 @@ class FileStorageAdapter(StorageAdapterBase):
 
         tmp.replace(dest)
 
-        return f"{self.root_uri}{key.lstrip('/')}"
+        return f"{self.root_uri}{normalized_key}"
 
     # ---------------------------------------------------------------- download
     def download(self, key: str) -> BinaryIO:
         """Return a :class:`BytesIO` with the contents of ``${root_dir}/${key}``."""
-        path = self._full_key(key)
+        path = self._full_key(key, allow_empty=False)
         if not path.exists():
             raise FileNotFoundError(path)
 
@@ -70,7 +69,7 @@ class FileStorageAdapter(StorageAdapterBase):
         for path in base.rglob("*"):
             if path.is_file():
                 rel = path.relative_to(base)
-                key = os.path.join(prefix, rel.as_posix())
+                key = self.compose_key(prefix, rel.as_posix())
                 with path.open("rb") as fh:
                     self.upload(key, fh)
 
@@ -83,7 +82,7 @@ class FileStorageAdapter(StorageAdapterBase):
         for path in base.rglob("*"):
             if path.is_file():
                 rel = path.relative_to(self._root)
-                yield str(rel)
+                yield rel.as_posix()
 
     # ---------------------------------------------------------------- download_dir
     def download_dir(self, prefix: str, dest_dir: str | os.PathLike) -> None:
@@ -95,7 +94,7 @@ class FileStorageAdapter(StorageAdapterBase):
         for path in src_root.rglob("*"):
             if path.is_file():
                 rel = path.relative_to(src_root)
-                target = dest / rel
+                target = self.download_target_for_key(dest, rel.as_posix())
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(path, target)
 

@@ -130,3 +130,14 @@ def test_push_pull(adapter, tmp_path):
     adapter.pull("prefix", dest)
 
     assert (dest / "nested.txt").read_bytes() == b"hello"
+
+
+def test_pull_rejects_path_traversal_object_key(adapter, tmp_path):
+    adapter._client.store["safe/../escaped.txt"] = b"owned"
+    dest = tmp_path / "dest"
+    outside = tmp_path / "escaped.txt"
+
+    with pytest.raises(ValueError, match="unsafe storage key"):
+        adapter.pull("safe", dest)
+
+    assert not outside.exists()

@@ -4,6 +4,11 @@ from swarmauri_core.storage.IStorageAdapter import IStorageAdapter
 def test_storage_adapter_interface_methods():
     abstract_methods = IStorageAdapter.__abstractmethods__
     expected = {
+        "normalize_key",
+        "normalize_prefix",
+        "compose_key",
+        "storage_path_for_key",
+        "download_target_for_key",
         "upload",
         "download",
         "get_blob",

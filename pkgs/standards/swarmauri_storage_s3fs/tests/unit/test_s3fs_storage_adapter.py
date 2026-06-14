@@ -144,6 +144,17 @@ def test_push_pull(adapter, tmp_path):
     assert (dest / "nested.txt").read_bytes() == b"payload"
 
 
+def test_pull_rejects_path_traversal_object_key(adapter, tmp_path):
+    DummyS3FS.instances[0].store["bucket/runs/safe/../escaped.txt"] = b"owned"
+    dest = tmp_path / "dest"
+    outside = tmp_path / "escaped.txt"
+
+    with pytest.raises(ValueError, match="unsafe storage key"):
+        adapter.pull("safe", dest)
+
+    assert not outside.exists()
+
+
 def test_upload_memoryview_and_mmap(adapter, tmp_path):
     adapter.upload_memoryview("memory.bin", memoryview(b"payload"))
     assert adapter.download_memoryview("memory.bin").tobytes() == b"payload"

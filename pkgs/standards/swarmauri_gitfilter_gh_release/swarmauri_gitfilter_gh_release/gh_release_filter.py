@@ -39,7 +39,7 @@ class GithubReleaseFilter(StorageAdapterBase, GitFilterBase):
         self._client = Github(token_val)
         self._repo = self._client.get_organization(org).get_repo(repo)
         self._tag = tag
-        self._prefix = prefix.lstrip("/")
+        self._prefix = self.normalize_prefix(prefix)
         self._release = self._get_or_create_release(
             tag=tag,
             name=release_name or tag,
@@ -49,10 +49,7 @@ class GithubReleaseFilter(StorageAdapterBase, GitFilterBase):
         )
 
     def _full_key(self, key: str) -> str:
-        key = key.lstrip("/")
-        if self._prefix:
-            return f"{self._prefix.rstrip('/')}/{key}"
-        return key
+        return self.compose_key(self._prefix, key, allow_empty=True)
 
     @property
     def root_uri(self) -> str:
@@ -80,6 +77,7 @@ class GithubReleaseFilter(StorageAdapterBase, GitFilterBase):
             )
 
     def upload(self, key: str, data: BinaryIO) -> str:
+        normalized_key = self.normalize_key(key)
         key = self._full_key(key)
         data.seek(0)
         content = data.read()
@@ -89,12 +87,15 @@ class GithubReleaseFilter(StorageAdapterBase, GitFilterBase):
                 asset.delete_asset()
                 break
 
-        with tempfile.NamedTemporaryFile() as tmp:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
             tmp.write(content)
-            tmp.flush()
-            self._release.upload_asset(path=tmp.name, name=key, label=key)
+            tmp_path = tmp.name
+        try:
+            self._release.upload_asset(path=tmp_path, name=key, label=key)
+        finally:
+            Path(tmp_path).unlink(missing_ok=True)
 
-        return f"{self.root_uri}{key.lstrip('/')}"
+        return f"{self.root_uri}{normalized_key}"
 
     def download(self, key: str) -> BinaryIO:
         key = self._full_key(key)
@@ -115,7 +116,7 @@ class GithubReleaseFilter(StorageAdapterBase, GitFilterBase):
         for path in base.rglob("*"):
             if path.is_file():
                 rel = path.relative_to(base).as_posix()
-                key = f"{prefix.rstrip('/')}/{rel}" if prefix else rel
+                key = self.compose_key(prefix, rel)
                 with path.open("rb") as fh:
                     self.upload(key, fh)
 
@@ -132,7 +133,7 @@ class GithubReleaseFilter(StorageAdapterBase, GitFilterBase):
     def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
         dest = Path(dest_dir)
         for rel_key in self.iter_prefix(prefix):
-            target = dest / rel_key
+            target = self.download_target_for_key(dest, rel_key)
             target.parent.mkdir(parents=True, exist_ok=True)
             data = self.download(rel_key)
             with target.open("wb") as fh:

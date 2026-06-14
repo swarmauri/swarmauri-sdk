@@ -17,14 +17,11 @@ class MemoryStorageAdapter(StorageAdapterBase):
 
     def __init__(self, *, prefix: str = "", **kwargs) -> None:
         super().__init__(**kwargs)
-        self._prefix = prefix.lstrip("/")
+        self._prefix = self.normalize_prefix(prefix)
         self._store: dict[str, bytes] = {}
 
     def _full_key(self, key: str) -> str:
-        key = key.lstrip("/")
-        if self._prefix:
-            return f"{self._prefix}/{key}" if key else self._prefix
-        return key
+        return self.compose_key(self._prefix, key, allow_empty=True)
 
     @property
     def root_uri(self) -> str:
@@ -35,9 +32,10 @@ class MemoryStorageAdapter(StorageAdapterBase):
 
     def upload(self, key: str, data: BinaryIO) -> str:
         """Store *data* in memory and return the artifact URI."""
+        normalized_key = self.normalize_key(key)
         full_key = self._full_key(key)
         self._store[full_key] = data.read()
-        return f"{self.root_uri}{key.lstrip('/')}"
+        return f"{self.root_uri}{normalized_key}"
 
     def download(self, key: str) -> BinaryIO:
         """Return a :class:`BytesIO` with the stored contents."""
@@ -54,7 +52,7 @@ class MemoryStorageAdapter(StorageAdapterBase):
         for path in base.rglob("*"):
             if path.is_file():
                 rel = path.relative_to(base)
-                key = os.path.join(prefix, rel.as_posix())
+                key = self.compose_key(prefix, rel.as_posix())
                 with path.open("rb") as fh:
                     self.upload(key, fh)
 
@@ -75,7 +73,7 @@ class MemoryStorageAdapter(StorageAdapterBase):
             rel = key[len(base) :].lstrip("/") if base else key
             if not rel:
                 continue
-            target = dest_root / rel
+            target = self.download_target_for_key(dest_root, rel)
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(payload)
 

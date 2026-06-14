@@ -57,3 +57,15 @@ def test_prefix_scoping():
     adapter.upload("bar.txt", io.BytesIO(b"payload"))
     keys = list(adapter.iter_prefix(""))
     assert keys == ["demo/bar.txt"]
+
+
+def test_upload_rejects_path_traversal_key(adapter):
+    with pytest.raises(ValueError, match="unsafe storage key"):
+        adapter.upload("../escape.txt", io.BytesIO(b"payload"))
+
+
+def test_pull_rejects_path_traversal_object_key(adapter, tmp_path):
+    adapter._store["../escape.txt"] = b"payload"
+
+    with pytest.raises(ValueError, match="unsafe storage key"):
+        adapter.pull("", tmp_path / "dest")

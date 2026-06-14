@@ -38,6 +38,15 @@ def test_put_get_blob(adapter):
     assert adapter.get_blob("blob.txt") == b"payload"
 
 
+def test_upload_rejects_path_traversal_key(adapter, tmp_path):
+    outside = tmp_path / "outside.txt"
+
+    with pytest.raises(ValueError, match="unsafe storage key"):
+        adapter.upload("../outside.txt", io.BytesIO(b"owned"))
+
+    assert not outside.exists()
+
+
 def test_push_pull(tmp_path):
     src = tmp_path / "src"
     src.mkdir()

@@ -35,8 +35,12 @@ class DummyClient:
     def put_object(self, bucket, key, data, length=-1, part_size=0):
         self.store[key] = data.read()
 
-    def list_objects(self, *a, **k):
-        return []
+    def list_objects(self, bucket, prefix="", recursive=True):
+        class Obj:
+            def __init__(self, name):
+                self.object_name = name
+
+        return [Obj(key) for key in self.store if key.startswith(prefix)]
 
 
 @pytest.fixture
@@ -70,3 +74,14 @@ def test_resource_type_serialization(filt):
 def test_clean_smudge(filt):
     oid = filt.clean(b"data")
     assert filt.smudge(oid) == b"data"
+
+
+def test_download_prefix_rejects_path_traversal_object_key(filt, tmp_path):
+    filt._client.store["safe/../escaped.txt"] = b"owned"
+    dest = tmp_path / "dest"
+    outside = tmp_path / "escaped.txt"
+
+    with pytest.raises(ValueError, match="unsafe storage key"):
+        filt.download_prefix("safe", dest)
+
+    assert not outside.exists()

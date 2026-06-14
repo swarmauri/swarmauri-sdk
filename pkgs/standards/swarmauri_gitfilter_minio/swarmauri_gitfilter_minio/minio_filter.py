@@ -59,16 +59,13 @@ class MinioFilter(StorageAdapterBase, GitFilterBase):
         self._endpoint = endpoint
         self._secure = secure
         self._bucket = bucket
-        self._prefix = prefix.lstrip("/")
+        self._prefix = self.normalize_prefix(prefix)
 
         if not self._client.bucket_exists(bucket):
             self._client.make_bucket(bucket)
 
     def _full_key(self, key: str) -> str:
-        key = key.lstrip("/")
-        if self._prefix:
-            return f"{self._prefix.rstrip('/')}/{key}"
-        return key
+        return self.compose_key(self._prefix, key, allow_empty=True)
 
     @property
     def root_uri(self) -> str:
@@ -98,6 +95,7 @@ class MinioFilter(StorageAdapterBase, GitFilterBase):
                 data = io.BytesIO(data.read())  # type: ignore[arg-type]
             size = len(data.getbuffer())  # type: ignore[attr-defined]
         data.seek(0)
+        normalized_key = self.normalize_key(key)
         self._client.put_object(
             self._bucket,
             self._full_key(key),
@@ -106,7 +104,7 @@ class MinioFilter(StorageAdapterBase, GitFilterBase):
             part_size=10 * 1024 * 1024,
         )
 
-        return f"{self.root_uri}{key.lstrip('/')}"
+        return f"{self.root_uri}{normalized_key}"
 
     def download(self, key: str) -> BinaryIO:
         """Retrieve an object from the bucket.
@@ -138,7 +136,7 @@ class MinioFilter(StorageAdapterBase, GitFilterBase):
         for path in base.rglob("*"):
             if path.is_file():
                 rel = path.relative_to(base).as_posix()
-                key = f"{prefix.rstrip('/')}/{rel}" if prefix else rel
+                key = self.compose_key(prefix, rel)
                 with path.open("rb") as fh:
                     self.upload(key, fh)
 
@@ -167,7 +165,7 @@ class MinioFilter(StorageAdapterBase, GitFilterBase):
         """
         dest = Path(dest_dir)
         for rel_key in self.iter_prefix(prefix):
-            target = dest / rel_key
+            target = self.download_target_for_key(dest, rel_key)
             target.parent.mkdir(parents=True, exist_ok=True)
             data = self.download(rel_key)
             with target.open("wb") as fh:

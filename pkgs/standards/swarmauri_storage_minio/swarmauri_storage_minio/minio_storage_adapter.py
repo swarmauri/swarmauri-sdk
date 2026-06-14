@@ -44,7 +44,7 @@ class MinioStorageAdapter(StorageAdapterBase):
         self._endpoint = endpoint
         self._secure = secure
         self._bucket = bucket
-        self._prefix = prefix.lstrip("/")
+        self._prefix = self.normalize_prefix(prefix)
 
         if not self._client.bucket_exists(bucket):
             self._client.make_bucket(bucket)
@@ -52,10 +52,7 @@ class MinioStorageAdapter(StorageAdapterBase):
     # ------------------------------------------------------------------
     def _full_key(self, key: str) -> str:
         """Return ``prefix/key`` if a prefix is configured."""
-        key = key.lstrip("/")
-        if self._prefix:
-            return f"{self._prefix.rstrip('/')}/{key}"
-        return key
+        return self.compose_key(self._prefix, key, allow_empty=True)
 
     # ------------------------------------------------------------------
     @property
@@ -77,6 +74,7 @@ class MinioStorageAdapter(StorageAdapterBase):
                 data = io.BytesIO(data.read())  # type: ignore[arg-type]
             size = len(data.getbuffer())  # type: ignore[attr-defined]
         data.seek(0)
+        normalized_key = self.normalize_key(key)
         self._client.put_object(
             self._bucket,
             self._full_key(key),
@@ -85,7 +83,7 @@ class MinioStorageAdapter(StorageAdapterBase):
             part_size=10 * 1024 * 1024,
         )
 
-        return f"{self.root_uri}{key.lstrip('/')}"
+        return f"{self.root_uri}{normalized_key}"
 
     # ------------------------------------------------------------------
     def download(self, key: str) -> BinaryIO:
@@ -107,14 +105,14 @@ class MinioStorageAdapter(StorageAdapterBase):
         for path in base.rglob("*"):
             if path.is_file():
                 rel = path.relative_to(base).as_posix()
-                key = f"{prefix.rstrip('/')}/{rel}" if prefix else rel
+                key = self.compose_key(prefix, rel)
                 with path.open("rb") as fh:
                     self.upload(key, fh)
 
     # ------------------------------------------------------------------
     def iter_prefix(self, prefix: str):
         """Yield keys under ``prefix`` relative to the run root."""
-        normalized_prefix = prefix.strip("/")
+        normalized_prefix = self.normalize_prefix(prefix)
         full_prefix = self._full_key(normalized_prefix)
         prefix_root = normalized_prefix.rstrip("/")
         for obj in self._client.list_objects(
@@ -134,14 +132,14 @@ class MinioStorageAdapter(StorageAdapterBase):
     def download_dir(self, prefix: str, dest_dir: str | os.PathLike) -> None:
         """Download everything under ``prefix`` into ``dest_dir``."""
         dest = Path(dest_dir)
-        normalized_prefix = prefix.strip("/")
+        normalized_prefix = self.normalize_prefix(prefix)
         for rel_key in self.iter_prefix(prefix):
             if not rel_key:
                 continue
             source_key = (
                 f"{normalized_prefix}/{rel_key}" if normalized_prefix else rel_key
             )
-            target = dest / rel_key
+            target = self.download_target_for_key(dest, rel_key)
             target.parent.mkdir(parents=True, exist_ok=True)
             data = self.download(source_key)
             with target.open("wb") as fh:

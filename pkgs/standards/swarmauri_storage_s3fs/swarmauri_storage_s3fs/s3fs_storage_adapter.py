@@ -39,7 +39,7 @@ class S3FSStorageAdapter(StorageAdapterBase):
     ) -> None:
         super().__init__(**kwargs)
         self._bucket = bucket
-        self._prefix = prefix.lstrip("/")
+        self._prefix = self.normalize_prefix(prefix)
 
         fs_client_kwargs = dict(client_kwargs or {})
         if endpoint_url:
@@ -66,9 +66,7 @@ class S3FSStorageAdapter(StorageAdapterBase):
         return value or None
 
     def _full_key(self, key: str) -> str:
-        key = key.lstrip("/")
-        if self._prefix:
-            key = f"{self._prefix.rstrip('/')}/{key}" if key else self._prefix
+        key = self.compose_key(self._prefix, key, allow_empty=True)
         return f"{self._bucket}/{key}" if key else self._bucket
 
     def _relative_key(self, path: str) -> str:
@@ -86,9 +84,10 @@ class S3FSStorageAdapter(StorageAdapterBase):
 
     def upload(self, key: str, data: BinaryIO) -> str:
         """Upload *data* under *key* and return its ``s3://`` URI."""
+        normalized_key = self.normalize_key(key)
         with self._fs.open(self._full_key(key), "wb") as handle:
             shutil.copyfileobj(data, handle)
-        return f"{self.root_uri}{key.lstrip('/')}"
+        return f"{self.root_uri}{normalized_key}"
 
     def download(self, key: str) -> BinaryIO:
         """Open *key* for binary reads."""
@@ -105,7 +104,7 @@ class S3FSStorageAdapter(StorageAdapterBase):
         for path in base.rglob("*"):
             if path.is_file():
                 rel = path.relative_to(base).as_posix()
-                key = f"{prefix.rstrip('/')}/{rel}" if prefix else rel
+                key = self.compose_key(prefix, rel)
                 with path.open("rb") as handle:
                     self.upload(key, handle)
 
@@ -119,14 +118,14 @@ class S3FSStorageAdapter(StorageAdapterBase):
     def download_dir(self, prefix: str, dest_dir: str | os.PathLike) -> None:
         """Download all stored artifacts under ``prefix`` into ``dest_dir``."""
         dest = Path(dest_dir)
-        normalized_prefix = prefix.strip("/")
+        normalized_prefix = self.normalize_prefix(prefix)
         for rel_key in self.iter_prefix(prefix):
             target_rel = rel_key
             if normalized_prefix and rel_key.startswith(f"{normalized_prefix}/"):
                 target_rel = rel_key[len(normalized_prefix) + 1 :]
             if not target_rel:
                 continue
-            target = dest / target_rel
+            target = self.download_target_for_key(dest, target_rel)
             target.parent.mkdir(parents=True, exist_ok=True)
             data = self.download(rel_key)
             with target.open("wb") as handle:
