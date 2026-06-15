@@ -1,5 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Any, Awaitable, Callable, MutableMapping, Protocol, TypedDict
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    MutableMapping,
+    Protocol,
+    TypeAlias,
+    TypedDict,
+)
 
 """Middleware interface module.
 Defines the core interface for all middleware implementations.
@@ -9,6 +17,12 @@ Defines the core interface for all middleware implementations.
 Scope = MutableMapping[str, Any]
 """Type alias representing an ASGI scope."""
 
+Header: TypeAlias = tuple[bytes, bytes]
+"""Type alias for an ASGI header key/value pair."""
+
+Headers: TypeAlias = list[Header]
+"""Type alias for a mutable collection of ASGI headers."""
+
 
 class Message(TypedDict, total=False):
     """A minimal representation of an ASGI message."""
@@ -17,7 +31,7 @@ class Message(TypedDict, total=False):
     body: bytes
     more_body: bool
     status: int
-    headers: "list[tuple[bytes, bytes]]"
+    headers: Headers
 
 
 class ReceiveCallable(Protocol):
