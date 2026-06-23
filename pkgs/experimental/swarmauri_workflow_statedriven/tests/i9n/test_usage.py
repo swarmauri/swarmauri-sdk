@@ -7,9 +7,9 @@ pytest.skip("Requires full Swarmauri environment", allow_module_level=True)
 def test_usage():
     # File: example_workflow.py
 
-    from swarmauri.vector_stores.TfidfVectorStore import TfidfVectorStore
+    from swarmauri_standard.vector_stores.TfidfVectorStore import TfidfVectorStore
     from swarmauri_standard.llms.OpenAIModel import OpenAIModel
-    from swarmauri.agents.RagAgent import RagAgent
+    from swarmauri_standard.agents.RagAgent import RagAgent
 
     from swarmauri_workflow_statedriven.base import WorkflowBase
     from swarmauri_workflow_statedriven.input_modes.identity import IdentityInputMode

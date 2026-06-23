@@ -24,7 +24,6 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
-    "swarmauri",
     "pyppeteer"
 ]
 
