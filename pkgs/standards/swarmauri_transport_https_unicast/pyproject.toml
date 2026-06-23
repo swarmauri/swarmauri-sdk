@@ -1,0 +1,102 @@
+[project]
+name = "swarmauri_transport_https_unicast"
+version = "0.1.0.dev1"
+description = "Policy-bound HTTPS unicast transport for Swarmauri."
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.15"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "httpx>=0.27.0",
+    "swarmauri_core",
+    "swarmauri_base",
+    "swarmauri_certs_x509verify",
+    "swarmauri_cipher_suite_tls13",
+    "swarmauri_middleware_httpsig",
+    "swarmauri_signing_jws",
+]
+keywords = [
+    "swarmauri",
+    "sdk",
+    "standards",
+    "transport",
+    "https",
+    "httpx",
+    "tls",
+    "tls13",
+    "x509",
+    "certificate-validation",
+    "http-signature",
+    "jws",
+    "bearer-token",
+    "unicast",
+]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Source = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_https_unicast"
+Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_https_unicast#readme"
+
+[project.entry-points."swarmauri.transports"]
+HttpsUnicastTransport = "swarmauri_transport_https_unicast:HttpsUnicastTransport"
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_certs_self_signed = { workspace = true }
+swarmauri_certs_x509verify = { workspace = true }
+swarmauri_cipher_suite_tls13 = { workspace = true }
+swarmauri_middleware_httpsig = { workspace = true }
+swarmauri_signing_jws = { workspace = true }
+
+[tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts", ".uv-cache"]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests",
+    "example: Documentation examples",
+]
+timeout = 300
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-accept-deps=pycparser,starlette"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "pytest-timeout>=2.3.1",
+    "pytest-benchmark>=4.0.0",
+    "ruff>=0.9.9",
+    "swarmauri_certs_self_signed",
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -343,6 +343,7 @@ members = [
     "standards/swarmauri_transport_asgi",
     "standards/swarmauri_transport_h2",
     "standards/swarmauri_transport_h2mux",
+    "standards/swarmauri_transport_https_unicast",
     "standards/swarmauri_transport_meshsidecarhttp2",
     "standards/swarmauri_transport_mtlsunicast",
     "standards/swarmauri_transport_quic",
@@ -654,6 +655,7 @@ swarmauri_toolkit_jupytertoolkit = { workspace = true }
 swarmauri_transport_asgi = { workspace = true }
 swarmauri_transport_h2 = { workspace = true }
 swarmauri_transport_h2mux = { workspace = true }
+swarmauri_transport_https_unicast = { workspace = true }
 swarmauri_transport_meshsidecarhttp2 = { workspace = true }
 swarmauri_transport_mtlsunicast = { workspace = true }
 swarmauri_transport_quic = { workspace = true }

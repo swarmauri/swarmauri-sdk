@@ -236,6 +236,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.tracing.SimpleTracer": "swarmauri_standard.tracing.SimpleTracer",
         "swarmauri.tracing.TracedVariable": "swarmauri_standard.tracing.TracedVariable",
         "swarmauri.tracing.VariableTracer": "swarmauri_standard.tracing.VariableTracer",
+        "swarmauri.transports.HttpsUnicastTransport": "swarmauri_transport_https_unicast.HttpsUnicastTransport",
         "swarmauri.transports.PubSubTransport": "swarmauri_standard.transports.PubSubTransport",
         ###
         # Utils
