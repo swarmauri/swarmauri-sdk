@@ -50,6 +50,16 @@ def test_add_duplicate_entry_noop():
 
 
 @pytest.mark.unit
+def test_s3_over_sftp_storage_adapter_is_first_class():
+    assert (
+        PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
+            "swarmauri.storage_adapters.S3OverSftpStorageAdapter"
+        ]
+        == "swarmauri_storage_s3_over_sftp.S3OverSftpStorageAdapter"
+    )
+
+
+@pytest.mark.unit
 def test_update_and_delete_entry():
     PluginCitizenshipRegistry.add_to_registry(
         "second", "swarmauri.chains.TestChain", "pkg.Chain"
