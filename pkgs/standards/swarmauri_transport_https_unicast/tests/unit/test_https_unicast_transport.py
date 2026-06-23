@@ -10,6 +10,9 @@ import httpx
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+from swarmauri_base.ComponentBase import ResourceTypes
+from swarmauri_base.DynamicBase import DynamicBase
+from swarmauri_base.transports import TransportBase
 from swarmauri_certs_self_signed import SelfSignedCertificate
 from swarmauri_core.crypto.types import ExportPolicy, JWAAlg, KeyRef, KeyType, KeyUse
 from swarmauri_core.transports import AddressScheme, Feature, Protocol, SecurityMode
@@ -46,6 +49,57 @@ def _self_signed_loopback_cert() -> bytes:
     return SelfSignedCertificate.tls_server("127.0.0.1", ip_addrs=("127.0.0.1",)).issue(
         key_ref
     )
+
+
+@pytest.mark.unit
+def test_component_registration_and_transport_kind() -> None:
+    transport = HttpsUnicastTransport()
+
+    assert issubclass(HttpsUnicastTransport, TransportBase)
+    assert HttpsUnicastTransport._type == "HttpsUnicastTransport"
+    assert transport.type == "HttpsUnicastTransport"
+    assert transport.resource == ResourceTypes.TRANSPORT.value
+    assert transport.name == "HttpsUnicastTransport"
+    assert (
+        DynamicBase._registry["TransportBase"]["subtypes"]["HttpsUnicastTransport"]
+        is HttpsUnicastTransport
+    )
+
+
+@pytest.mark.unit
+def test_model_serialization_roundtrip_preserves_component_identity() -> None:
+    transport = HttpsUnicastTransport(
+        base_url="https://example.test",
+        verify=False,
+        timeout=3.5,
+        trust_env=True,
+        security_policy=HttpsSecurityPolicy(
+            bearer_token="test-token",
+            http_signature_secret="shared-secret",
+            request_jws_key={"kind": "raw", "key": "request-secret", "kid": "body.1"},
+            request_jws_kid="body.1",
+            response_jws_key={
+                "kind": "raw",
+                "key": "response-secret",
+                "kid": "body.2",
+            },
+        ),
+        require_response_jws=True,
+    )
+
+    restored = HttpsUnicastTransport.model_validate_json(transport.model_dump_json())
+
+    assert restored.id == transport.id
+    assert restored.type == transport.type
+    assert restored.resource == transport.resource
+    assert restored.name == transport.name
+    assert restored.base_url == transport.base_url
+    assert restored.verify is transport.verify
+    assert restored.timeout == transport.timeout
+    assert restored.trust_env is transport.trust_env
+    assert restored.require_response_jws is transport.require_response_jws
+    assert restored.httpx_transport is None
+    assert restored.security_policy == transport.security_policy
 
 
 @pytest.mark.unit
