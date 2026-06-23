@@ -45,6 +45,8 @@ class PluginCitizenshipRegistry:
 
     # Class variables for registries
     FIRST_CLASS_REGISTRY: Dict[str, str] = {
+        "swarmauri.skills.FileSystemSkill": "swarmauri_skill_filesystem.FileSystemSkill",
+        "swarmauri.skills.LocalSkill": "swarmauri_skill_local.LocalSkill",
         "swarmauri.signings.Ed25519EnvelopeSigner": "swarmauri_signing_ed25519.Ed25519EnvelopeSigner",
         "swarmauri.signings.PgpEnvelopeSigner": "swarmauri_signing_pgp.PgpEnvelopeSigner",
         "swarmauri.signings.Secp256k1EnvelopeSigner": "swarmauri_signing_secp256k1.Secp256k1EnvelopeSigner",
@@ -94,6 +96,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.agents.ExampleAgent": "swm_example_package.ExampleAgent",
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
         "swarmauri.agents.RagAgent": "swarmauri_standard.agents.RagAgent",
+        "swarmauri.agents.SkillAgent": "swarmauri_agent_skill.SkillAgent",
         "swarmauri.agents.SimpleConversationAgent": "swarmauri_standard.agents.SimpleConversationAgent",
         "swarmauri.agents.ToolAgent": "swarmauri_standard.agents.ToolAgent",
         "swarmauri.chains.CallableChain": "swarmauri_standard.chains.CallableChain",

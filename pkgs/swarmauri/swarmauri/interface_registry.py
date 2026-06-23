@@ -55,6 +55,7 @@ class InterfaceRegistry:
         "swarmauri.prompt_templates": "swarmauri_base.prompt_templates.PromptTemplateBase",
         "swarmauri.plugins": None,
         "swarmauri.schema_converters": "swarmauri_base.schema_converters.SchemaConverterBase",
+        "swarmauri.skills": "swarmauri_base.skills.SkillBase",
         "swarmauri.service_registries": "swarmauri_base.service_registries.ServiceRegistryBase",
         "swarmauri.state": "swarmauri_base.state.StateBase",
         "swarmauri.swarms": "swarmauri_base.swarms.SwarmBase",

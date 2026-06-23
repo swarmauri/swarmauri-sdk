@@ -188,6 +188,7 @@ members = [
     "plugins/example_plugin",
     "plugins/media_signer",
     "plugins/zdx",
+    "standards/swarmauri_agent_skill",
     "standards/swarmauri_auth_idp_apple",
     "standards/swarmauri_auth_idp_aws",
     "standards/swarmauri_auth_idp_azure",
@@ -297,6 +298,8 @@ members = [
     "standards/swarmauri_publisher_rabbitmq",
     "standards/swarmauri_publisher_redis",
     "standards/swarmauri_publisher_webhook",
+    "standards/swarmauri_skill_filesystem",
+    "standards/swarmauri_skill_local",
     "standards/swarmauri_signing_ca",
     "standards/swarmauri_signing_cms",
     "standards/swarmauri_signing_dpop",
@@ -400,6 +403,7 @@ swarmauri = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_standard = { workspace = true }
+swarmauri_agent_skill = { workspace = true }
 swarmauri_auth_idp_apple = { workspace = true }
 swarmauri_auth_idp_aws = { workspace = true }
 swarmauri_auth_idp_azure = { workspace = true }
@@ -566,6 +570,8 @@ swarmauri_prompt_j2prompttemplate = { workspace = true }
 swarmauri_publisher_rabbitmq = { workspace = true }
 swarmauri_publisher_redis = { workspace = true }
 swarmauri_publisher_webhook = { workspace = true }
+swarmauri_skill_filesystem = { workspace = true }
+swarmauri_skill_local = { workspace = true }
 swarmauri_signing_ca = { workspace = true }
 swarmauri_signing_cms = { workspace = true }
 swarmauri_signing_dpop = { workspace = true }

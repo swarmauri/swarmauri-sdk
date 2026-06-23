@@ -1275,6 +1275,42 @@ workspace = true
 order_source = "inferred"
 order_reason = "single-capability package by default"
 
+
+[[packages]]
+name = "swarmauri_agent_skill"
+path = "standards/swarmauri_agent_skill"
+distribution = "swarmauri_agent_skill"
+layer = "40-standards"
+family = "agents"
+role = "atomic-concrete"
+maturity = "standard"
+order = 0
+entry_points = ["swarmauri.agents"]
+
+[[packages]]
+name = "swarmauri_skill_filesystem"
+path = "standards/swarmauri_skill_filesystem"
+distribution = "swarmauri_skill_filesystem"
+layer = "40-standards"
+family = "skills"
+role = "atomic-concrete"
+maturity = "standard"
+order = 0
+entry_points = ["swarmauri.skills"]
+
+[[packages]]
+name = "swarmauri_skill_local"
+path = "standards/swarmauri_skill_local"
+distribution = "swarmauri_skill_local"
+layer = "40-standards"
+family = "skills"
+role = "composite-concrete"
+maturity = "standard"
+order = 1
+order_reason = "raised to order 1 because it depends on same-layer package swarmauri_skill_filesystem at 40.0"
+composes = ["swarmauri_skill_filesystem"]
+entry_points = ["swarmauri.skills"]
+
 [[packages]]
 name = "swarmauri_signing_ca"
 path = "standards/swarmauri_signing_ca"

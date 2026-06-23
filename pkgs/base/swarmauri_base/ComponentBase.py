@@ -76,6 +76,7 @@ class ResourceTypes(Enum):
     SWARM = "Swarm"
     TOOLKIT = "Toolkit"
     TOOL = "Tool"
+    SKILL = "Skill"
     PARAMETER = "Parameter"
     TRACE = "Trace"
     UTIL = "Util"
