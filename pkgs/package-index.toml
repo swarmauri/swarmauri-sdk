@@ -1504,6 +1504,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_storage_s3_over_sftp"
+path = "standards/swarmauri_storage_s3_over_sftp"
+layer = "40-standards"
+order = 0
+family = "storage"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_storage_s3fs"
 path = "standards/swarmauri_storage_s3fs"
 layer = "40-standards"

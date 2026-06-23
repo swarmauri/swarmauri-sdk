@@ -22,7 +22,7 @@ fail validation because they make composition order ambiguous.
 | `10-interfaces` | 1 | 1 | interface and protocol contracts |
 | `20-bases` | 1 | 1 | reusable base classes, mixins, and component models |
 | `30-standard-kernel` | 1 | 1 | bundled first-party standard component kernel |
-| `40-standards` | 174 | 174 | first-party split standard packages |
+| `40-standards` | 175 | 175 | first-party split standard packages |
 | `50-community` | 106 | 106 | community and provider-specific packages |
 | `60-plugins` | 5 | 5 | plugin packages and plugin examples |
 | `70-experimental` | 36 | 12 | incubating and planning-stage packages |
@@ -179,6 +179,7 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_storage_memory](standards/swarmauri_storage_memory/) | `standards/swarmauri_storage_memory` | `storage` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_storage_minio](standards/swarmauri_storage_minio/) | `standards/swarmauri_storage_minio` | `storage` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_storage_s3](standards/swarmauri_storage_s3/) | `standards/swarmauri_storage_s3` | `storage` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_storage_s3_over_sftp](standards/swarmauri_storage_s3_over_sftp/) | `standards/swarmauri_storage_s3_over_sftp` | `storage` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_storage_s3fs](standards/swarmauri_storage_s3fs/) | `standards/swarmauri_storage_s3fs` | `storage` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tokens_dpopboundjwt](standards/swarmauri_tokens_dpopboundjwt/) | `standards/swarmauri_tokens_dpopboundjwt` | `tokens` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tokens_introspection](standards/swarmauri_tokens_introspection/) | `standards/swarmauri_tokens_introspection` | `tokens` | `atomic-concrete` | `standard` | yes |
@@ -561,6 +562,7 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_storage_memory](standards/swarmauri_storage_memory/) | `storage` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_storage_minio](standards/swarmauri_storage_minio/) | `storage` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_storage_s3](standards/swarmauri_storage_s3/) | `storage` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_storage_s3_over_sftp](standards/swarmauri_storage_s3_over_sftp/) | `storage` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_storage_s3fs](standards/swarmauri_storage_s3fs/) | `storage` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tokens_dpopboundjwt](standards/swarmauri_tokens_dpopboundjwt/) | `tokens` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tokens_introspection](standards/swarmauri_tokens_introspection/) | `tokens` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -1365,6 +1367,7 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_storage_memory](standards/swarmauri_storage_memory/) | `40-standards` | `standards/swarmauri_storage_memory` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_storage_minio](standards/swarmauri_storage_minio/) | `40-standards` | `standards/swarmauri_storage_minio` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_storage_s3](standards/swarmauri_storage_s3/) | `40-standards` | `standards/swarmauri_storage_s3` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_storage_s3_over_sftp](standards/swarmauri_storage_s3_over_sftp/) | `40-standards` | `standards/swarmauri_storage_s3_over_sftp` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_storage_s3fs](standards/swarmauri_storage_s3fs/) | `40-standards` | `standards/swarmauri_storage_s3fs` | `atomic-concrete` | `standard` | yes |
 
 ### `tests`
