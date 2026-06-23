@@ -2165,30 +2165,6 @@ order_reason = "raised to order 2 because it depends on same-layer package swarm
 composes = ["swarmauri_certs_x509verify", "swarmauri_cipher_suite_tls13", "swarmauri_middleware_httpsig", "swarmauri_signing_jws"]
 
 [[packages]]
-name = "tigrbl_api_cron"
-path = "community/tigrbl_api_cron"
-layer = "50-community"
-order = 0
-family = "api"
-role = "atomic-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "single-capability package by default"
-
-[[packages]]
-name = "tigrbl_api_hpks"
-path = "community/tigrbl_api_hpks"
-layer = "50-community"
-order = 0
-family = "api"
-role = "atomic-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "single-capability package by default"
-
-[[packages]]
 name = "swarmauri_billing_adyen"
 path = "community/swarmauri_billing_adyen"
 layer = "50-community"

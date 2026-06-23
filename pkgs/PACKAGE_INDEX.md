@@ -23,7 +23,7 @@ fail validation because they make composition order ambiguous.
 | `20-bases` | 1 | 1 | reusable base classes, mixins, and component models |
 | `30-standard-kernel` | 1 | 1 | bundled first-party standard component kernel |
 | `40-standards` | 174 | 174 | first-party split standard packages |
-| `50-community` | 108 | 108 | community and provider-specific packages |
+| `50-community` | 106 | 106 | community and provider-specific packages |
 | `60-plugins` | 5 | 5 | plugin packages and plugin examples |
 | `70-experimental` | 36 | 12 | incubating and planning-stage packages |
 | `80-facades` | 1 | 1 | aggregate user-facing facade packages |
@@ -238,8 +238,6 @@ fail validation because they make composition order ambiguous.
 
 | Index | Package | Path | Family | Role | Maturity | Workspace |
 |---|---|---|---|---|---|---|
-| `50.0` | [tigrbl_api_cron](community/tigrbl_api_cron/) | `community/tigrbl_api_cron` | `api` | `atomic-concrete` | `community` | yes |
-| `50.0` | [tigrbl_api_hpks](community/tigrbl_api_hpks/) | `community/tigrbl_api_hpks` | `api` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_billing_adyen](community/swarmauri_billing_adyen/) | `community/swarmauri_billing_adyen` | `billing` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_billing_authorize_net](community/swarmauri_billing_authorize_net/) | `community/swarmauri_billing_authorize_net` | `billing` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_billing_braintree](community/swarmauri_billing_braintree/) | `community/swarmauri_billing_braintree` | `billing` | `atomic-concrete` | `community` | yes |
@@ -632,8 +630,6 @@ fail validation because they make composition order ambiguous.
 
 | Package | Family | Role | Source | Composes | Order reason |
 |---|---|---|---|---:|---|
-| [tigrbl_api_cron](community/tigrbl_api_cron/) | `api` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
-| [tigrbl_api_hpks](community/tigrbl_api_hpks/) | `api` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_billing_adyen](community/swarmauri_billing_adyen/) | `billing` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_billing_authorize_net](community/swarmauri_billing_authorize_net/) | `billing` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_billing_braintree](community/swarmauri_billing_braintree/) | `billing` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -879,13 +875,6 @@ fail validation because they make composition order ambiguous.
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
 |---|---|---|---|---|---|---|
 | `70.0` | [9x](experimental/9x/) | `70-experimental` | `experimental/9x` | `experimental-atomic` | `experimental` | no |
-
-### `api`
-
-| Index | Package | Layer | Path | Role | Maturity | Workspace |
-|---|---|---|---|---|---|---|
-| `50.0` | [tigrbl_api_cron](community/tigrbl_api_cron/) | `50-community` | `community/tigrbl_api_cron` | `atomic-concrete` | `community` | yes |
-| `50.0` | [tigrbl_api_hpks](community/tigrbl_api_hpks/) | `50-community` | `community/tigrbl_api_hpks` | `atomic-concrete` | `community` | yes |
 
 ### `auth_idp`
 

@@ -145,8 +145,6 @@ members = [
     "community/swarmauri_vectorstore_qdrant",
     "community/swarmauri_vectorstore_redis",
     "community/swm_example_community_package",
-    "community/tigrbl_api_cron",
-    "community/tigrbl_api_hpks",
     "core",
     # "experimental/6w",
     # "experimental/6x",
@@ -693,8 +691,6 @@ swm_example_package = { workspace = true }
 swm_example_plugin = { workspace = true }
 swm_example_community_package = { workspace = true }
 tigr = { workspace = true }
-tigrbl_api_cron = { workspace = true }
-tigrbl_api_hpks = { workspace = true }
 # ye = { workspace = true }
 # ymls = { workspace = true }
 # zdx = { workspace = true }
