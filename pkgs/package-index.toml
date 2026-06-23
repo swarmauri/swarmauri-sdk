@@ -1304,11 +1304,9 @@ path = "standards/swarmauri_skill_local"
 distribution = "swarmauri_skill_local"
 layer = "40-standards"
 family = "skills"
-role = "composite-concrete"
+role = "atomic-concrete"
 maturity = "standard"
-order = 1
-order_reason = "raised to order 1 because it depends on same-layer package swarmauri_skill_filesystem at 40.0"
-composes = ["swarmauri_skill_filesystem"]
+order = 0
 entry_points = ["swarmauri.skills"]
 
 [[packages]]

@@ -20,14 +20,12 @@ authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
-    "swarmauri_skill_filesystem",
 ]
 keywords = ["swarmauri", "sdk", "standards", "skills", "agents"]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
-swarmauri_skill_filesystem = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
