@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ipaddress
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
 
@@ -71,7 +72,7 @@ def _san_from_spec(san: Optional[AltNameSpec]) -> Optional[x509.SubjectAlternati
     for d in san.get("dns") or []:
         gns.append(x509.DNSName(d))
     for ip in san.get("ip") or []:
-        gns.append(x509.IPAddress(x509.ipaddress.ip_address(ip)))  # type: ignore[attr-defined]
+        gns.append(x509.IPAddress(ipaddress.ip_address(ip)))
     for uri in san.get("uri") or []:
         gns.append(x509.UniformResourceIdentifier(uri))
     for email in san.get("email") or []:
@@ -246,13 +247,13 @@ class SelfSignedCertificate(CertServiceBase):
             permitted_dns = [x509.DNSName(d) for d in (nc.get("permitted_dns") or [])]
             excluded_dns = [x509.DNSName(d) for d in (nc.get("excluded_dns") or [])]
             permitted_ip = [
-                x509.IPAddress(x509.ipaddress.ip_address(ip))
+                x509.IPAddress(ipaddress.ip_network(ip))
                 for ip in (nc.get("permitted_ip") or [])
-            ]  # type: ignore[attr-defined]
+            ]
             excluded_ip = [
-                x509.IPAddress(x509.ipaddress.ip_address(ip))
+                x509.IPAddress(ipaddress.ip_network(ip))
                 for ip in (nc.get("excluded_ip") or [])
-            ]  # type: ignore[attr-defined]
+            ]
             permitted_uri = [
                 x509.UniformResourceIdentifier(u)
                 for u in (nc.get("permitted_uri") or [])

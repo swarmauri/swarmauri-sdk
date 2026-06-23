@@ -20,6 +20,20 @@ from swarmauri_base.certs.CertServiceBase import CertServiceBase
 from swarmauri_base.ComponentBase import ComponentBase
 
 
+def _validity_start(cert_obj: Certificate) -> datetime.datetime:
+    value = getattr(cert_obj, "not_valid_before_utc", None)
+    if value is not None:
+        return value
+    return cert_obj.not_valid_before.replace(tzinfo=datetime.timezone.utc)
+
+
+def _validity_end(cert_obj: Certificate) -> datetime.datetime:
+    value = getattr(cert_obj, "not_valid_after_utc", None)
+    if value is not None:
+        return value
+    return cert_obj.not_valid_after.replace(tzinfo=datetime.timezone.utc)
+
+
 @ComponentBase.register_type(CertServiceBase, "X509VerifyService")
 class X509VerifyService(CertServiceBase):
     """Verify and parse X.509 certificates.
@@ -62,9 +76,9 @@ class X509VerifyService(CertServiceBase):
             Dict[str, Any]: Structured validation result.
         """
         now = (
-            datetime.datetime.utcfromtimestamp(check_time)
+            datetime.datetime.fromtimestamp(check_time, tz=datetime.timezone.utc)
             if check_time
-            else datetime.datetime.utcnow()
+            else datetime.datetime.now(datetime.timezone.utc)
         )
 
         cert_obj = (
@@ -87,7 +101,9 @@ class X509VerifyService(CertServiceBase):
             for icert in intermediates or []
         ]
 
-        valid_time = cert_obj.not_valid_before <= now <= cert_obj.not_valid_after
+        not_before = _validity_start(cert_obj)
+        not_after = _validity_end(cert_obj)
+        valid_time = not_before <= now <= not_after
 
         chain_ok = False
         for candidate in roots + inters:
@@ -122,8 +138,8 @@ class X509VerifyService(CertServiceBase):
             "reason": None if (valid_time and chain_ok) else "invalid_chain_or_time",
             "subject": cert_obj.subject.rfc4514_string(),
             "issuer": cert_obj.issuer.rfc4514_string(),
-            "not_before": int(cert_obj.not_valid_before.timestamp()),
-            "not_after": int(cert_obj.not_valid_after.timestamp()),
+            "not_before": int(not_before.timestamp()),
+            "not_after": int(not_after.timestamp()),
             "is_ca": any(
                 ext.value.ca
                 for ext in cert_obj.extensions
@@ -160,8 +176,8 @@ class X509VerifyService(CertServiceBase):
             "serial": cert_obj.serial_number,
             "issuer": cert_obj.issuer.rfc4514_string(),
             "subject": cert_obj.subject.rfc4514_string(),
-            "not_before": int(cert_obj.not_valid_before.timestamp()),
-            "not_after": int(cert_obj.not_valid_after.timestamp()),
+            "not_before": int(_validity_start(cert_obj).timestamp()),
+            "not_after": int(_validity_end(cert_obj).timestamp()),
             "sig_alg": cert_obj.signature_algorithm_oid._name,
         }
 
