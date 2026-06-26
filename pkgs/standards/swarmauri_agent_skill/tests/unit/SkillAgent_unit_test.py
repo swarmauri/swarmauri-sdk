@@ -1,12 +1,16 @@
+import sys
 from typing import Literal
 
 import pytest
+from pydantic import ConfigDict
 
 from swarmauri_agent_skill import SkillAgent
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.skills.SkillBase import SkillBase
-from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.conversations.MaxSystemContextConversation import (
+    MaxSystemContextConversation,
+)
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 
 
@@ -48,9 +52,15 @@ class EchoSkillLLM(LLMBase):
         return f"systems={len(system_messages)};users={len(user_messages)};last={user_messages[-1]}"
 
 
+class AgentTestSkill(SkillBase):
+    root_path: str | None = None
+    type: Literal["AgentTestSkill"] = "AgentTestSkill"
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+
+
 @pytest.fixture
 def demo_skill():
-    return SkillBase(
+    return AgentTestSkill(
         name="demo",
         description="Demo skill",
         instructions="Follow demo.",
@@ -60,7 +70,7 @@ def demo_skill():
 
 @pytest.fixture
 def review_skill():
-    return SkillBase(
+    return AgentTestSkill(
         name="review",
         description="Review skill",
         instructions="Review carefully.",
@@ -73,7 +83,7 @@ def make_agent(
 ):
     return SkillAgent(
         llm=EchoSkillLLM(),
-        conversation=Conversation(),
+        conversation=MaxSystemContextConversation(system_context="", max_size=20),
         skills=list(skills),
         turn_mode=turn_mode,
         execution_mode=execution_mode,
@@ -85,7 +95,42 @@ def test_skill_agent_is_not_nested_agent(demo_skill):
     agent = make_agent(demo_skill)
 
     assert not hasattr(agent, "agent")
-    assert isinstance(agent.conversation, Conversation)
+    assert isinstance(agent.conversation, MaxSystemContextConversation)
+
+
+def test_skill_agent_defaults_to_system_context_conversation(demo_skill):
+    agent = SkillAgent(llm=EchoSkillLLM(), skills=[demo_skill])
+
+    assert isinstance(agent.conversation, MaxSystemContextConversation)
+
+
+def test_skill_agent_has_only_skill_execution_tool(demo_skill):
+    agent = make_agent(demo_skill)
+    toolkit = agent.get_skill_toolkit()
+
+    assert list(toolkit.tools) == ["SkillExecutionTool"]
+
+
+def test_skill_agent_executes_skill_commands(tmp_path):
+    skill_dir = tmp_path / "demo"
+    scripts_dir = skill_dir / "scripts"
+    scripts_dir.mkdir(parents=True)
+    (scripts_dir / "run.py").write_text(
+        "print('agent skill command')", encoding="utf-8"
+    )
+    skill = AgentTestSkill(
+        name="demo",
+        description="Demo skill",
+        instructions="Follow demo.",
+        scripts=["scripts/run.py"],
+        root_path=str(skill_dir),
+    )
+    agent = make_agent(skill)
+
+    result = agent.execute_skill_commands("demo", [[sys.executable, "scripts/run.py"]])
+
+    assert result["results"][0]["exit_code"] == 0
+    assert result["results"][0]["stdout"].strip() == "agent skill command"
 
 
 def test_multiturn_preserves_conversation_history(demo_skill):
@@ -95,8 +140,9 @@ def test_multiturn_preserves_conversation_history(demo_skill):
     second = agent.exec("continue")
 
     assert first == "systems=1;users=1;last=hello"
-    assert second == "systems=2;users=2;last=continue"
-    assert len(agent.conversation.history) == 6
+    assert second == "systems=1;users=2;last=continue"
+    assert len(agent.conversation.history) == 5
+    assert len(agent.conversation._history) == 4
 
 
 def test_single_turn_does_not_mutate_persistent_history(demo_skill):
@@ -105,7 +151,8 @@ def test_single_turn_does_not_mutate_persistent_history(demo_skill):
     result = agent.exec("hello")
 
     assert result == "systems=1;users=1;last=hello"
-    assert agent.conversation.history == []
+    assert agent.conversation.system_context.content == ""
+    assert agent.conversation._history == []
 
 
 def test_explicit_skill_names_selects_only_requested_skill(demo_skill, review_skill):
@@ -155,7 +202,7 @@ def test_sync_list_inputs_process_sequentially(demo_skill):
 
     assert result == [
         "systems=1;users=1;last=one",
-        "systems=2;users=2;last=two",
+        "systems=1;users=2;last=two",
     ]
 
 
@@ -169,4 +216,5 @@ async def test_async_concurrent_list_inputs(demo_skill):
         "systems=1;users=1;last=one",
         "systems=1;users=1;last=two",
     ]
-    assert agent.conversation.history == []
+    assert agent.conversation.system_context.content == ""
+    assert agent.conversation._history == []

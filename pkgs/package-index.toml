@@ -1288,6 +1288,28 @@ order = 0
 entry_points = ["swarmauri.agents"]
 
 [[packages]]
+name = "swarmauri_skill_dummy_filesystem"
+path = "standards/swarmauri_skill_dummy_filesystem"
+distribution = "swarmauri_skill_dummy_filesystem"
+layer = "40-standards"
+family = "skills"
+role = "atomic-concrete"
+maturity = "standard"
+order = 0
+entry_points = ["swarmauri.skills"]
+
+[[packages]]
+name = "swarmauri_skill_dummy_local"
+path = "standards/swarmauri_skill_dummy_local"
+distribution = "swarmauri_skill_dummy_local"
+layer = "40-standards"
+family = "skills"
+role = "atomic-concrete"
+maturity = "standard"
+order = 0
+entry_points = ["swarmauri.skills"]
+
+[[packages]]
 name = "swarmauri_skill_filesystem"
 path = "standards/swarmauri_skill_filesystem"
 distribution = "swarmauri_skill_filesystem"
@@ -1728,6 +1750,17 @@ maturity = "standard"
 workspace = true
 order_source = "inferred"
 order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_skill_execution"
+path = "standards/swarmauri_tool_skill_execution"
+distribution = "swarmauri_tool_skill_execution"
+layer = "40-standards"
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+order = 0
+entry_points = ["swarmauri.tools"]
 
 [[packages]]
 name = "swarmauri_transport_asgi"

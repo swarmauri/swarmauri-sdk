@@ -45,6 +45,8 @@ class PluginCitizenshipRegistry:
 
     # Class variables for registries
     FIRST_CLASS_REGISTRY: Dict[str, str] = {
+        "swarmauri.skills.DummyFileSystemSkill": "swarmauri_skill_dummy_filesystem.DummyFileSystemSkill",
+        "swarmauri.skills.DummyLocalSkill": "swarmauri_skill_dummy_local.DummyLocalSkill",
         "swarmauri.skills.FileSystemSkill": "swarmauri_skill_filesystem.FileSystemSkill",
         "swarmauri.skills.LocalSkill": "swarmauri_skill_local.LocalSkill",
         "swarmauri.signings.Ed25519EnvelopeSigner": "swarmauri_signing_ed25519.Ed25519EnvelopeSigner",
@@ -285,6 +287,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.embeddings.Doc2VecEmbedding": "swarmauri_embedding_doc2vec.Doc2VecEmbedding",
         "swarmauri.tools.MatplotlibCsvTool": "swarmauri_tool_matplotlib.MatplotlibCsvTool",
         "swarmauri.tools.MatplotlibTool": "swarmauri_tool_matplotlib.MatplotlibTool",
+        "swarmauri.tools.SkillExecutionTool": "swarmauri_tool_skill_execution.SkillExecutionTool",
         "swarmauri.parsers.KeywordExtractorParser": "swarmauri_parser_keywordextractor.KeywordExtractorParser",
         "swarmauri.embeddings.NmfEmbedding": "swarmauri_embedding_nmf.NmfEmbedding",
         "swarmauri.parsers.BeautifulSoupElementParser": "swarmauri_parser_beautifulsoupelement.BeautifulSoupElementParser",

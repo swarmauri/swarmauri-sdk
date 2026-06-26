@@ -60,6 +60,32 @@ def test_s3_over_sftp_storage_adapter_is_first_class():
 
 
 @pytest.mark.unit
+def test_dummy_skills_are_first_class():
+    assert (
+        PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
+            "swarmauri.skills.DummyFileSystemSkill"
+        ]
+        == "swarmauri_skill_dummy_filesystem.DummyFileSystemSkill"
+    )
+    assert (
+        PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
+            "swarmauri.skills.DummyLocalSkill"
+        ]
+        == "swarmauri_skill_dummy_local.DummyLocalSkill"
+    )
+
+
+@pytest.mark.unit
+def test_skill_execution_tool_is_first_class():
+    assert (
+        PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
+            "swarmauri.tools.SkillExecutionTool"
+        ]
+        == "swarmauri_tool_skill_execution.SkillExecutionTool"
+    )
+
+
+@pytest.mark.unit
 def test_update_and_delete_entry():
     PluginCitizenshipRegistry.add_to_registry(
         "second", "swarmauri.chains.TestChain", "pkg.Chain"

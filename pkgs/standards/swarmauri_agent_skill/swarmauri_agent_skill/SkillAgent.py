@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
+from pathlib import Path
 from typing import Any, Dict, Iterable, List, Literal, Optional, Sequence, Union
 
 from pydantic import ConfigDict, Field
@@ -8,19 +10,34 @@ from pydantic import ConfigDict, Field
 from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.agents.AgentBase import AgentBase
 from swarmauri_base.agents.AgentConversationMixin import AgentConversationMixin
+from swarmauri_base.agents.AgentSystemContextMixin import AgentSystemContextMixin
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.skills.SkillBase import SkillBase
+from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.messages.IMessage import IMessage
+from swarmauri_standard.conversations.MaxSystemContextConversation import (
+    MaxSystemContextConversation,
+)
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.messages.SystemMessage import SystemMessage
+from swarmauri_standard.toolkits.Toolkit import Toolkit
+from swarmauri_tool_skill_execution import SkillExecutionTool
 
 
 @ComponentBase.register_type(AgentBase, "SkillAgent")
-class SkillAgent(AgentConversationMixin, AgentBase):
+class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
     llm: SubclassUnion[LLMBase]
-    conversation: SubclassUnion[ConversationBase]
+    conversation: SubclassUnion[ConversationBase] = Field(
+        default_factory=lambda: MaxSystemContextConversation(
+            system_context="", max_size=100
+        )
+    )
+    system_context: SystemMessage | str = SystemMessage(content="")
     skills: List[SubclassUnion[SkillBase]] = Field(default_factory=list)
+    skill_execution_tool: SubclassUnion[ToolBase] = Field(
+        default_factory=SkillExecutionTool
+    )
     turn_mode: Literal["single", "multi"] = "multi"
     execution_mode: Literal["sequential", "concurrent"] = "sequential"
     require_skill: bool = False
@@ -105,8 +122,13 @@ class SkillAgent(AgentConversationMixin, AgentBase):
         llm_kwargs: Optional[Dict] = None,
         skill_names: Optional[Sequence[str]] = None,
     ) -> Any:
-        conversation = self._prepare_conversation(input_data, skill_names=skill_names)
-        result = self.llm.predict(conversation=conversation, **(llm_kwargs or {}))
+        conversation, selected_skills = self._prepare_conversation(
+            input_data, skill_names=skill_names
+        )
+        result = self.llm.predict(
+            conversation=conversation,
+            **self._llm_kwargs(selected_skills, llm_kwargs),
+        )
         if result is not None:
             conversation = result
         if self.turn_mode == "multi":
@@ -119,9 +141,12 @@ class SkillAgent(AgentConversationMixin, AgentBase):
         llm_kwargs: Optional[Dict] = None,
         skill_names: Optional[Sequence[str]] = None,
     ) -> Any:
-        conversation = self._prepare_conversation(input_data, skill_names=skill_names)
+        conversation, selected_skills = self._prepare_conversation(
+            input_data, skill_names=skill_names
+        )
         result = await self.llm.apredict(
-            conversation=conversation, **(llm_kwargs or {})
+            conversation=conversation,
+            **self._llm_kwargs(selected_skills, llm_kwargs, method_name="apredict"),
         )
         if result is not None:
             conversation = result
@@ -133,25 +158,127 @@ class SkillAgent(AgentConversationMixin, AgentBase):
         self,
         input_data: Union[str, IMessage],
         skill_names: Optional[Sequence[str]] = None,
-    ) -> ConversationBase:
+    ) -> tuple[ConversationBase, List[SkillBase]]:
         conversation = self.conversation
         if self.turn_mode == "single":
             conversation = self.conversation.model_copy(deep=True)
             conversation.clear_history()
 
         selected_skills = self.select_skills(input_data, skill_names=skill_names)
+        self._apply_system_context(conversation, selected_skills)
+        conversation.add_message(self._to_message(input_data))
+        return conversation, selected_skills
+
+    def _apply_system_context(
+        self,
+        conversation: ConversationBase,
+        selected_skills: Iterable[SkillBase],
+    ) -> None:
+        context_parts = [self.system_context.content]
         skill_context = self._build_skill_context(selected_skills)
         if skill_context:
-            conversation.add_message(SystemMessage(content=skill_context))
-        conversation.add_message(self._to_message(input_data))
-        return conversation
+            context_parts.append(skill_context)
+        system_context = "\n\n".join(part for part in context_parts if part)
+        if hasattr(conversation, "system_context"):
+            conversation.system_context = SystemMessage(content=system_context)
+        elif system_context:
+            conversation.add_message(SystemMessage(content=system_context))
 
-    @staticmethod
-    def _build_skill_context(skills: Iterable[SkillBase]) -> str:
+    def execute_skill_commands(
+        self,
+        skill_name: str,
+        commands: Sequence[Sequence[str]] | Sequence[str],
+        input_text: str | None = None,
+        timeout: float | None = None,
+        mode: Literal["sequential", "concurrent"] = "sequential",
+    ) -> Dict[str, Any]:
+        self.skill_execution_tool.skills = list(self.skills)
+        return self.skill_execution_tool(
+            skill_name=skill_name,
+            commands=commands,
+            input_text=input_text,
+            timeout=timeout,
+            mode=mode,
+        )
+
+    def get_skill_toolkit(
+        self, skills: Optional[Iterable[SkillBase]] = None
+    ) -> Toolkit:
+        selected_skills = list(skills if skills is not None else self.skills)
+        self.skill_execution_tool.skills = selected_skills
+        toolkit = Toolkit()
+        toolkit.add_tool(self.skill_execution_tool)
+        return toolkit
+
+    def _llm_kwargs(
+        self,
+        selected_skills: Iterable[SkillBase],
+        llm_kwargs: Optional[Dict],
+        method_name: str = "predict",
+    ) -> Dict:
+        kwargs = dict(llm_kwargs or {})
+        method = getattr(self.llm, method_name)
+        signature = inspect.signature(method)
+        accepts_kwargs = any(
+            parameter.kind == inspect.Parameter.VAR_KEYWORD
+            for parameter in signature.parameters.values()
+        )
+        if "toolkit" in signature.parameters or accepts_kwargs:
+            kwargs.setdefault("toolkit", self.get_skill_toolkit(selected_skills))
+        return kwargs
+
+    @classmethod
+    def _build_skill_context(cls, skills: Iterable[SkillBase]) -> str:
         return "\n\n".join(
-            f"# Skill: {skill.name}\n{skill.description}\n\n{skill.instructions}"
+            "\n".join(
+                [
+                    f"# Skill: {skill.name}",
+                    skill.description,
+                    "",
+                    skill.instructions,
+                    "",
+                    cls._build_resource_context(skill),
+                    "",
+                    "Available tool: SkillExecutionTool. Use this single tool "
+                    "to run skill-local argv command arrays when execution is needed.",
+                ]
+            ).strip()
             for skill in skills
         )
+
+    @classmethod
+    def _build_resource_context(cls, skill: SkillBase) -> str:
+        lines = ["## Skill Resources"]
+        has_resources = False
+        for field_name in SkillBase._RESOURCE_FIELDS:
+            values = list(getattr(skill, field_name))
+            if not values:
+                continue
+            has_resources = True
+            lines.append(f"- {field_name}: {', '.join(values)}")
+            if field_name in {"agents", "references"}:
+                for value in values:
+                    content = cls._read_resource_content(skill, value)
+                    if content:
+                        lines.append(f"\n### {field_name}/{value}\n{content}")
+        if not has_resources:
+            lines.append("- none")
+        return "\n".join(lines)
+
+    @staticmethod
+    def _read_resource_content(skill: SkillBase, resource_path: str) -> str:
+        root_path = getattr(skill, "root_path", None)
+        if not root_path:
+            return ""
+        root = Path(root_path).expanduser().resolve()
+        path = (root / resource_path).resolve()
+        try:
+            path.relative_to(root)
+        except ValueError:
+            return ""
+        if path.suffix.lower() not in {".md", ".yaml", ".yml"} or not path.is_file():
+            return ""
+        return path.read_text(encoding="utf-8").strip()
 
     @classmethod
     def _skill_matches_input(cls, skill: SkillBase, input_text: str) -> bool:

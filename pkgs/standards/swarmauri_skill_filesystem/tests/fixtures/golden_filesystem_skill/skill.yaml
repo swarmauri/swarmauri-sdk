@@ -1,0 +1,7 @@
+description: Golden filesystem skill fixture from manifest
+metadata:
+  tags:
+    - manifest
+    - filesystem
+  triggers:
+    - manifest filesystem fixture
