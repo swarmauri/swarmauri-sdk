@@ -48,8 +48,6 @@ dependencies = [
 "pyyaml>=6.0.2",
 "numpy>=1.26.4",
 "pydantic>=2.0",
-"requests>=2.0",
-"pandas>=2.2",
 "swarmauri_core",
 "swarmauri_typing",
 "toml>=0.10.2"

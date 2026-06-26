@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Sequence
 from typing import Literal, TypedDict
-from typing_extensions import NotRequired
 
 CipherOp = Literal[
     "sign",
@@ -35,9 +34,9 @@ Alg = str
 class KeyRef(TypedDict, total=False):
     kid: str
     kty: str
-    crv: NotRequired[str]
-    bits: NotRequired[int]
-    version: NotRequired[int]
+    crv: str
+    bits: int
+    version: int
 
 
 ParamMapping = Mapping[str, Any]
@@ -73,4 +72,4 @@ class LintIssue(TypedDict, total=False):
     level: Literal["error", "warn", "info"]
     code: str
     message: str
-    context: NotRequired[Mapping[str, Any]]
+    context: Mapping[str, Any]

@@ -2,7 +2,6 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Dict, List, Sequence, Union
 
-import numpy as np
 from swarmauri_core.matrices.IMatrix import IMatrix
 from swarmauri_core.vectors.IVector import IVector
 
@@ -15,7 +14,6 @@ MetricInput = Union[
     float,  # Scalar values
     List[Union[int, float]],  # List of scalars
     Sequence[Union[int, float]],  # Any sequence of scalars
-    np.ndarray,  # NumPy arrays
     IVector,  # Vector interface
     IMatrix,  # Matrix interface
     Dict[str, Union[int, float]],  # Dictionary with numeric values

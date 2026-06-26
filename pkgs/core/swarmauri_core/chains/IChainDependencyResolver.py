@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from swarmauri.chains.concrete.ChainStep import ChainStep
+
+from swarmauri_core.chains.IChainStep import IChainStep
 
 
 class IChainDependencyResolver(ABC):
     @abstractmethod
-    def build_dependencies(self) -> List[ChainStep]:
+    def build_dependencies(self) -> List[IChainStep]:
         """
         Builds the dependencies for a particular sequence in the matrix.
 

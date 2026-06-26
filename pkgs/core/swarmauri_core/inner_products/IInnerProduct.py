@@ -2,8 +2,6 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Callable, TypeVar, Union
 
-import numpy as np
-
 from swarmauri_core.vectors.IVector import IVector
 
 # Configure logging
@@ -11,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 Vector = TypeVar("Vector", bound="IVector")
-Matrix = TypeVar("Matrix", bound=np.ndarray)
+Matrix = TypeVar("Matrix")
 
 
 class IInnerProduct(ABC):

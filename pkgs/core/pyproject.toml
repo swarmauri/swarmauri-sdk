@@ -43,13 +43,6 @@ classifiers = [
 ]
 requires-python = ">=3.10,<3.15"
 
-dependencies = [
-    "typing_extensions",
-    "aiofiles",
-]
-
-
-
 [dependency-groups]
 dev = [
 "flake8>=7.0",

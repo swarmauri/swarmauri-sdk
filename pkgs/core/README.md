@@ -54,7 +54,7 @@ Major interface families include:
 
 - Stable abstract interfaces for Swarmauri component packages.
 - Shared types for crypto, signing, key management, transports, billing, and proof-of-possession workflows.
-- Minimal runtime dependency footprint: `typing_extensions` and `aiofiles`.
+- Zero runtime dependencies.
 - Interface-first design for packages that later inherit reusable behavior from `swarmauri_base`.
 - Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.
 

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from IVector import IVector
+
+from swarmauri_core.vectors.IVector import IVector
 
 
 class IVectorTransform(ABC):
