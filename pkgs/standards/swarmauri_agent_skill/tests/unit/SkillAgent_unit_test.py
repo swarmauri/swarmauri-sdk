@@ -5,13 +5,14 @@ import pytest
 from pydantic import ConfigDict
 
 from swarmauri_agent_skill import SkillAgent
-from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.skills.SkillBase import SkillBase
 from swarmauri_standard.conversations.MaxSystemContextConversation import (
     MaxSystemContextConversation,
 )
 from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.messages.SystemMessage import SystemMessage
 
 
 @ComponentBase.register_type(LLMBase, "EchoSkillLLM")
@@ -52,10 +53,16 @@ class EchoSkillLLM(LLMBase):
         return f"systems={len(system_messages)};users={len(user_messages)};last={user_messages[-1]}"
 
 
+@ComponentBase.register_type(SkillBase, "AgentTestSkill")
 class AgentTestSkill(SkillBase):
     root_path: str | None = None
     type: Literal["AgentTestSkill"] = "AgentTestSkill"
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+
+
+def resource_value(component):
+    resource = component.resource
+    return getattr(resource, "value", resource)
 
 
 @pytest.fixture
@@ -102,6 +109,71 @@ def test_skill_agent_defaults_to_system_context_conversation(demo_skill):
     agent = SkillAgent(llm=EchoSkillLLM(), skills=[demo_skill])
 
     assert isinstance(agent.conversation, MaxSystemContextConversation)
+
+
+def test_skill_agent_component_identity(demo_skill):
+    agent = make_agent(demo_skill)
+    dumped = agent.model_dump(mode="json")
+
+    assert agent.resource == ResourceTypes.AGENT.value
+    assert agent.type == "SkillAgent"
+    assert dumped["resource"] == "Agent"
+    assert dumped["type"] == "SkillAgent"
+    assert dumped["llm"]["resource"] == "LLM"
+    assert dumped["llm"]["type"] == "EchoSkillLLM"
+    assert dumped["conversation"]["resource"] == "Conversation"
+    assert dumped["conversation"]["type"] == "MaxSystemContextConversation"
+    assert dumped["skills"][0]["resource"] == "Skill"
+    assert dumped["skills"][0]["type"] == "AgentTestSkill"
+    assert dumped["skill_execution_tool"]["resource"] == "Tool"
+    assert dumped["skill_execution_tool"]["type"] == "SkillExecutionTool"
+
+
+def test_skill_agent_roundtrip_preserves_component_types_and_behavior(tmp_path):
+    skill_dir = tmp_path / "demo"
+    scripts_dir = skill_dir / "scripts"
+    scripts_dir.mkdir(parents=True)
+    (scripts_dir / "run.py").write_text(
+        "print('roundtrip skill command')", encoding="utf-8"
+    )
+    skill = AgentTestSkill(
+        name="demo",
+        description="Demo skill",
+        instructions="Follow demo.",
+        scripts=["scripts/run.py"],
+        root_path=str(skill_dir),
+    )
+    agent = SkillAgent(
+        llm=EchoSkillLLM(),
+        conversation=MaxSystemContextConversation(system_context="", max_size=20),
+        system_context=SystemMessage(content="Base skill-agent policy."),
+        skills=[skill],
+    )
+
+    restored = SkillAgent.model_validate_json(agent.model_dump_json())
+
+    assert restored.type == "SkillAgent"
+    assert resource_value(restored) == "Agent"
+    assert restored.llm.type == "EchoSkillLLM"
+    assert restored.conversation.type == "MaxSystemContextConversation"
+    assert resource_value(restored.conversation) == "Conversation"
+    assert restored.system_context.type == "SystemMessage"
+    assert restored.system_context.role == "system"
+    assert restored.skill_execution_tool.type == "SkillExecutionTool"
+    assert resource_value(restored.skill_execution_tool) == "Tool"
+    assert restored.skills[0].type == "AgentTestSkill"
+    assert resource_value(restored.skills[0]) == "Skill"
+
+    response = restored.exec("hello", skill_names=["demo"])
+    command_result = restored.execute_skill_commands(
+        "demo", [[sys.executable, "scripts/run.py"]]
+    )
+
+    assert response == "systems=1;users=1;last=hello"
+    assert "Base skill-agent policy." in restored.conversation.system_context.content
+    assert "# Skill: demo" in restored.conversation.system_context.content
+    assert command_result["results"][0]["exit_code"] == 0
+    assert command_result["results"][0]["stdout"].strip() == "roundtrip skill command"
 
 
 def test_skill_agent_has_only_skill_execution_tool(demo_skill):

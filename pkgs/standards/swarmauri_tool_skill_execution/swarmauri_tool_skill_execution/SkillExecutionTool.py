@@ -62,6 +62,20 @@ class SkillExecutionTool(ToolBase):
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["SkillExecutionTool"] = "SkillExecutionTool"
 
+    def model_post_init(self, __context: Any) -> None:
+        self.skills = [self._hydrate_skill(item) for item in self.skills]
+
+    @staticmethod
+    def _hydrate_skill(value: Any) -> Any:
+        if isinstance(value, SkillBase) or not isinstance(value, dict):
+            return value
+        type_name = value.get("type")
+        skill_registry = SkillBase._registry.get("SkillBase", {})
+        skill_cls = skill_registry.get("subtypes", {}).get(type_name)
+        if skill_cls is None and type_name == "SkillBase":
+            skill_cls = skill_registry.get("model_cls", SkillBase)
+        return skill_cls.model_validate(value) if skill_cls else value
+
     def __call__(
         self,
         skill_name: str,
