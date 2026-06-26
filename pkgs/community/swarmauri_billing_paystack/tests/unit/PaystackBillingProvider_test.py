@@ -25,4 +25,7 @@ def test_initialization():
 @pytest.mark.unit
 def test_serialization():
     provider = Provider(api_key="paystack-key", secret_key="sk_test_123")
-    assert provider.id == Provider.model_validate_json(provider.model_dump_json()).id
+    assert (
+        provider.id
+        == Provider.model_validate_json(provider.model_dump_json()).id
+    )

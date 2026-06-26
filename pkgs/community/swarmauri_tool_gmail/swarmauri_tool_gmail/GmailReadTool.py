@@ -45,7 +45,9 @@ class GmailReadTool(ToolBase):
         delegated_credentials = credentials.with_subject(self.sender_email)
         self.service = build("gmail", "v1", credentials=delegated_credentials)
 
-    def __call__(self, query: str = "", max_results: int = 10) -> Dict[str, str]:
+    def __call__(
+        self, query: str = "", max_results: int = 10
+    ) -> Dict[str, str]:
         """
         Fetches emails from the authenticated Gmail account based on the given query.
 
@@ -72,10 +74,14 @@ class GmailReadTool(ToolBase):
                 headers = msg["payload"]["headers"]
 
                 sender = next(
-                    header["value"] for header in headers if header["name"] == "From"
+                    header["value"]
+                    for header in headers
+                    if header["name"] == "From"
                 )
                 subject = next(
-                    header["value"] for header in headers if header["name"] == "Subject"
+                    header["value"]
+                    for header in headers
+                    if header["name"] == "Subject"
                 )
                 reply_to = next(
                     (
@@ -86,7 +92,9 @@ class GmailReadTool(ToolBase):
                     subject,
                 )
                 date_time = next(
-                    header["value"] for header in headers if header["name"] == "Date"
+                    header["value"]
+                    for header in headers
+                    if header["name"] == "Date"
                 )
 
                 formatted_msg = f"\nSender: {sender}\nReply-To: {reply_to}\nSubject: {subject}\nDate: {date_time}\n"

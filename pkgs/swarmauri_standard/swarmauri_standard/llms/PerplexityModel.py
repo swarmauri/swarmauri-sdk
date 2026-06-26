@@ -1,6 +1,15 @@
 import asyncio
 import json
-from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Type
+from typing import (
+    Any,
+    AsyncIterator,
+    Dict,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Type,
+)
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -47,7 +56,9 @@ class PerplexityModel(LLMBase):
     timeout: float = 600.0
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(default="https://api.perplexity.ai/chat/completions")
+    _BASE_URL: str = PrivateAttr(
+        default="https://api.perplexity.ai/chat/completions"
+    )
 
     def __init__(self, **data: Dict[str, Any]) -> None:
         """
@@ -58,12 +69,16 @@ class PerplexityModel(LLMBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
@@ -170,7 +185,9 @@ class PerplexityModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            response = self._client.post(self._BASE_URL, json=payload, headers=headers)
+            response = self._client.post(
+                self._BASE_URL, json=payload, headers=headers
+            )
             response.raise_for_status()
 
         result = response.json()
@@ -180,7 +197,9 @@ class PerplexityModel(LLMBase):
 
         if self.include_usage:
             usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -251,7 +270,9 @@ class PerplexityModel(LLMBase):
 
         if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -336,7 +357,9 @@ class PerplexityModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -387,7 +410,9 @@ class PerplexityModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            response = await self._async_client.post(self._BASE_URL, json=payload)
+            response = await self._async_client.post(
+                self._BASE_URL, json=payload
+            )
             response.raise_for_status()
 
         message_content = ""
@@ -411,7 +436,9 @@ class PerplexityModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 

@@ -2,7 +2,9 @@ import os
 from tempfile import NamedTemporaryFile
 
 import pytest
-from swarmauri_tool_matplotlib.MatplotlibCsvTool import MatplotlibCsvTool as Tool
+from swarmauri_tool_matplotlib.MatplotlibCsvTool import (
+    MatplotlibCsvTool as Tool,
+)
 
 
 @pytest.mark.unit

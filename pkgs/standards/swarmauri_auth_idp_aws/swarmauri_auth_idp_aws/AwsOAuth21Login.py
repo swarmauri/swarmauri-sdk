@@ -25,6 +25,8 @@ class AwsOAuth21Login(AwsLoginMixin, OAuth21LoginBase):
         )
         return {"url": url, "state": state}
 
-    async def exchange_and_identity(self, code: str, state: str) -> Mapping[str, Any]:
+    async def exchange_and_identity(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         tokens = await self._exchange_tokens(code, state)
         return {"issuer": "aws-workforce", "tokens": tokens}

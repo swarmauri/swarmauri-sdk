@@ -2,7 +2,16 @@ import asyncio
 import json
 import logging
 import warnings
-from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Type
+from typing import (
+    Any,
+    AsyncIterator,
+    Dict,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Type,
+)
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -92,7 +101,9 @@ class AnthropicToolModel(LLMBase):
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.name or self.allowed_models[0]
 
-    def _schema_convert_tools(self, tools: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(
+        self, tools: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """
         Converts a toolkit's tools to the Anthropic-compatible schema format.
 
@@ -156,8 +167,12 @@ class AnthropicToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
-            "tool_choice": tool_choice if toolkit and tool_choice else {"type": "auto"},
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
+            "tool_choice": tool_choice
+            if toolkit and tool_choice
+            else {"type": "auto"},
         }
 
         response = self._client.post("/messages", json=payload)
@@ -218,8 +233,12 @@ class AnthropicToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
-            "tool_choice": tool_choice if toolkit and tool_choice else {"type": "auto"},
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
+            "tool_choice": tool_choice
+            if toolkit and tool_choice
+            else {"type": "auto"},
         }
 
         response = await self._async_client.post("/messages", json=payload)
@@ -277,20 +296,28 @@ class AnthropicToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
-            "tool_choice": tool_choice if toolkit and tool_choice else {"type": "auto"},
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
+            "tool_choice": tool_choice
+            if toolkit and tool_choice
+            else {"type": "auto"},
             "stream": True,
         }
 
         message_content = ""
-        with self._client.stream("POST", "/messages", json=payload) as response:
+        with self._client.stream(
+            "POST", "/messages", json=payload
+        ) as response:
             response.raise_for_status()
             for line in response.iter_lines():
                 if line:
                     try:
                         # Handle the case where line might be bytes or str
                         line_text = (
-                            line if isinstance(line, str) else line.decode("utf-8")
+                            line
+                            if isinstance(line, str)
+                            else line.decode("utf-8")
                         )
                         if line_text.startswith("data: "):
                             line_text = line_text.removeprefix("data: ")
@@ -352,8 +379,12 @@ class AnthropicToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
-            "tool_choice": tool_choice if toolkit and tool_choice else {"type": "auto"},
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
+            "tool_choice": tool_choice
+            if toolkit and tool_choice
+            else {"type": "auto"},
             "stream": True,
         }
 
@@ -367,7 +398,9 @@ class AnthropicToolModel(LLMBase):
                     try:
                         # Handle the case where line might be bytes or str
                         line_text = (
-                            line if isinstance(line, str) else line.decode("utf-8")
+                            line
+                            if isinstance(line, str)
+                            else line.decode("utf-8")
                         )
                         if line_text.startswith("data: "):
                             line_text = line_text.removeprefix("data: ")
@@ -378,10 +411,14 @@ class AnthropicToolModel(LLMBase):
                         event = json.loads(line_text)
                         if event["type"] == "content_block_delta":
                             if event["delta"]["type"] == "text_delta":
-                                collected_content.append(event["delta"]["text"])
+                                collected_content.append(
+                                    event["delta"]["text"]
+                                )
                                 yield event["delta"]["text"]
                             if event["delta"]["type"] == "input_json_delta":
-                                collected_content.append(event["delta"]["partial_json"])
+                                collected_content.append(
+                                    event["delta"]["partial_json"]
+                                )
                                 yield event["delta"]["partial_json"]
                         elif event["type"] == "tool_use":
                             func_name = event["name"]

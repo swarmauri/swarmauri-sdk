@@ -20,9 +20,7 @@ class DaleChallReadabilityTool(ToolBase):
     version: str = "0.1.dev1"
     name: str = "DaleChallReadabilityTool"
     type: Literal["DaleChallReadabilityTool"] = "DaleChallReadabilityTool"
-    description: str = (
-        "Calculates the Dale-Chall Readability Score for a given text using textstat."
-    )
+    description: str = "Calculates the Dale-Chall Readability Score for a given text using textstat."
     parameters: List[Parameter] = [
         Parameter(
             name="input_text",

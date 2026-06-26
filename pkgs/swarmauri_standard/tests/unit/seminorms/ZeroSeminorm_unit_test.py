@@ -52,7 +52,9 @@ def test_zero_seminorm_compute_with_various_inputs(zero_seminorm):
     # Test each input
     for input_value in test_inputs:
         result = zero_seminorm.compute(input_value)
-        assert result == 0.0, f"Expected 0.0 for input {input_value}, got {result}"
+        assert result == 0.0, (
+            f"Expected 0.0 for input {input_value}, got {result}"
+        )
 
 
 @pytest.mark.unit
@@ -156,7 +158,9 @@ def test_zero_seminorm_with_mock_matrix(zero_seminorm):
             # Simple transpose implementation
             cols = len(self.data[0]) if self.data else 0
             rows = len(self.data)
-            result = [[self.data[j][i] for j in range(rows)] for i in range(cols)]
+            result = [
+                [self.data[j][i] for j in range(rows)] for i in range(cols)
+            ]
             return MockMatrix(result)
 
     matrix = MockMatrix([[1.0, 2.0], [3.0, 4.0]])

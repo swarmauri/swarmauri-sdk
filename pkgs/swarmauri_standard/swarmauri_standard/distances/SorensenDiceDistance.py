@@ -41,7 +41,9 @@ class SorensenDiceDistance(DistanceBase):
 
         # Sorensen-Dice Index calculation
         try:
-            sorensen_dice_index = (2 * intersection_size) / (len(set_a) + len(set_b))
+            sorensen_dice_index = (2 * intersection_size) / (
+                len(set_a) + len(set_b)
+            )
         except ZeroDivisionError:
             sorensen_dice_index = 0.0
 
@@ -50,16 +52,24 @@ class SorensenDiceDistance(DistanceBase):
 
         return distance
 
-    def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+    def distances(
+        self, vector_a: Vector, vectors_b: List[Vector]
+    ) -> List[float]:
+        distances = [
+            self.distance(vector_a, vector_b) for vector_b in vectors_b
+        ]
         return distances
 
-    def similarity(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
+    def similarity(
+        self, vector_a: Vector, vectors_b: List[Vector]
+    ) -> List[float]:
         raise NotImplementedError(
             "Similarity calculation is not implemented for SorensenDiceDistance."
         )
 
-    def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
+    def similarities(
+        self, vector_a: Vector, vectors_b: List[Vector]
+    ) -> List[float]:
         raise NotImplementedError(
             "Similarity calculation is not implemented for SorensenDiceDistance."
         )

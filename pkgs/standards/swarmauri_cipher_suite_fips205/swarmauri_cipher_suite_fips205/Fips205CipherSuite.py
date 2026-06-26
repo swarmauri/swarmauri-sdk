@@ -45,7 +45,9 @@ class Fips205CipherSuite(CipherSuiteBase):
     def supports(self) -> Mapping[CipherOp, Iterable[Alg]]:
         return {"sign": _SLH_DSA, "verify": _SLH_DSA}
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         return "SLH-DSA-SHAKE-192s"
 
     def policy(self) -> Mapping[str, object]:
@@ -61,7 +63,10 @@ class Fips205CipherSuite(CipherSuiteBase):
             "version": 1,
             "dialects": {"provider": list(_SLH_DSA)},
             "ops": {
-                "sign": {"default": "SLH-DSA-SHAKE-192s", "allowed": list(_SLH_DSA)},
+                "sign": {
+                    "default": "SLH-DSA-SHAKE-192s",
+                    "allowed": list(_SLH_DSA),
+                },
             },
             "constraints": {"nistSecurityLevels": _SLH_DSA_LEVEL},
             "compliance": {"fips205": True, "pqc": True},
@@ -88,7 +93,10 @@ class Fips205CipherSuite(CipherSuiteBase):
         chosen_dialect = "provider" if dialect is None else dialect
         mapped = {"provider": f"slh-dsa:{chosen}"}
 
-        constraints = {"nistLevel": _SLH_DSA_LEVEL[chosen], "category": "post-quantum"}
+        constraints = {
+            "nistLevel": _SLH_DSA_LEVEL[chosen],
+            "category": "post-quantum",
+        }
 
         return {
             "op": op,

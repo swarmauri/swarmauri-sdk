@@ -50,7 +50,9 @@ class Word2VecDocumentStore(IDocumentStore, IRetriever):
     def delete_document(self, doc_id: str) -> None:
         self.documents = [doc for doc in self.documents if doc.id != doc_id]
 
-    def update_document(self, doc_id: str, updated_document: EmbeddedDocument) -> None:
+    def update_document(
+        self, doc_id: str, updated_document: EmbeddedDocument
+    ) -> None:
         for i, document in enumerate(self.documents):
             if document.id == doc_id:
                 self.documents[i] = updated_document
@@ -60,7 +62,9 @@ class Word2VecDocumentStore(IDocumentStore, IRetriever):
         """
         Generate document vector by averaging its word vectors.
         """
-        word_vectors = [self.model.wv[word] for word in words if word in self.model.wv]
+        word_vectors = [
+            self.model.wv[word] for word in words if word in self.model.wv
+        ]
         print(word_vectors)
         if word_vectors:
             return np.mean(word_vectors, axis=0)
@@ -76,12 +80,18 @@ class Word2VecDocumentStore(IDocumentStore, IRetriever):
         # Compute similarity scores between the query and each document's stored embedding
         similarities = self.similarity.similarities(
             SimpleVector(query_vector),
-            [SimpleVector(doc.embedding) for doc in self.documents if doc.embedding],
+            [
+                SimpleVector(doc.embedding)
+                for doc in self.documents
+                if doc.embedding
+            ],
         )
         print("similarities", similarities)
         # Retrieve indices of top_k most similar documents
         top_k_indices = sorted(
-            range(len(similarities)), key=lambda i: similarities[i], reverse=True
+            range(len(similarities)),
+            key=lambda i: similarities[i],
+            reverse=True,
         )[:top_k]
         print("top_k_indices", top_k_indices)
         return [self.documents[i] for i in top_k_indices]

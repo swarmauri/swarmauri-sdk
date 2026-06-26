@@ -5,7 +5,11 @@ from __future__ import annotations
 import base64
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence
 
-from swarmauri_core.mre_crypto.types import MultiRecipientEnvelope, RecipientId, MreMode
+from swarmauri_core.mre_crypto.types import (
+    MultiRecipientEnvelope,
+    RecipientId,
+    MreMode,
+)
 from swarmauri_core.crypto.types import Alg, KeyRef
 from swarmauri_base.mre_crypto.MreCryptoBase import MreCryptoBase
 from swarmauri_base.ComponentBase import ComponentBase
@@ -37,7 +41,9 @@ def _load_pubkey(ref: KeyRef) -> "pgpy.PGPKey":
     raise TypeError("Unsupported recipient KeyRef for PGP public key.")
 
 
-def _load_privkey(ref: KeyRef, passphrase: Optional[bytes | str]) -> "pgpy.PGPKey":
+def _load_privkey(
+    ref: KeyRef, passphrase: Optional[bytes | str]
+) -> "pgpy.PGPKey":
     _ensure_pgpy()
     if isinstance(ref, dict):
         kind = ref.get("kind")
@@ -118,7 +124,9 @@ class PGPSealMreCrypto(MreCryptoBase):
                 f"PGPSealMreCrypto supports only mode={MreMode.SEALED_PER_RECIPIENT.value}."
             )
         if aad is not None:
-            raise ValueError("AAD is not supported in sealed_per_recipient mode.")
+            raise ValueError(
+                "AAD is not supported in sealed_per_recipient mode."
+            )
 
         pubs = [_load_pubkey(r) for r in recipients]
         rids = [_fingerprint_pub(pk) for pk in pubs]
@@ -146,9 +154,13 @@ class PGPSealMreCrypto(MreCryptoBase):
     ) -> bytes:
         _ensure_pgpy()
         if env.get("mode") != MreMode.SEALED_PER_RECIPIENT.value:
-            raise ValueError("Envelope mode mismatch; expected sealed_per_recipient.")
+            raise ValueError(
+                "Envelope mode mismatch; expected sealed_per_recipient."
+            )
         if aad is not None:
-            raise ValueError("AAD is not supported in sealed_per_recipient mode.")
+            raise ValueError(
+                "AAD is not supported in sealed_per_recipient mode."
+            )
 
         priv = _load_privkey(my_identity, (opts or {}).get("passphrase"))
         my_id = str(priv.fingerprint)
@@ -193,12 +205,16 @@ class PGPSealMreCrypto(MreCryptoBase):
     ) -> MultiRecipientEnvelope:
         _ensure_pgpy()
         if env.get("mode") != MreMode.SEALED_PER_RECIPIENT.value:
-            raise ValueError("Envelope mode mismatch; expected sealed_per_recipient.")
+            raise ValueError(
+                "Envelope mode mismatch; expected sealed_per_recipient."
+            )
 
         add = add or ()
         remove_ids = set(remove or ())
         new_env: MultiRecipientEnvelope = {k: v for k, v in env.items()}
-        current_entries: List[Dict[str, Any]] = list(new_env.get("recipients", []))
+        current_entries: List[Dict[str, Any]] = list(
+            new_env.get("recipients", [])
+        )
         if remove_ids:
             current_entries = [
                 e for e in current_entries if e.get("id") not in remove_ids
@@ -212,11 +228,15 @@ class PGPSealMreCrypto(MreCryptoBase):
             pubs = [_load_pubkey(r) for r in add]
             rids = [_fingerprint_pub(pk) for pk in pubs]
             new_entries = [
-                _make_sealed_recipient(rid, _pgp_encrypt_bytes_for(pk, pt_bytes))
+                _make_sealed_recipient(
+                    rid, _pgp_encrypt_bytes_for(pk, pt_bytes)
+                )
                 for rid, pk in zip(rids, pubs)
             ]
             remaining = [
-                e for e in current_entries if e["id"] not in {rid for rid in rids}
+                e
+                for e in current_entries
+                if e["id"] not in {rid for rid in rids}
             ]
             current_entries = remaining + new_entries
         new_env["recipients"] = current_entries

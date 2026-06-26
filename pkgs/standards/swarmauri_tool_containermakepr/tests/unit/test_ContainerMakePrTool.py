@@ -28,7 +28,9 @@ def test_serialization():
 @pytest.mark.unit
 @patch("subprocess.run")
 def test_call(mock_run):
-    mock_run.return_value = MagicMock(returncode=0, stdout="created", stderr="")
+    mock_run.return_value = MagicMock(
+        returncode=0, stdout="created", stderr=""
+    )
     tool = Tool(container_name="c1")
     result = tool(title="t", body="b")
     mock_run.assert_called_once()

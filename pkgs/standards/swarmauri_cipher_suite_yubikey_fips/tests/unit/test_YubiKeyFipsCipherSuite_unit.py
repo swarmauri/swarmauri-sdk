@@ -39,7 +39,9 @@ def test_suite_identifier(cipher_suite: YubiKeyFipsCipherSuite) -> None:
 
 # Cipher-suite specific behavior
 @pytest.mark.unit
-def test_supports_expected_algorithms(cipher_suite: YubiKeyFipsCipherSuite) -> None:
+def test_supports_expected_algorithms(
+    cipher_suite: YubiKeyFipsCipherSuite,
+) -> None:
     supports = cipher_suite.supports()
     assert set(supports.keys()) == {"sign", "verify", "wrap", "unwrap"}
     assert tuple(supports["sign"]) == ("PS256", "PS384", "ES256", "ES384")
@@ -50,7 +52,9 @@ def test_supports_expected_algorithms(cipher_suite: YubiKeyFipsCipherSuite) -> N
 
 @pytest.mark.unit
 @pytest.mark.parametrize("operation", ["sign", "wrap"])
-def test_default_alg(cipher_suite: YubiKeyFipsCipherSuite, operation: str) -> None:
+def test_default_alg(
+    cipher_suite: YubiKeyFipsCipherSuite, operation: str
+) -> None:
     expected = "PS256" if operation == "sign" else "RSA-OAEP-256"
     assert cipher_suite.default_alg(operation) == expected
 
@@ -77,7 +81,9 @@ def test_features_descriptor(cipher_suite: YubiKeyFipsCipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_ps256_defaults(cipher_suite: YubiKeyFipsCipherSuite) -> None:
+def test_normalize_ps256_defaults(
+    cipher_suite: YubiKeyFipsCipherSuite,
+) -> None:
     descriptor = cipher_suite.normalize(op="sign", alg="PS256")
 
     assert descriptor["dialect"] == "jwa"
@@ -87,7 +93,9 @@ def test_normalize_ps256_defaults(cipher_suite: YubiKeyFipsCipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_es384_hash_default(cipher_suite: YubiKeyFipsCipherSuite) -> None:
+def test_normalize_es384_hash_default(
+    cipher_suite: YubiKeyFipsCipherSuite,
+) -> None:
     descriptor = cipher_suite.normalize(op="sign", alg="ES384")
 
     assert descriptor["params"]["hash"] == "SHA384"
@@ -105,7 +113,9 @@ def test_normalize_provider_slot(cipher_suite: YubiKeyFipsCipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_constraints_and_policy(cipher_suite: YubiKeyFipsCipherSuite) -> None:
+def test_normalize_constraints_and_policy(
+    cipher_suite: YubiKeyFipsCipherSuite,
+) -> None:
     descriptor = cipher_suite.normalize(op="sign", alg="PS256")
 
     assert descriptor["constraints"] == {
@@ -116,6 +126,8 @@ def test_normalize_constraints_and_policy(cipher_suite: YubiKeyFipsCipherSuite) 
 
 
 @pytest.mark.unit
-def test_normalize_unsupported_algorithm(cipher_suite: YubiKeyFipsCipherSuite) -> None:
+def test_normalize_unsupported_algorithm(
+    cipher_suite: YubiKeyFipsCipherSuite,
+) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="sign", alg="EdDSA")

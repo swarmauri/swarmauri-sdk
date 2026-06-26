@@ -21,7 +21,9 @@ TEST_IMAGE_PATH = "pkgs/swarmauri_standard/tests/static/cityscape.png"
 @pytest.mark.unit
 def test_base64_to_img_url():
     # Ensure the test image file exists
-    assert os.path.exists(TEST_IMAGE_PATH), f"Test image not found at {TEST_IMAGE_PATH}"
+    assert os.path.exists(TEST_IMAGE_PATH), (
+        f"Test image not found at {TEST_IMAGE_PATH}"
+    )
 
     # Read the image file and encode it to base64
     with open(TEST_IMAGE_PATH, "rb") as image_file:
@@ -34,7 +36,9 @@ def test_base64_to_img_url():
     )
 
     # Assert that we got a URL back
-    assert isinstance(image_url, str), "Expected a string URL, but got a different type"
+    assert isinstance(image_url, str), (
+        "Expected a string URL, but got a different type"
+    )
     assert image_url.startswith("http"), "Expected URL to start with 'http'"
 
     # Optionally, check if the URL is accessible

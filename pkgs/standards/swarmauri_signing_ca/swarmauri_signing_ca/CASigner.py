@@ -65,7 +65,10 @@ def _canon_json_like(obj: Any) -> bytes:
         return str(v)
 
     return json.dumps(
-        normalize(obj), sort_keys=True, separators=(",", ":"), ensure_ascii=False
+        normalize(obj),
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
     ).encode("utf-8")
 
 
@@ -118,12 +121,16 @@ def _load_private_from_keyref(key: KeyRef):
             "CASigner: KeyRef.material must contain PEM-encoded private key bytes or tags['crypto_obj']."
         )
 
-    return serialization.load_pem_private_key(bytes(material), password=password)
+    return serialization.load_pem_private_key(
+        bytes(material), password=password
+    )
 
 
 def _public_of(
     priv,
-) -> Union[ed25519.Ed25519PublicKey, ec.EllipticCurvePublicKey, rsa.RSAPublicKey]:
+) -> Union[
+    ed25519.Ed25519PublicKey, ec.EllipticCurvePublicKey, rsa.RSAPublicKey
+]:
     return priv.public_key()
 
 
@@ -145,26 +152,35 @@ def _sign_bytes_with(priv, data: bytes, alg: Optional[str]) -> bytes:
     rsa_ok = (None, "RSA-PSS-SHA256", "PS256", "RS256")
     if isinstance(priv, ed25519.Ed25519PrivateKey):
         if alg not in (None, "Ed25519"):
-            raise ValueError("CASigner: Ed25519 key supports only alg='Ed25519'")
+            raise ValueError(
+                "CASigner: Ed25519 key supports only alg='Ed25519'"
+            )
         return priv.sign(data)
     if isinstance(priv, ec.EllipticCurvePrivateKey):
         if alg is not None and not str(alg).startswith("ECDSA"):
-            raise ValueError("CASigner: EC key supports only ECDSA-* algorithms")
+            raise ValueError(
+                "CASigner: EC key supports only ECDSA-* algorithms"
+            )
         return priv.sign(data, ec.ECDSA(hashes.SHA256()))
     if isinstance(priv, rsa.RSAPrivateKey):
         if alg not in rsa_ok:
-            raise ValueError("CASigner: RSA key supports RSA-PSS-SHA256/PS256/RS256")
+            raise ValueError(
+                "CASigner: RSA key supports RSA-PSS-SHA256/PS256/RS256"
+            )
         return priv.sign(
             data,
             padding.PSS(
-                mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH,
             ),
             hashes.SHA256(),
         )
     raise ValueError("Unsupported key for signing")
 
 
-def _verify_bytes_with(pub, data: bytes, sig: bytes, alg: Optional[str]) -> bool:
+def _verify_bytes_with(
+    pub, data: bytes, sig: bytes, alg: Optional[str]
+) -> bool:
     try:
         if isinstance(pub, ed25519.Ed25519PublicKey):
             if alg not in (None, "Ed25519"):
@@ -202,13 +218,17 @@ def _name_from_dict(d: Mapping[str, str]) -> x509.Name:
     if "C" in d:
         attrs.append(x509.NameAttribute(NameOID.COUNTRY_NAME, d["C"]))
     if "ST" in d:
-        attrs.append(x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, d["ST"]))
+        attrs.append(
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, d["ST"])
+        )
     if "L" in d:
         attrs.append(x509.NameAttribute(NameOID.LOCALITY_NAME, d["L"]))
     if "O" in d:
         attrs.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, d["O"]))
     if "OU" in d:
-        attrs.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, d["OU"]))
+        attrs.append(
+            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, d["OU"])
+        )
     if "CN" in d:
         attrs.append(x509.NameAttribute(NameOID.COMMON_NAME, d["CN"]))
     if "email" in d:
@@ -264,7 +284,9 @@ class CASigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
         priv = _load_private_from_keyref(key)
-        sig = _sign_bytes_with(priv, payload, str(alg) if alg is not None else None)
+        sig = _sign_bytes_with(
+            priv, payload, str(alg) if alg is not None else None
+        )
         kid = _key_id_from_public(_public_of(priv))
         return [
             _Sig(
@@ -286,7 +308,11 @@ class CASigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         pubs: list[
-            Union[ed25519.Ed25519PublicKey, ec.EllipticCurvePublicKey, rsa.RSAPublicKey]
+            Union[
+                ed25519.Ed25519PublicKey,
+                ec.EllipticCurvePublicKey,
+                rsa.RSAPublicKey,
+            ]
         ] = []
         if opts and "pubkeys" in opts:
             for item in opts["pubkeys"]:  # type: ignore[index]
@@ -318,7 +344,10 @@ class CASigner(SigningBase):
             ok_one = False
             for pk in pubs:
                 if _verify_bytes_with(
-                    pk, payload, bytes(sig_bytes), str(alg) if alg is not None else None
+                    pk,
+                    payload,
+                    bytes(sig_bytes),
+                    str(alg) if alg is not None else None,
                 ):
                     ok_one = True
                     break
@@ -346,7 +375,9 @@ class CASigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            digest, signatures, require=require, opts=opts
+        )
 
     async def canonicalize_envelope(
         self,
@@ -381,7 +412,9 @@ class CASigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         payload = await self.canonicalize_envelope(env, canon=canon, opts=opts)
-        return await self.verify_bytes(payload, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            payload, signatures, require=require, opts=opts
+        )
 
     def issue_self_signed(
         self,
@@ -412,13 +445,15 @@ class CASigner(SigningBase):
 
         builder = (
             builder.add_extension(
-                x509.BasicConstraints(ca=is_ca, path_length=pathlen), critical=True
+                x509.BasicConstraints(ca=is_ca, path_length=pathlen),
+                critical=True,
             )
             .add_extension(
                 x509.SubjectKeyIdentifier.from_public_key(pub), critical=False
             )
             .add_extension(
-                x509.AuthorityKeyIdentifier.from_issuer_public_key(pub), critical=False
+                x509.AuthorityKeyIdentifier.from_issuer_public_key(pub),
+                critical=False,
             )
             .add_extension(
                 x509.KeyUsage(
@@ -437,11 +472,15 @@ class CASigner(SigningBase):
         )
 
         if eku:
-            builder = builder.add_extension(x509.ExtendedKeyUsage(eku), critical=False)
+            builder = builder.add_extension(
+                x509.ExtendedKeyUsage(eku), critical=False
+            )
 
         if san_dns:
             builder = builder.add_extension(
-                x509.SubjectAlternativeName([x509.DNSName(d) for d in san_dns]),
+                x509.SubjectAlternativeName(
+                    [x509.DNSName(d) for d in san_dns]
+                ),
                 critical=False,
             )
 
@@ -452,7 +491,9 @@ class CASigner(SigningBase):
         elif isinstance(priv, rsa.RSAPrivateKey):
             cert = builder.sign(private_key=priv, algorithm=hashes.SHA256())
         else:
-            raise ValueError("Unsupported key type for self-signed certificate")
+            raise ValueError(
+                "Unsupported key type for self-signed certificate"
+            )
 
         return cert.public_bytes(Encoding.PEM)
 
@@ -468,7 +509,9 @@ class CASigner(SigningBase):
         priv = _load_private_from_keyref(key)
         name = _name_from_dict(subject)
 
-        csr_builder = x509.CertificateSigningRequestBuilder().subject_name(name)
+        csr_builder = x509.CertificateSigningRequestBuilder().subject_name(
+            name
+        )
 
         san_list = []
         if san_dns:
@@ -486,7 +529,10 @@ class CASigner(SigningBase):
         if eku_server_client:
             csr_builder = csr_builder.add_extension(
                 x509.ExtendedKeyUsage(
-                    [ExtendedKeyUsageOID.SERVER_AUTH, ExtendedKeyUsageOID.CLIENT_AUTH]
+                    [
+                        ExtendedKeyUsageOID.SERVER_AUTH,
+                        ExtendedKeyUsageOID.CLIENT_AUTH,
+                    ]
                 ),
                 critical=False,
             )
@@ -541,9 +587,12 @@ class CASigner(SigningBase):
         )
 
         builder = builder.add_extension(
-            x509.SubjectKeyIdentifier.from_public_key(csr.public_key()), critical=False
+            x509.SubjectKeyIdentifier.from_public_key(csr.public_key()),
+            critical=False,
         ).add_extension(
-            x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_cert.public_key()),
+            x509.AuthorityKeyIdentifier.from_issuer_public_key(
+                ca_cert.public_key()
+            ),
             critical=False,
         )
 
@@ -579,7 +628,9 @@ class CASigner(SigningBase):
                 x509.CRLDistributionPoints(
                     [
                         x509.DistributionPoint(
-                            full_name=[x509.UniformResourceIdentifier(crl_url)],
+                            full_name=[
+                                x509.UniformResourceIdentifier(crl_url)
+                            ],
                             relative_name=None,
                             reasons=None,
                             crl_issuer=None,
@@ -632,7 +683,9 @@ class CASigner(SigningBase):
 
         path = [leaf] + list(chain)
 
-        def verify_sig(child: x509.Certificate, issuer: x509.Certificate) -> bool:
+        def verify_sig(
+            child: x509.Certificate, issuer: x509.Certificate
+        ) -> bool:
             pub = issuer.public_key()
             try:
                 if isinstance(pub, rsa.RSAPublicKey):
@@ -664,7 +717,9 @@ class CASigner(SigningBase):
             issuer = None
             if idx + 1 < len(path):
                 issuer = path[idx + 1]
-                if child.issuer != issuer.subject or not verify_sig(child, issuer):
+                if child.issuer != issuer.subject or not verify_sig(
+                    child, issuer
+                ):
                     return False
             else:
                 for r in roots:

@@ -28,7 +28,8 @@ class TestCacheControlMiddleware:
         """Test serialization of CacheControlMiddleware instance."""
         serialized = middleware.model_dump_json()
         assert (
-            CacheControlMiddleware.model_validate_json(serialized).id == middleware.id
+            CacheControlMiddleware.model_validate_json(serialized).id
+            == middleware.id
         )
 
     def test_default(self, middleware):
@@ -99,7 +100,9 @@ class TestCacheControlMiddleware:
             "type": "http",
             "method": "GET",
             "path": "/",
-            "headers": [[b"if-modified-since", b"Wed, 21 Oct 2020 07:28:00 GMT"]],
+            "headers": [
+                [b"if-modified-since", b"Wed, 21 Oct 2020 07:28:00 GMT"]
+            ],
         }
         request = Request(scope=scope, receive=lambda: b"")
         response = Response(content=b"Test content")
@@ -116,7 +119,9 @@ class TestCacheControlMiddleware:
             mock_datetime.now.return_value = earlier_time
             mock_datetime.strptime = datetime.strptime
 
-            result = await middleware._handle_conditional_request(request, response)
+            result = await middleware._handle_conditional_request(
+                request, response
+            )
             assert result is True
 
     @pytest.mark.asyncio
@@ -133,7 +138,9 @@ class TestCacheControlMiddleware:
         response = Response(content=b"Test content")
         response.headers["ETag"] = '"12345"'
 
-        result = await middleware._handle_conditional_request(request, response)
+        result = await middleware._handle_conditional_request(
+            request, response
+        )
         assert result is True
 
     @pytest.mark.asyncio
@@ -145,7 +152,9 @@ class TestCacheControlMiddleware:
         request = Request(scope=scope, receive=lambda: b"")
         response = Response(content=b"Test content")
 
-        result = await middleware._handle_conditional_request(request, response)
+        result = await middleware._handle_conditional_request(
+            request, response
+        )
         assert result is False
 
     @pytest.mark.asyncio

@@ -5,7 +5,10 @@ exposes the JupyterShutdownKernelTool class, along with other metadata like
 the __version__ attribute.
 """
 
-from swarmauri_tool_jupytershutdownkernel import JupyterShutdownKernelTool, __version__
+from swarmauri_tool_jupytershutdownkernel import (
+    JupyterShutdownKernelTool,
+    __version__,
+)
 
 
 class TestPackageInitialization:

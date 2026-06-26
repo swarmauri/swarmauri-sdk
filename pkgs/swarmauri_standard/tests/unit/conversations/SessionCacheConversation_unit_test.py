@@ -126,7 +126,10 @@ def test_agent_message_first():
         try:
             conv.add_message(AgentMessage(content="agent"))
         except Exception as e:
-            assert str(e) == "The first message in the history must be an HumanMessage."
+            assert (
+                str(e)
+                == "The first message in the history must be an HumanMessage."
+            )
 
     for max_size in range(2, 7, 1):
         test(max_size)

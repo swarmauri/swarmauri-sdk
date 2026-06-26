@@ -34,7 +34,11 @@ class S3FSFilter(StorageAdapterBase, GitFilterBase):
         self._prefix = self.normalize_prefix(prefix)
 
         k = key.get_secret_value() if isinstance(key, SecretStr) else key
-        s = secret.get_secret_value() if isinstance(secret, SecretStr) else secret
+        s = (
+            secret.get_secret_value()
+            if isinstance(secret, SecretStr)
+            else secret
+        )
         client_kwargs: dict[str, str] = {}
         if endpoint_url:
             client_kwargs["endpoint_url"] = endpoint_url
@@ -86,7 +90,9 @@ class S3FSFilter(StorageAdapterBase, GitFilterBase):
                 rel = rel[len(self._prefix.rstrip("/")) + 1 :]
             yield rel
 
-    def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
+    def download_prefix(
+        self, prefix: str, dest_dir: str | os.PathLike
+    ) -> None:
         dest = Path(dest_dir)
         for rel_key in self.iter_prefix(prefix):
             target = self.download_target_for_key(dest, rel_key)
@@ -111,7 +117,9 @@ class S3FSFilter(StorageAdapterBase, GitFilterBase):
 
         key = s3_cfg.get("key") or os.getenv("AWS_ACCESS_KEY_ID", "")
         secret = s3_cfg.get("secret") or os.getenv("AWS_SECRET_ACCESS_KEY", "")
-        endpoint_url = s3_cfg.get("endpoint_url") or os.getenv("AWS_ENDPOINT_URL")
+        endpoint_url = s3_cfg.get("endpoint_url") or os.getenv(
+            "AWS_ENDPOINT_URL"
+        )
         region = s3_cfg.get("region") or os.getenv("AWS_REGION")
 
         return cls(

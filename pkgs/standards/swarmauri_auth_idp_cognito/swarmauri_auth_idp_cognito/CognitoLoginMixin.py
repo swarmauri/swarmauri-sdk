@@ -72,7 +72,9 @@ class CognitoLoginMixin:
         if headers:
             request_headers.update(headers)
         async with self._http_client_factory() as client:
-            response = await client.post_retry(url, data=data, headers=request_headers)
+            response = await client.post_retry(
+                url, data=data, headers=request_headers
+            )
             response.raise_for_status()
             return response.json()
 

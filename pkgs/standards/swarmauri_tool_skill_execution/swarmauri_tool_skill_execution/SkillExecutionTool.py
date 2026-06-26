@@ -87,10 +87,14 @@ class SkillExecutionTool(ToolBase):
         skill = self._get_skill(skill_name)
         root = self._skill_root(skill)
         normalized_commands = self._normalize_commands(commands)
-        effective_timeout = timeout if timeout is not None else self.default_timeout
+        effective_timeout = (
+            timeout if timeout is not None else self.default_timeout
+        )
 
         if mode == "concurrent":
-            with ThreadPoolExecutor(max_workers=len(normalized_commands) or 1) as pool:
+            with ThreadPoolExecutor(
+                max_workers=len(normalized_commands) or 1
+            ) as pool:
                 results = list(
                     pool.map(
                         lambda argv: self._run_command(
@@ -133,7 +137,9 @@ class SkillExecutionTool(ToolBase):
         commands: Sequence[Sequence[str]] | Sequence[str],
     ) -> List[List[str]]:
         if isinstance(commands, str):
-            raise ValueError("Commands must be argv arrays, not a shell string")
+            raise ValueError(
+                "Commands must be argv arrays, not a shell string"
+            )
         if not commands:
             raise ValueError("At least one command argv array is required")
         if isinstance(commands[0], str):

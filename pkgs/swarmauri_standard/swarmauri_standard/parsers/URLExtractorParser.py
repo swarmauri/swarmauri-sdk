@@ -28,7 +28,9 @@ class URLExtractorParser(ParserBase):
         - List[IDocument]: A list of documents, each representing an extracted URL.
         """
         if not isinstance(data, str):
-            raise ValueError("URLExtractorParser expects input data to be of type str.")
+            raise ValueError(
+                "URLExtractorParser expects input data to be of type str."
+            )
 
         # Regular expression for finding URLs
         url_regex = r"https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+"

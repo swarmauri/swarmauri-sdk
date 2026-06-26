@@ -49,7 +49,9 @@ class LoggerBase(ILogger, ObserveBase):
         else:
             default_handler = logging.StreamHandler()
             default_handler.setLevel(self.default_level)
-            default_handler.setFormatter(logging.Formatter(self.default_format))
+            default_handler.setFormatter(
+                logging.Formatter(self.default_format)
+            )
             logger.addHandler(default_handler)
 
         logger.propagate = False

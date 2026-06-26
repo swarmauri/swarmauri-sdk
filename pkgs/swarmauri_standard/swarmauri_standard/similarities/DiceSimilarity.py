@@ -103,10 +103,14 @@ class DiceSimilarity(SimilarityBase):
             ):
                 # Convert numbers to strings for comparison
                 x_str = (
-                    "".join(str(i) for i in x) if isinstance(x, (list, tuple)) else x
+                    "".join(str(i) for i in x)
+                    if isinstance(x, (list, tuple))
+                    else x
                 )
                 y_str = (
-                    "".join(str(i) for i in y) if isinstance(y, (list, tuple)) else y
+                    "".join(str(i) for i in y)
+                    if isinstance(y, (list, tuple))
+                    else y
                 )
                 if x_str == y_str:
                     return 1.0
@@ -175,7 +179,9 @@ class DiceSimilarity(SimilarityBase):
             return results
 
         except Exception as e:
-            logger.error(f"Error calculating multiple Dice similarities: {str(e)}")
+            logger.error(
+                f"Error calculating multiple Dice similarities: {str(e)}"
+            )
             raise
 
     def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
@@ -252,5 +258,7 @@ class DiceSimilarity(SimilarityBase):
             similarity_yx = self.similarity(y, x)
             return abs(similarity_xy - similarity_yx) < 1e-10
         except Exception as e:
-            logger.error(f"Error checking symmetry of Dice similarity: {str(e)}")
+            logger.error(
+                f"Error checking symmetry of Dice similarity: {str(e)}"
+            )
             raise

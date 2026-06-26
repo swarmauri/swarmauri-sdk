@@ -26,7 +26,9 @@ def test_initialization(cipher_suite: SigstoreCipherSuite) -> None:
 
 @pytest.mark.unit
 def test_serialization(cipher_suite: SigstoreCipherSuite) -> None:
-    restored = SigstoreCipherSuite.model_validate_json(cipher_suite.model_dump_json())
+    restored = SigstoreCipherSuite.model_validate_json(
+        cipher_suite.model_dump_json()
+    )
     assert restored.id == cipher_suite.id
 
 
@@ -37,7 +39,9 @@ def test_suite_identifier(cipher_suite: SigstoreCipherSuite) -> None:
 
 # Cipher-suite specific behavior
 @pytest.mark.unit
-def test_supports_expected_algorithms(cipher_suite: SigstoreCipherSuite) -> None:
+def test_supports_expected_algorithms(
+    cipher_suite: SigstoreCipherSuite,
+) -> None:
     supports = cipher_suite.supports()
     assert set(supports.keys()) == {"sign", "verify"}
     assert set(supports["sign"]) == {"ES256", "EdDSA", "PS256"}
@@ -46,7 +50,9 @@ def test_supports_expected_algorithms(cipher_suite: SigstoreCipherSuite) -> None
 
 @pytest.mark.unit
 @pytest.mark.parametrize("operation", ["sign", "verify"])
-def test_default_alg(cipher_suite: SigstoreCipherSuite, operation: str) -> None:
+def test_default_alg(
+    cipher_suite: SigstoreCipherSuite, operation: str
+) -> None:
     assert cipher_suite.default_alg(operation) == "ES256"
 
 
@@ -57,12 +63,18 @@ def test_features_descriptor(cipher_suite: SigstoreCipherSuite) -> None:
     assert features["version"] == 1
     assert features["dialects"]["sigstore"] == ["rekor", "tsa:rfc3161"]
     assert features["constraints"]["tsa"] == {"required": False}
-    assert features["notes"] == ["Cosign-style transparency log + optional TSA"]
+    assert features["notes"] == [
+        "Cosign-style transparency log + optional TSA"
+    ]
 
 
 @pytest.mark.unit
-def test_normalize_dual_dialect_mapping(cipher_suite: SigstoreCipherSuite) -> None:
-    descriptor = cipher_suite.normalize(op="sign", alg="EdDSA", params={"bundle": True})
+def test_normalize_dual_dialect_mapping(
+    cipher_suite: SigstoreCipherSuite,
+) -> None:
+    descriptor = cipher_suite.normalize(
+        op="sign", alg="EdDSA", params={"bundle": True}
+    )
 
     assert descriptor["alg"] == "EdDSA"
     assert descriptor["dialect"] == "jwa"
@@ -89,6 +101,8 @@ def test_normalize_param_passthrough_and_policy(
 
 
 @pytest.mark.unit
-def test_normalize_invalid_algorithm(cipher_suite: SigstoreCipherSuite) -> None:
+def test_normalize_invalid_algorithm(
+    cipher_suite: SigstoreCipherSuite,
+) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="sign", alg="RSA-PSS-SHA256")

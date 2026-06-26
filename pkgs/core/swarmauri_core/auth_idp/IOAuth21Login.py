@@ -13,6 +13,8 @@ class IOAuth21Login(ABC):
         ...
 
     @abstractmethod
-    async def exchange_and_identity(self, code: str, state: str) -> Mapping[str, Any]:
+    async def exchange_and_identity(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         """Exchange the authorization code and return normalized identity claims."""
         ...

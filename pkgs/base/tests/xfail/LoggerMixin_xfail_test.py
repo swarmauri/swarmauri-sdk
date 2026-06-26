@@ -7,7 +7,9 @@ from LoggerMixin.
 
 import logging
 import pytest
-from swarmauri_base.LoggerMixin import LoggerMixin  # Adjust the import as needed
+from swarmauri_base.LoggerMixin import (
+    LoggerMixin,
+)  # Adjust the import as needed
 
 
 class DummyModel(LoggerMixin):
@@ -36,5 +38,9 @@ def test_custom_logger_injection():
     custom_logger.setLevel(logging.DEBUG)
     model = DummyModel(name="TestModel", logger=custom_logger)
     # Verify that the injected custom logger is used.
-    assert model.logger.name == "CustomLogger", "Injected custom logger should be used."
-    assert model.logger.level == logging.DEBUG, "Custom logger level should be DEBUG."
+    assert model.logger.name == "CustomLogger", (
+        "Injected custom logger should be used."
+    )
+    assert model.logger.level == logging.DEBUG, (
+        "Custom logger level should be DEBUG."
+    )

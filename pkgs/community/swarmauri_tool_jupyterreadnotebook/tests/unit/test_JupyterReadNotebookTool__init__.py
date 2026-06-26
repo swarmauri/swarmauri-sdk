@@ -33,7 +33,9 @@ class TestPackageInitialization:
 
         # Verify the version is a non-empty string
         assert isinstance(__version__, str), "__version__ should be a string."
-        assert len(__version__) > 0, "__version__ should not be an empty string."
+        assert len(__version__) > 0, (
+            "__version__ should not be an empty string."
+        )
 
     def test_jupyter_read_notebook_tool_inherits_correctly(self) -> None:
         """

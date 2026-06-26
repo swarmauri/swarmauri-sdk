@@ -39,9 +39,16 @@ def example_function():
     This is an example function.
     \"\"\"
     pass"""
-    assert Parser().parse(python_code)[0].content == "This is an example class."
-    assert Parser().parse(python_code)[1].content == "This is an example function."
-    assert Parser().parse(python_code)[2].content == "This is an example method."
+    assert (
+        Parser().parse(python_code)[0].content == "This is an example class."
+    )
+    assert (
+        Parser().parse(python_code)[1].content
+        == "This is an example function."
+    )
+    assert (
+        Parser().parse(python_code)[2].content == "This is an example method."
+    )
 
 
 @pytest.mark.unit

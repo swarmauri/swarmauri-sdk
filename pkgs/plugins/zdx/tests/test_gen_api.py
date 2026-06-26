@@ -35,7 +35,9 @@ def test_process_target_discovers_packages(tmp_path):
         changed_only=False,
     )
     assert "test_pkg.mod" in module_classes
-    doc_file = docs_root / "docs" / "api" / "community" / "test_pkg" / "MyClass.md"
+    doc_file = (
+        docs_root / "docs" / "api" / "community" / "test_pkg" / "MyClass.md"
+    )
     assert doc_file.is_file()
 
 
@@ -66,7 +68,9 @@ def test_process_target_skips_requested_packages(tmp_path):
 
     assert "keep_pkg.mod" in module_classes
     assert "skip_pkg.mod" not in module_classes
-    skipped_file = docs_root / "docs" / "api" / "community" / "skip_pkg" / "Thing.md"
+    skipped_file = (
+        docs_root / "docs" / "api" / "community" / "skip_pkg" / "Thing.md"
+    )
     assert not skipped_file.exists()
 
 

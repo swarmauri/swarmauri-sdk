@@ -59,7 +59,9 @@ class ProjectionPseudometricR2(PseudometricBase):
             logger.error(
                 f"Invalid projection axis: {projection_axis}. Must be 0 (x-axis) or 1 (y-axis)."
             )
-            raise ValueError("Projection axis must be 0 (x-axis) or 1 (y-axis)")
+            raise ValueError(
+                "Projection axis must be 0 (x-axis) or 1 (y-axis)"
+            )
 
         super().__init__(**kwargs, projection_axis=projection_axis)
         logger.debug(
@@ -131,7 +133,9 @@ class ProjectionPseudometricR2(PseudometricBase):
                     y = float(parts[1].strip())
                     return (x, y)
                 except Exception as e:
-                    raise ValueError(f"Failed to parse string as 2D point: {str(e)}")
+                    raise ValueError(
+                        f"Failed to parse string as 2D point: {str(e)}"
+                    )
 
             elif callable(point):
                 # Evaluate the callable at t=0 and t=1 to get x and y coordinates
@@ -148,7 +152,9 @@ class ProjectionPseudometricR2(PseudometricBase):
                 raise TypeError(f"Unsupported input type: {type(point)}")
 
         except Exception as e:
-            logger.error(f"Error validating and extracting coordinates: {str(e)}")
+            logger.error(
+                f"Error validating and extracting coordinates: {str(e)}"
+            )
             raise
 
     def distance(
@@ -189,7 +195,9 @@ class ProjectionPseudometricR2(PseudometricBase):
             y_coords = self._validate_and_extract_coordinates(y)
 
             # Calculate distance along the projection axis
-            return abs(x_coords[self.projection_axis] - y_coords[self.projection_axis])
+            return abs(
+                x_coords[self.projection_axis] - y_coords[self.projection_axis]
+            )
 
         except Exception as e:
             logger.error(f"Error calculating projection distance: {str(e)}")
@@ -197,8 +205,12 @@ class ProjectionPseudometricR2(PseudometricBase):
 
     def distances(
         self,
-        xs: Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]],
-        ys: Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]],
+        xs: Sequence[
+            Union[VectorType, MatrixType, Sequence[T], str, Callable]
+        ],
+        ys: Sequence[
+            Union[VectorType, MatrixType, Sequence[T], str, Callable]
+        ],
     ) -> List[List[float]]:
         """
         Calculate the pairwise projection distances between two collections of 2D points.
@@ -238,7 +250,8 @@ class ProjectionPseudometricR2(PseudometricBase):
                 for y_point in y_points:
                     # Calculate distance along the projection axis
                     dist = abs(
-                        x_point[self.projection_axis] - y_point[self.projection_axis]
+                        x_point[self.projection_axis]
+                        - y_point[self.projection_axis]
                     )
                     row.append(dist)
                 result.append(row)
@@ -246,7 +259,9 @@ class ProjectionPseudometricR2(PseudometricBase):
             return result
 
         except Exception as e:
-            logger.error(f"Error calculating pairwise projection distances: {str(e)}")
+            logger.error(
+                f"Error calculating pairwise projection distances: {str(e)}"
+            )
             raise
 
     def check_non_negativity(
@@ -389,7 +404,8 @@ class ProjectionPseudometricR2(PseudometricBase):
             # Check if points are different but have the same projection
             points_differ = x_coords != y_coords
             same_projection = (
-                x_coords[self.projection_axis] == y_coords[self.projection_axis]
+                x_coords[self.projection_axis]
+                == y_coords[self.projection_axis]
             )
 
             # If points differ but have same projection, distance should be 0

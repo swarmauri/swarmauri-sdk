@@ -19,7 +19,9 @@ def test_class_attributes() -> None:
     """
     tool = JupyterGetShellMessageTool()
     assert tool.version == "1.0.0", "Version attribute should be '1.0.0'."
-    assert tool.name == "JupyterGetShellMessageTool", "Unexpected name attribute."
+    assert tool.name == "JupyterGetShellMessageTool", (
+        "Unexpected name attribute."
+    )
     assert tool.type == "JupyterGetShellMessageTool", "Unexpected tool type."
     assert "timeout" in [param.name for param in tool.parameters], (
         "Parameter 'timeout' should be in the parameters list."
@@ -48,7 +50,9 @@ def test_call_method_no_messages(timeout_value: float) -> None:
     ):
         tool = JupyterGetShellMessageTool()
         result = tool(timeout=timeout_value)
-        assert "error" in result, "Expected an error when no messages are available."
+        assert "error" in result, (
+            "Expected an error when no messages are available."
+        )
 
 
 def test_call_method_with_messages() -> None:
@@ -78,7 +82,9 @@ def test_call_method_with_messages() -> None:
         tool = JupyterGetShellMessageTool()
         result = tool(timeout=1.0)
         assert "messages" in result, "Expected 'messages' key in result."
-        assert len(result["messages"]) == 1, "Expected exactly one retrieved message."
+        assert len(result["messages"]) == 1, (
+            "Expected exactly one retrieved message."
+        )
         assert result["messages"][0]["content"]["text"] == "Hello, world!", (
             "Message content does not match expected value."
         )

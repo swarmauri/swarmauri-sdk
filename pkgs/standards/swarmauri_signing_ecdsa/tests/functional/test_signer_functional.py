@@ -15,7 +15,9 @@ async def _run() -> bool:
     env = create_env("hello")
     sigs = await signer.sign_envelope(key, env, canon="json")
     pk = sk.public_key()
-    good = await signer.verify_envelope(env, sigs, canon="json", opts={"pubkeys": [pk]})
+    good = await signer.verify_envelope(
+        env, sigs, canon="json", opts={"pubkeys": [pk]}
+    )
     bad = await signer.verify_envelope(
         {"msg": "tampered"}, sigs, canon="json", opts={"pubkeys": [pk]}
     )

@@ -21,5 +21,6 @@ class VectorStoreCloudMixin(ICloudVectorStore, BaseModel):
         None, description="Size of the vectors used in the store"
     )
     client: Optional[object] = Field(
-        None, description="Client object for interacting with the cloud-based store"
+        None,
+        description="Client object for interacting with the cloud-based store",
     )

@@ -1,7 +1,12 @@
 import pytest
 from swarmauri_keyprovider_inmemory import InMemoryKeyProvider
 from swarmauri_core.crypto.types import ExportPolicy
-from swarmauri_core.key_providers.types import KeyAlg, KeyClass, KeySpec, KeyUse
+from swarmauri_core.key_providers.types import (
+    KeyAlg,
+    KeyClass,
+    KeySpec,
+    KeyUse,
+)
 
 
 @pytest.mark.unit
@@ -199,9 +204,15 @@ async def test_random_bytes_and_hkdf() -> None:
     provider = InMemoryKeyProvider()
     rand = await provider.random_bytes(24)
     assert len(rand) == 24
-    okm_first = await provider.hkdf(b"ikm", salt=b"salt", info=b"ctx", length=32)
-    okm_second = await provider.hkdf(b"ikm", salt=b"salt", info=b"ctx", length=32)
-    okm_other = await provider.hkdf(b"ikm", salt=b"salt2", info=b"ctx", length=32)
+    okm_first = await provider.hkdf(
+        b"ikm", salt=b"salt", info=b"ctx", length=32
+    )
+    okm_second = await provider.hkdf(
+        b"ikm", salt=b"salt", info=b"ctx", length=32
+    )
+    okm_other = await provider.hkdf(
+        b"ikm", salt=b"salt2", info=b"ctx", length=32
+    )
     assert okm_first == okm_second
     assert okm_first != okm_other
 

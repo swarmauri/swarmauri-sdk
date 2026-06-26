@@ -6,7 +6,11 @@ from typing import Any, Mapping
 
 from pydantic import Field, SecretBytes, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.auth_idp import OAuth21LoginBase, make_pkce_pair, sign_state
+from swarmauri_base.auth_idp import (
+    OAuth21LoginBase,
+    make_pkce_pair,
+    sign_state,
+)
 
 from .CognitoLoginMixin import CognitoLoginMixin
 
@@ -35,7 +39,9 @@ class CognitoOAuth21Login(CognitoLoginMixin, OAuth21LoginBase):
         )
         return {"url": url, "state": state}
 
-    async def exchange_and_identity(self, code: str, state: str) -> Mapping[str, Any]:
+    async def exchange_and_identity(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         payload = self._state_payload(state)
         metadata = await self._metadata()
         form = {
@@ -46,7 +52,9 @@ class CognitoOAuth21Login(CognitoLoginMixin, OAuth21LoginBase):
             "client_secret": self._client_secret_value(),
             "code_verifier": payload["verifier"],
         }
-        token_json = await self._http_post(metadata["token_endpoint"], data=form)
+        token_json = await self._http_post(
+            metadata["token_endpoint"], data=form
+        )
         claims = await self._decode_id_token(
             token_json.get("id_token"),
             jwks_uri=metadata["jwks_uri"],

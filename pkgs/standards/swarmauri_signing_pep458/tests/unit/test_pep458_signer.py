@@ -27,7 +27,11 @@ async def test_ed25519_sign_and_verify_round_trip():
 async def test_rsa_pss_sign_and_verify_round_trip():
     signer = Pep458Signer()
     private = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    keyref = {"kind": "cryptography_obj", "obj": private, "alg": "RSA-PSS-SHA256"}
+    keyref = {
+        "kind": "cryptography_obj",
+        "obj": private,
+        "alg": "RSA-PSS-SHA256",
+    }
     payload = b"pep458-test-payload"
 
     signatures = await signer.sign_bytes(keyref, payload)
@@ -43,14 +47,20 @@ async def test_rsa_pss_sign_and_verify_round_trip():
 async def test_verify_respects_min_signers_requirement():
     signer = Pep458Signer()
     ed_private = ed25519.Ed25519PrivateKey.generate()
-    rsa_private = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    rsa_private = rsa.generate_private_key(
+        public_exponent=65537, key_size=2048
+    )
 
     payload = b"pep458-threshold"
     ed_sig = await signer.sign_bytes(
         {"kind": "cryptography_obj", "obj": ed_private}, payload
     )
     rsa_sig = await signer.sign_bytes(
-        {"kind": "cryptography_obj", "obj": rsa_private, "alg": "RSA-PSS-SHA256"},
+        {
+            "kind": "cryptography_obj",
+            "obj": rsa_private,
+            "alg": "RSA-PSS-SHA256",
+        },
         payload,
     )
 
@@ -66,7 +76,9 @@ async def test_verify_respects_min_signers_requirement():
 async def test_verify_fails_when_min_signers_not_met():
     signer = Pep458Signer()
     ed_private = ed25519.Ed25519PrivateKey.generate()
-    rsa_private = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    rsa_private = rsa.generate_private_key(
+        public_exponent=65537, key_size=2048
+    )
 
     payload = b"pep458-threshold"
     ed_sig = await signer.sign_bytes(
@@ -110,7 +122,9 @@ async def test_public_key_loading_from_pem_round_trip():
         format=serialization.PublicFormat.SubjectPublicKeyInfo,
     )
 
-    signatures = await signer.sign_bytes({"kind": "pem", "priv": pem}, b"payload")
+    signatures = await signer.sign_bytes(
+        {"kind": "pem", "priv": pem}, b"payload"
+    )
 
     assert await signer.verify_bytes(
         b"payload",

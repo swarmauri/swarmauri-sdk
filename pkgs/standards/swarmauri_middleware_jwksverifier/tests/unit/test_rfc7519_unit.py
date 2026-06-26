@@ -17,7 +17,10 @@ def _jwks(pk) -> Dict[str, object]:
 def test_issuer_and_audience_rfc7519() -> None:
     pk = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     token = jwt.encode(
-        {"iss": "me", "aud": "you"}, pk, algorithm="RS256", headers={"kid": "claims"}
+        {"iss": "me", "aud": "you"},
+        pk,
+        algorithm="RS256",
+        headers={"kid": "claims"},
     )
 
     def fetch():

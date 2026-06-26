@@ -64,12 +64,13 @@ def test_call():
         }, "Functionality test failed."
 
     with patch(
-        "requests.get", side_effect=requests.exceptions.RequestException("Error")
+        "requests.get",
+        side_effect=requests.exceptions.RequestException("Error"),
     ):
         result = tool(url)
-        assert ("message" in result and "content" in result) or "error" in result, (
-            "Error handling test failed."
-        )
+        assert (
+            "message" in result and "content" in result
+        ) or "error" in result, "Error handling test failed."
 
     with patch("requests.get") as mock_get:
         mock_response = MagicMock()
@@ -79,9 +80,11 @@ def test_call():
 
         # Test network request failure handling
         with patch(
-            "requests.get", side_effect=requests.exceptions.RequestException("Error")
+            "requests.get",
+            side_effect=requests.exceptions.RequestException("Error"),
         ):
             result = tool(url)
-            assert "error" in result and "Failed to download PDF" in result["error"], (
-                "Error handling test failed."
-            )
+            assert (
+                "error" in result
+                and "Failed to download PDF" in result["error"]
+            ), "Error handling test failed."

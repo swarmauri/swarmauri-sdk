@@ -5,7 +5,10 @@ is correctly exposed by the package's __init__.py file and that the version attr
 is properly set.
 """
 
-from swarmauri_tool_jupyterexportpython import JupyterExportPythonTool, __version__
+from swarmauri_tool_jupyterexportpython import (
+    JupyterExportPythonTool,
+    __version__,
+)
 
 
 class TestInit:
@@ -35,7 +38,9 @@ class TestInit:
         Test whether __version__ is defined and is a non-empty string.
         """
         assert isinstance(__version__, str), "__version__ should be a string."
-        assert len(__version__) > 0, "__version__ should not be an empty string."
+        assert len(__version__) > 0, (
+            "__version__ should not be an empty string."
+        )
 
     def test_all_contains_tool(self) -> None:
         """
@@ -47,5 +52,6 @@ class TestInit:
             "__all__ attribute not found in the package's __init__.py."
         )
         assert (
-            "JupyterExportPythonTool" in swarmauri_tool_jupyterexportpython.__all__
+            "JupyterExportPythonTool"
+            in swarmauri_tool_jupyterexportpython.__all__
         ), "JupyterExportPythonTool not found in __all__."

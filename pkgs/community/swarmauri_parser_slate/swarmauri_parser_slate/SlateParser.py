@@ -43,7 +43,9 @@ class SlateParser(ParserBase):
                             )
                             documents.append(document)
             except Exception as e:
-                print(f"An error occurred while parsing the PDF '{source}': {e}")
+                print(
+                    f"An error occurred while parsing the PDF '{source}': {e}"
+                )
                 return []
         else:
             raise TypeError("Source must be of type str (file path) or bytes.")

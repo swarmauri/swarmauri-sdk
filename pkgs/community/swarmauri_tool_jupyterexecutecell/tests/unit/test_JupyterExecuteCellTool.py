@@ -17,7 +17,8 @@ def test_tool_initialization():
     assert tool.name == "JupyterExecuteCellTool", "Tool name should match."
     assert tool.version == "1.0.0", "Tool version should be '1.0.0'."
     assert (
-        tool.description == "Executes code cells within a Jupyter kernel environment."
+        tool.description
+        == "Executes code cells within a Jupyter kernel environment."
     )
 
     assert tool.type == "JupyterExecuteCellTool", (
@@ -47,8 +48,12 @@ def test_tool_call_basic_execution():
     assert "Hello, world!" in result["stdout"], (
         "Expected code execution output not found in stdout."
     )
-    assert result["stderr"] == "", "stderr should be empty when executing valid code."
-    assert result["error"] == "", "error should be empty when executing valid code."
+    assert result["stderr"] == "", (
+        "stderr should be empty when executing valid code."
+    )
+    assert result["error"] == "", (
+        "error should be empty when executing valid code."
+    )
 
 
 def test_tool_call_syntax_error():
@@ -60,7 +65,9 @@ def test_tool_call_syntax_error():
     assert "SyntaxError" in result["error"], (
         "Expected a SyntaxError in the error field."
     )
-    assert result["stderr"] != "", "stderr should capture syntax error details."
+    assert result["stderr"] != "", (
+        "stderr should capture syntax error details."
+    )
 
 
 def test_tool_call_timeout():
@@ -83,7 +90,9 @@ def test_tool_call_no_active_kernel(monkeypatch):
     Test that the tool reports an error when there is no active IPython kernel.
     """
     # Patch the module-level get_ipython in the JupyterExecuteCellTool module so that it returns None.
-    monkeypatch.setattr(JupyterExecuteCellTool, "get_ipython", DummyGetIPython())
+    monkeypatch.setattr(
+        JupyterExecuteCellTool, "get_ipython", DummyGetIPython()
+    )
 
     tool = JupyterExecuteCellTool()
     result = tool("print('Hello')", timeout=1)
@@ -95,7 +104,9 @@ def test_tool_call_no_active_kernel(monkeypatch):
     assert result["error"] == "KernelNotFoundError", (
         "Expected error to be 'KernelNotFoundError'."
     )
-    assert result["stdout"] == "", "stdout should be empty when no kernel is found."
+    assert result["stdout"] == "", (
+        "stdout should be empty when no kernel is found."
+    )
 
 
 def test_tool_call_exception_during_execution(monkeypatch):

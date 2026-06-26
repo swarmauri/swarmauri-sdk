@@ -122,7 +122,9 @@ class RemoteCaCertService(CertServiceBase):
                 CSRs directly.
         """
 
-        raise NotImplementedError("RemoteCaCertService does not create CSRs directly.")
+        raise NotImplementedError(
+            "RemoteCaCertService does not create CSRs directly."
+        )
 
     async def create_self_signed(self, *a, **kw) -> CertBytes:
         """Unsupported self-signed certificate operation.
@@ -223,7 +225,11 @@ class RemoteCaCertService(CertServiceBase):
 
         # For now: defer to X509CertService or external verifier
         # Here we just acknowledge we can't fully verify.
-        return {"valid": False, "reason": "verify_not_supported", "active": False}
+        return {
+            "valid": False,
+            "reason": "verify_not_supported",
+            "active": False,
+        }
 
     async def parse_cert(
         self,

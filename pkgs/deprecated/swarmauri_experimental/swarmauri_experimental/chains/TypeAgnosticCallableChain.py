@@ -51,7 +51,9 @@ class TypeAgnosticCallableChain:
             else list(args)
         )
         combined_kwargs = (
-            previous_result_kwargs if isinstance(previous_result_kwargs, dict) else {}
+            previous_result_kwargs
+            if isinstance(previous_result_kwargs, dict)
+            else {}
         )
         combined_kwargs.update(kwargs)
         return combined_args, combined_kwargs
@@ -87,7 +89,9 @@ class TypeAgnosticCallableChain:
             # Map the string to the corresponding static method
             input_handler_method = getattr(self, f"_{input_handler}", None)
             if input_handler_method is None:
-                raise ValueError(f"Unknown input handler name: {input_handler}")
+                raise ValueError(
+                    f"Unknown input handler name: {input_handler}"
+                )
             input_handler = input_handler_method
         elif input_handler is None:
             input_handler = self._ignore_previous
@@ -100,7 +104,9 @@ class TypeAgnosticCallableChain:
                 # Map the string to the corresponding static method
                 input_handler_method = getattr(self, f"_{input_handler}", None)
                 if input_handler_method is None:
-                    raise ValueError(f"Unknown input handler name: {input_handler}")
+                    raise ValueError(
+                        f"Unknown input handler name: {input_handler}"
+                    )
                 input_handler = input_handler_method
             elif input_handler is None:
                 input_handler = self._ignore_previous
@@ -113,9 +119,13 @@ class TypeAgnosticCallableChain:
             result = func(*args, **kwargs)
         return result
 
-    def __or__(self, other: "TypeAgnosticCallableChain") -> "TypeAgnosticCallableChain":
+    def __or__(
+        self, other: "TypeAgnosticCallableChain"
+    ) -> "TypeAgnosticCallableChain":
         if not isinstance(other, TypeAgnosticCallableChain):
-            raise TypeError("Operand must be an instance of TypeAgnosticCallableChain")
+            raise TypeError(
+                "Operand must be an instance of TypeAgnosticCallableChain"
+            )
 
         new_chain = TypeAgnosticCallableChain(self.callables + other.callables)
         return new_chain

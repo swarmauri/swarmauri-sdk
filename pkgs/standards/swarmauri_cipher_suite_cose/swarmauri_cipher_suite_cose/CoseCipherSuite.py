@@ -32,7 +32,9 @@ class CoseCipherSuite(CipherSuiteBase):
             "decrypt": tuple(str(value) for value in _COSE_AEAD),
         }
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         return {"sign": "-8", "encrypt": "3"}.get(op, "3")
 
     def features(self) -> Features:
@@ -40,10 +42,15 @@ class CoseCipherSuite(CipherSuiteBase):
             "suite": "cose",
             "version": 1,
             "dialects": {
-                "cose": list({*self.supports()["sign"], *self.supports()["encrypt"]})
+                "cose": list(
+                    {*self.supports()["sign"], *self.supports()["encrypt"]}
+                )
             },
             "ops": {
-                "sign": {"default": "-8", "allowed": list(self.supports()["sign"])},
+                "sign": {
+                    "default": "-8",
+                    "allowed": list(self.supports()["sign"]),
+                },
                 "encrypt": {
                     "default": "3",
                     "allowed": list(self.supports()["encrypt"]),

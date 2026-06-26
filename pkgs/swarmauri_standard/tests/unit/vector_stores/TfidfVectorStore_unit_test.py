@@ -19,7 +19,9 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
     vs = TfidfVectorStore()
-    assert vs.id == TfidfVectorStore.model_validate_json(vs.model_dump_json()).id
+    assert (
+        vs.id == TfidfVectorStore.model_validate_json(vs.model_dump_json()).id
+    )
 
 
 @pytest.mark.unit

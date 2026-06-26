@@ -29,7 +29,9 @@ def test_ubc_type(mistral_embedder):
 def test_serialization(mistral_embedder):
     assert (
         mistral_embedder.id
-        == MistralEmbedding.model_validate_json(mistral_embedder.model_dump_json()).id
+        == MistralEmbedding.model_validate_json(
+            mistral_embedder.model_dump_json()
+        ).id
     )
 
 

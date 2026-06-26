@@ -5,7 +5,9 @@ from swarmauri_core.vcms.IPredictVision import IPredictVision
 
 
 class VCMBase(IPredictVision, ComponentBase):
-    resource: Optional[str] = Field(default=ResourceTypes.VCM.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.VCM.value, frozen=True
+    )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["VCMBase"] = "VCMBase"
 

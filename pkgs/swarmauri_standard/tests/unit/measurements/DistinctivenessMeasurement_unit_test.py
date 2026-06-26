@@ -31,7 +31,13 @@ def test_measurement_value_dataframe():
     df = pd.DataFrame(
         {
             "A": [1, 1, 2, None, 3],  # 3 unique out of 4 non-null values = 75%
-            "B": ["x", "x", "y", "z", None],  # 3 unique out of 4 non-null values = 75%
+            "B": [
+                "x",
+                "x",
+                "y",
+                "z",
+                None,
+            ],  # 3 unique out of 4 non-null values = 75%
         }
     )
     result = measurement.call(df)
@@ -78,7 +84,13 @@ def test_column_distinctiveness():
     df = pd.DataFrame(
         {
             "A": [1, 1, 2, None, 3],  # 3 unique out of 4 non-null values = 75%
-            "B": ["x", "x", "y", "z", None],  # 3 unique out of 4 non-null values = 75%
+            "B": [
+                "x",
+                "x",
+                "y",
+                "z",
+                None,
+            ],  # 3 unique out of 4 non-null values = 75%
         }
     )
     column_scores = measurement.get_column_distinctiveness(df)

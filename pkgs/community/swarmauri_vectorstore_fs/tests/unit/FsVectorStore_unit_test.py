@@ -27,7 +27,9 @@ def sample_tree(tmp_path: Path) -> Path:
         "authentication token rotation guide\n",
         encoding="utf-8",
     )
-    (root / "notes.txt").write_text("plain body search target\n", encoding="utf-8")
+    (root / "notes.txt").write_text(
+        "plain body search target\n", encoding="utf-8"
+    )
     (root / "image.bin").write_bytes(b"\x00\x01binary")
     return root
 
@@ -48,7 +50,9 @@ def test_bm25f_field_weighting_favors_filename_match(tmp_path: Path):
 
 
 @pytest.mark.unit
-def test_oov_terms_do_not_crash_and_present_terms_still_rank(sample_tree: Path):
+def test_oov_terms_do_not_crash_and_present_terms_still_rank(
+    sample_tree: Path,
+):
     store = FsVectorStore(root_path=sample_tree.as_posix(), mode="chunk")
     store.build_index()
 
@@ -87,7 +91,9 @@ def test_modes_produce_expected_document_counts(sample_tree: Path):
     assert len(chunk_store.documents) == 3
     assert len(file_store.documents) == 3
     assert len(chunk_file_store.documents) == 6
-    assert {doc.metadata["document_kind"] for doc in chunk_file_store.documents} == {
+    assert {
+        doc.metadata["document_kind"] for doc in chunk_file_store.documents
+    } == {
         "chunk",
         "file",
     }
@@ -118,7 +124,9 @@ def test_chunk_identity_fields_are_stable_and_indexed(sample_tree: Path):
 
 
 @pytest.mark.unit
-def test_retrieval_by_body_filename_path_extension_and_chunk_number(sample_tree: Path):
+def test_retrieval_by_body_filename_path_extension_and_chunk_number(
+    sample_tree: Path,
+):
     store = FsVectorStore(
         root_path=sample_tree.as_posix(),
         mode="chunk",
@@ -147,7 +155,10 @@ def test_retrieval_by_body_filename_path_extension_and_chunk_number(sample_tree:
         == "docs/auth_token.md"
     )
     assert (
-        store.retrieve("chunk_global_1", top_k=1)[0].metadata["chunk_global_index"] == 1
+        store.retrieve("chunk_global_1", top_k=1)[0].metadata[
+            "chunk_global_index"
+        ]
+        == 1
     )
 
 
@@ -190,7 +201,13 @@ def test_cli_query_json_and_show(sample_tree: Path):
     )
     assert (
         cli_main(
-            ["--root", sample_tree.as_posix(), "show", "--document-id", document_id]
+            [
+                "--root",
+                sample_tree.as_posix(),
+                "show",
+                "--document-id",
+                document_id,
+            ]
         )
         == 0
     )

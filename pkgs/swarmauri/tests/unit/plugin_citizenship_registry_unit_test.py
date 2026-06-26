@@ -21,7 +21,9 @@ def test_add_and_remove_entry():
         "first", "swarmauri.agents.TestAgent", "tests.test_module.TestAgent"
     )
     assert (
-        PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY["swarmauri.agents.TestAgent"]
+        PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
+            "swarmauri.agents.TestAgent"
+        ]
         == "tests.test_module.TestAgent"
     )
 
@@ -44,7 +46,9 @@ def test_add_duplicate_entry_noop():
         "third", "swarmauri.plugins.sample", "math"
     )
     assert (
-        PluginCitizenshipRegistry.THIRD_CLASS_REGISTRY["swarmauri.plugins.sample"]
+        PluginCitizenshipRegistry.THIRD_CLASS_REGISTRY[
+            "swarmauri.plugins.sample"
+        ]
         == "math"
     )
 
@@ -94,11 +98,15 @@ def test_update_and_delete_entry():
         "second", "swarmauri.chains.TestChain", "pkg.NewChain"
     )
     assert (
-        PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY["swarmauri.chains.TestChain"]
+        PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY[
+            "swarmauri.chains.TestChain"
+        ]
         == "pkg.NewChain"
     )
 
-    PluginCitizenshipRegistry.delete_entry("second", "swarmauri.chains.TestChain")
+    PluginCitizenshipRegistry.delete_entry(
+        "second", "swarmauri.chains.TestChain"
+    )
     assert (
         "swarmauri.chains.TestChain"
         not in PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY

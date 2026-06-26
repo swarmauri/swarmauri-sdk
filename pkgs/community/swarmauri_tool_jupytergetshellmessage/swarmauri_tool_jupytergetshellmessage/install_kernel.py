@@ -5,7 +5,9 @@ import subprocess
 
 def is_kernel_available(kernel_name):
     result = subprocess.run(
-        ["jupyter", "kernelspec", "list", "--json"], capture_output=True, text=True
+        ["jupyter", "kernelspec", "list", "--json"],
+        capture_output=True,
+        text=True,
     )
     kernels = json.loads(result.stdout).get("kernelspecs", {})
     return kernel_name in kernels
@@ -15,7 +17,9 @@ def ensure_kernel(kernel_name, display_name=None):
     """Ensure the Jupyter kernel exists; if not, install it."""
     # Get the list of existing kernels
     result = subprocess.run(
-        ["jupyter", "kernelspec", "list", "--json"], capture_output=True, text=True
+        ["jupyter", "kernelspec", "list", "--json"],
+        capture_output=True,
+        text=True,
     )
     kernels = json.loads(result.stdout).get("kernelspecs", {})
 

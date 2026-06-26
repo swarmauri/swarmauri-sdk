@@ -100,7 +100,9 @@ class LpSeminorm(SeminormBase):
                 # Try to convert to array as a last resort
                 return np.array(x)
             except Exception:
-                raise TypeError(f"Unsupported input type for LpSeminorm: {type(x)}")
+                raise TypeError(
+                    f"Unsupported input type for LpSeminorm: {type(x)}"
+                )
 
     def compute(self, x: InputType) -> float:
         """
@@ -244,9 +246,9 @@ class LpSeminorm(SeminormBase):
             expected_scaled_seminorm = alpha_abs * x_seminorm
 
             # Check scalar homogeneity with a small epsilon for numerical stability
-            return abs(scaled_seminorm - expected_scaled_seminorm) <= self.epsilon * (
-                1 + expected_scaled_seminorm
-            )
+            return abs(
+                scaled_seminorm - expected_scaled_seminorm
+            ) <= self.epsilon * (1 + expected_scaled_seminorm)
 
         except Exception as e:
             logger.error(f"Error checking scalar homogeneity: {str(e)}")

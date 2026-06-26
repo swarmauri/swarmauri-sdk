@@ -10,7 +10,9 @@ class MdSnippetChunker(ChunkerBase):
     language: Optional[str] = None
     type: Literal["MdSnippetChunker"] = "MdSnippetChunker"
 
-    def chunk_text(self, text: Union[str, Any], *args, **kwargs) -> List[tuple]:
+    def chunk_text(
+        self, text: Union[str, Any], *args, **kwargs
+    ) -> List[tuple]:
         """
         Extracts paired comments and code blocks from Markdown content based on the
         specified programming language.

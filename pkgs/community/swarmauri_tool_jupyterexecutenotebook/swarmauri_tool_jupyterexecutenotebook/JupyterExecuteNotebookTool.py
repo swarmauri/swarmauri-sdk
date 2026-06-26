@@ -90,7 +90,9 @@ class JupyterExecuteNotebookTool(ToolBase):
         """
         return self.execute_notebook(notebook_path, timeout)
 
-    def execute_notebook(self, notebook_path: str, timeout: int = 30) -> NotebookNode:
+    def execute_notebook(
+        self, notebook_path: str, timeout: int = 30
+    ) -> NotebookNode:
         """
         Executes the given Jupyter notebook by running all cells sequentially. Captures
         all outputs and errors, updating the NotebookNode object with the results.
@@ -105,7 +107,9 @@ class JupyterExecuteNotebookTool(ToolBase):
                           outputs. If cell execution fails, the error is recorded
                           in the notebook outputs.
         """
-        logger.info("Starting notebook execution with JupyterExecuteNotebookTool.")
+        logger.info(
+            "Starting notebook execution with JupyterExecuteNotebookTool."
+        )
         logger.debug(f"Notebook path: {notebook_path}")
         logger.debug(f"Execution timeout: {timeout} seconds")
 
@@ -133,7 +137,9 @@ class JupyterExecuteNotebookTool(ToolBase):
             return notebook
 
         except Exception as e:
-            logger.error("An unexpected error occurred during notebook execution.")
+            logger.error(
+                "An unexpected error occurred during notebook execution."
+            )
             logger.exception(e)
             # Return the partially executed or unmodified notebook in case of failure.
             return notebook

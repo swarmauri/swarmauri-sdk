@@ -46,7 +46,9 @@ def test_tool_initialization() -> None:
     autospec=True,
 )
 def test_call_success(
-    mock_kernel_manager_class: MagicMock, kernel_name: str, expected_kernel_name: str
+    mock_kernel_manager_class: MagicMock,
+    kernel_name: str,
+    expected_kernel_name: str,
 ) -> None:
     """
     Tests that calling the JupyterStartKernelTool successfully starts a kernel
@@ -60,7 +62,9 @@ def test_call_success(
     tool = JupyterStartKernelTool()
     result = tool(kernel_name=kernel_name)
 
-    mock_kernel_manager_class.assert_called_once_with(kernel_name=expected_kernel_name)
+    mock_kernel_manager_class.assert_called_once_with(
+        kernel_name=expected_kernel_name
+    )
     mock_kernel_manager.start_kernel.assert_called_once()
 
     assert "kernel_id" in result, "Result should contain 'kernel_id'."
@@ -93,7 +97,9 @@ def test_call_failure(mock_kernel_manager_class: MagicMock) -> None:
     tool = JupyterStartKernelTool()
     result = tool(kernel_name="invalid_kernel")
 
-    assert "error" in result, "Result should contain an 'error' key on failure."
+    assert "error" in result, (
+        "Result should contain an 'error' key on failure."
+    )
     assert "Failed to start kernel." in result["error"], (
         "Error message should indicate what went wrong."
     )
@@ -133,7 +139,9 @@ def test_tool_parameters() -> None:
         },
     ]
     tool = JupyterStartKernelTool(parameters=custom_params)  # type: ignore
-    assert len(tool.parameters) == 2, "Customized tool should have two parameters."
+    assert len(tool.parameters) == 2, (
+        "Customized tool should have two parameters."
+    )
     assert tool.parameters[0].name == "kernel_name", (
         "First parameter should be kernel_name."
     )
@@ -165,7 +173,9 @@ def test_call_with_kernel_spec() -> None:
             "If an error occurred due to environment constraints, the result should contain 'error'."
         )
     else:
-        assert "kernel_id" in result, "A successful call should return a 'kernel_id'."
+        assert "kernel_id" in result, (
+            "A successful call should return a 'kernel_id'."
+        )
         assert "kernel_name" in result, (
             "A successful call should return a 'kernel_name'."
         )

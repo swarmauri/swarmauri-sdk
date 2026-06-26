@@ -43,7 +43,9 @@ def _derive_kek(shared: bytes) -> bytes:
         + (128).to_bytes(4, "big")
         + b""  # suppPrivInfo
     )
-    kdf = ConcatKDFHash(algorithm=hashes.SHA256(), length=16, otherinfo=otherinfo)
+    kdf = ConcatKDFHash(
+        algorithm=hashes.SHA256(), length=16, otherinfo=otherinfo
+    )
     return kdf.derive(shared)
 
 
@@ -67,7 +69,9 @@ class ECDHESA128KWCrypto(CryptoBase):
         if wrap_alg != _WRAP_ALG:
             raise UnsupportedAlgorithm(f"Unsupported wrap_alg: {wrap_alg}")
         if kek.public is None:
-            raise ValueError("KeyRef.public must contain recipient EC public key")
+            raise ValueError(
+                "KeyRef.public must contain recipient EC public key"
+            )
         recipient_pub = serialization.load_pem_public_key(kek.public)
         if not isinstance(recipient_pub, ec.EllipticCurvePublicKey):
             raise ValueError("Recipient key must be an EC public key")
@@ -95,9 +99,13 @@ class ECDHESA128KWCrypto(CryptoBase):
 
     async def unwrap(self, kek: KeyRef, wrapped: WrappedKey) -> bytes:
         if wrapped.wrap_alg != _WRAP_ALG:
-            raise UnsupportedAlgorithm(f"Unsupported wrap_alg: {wrapped.wrap_alg}")
+            raise UnsupportedAlgorithm(
+                f"Unsupported wrap_alg: {wrapped.wrap_alg}"
+            )
         if kek.material is None:
-            raise ValueError("KeyRef.material must contain recipient EC private key")
+            raise ValueError(
+                "KeyRef.material must contain recipient EC private key"
+            )
         priv = serialization.load_pem_private_key(kek.material, password=None)
         if not isinstance(priv, ec.EllipticCurvePrivateKey):
             raise ValueError("Recipient key must be an EC private key")

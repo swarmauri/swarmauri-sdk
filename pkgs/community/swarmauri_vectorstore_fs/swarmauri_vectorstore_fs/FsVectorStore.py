@@ -106,9 +106,11 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
 
             chunks = self._chunk_text(text)
             if self.mode in {"chunk", "chunk_file"}:
-                for chunk_file_index, (chunk, start_line, end_line) in enumerate(
-                    chunks
-                ):
+                for chunk_file_index, (
+                    chunk,
+                    start_line,
+                    end_line,
+                ) in enumerate(chunks):
                     document = self._build_document(
                         relative_path=relative_path,
                         file_index=file_index,
@@ -150,12 +152,16 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
         self.build_index()
 
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
-        return [document for document, _score in self.search(query, top_k=top_k)]
+        return [
+            document for document, _score in self.search(query, top_k=top_k)
+        ]
 
     def query(self, text: str, top_k: int = 5) -> List[Document]:
         return self.retrieve(text, top_k=top_k)
 
-    def search(self, query: str, top_k: int = 5) -> List[Tuple[Document, float]]:
+    def search(
+        self, query: str, top_k: int = 5
+    ) -> List[Tuple[Document, float]]:
         if not self.documents and self.root_path:
             self.build_index()
         results = self._scorer.search(query, top_k=top_k)
@@ -184,7 +190,9 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
 
     def load_store(self, directory_path: str) -> None:
         payload = json.loads(
-            (Path(directory_path) / "fs_vectorstore.json").read_text(encoding="utf-8")
+            (Path(directory_path) / "fs_vectorstore.json").read_text(
+                encoding="utf-8"
+            )
         )
         self.root_path = payload.get("root_path")
         self.mode = payload.get("mode", "chunk")
@@ -195,9 +203,12 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
         self.max_file_size = payload.get("max_file_size", 1_000_000)
         self.index_metadata = payload.get("index_metadata", {})
         self.documents = [
-            Document.model_validate(document) for document in payload["documents"]
+            Document.model_validate(document)
+            for document in payload["documents"]
         ]
-        self._document_map = {document.id: document for document in self.documents}
+        self._document_map = {
+            document.id: document for document in self.documents
+        }
         self._scorer = BM25FScorer.from_dict(payload.get("bm25f", {}))
         if not self._scorer.document_fields:
             self._reindex_documents()
@@ -205,17 +216,26 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
     def _reindex_documents(self) -> None:
         self._scorer = BM25FScorer()
         self._scorer.fit(
-            [self._fields_for_document(document) for document in self.documents]
+            [
+                self._fields_for_document(document)
+                for document in self.documents
+            ]
         )
 
     def _validate_root(self) -> Path:
         if not self.root_path:
-            raise ValueError("root_path is required to build the filesystem index")
+            raise ValueError(
+                "root_path is required to build the filesystem index"
+            )
         root = Path(self.root_path)
         if not root.exists():
-            raise FileNotFoundError(f"Root path '{self.root_path}' does not exist")
+            raise FileNotFoundError(
+                f"Root path '{self.root_path}' does not exist"
+            )
         if not root.is_dir():
-            raise NotADirectoryError(f"Root path '{self.root_path}' is not a directory")
+            raise NotADirectoryError(
+                f"Root path '{self.root_path}' is not a directory"
+            )
         if self.chunk_size <= 0:
             raise ValueError("chunk_size must be greater than zero")
         if self.chunk_overlap < 0:
@@ -231,7 +251,9 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
             if not path.is_file():
                 continue
             relative_path = path.relative_to(root).as_posix()
-            if self.include and not self._matches_any(relative_path, self.include):
+            if self.include and not self._matches_any(
+                relative_path, self.include
+            ):
                 skip_counts["excluded"] += 1
                 continue
             if self._matches_any(
@@ -241,7 +263,9 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
                 continue
             yield path
 
-    def _read_text(self, path: Path, skip_counts: Dict[str, int]) -> Optional[str]:
+    def _read_text(
+        self, path: Path, skip_counts: Dict[str, int]
+    ) -> Optional[str]:
         try:
             size = path.stat().st_size
             if size > self.max_file_size:
@@ -296,7 +320,9 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
         path = Path(relative_path)
         file_name = path.name
         file_extension = path.suffix
-        directory_path = path.parent.as_posix() if path.parent.as_posix() != "." else ""
+        directory_path = (
+            path.parent.as_posix() if path.parent.as_posix() != "." else ""
+        )
         bm25_fields = self._build_bm25_fields(
             relative_path=relative_path,
             directory_path=directory_path,
@@ -400,7 +426,9 @@ class FsVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
             ]
         )
 
-    def _matches_any(self, relative_path: str, patterns: Tuple[str, ...]) -> bool:
+    def _matches_any(
+        self, relative_path: str, patterns: Tuple[str, ...]
+    ) -> bool:
         path = relative_path.replace("\\", "/")
         name = Path(path).name
         return any(

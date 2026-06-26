@@ -53,7 +53,9 @@ def test_agent_factory_register_and_create(agent_factory, groq_model):
 @pytest.mark.unit
 def test_agent_factory_create_unregistered_type(agent_factory):
     # Attempt to create an unregistered type
-    with pytest.raises(ValueError, match="Type 'UnregisteredType' is not registered."):
+    with pytest.raises(
+        ValueError, match="Type 'UnregisteredType' is not registered."
+    ):
         agent_factory.create(type="UnregisteredType")
 
 

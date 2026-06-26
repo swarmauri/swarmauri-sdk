@@ -3,7 +3,11 @@ from typing import List, Literal, Optional, Union
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.matrices.IMatrix import IMatrix
-from swarmauri_core.metrics.IMetric import IMetric, MetricInput, MetricInputCollection
+from swarmauri_core.metrics.IMetric import (
+    IMetric,
+    MetricInput,
+    MetricInputCollection,
+)
 from swarmauri_core.vectors.IVector import IVector
 
 # Logger configuration
@@ -118,7 +122,9 @@ class MetricBase(IMetric, ComponentBase):
             "The check_non_negativity method must be implemented by child classes"
         )
 
-    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
+    def check_identity_of_indiscernibles(
+        self, x: MetricInput, y: MetricInput
+    ) -> bool:
         """
         Check if the metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -140,7 +146,9 @@ class MetricBase(IMetric, ComponentBase):
         NotImplementedError
             If the method is not implemented by a child class
         """
-        logger.debug(f"Checking identity of indiscernibles axiom for {x} and {y}")
+        logger.debug(
+            f"Checking identity of indiscernibles axiom for {x} and {y}"
+        )
         raise NotImplementedError(
             "The check_identity_of_indiscernibles method must be implemented by child classes"
         )
@@ -197,7 +205,9 @@ class MetricBase(IMetric, ComponentBase):
         NotImplementedError
             If the method is not implemented by a child class
         """
-        logger.debug(f"Checking triangle inequality axiom for {x}, {y}, and {z}")
+        logger.debug(
+            f"Checking triangle inequality axiom for {x}, {y}, and {z}"
+        )
         raise NotImplementedError(
             "The check_triangle_inequality method must be implemented by child classes"
         )

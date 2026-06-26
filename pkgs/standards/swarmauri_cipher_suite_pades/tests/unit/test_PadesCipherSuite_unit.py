@@ -26,7 +26,9 @@ def test_initialization(cipher_suite: PadesCipherSuite) -> None:
 
 @pytest.mark.unit
 def test_serialization(cipher_suite: PadesCipherSuite) -> None:
-    restored = PadesCipherSuite.model_validate_json(cipher_suite.model_dump_json())
+    restored = PadesCipherSuite.model_validate_json(
+        cipher_suite.model_dump_json()
+    )
     assert restored.id == cipher_suite.id
 
 
@@ -80,7 +82,9 @@ def test_normalize_with_explicit_alg(cipher_suite: PadesCipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_rejects_unsupported_alg(cipher_suite: PadesCipherSuite) -> None:
+def test_normalize_rejects_unsupported_alg(
+    cipher_suite: PadesCipherSuite,
+) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="sign", alg="RSA-PSS-SHA512")
 

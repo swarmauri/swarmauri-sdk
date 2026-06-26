@@ -27,14 +27,22 @@ def test_img_url_to_file_path(tmp_path):
         output_image_path = os.path.join(tmp_path, "output_image.png")
 
         # Call the function with a dummy URL and file path
-        img_url_to_file_path("http://example.com/fake-image-url", output_image_path)
+        img_url_to_file_path(
+            "http://example.com/fake-image-url", output_image_path
+        )
 
         # Assert that the file was created
-        assert os.path.exists(output_image_path), "The image file was not created."
+        assert os.path.exists(output_image_path), (
+            "The image file was not created."
+        )
 
         # Optionally, open the saved image and verify its content
         saved_image = Image.open(output_image_path)
-        assert saved_image.size == (10, 10), "The saved image has incorrect dimensions."
-        assert saved_image.format == "PNG", "The saved image is not in PNG format."
+        assert saved_image.size == (10, 10), (
+            "The saved image has incorrect dimensions."
+        )
+        assert saved_image.format == "PNG", (
+            "The saved image is not in PNG format."
+        )
 
         # Cleanup (handled automatically by tmp_path)

@@ -68,7 +68,9 @@ class CosineSimilarity(SimilarityBase):
 
             # Check for zero vectors
             if x_norm < 1e-10 or y_norm < 1e-10:
-                raise ValueError("Cosine similarity is undefined for zero vectors")
+                raise ValueError(
+                    "Cosine similarity is undefined for zero vectors"
+                )
 
             # Calculate dot product
             dot_product = np.dot(x_array, y_array)
@@ -119,7 +121,9 @@ class CosineSimilarity(SimilarityBase):
             x_norm = np.linalg.norm(x_array)
 
             if x_norm < 1e-10:
-                raise ValueError("Cosine similarity is undefined for zero vectors")
+                raise ValueError(
+                    "Cosine similarity is undefined for zero vectors"
+                )
 
             results = []
             for y in ys:
@@ -134,7 +138,9 @@ class CosineSimilarity(SimilarityBase):
                 y_norm = np.linalg.norm(y_array)
 
                 if y_norm < 1e-10:
-                    raise ValueError("Cosine similarity is undefined for zero vectors")
+                    raise ValueError(
+                        "Cosine similarity is undefined for zero vectors"
+                    )
 
                 dot_product = np.dot(x_array, y_array)
                 cosine_sim = dot_product / (x_norm * y_norm)
@@ -150,7 +156,9 @@ class CosineSimilarity(SimilarityBase):
             return results
 
         except Exception as e:
-            logger.error(f"Error calculating multiple cosine similarities: {str(e)}")
+            logger.error(
+                f"Error calculating multiple cosine similarities: {str(e)}"
+            )
             raise
 
     def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
@@ -277,7 +285,9 @@ class CosineSimilarity(SimilarityBase):
             y_norm = np.linalg.norm(y_array)
 
             if x_norm < 1e-10 or y_norm < 1e-10:
-                raise ValueError("Cosine similarity is undefined for zero vectors")
+                raise ValueError(
+                    "Cosine similarity is undefined for zero vectors"
+                )
 
             # For cosine similarity, vectors are "identical" (sim=1) if they point in the same direction
             # This means they are scalar multiples of each other

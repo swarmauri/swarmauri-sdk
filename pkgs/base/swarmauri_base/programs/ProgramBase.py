@@ -101,7 +101,10 @@ class ProgramBase(IProgram, ComponentBase):
         try:
             # Apply each diff operation
             for key, operation in diff.items():
-                if not isinstance(operation, dict) or "action" not in operation:
+                if (
+                    not isinstance(operation, dict)
+                    or "action" not in operation
+                ):
                     raise ValueError(f"Invalid diff operation for key {key}")
 
                 action = operation["action"]
@@ -116,7 +119,9 @@ class ProgramBase(IProgram, ComponentBase):
                         )
                     new_dict[key] = operation["value"]
                 else:
-                    raise ValueError(f"Unknown diff action '{action}' for key {key}")
+                    raise ValueError(
+                        f"Unknown diff action '{action}' for key {key}"
+                    )
 
             # Create a new program instance from the modified dictionary
             result = self.__class__.from_dict(new_dict)

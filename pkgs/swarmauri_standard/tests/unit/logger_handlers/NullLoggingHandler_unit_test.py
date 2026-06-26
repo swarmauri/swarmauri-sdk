@@ -3,7 +3,9 @@ from unittest.mock import patch
 
 import pytest
 
-from swarmauri_standard.logger_handlers.NullLoggingHandler import NullLoggingHandler
+from swarmauri_standard.logger_handlers.NullLoggingHandler import (
+    NullLoggingHandler,
+)
 
 
 @pytest.mark.unit
@@ -106,4 +108,6 @@ def test_compile_handler_creates_null_handler(mock_null_handler):
 
     # Verify
     mock_null_handler.assert_called_once()
-    mock_null_handler.return_value.setLevel.assert_called_once_with(logging.DEBUG)
+    mock_null_handler.return_value.setLevel.assert_called_once_with(
+        logging.DEBUG
+    )

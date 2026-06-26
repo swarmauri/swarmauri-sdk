@@ -8,7 +8,9 @@ class IProject(ABC):
     """
 
     @abstractmethod
-    def project(self, vector_a: List[float], vector_b: List[float]) -> List[float]:
+    def project(
+        self, vector_a: List[float], vector_b: List[float]
+    ) -> List[float]:
         """
         Projects vector_a onto vector_b.
 

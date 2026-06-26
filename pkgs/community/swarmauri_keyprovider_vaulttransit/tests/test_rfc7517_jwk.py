@@ -1,7 +1,9 @@
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 
-from swarmauri_keyprovider_vaulttransit.VaultTransitKeyProvider import _pem_to_jwk
+from swarmauri_keyprovider_vaulttransit.VaultTransitKeyProvider import (
+    _pem_to_jwk,
+)
 
 
 def test_pem_to_jwk_rsa():

@@ -741,7 +741,11 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.ruff]
+line-length = 79
 exclude = ["experimental", ".config", "**/*.bak.py", "standards/peagen/test_project"]
+
+[tool.ruff.lint]
+extend-select = ["E501"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

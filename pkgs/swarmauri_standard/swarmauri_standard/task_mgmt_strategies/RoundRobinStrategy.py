@@ -32,10 +32,14 @@ class RoundRobinStrategy(TaskMgmtStrategyBase):
             raise ValueError("No services available for task assignment.")
 
         # Select the service based on the round-robin index
-        service = available_services[self.current_index % len(available_services)]
+        service = available_services[
+            self.current_index % len(available_services)
+        ]
         self.task_assignments[task["task_id"]] = service
         self.current_index += 1
-        logging.info(f"Task '{task['task_id']}' assigned to service '{service}'.")
+        logging.info(
+            f"Task '{task['task_id']}' assigned to service '{service}'."
+        )
 
     def add_task(self, task: Dict[str, Any]) -> None:
         """

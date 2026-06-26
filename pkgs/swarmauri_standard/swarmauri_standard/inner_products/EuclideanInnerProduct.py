@@ -31,7 +31,9 @@ class EuclideanInnerProduct(InnerProductBase):
     type: Literal["EuclideanInnerProduct"] = "EuclideanInnerProduct"
 
     def compute(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> float:
         """
         Compute the Euclidean inner product (dot product) between two vectors.
@@ -65,14 +67,18 @@ class EuclideanInnerProduct(InnerProductBase):
             b_array = np.array(b) if not isinstance(b, np.ndarray) else b
 
             # Check if inputs are numeric
-            if not np.issubdtype(a_array.dtype, np.number) or not np.issubdtype(
-                b_array.dtype, np.number
-            ):
+            if not np.issubdtype(
+                a_array.dtype, np.number
+            ) or not np.issubdtype(b_array.dtype, np.number):
                 raise TypeError("Input vectors must contain numeric values")
 
             # Check if inputs are finite
-            if not np.all(np.isfinite(a_array)) or not np.all(np.isfinite(b_array)):
-                raise ValueError("Input vectors must contain only finite values")
+            if not np.all(np.isfinite(a_array)) or not np.all(
+                np.isfinite(b_array)
+            ):
+                raise ValueError(
+                    "Input vectors must contain only finite values"
+                )
 
             # Check if inputs have compatible dimensions for dot product
             if a_array.shape != b_array.shape:
@@ -90,7 +96,9 @@ class EuclideanInnerProduct(InnerProductBase):
             raise
 
     def check_conjugate_symmetry(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> bool:
         """
         Check if the Euclidean inner product satisfies the conjugate symmetry property:
@@ -108,7 +116,9 @@ class EuclideanInnerProduct(InnerProductBase):
         bool
             True if conjugate symmetry holds, False otherwise
         """
-        logger.debug(f"Checking conjugate symmetry for {type(a)} and {type(b)}")
+        logger.debug(
+            f"Checking conjugate symmetry for {type(a)} and {type(b)}"
+        )
 
         try:
             # Compute inner products in both directions
@@ -177,7 +187,9 @@ class EuclideanInnerProduct(InnerProductBase):
             left_side = self.compute(combined, b)
 
             # Compute right side of the equation: alpha*<a1, b> + beta*<a2, b>
-            right_side = alpha * self.compute(a1, b) + beta * self.compute(a2, b)
+            right_side = alpha * self.compute(a1, b) + beta * self.compute(
+                a2, b
+            )
 
             # Check if both sides are equal (within numerical precision)
             is_linear = np.isclose(left_side, right_side)
@@ -219,9 +231,9 @@ class EuclideanInnerProduct(InnerProductBase):
             is_nonnegative = self_product >= 0
 
             # Check if <a, a> = 0 iff a = 0
-            is_zero_iff_a_zero = (self_product == 0 and np.allclose(a_array, 0)) or (
-                self_product > 0 and not np.allclose(a_array, 0)
-            )
+            is_zero_iff_a_zero = (
+                self_product == 0 and np.allclose(a_array, 0)
+            ) or (self_product > 0 and not np.allclose(a_array, 0))
 
             result = is_nonnegative and is_zero_iff_a_zero
             logger.debug(

@@ -199,8 +199,16 @@ def test_type_attribute():
     "p,input_data,expected",
     [
         (1.0, [1.0, 2.0, 3.0], 6.0),  # L1 norm: sum of absolute values
-        (2.0, [1.0, 2.0, 3.0], 3.7416573867739413),  # L2 norm: sqrt(sum of squares)
-        (3.0, [1.0, 2.0, 3.0], 3.3019272488946263),  # L3 norm: (sum of cubes)^(1/3)
+        (
+            2.0,
+            [1.0, 2.0, 3.0],
+            3.7416573867739413,
+        ),  # L2 norm: sqrt(sum of squares)
+        (
+            3.0,
+            [1.0, 2.0, 3.0],
+            3.3019272488946263,
+        ),  # L3 norm: (sum of cubes)^(1/3)
         (1.0, [0.0, 0.0, 0.0], 0.0),  # Zero vector
         (2.0, [-1.0, -2.0, -3.0], 3.7416573867739413),  # Negative values
     ],
@@ -288,7 +296,9 @@ def test_triangle_inequality(lp_seminorm_default):
 
     # Test with incompatible shapes
     with pytest.raises(ValueError):
-        lp_seminorm_default.check_triangle_inequality([1.0, 2.0], [1.0, 2.0, 3.0])
+        lp_seminorm_default.check_triangle_inequality(
+            [1.0, 2.0], [1.0, 2.0, 3.0]
+        )
 
 
 @pytest.mark.unit

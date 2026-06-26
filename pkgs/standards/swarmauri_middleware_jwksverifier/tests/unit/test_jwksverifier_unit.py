@@ -20,6 +20,8 @@ def test_verify_rsa_unit() -> None:
         return _make_fetcher(pk)
 
     v = CachedJWKSVerifier(fetch=fetch)
-    token = jwt.encode({"iss": "me"}, pk, algorithm="RS256", headers={"kid": "unit"})
+    token = jwt.encode(
+        {"iss": "me"}, pk, algorithm="RS256", headers={"kid": "unit"}
+    )
     claims = v.verify(token, algorithms_whitelist=["RS256"], issuer="me")
     assert claims["iss"] == "me"

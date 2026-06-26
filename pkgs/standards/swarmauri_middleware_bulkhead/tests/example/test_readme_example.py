@@ -34,7 +34,9 @@ def _extract_quickstart_code(readme: str) -> str:
 
     code = "\n".join(code_lines).strip()
     if not code:
-        raise AssertionError("Quickstart python code block not found in README")
+        raise AssertionError(
+            "Quickstart python code block not found in README"
+        )
     return code
 
 

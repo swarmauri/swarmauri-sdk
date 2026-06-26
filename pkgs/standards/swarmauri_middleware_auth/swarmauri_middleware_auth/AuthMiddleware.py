@@ -95,7 +95,9 @@ class AuthMiddleware(MiddlewareBase, ComponentBase):
         # Check if the authorization header is missing
         if not auth_header:
             logger.warning("Missing Authorization header in request")
-            raise HTTPException(status_code=401, detail="Missing Authorization header")
+            raise HTTPException(
+                status_code=401, detail="Missing Authorization header"
+            )
 
             # Check if the header format is correct
         if not auth_header.startswith("Bearer "):
@@ -128,7 +130,9 @@ class AuthMiddleware(MiddlewareBase, ComponentBase):
             raise
         except Exception as e:
             logger.error(f"Unexpected error during JWT validation: {str(e)}")
-            raise HTTPException(status_code=401, detail="Authentication failed")
+            raise HTTPException(
+                status_code=401, detail="Authentication failed"
+            )
 
     async def _validate_jwt_token(self, token: str) -> Dict[str, Any]:
         """Validate a JWT token and return its payload."""
@@ -137,23 +141,33 @@ class AuthMiddleware(MiddlewareBase, ComponentBase):
             res = await self._jws.verify_compact(
                 token,
                 hmac_keys=[
-                    {"kind": "raw", "key": self.secret_key, "alg": self.algorithm}
+                    {
+                        "kind": "raw",
+                        "key": self.secret_key,
+                        "alg": self.algorithm,
+                    }
                 ],
                 alg_allowlist=[JWAAlg(self.algorithm)],
             )
         except Exception as e:
             logger.debug(f"JWT signature verification failed: {e}")
-            raise HTTPException(status_code=401, detail="Invalid token signature")
+            raise HTTPException(
+                status_code=401, detail="Invalid token signature"
+            )
 
         payload = json.loads(res.payload.decode("utf-8"))
         now = int(time.time())
         if self.verify_exp:
             exp = payload.get("exp")
             if exp is None or now > int(exp):
-                raise HTTPException(status_code=401, detail="Token has expired")
+                raise HTTPException(
+                    status_code=401, detail="Token has expired"
+                )
         if self.verify_aud and self.audience:
             if payload.get("aud") != self.audience:
-                raise HTTPException(status_code=401, detail="Invalid token audience")
+                raise HTTPException(
+                    status_code=401, detail="Invalid token audience"
+                )
         if self.issuer and payload.get("iss") != self.issuer:
             raise HTTPException(status_code=401, detail="Invalid token issuer")
 

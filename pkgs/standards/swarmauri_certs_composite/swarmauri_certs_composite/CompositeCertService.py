@@ -30,8 +30,12 @@ class CompositeCertService(CertServiceBase):
     def __init__(self, providers: Sequence[ICertService]) -> None:
         super().__init__()
         if not providers:
-            raise ValueError("CompositeCertService requires at least one provider")
-        self._providers: Dict[str, ICertService] = {p.type: p for p in providers}
+            raise ValueError(
+                "CompositeCertService requires at least one provider"
+            )
+        self._providers: Dict[str, ICertService] = {
+            p.type: p for p in providers
+        }
 
     def supports(self) -> Mapping[str, Iterable[str]]:
         # Aggregate union of all providers
@@ -63,12 +67,14 @@ class CompositeCertService(CertServiceBase):
     # ------------------ delegated methods ------------------
 
     async def create_csr(self, key: KeyRef, subject, **kw) -> bytes:
-        return await self._pick("csr", kw.get("opts")).create_csr(key, subject, **kw)
-
-    async def create_self_signed(self, key: KeyRef, subject, **kw) -> bytes:
-        return await self._pick("self_signed", kw.get("opts")).create_self_signed(
+        return await self._pick("csr", kw.get("opts")).create_csr(
             key, subject, **kw
         )
+
+    async def create_self_signed(self, key: KeyRef, subject, **kw) -> bytes:
+        return await self._pick(
+            "self_signed", kw.get("opts")
+        ).create_self_signed(key, subject, **kw)
 
     async def sign_cert(self, csr: bytes, ca_key: KeyRef, **kw) -> bytes:
         return await self._pick("sign_from_csr", kw.get("opts")).sign_cert(
@@ -76,7 +82,9 @@ class CompositeCertService(CertServiceBase):
         )
 
     async def verify_cert(self, cert: bytes, **kw) -> Dict[str, Any]:
-        return await self._pick("verify", kw.get("opts")).verify_cert(cert, **kw)
+        return await self._pick("verify", kw.get("opts")).verify_cert(
+            cert, **kw
+        )
 
     async def parse_cert(self, cert: bytes, **kw) -> Dict[str, Any]:
         return await self._pick("parse", kw.get("opts")).parse_cert(cert, **kw)

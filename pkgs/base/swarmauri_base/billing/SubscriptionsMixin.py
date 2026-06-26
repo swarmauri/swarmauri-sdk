@@ -27,7 +27,9 @@ class SubscriptionsMixin(ISubscriptions, BaseModel):
     def cancel_subscription(
         self, subscription_id: str, *, at_period_end: bool = True
     ) -> Mapping[str, Any]:
-        return self._cancel_subscription(subscription_id, at_period_end=at_period_end)
+        return self._cancel_subscription(
+            subscription_id, at_period_end=at_period_end
+        )
 
     @abstractmethod
     def _create_subscription(

@@ -65,4 +65,6 @@ def provider() -> VaultTransitKeyProvider:
         serialization.PublicFormat.SubjectPublicKeyInfo,
     )
     client = FakeClient(pem)
-    return VaultTransitKeyProvider(url="http://vault", token="t", client=client)
+    return VaultTransitKeyProvider(
+        url="http://vault", token="t", client=client
+    )

@@ -66,7 +66,9 @@ class DocumentStoreBase(IDocumentStore, ComponentBase):
         pass
 
     @abstractmethod
-    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
+    def update_document(
+        self, doc_id: str, updated_document: IDocument
+    ) -> None:
         """
         Update a document in the document store.
 

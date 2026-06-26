@@ -62,11 +62,15 @@ def _b64u_to_bytes(s: str) -> bytes:
 def _as_footer_json(d: Dict[str, Any] | None) -> bytes | None:
     if not d:
         return None
-    return json.dumps(d, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return json.dumps(d, separators=(",", ":"), ensure_ascii=False).encode(
+        "utf-8"
+    )
 
 
 def _as_payload_json(d: Dict[str, Any]) -> bytes:
-    return json.dumps(d, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return json.dumps(d, separators=(",", ":"), ensure_ascii=False).encode(
+        "utf-8"
+    )
 
 
 def _parse_prefix(token: str) -> tuple[str, str]:
@@ -140,7 +144,9 @@ class PasetoV4TokenService(TokenServiceBase):
                 raise ValueError("v4.public mint requires 'kid'")
             ref = await self._kp.get_key(kid, key_version, include_secret=True)
             if not ref.material:
-                raise RuntimeError("Signing key not exportable under current policy")
+                raise RuntimeError(
+                    "Signing key not exportable under current policy"
+                )
             sk = load_pem_private_key(ref.material, password=None)
             if not isinstance(sk, Ed25519PrivateKey):
                 raise ValueError("v4.public requires an Ed25519 private key")
@@ -161,7 +167,9 @@ class PasetoV4TokenService(TokenServiceBase):
             raise ValueError("v4.local mint requires 'kid'")
         ref = await self._kp.get_key(kid, key_version, include_secret=True)
         if not ref.material:
-            raise RuntimeError("Symmetric key not exportable under current policy")
+            raise RuntimeError(
+                "Symmetric key not exportable under current policy"
+            )
         if len(ref.material) != 32:
             raise ValueError("v4.local requires a 32-byte secret key")
         key = pyseto.Key.new(version=4, purpose="local", key=ref.material)
@@ -193,20 +201,28 @@ class PasetoV4TokenService(TokenServiceBase):
             jwks = await self._kp.jwks()
             keys: list[pyseto.Key] = []
             for jw in jwks.get("keys", []):
-                if jw.get("kty") == "OKP" and jw.get("crv") == "Ed25519" and "x" in jw:
+                if (
+                    jw.get("kty") == "OKP"
+                    and jw.get("crv") == "Ed25519"
+                    and "x" in jw
+                ):
                     x = _b64u_to_bytes(jw["x"])
                     pub = Ed25519PublicKey.from_public_bytes(x)
                     pem_pub = pub.public_bytes(
                         Encoding.PEM, PublicFormat.SubjectPublicKeyInfo
                     )
                     keys.append(
-                        pyseto.Key.new(version=4, purpose="public", key=pem_pub)
+                        pyseto.Key.new(
+                            version=4, purpose="public", key=pem_pub
+                        )
                     )
 
             last_err: Optional[Exception] = None
             for k in keys:
                 try:
-                    res = pyseto.decode(k, token, implicit_assertion=self._ia or b"")
+                    res = pyseto.decode(
+                        k, token, implicit_assertion=self._ia or b""
+                    )
                     payload_obj = json.loads(res.payload)
                     break
                 except Exception as e:  # pragma: no cover
@@ -225,11 +241,17 @@ class PasetoV4TokenService(TokenServiceBase):
             last_err: Optional[Exception] = None
             for kid in self._local_kids:
                 try:
-                    ref = await self._kp.get_key(kid, None, include_secret=True)
+                    ref = await self._kp.get_key(
+                        kid, None, include_secret=True
+                    )
                     if not ref.material or len(ref.material) != 32:
                         continue
-                    k = pyseto.Key.new(version=4, purpose="local", key=ref.material)
-                    res = pyseto.decode(k, token, implicit_assertion=self._ia or b"")
+                    k = pyseto.Key.new(
+                        version=4, purpose="local", key=ref.material
+                    )
+                    res = pyseto.decode(
+                        k, token, implicit_assertion=self._ia or b""
+                    )
                     payload_obj = json.loads(res.payload)
                     break
                 except Exception as e:
@@ -262,7 +284,8 @@ class PasetoV4TokenService(TokenServiceBase):
                 )
             else:
                 ok = any(
-                    a == aud_claim or (isinstance(aud_claim, list) and a in aud_claim)
+                    a == aud_claim
+                    or (isinstance(aud_claim, list) and a in aud_claim)
                     for a in audience
                 )
             if not ok:

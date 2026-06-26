@@ -7,7 +7,8 @@ from swarmauri_standard.vectors.Vector import Vector
 def test_compatibility_serialization():
     distance = CosineDistance()
     assert (
-        distance.id == CosineDistance.model_validate_json(distance.model_dump_json()).id
+        distance.id
+        == CosineDistance.model_validate_json(distance.model_dump_json()).id
     )
 
 

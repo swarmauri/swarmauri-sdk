@@ -29,7 +29,9 @@ def clipboard_state():
         return mock_clipboard_content
 
     with (
-        patch.object(ClipboardState, "clipboard_paste", side_effect=mock_paste),
+        patch.object(
+            ClipboardState, "clipboard_paste", side_effect=mock_paste
+        ),
         patch.object(ClipboardState, "clipboard_copy", side_effect=mock_copy),
     ):
         state = ClipboardState()
@@ -75,7 +77,9 @@ def test_serialization(clipboard_state):
     """
     assert (
         clipboard_state.id
-        == ClipboardState.model_validate_json(clipboard_state.model_dump_json()).id
+        == ClipboardState.model_validate_json(
+            clipboard_state.model_dump_json()
+        ).id
     )
 
 
@@ -179,7 +183,9 @@ def test_classmethod_copy_and_paste():
 
     with (
         patch.object(ClipboardState, "clipboard_copy", side_effect=mock_copy),
-        patch.object(ClipboardState, "clipboard_paste", side_effect=mock_paste),
+        patch.object(
+            ClipboardState, "clipboard_paste", side_effect=mock_paste
+        ),
     ):
         test_string = "Hello, classmethod!"
         ClipboardState.clipboard_copy(test_string)

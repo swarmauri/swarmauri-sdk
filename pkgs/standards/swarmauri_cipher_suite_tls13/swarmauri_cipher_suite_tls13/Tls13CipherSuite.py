@@ -33,7 +33,9 @@ class Tls13CipherSuite(CipherSuiteBase):
             "decrypt": _TLS13,
         }
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         return "TLS_AES_256_GCM_SHA384"
 
     def features(self) -> Features:

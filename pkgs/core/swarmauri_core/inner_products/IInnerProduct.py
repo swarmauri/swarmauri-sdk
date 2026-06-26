@@ -24,7 +24,9 @@ class IInnerProduct(ABC):
 
     @abstractmethod
     def compute(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> float:
         """
         Compute the inner product between two objects.
@@ -45,7 +47,9 @@ class IInnerProduct(ABC):
 
     @abstractmethod
     def check_conjugate_symmetry(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> bool:
         """
         Check if the inner product satisfies the conjugate symmetry property:

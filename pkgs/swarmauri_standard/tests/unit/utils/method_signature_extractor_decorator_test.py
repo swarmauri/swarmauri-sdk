@@ -23,7 +23,9 @@ def union_function(value: Union[int, str]):
 
 
 def complex_function(
-    x: int, y: Optional[List[float]] = None, z: Union[str, Dict[str, Any]] = "default"
+    x: int,
+    y: Optional[List[float]] = None,
+    z: Union[str, Dict[str, Any]] = "default",
 ):
     return x, y, z
 

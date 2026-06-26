@@ -6,7 +6,9 @@ inherit from :class:`LoggerMixin`.
 """
 
 import pytest
-from swarmauri_base.LoggerMixin import LoggerMixin  # Adjust the import as needed
+from swarmauri_base.LoggerMixin import (
+    LoggerMixin,
+)  # Adjust the import as needed
 
 
 class DummyModel(LoggerMixin):

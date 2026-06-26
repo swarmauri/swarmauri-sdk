@@ -41,7 +41,9 @@ def test_call(operation, num1, num2, expected_result, is_error):
     tool = Tool()
     result = tool(operation, num1, num2)
 
-    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert isinstance(result, dict), (
+        f"Expected dict, but got {type(result).__name__}"
+    )
 
     if is_error:
         assert "error" in result

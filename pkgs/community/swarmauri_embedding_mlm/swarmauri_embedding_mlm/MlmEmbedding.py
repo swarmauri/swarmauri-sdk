@@ -34,7 +34,9 @@ class MlmEmbedding(EmbeddingBase):
         super().__init__(**kwargs)
         self._tokenizer = AutoTokenizer.from_pretrained(self.embedding_name)
         self._model = AutoModelForMaskedLM.from_pretrained(self.embedding_name)
-        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu"
+        )
         self._model.to(self._device)
         self._mask_token_id = self._tokenizer.convert_tokens_to_ids(
             [self._tokenizer.mask_token]
@@ -73,7 +75,9 @@ class MlmEmbedding(EmbeddingBase):
             for val in labels.tolist()
         ]
         probability_matrix.masked_fill_(
-            torch.tensor(special_tokens_mask, dtype=torch.bool, device=self._device),
+            torch.tensor(
+                special_tokens_mask, dtype=torch.bool, device=self._device
+            ),
             value=0.0,
         )
         masked_indices = torch.bernoulli(probability_matrix).bool()
@@ -82,7 +86,9 @@ class MlmEmbedding(EmbeddingBase):
 
         indices_replaced = (
             torch.bernoulli(
-                torch.full(labels.shape, self.masking_ratio, device=self._device)
+                torch.full(
+                    labels.shape, self.masking_ratio, device=self._device
+                )
             ).bool()
             & masked_indices
         )
@@ -90,13 +96,18 @@ class MlmEmbedding(EmbeddingBase):
 
         indices_random = (
             torch.bernoulli(
-                torch.full(labels.shape, self.randomness_ratio, device=self._device)
+                torch.full(
+                    labels.shape, self.randomness_ratio, device=self._device
+                )
             ).bool()
             & masked_indices
             & ~indices_replaced
         )
         random_words = torch.randint(
-            len(self._tokenizer), labels.shape, dtype=torch.long, device=self._device
+            len(self._tokenizer),
+            labels.shape,
+            dtype=torch.long,
+            device=self._device,
         )
         input_ids[indices_random] = random_words[indices_random]
 
@@ -122,13 +133,17 @@ class MlmEmbedding(EmbeddingBase):
         input_ids, attention_mask, labels = self._mask_tokens(encodings)
         optimizer = AdamW(self._model.parameters(), lr=self.learning_rate)
         dataset = TensorDataset(input_ids, attention_mask, labels)
-        data_loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
+        data_loader = DataLoader(
+            dataset, batch_size=self.batch_size, shuffle=True
+        )
 
         self._model.train()
         for batch in data_loader:
             batch = {
                 k: v.to(self._device)
-                for k, v in zip(["input_ids", "attention_mask", "labels"], batch)
+                for k, v in zip(
+                    ["input_ids", "attention_mask", "labels"], batch
+                )
             }
             outputs = self._model(**batch)
             loss = outputs.loss
@@ -177,7 +192,9 @@ class MlmEmbedding(EmbeddingBase):
 
         return embedding_list
 
-    def fit_transform(self, documents: List[Union[str, Any]], **kwargs) -> List[Vector]:
+    def fit_transform(
+        self, documents: List[Union[str, Any]], **kwargs
+    ) -> List[Vector]:
         """
         Fine-tunes the MLM and generates embeddings for the provided documents.
         """
@@ -195,7 +212,11 @@ class MlmEmbedding(EmbeddingBase):
         # Tokenize the input data and ensure the tensors are on the correct device.
         self._model.eval()
         inputs = self._tokenizer(
-            data, return_tensors="pt", padding=True, truncation=True, max_length=512
+            data,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=512,
         )
         inputs = {k: v.to(self._device) for k, v in inputs.items()}
 
@@ -226,4 +247,6 @@ class MlmEmbedding(EmbeddingBase):
         """
         self._model = AutoModelForMaskedLM.from_pretrained(path)
         self._tokenizer = AutoTokenizer.from_pretrained(path)
-        self._model.to(self._device)  # Ensure the model is loaded to the correct device
+        self._model.to(
+            self._device
+        )  # Ensure the model is loaded to the correct device

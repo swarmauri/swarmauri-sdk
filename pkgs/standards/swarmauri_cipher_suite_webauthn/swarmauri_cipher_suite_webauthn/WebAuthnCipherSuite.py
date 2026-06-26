@@ -26,7 +26,9 @@ class WebAuthnCipherSuite(CipherSuiteBase):
     def supports(self) -> Mapping[CipherOp, Iterable[Alg]]:
         return {"sign": _FIDO_COSE, "verify": _FIDO_COSE}
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         return "-7"
 
     def features(self) -> Features:
@@ -36,7 +38,12 @@ class WebAuthnCipherSuite(CipherSuiteBase):
             "dialects": {"cose": list(_FIDO_COSE), "fido2": list(_FIDO_COSE)},
             "ops": {"sign": {"default": "-7", "allowed": list(_FIDO_COSE)}},
             "constraints": {
-                "attestation_formats": ["packed", "tpm", "android-safetynet", "apple"]
+                "attestation_formats": [
+                    "packed",
+                    "tpm",
+                    "android-safetynet",
+                    "apple",
+                ]
             },
             "compliance": {"fips": False},
         }
@@ -59,7 +66,11 @@ class WebAuthnCipherSuite(CipherSuiteBase):
             "op": op,
             "alg": chosen,
             "dialect": "cose" if dialect is None else dialect,
-            "mapped": {"cose": int(chosen), "fido2": chosen, "provider": chosen},
+            "mapped": {
+                "cose": int(chosen),
+                "fido2": chosen,
+                "provider": chosen,
+            },
             "params": dict(params or {}),
             "constraints": {},
             "policy": self.policy(),

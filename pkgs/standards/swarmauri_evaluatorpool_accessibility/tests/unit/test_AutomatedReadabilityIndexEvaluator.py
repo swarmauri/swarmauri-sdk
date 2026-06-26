@@ -47,7 +47,9 @@ def test_serialization(evaluator):
     json_data = evaluator.model_dump_json()
 
     # Deserialize
-    deserialized = AutomatedReadabilityIndexEvaluator.model_validate_json(json_data)
+    deserialized = AutomatedReadabilityIndexEvaluator.model_validate_json(
+        json_data
+    )
 
     # Verify
     assert deserialized.type == evaluator.type
@@ -78,7 +80,10 @@ def test_count_sentences(evaluator):
     test_cases = [
         ("This is one sentence.", ["This is one sentence."]),
         ("This is one. This is two.", ["This is one.", "This is two."]),
-        ("Hello! How are you? I'm good.", ["Hello!", "How are you?", "I'm good."]),
+        (
+            "Hello! How are you? I'm good.",
+            ["Hello!", "How are you?", "I'm good."],
+        ),
         ("", []),
         ("No ending punctuation", ["No ending punctuation"]),
     ]
@@ -102,7 +107,9 @@ def test_extract_text_from_program_empty(evaluator, mock_program):
 @pytest.mark.unit
 @patch("os.path.exists")
 @patch("builtins.open")
-def test_extract_text_from_program_txt(mock_open, mock_exists, evaluator, mock_program):
+def test_extract_text_from_program_txt(
+    mock_open, mock_exists, evaluator, mock_program
+):
     """Test text extraction from a .txt file."""
     # Setup mocks
     mock_artifact = MagicMock()
@@ -111,7 +118,9 @@ def test_extract_text_from_program_txt(mock_open, mock_exists, evaluator, mock_p
     mock_exists.return_value = True
 
     mock_file = MagicMock()
-    mock_file.__enter__.return_value.read.return_value = "This is a test text file."
+    mock_file.__enter__.return_value.read.return_value = (
+        "This is a test text file."
+    )
     mock_open.return_value = mock_file
 
     # Call function
@@ -201,7 +210,9 @@ def test_extract_text_from_program_html(
 
 @pytest.mark.unit
 @patch("os.path.exists")
-def test_extract_text_from_program_file_error(mock_exists, evaluator, mock_program):
+def test_extract_text_from_program_file_error(
+    mock_exists, evaluator, mock_program
+):
     """Test handling of file errors during text extraction."""
     # Setup mocks
     mock_artifact = MagicMock()

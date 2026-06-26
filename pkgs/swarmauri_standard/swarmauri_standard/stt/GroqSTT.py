@@ -35,7 +35,9 @@ class GroqSTT(STTBase):
     type: Literal["GroqSTT"] = "GroqSTT"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(default="https://api.groq.com/openai/v1/audio/")
+    _BASE_URL: str = PrivateAttr(
+        default="https://api.groq.com/openai/v1/audio/"
+    )
 
     def __init__(self, **data: Dict[str, Any]):
         """
@@ -46,12 +48,16 @@ class GroqSTT(STTBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=30,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=30,
         )
@@ -200,7 +206,8 @@ class GroqSTT(STTBase):
                 return await self.apredict(audio_path=path, task=task)
 
         tasks = [
-            process_conversation(path, task) for path, task in path_task_dict.items()
+            process_conversation(path, task)
+            for path, task in path_task_dict.items()
         ]
         return await asyncio.gather(*tasks)
 
@@ -225,11 +232,15 @@ class GroqSTT(STTBase):
         audio_path: str,
         task: Literal["transcription", "translation"] = "transcription",
     ):
-        raise NotImplementedError("Stream method is not implemented for GroqSTT")
+        raise NotImplementedError(
+            "Stream method is not implemented for GroqSTT"
+        )
 
     async def astream(
         self,
         audio_path: str,
         task: Literal["transcription", "translation"] = "transcription",
     ):
-        raise NotImplementedError("Astream method is not implemented for GroqSTT")
+        raise NotImplementedError(
+            "Astream method is not implemented for GroqSTT"
+        )

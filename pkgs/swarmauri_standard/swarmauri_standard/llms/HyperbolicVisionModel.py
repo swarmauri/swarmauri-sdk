@@ -2,7 +2,16 @@ import asyncio
 import json
 import logging
 import warnings
-from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
+from typing import (
+    Any,
+    AsyncGenerator,
+    Dict,
+    Generator,
+    List,
+    Literal,
+    Optional,
+    Type,
+)
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -185,7 +194,9 @@ class HyperbolicVisionModel(LLMBase):
         usage_data = response_data.get("usage", {})
 
         usage = self._prepare_usage_data(usage_data)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        conversation.add_message(
+            AgentMessage(content=message_content, usage=usage)
+        )
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -222,7 +233,9 @@ class HyperbolicVisionModel(LLMBase):
 
         async with httpx.AsyncClient() as async_client:
             response = await async_client.post(
-                f"{self._BASE_URL}chat/completions", json=payload, headers=self._headers
+                f"{self._BASE_URL}chat/completions",
+                json=payload,
+                headers=self._headers,
             )
             response.raise_for_status()
 
@@ -232,7 +245,9 @@ class HyperbolicVisionModel(LLMBase):
         usage_data = response_data.get("usage", {})
 
         usage = self._prepare_usage_data(usage_data)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        conversation.add_message(
+            AgentMessage(content=message_content, usage=usage)
+        )
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -321,7 +336,9 @@ class HyperbolicVisionModel(LLMBase):
 
         async with httpx.AsyncClient as async_client:
             response = await async_client.post(
-                f"{self._BASE_URL}chat/completions", json=payload, headers=self._headers
+                f"{self._BASE_URL}chat/completions",
+                json=payload,
+                headers=self._headers,
             )
             response.raise_for_status()
 

@@ -29,10 +29,14 @@ class OcspVerifyService(CertServiceBase):
         raise NotImplementedError("OcspVerifyService does not create CSRs.")
 
     async def create_self_signed(self, *a, **kw):
-        raise NotImplementedError("OcspVerifyService does not issue certificates.")
+        raise NotImplementedError(
+            "OcspVerifyService does not issue certificates."
+        )
 
     async def sign_cert(self, *a, **kw):
-        raise NotImplementedError("OcspVerifyService does not sign certificates.")
+        raise NotImplementedError(
+            "OcspVerifyService does not sign certificates."
+        )
 
     async def verify_cert(
         self,
@@ -49,7 +53,9 @@ class OcspVerifyService(CertServiceBase):
             raise ValueError(
                 "OCSP verification requires issuer certificate in 'intermediates'"
             )
-        issuer_obj = x509.load_pem_x509_certificate(intermediates[0], default_backend())
+        issuer_obj = x509.load_pem_x509_certificate(
+            intermediates[0], default_backend()
+        )
         try:
             aia = cert_obj.extensions.get_extension_for_oid(
                 x509.ExtensionOID.AUTHORITY_INFORMATION_ACCESS
@@ -63,7 +69,11 @@ class OcspVerifyService(CertServiceBase):
             ocsp_urls = []
 
         if not ocsp_urls:
-            return {"valid": False, "reason": "no_ocsp_url", "ocsp_checked": False}
+            return {
+                "valid": False,
+                "reason": "no_ocsp_url",
+                "ocsp_checked": False,
+            }
 
         builder = OCSPRequestBuilder().add_certificate(
             cert_obj, issuer_obj, cert_obj.signature_hash_algorithm
@@ -84,7 +94,9 @@ class OcspVerifyService(CertServiceBase):
         status = ocsp_resp.certificate_status
         result: Dict[str, Any] = {
             "valid": status == x509.ocsp.OCSPCertStatus.GOOD,
-            "reason": None if status == x509.ocsp.OCSPCertStatus.GOOD else str(status),
+            "reason": None
+            if status == x509.ocsp.OCSPCertStatus.GOOD
+            else str(status),
             "ocsp_checked": True,
             "this_update": ocsp_resp.this_update.timestamp(),
             "next_update": ocsp_resp.next_update.timestamp()
@@ -115,7 +127,8 @@ class OcspVerifyService(CertServiceBase):
                 ocsp_urls = [
                     d.access_location.value
                     for d in aia.value
-                    if d.access_method == x509.AuthorityInformationAccessOID.OCSP
+                    if d.access_method
+                    == x509.AuthorityInformationAccessOID.OCSP
                 ]
                 out["ocsp_urls"] = ocsp_urls
             except x509.ExtensionNotFound:

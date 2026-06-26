@@ -59,7 +59,9 @@ class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
     def distances(
         self,
         folder_path: str,  # Folder containing multiple images
-        img1_path: Union[str, np.ndarray, List[float]],  # Single image to be compared
+        img1_path: Union[
+            str, np.ndarray, List[float]
+        ],  # Single image to be compared
         silent: bool = False,
     ) -> List[float]:
         """
@@ -85,9 +87,13 @@ class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
 
         # Check if the folder contains images
         if not folder_images:
-            raise ValueError(f"No valid images found in the folder: {folder_path}")
+            raise ValueError(
+                f"No valid images found in the folder: {folder_path}"
+            )
 
-        print(f"Found {len(folder_images)} images in the folder", folder_images)
+        print(
+            f"Found {len(folder_images)} images in the folder", folder_images
+        )
         distances = []
 
         for img_path in folder_images:
@@ -130,7 +136,9 @@ class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
 
         # Inverse the distance to compute similarity
         similarity_score = (
-            1 / (1 + distance) if self.distance_metric != "cosine" else 1 - distance
+            1 / (1 + distance)
+            if self.distance_metric != "cosine"
+            else 1 - distance
         )
         print(f"Similarity score:::::: {similarity_score}")
         return similarity_score
@@ -138,7 +146,9 @@ class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
     def similarities(
         self,
         folder_path: str,  # Folder containing multiple images
-        img1_path: Union[str, np.ndarray, List[float]],  # Single image to be compared
+        img1_path: Union[
+            str, np.ndarray, List[float]
+        ],  # Single image to be compared
         silent: bool = False,
     ) -> List[float]:
         """
@@ -164,9 +174,13 @@ class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
 
         # Check if the folder contains images
         if not folder_images:
-            raise ValueError(f"No valid images found in the folder: {folder_path}")
+            raise ValueError(
+                f"No valid images found in the folder: {folder_path}"
+            )
 
-        print(f"Found {len(folder_images)} images in the folder", folder_images)
+        print(
+            f"Found {len(folder_images)} images in the folder", folder_images
+        )
         similarities = []
 
         for img_path in folder_images:

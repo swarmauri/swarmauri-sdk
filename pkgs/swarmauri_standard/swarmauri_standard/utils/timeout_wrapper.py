@@ -26,7 +26,9 @@ def timeout(seconds=5):
             @wraps(func)
             def sync_wrapper(*args, **kwargs):
                 def handler(signum, frame):
-                    pytest.skip(f"Test skipped: exceeded {seconds} seconds timeout")
+                    pytest.skip(
+                        f"Test skipped: exceeded {seconds} seconds timeout"
+                    )
 
                 signal.signal(signal.SIGALRM, handler)
                 signal.alarm(seconds)

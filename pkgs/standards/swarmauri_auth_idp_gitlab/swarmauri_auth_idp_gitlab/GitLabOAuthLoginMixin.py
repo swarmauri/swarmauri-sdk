@@ -56,7 +56,9 @@ class GitLabOAuthLoginMixin:
         )
         return {"url": url, "state": state, "verifier": verifier}
 
-    async def _exchange_tokens(self, code: str, state: str) -> Mapping[str, Any]:
+    async def _exchange_tokens(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         payload = verify_state(self._state_secret_value(), state)
         form = {
             "grant_type": "authorization_code",
@@ -82,7 +84,9 @@ class GitLabOAuthLoginMixin:
         }
         api_base = self._api_base_url()
         async with self.http_client_factory() as client:
-            response = await client.get_retry(f"{api_base}/user", headers=headers)
+            response = await client.get_retry(
+                f"{api_base}/user", headers=headers
+            )
             response.raise_for_status()
             profile = response.json()
         email = profile.get("public_email") or profile.get("email")

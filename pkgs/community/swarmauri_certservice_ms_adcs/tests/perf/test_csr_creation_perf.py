@@ -26,7 +26,9 @@ def _make_key() -> KeyRef:
 
 def test_csr_creation_perf(benchmark) -> None:
     key = _make_key()
-    svc = MsAdcsCertService(base_url="https://example.com", auth=_AuthCfg(mode="none"))
+    svc = MsAdcsCertService(
+        base_url="https://example.com", auth=_AuthCfg(mode="none")
+    )
     subject: SubjectSpec = {"CN": "perf"}
 
     async def _run() -> None:

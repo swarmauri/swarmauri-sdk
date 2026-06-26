@@ -21,7 +21,9 @@ def test_serialization():
     tool_name = "AdditionTool"
     tool = Tool(name=tool_name)
     toolkit.add_tool(tool)
-    assert toolkit.id == Toolkit.model_validate_json(toolkit.model_dump_json()).id
+    assert (
+        toolkit.id == Toolkit.model_validate_json(toolkit.model_dump_json()).id
+    )
     # Adjust this line to match the actual output structure
     result = toolkit.get_tool_by_name(tool_name)(1, 2)
     assert result["sum"] == "3"

@@ -37,7 +37,9 @@ class _DummyMinio:
     def make_bucket(self, bucket: str) -> None:
         self._buckets.add(bucket)
 
-    def put_object(self, bucket: str, key: str, data, *, length=-1, part_size=0):
+    def put_object(
+        self, bucket: str, key: str, data, *, length=-1, part_size=0
+    ):
         self._buckets.add(bucket)
         data.seek(0)
         self._store[(bucket, key)] = data.read()
@@ -109,4 +111,7 @@ def test_readme_usage_example(monkeypatch, tmp_path):
     exec(compile(code, str(readme_path), "exec"), namespace, namespace)
 
     assert namespace["data"] == expected_payload
-    assert namespace["uri"] == "minio://localhost:9000/my-bucket/prefix/docs/README.md"
+    assert (
+        namespace["uri"]
+        == "minio://localhost:9000/my-bucket/prefix/docs/README.md"
+    )

@@ -41,7 +41,11 @@ class DummyKeyProvider(IKeyProvider):
         return False
 
     async def get_key(
-        self, kid: str, version: int | None = None, *, include_secret: bool = False
+        self,
+        kid: str,
+        version: int | None = None,
+        *,
+        include_secret: bool = False,
     ) -> KeyRef:
         material = self.secret if include_secret else None
         return KeyRef(
@@ -55,7 +59,11 @@ class DummyKeyProvider(IKeyProvider):
 
     async def jwks(self) -> dict:
         k = base64.urlsafe_b64encode(self.secret).rstrip(b"=").decode()
-        return {"keys": [{"kty": "oct", "kid": f"{self.kid}.{self.version}", "k": k}]}
+        return {
+            "keys": [
+                {"kty": "oct", "kid": f"{self.kid}.{self.version}", "k": k}
+            ]
+        }
 
     async def list_versions(self, kid: str):  # pragma: no cover - unused
         return (1,)

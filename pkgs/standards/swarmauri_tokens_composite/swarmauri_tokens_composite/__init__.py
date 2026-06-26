@@ -178,12 +178,16 @@ class CompositeTokenService(TokenServiceBase):
         if isinstance(cnf, dict):
             if "x5t#S256" in cnf:  # mTLS binding
                 byfmt = self._by_format.get(self._fmt_jwt)
-                svc = self._prefer_named(byfmt or [], ("TlsBoundJWTTokenService",))
+                svc = self._prefer_named(
+                    byfmt or [], ("TlsBoundJWTTokenService",)
+                )
                 if svc:
                     return svc
             if "jkt" in cnf:  # DPoP binding
                 byfmt = self._by_format.get(self._fmt_jwt)
-                svc = self._prefer_named(byfmt or [], ("DPoPBoundJWTTokenService",))
+                svc = self._prefer_named(
+                    byfmt or [], ("DPoPBoundJWTTokenService",)
+                )
                 if svc:
                     return svc
 
@@ -234,7 +238,10 @@ class CompositeTokenService(TokenServiceBase):
                     continue
                 try:
                     return await alt.verify(
-                        token, issuer=issuer, audience=audience, leeway_s=leeway_s
+                        token,
+                        issuer=issuer,
+                        audience=audience,
+                        leeway_s=leeway_s,
                     )
                 except Exception:
                     continue
@@ -253,12 +260,16 @@ class CompositeTokenService(TokenServiceBase):
             if isinstance(cnf, dict):
                 if "x5t#S256" in cnf:
                     byfmt = self._by_format.get(self._fmt_jwt)
-                    svc = self._prefer_named(byfmt or [], ("TlsBoundJWTTokenService",))
+                    svc = self._prefer_named(
+                        byfmt or [], ("TlsBoundJWTTokenService",)
+                    )
                     if svc:
                         return svc
                 if "jkt" in cnf:
                     byfmt = self._by_format.get(self._fmt_jwt)
-                    svc = self._prefer_named(byfmt or [], ("DPoPBoundJWTTokenService",))
+                    svc = self._prefer_named(
+                        byfmt or [], ("DPoPBoundJWTTokenService",)
+                    )
                     if svc:
                         return svc
             typ = (hdr or {}).get("typ")

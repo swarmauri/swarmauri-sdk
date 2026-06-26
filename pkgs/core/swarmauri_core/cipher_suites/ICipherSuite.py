@@ -25,7 +25,9 @@ class ICipherSuite(ABC):
         """Return the allow-list of algorithms grouped by operation."""
 
     @abstractmethod
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         """Return the default algorithm for ``op`` under the current policy."""
 
     @abstractmethod

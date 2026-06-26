@@ -65,14 +65,18 @@ class FrobeniusMetric(MetricBase):
         elif isinstance(x, (np.ndarray, list)):
             x_array = np.array(x)
         else:
-            raise TypeError(f"Unsupported type for Frobenius metric: {type(x)}")
+            raise TypeError(
+                f"Unsupported type for Frobenius metric: {type(x)}"
+            )
 
         if isinstance(y, IMatrix):
             y_array = np.array(y)
         elif isinstance(y, (np.ndarray, list)):
             y_array = np.array(y)
         else:
-            raise TypeError(f"Unsupported type for Frobenius metric: {type(y)}")
+            raise TypeError(
+                f"Unsupported type for Frobenius metric: {type(y)}"
+            )
 
         # Check if matrices have the same shape
         if x_array.shape != y_array.shape:
@@ -115,7 +119,9 @@ class FrobeniusMetric(MetricBase):
         TypeError
             If input types are not supported
         """
-        logger.debug("Calculating Frobenius distances between collections of matrices")
+        logger.debug(
+            "Calculating Frobenius distances between collections of matrices"
+        )
 
         if not isinstance(x, (list, tuple, Sequence)) or not isinstance(
             y, (list, tuple, Sequence)
@@ -163,7 +169,9 @@ class FrobeniusMetric(MetricBase):
             logger.error(f"Error checking non-negativity: {e}")
             return False
 
-    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
+    def check_identity_of_indiscernibles(
+        self, x: MetricInput, y: MetricInput
+    ) -> bool:
         """
         Check if the Frobenius metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -180,7 +188,9 @@ class FrobeniusMetric(MetricBase):
         bool
             True if the axiom is satisfied
         """
-        logger.debug("Checking identity of indiscernibles axiom for Frobenius metric")
+        logger.debug(
+            "Checking identity of indiscernibles axiom for Frobenius metric"
+        )
         try:
             distance_value = self.distance(x, y)
 

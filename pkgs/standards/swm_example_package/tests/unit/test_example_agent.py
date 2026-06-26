@@ -13,5 +13,7 @@ def test_example_agent_type(agent: ExampleAgent) -> None:
 
 
 @pytest.mark.asyncio
-async def test_example_agent_aexec_returns_exec_result(agent: ExampleAgent) -> None:
+async def test_example_agent_aexec_returns_exec_result(
+    agent: ExampleAgent,
+) -> None:
     assert await agent.aexec("hello") is None

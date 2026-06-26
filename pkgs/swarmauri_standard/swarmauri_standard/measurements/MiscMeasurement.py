@@ -27,7 +27,9 @@ class MiscMeasurement(MeasurementBase):
             "max_length": None,
         }
 
-    def calculate_sum(self, data: Union[pd.Series, List[Union[int, float]]]) -> float:
+    def calculate_sum(
+        self, data: Union[pd.Series, List[Union[int, float]]]
+    ) -> float:
         """
         Calculate the sum of numerical values.
 
@@ -140,7 +142,9 @@ class MiscMeasurement(MeasurementBase):
         self.value = results
         return results
 
-    def calculate_all_string(self, data: Union[pd.Series, List[str]]) -> Dict[str, int]:
+    def calculate_all_string(
+        self, data: Union[pd.Series, List[str]]
+    ) -> Dict[str, int]:
         """
         Calculate all string metrics (min_length, max_length) at once.
 
@@ -174,4 +178,6 @@ class MiscMeasurement(MeasurementBase):
         elif metric_type == "string":
             return self.calculate_all_string(data)
         else:
-            raise ValueError("metric_type must be either 'numeric' or 'string'")
+            raise ValueError(
+                "metric_type must be either 'numeric' or 'string'"
+            )

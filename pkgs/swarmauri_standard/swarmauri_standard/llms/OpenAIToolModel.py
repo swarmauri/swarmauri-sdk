@@ -1,7 +1,16 @@
 import asyncio
 import json
 import warnings
-from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Union
+from typing import (
+    Any,
+    AsyncIterator,
+    Dict,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Union,
+)
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -77,7 +86,9 @@ class OpenAIToolModel(LLMBase):
     name: str = "gpt-5.5"
     type: Literal["OpenAIToolModel"] = "OpenAIToolModel"
     timeout: float = 600.0
-    _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
+    _BASE_URL: str = PrivateAttr(
+        default="https://api.openai.com/v1/chat/completions"
+    )
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
     def __init__(self, **data: Any) -> None:
@@ -93,11 +104,21 @@ class OpenAIToolModel(LLMBase):
             "Content-Type": "application/json",
         }
 
-    def _schema_convert_tools(self, tools: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(
+        self, tools: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         return [OpenAISchemaConverter().convert(tools[tool]) for tool in tools]
 
-    def _format_messages(self, messages: List[MessageBase]) -> List[Dict[str, Any]]:
-        message_properties = ["content", "role", "name", "tool_call_id", "tool_calls"]
+    def _format_messages(
+        self, messages: List[MessageBase]
+    ) -> List[Dict[str, Any]]:
+        message_properties = [
+            "content",
+            "role",
+            "name",
+            "tool_call_id",
+            "tool_calls",
+        ]
         return [
             message.model_dump(include=message_properties, exclude_none=True)
             for message in messages
@@ -168,17 +189,26 @@ class OpenAIToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
             "tool_choice": tool_choice or "auto",
         }
 
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(self._BASE_URL, headers=self._headers, json=payload)
+            response = client.post(
+                self._BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
             tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
 
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
@@ -187,7 +217,9 @@ class OpenAIToolModel(LLMBase):
         payload.pop("tool_choice", None)
 
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(self._BASE_URL, headers=self._headers, json=payload)
+            response = client.post(
+                self._BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
 
         agent_response = response.json()
@@ -226,7 +258,9 @@ class OpenAIToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
             "tool_choice": tool_choice or "auto",
         }
 
@@ -237,8 +271,13 @@ class OpenAIToolModel(LLMBase):
             response.raise_for_status()
             tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
         payload["messages"] = messages
@@ -289,18 +328,27 @@ class OpenAIToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice or "auto",
         }
 
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(self._BASE_URL, headers=self._headers, json=payload)
+            response = client.post(
+                self._BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
 
         tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
 
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
@@ -310,7 +358,9 @@ class OpenAIToolModel(LLMBase):
         payload.pop("tool_choice", None)
 
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(self._BASE_URL, headers=self._headers, json=payload)
+            response = client.post(
+                self._BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
 
         message_content = ""
@@ -358,7 +408,9 @@ class OpenAIToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice or "auto",
         }
 
@@ -370,8 +422,13 @@ class OpenAIToolModel(LLMBase):
 
         tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
 
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 

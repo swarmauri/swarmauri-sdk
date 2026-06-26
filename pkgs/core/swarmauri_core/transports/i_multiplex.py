@@ -22,7 +22,11 @@ class IMultiplexTransport(ABC):
 
     @abstractmethod
     async def send_on(
-        self, handle: ChannelHandle, data: bytes, *, timeout: Optional[float] = None
+        self,
+        handle: ChannelHandle,
+        data: bytes,
+        *,
+        timeout: Optional[float] = None,
     ) -> None:
         """Send data on a specific channel."""
 

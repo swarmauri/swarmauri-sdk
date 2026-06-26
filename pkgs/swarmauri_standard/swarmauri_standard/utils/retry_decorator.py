@@ -89,6 +89,10 @@ def retry_on_status_codes(
             )
 
         # Check if the function is async or sync and return appropriate wrapper
-        return async_wrapper if inspect.iscoroutinefunction(func) else sync_wrapper
+        return (
+            async_wrapper
+            if inspect.iscoroutinefunction(func)
+            else sync_wrapper
+        )
 
     return decorator

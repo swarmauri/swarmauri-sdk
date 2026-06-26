@@ -121,11 +121,15 @@ class HTMLLoggingFormatter(logging.Formatter):
         level_name = record.levelname
         level_style = ""
         if self.config.use_colors and level_name in self.config.level_colors:
-            level_style = f' style="color: {self.config.level_colors[level_name]}"'
+            level_style = (
+                f' style="color: {self.config.level_colors[level_name]}"'
+            )
 
         level_class = ""
         if level_name in self.config.level_css_classes:
-            level_class = f' class="{self.config.level_css_classes[level_name]}"'
+            level_class = (
+                f' class="{self.config.level_css_classes[level_name]}"'
+            )
 
         html_output += f"<span{level_class}{level_style}>[{level_name}]</span>"
 

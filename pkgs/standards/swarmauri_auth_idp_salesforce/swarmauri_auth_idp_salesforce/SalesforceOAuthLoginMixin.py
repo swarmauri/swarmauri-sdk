@@ -32,7 +32,9 @@ class SalesforceOAuthLoginMixin:
     AUTH_PATH: str = Field(
         default="/services/oauth2/authorize", exclude=True, repr=False
     )
-    TOKEN_PATH: str = Field(default="/services/oauth2/token", exclude=True, repr=False)
+    TOKEN_PATH: str = Field(
+        default="/services/oauth2/token", exclude=True, repr=False
+    )
     USERINFO_PATH: str = Field(
         default="/services/oauth2/userinfo", exclude=True, repr=False
     )
@@ -63,7 +65,9 @@ class SalesforceOAuthLoginMixin:
         )
         return {"url": url, "state": state, "verifier": verifier}
 
-    async def _exchange_tokens(self, code: str, state: str) -> Mapping[str, Any]:
+    async def _exchange_tokens(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         payload = verify_state(self._state_secret_value(), state)
         form = {
             "grant_type": "authorization_code",

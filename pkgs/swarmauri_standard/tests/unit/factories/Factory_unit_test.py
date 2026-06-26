@@ -44,7 +44,9 @@ def test_ubc_type(factory):
 
 @pytest.mark.unit
 def test_serialization(factory):
-    assert factory.id == Factory.model_validate_json(factory.model_dump_json()).id
+    assert (
+        factory.id == Factory.model_validate_json(factory.model_dump_json()).id
+    )
 
 
 @pytest.mark.unit
@@ -52,7 +54,9 @@ def test_factory_register_create_resource(factory):
     factory.register("Parser", "HTMLTagStripParser", HTMLTagStripParser)
 
     html_content = "<div><p>Sample HTML content</p></div>"
-    instance = factory.create("Parser", "HTMLTagStripParser", element=html_content)
+    instance = factory.create(
+        "Parser", "HTMLTagStripParser", element=html_content
+    )
 
     assert isinstance(instance, HTMLTagStripParser)
     assert instance.type == "HTMLTagStripParser"
@@ -61,7 +65,8 @@ def test_factory_register_create_resource(factory):
 @pytest.mark.unit
 def test_factory_create_unregistered_resource(factory):
     with pytest.raises(
-        ModuleNotFoundError, match="Resource 'UnknownResource' is not registered."
+        ModuleNotFoundError,
+        match="Resource 'UnknownResource' is not registered.",
     ):
         factory.create("UnknownResource", "HTMLTagStripParser")
 
@@ -98,7 +103,9 @@ def test_factory_create_passes_positional_and_keyword_arguments(factory):
 
 
 @pytest.mark.unit
-def test_factory_can_register_and_create_multiple_types_for_one_resource(factory):
+def test_factory_can_register_and_create_multiple_types_for_one_resource(
+    factory,
+):
     factory.register("Parser", "GreetingParser", _GreetingParser)
     factory.register("Parser", "CounterParser", _CounterParser)
 

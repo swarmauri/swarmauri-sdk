@@ -69,7 +69,9 @@ class TanimotoSimilarity(SimilarityBase):
 
             # Check for zero vectors
             if np.all(x_array == 0) or np.all(y_array == 0):
-                raise ValueError("Tanimoto similarity is not defined for zero vectors")
+                raise ValueError(
+                    "Tanimoto similarity is not defined for zero vectors"
+                )
 
             return x_array, y_array
         except Exception as e:
@@ -117,7 +119,9 @@ class TanimotoSimilarity(SimilarityBase):
                     if x_array[i] == 0 and y_array[i] == 0:
                         continue  # Both elements are zero, ratio is preserved
                     elif x_array[i] == 0 or y_array[i] == 0:
-                        is_proportional = False  # One element is zero, the other isn't
+                        is_proportional = (
+                            False  # One element is zero, the other isn't
+                        )
                         break
                     elif abs(x_array[i] / y_array[i] - ratio) > 1e-10:
                         is_proportional = False  # Ratio differs
@@ -181,7 +185,9 @@ class TanimotoSimilarity(SimilarityBase):
 
             # Check for zero vector
             if np.all(x_array == 0):
-                raise ValueError("Tanimoto similarity is not defined for zero vectors")
+                raise ValueError(
+                    "Tanimoto similarity is not defined for zero vectors"
+                )
 
             # Precompute sum of squares for reference vector
             sum_squares_x = np.sum(x_array**2)
@@ -219,14 +225,18 @@ class TanimotoSimilarity(SimilarityBase):
                         results.append(float(dot_product / denominator))
 
                 except Exception as e:
-                    logger.warning(f"Error calculating individual similarity: {str(e)}")
+                    logger.warning(
+                        f"Error calculating individual similarity: {str(e)}"
+                    )
                     results.append(
                         float("nan")
                     )  # Use NaN to indicate calculation error
 
             return results
         except Exception as e:
-            logger.error(f"Error calculating multiple Tanimoto similarities: {str(e)}")
+            logger.error(
+                f"Error calculating multiple Tanimoto similarities: {str(e)}"
+            )
             raise
 
     def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
@@ -299,7 +309,9 @@ class TanimotoSimilarity(SimilarityBase):
 
             # Check for zero vector
             if np.all(x_array == 0):
-                raise ValueError("Tanimoto similarity is not defined for zero vectors")
+                raise ValueError(
+                    "Tanimoto similarity is not defined for zero vectors"
+                )
 
             # For non-zero vectors, Tanimoto similarity is reflexive
             # s(x,x) = (x·x) / (|x|^2 + |x|^2 - x·x) = |x|^2 / |x|^2 = 1

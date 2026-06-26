@@ -27,7 +27,8 @@ DISTANCE_WORKSPACE_PACKAGES = [
 ]
 
 DISTANCE_WORKSPACE_MEMBERS = [
-    f'"standards/{package_name}"' for package_name in DISTANCE_WORKSPACE_PACKAGES
+    f'"standards/{package_name}"'
+    for package_name in DISTANCE_WORKSPACE_PACKAGES
 ]
 
 
@@ -36,7 +37,9 @@ def _repo_root() -> Path:
 
 
 def _extract_version_tuple(pyproject_text: str) -> tuple[int, int, int]:
-    match = re.search(r'^version = "(\d+)\.(\d+)\.(\d+)', pyproject_text, re.MULTILINE)
+    match = re.search(
+        r'^version = "(\d+)\.(\d+)\.(\d+)', pyproject_text, re.MULTILINE
+    )
     if not match:
         raise AssertionError(
             "Unable to determine Swarmauri version from pyproject.toml"
@@ -49,9 +52,13 @@ def test_distance_packages_are_marked_inactive_and_capped():
     root = _repo_root()
     for package_name in DISTANCE_PACKAGES:
         if package_name == "swamauri_metric_wasserstein":
-            pyproject = root / "pkgs" / "standards" / package_name / "pyproject.toml"
+            pyproject = (
+                root / "pkgs" / "standards" / package_name / "pyproject.toml"
+            )
         else:
-            pyproject = root / "pkgs" / "standards" / package_name / "pyproject.toml"
+            pyproject = (
+                root / "pkgs" / "standards" / package_name / "pyproject.toml"
+            )
         text = pyproject.read_text(encoding="utf-8")
         assert "Development Status :: 7 - Inactive" in text
         assert "<0.10.0" in text
@@ -71,7 +78,9 @@ def test_distance_package_readmes_include_replacement_guidance():
 @pytest.mark.unit
 def test_distance_workspace_members_have_root_sources():
     root = _repo_root()
-    root_pyproject = (root / "pkgs" / "pyproject.toml").read_text(encoding="utf-8")
+    root_pyproject = (root / "pkgs" / "pyproject.toml").read_text(
+        encoding="utf-8"
+    )
 
     for member_path in DISTANCE_WORKSPACE_MEMBERS:
         assert member_path in root_pyproject
@@ -87,7 +96,11 @@ def test_distance_workspace_members_have_root_sources():
 def test_wasserstein_metric_uses_metric_entry_point_namespace():
     root = _repo_root()
     pyproject = (
-        root / "pkgs" / "standards" / "swamauri_metric_wasserstein" / "pyproject.toml"
+        root
+        / "pkgs"
+        / "standards"
+        / "swamauri_metric_wasserstein"
+        / "pyproject.toml"
     ).read_text(encoding="utf-8")
 
     assert "[project.entry-points.'swarmauri.metrics']" in pyproject
@@ -97,19 +110,25 @@ def test_wasserstein_metric_uses_metric_entry_point_namespace():
 @pytest.mark.unit
 def test_distance_packages_removed_by_v0120():
     root = _repo_root()
-    swarmauri_pyproject = (root / "pkgs" / "swarmauri" / "pyproject.toml").read_text(
-        encoding="utf-8"
-    )
+    swarmauri_pyproject = (
+        root / "pkgs" / "swarmauri" / "pyproject.toml"
+    ).read_text(encoding="utf-8")
     version_tuple = _extract_version_tuple(swarmauri_pyproject)
     if version_tuple < (0, 12, 0):
-        pytest.skip("Distance compatibility aliases remain supported before v0.12.0")
+        pytest.skip(
+            "Distance compatibility aliases remain supported before v0.12.0"
+        )
 
     workspace = (root / "pkgs" / "pyproject.toml").read_text(encoding="utf-8")
     interface_registry = (
         root / "pkgs" / "swarmauri" / "swarmauri" / "interface_registry.py"
     ).read_text(encoding="utf-8")
     plugin_registry = (
-        root / "pkgs" / "swarmauri" / "swarmauri" / "plugin_citizenship_registry.py"
+        root
+        / "pkgs"
+        / "swarmauri"
+        / "swarmauri"
+        / "plugin_citizenship_registry.py"
     ).read_text(encoding="utf-8")
 
     assert "swarmauri.distances" not in interface_registry

@@ -23,7 +23,9 @@ from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 class KeyProviderBase(IKeyProvider, ComponentBase):
     """Base class for key providers within the Swarmauri ecosystem."""
 
-    resource: Optional[str] = Field(default=ResourceTypes.CRYPTO.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.CRYPTO.value, frozen=True
+    )
     type: Literal["KeyProviderBase"] = "KeyProviderBase"
 
     def _fingerprint(
@@ -47,7 +49,9 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
         Subclasses must implement provider-specific resolution logic.
         """
 
-        raise NotImplementedError("get_key_by_ref must be implemented by subclasses")
+        raise NotImplementedError(
+            "get_key_by_ref must be implemented by subclasses"
+        )
 
     # ------------------------------------------------------------------
     def _split_path_params(self, spec: str) -> Tuple[Path, Dict[str, str]]:
@@ -55,7 +59,8 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
             return Path(os.path.expanduser(spec)), {}
         raw_path, raw_params = spec.split("?", 1)
         params = {
-            k: v[0] for k, v in parse_qs(raw_params, keep_blank_values=True).items()
+            k: v[0]
+            for k, v in parse_qs(raw_params, keep_blank_values=True).items()
         }
         return Path(os.path.expanduser(raw_path)), params
 
@@ -124,7 +129,9 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
             material = self._resolve_private_bytes(
                 private_key, export_private=export_private
             )
-        chain_bytes = self._resolve_chain_bytes(chain, export_chain=export_chain)
+        chain_bytes = self._resolve_chain_bytes(
+            chain, export_chain=export_chain
+        )
 
         kid = self._fingerprint(public=public_bytes, material=material)
         resolved_key_type = key_type or self._infer_key_type(private_key)
@@ -206,9 +213,13 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
             return self._coerce_to_bytes(result, allow_none=True)
         if isinstance(private_key, dict):
             if "public" in private_key:
-                return self._coerce_to_bytes(private_key["public"], allow_none=True)
+                return self._coerce_to_bytes(
+                    private_key["public"], allow_none=True
+                )
             if "pub" in private_key:
-                return self._coerce_to_bytes(private_key["pub"], allow_none=True)
+                return self._coerce_to_bytes(
+                    private_key["pub"], allow_none=True
+                )
         if isinstance(private_key, (bytes, bytearray, memoryview)):
             return None
         raise NotImplementedError(
@@ -226,9 +237,13 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
             return self._coerce_to_bytes(result, allow_none=True)
         if isinstance(private_key, dict):
             if "private" in private_key:
-                return self._coerce_to_bytes(private_key["private"], allow_none=True)
+                return self._coerce_to_bytes(
+                    private_key["private"], allow_none=True
+                )
             if "secret" in private_key:
-                return self._coerce_to_bytes(private_key["secret"], allow_none=True)
+                return self._coerce_to_bytes(
+                    private_key["secret"], allow_none=True
+                )
         if isinstance(private_key, (bytes, bytearray, memoryview)):
             return bytes(private_key)
         raise NotImplementedError(

@@ -2,7 +2,9 @@ import logging
 
 import pytest
 
-from swarmauri_standard.logger_formatters.KeyValueFormatter import KeyValueFormatter
+from swarmauri_standard.logger_formatters.KeyValueFormatter import (
+    KeyValueFormatter,
+)
 
 
 @pytest.fixture

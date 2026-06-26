@@ -26,7 +26,9 @@ class VoyageEmbedding(EmbeddingBase):
     api_key: SecretStr = None
     model: str = "voyage-2"
     type: Literal["VoyageEmbedding"] = "VoyageEmbedding"
-    _BASE_URL: str = PrivateAttr(default="https://api.voyageai.com/v1/embeddings")
+    _BASE_URL: str = PrivateAttr(
+        default="https://api.voyageai.com/v1/embeddings"
+    )
     _headers: dict = PrivateAttr()
     _client: httpx.Client = PrivateAttr()
 
@@ -71,13 +73,17 @@ class VoyageEmbedding(EmbeddingBase):
             result = response.json()
 
             # Extract embeddings and convert to Vector objects
-            embeddings = [Vector(value=item["embedding"]) for item in result["data"]]
+            embeddings = [
+                Vector(value=item["embedding"]) for item in result["data"]
+            ]
             return embeddings
 
         except httpx.HTTPError as e:
             raise ValueError(f"Error calling Voyage AI API: {str(e)}")
         except (KeyError, ValueError) as e:
-            raise ValueError(f"Error processing Voyage AI API response: {str(e)}")
+            raise ValueError(
+                f"Error processing Voyage AI API response: {str(e)}"
+            )
 
     def infer_vector(self, data: str) -> List[Vector]:
         """
@@ -92,13 +98,19 @@ class VoyageEmbedding(EmbeddingBase):
         return self.transform([data])
 
     def save_model(self, path: str):
-        raise NotImplementedError("save_model is not applicable for Voyage embeddings")
+        raise NotImplementedError(
+            "save_model is not applicable for Voyage embeddings"
+        )
 
     def load_model(self, path: str) -> Any:
-        raise NotImplementedError("load_model is not applicable for Voyage embeddings")
+        raise NotImplementedError(
+            "load_model is not applicable for Voyage embeddings"
+        )
 
     def fit(self, documents: List[str], labels=None) -> None:
-        raise NotImplementedError("fit is not applicable for Voyage embeddings")
+        raise NotImplementedError(
+            "fit is not applicable for Voyage embeddings"
+        )
 
     def fit_transform(self, documents: List[str], **kwargs) -> List[Vector]:
         raise NotImplementedError(

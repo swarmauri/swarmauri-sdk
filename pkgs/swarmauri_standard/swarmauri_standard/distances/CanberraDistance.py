@@ -41,7 +41,9 @@ class CanberraDistance(DistanceBase):
             raise ValueError("Vectors must have the same dimensionality.")
 
         # Computing Canberra distance
-        distance = np.sum(np.abs(data_a - data_b) / (np.abs(data_a) + np.abs(data_b)))
+        distance = np.sum(
+            np.abs(data_a - data_b) / (np.abs(data_a) + np.abs(data_b))
+        )
         # Handling the case where both vectors have a zero value for the same dimension
         distance = np.nan_to_num(distance)
         return distance
@@ -69,10 +71,18 @@ class CanberraDistance(DistanceBase):
 
         return similarity
 
-    def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+    def distances(
+        self, vector_a: Vector, vectors_b: List[Vector]
+    ) -> List[float]:
+        distances = [
+            self.distance(vector_a, vector_b) for vector_b in vectors_b
+        ]
         return distances
 
-    def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
-        similarities = [self.similarity(vector_a, vector_b) for vector_b in vectors_b]
+    def similarities(
+        self, vector_a: Vector, vectors_b: List[Vector]
+    ) -> List[float]:
+        similarities = [
+            self.similarity(vector_a, vector_b) for vector_b in vectors_b
+        ]
         return similarities

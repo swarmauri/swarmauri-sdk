@@ -1,6 +1,8 @@
 import time
 import pytest
-from swarmauri_standard.rate_limits.TokenBucketRateLimit import TokenBucketRateLimit
+from swarmauri_standard.rate_limits.TokenBucketRateLimit import (
+    TokenBucketRateLimit,
+)
 from swarmauri_base.ComponentBase import ResourceTypes
 
 
@@ -23,7 +25,9 @@ def test_ubc_type(rate_limit):
 def test_serialization(rate_limit):
     assert (
         rate_limit.id
-        == TokenBucketRateLimit.model_validate_json(rate_limit.model_dump_json()).id
+        == TokenBucketRateLimit.model_validate_json(
+            rate_limit.model_dump_json()
+        ).id
     )
 
 

@@ -1,6 +1,8 @@
 from typing import List, Any
 from pydantic import BaseModel
-from swarmauri_core.measurements.IMeasurementAggregate import IMeasurementAggregate
+from swarmauri_core.measurements.IMeasurementAggregate import (
+    IMeasurementAggregate,
+)
 
 
 class MeasurementAggregateMixin(IMeasurementAggregate, BaseModel):

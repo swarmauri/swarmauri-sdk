@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from .protos import PriceRefProto, PriceSpecProto, ProductRefProto, ProductSpecProto
+from .protos import (
+    PriceRefProto,
+    PriceSpecProto,
+    ProductRefProto,
+    ProductSpecProto,
+)
 
 
 class IProductsPrices(ABC):

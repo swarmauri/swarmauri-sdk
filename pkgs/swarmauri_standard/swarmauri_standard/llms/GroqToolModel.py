@@ -85,12 +85,16 @@ class GroqToolModel(LLMBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
@@ -98,7 +102,9 @@ class GroqToolModel(LLMBase):
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 
-    def _schema_convert_tools(self, tools: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(
+        self, tools: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """
         Converts toolkit items to API-compatible schema format.
 
@@ -159,7 +165,13 @@ class GroqToolModel(LLMBase):
         Returns:
             List[Dict[str, Any]]: List of formatted message dictionaries.
         """
-        message_properties = ["content", "role", "name", "tool_call_id", "tool_calls"]
+        message_properties = [
+            "content",
+            "role",
+            "name",
+            "tool_call_id",
+            "tool_calls",
+        ]
         formatted_messages = [
             message.model_dump(include=message_properties, exclude_none=True)
             for message in messages
@@ -198,7 +210,9 @@ class GroqToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice,
         }
 
@@ -207,8 +221,13 @@ class GroqToolModel(LLMBase):
 
         tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
 
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
@@ -259,7 +278,9 @@ class GroqToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice,
         }
 
@@ -268,8 +289,13 @@ class GroqToolModel(LLMBase):
 
         tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
 
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
@@ -318,7 +344,9 @@ class GroqToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice or "auto",
         }
 
@@ -327,8 +355,13 @@ class GroqToolModel(LLMBase):
 
         tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
 
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
@@ -384,7 +417,9 @@ class GroqToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice or "auto",
         }
 
@@ -393,8 +428,13 @@ class GroqToolModel(LLMBase):
 
         tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
 
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 

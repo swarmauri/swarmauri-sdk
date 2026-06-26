@@ -31,9 +31,13 @@ class SpatialDocEmbedding(EmbeddingBase):
         }
         self._tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         self._tokenizer.add_special_tokens(self._special_tokens_dict)
-        self._model = BertModel.from_pretrained("bert-base-uncased", return_dict=True)
+        self._model = BertModel.from_pretrained(
+            "bert-base-uncased", return_dict=True
+        )
         self._model.resize_token_embeddings(len(self._tokenizer))
-        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu"
+        )
         self._model.to(self._device)
 
     def add_metadata(self, text, metadata_dict):
@@ -50,7 +54,11 @@ class SpatialDocEmbedding(EmbeddingBase):
 
     def tokenize_and_encode(self, text):
         inputs = self._tokenizer(
-            text, return_tensors="pt", padding=True, truncation=True, max_length=512
+            text,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=512,
         )
         # Move the input tensors to the same device as the model
         inputs = {key: value.to(self._device) for key, value in inputs.items()}

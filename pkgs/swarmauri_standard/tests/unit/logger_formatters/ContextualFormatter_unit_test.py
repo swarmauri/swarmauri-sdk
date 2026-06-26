@@ -47,7 +47,11 @@ def test_default_initialization():
 
     assert formatter.format == "[%(name)s][%(levelname)s] %(message)s"
     assert formatter.date_format == "%Y-%m-%d %H:%M:%S"
-    assert formatter.context_keys == ["request_id", "user_id", "correlation_id"]
+    assert formatter.context_keys == [
+        "request_id",
+        "user_id",
+        "correlation_id",
+    ]
     assert formatter.custom_context_keys == []
     assert formatter.context_as_prefix is False
     assert formatter.context_separator == " "
@@ -109,7 +113,9 @@ def test_compile_formatter(basic_formatter, custom_formatter):
         formatter_impl.context_keys
         == basic_formatter.context_keys + basic_formatter.custom_context_keys
     )
-    assert formatter_impl.context_as_prefix == basic_formatter.context_as_prefix
+    assert (
+        formatter_impl.context_as_prefix == basic_formatter.context_as_prefix
+    )
 
     # Test with custom formatter
     formatter_impl = custom_formatter.compile_formatter()
@@ -118,13 +124,21 @@ def test_compile_formatter(basic_formatter, custom_formatter):
         formatter_impl.context_keys
         == custom_formatter.context_keys + custom_formatter.custom_context_keys
     )
-    assert formatter_impl.context_as_prefix == custom_formatter.context_as_prefix
-    assert formatter_impl.context_separator == custom_formatter.context_separator
+    assert (
+        formatter_impl.context_as_prefix == custom_formatter.context_as_prefix
+    )
+    assert (
+        formatter_impl.context_separator == custom_formatter.context_separator
+    )
     assert formatter_impl.context_prefix == custom_formatter.context_prefix
     assert formatter_impl.context_suffix == custom_formatter.context_suffix
-    assert formatter_impl.context_item_format == custom_formatter.context_item_format
     assert (
-        formatter_impl.include_empty_context == custom_formatter.include_empty_context
+        formatter_impl.context_item_format
+        == custom_formatter.context_item_format
+    )
+    assert (
+        formatter_impl.include_empty_context
+        == custom_formatter.include_empty_context
     )
 
 
@@ -167,12 +181,16 @@ def test_format_context_with_values():
     """Test _format_context with context values."""
     # Test with default settings (key=value format)
     formatter = ContextualFormatterImpl()
-    result = formatter._format_context({"request_id": "123", "user_id": "user1"})
+    result = formatter._format_context(
+        {"request_id": "123", "user_id": "user1"}
+    )
     assert result == "[request_id=123 user_id=user1]"
 
     # Test with prefix mode
     formatter = ContextualFormatterImpl(context_as_prefix=True)
-    result = formatter._format_context({"request_id": "123", "user_id": "user1"})
+    result = formatter._format_context(
+        {"request_id": "123", "user_id": "user1"}
+    )
     assert result == "[123 user1]"
 
     # Test with custom settings
@@ -183,7 +201,9 @@ def test_format_context_with_values():
         context_suffix=">",
         context_item_format="{key}:{value}",
     )
-    result = formatter._format_context({"request_id": "123", "user_id": "user1"})
+    result = formatter._format_context(
+        {"request_id": "123", "user_id": "user1"}
+    )
     assert result == "<request_id:123|user_id:user1>"
 
 

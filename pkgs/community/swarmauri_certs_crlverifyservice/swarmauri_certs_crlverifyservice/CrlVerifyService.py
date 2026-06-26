@@ -72,7 +72,9 @@ class CrlVerifyService(CertServiceBase):
             check_time or datetime.datetime.utcnow().timestamp()
         )
 
-        cert_obj: Certificate = x509.load_pem_x509_certificate(cert, default_backend())
+        cert_obj: Certificate = x509.load_pem_x509_certificate(
+            cert, default_backend()
+        )
         out: Dict[str, Any] = {
             "valid": True,
             "reason": None,
@@ -123,7 +125,9 @@ class CrlVerifyService(CertServiceBase):
             Dict[str, Any]: Metadata extracted from the certificate such as
             subject, issuer, validity window, and optional extensions.
         """
-        cert_obj: Certificate = x509.load_pem_x509_certificate(cert, default_backend())
+        cert_obj: Certificate = x509.load_pem_x509_certificate(
+            cert, default_backend()
+        )
         out: Dict[str, Any] = {
             "serial": cert_obj.serial_number,
             "subject": cert_obj.subject.rfc4514_string(),
@@ -138,7 +142,10 @@ class CrlVerifyService(CertServiceBase):
                 bc = cert_obj.extensions.get_extension_for_oid(
                     ExtensionOID.BASIC_CONSTRAINTS
                 ).value
-                out["basic_constraints"] = {"ca": bc.ca, "path_len": bc.path_length}
+                out["basic_constraints"] = {
+                    "ca": bc.ca,
+                    "path_len": bc.path_length,
+                }
             except ExtensionNotFound:
                 pass
 

@@ -44,7 +44,9 @@ class GroqAIAudio(LLMBase):
     type: Literal["GroqAIAudio"] = "GroqAIAudio"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
-    _BASE_URL: str = PrivateAttr(default="https://api.groq.com/openai/v1/audio/")
+    _BASE_URL: str = PrivateAttr(
+        default="https://api.groq.com/openai/v1/audio/"
+    )
 
     timeout: float = 600.0
 
@@ -57,12 +59,16 @@ class GroqAIAudio(LLMBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
@@ -211,7 +217,8 @@ class GroqAIAudio(LLMBase):
                 return await self.apredict(audio_path=path, task=task)
 
         tasks = [
-            process_conversation(path, task) for path, task in path_task_dict.items()
+            process_conversation(path, task)
+            for path, task in path_task_dict.items()
         ]
         return await asyncio.gather(*tasks)
 
@@ -220,14 +227,18 @@ class GroqAIAudio(LLMBase):
         audio_path: str,
         task: Literal["transcription", "translation"] = "transcription",
     ):
-        raise NotImplementedError("Stream method is not implemented for GroqAIAudio")
+        raise NotImplementedError(
+            "Stream method is not implemented for GroqAIAudio"
+        )
 
     async def astream(
         self,
         audio_path: str,
         task: Literal["transcription", "translation"] = "transcription",
     ):
-        raise NotImplementedError("Astream method is not implemented for GroqAIAudio")
+        raise NotImplementedError(
+            "Astream method is not implemented for GroqAIAudio"
+        )
 
     def get_allowed_models(self) -> List[str]:
         """

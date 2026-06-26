@@ -32,7 +32,9 @@ def _python_code_blocks(readme: str) -> list[str]:
 
 
 @pytest.mark.example
-def test_readme_examples(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_readme_examples(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     readme_text = README_PATH.read_text(encoding="utf-8")
     examples = _python_code_blocks(readme_text)
 

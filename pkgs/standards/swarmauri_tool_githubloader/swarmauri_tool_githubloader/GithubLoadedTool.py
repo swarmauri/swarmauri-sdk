@@ -45,7 +45,9 @@ class GithubLoadedTool(ToolBase):
 
     def _fetch_yaml(self) -> str:
         url = f"https://raw.githubusercontent.com/{self.owner}/{self.repo}/{self._ref()}/{self.path}"
-        headers = {"Authorization": f"token {self.token}"} if self.token else {}
+        headers = (
+            {"Authorization": f"token {self.token}"} if self.token else {}
+        )
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         return response.text
@@ -60,7 +62,9 @@ class GithubLoadedTool(ToolBase):
             component_type = parsed.get("type")
             if component_type:
                 registry = DynamicBase._registry.get("ToolBase", {})
-                component_cls = registry.get("subtypes", {}).get(component_type)
+                component_cls = registry.get("subtypes", {}).get(
+                    component_type
+                )
                 if component_cls:
                     component = component_cls.model_validate_yaml(yaml_text)
                 else:

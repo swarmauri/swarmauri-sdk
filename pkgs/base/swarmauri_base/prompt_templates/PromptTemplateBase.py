@@ -16,7 +16,9 @@ class PromptTemplateBase(IPromptTemplate, ComponentBase):
 
     template: str = ""
     variables: Union[List[Dict[str, str]], Dict[str, str]] = {}
-    resource: Optional[str] = Field(default=ResourceTypes.PROMPT.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.PROMPT.value, frozen=True
+    )
     type: Literal["PromptTemplateBase"] = "PromptTemplateBase"
 
     def set_template(self, template: str) -> None:

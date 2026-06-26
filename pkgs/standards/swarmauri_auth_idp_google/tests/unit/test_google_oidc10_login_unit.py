@@ -51,7 +51,9 @@ def test_serialization(login: GoogleOIDC10Login) -> None:
 @pytest.mark.asyncio
 async def test_auth_url_uses_discovery(login: GoogleOIDC10Login) -> None:
     payload = await login.auth_url()
-    assert payload["url"].startswith("https://accounts.google.com/o/oauth2/v2/auth?")
+    assert payload["url"].startswith(
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+    )
 
 
 @pytest.mark.unit

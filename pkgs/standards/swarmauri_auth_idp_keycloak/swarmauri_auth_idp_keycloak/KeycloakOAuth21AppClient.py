@@ -38,10 +38,16 @@ class KeycloakOAuth21AppClient(OAuth21AppClientBase):
         return f"{self.issuer.rstrip('/')}/protocol/openid-connect/token"
 
     def _client_secret_value(self) -> Optional[str]:
-        return self.client_secret.get_secret_value() if self.client_secret else None
+        return (
+            self.client_secret.get_secret_value()
+            if self.client_secret
+            else None
+        )
 
     @staticmethod
-    def _load_private_key(jwk_payload: Mapping[str, Any], algorithm: str) -> Any:
+    def _load_private_key(
+        jwk_payload: Mapping[str, Any], algorithm: str
+    ) -> Any:
         serialized = json.dumps(jwk_payload)
         if algorithm.upper().startswith("ES"):
             return jwt.algorithms.ECAlgorithm.from_jwk(serialized)
@@ -86,7 +92,9 @@ class KeycloakOAuth21AppClient(OAuth21AppClientBase):
         else:
             secret = self._client_secret_value()
             if not secret:
-                raise ValueError("client_secret or private_key_jwk must be provided")
+                raise ValueError(
+                    "client_secret or private_key_jwk must be provided"
+                )
             auth = (self.client_id, secret)
             payload = form
         async with self.http_client_factory() as client:

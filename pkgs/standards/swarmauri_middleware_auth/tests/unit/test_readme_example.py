@@ -20,7 +20,9 @@ def test_readme_usage_example_executes() -> None:
     readme_path = Path(__file__).resolve().parents[2] / "README.md"
     readme_text = readme_path.read_text(encoding="utf-8")
 
-    match = re.search(r"## Usage.*?```python\n(?P<code>.*?)```", readme_text, re.S)
+    match = re.search(
+        r"## Usage.*?```python\n(?P<code>.*?)```", readme_text, re.S
+    )
     assert match is not None, "Usage example not found in README.md"
 
     namespace: dict[str, object] = {"__name__": "__test__"}
@@ -33,7 +35,9 @@ def test_readme_usage_example_executes() -> None:
     audience = namespace.get("AUDIENCE")
 
     assert app is not None, "Example did not define 'app'"
-    assert auth_middleware is not None, "Example did not define 'auth_middleware'"
+    assert auth_middleware is not None, (
+        "Example did not define 'auth_middleware'"
+    )
     assert secret_key is not None, "Example did not define 'SECRET_KEY'"
     assert issuer is not None, "Example did not define 'ISSUER'"
     assert audience is not None, "Example did not define 'AUDIENCE'"

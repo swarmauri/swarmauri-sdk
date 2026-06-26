@@ -174,7 +174,9 @@ class AnthropicModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -213,7 +215,9 @@ class AnthropicModel(LLMBase):
         usage_data = {"input_tokens": 0, "output_tokens": 0}
 
         with DurationManager() as prompt_timer:
-            with self._client.stream("POST", "/messages", json=payload) as response:
+            with self._client.stream(
+                "POST", "/messages", json=payload
+            ) as response:
                 response.raise_for_status()
                 with DurationManager() as completion_timer:
                     for line in response.iter_lines():
@@ -226,16 +230,18 @@ class AnthropicModel(LLMBase):
                                     else line.decode("utf-8")
                                 )
                                 if line_text.startswith("data: "):
-                                    line_text = line_text.removeprefix("data: ")
+                                    line_text = line_text.removeprefix(
+                                        "data: "
+                                    )
 
                                 if not line_text or line_text == "[DONE]":
                                     continue
 
                                 event = json.loads(line_text)
                                 if event["type"] == "message_start":
-                                    usage_data["input_tokens"] = event["message"][
-                                        "usage"
-                                    ]["input_tokens"]
+                                    usage_data["input_tokens"] = event[
+                                        "message"
+                                    ]["usage"]["input_tokens"]
                                 elif event["type"] == "content_block_start":
                                     continue
                                 elif event["type"] == "content_block_delta":
@@ -244,9 +250,9 @@ class AnthropicModel(LLMBase):
                                     yield delta
                                 elif event["type"] == "message_delta":
                                     if "usage" in event:
-                                        usage_data["output_tokens"] = event["usage"][
-                                            "output_tokens"
-                                        ]
+                                        usage_data["output_tokens"] = event[
+                                            "usage"
+                                        ]["output_tokens"]
                                 elif event["type"] == "message_stop":
                                     if (
                                         "message" in event
@@ -260,7 +266,9 @@ class AnthropicModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -306,7 +314,9 @@ class AnthropicModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -360,16 +370,18 @@ class AnthropicModel(LLMBase):
                                     else line.decode("utf-8")
                                 )
                                 if line_text.startswith("data: "):
-                                    line_text = line_text.removeprefix("data: ")
+                                    line_text = line_text.removeprefix(
+                                        "data: "
+                                    )
 
                                 if not line_text or line_text == "[DONE]":
                                     continue
 
                                 event = json.loads(line_text)
                                 if event["type"] == "message_start":
-                                    usage_data["input_tokens"] = event["message"][
-                                        "usage"
-                                    ]["input_tokens"]
+                                    usage_data["input_tokens"] = event[
+                                        "message"
+                                    ]["usage"]["input_tokens"]
                                 elif event["type"] == "content_block_start":
                                     continue
                                 elif event["type"] == "content_block_delta":
@@ -378,9 +390,9 @@ class AnthropicModel(LLMBase):
                                     yield delta
                                 elif event["type"] == "message_delta":
                                     if "usage" in event:
-                                        usage_data["output_tokens"] = event["usage"][
-                                            "output_tokens"
-                                        ]
+                                        usage_data["output_tokens"] = event[
+                                            "usage"
+                                        ]["output_tokens"]
                                 elif event["type"] == "message_stop":
                                     if (
                                         "message" in event
@@ -394,12 +406,17 @@ class AnthropicModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
-        self, conversations: List[Conversation], temperature=0.7, max_tokens=256
+        self,
+        conversations: List[Conversation],
+        temperature=0.7,
+        max_tokens=256,
     ) -> List:
         """
         Processes multiple conversations synchronously.

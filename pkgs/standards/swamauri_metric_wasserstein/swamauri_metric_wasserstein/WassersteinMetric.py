@@ -17,12 +17,16 @@ class WassersteinMetric(MetricBase):
     def _validate_values(values_a: List[float], values_b: List[float]) -> None:
         """Validate Wasserstein input values before CDF iteration."""
         if not values_a or not values_b:
-            raise ValueError("Wasserstein distance requires non-empty vectors.")
+            raise ValueError(
+                "Wasserstein distance requires non-empty vectors."
+            )
 
         all_values = chain(values_a, values_b)
 
         if any(isnan(value) for value in all_values):
-            raise ValueError("Wasserstein distance does not accept NaN values.")
+            raise ValueError(
+                "Wasserstein distance does not accept NaN values."
+            )
 
         if not all(isfinite(value) for value in chain(values_a, values_b)):
             raise ValueError(
@@ -78,10 +82,14 @@ class WassersteinMetric(MetricBase):
         dist = self.distance(vector_a, vector_b)
         return 1 / (1 + dist)
 
-    def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
+    def distances(
+        self, vector_a: Vector, vectors_b: List[Vector]
+    ) -> List[float]:
         """Compute Wasserstein distances against multiple vectors."""
         return [self.distance(vector_a, vector_b) for vector_b in vectors_b]
 
-    def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
+    def similarities(
+        self, vector_a: Vector, vectors_b: List[Vector]
+    ) -> List[float]:
         """Compute similarities against multiple vectors."""
         return [self.similarity(vector_a, vector_b) for vector_b in vectors_b]

@@ -9,7 +9,9 @@ def test_init_module_loads():
     """Test that the __init__ module loads correctly."""
     logging.debug("Testing __init__ module load")
     mod = import_module("swarmauri_middleware_ratelimit")
-    assert hasattr(mod, "__version__"), "Module should have __version__ attribute"
+    assert hasattr(mod, "__version__"), (
+        "Module should have __version__ attribute"
+    )
     assert hasattr(mod, "__all__"), "Module should have __all__ attribute"
     assert mod.__all__ == ["RateLimitMiddleware"], (
         "__all__ should contain RateLimitMiddleware"

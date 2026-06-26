@@ -44,7 +44,9 @@ def _canon_json(obj: Any) -> bytes:
 
 def _canon_cbor(obj: Any) -> bytes:
     if not _CBOR_OK:
-        raise RuntimeError("CBOR canonicalization requires 'cbor2' to be installed.")
+        raise RuntimeError(
+            "CBOR canonicalization requires 'cbor2' to be installed."
+        )
     return cbor2.dumps(obj)
 
 
@@ -57,7 +59,9 @@ def _b64u_to_int(s: str) -> int:
     import base64
 
     pad = "=" * ((4 - len(s) % 4) % 4)
-    return int.from_bytes(base64.urlsafe_b64decode((s + pad).encode("ascii")), "big")
+    return int.from_bytes(
+        base64.urlsafe_b64decode((s + pad).encode("ascii")), "big"
+    )
 
 
 def _int_to_b64u(i: int) -> str:  # pragma: no cover - convenience
@@ -129,10 +133,18 @@ def _private_from_jwk(jwk: Mapping[str, Any]) -> rsa.RSAPrivateKey:
     pub_numbers = rsa.RSAPublicNumbers(e=e, n=n)
     if all(v is not None for v in (p, q, dp, dq, qi)):
         priv_numbers = rsa.RSAPrivateNumbers(
-            p=p, q=q, d=d, dmp1=dp, dmq1=dq, iqmp=qi, public_numbers=pub_numbers
+            p=p,
+            q=q,
+            d=d,
+            dmp1=dp,
+            dmq1=dq,
+            iqmp=qi,
+            public_numbers=pub_numbers,
         )
     else:
-        raise ValueError("RSA private JWK must include CRT params: p,q,dp,dq,qi")
+        raise ValueError(
+            "RSA private JWK must include CRT params: p,q,dp,dq,qi"
+        )
     return priv_numbers.private_key()
 
 
@@ -151,14 +163,18 @@ def _keyref_to_private(
     _ensure_crypto()
     if isinstance(key, dict):
         k = key.get("kind")
-        if k == "cryptography_obj" and isinstance(key.get("obj"), rsa.RSAPrivateKey):
+        if k == "cryptography_obj" and isinstance(
+            key.get("obj"), rsa.RSAPrivateKey
+        ):
             return key["obj"]  # type: ignore[return-value]
         if k == "pem_priv":
             data = key.get("data")
             if isinstance(data, str):
                 data = data.encode("utf-8")
             if not isinstance(data, (bytes, bytearray)):
-                raise TypeError("pem_priv KeyRef requires 'data' as bytes/str.")
+                raise TypeError(
+                    "pem_priv KeyRef requires 'data' as bytes/str."
+                )
             return _load_private_from_pem(bytes(data), passphrase)
         if k == "pem_priv_path":
             path = key.get("path")
@@ -178,7 +194,9 @@ def _keyref_to_public(key: Any) -> rsa.RSAPublicKey:
     _ensure_crypto()
     if isinstance(key, dict):
         k = key.get("kind")
-        if k == "cryptography_obj" and isinstance(key.get("obj"), rsa.RSAPublicKey):
+        if k == "cryptography_obj" and isinstance(
+            key.get("obj"), rsa.RSAPublicKey
+        ):
             return key["obj"]  # type: ignore[return-value]
         if k == "pem_pub":
             data = key.get("data")
@@ -216,7 +234,8 @@ def _kid_from_public(
     except Exception:  # pragma: no cover - thumbprint failure
         pass
     spki = pk.public_bytes(
-        serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo
+        serialization.Encoding.DER,
+        serialization.PublicFormat.SubjectPublicKeyInfo,
     )
     return hashlib.sha256(spki).hexdigest()
 
@@ -282,9 +301,13 @@ class RSAEnvelopeSigner(SigningBase):
             )
 
         jwk_hint = (
-            (opts or {}).get("kid_jwk_hint") if isinstance(opts, Mapping) else None
+            (opts or {}).get("kid_jwk_hint")
+            if isinstance(opts, Mapping)
+            else None
         )
-        kid = _kid_from_public(pk, jwk_hint if isinstance(jwk_hint, Mapping) else None)
+        kid = _kid_from_public(
+            pk, jwk_hint if isinstance(jwk_hint, Mapping) else None
+        )
         return [_Sig({"alg": str(alg), "kid": kid, "sig": sig})]
 
     async def verify_bytes(
@@ -297,7 +320,9 @@ class RSAEnvelopeSigner(SigningBase):
     ) -> bool:
         _ensure_crypto()
         min_signers = int((require or {}).get("min_signers", 1))
-        allowed_algs = set((require or {}).get("algs", ("RSA-PSS-SHA256", "RS256")))
+        allowed_algs = set(
+            (require or {}).get("algs", ("RSA-PSS-SHA256", "RS256"))
+        )
 
         pubs: list[rsa.RSAPublicKey] = []
         if opts and "pubkeys" in opts:
@@ -332,7 +357,10 @@ class RSAEnvelopeSigner(SigningBase):
                         )
                     else:  # RS256
                         pk.verify(
-                            sig_bytes, payload, padding.PKCS1v15(), hashes.SHA256()
+                            sig_bytes,
+                            payload,
+                            padding.PKCS1v15(),
+                            hashes.SHA256(),
                         )
                     verified = True
                     break
@@ -364,7 +392,9 @@ class RSAEnvelopeSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            digest, signatures, require=require, opts=opts
+        )
 
     async def canonicalize_envelope(
         self,
@@ -403,4 +433,6 @@ class RSAEnvelopeSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         payload = await self.canonicalize_envelope(env, canon=canon, opts=opts)
-        return await self.verify_bytes(payload, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            payload, signatures, require=require, opts=opts
+        )

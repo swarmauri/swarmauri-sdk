@@ -90,7 +90,9 @@ class FacebookLoginMixin:
             response.raise_for_status()
             return response.json()
 
-    async def _exchange_tokens(self, code: str, state: str) -> Mapping[str, Any]:
+    async def _exchange_tokens(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         payload = verify_state(self._state_secret(), state)
         form = {
             "grant_type": "authorization_code",

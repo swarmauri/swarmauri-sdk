@@ -83,9 +83,7 @@ class ColorFormatter(FormatterBase):
                 # Add color codes to the levelname if the level has a defined color
                 if record.levelname in self.colors:
                     # Prepend color code to levelname and append reset code
-                    record.levelname = (
-                        f"{self.colors[record.levelname]}{record.levelname}{self.reset}"
-                    )
+                    record.levelname = f"{self.colors[record.levelname]}{record.levelname}{self.reset}"
 
                 # Format the record
                 result = super().format(record)
@@ -96,7 +94,9 @@ class ColorFormatter(FormatterBase):
                 return result
 
         # Return an instance of our custom formatter
-        return ColoredFormatter(self.format, self.date_format, self.COLORS, self.RESET)
+        return ColoredFormatter(
+            self.format, self.date_format, self.COLORS, self.RESET
+        )
 
     def disable_colors(self) -> None:
         """

@@ -88,7 +88,12 @@ class GithubPRTool(ToolBase):
 
     # Pull Request Management Methods
     def create_pull(
-        self, repo_name: str, title: str, head: str, base: str, body: str = None
+        self,
+        repo_name: str,
+        title: str,
+        head: str,
+        base: str,
+        body: str = None,
     ) -> str:
         try:
             repo = self._github.get_repo(repo_name)

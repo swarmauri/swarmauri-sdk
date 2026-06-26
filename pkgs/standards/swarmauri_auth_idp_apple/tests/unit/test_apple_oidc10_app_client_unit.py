@@ -38,6 +38,8 @@ def test_serialization(app_client: AppleOIDC10AppClient) -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_access_token_unsupported(app_client: AppleOIDC10AppClient) -> None:
+async def test_access_token_unsupported(
+    app_client: AppleOIDC10AppClient,
+) -> None:
     with pytest.raises(NotImplementedError):
         await app_client.access_token()

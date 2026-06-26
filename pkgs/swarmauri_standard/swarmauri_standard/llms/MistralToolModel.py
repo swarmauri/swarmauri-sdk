@@ -2,7 +2,16 @@ import asyncio
 import json
 import logging
 import warnings
-from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Type
+from typing import (
+    Any,
+    AsyncIterator,
+    Dict,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Type,
+)
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -82,17 +91,23 @@ class MistralToolModel(LLMBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
 
-    def _schema_convert_tools(self, tools: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(
+        self, tools: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """
         Convert a dictionary of tools to the schema format required by Mistral API.
 
@@ -102,7 +117,9 @@ class MistralToolModel(LLMBase):
         Returns:
             List[Dict[str, Any]]: A list of converted tool schemas.
         """
-        return [MistralSchemaConverter().convert(tools[tool]) for tool in tools]
+        return [
+            MistralSchemaConverter().convert(tools[tool]) for tool in tools
+        ]
 
     def _format_messages(
         self, messages: List[Type[MessageBase]]
@@ -179,7 +196,9 @@ class MistralToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice,
             "safe_prompt": safe_prompt,
         }
@@ -190,8 +209,13 @@ class MistralToolModel(LLMBase):
 
         tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
 
         if tool_calls:
             for tool_call in tool_calls:
@@ -255,7 +279,9 @@ class MistralToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice,
             "safe_prompt": safe_prompt,
         }
@@ -265,8 +291,13 @@ class MistralToolModel(LLMBase):
 
         tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
 
         if tool_calls:
             for tool_call in tool_calls:
@@ -337,7 +368,9 @@ class MistralToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice,
             "safe_prompt": safe_prompt,
         }
@@ -347,8 +380,13 @@ class MistralToolModel(LLMBase):
 
         tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
 
         if tool_calls:
             for tool_call in tool_calls:
@@ -433,7 +471,9 @@ class MistralToolModel(LLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice,
             "safe_prompt": safe_prompt,
         }
@@ -443,8 +483,13 @@ class MistralToolModel(LLMBase):
 
         tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
 
         if tool_calls:
             for tool_call in tool_calls:

@@ -39,7 +39,9 @@ class OpenAIEmbedding(EmbeddingBase):
     model: str = Field(default="text-embedding-3-small")
     api_key: Optional[SecretStr] = Field(default=None)
 
-    _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/embeddings")
+    _BASE_URL: str = PrivateAttr(
+        default="https://api.openai.com/v1/embeddings"
+    )
     _headers: dict = PrivateAttr(default_factory=dict)
     _client: httpx.Client = PrivateAttr(default_factory=httpx.Client)
 
@@ -92,7 +94,9 @@ class OpenAIEmbedding(EmbeddingBase):
             result = response.json()
 
             # Extract embeddings and convert to Vector objects
-            embeddings = [Vector(value=item["embedding"]) for item in result["data"]]
+            embeddings = [
+                Vector(value=item["embedding"]) for item in result["data"]
+            ]
             return embeddings
 
         except httpx.HTTPError as e:
@@ -113,13 +117,19 @@ class OpenAIEmbedding(EmbeddingBase):
         return self.infer_vector(data)
 
     def save_model(self, path: str):
-        raise NotImplementedError("save_model is not applicable for OpenAI embeddings")
+        raise NotImplementedError(
+            "save_model is not applicable for OpenAI embeddings"
+        )
 
     def load_model(self, path: str):
-        raise NotImplementedError("load_model is not applicable for OpenAI embeddings")
+        raise NotImplementedError(
+            "load_model is not applicable for OpenAI embeddings"
+        )
 
     def fit(self, documents: List[str], labels=None):
-        raise NotImplementedError("fit is not applicable for OpenAI embeddings")
+        raise NotImplementedError(
+            "fit is not applicable for OpenAI embeddings"
+        )
 
     def fit_transform(self, documents: List[str], **kwargs):
         raise NotImplementedError(

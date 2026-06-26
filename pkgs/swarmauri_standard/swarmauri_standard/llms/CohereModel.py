@@ -1,6 +1,15 @@
 import asyncio
 import json
-from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Type
+from typing import (
+    Any,
+    AsyncIterator,
+    Dict,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Type,
+)
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -209,7 +218,9 @@ class CohereModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -274,7 +285,9 @@ class CohereModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -351,7 +364,9 @@ class CohereModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -436,7 +451,9 @@ class CohereModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 

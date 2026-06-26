@@ -22,10 +22,20 @@ def test_refresh_and_verify_functional() -> None:
         return current
 
     v = CachedJWKSVerifier(fetch=fetch, ttl_s=0)
-    t1 = jwt.encode({"iss": "me"}, pk1, algorithm="RS256", headers={"kid": "a"})
-    assert v.verify(t1, algorithms_whitelist=["RS256"], issuer="me")["iss"] == "me"
+    t1 = jwt.encode(
+        {"iss": "me"}, pk1, algorithm="RS256", headers={"kid": "a"}
+    )
+    assert (
+        v.verify(t1, algorithms_whitelist=["RS256"], issuer="me")["iss"]
+        == "me"
+    )
 
     current["keys"] = [_pub_jwk(pk2, "b")]
-    t2 = jwt.encode({"iss": "me"}, pk2, algorithm="RS256", headers={"kid": "b"})
+    t2 = jwt.encode(
+        {"iss": "me"}, pk2, algorithm="RS256", headers={"kid": "b"}
+    )
     v.invalidate()
-    assert v.verify(t2, algorithms_whitelist=["RS256"], issuer="me")["iss"] == "me"
+    assert (
+        v.verify(t2, algorithms_whitelist=["RS256"], issuer="me")["iss"]
+        == "me"
+    )

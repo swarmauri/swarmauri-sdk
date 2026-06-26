@@ -26,7 +26,9 @@ class Pipeline(PipelineBase):
                 return [self._error_handler(e)]
             raise
 
-    def with_error_handler(self, handler: Callable[[Exception], Any]) -> "Pipeline":
+    def with_error_handler(
+        self, handler: Callable[[Exception], Any]
+    ) -> "Pipeline":
         """
         Add a custom error handler to the pipeline.
 

@@ -55,14 +55,18 @@ try:  # pragma: no cover - optional dependency
         def _load_der_pkcs7_signed_data(data: bytes) -> _PKCS7SignedDataShim:
             return _PKCS7SignedDataShim(data)
 
-        setattr(pkcs7, "load_der_pkcs7_signed_data", _load_der_pkcs7_signed_data)
+        setattr(
+            pkcs7, "load_der_pkcs7_signed_data", _load_der_pkcs7_signed_data
+        )
 
     if not hasattr(pkcs7, "load_pem_pkcs7_signed_data"):
 
         def _load_pem_pkcs7_signed_data(data: bytes) -> _PKCS7SignedDataShim:
             return _PKCS7SignedDataShim(data)
 
-        setattr(pkcs7, "load_pem_pkcs7_signed_data", _load_pem_pkcs7_signed_data)
+        setattr(
+            pkcs7, "load_pem_pkcs7_signed_data", _load_pem_pkcs7_signed_data
+        )
 
     _CRYPTO_OK = True
     _HAS_PKCS7_SIGNED_LOADER = hasattr(pkcs7, "load_der_pkcs7_signed_data")
@@ -118,7 +122,9 @@ def _load_pem(path_or_bytes: Any) -> bytes:
         if path.exists():
             return path.read_bytes()
         return path_or_bytes.encode("utf-8")
-    raise TypeError("Certificate/key entries must be bytes or filesystem paths")
+    raise TypeError(
+        "Certificate/key entries must be bytes or filesystem paths"
+    )
 
 
 def _load_signing_material(
@@ -130,7 +136,9 @@ def _load_signing_material(
         if kind == "pem":
             priv = _load_pem(key_ref.get("private_key"))
             password = key_ref.get("password")
-            password_bytes = None if password is None else str(password).encode("utf-8")
+            password_bytes = (
+                None if password is None else str(password).encode("utf-8")
+            )
             private_key = serialization.load_pem_private_key(
                 priv, password=password_bytes
             )
@@ -143,8 +151,12 @@ def _load_signing_material(
         if kind == "pkcs12":
             data = _load_pem(key_ref.get("data"))
             password = key_ref.get("password")
-            password_bytes = None if password is None else str(password).encode("utf-8")
-            private_key, cert, extra = load_key_and_certificates(data, password_bytes)
+            password_bytes = (
+                None if password is None else str(password).encode("utf-8")
+            )
+            private_key, cert, extra = load_key_and_certificates(
+                data, password_bytes
+            )
             if private_key is None or cert is None:
                 raise RuntimeError(
                     "PKCS#12 bundle did not include both key and certificate"
@@ -154,7 +166,9 @@ def _load_signing_material(
     raise TypeError("CMS KeyRef must describe 'pem' or 'pkcs12' material")
 
 
-def _load_certificates(entries: Optional[Iterable[Any]]) -> list[x509.Certificate]:
+def _load_certificates(
+    entries: Optional[Iterable[Any]],
+) -> list[x509.Certificate]:
     _ensure_crypto()
     certs: list[x509.Certificate] = []
     for entry in entries or []:
@@ -194,7 +208,9 @@ def _serialize_signature(
 def _load_pkcs7(data: bytes) -> pkcs7.PKCS7Signature:
     _ensure_crypto()
     if not _HAS_PKCS7_SIGNED_LOADER:
-        raise RuntimeError("cryptography does not expose PKCS7 signed data loaders")
+        raise RuntimeError(
+            "cryptography does not expose PKCS7 signed data loaders"
+        )
     try:
         return pkcs7.load_der_pkcs7_signed_data(data)
     except ValueError:
@@ -206,7 +222,9 @@ def _is_pem_signature(data: bytes) -> bool:
 
 
 def _serialize_certs(certs: list[x509.Certificate]) -> bytes:
-    return b"".join(cert.public_bytes(serialization.Encoding.PEM) for cert in certs)
+    return b"".join(
+        cert.public_bytes(serialization.Encoding.PEM) for cert in certs
+    )
 
 
 def _openssl_verify(
@@ -224,7 +242,9 @@ def _openssl_verify(
     fmt = "pem" if _is_pem_signature(artifact) else "der"
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir)
-        sig_path = tmp_path / ("signature.pem" if fmt == "pem" else "signature.der")
+        sig_path = tmp_path / (
+            "signature.pem" if fmt == "pem" else "signature.der"
+        )
         sig_path.write_bytes(artifact)
         trust_path = tmp_path / "trust.pem"
         trust_path.write_bytes(_serialize_certs(trusted))
@@ -270,7 +290,9 @@ async def _verify_pkcs7(
                 attached=attached,
                 trusted=trusted,
             )
-        signed.verify(trusted or None, trusted or None, data=data, options=options)
+        signed.verify(
+            trusted or None, trusted or None, data=data, options=options
+        )
         return True
     return await asyncio.to_thread(
         _openssl_verify,
@@ -304,7 +326,9 @@ class CMSSigner(SigningBase):
         self._key_provider = provider
 
     # ------------------------------------------------------------------
-    def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
+    def supports(
+        self, key_ref: Optional[str] = None
+    ) -> Mapping[str, Iterable[str]]:
         base = {
             "signs": ("bytes", "digest", "envelope", "stream"),
             "verifies": ("bytes", "digest", "envelope", "stream"),
@@ -377,7 +401,9 @@ class CMSSigner(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        canonical = await type(self).canonicalize_envelope(env, canon=canon, opts=opts)
+        canonical = await type(self).canonicalize_envelope(
+            env, canon=canon, opts=opts
+        )
         return await type(self)._sign_payload(
             key,
             canonical,
@@ -445,7 +471,9 @@ class CMSSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        canonical = await type(self).canonicalize_envelope(env, canon=canon, opts=opts)
+        canonical = await type(self).canonicalize_envelope(
+            env, canon=canon, opts=opts
+        )
         return await type(self)._verify_payload(
             canonical,
             signatures,
@@ -523,11 +551,15 @@ class CMSSigner(SigningBase):
         accepted = 0
         for sig in signatures:
             meta = sig.meta if isinstance(sig, Signature) else sig.get("meta")
-            kind = meta.get("payload_kind") if isinstance(meta, Mapping) else None
+            kind = (
+                meta.get("payload_kind") if isinstance(meta, Mapping) else None
+            )
             if kind not in (None, payload_kind):
                 continue
             artifact = (
-                sig.artifact if isinstance(sig, Signature) else sig.get("artifact")
+                sig.artifact
+                if isinstance(sig, Signature)
+                else sig.get("artifact")
             )
             if isinstance(artifact, str):
                 artifact_bytes = artifact.encode("utf-8")
@@ -536,7 +568,9 @@ class CMSSigner(SigningBase):
             else:
                 continue
             attached = (
-                bool(meta.get("attached")) if isinstance(meta, Mapping) else False
+                bool(meta.get("attached"))
+                if isinstance(meta, Mapping)
+                else False
             )
             try:
                 ok = await _verify_pkcs7(

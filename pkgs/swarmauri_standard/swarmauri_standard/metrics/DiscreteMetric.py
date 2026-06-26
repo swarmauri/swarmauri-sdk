@@ -133,7 +133,9 @@ class DiscreteMetric(MetricBase):
         # Distance is always 0 or 1, so always non-negative
         return True
 
-    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
+    def check_identity_of_indiscernibles(
+        self, x: MetricInput, y: MetricInput
+    ) -> bool:
         """
         Check if the metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -152,7 +154,9 @@ class DiscreteMetric(MetricBase):
         bool
             True (always satisfied for discrete metric)
         """
-        logger.debug(f"Checking identity of indiscernibles axiom for {x} and {y}")
+        logger.debug(
+            f"Checking identity of indiscernibles axiom for {x} and {y}"
+        )
         # By definition, distance is 0 if and only if x == y
         return True
 
@@ -201,7 +205,9 @@ class DiscreteMetric(MetricBase):
         bool
             True (always satisfied for discrete metric)
         """
-        logger.debug(f"Checking triangle inequality axiom for {x}, {y}, and {z}")
+        logger.debug(
+            f"Checking triangle inequality axiom for {x}, {y}, and {z}"
+        )
 
         # Calculate the distances
         d_xz = self.distance(x, z)

@@ -62,14 +62,18 @@ async def test_recv_returns_bytes() -> None:
 
 
 @pytest.mark.asyncio
-async def test_start_server_unlinks_existing_socket(monkeypatch, tmp_path) -> None:
+async def test_start_server_unlinks_existing_socket(
+    monkeypatch, tmp_path
+) -> None:
     path = tmp_path / "uds.sock"
     path.write_text("stale")
     captured = {}
 
     async def fake_start_unix_server(callback, *, path: str):  # noqa: ARG001
         captured["path"] = path
-        return SimpleNamespace(close=lambda: None, wait_closed=lambda: asyncio.sleep(0))
+        return SimpleNamespace(
+            close=lambda: None, wait_closed=lambda: asyncio.sleep(0)
+        )
 
     transport = UdsUnicastTransport(str(path))
     monkeypatch.setattr(asyncio, "start_unix_server", fake_start_unix_server)
@@ -116,7 +120,9 @@ async def test_open_client_sets_streams(monkeypatch, tmp_path) -> None:
         return reader, writer
 
     transport = UdsUnicastTransport(str(path))
-    monkeypatch.setattr(asyncio, "open_unix_connection", fake_open_unix_connection)
+    monkeypatch.setattr(
+        asyncio, "open_unix_connection", fake_open_unix_connection
+    )
 
     await transport._open_client()
 

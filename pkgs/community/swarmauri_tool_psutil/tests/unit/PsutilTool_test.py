@@ -44,7 +44,11 @@ def test_serialization():
         ("disk", ["disk_partitions", "disk_usage", "disk_io_counters"], False),
         (
             "network",
-            ["network_io_counters", "network_interfaces", "network_connections"],
+            [
+                "network_io_counters",
+                "network_interfaces",
+                "network_connections",
+            ],
             False,
         ),
         ("sensors", ["battery", "temperatures", "fan_speeds"], False),
@@ -55,7 +59,9 @@ def test_serialization():
 def test_call(info_type, expected_keys, should_raise):
     tool = Tool()
     if should_raise:
-        with pytest.raises(ValueError, match=r"Invalid info_type 'invalid' specified"):
+        with pytest.raises(
+            ValueError, match=r"Invalid info_type 'invalid' specified"
+        ):
             tool(info_type=info_type)
     else:
         result = tool(info_type=info_type)

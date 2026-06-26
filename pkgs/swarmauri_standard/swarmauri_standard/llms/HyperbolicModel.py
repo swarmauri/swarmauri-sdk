@@ -1,6 +1,15 @@
 import asyncio
 import json
-from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
+from typing import (
+    Any,
+    AsyncGenerator,
+    Dict,
+    Generator,
+    List,
+    Literal,
+    Optional,
+    Type,
+)
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -157,7 +166,9 @@ class HyperbolicModel(LLMBase):
         response_data = response.json()
 
         chat_models = [
-            model["id"] for model in response_data["data"] if model["supports_chat"]
+            model["id"]
+            for model in response_data["data"]
+            if model["supports_chat"]
         ]
         return chat_models
 
@@ -212,7 +223,9 @@ class HyperbolicModel(LLMBase):
 
         if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, promt_timer.duration)
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
         return conversation
@@ -263,7 +276,9 @@ class HyperbolicModel(LLMBase):
 
         if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, promt_timer.duration)
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
         return conversation
@@ -326,7 +341,9 @@ class HyperbolicModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, promt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -394,7 +411,9 @@ class HyperbolicModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, promt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 

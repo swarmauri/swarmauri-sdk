@@ -26,14 +26,19 @@ class SigstoreCipherSuite(CipherSuiteBase):
     def supports(self) -> Mapping[CipherOp, Iterable[Alg]]:
         return {"sign": _SIG_ALGS, "verify": _SIG_ALGS}
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         return "ES256"
 
     def features(self) -> Features:
         return {
             "suite": "sigstore",
             "version": 1,
-            "dialects": {"jwa": list(_SIG_ALGS), "sigstore": ["rekor", "tsa:rfc3161"]},
+            "dialects": {
+                "jwa": list(_SIG_ALGS),
+                "sigstore": ["rekor", "tsa:rfc3161"],
+            },
             "ops": {"sign": {"default": "ES256", "allowed": list(_SIG_ALGS)}},
             "constraints": {"tsa": {"required": False}},
             "compliance": {"fips": False},

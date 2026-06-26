@@ -31,7 +31,11 @@ def get_allowed_models():
     llm = LLM(api_key=API_KEY)
 
     # not consistent with their results
-    failing_llms = ["ai21/jamba-1-5-mini", "openai/gpt-4-32k", "ai21/jamba-1-5-large"]
+    failing_llms = [
+        "ai21/jamba-1-5-mini",
+        "openai/gpt-4-32k",
+        "ai21/jamba-1-5-large",
+    ]
 
     # Filter out the failing models
     allowed_models = [

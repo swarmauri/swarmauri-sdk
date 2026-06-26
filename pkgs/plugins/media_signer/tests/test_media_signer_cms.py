@@ -27,7 +27,9 @@ async def test_media_signer_cms_attached_bytes(cms_context):
     )
 
     assert signatures and signatures[0].mode == "attached"
-    assert await signer.verify_bytes(CMS_FORMAT, payload, signatures, opts=trust_opts)
+    assert await signer.verify_bytes(
+        CMS_FORMAT, payload, signatures, opts=trust_opts
+    )
 
 
 @pytest.mark.asyncio
@@ -40,7 +42,9 @@ async def test_media_signer_cms_detached_bytes(cms_context):
     )
 
     assert signatures and signatures[0].mode == "detached"
-    assert await signer.verify_bytes(CMS_FORMAT, payload, signatures, opts=trust_opts)
+    assert await signer.verify_bytes(
+        CMS_FORMAT, payload, signatures, opts=trust_opts
+    )
 
 
 @pytest.mark.asyncio
@@ -54,7 +58,9 @@ async def test_media_signer_cms_detached_digest(cms_context):
     )
 
     assert signatures and signatures[0].mode == "detached"
-    assert await signer.verify_digest(CMS_FORMAT, sha, signatures, opts=trust_opts)
+    assert await signer.verify_digest(
+        CMS_FORMAT, sha, signatures, opts=trust_opts
+    )
 
 
 @pytest.mark.asyncio

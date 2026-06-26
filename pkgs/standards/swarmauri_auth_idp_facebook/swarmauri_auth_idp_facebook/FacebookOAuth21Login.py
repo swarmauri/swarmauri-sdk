@@ -31,7 +31,9 @@ class FacebookOAuth21Login(FacebookLoginMixin, OAuth21LoginBase):
             return None
         return claims
 
-    async def exchange_and_identity(self, code: str, state: str) -> Mapping[str, Any]:
+    async def exchange_and_identity(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         tokens = await self._exchange_tokens(code, state)
         claims = await self._claims_from_id_token(tokens.get("id_token"))
         if claims:

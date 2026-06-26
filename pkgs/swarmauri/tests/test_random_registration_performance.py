@@ -25,7 +25,9 @@ def test_startup_and_random_registration_performance():
     registration_time = time.perf_counter() - start
     PluginCitizenshipRegistry.THIRD_CLASS_REGISTRY.clear()
 
-    print(f"Startup: {startup_time:.4f}s, Register 25: {registration_time:.4f}s")
+    print(
+        f"Startup: {startup_time:.4f}s, Register 25: {registration_time:.4f}s"
+    )
 
     assert startup_time >= 0
     assert registration_time >= 0

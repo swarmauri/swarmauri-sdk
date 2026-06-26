@@ -109,7 +109,12 @@ class AzureOIDC10Login(OIDC10LoginBase):
         if not kid:
             raise ValueError("kid missing from id_token header")
         key = next(
-            (entry for entry in jwks.get("keys", []) if entry.get("kid") == kid), None
+            (
+                entry
+                for entry in jwks.get("keys", [])
+                if entry.get("kid") == kid
+            ),
+            None,
         )
         if key is None:
             raise ValueError("signing key not found for id_token")
@@ -145,9 +150,13 @@ class AzureOIDC10Login(OIDC10LoginBase):
                 expected_issuer=metadata["issuer"],
             )
         email = (
-            claims.get("email") or claims.get("preferred_username") if claims else None
+            claims.get("email") or claims.get("preferred_username")
+            if claims
+            else None
         )
-        name = claims.get("name") or claims.get("given_name") if claims else None
+        name = (
+            claims.get("name") or claims.get("given_name") if claims else None
+        )
         return {
             "issuer": "azure-oidc10",
             "tokens": tokens,

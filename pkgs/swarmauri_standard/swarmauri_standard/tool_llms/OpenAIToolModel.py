@@ -8,7 +8,9 @@ from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.DynamicBase import SubclassUnion
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_base.schema_converters.SchemaConverterBase import (
+    SchemaConverterBase,
+)
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.conversations.IConversation import IConversation
@@ -130,7 +132,13 @@ class OpenAIToolModel(ToolLLMBase):
         Returns:
             List[Dict[str, str]]: A list of formatted message dictionaries.
         """
-        message_properties = ["content", "role", "name", "tool_call_id", "tool_calls"]
+        message_properties = [
+            "content",
+            "role",
+            "name",
+            "tool_call_id",
+            "tool_calls",
+        ]
         return [
             message.model_dump(include=message_properties, exclude_none=True)
             for message in messages
@@ -138,7 +146,10 @@ class OpenAIToolModel(ToolLLMBase):
         ]
 
     def _process_tool_calls(
-        self, tool_calls: List[Any], toolkit: Toolkit, messages: List[Type[MessageBase]]
+        self,
+        tool_calls: List[Any],
+        toolkit: Toolkit,
+        messages: List[Type[MessageBase]],
     ) -> List[Dict]:
         """
         Processes a list of tool calls and appends the results to the messages list.
@@ -203,12 +214,16 @@ class OpenAIToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
             "tool_choice": tool_choice or "auto",
         }
 
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(self.BASE_URL, headers=self._headers, json=payload)
+            response = client.post(
+                self.BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
             tool_response = response.json()
 
@@ -222,7 +237,9 @@ class OpenAIToolModel(ToolLLMBase):
         # Extract tool messages for the conversation
         tool_messages = [
             FunctionMessage(
-                tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                tool_call_id=m["tool_call_id"],
+                name=m["name"],
+                content=m["content"],
             )
             for m in messages
             if m.get("role") == "tool"
@@ -282,7 +299,9 @@ class OpenAIToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
             "tool_choice": tool_choice or "auto",
         }
 
@@ -303,7 +322,9 @@ class OpenAIToolModel(ToolLLMBase):
         # Extract tool messages for the conversation
         tool_messages = [
             FunctionMessage(
-                tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                tool_call_id=m["tool_call_id"],
+                name=m["name"],
+                content=m["content"],
             )
             for m in messages
             if m.get("role") == "tool"
@@ -362,13 +383,17 @@ class OpenAIToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice or "auto",
         }
 
         # First request to handle tool calls
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(self.BASE_URL, headers=self._headers, json=payload)
+            response = client.post(
+                self.BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
             tool_response = response.json()
 
@@ -382,7 +407,9 @@ class OpenAIToolModel(ToolLLMBase):
         # Extract tool messages for the conversation
         tool_messages = [
             FunctionMessage(
-                tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                tool_call_id=m["tool_call_id"],
+                name=m["name"],
+                content=m["content"],
             )
             for m in messages
             if m.get("role") == "tool"
@@ -398,14 +425,18 @@ class OpenAIToolModel(ToolLLMBase):
         payload.pop("tool_choice", None)
 
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(self.BASE_URL, headers=self._headers, json=payload)
+            response = client.post(
+                self.BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
 
         message_content = ""
 
         for line in response.iter_lines():
             # Handle bytes conversion if needed
-            line_str = line.decode("utf-8") if isinstance(line, bytes) else line
+            line_str = (
+                line.decode("utf-8") if isinstance(line, bytes) else line
+            )
 
             if not line_str or line_str == "data: [DONE]":
                 continue
@@ -459,7 +490,9 @@ class OpenAIToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice or "auto",
         }
 
@@ -481,7 +514,9 @@ class OpenAIToolModel(ToolLLMBase):
         # Extract tool messages for the conversation
         tool_messages = [
             FunctionMessage(
-                tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                tool_call_id=m["tool_call_id"],
+                name=m["name"],
+                content=m["content"],
             )
             for m in messages
             if m.get("role") == "tool"

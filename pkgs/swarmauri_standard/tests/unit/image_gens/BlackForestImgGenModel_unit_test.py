@@ -53,7 +53,10 @@ def test_serialization(blackforest_imggen_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_model_name(blackforest_imggen_model):
-    assert blackforest_imggen_model.name == blackforest_imggen_model.allowed_models[0]
+    assert (
+        blackforest_imggen_model.name
+        == blackforest_imggen_model.allowed_models[0]
+    )
 
 
 @timeout(5)
@@ -112,7 +115,9 @@ async def test_abatch_generate(blackforest_imggen_model):
         "A rainy day in a city",
     ]
 
-    image_urls = await blackforest_imggen_model.abatch_generate(prompts=prompts)
+    image_urls = await blackforest_imggen_model.abatch_generate(
+        prompts=prompts
+    )
 
     assert len(image_urls) == len(prompts)
     for url in image_urls:

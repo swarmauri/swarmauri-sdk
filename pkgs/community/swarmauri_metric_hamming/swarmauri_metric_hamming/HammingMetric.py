@@ -111,7 +111,9 @@ class HammingMetric(MetricBase):
 
         if isinstance(value, Sequence):
             flattened = (
-                list(value) if _is_scalar_sequence(value) else _flatten_once(value)
+                list(value)
+                if _is_scalar_sequence(value)
+                else _flatten_once(value)
             )
             return [_coerce_scalar(item) for item in flattened]
 
@@ -125,7 +127,9 @@ class HammingMetric(MetricBase):
         if isinstance(values, np.ndarray) and values.ndim > 1:
             return [row.flatten().tolist() for row in values]
 
-        if isinstance(values, Sequence) and not isinstance(values, (str, bytes)):
+        if isinstance(values, Sequence) and not isinstance(
+            values, (str, bytes)
+        ):
             if values and not _is_scalar_sequence(values):
                 return [self._normalise_single(item) for item in values]  # type: ignore[arg-type]
 
@@ -140,7 +144,9 @@ class HammingMetric(MetricBase):
         self, x: List[object], y: List[object]
     ) -> Tuple[List[object], List[object]]:
         if len(x) != len(y):
-            raise ValueError("Hamming distance requires inputs of equal length")
+            raise ValueError(
+                "Hamming distance requires inputs of equal length"
+            )
         return x, y
 
     def distance(self, x: MetricInput, y: MetricInput) -> float:
@@ -171,7 +177,9 @@ class HammingMetric(MetricBase):
     def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         return self.distance(x, y) >= 0
 
-    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
+    def check_identity_of_indiscernibles(
+        self, x: MetricInput, y: MetricInput
+    ) -> bool:
         left, right = self._normalise_single(x), self._normalise_single(y)
         distance = self.distance(left, right)
         return distance == 0 if left == right else distance > 0

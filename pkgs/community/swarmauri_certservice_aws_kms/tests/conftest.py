@@ -17,11 +17,21 @@ class _KmsMock:
         self._priv = priv
         self._pub = priv.public_key()
 
-    def get_public_key(self, KeyId: str):  # pragma: no cover - simple passthrough
-        spki = self._pub.public_bytes(Encoding.DER, PublicFormat.SubjectPublicKeyInfo)
+    def get_public_key(
+        self, KeyId: str
+    ):  # pragma: no cover - simple passthrough
+        spki = self._pub.public_bytes(
+            Encoding.DER, PublicFormat.SubjectPublicKeyInfo
+        )
         return {"PublicKey": spki, "KeySpec": "RSA_2048"}
 
-    def sign(self, KeyId: str, Message: bytes, MessageType: str, SigningAlgorithm: str):
+    def sign(
+        self,
+        KeyId: str,
+        Message: bytes,
+        MessageType: str,
+        SigningAlgorithm: str,
+    ):
         signature = self._priv.sign(
             Message,
             padding.PSS(

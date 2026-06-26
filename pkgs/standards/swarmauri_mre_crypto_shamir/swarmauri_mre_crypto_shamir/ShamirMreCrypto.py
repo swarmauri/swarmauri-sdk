@@ -5,7 +5,17 @@ from __future__ import annotations
 import os
 import json
 import hashlib
-from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple, List, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    List,
+    Union,
+)
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from swarmauri_core.crypto.types import Alg, KeyRef
@@ -174,7 +184,8 @@ def _stable_recipient_id(ref: KeyRef) -> str:
 
 def _x_from_recipient_id(rid: str, used: set[int]) -> int:
     base = (
-        int.from_bytes(_sha256(("SHAMIR-X|" + rid).encode("utf-8")), "big") % (_P - 1)
+        int.from_bytes(_sha256(("SHAMIR-X|" + rid).encode("utf-8")), "big")
+        % (_P - 1)
     ) + 1
     x = base
     while x in used:
@@ -232,14 +243,18 @@ class ShamirMreCrypto(MreCryptoBase):
     ) -> MultiRecipientEnvelope:
         m = str(mode or _MODE)
         if m != _MODE:
-            raise ValueError("ShamirMreCrypto supports only mode='sealed_cek+aead'.")
+            raise ValueError(
+                "ShamirMreCrypto supports only mode='sealed_cek+aead'."
+            )
         if recipient_alg not in (None, _RECIP_ALG):
             raise ValueError(
                 "ShamirMreCrypto supports only recipient_alg='SHAMIR-KOFN'."
             )
         palg = str(payload_alg or _PAYLOAD_AEAD_DEFAULT)
         if palg != _PAYLOAD_AEAD_DEFAULT:
-            raise ValueError("ShamirMreCrypto supports only AES-256-GCM for now.")
+            raise ValueError(
+                "ShamirMreCrypto supports only AES-256-GCM for now."
+            )
         if not recipients:
             raise ValueError("At least one recipient is required.")
         n = len(recipients)
@@ -249,7 +264,8 @@ class ShamirMreCrypto(MreCryptoBase):
         nonce, ct, tag = _aes_gcm_encrypt(cek, pt, aad)
         secret = _bytes_to_int(cek)
         coeffs = [secret] + [
-            int.from_bytes(os.urandom(64), "big") % _P for _ in range(max(0, k - 1))
+            int.from_bytes(os.urandom(64), "big") % _P
+            for _ in range(max(0, k - 1))
         ]
         used_x: set[int] = set()
         rec_entries: List[Dict[str, Any]] = []
@@ -366,9 +382,13 @@ class ShamirMreCrypto(MreCryptoBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> MultiRecipientEnvelope:
         if env.get("mode") != _MODE or env.get("recipient_alg") != _RECIP_ALG:
-            raise ValueError("Envelope does not match ShamirMreCrypto mode/alg.")
+            raise ValueError(
+                "Envelope does not match ShamirMreCrypto mode/alg."
+            )
         if recipient_alg not in (None, _RECIP_ALG):
-            raise ValueError("recipient_alg must be SHAMIR-KOFN for ShamirMreCrypto.")
+            raise ValueError(
+                "recipient_alg must be SHAMIR-KOFN for ShamirMreCrypto."
+            )
         k = _decode_k(env)
         cek_len = _decode_cek_len(env)
         recs: List[Dict[str, Any]] = list(env.get("recipients", []))
@@ -411,7 +431,8 @@ class ShamirMreCrypto(MreCryptoBase):
         nonce, ct, tag = _aes_gcm_encrypt(new_cek, pt, payload.get("aad"))
         secret = _bytes_to_int(new_cek)
         coeffs = [secret] + [
-            int.from_bytes(os.urandom(64), "big") % _P for _ in range(max(0, k - 1))
+            int.from_bytes(os.urandom(64), "big") % _P
+            for _ in range(max(0, k - 1))
         ]
         used_x: set[int] = set()
         new_recs: List[Dict[str, Any]] = []

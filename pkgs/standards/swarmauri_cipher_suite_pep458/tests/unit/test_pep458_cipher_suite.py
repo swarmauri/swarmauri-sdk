@@ -8,7 +8,9 @@ def test_supports_and_defaults():
     assert set(supports["sign"]) == {"Ed25519", "RSA-PSS-SHA256"}
     assert suite.default_alg("sign") == "Ed25519"
 
-    rsa_default = suite.default_alg("sign", for_key={"kid": "root", "kty": "RSA"})
+    rsa_default = suite.default_alg(
+        "sign", for_key={"kid": "root", "kty": "RSA"}
+    )
     assert rsa_default == "RSA-PSS-SHA256"
 
 
@@ -28,7 +30,9 @@ def test_policy_contains_role_metadata():
 
 def test_normalize_outputs_descriptor():
     suite = Pep458CipherSuite()
-    descriptor = suite.normalize(op="sign", params={"role": "targets", "threshold": 2})
+    descriptor = suite.normalize(
+        op="sign", params={"role": "targets", "threshold": 2}
+    )
 
     assert descriptor["dialect"] == "provider"
     assert descriptor["params"]["role"] == "targets"

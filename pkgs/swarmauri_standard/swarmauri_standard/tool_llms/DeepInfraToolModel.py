@@ -15,7 +15,9 @@ from typing import (
 import httpx
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_base.schema_converters.SchemaConverterBase import (
+    SchemaConverterBase,
+)
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 from swarmauri_core.conversations.IConversation import IConversation
 
@@ -78,7 +80,9 @@ class DeepInfraToolModel(ToolLLMBase):
         """
         return OpenAISchemaConverter
 
-    def _schema_convert_tools(self, tools: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(
+        self, tools: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """
         Converts a toolkit's tools to the DeepInfra-compatible schema format.
 
@@ -91,7 +95,9 @@ class DeepInfraToolModel(ToolLLMBase):
         converter = self.get_schema_converter()()
         return [converter.convert(tools[tool]) for tool in tools]
 
-    def _format_messages(self, messages: List[MessageBase]) -> List[Dict[str, str]]:
+    def _format_messages(
+        self, messages: List[MessageBase]
+    ) -> List[Dict[str, str]]:
         """
         Formats a list of messages to a schema that matches the DeepInfra API's expectations.
 
@@ -101,7 +107,13 @@ class DeepInfraToolModel(ToolLLMBase):
         Returns:
             List[Dict[str, str]]: A formatted list of message dictionaries.
         """
-        message_properties = ["content", "role", "name", "tool_call_id", "tool_calls"]
+        message_properties = [
+            "content",
+            "role",
+            "name",
+            "tool_call_id",
+            "tool_calls",
+        ]
         return [
             m.model_dump(include=message_properties, exclude_none=True)
             for m in messages
@@ -172,12 +184,16 @@ class DeepInfraToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
             "tool_choice": tool_choice or "auto",
         }
 
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(self.BASE_URL, headers=self._headers, json=payload)
+            response = client.post(
+                self.BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
             tool_response = response.json()
 
@@ -195,7 +211,9 @@ class DeepInfraToolModel(ToolLLMBase):
             # Extract tool messages for the conversation
             tool_messages = [
                 FunctionMessage(
-                    tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                    tool_call_id=m["tool_call_id"],
+                    name=m["name"],
+                    content=m["content"],
                 )
                 for m in messages
                 if m.get("role") == "tool"
@@ -256,7 +274,9 @@ class DeepInfraToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
             "tool_choice": tool_choice or "auto",
         }
 
@@ -281,7 +301,9 @@ class DeepInfraToolModel(ToolLLMBase):
             # Extract tool messages for the conversation
             tool_messages = [
                 FunctionMessage(
-                    tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                    tool_call_id=m["tool_call_id"],
+                    name=m["name"],
+                    content=m["content"],
                 )
                 for m in messages
                 if m.get("role") == "tool"
@@ -342,12 +364,16 @@ class DeepInfraToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
             "tool_choice": tool_choice or "auto",
         }
 
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(self.BASE_URL, headers=self._headers, json=payload)
+            response = client.post(
+                self.BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
             tool_response = response.json()
 
@@ -364,7 +390,9 @@ class DeepInfraToolModel(ToolLLMBase):
             # Extract tool messages for the conversation
             tool_messages = [
                 FunctionMessage(
-                    tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                    tool_call_id=m["tool_call_id"],
+                    name=m["name"],
+                    content=m["content"],
                 )
                 for m in messages
                 if m.get("role") == "tool"
@@ -382,7 +410,9 @@ class DeepInfraToolModel(ToolLLMBase):
         message_content = ""
 
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(self.BASE_URL, headers=self._headers, json=payload)
+            response = client.post(
+                self.BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
 
         message_content = ""
@@ -431,7 +461,9 @@ class DeepInfraToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
             "tool_choice": tool_choice or "auto",
         }
 
@@ -455,7 +487,9 @@ class DeepInfraToolModel(ToolLLMBase):
             # Extract tool messages for the conversation
             tool_messages = [
                 FunctionMessage(
-                    tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                    tool_call_id=m["tool_call_id"],
+                    name=m["name"],
+                    content=m["content"],
                 )
                 for m in messages
                 if m.get("role") == "tool"

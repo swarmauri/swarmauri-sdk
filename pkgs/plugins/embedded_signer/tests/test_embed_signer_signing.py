@@ -175,7 +175,9 @@ class _StubKeyProvider(IKeyProvider):
         ("XMLDSigner", False),
     ],
 )
-async def test_sign_bytes_propagates_attached_flag(fmt: str, attached: bool) -> None:
+async def test_sign_bytes_propagates_attached_flag(
+    fmt: str, attached: bool
+) -> None:
     embedder = _FakeEmbedder()
     media = _FakeMediaSigner()
     signer = EmbedSigner(embedder=embedder, signer=media)

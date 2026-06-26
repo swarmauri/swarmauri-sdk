@@ -45,7 +45,9 @@ class SysLogLoggingHandler(HandlerBase):
         try:
             # Create the SysLogHandler with the specified address and facility
             handler = SysLogHandler(
-                address=self.address, facility=self.facility, socktype=self.socktype
+                address=self.address,
+                facility=self.facility,
+                socktype=self.socktype,
             )
 
             # Set the log level
@@ -68,7 +70,9 @@ class SysLogLoggingHandler(HandlerBase):
 
         except (socket.error, OSError) as e:
             # Log error and fallback to a NullHandler if syslog connection fails
-            logging.error(f"Failed to connect to syslog server at {self.address}: {e}")
+            logging.error(
+                f"Failed to connect to syslog server at {self.address}: {e}"
+            )
             return logging.NullHandler()
         except Exception as e:
             # Catch any other unexpected errors

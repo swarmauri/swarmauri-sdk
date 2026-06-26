@@ -126,7 +126,9 @@ def test_init_invalid_coordinates():
 )
 def test_distance_euclidean(default_pseudometric, x, y, expected):
     """Test the Euclidean distance (p=2) calculation."""
-    assert math.isclose(default_pseudometric.distance(x, y), expected, abs_tol=1e-10)
+    assert math.isclose(
+        default_pseudometric.distance(x, y), expected, abs_tol=1e-10
+    )
 
 
 @pytest.mark.unit
@@ -195,7 +197,11 @@ def test_distances_matrix():
     xs = [[0, 0], [1, 0], [0, 1]]
     ys = [[0, 0], [1, 1], [2, 0]]
 
-    expected = [[0.0, math.sqrt(2), 2.0], [1.0, 1.0, 1.0], [1.0, 1.0, math.sqrt(5)]]
+    expected = [
+        [0.0, math.sqrt(2), 2.0],
+        [1.0, 1.0, 1.0],
+        [1.0, 1.0, math.sqrt(5)],
+    ]
 
     result = pseudometric.distances(xs, ys)
 
@@ -329,7 +335,9 @@ def test_convert_to_array_unsupported_type():
 
     pseudometric = LpPseudometric()
 
-    with pytest.raises(TypeError, match="Unsupported input type for LpPseudometric"):
+    with pytest.raises(
+        TypeError, match="Unsupported input type for LpPseudometric"
+    ):
         pseudometric._convert_to_array(UnsupportedType())
 
 
@@ -379,7 +387,9 @@ def test_string_representation(default_pseudometric):
 @pytest.mark.unit
 def test_repr_representation(default_pseudometric):
     """Test the repr representation of LpPseudometric."""
-    expected = "LpPseudometric(p=2.0, domain=None, coordinates=None, epsilon=1e-10)"
+    expected = (
+        "LpPseudometric(p=2.0, domain=None, coordinates=None, epsilon=1e-10)"
+    )
     assert repr(default_pseudometric) == expected
 
 
@@ -387,4 +397,7 @@ def test_repr_representation(default_pseudometric):
 def test_string_representation_with_domain_and_coordinates():
     """Test the string representation with domain and coordinates."""
     pseudometric = LpPseudometric(p=3, domain=(0, 1), coordinates=[0, 1])
-    assert str(pseudometric) == "LpPseudometric(p=3, domain=(0, 1), coordinates=[0, 1])"
+    assert (
+        str(pseudometric)
+        == "LpPseudometric(p=3, domain=(0, 1), coordinates=[0, 1])"
+    )

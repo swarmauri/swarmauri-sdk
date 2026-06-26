@@ -6,7 +6,9 @@ import pytest
 from swarmauri_keyprovider_remote_jwks import RemoteJwksKeyProvider
 
 SAMPLE_JWKS = {
-    "keys": [{"kty": "RSA", "kid": "test.1", "n": "0", "e": "AQAB", "alg": "RS256"}]
+    "keys": [
+        {"kty": "RSA", "kid": "test.1", "n": "0", "e": "AQAB", "alg": "RS256"}
+    ]
 }
 
 

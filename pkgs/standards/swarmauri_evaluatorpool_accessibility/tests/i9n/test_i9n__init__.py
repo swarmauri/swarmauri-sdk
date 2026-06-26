@@ -6,7 +6,8 @@ import pytest
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,9 @@ def test_version_availability() -> None:
     import swarmauri_evaluatorpool_accessibility
 
     assert hasattr(swarmauri_evaluatorpool_accessibility, "__version__")
-    logger.info(f"Package version: {swarmauri_evaluatorpool_accessibility.__version__}")
+    logger.info(
+        f"Package version: {swarmauri_evaluatorpool_accessibility.__version__}"
+    )
 
 
 @pytest.mark.i9n
@@ -79,7 +82,9 @@ def test_all_exports() -> None:
         assert hasattr(swarmauri_evaluatorpool_accessibility, class_name), (
             f"{class_name} not available in package"
         )
-        logger.info(f"Successfully verified {class_name} is available in package")
+        logger.info(
+            f"Successfully verified {class_name} is available in package"
+        )
 
 
 @pytest.fixture
@@ -133,7 +138,9 @@ def test_package_structure(package_import: Any) -> None:
 
     # Verify all evaluator classes exist
     for class_name in evaluator_classes:
-        assert hasattr(package_import, class_name), f"{class_name} not found in package"
+        assert hasattr(package_import, class_name), (
+            f"{class_name} not found in package"
+        )
         logger.info(f"Verified {class_name} exists in package")
 
     # Verify the pool class exists

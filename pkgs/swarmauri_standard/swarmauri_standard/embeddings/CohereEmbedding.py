@@ -172,16 +172,24 @@ class CohereEmbedding(EmbeddingBase):
             self._client.close()
 
     def save_model(self, path: str):
-        raise NotImplementedError("save_model is not applicable for Cohere embeddings")
+        raise NotImplementedError(
+            "save_model is not applicable for Cohere embeddings"
+        )
 
     def load_model(self, path: str):
-        raise NotImplementedError("load_model is not applicable for Cohere embeddings")
+        raise NotImplementedError(
+            "load_model is not applicable for Cohere embeddings"
+        )
 
     def fit(self, documents: List[str], labels=None):
-        raise NotImplementedError("fit is not applicable for Cohere embeddings")
+        raise NotImplementedError(
+            "fit is not applicable for Cohere embeddings"
+        )
 
     def transform(self, data: List[str]):
-        raise NotImplementedError("transform is not applicable for Cohere embeddings")
+        raise NotImplementedError(
+            "transform is not applicable for Cohere embeddings"
+        )
 
     def fit_transform(self, documents: List[str], **kwargs):
         raise NotImplementedError(

@@ -23,7 +23,9 @@ def test_method_args_only_call():
     tool = AdditionTool()
     args = (1, 2)
     kwargs = {}
-    step = ChainStep(key="test", method=tool, args=args, kwargs=kwargs, ref=None)
+    step = ChainStep(
+        key="test", method=tool, args=args, kwargs=kwargs, ref=None
+    )
     result = step.method(*step.args, **step.kwargs)
 
     assert isinstance(result, dict)
@@ -36,7 +38,9 @@ def test_serialization():
     tool = AdditionTool()
     args = (1, 2)
     kwargs = {}
-    step = ChainStep(key="test", method=tool, args=args, kwargs=kwargs, ref=None)
+    step = ChainStep(
+        key="test", method=tool, args=args, kwargs=kwargs, ref=None
+    )
 
     # Serialize and deserialize
     serialized_step = step.model_dump_json()

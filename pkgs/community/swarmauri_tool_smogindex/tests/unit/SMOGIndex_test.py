@@ -56,7 +56,9 @@ def test_call(input_text, expected_smog_index):
 
     result = tool(input_text)
 
-    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert isinstance(result, dict), (
+        f"Expected dict, but got {type(result).__name__}"
+    )
     assert expected_keys.issubset(result.keys()), (
         f"Expected keys {expected_keys} but got {result.keys()}"
     )

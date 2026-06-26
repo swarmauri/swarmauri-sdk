@@ -38,9 +38,7 @@ class OutlookSendMailTool(ToolBase):
         self.client_id = "YOUR_CLIENT_ID"
         self.client_secret = "YOUR_CLIENT_SECRET"
         self.scope = ["https://graph.microsoft.com/.default"]
-        self.token_url = (
-            f"https://login.microsoftonline.com/{self.tenant_id}/oauth2/v2.0/token"
-        )
+        self.token_url = f"https://login.microsoftonline.com/{self.tenant_id}/oauth2/v2.0/token"
         self.graph_endpoint = "https://graph.microsoft.com/v1.0"
 
     def get_access_token(self):
@@ -70,8 +68,12 @@ class OutlookSendMailTool(ToolBase):
             }
         }
 
-        send_mail_endpoint = f"{self.graph_endpoint}/users/{self.client_id}/sendMail"
-        response = requests.post(send_mail_endpoint, json=email_data, headers=headers)
+        send_mail_endpoint = (
+            f"{self.graph_endpoint}/users/{self.client_id}/sendMail"
+        )
+        response = requests.post(
+            send_mail_endpoint, json=email_data, headers=headers
+        )
         if response.status_code == 202:
             return {"success": "Email sent successfully"}
         else:

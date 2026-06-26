@@ -49,7 +49,11 @@ class BERTEmbeddingParser(ParserBase):
 
         # Tokenization
         inputs = self._tokenizer(
-            data, return_tensors="pt", padding=True, truncation=True, max_length=512
+            data,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=512,
         )
 
         # Generate embeddings

@@ -128,7 +128,8 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         Placeholder
         """
         self.documents = [
-            globals()[each["type"]].from_dict(each) for each in json.loads(json_data)
+            globals()[each["type"]].from_dict(each)
+            for each in json.loads(json_data)
         ]
 
     def document_load(self, file_path: str) -> None:
@@ -137,5 +138,6 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         """
         with open(file_path, "r", encoding="utf-8"):
             self.documents = [
-                globals()[each["type"]].from_dict(each) for each in json.load(file_path)
+                globals()[each["type"]].from_dict(each)
+                for each in json.load(file_path)
             ]

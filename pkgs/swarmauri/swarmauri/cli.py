@@ -13,7 +13,9 @@ def run_command(command):
     Run a shell command and handle errors.
     """
     try:
-        result = subprocess.run(command, check=True, text=True, capture_output=True)
+        result = subprocess.run(
+            command, check=True, text=True, capture_output=True
+        )
         logger.info(result.stdout)
     except subprocess.CalledProcessError as e:
         logger.error(f"Command failed: {e.stderr}")
@@ -31,7 +33,9 @@ def install_plugin(plugin_name, use_pip=False, use_poetry=False):
         logger.info(f"Adding plugin '{plugin_name}' using poetry...")
         run_command(["poetry", "add", plugin_name])
     else:
-        logger.warning("Specify --use-pip or --use-poetry to install the plugin.")
+        logger.warning(
+            "Specify --use-pip or --use-poetry to install the plugin."
+        )
 
 
 def remove_plugin(plugin_name, use_pip=False, use_poetry=False):
@@ -45,7 +49,9 @@ def remove_plugin(plugin_name, use_pip=False, use_poetry=False):
         logger.info(f"Removing plugin '{plugin_name}' using poetry...")
         run_command(["poetry", "remove", plugin_name])
     else:
-        logger.warning("Specify --use-pip or --use-poetry to remove the plugin.")
+        logger.warning(
+            "Specify --use-pip or --use-poetry to remove the plugin."
+        )
 
 
 def validate_plugin(plugin_name):
@@ -89,7 +95,9 @@ def register_plugin(plugin_name):
                     if "." in entry_point.group
                     else None
                 )
-                plugin_manager.register(entry_point.name, plugin_class, resource_kind)
+                plugin_manager.register(
+                    entry_point.name, plugin_class, resource_kind
+                )
                 logger.info(f"Plugin '{plugin_name}' registered successfully.")
                 return
         logger.warning(f"Plugin '{plugin_name}' not found among entry points.")
@@ -120,10 +128,14 @@ def main():
         description="Swarmauri CLI: Manage plugins and namespace components."
     )
 
-    subparsers = parser.add_subparsers(dest="command", help="Subcommands for the CLI")
+    subparsers = parser.add_subparsers(
+        dest="command", help="Subcommands for the CLI"
+    )
 
     # Subcommand: Install Plugin
-    install_parser = subparsers.add_parser("install", help="Install a new plugin.")
+    install_parser = subparsers.add_parser(
+        "install", help="Install a new plugin."
+    )
     install_parser.add_argument(
         "plugin_name", type=str, help="Name of the plugin to install."
     )
@@ -155,7 +167,9 @@ def main():
     )
 
     # Subcommand: Register Plugin
-    register_parser = subparsers.add_parser("register", help="Register a plugin.")
+    register_parser = subparsers.add_parser(
+        "register", help="Register a plugin."
+    )
     register_parser.add_argument(
         "plugin_name", type=str, help="Name of the plugin to register."
     )

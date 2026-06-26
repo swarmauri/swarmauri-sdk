@@ -122,12 +122,16 @@ class HierarchicalKeyProvider(KeyProviderBase):
         )
 
         # where to persist kid→provider index (optional)
-        self._index_path: Optional[Path] = Path(index_file) if index_file else None
+        self._index_path: Optional[Path] = (
+            Path(index_file) if index_file else None
+        )
         self._kid_index: Dict[str, str] = {}
         self._mutex = threading.RLock()
 
         # designate providers for random/hkdf if desired
-        self._rand_name = randomness_provider or next(iter(self._children.keys()))
+        self._rand_name = randomness_provider or next(
+            iter(self._children.keys())
+        )
         self._hkdf_name = derivation_provider or self._rand_name
 
         # load existing index if present
@@ -181,14 +185,24 @@ class HierarchicalKeyProvider(KeyProviderBase):
         # Look for a child with "kms" or "pkcs11" in its name for asymmetric/private ops
         if spec.klass == KeyClass.asymmetric:
             preferred = next(
-                (n for n in names if "kms" in n.lower() or "pkcs11" in n.lower()), None
+                (
+                    n
+                    for n in names
+                    if "kms" in n.lower() or "pkcs11" in n.lower()
+                ),
+                None,
             )
             if preferred:
                 return self._children[preferred]
         # symmetric → prefer local/file
         if spec.klass == KeyClass.symmetric:
             preferred = next(
-                (n for n in names if "local" in n.lower() or "file" in n.lower()), None
+                (
+                    n
+                    for n in names
+                    if "local" in n.lower() or "file" in n.lower()
+                ),
+                None,
             )
             if preferred:
                 return self._children[preferred]
@@ -231,7 +245,11 @@ class HierarchicalKeyProvider(KeyProviderBase):
     ) -> KeyRef:
         with self._mutex:
             # choose provider using import policy if provided; else reuse create policy
-            rules = self._import_rules if self._import_rules else self._create_rules
+            rules = (
+                self._import_rules
+                if self._import_rules
+                else self._create_rules
+            )
             prov = self._pick_by_policy(spec, rules)
         ref = await prov.import_key(spec, material, public=public)
         with self._mutex:
@@ -250,7 +268,9 @@ class HierarchicalKeyProvider(KeyProviderBase):
         # rotation keeps same kid; owner unchanged
         return new_ref
 
-    async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
+    async def destroy_key(
+        self, kid: str, version: Optional[int] = None
+    ) -> bool:
         with self._mutex:
             prov = self._owner_unlocked(kid)
         if prov is None:
@@ -275,7 +295,11 @@ class HierarchicalKeyProvider(KeyProviderBase):
         return ok
 
     async def get_key(
-        self, kid: str, version: Optional[int] = None, *, include_secret: bool = False
+        self,
+        kid: str,
+        version: Optional[int] = None,
+        *,
+        include_secret: bool = False,
     ) -> KeyRef:
         with self._mutex:
             prov = self._owner_unlocked(kid)
@@ -292,7 +316,9 @@ class HierarchicalKeyProvider(KeyProviderBase):
 
     # ───────────────────────── public export ─────────────────────────
 
-    async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
+    async def get_public_jwk(
+        self, kid: str, version: Optional[int] = None
+    ) -> dict:
         with self._mutex:
             prov = self._owner_unlocked(kid)
         if prov is None:
@@ -323,7 +349,9 @@ class HierarchicalKeyProvider(KeyProviderBase):
         prov = self._children[self._rand_name]
         return await prov.random_bytes(n)
 
-    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+    async def hkdf(
+        self, ikm: bytes, *, salt: bytes, info: bytes, length: int
+    ) -> bytes:
         prov = self._children[self._hkdf_name]
         return await prov.hkdf(ikm, salt=salt, info=info, length=length)
 

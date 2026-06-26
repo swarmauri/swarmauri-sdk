@@ -46,7 +46,9 @@ class SobolevNorm(NormBase):
     """
 
     type: Literal["SobolevNorm"] = "SobolevNorm"
-    order: int = Field(default=1, description="Highest derivative order to consider")
+    order: int = Field(
+        default=1, description="Highest derivative order to consider"
+    )
     weights: Dict[int, float] = Field(
         default_factory=lambda: {0: 1.0, 1: 1.0},
         description="Weights for each derivative order",
@@ -73,7 +75,10 @@ class SobolevNorm(NormBase):
         )
 
     def compute(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> float:
         """
         Compute the Sobolev norm of the input.
@@ -105,7 +110,9 @@ class SobolevNorm(NormBase):
         elif isinstance(x, (IVector, IMatrix, Sequence)):
             # For non-callable types, use only the function value (0th derivative)
             # with appropriate weight
-            logger.debug("Computing Sobolev norm for non-callable using L2 norm")
+            logger.debug(
+                "Computing Sobolev norm for non-callable using L2 norm"
+            )
             return self._compute_l2_norm(x) * self.weights.get(0, 1.0)
         else:
             raise TypeError(
@@ -201,7 +208,9 @@ class SobolevNorm(NormBase):
             logger.error(f"Error evaluating function: {str(e)}")
             raise ValueError(f"Failed to evaluate function norm: {str(e)}")
 
-    def _compute_l2_norm(self, x: Union[VectorType, MatrixType, SequenceType]) -> float:
+    def _compute_l2_norm(
+        self, x: Union[VectorType, MatrixType, SequenceType]
+    ) -> float:
         """
         Compute the L2 norm of a non-callable input.
 
@@ -228,13 +237,18 @@ class SobolevNorm(NormBase):
                 # Convert sequence to numpy array and compute norm
                 return np.linalg.norm(np.array(x, dtype=float))
             else:
-                raise ValueError(f"Cannot compute L2 norm for type {type(x).__name__}")
+                raise ValueError(
+                    f"Cannot compute L2 norm for type {type(x).__name__}"
+                )
         except Exception as e:
             logger.error(f"Error computing L2 norm: {str(e)}")
             raise ValueError(f"Failed to compute L2 norm: {str(e)}")
 
     def check_non_negativity(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the Sobolev norm satisfies the non-negativity property.
@@ -257,7 +271,10 @@ class SobolevNorm(NormBase):
             return False
 
     def check_definiteness(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the Sobolev norm satisfies the definiteness property.
@@ -278,7 +295,9 @@ class SobolevNorm(NormBase):
             # For a zero input, the norm should be zero
             if self._is_zero(x):
                 norm_value = self.compute(x)
-                return abs(norm_value) < 1e-10  # Allow for numerical precision issues
+                return (
+                    abs(norm_value) < 1e-10
+                )  # Allow for numerical precision issues
 
             # For a non-zero input, the norm should be positive
             norm_value = self.compute(x)
@@ -289,8 +308,12 @@ class SobolevNorm(NormBase):
 
     def check_triangle_inequality(
         self,
-        x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
-        y: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
+        y: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the Sobolev norm satisfies the triangle inequality.
@@ -336,7 +359,9 @@ class SobolevNorm(NormBase):
                     # Add derivative method to sum_func
                     def create_derivative(func_x, func_y):
                         def derivative_func(t):
-                            return func_x.derivative()(t) + func_y.derivative()(t)
+                            return func_x.derivative()(
+                                t
+                            ) + func_y.derivative()(t)
 
                         return derivative_func
 
@@ -359,10 +384,14 @@ class SobolevNorm(NormBase):
                 norm_sum = self.compute(sum_xy)
 
             else:
-                raise TypeError(f"Cannot compute sum for type {type(x).__name__}")
+                raise TypeError(
+                    f"Cannot compute sum for type {type(x).__name__}"
+                )
 
             # Check triangle inequality
-            logger.debug(f"Triangle inequality check: {norm_sum} <= {norm_x + norm_y}")
+            logger.debug(
+                f"Triangle inequality check: {norm_sum} <= {norm_x + norm_y}"
+            )
             return (
                 norm_sum <= norm_x + norm_y + 1e-10
             )  # Allow for numerical precision issues
@@ -374,7 +403,9 @@ class SobolevNorm(NormBase):
     # Fix for check_absolute_homogeneity
     def check_absolute_homogeneity(
         self,
-        x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
         scalar: float,
     ) -> bool:
         """
@@ -413,7 +444,9 @@ class SobolevNorm(NormBase):
 
                         return derivative_func
 
-                    scaled_func.derivative = lambda: create_derivative(x, scalar)
+                    scaled_func.derivative = lambda: create_derivative(
+                        x, scalar
+                    )
 
                 norm_scaled = self.compute(scaled_func)
 
@@ -429,7 +462,9 @@ class SobolevNorm(NormBase):
                 norm_scaled = self.compute(scaled_x)
 
             else:
-                raise TypeError(f"Cannot scale input of type {type(x).__name__}")
+                raise TypeError(
+                    f"Cannot scale input of type {type(x).__name__}"
+                )
 
             # Check absolute homogeneity
             expected_norm = abs(scalar) * norm_x
@@ -446,7 +481,10 @@ class SobolevNorm(NormBase):
 
     # Fix for _is_zero
     def _is_zero(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the input is effectively zero.

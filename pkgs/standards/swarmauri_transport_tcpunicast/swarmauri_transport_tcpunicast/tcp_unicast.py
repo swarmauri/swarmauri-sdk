@@ -40,7 +40,9 @@ class TCPUnicast(
             schemes=frozenset({AddressScheme.TCP}),
         )
 
-    async def _start_server(self, host: str = "0.0.0.0", port: int = 9000) -> None:
+    async def _start_server(
+        self, host: str = "0.0.0.0", port: int = 9000
+    ) -> None:
         async def _accept(
             reader: asyncio.StreamReader, writer: asyncio.StreamWriter
         ) -> None:
@@ -56,7 +58,9 @@ class TCPUnicast(
             await self._server.wait_closed()
             self._server = None
 
-    async def _open_client(self, host: str = "127.0.0.1", port: int = 9000) -> None:
+    async def _open_client(
+        self, host: str = "127.0.0.1", port: int = 9000
+    ) -> None:
         self._reader, self._writer = await asyncio.open_connection(host, port)
 
     async def _close_client(self) -> None:

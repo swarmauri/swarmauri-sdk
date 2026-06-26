@@ -64,7 +64,9 @@ class WhisperLargeModel(LLMBase):
             ValueError: If required configuration parameters are missing.
         """
         super().__init__(**data)
-        self._header = {"Authorization": f"Bearer {self.api_key.get_secret_value()}"}
+        self._header = {
+            "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+        }
         self._client = httpx.Client(headers=self._header, timeout=self.timeout)
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -152,7 +154,9 @@ class WhisperLargeModel(LLMBase):
             params["language"] = "en"
 
         async with httpx.AsyncClient(headers=self._header) as client:
-            response = await client.post(self._BASE_URL, data=data, params=params)
+            response = await client.post(
+                self._BASE_URL, data=data, params=params
+            )
             response.raise_for_status()
             result = response.json()
 
@@ -227,7 +231,9 @@ class WhisperLargeModel(LLMBase):
             async with semaphore:
                 return await self.apredict(audio_path=path, task=task)
 
-        tasks = [process_audio(path, task) for path, task in path_task_dict.items()]
+        tasks = [
+            process_audio(path, task) for path, task in path_task_dict.items()
+        ]
         return await asyncio.gather(*tasks)
 
     def stream(
@@ -235,7 +241,9 @@ class WhisperLargeModel(LLMBase):
         audio_path: str,
         task: Literal["transcription", "translation"] = "transcription",
     ) -> str:
-        raise NotImplementedError("Stream method is not implemented for OpenAIAudio")
+        raise NotImplementedError(
+            "Stream method is not implemented for OpenAIAudio"
+        )
 
     async def astream(
         self,

@@ -97,5 +97,7 @@ class LexicalDensityTool(ToolBase):
             "RBS",
         }
 
-        lexical_words = [word for word, pos in pos_tags if pos in lexical_pos_tags]
+        lexical_words = [
+            word for word, pos in pos_tags if pos in lexical_pos_tags
+        ]
         return len(lexical_words)

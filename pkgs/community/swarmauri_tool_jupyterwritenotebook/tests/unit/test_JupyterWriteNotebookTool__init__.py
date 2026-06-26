@@ -5,7 +5,10 @@ This module tests that the package's __init__.py file correctly exposes its
 public API and provides necessary metadata such as version information.
 """
 
-from swarmauri_tool_jupyterwritenotebook import JupyterWriteNotebookTool, __version__
+from swarmauri_tool_jupyterwritenotebook import (
+    JupyterWriteNotebookTool,
+    __version__,
+)
 
 
 def test_jupyter_write_notebook_tool_import() -> None:

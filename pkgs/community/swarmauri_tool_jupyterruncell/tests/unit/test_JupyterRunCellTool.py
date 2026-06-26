@@ -89,7 +89,9 @@ time.sleep(2)
 """
     result = tool(code=code, timeout=1)
 
-    assert result["success"] is False, "Expected success to be False due to timeout."
+    assert result["success"] is False, (
+        "Expected success to be False due to timeout."
+    )
     assert "TimeoutError" in result["error_output"], (
         "Expected 'TimeoutError' in error output."
     )

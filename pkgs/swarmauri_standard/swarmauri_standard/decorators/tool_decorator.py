@@ -47,7 +47,9 @@ def tool(func):
     @ComponentBase.register_type(ToolBase, func_name)
     class FunctionTool(ToolBase):
         version: str = "1.0.0"
-        parameters: List[Parameter] = Field(default_factory=lambda: parameters_list)
+        parameters: List[Parameter] = Field(
+            default_factory=lambda: parameters_list
+        )
         name: str = func_name
         description: str = docstring
         # The tool type is set to be the same as the function name

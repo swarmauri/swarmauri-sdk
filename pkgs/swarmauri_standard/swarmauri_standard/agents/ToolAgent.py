@@ -35,7 +35,9 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
         elif isinstance(input_data, IMessage):
             human_message = input_data
         else:
-            raise TypeError("Input data must be a string or an instance of Message.")
+            raise TypeError(
+                "Input data must be a string or an instance of Message."
+            )
 
         # Add the human message to the conversation
         self.conversation.add_message(human_message)
@@ -64,7 +66,9 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
         elif isinstance(input_data, IMessage):
             human_message = input_data
         else:
-            raise TypeError("Input data must be a string or an instance of Message.")
+            raise TypeError(
+                "Input data must be a string or an instance of Message."
+            )
 
         # Add input to conversation
         self.conversation.add_message(human_message)
@@ -79,4 +83,6 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
         return self.conversation.get_last().content
 
     def get_tool_message_content(self) -> List[str]:
-        return [m.content for m in self.conversation.history if m.role == "tool"]
+        return [
+            m.content for m in self.conversation.history if m.role == "tool"
+        ]

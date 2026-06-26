@@ -17,4 +17,6 @@ class OIDC10AppClientBase(IOIDC10AppClient, ComponentBase):
     type: Literal["OIDC10AppClientBase"] = "OIDC10AppClientBase"
 
     async def access_token(self, scope: Optional[str] = None) -> str:
-        raise NotImplementedError("access_token must be implemented by subclasses")
+        raise NotImplementedError(
+            "access_token must be implemented by subclasses"
+        )

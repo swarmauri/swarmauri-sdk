@@ -19,7 +19,9 @@ class UniquenessMeasurement(MeasurementBase):
     type: Literal["UniquenessMeasurement"] = "UniquenessMeasurement"
     unit: str = "%"  # Percentage as the unit of measurement
 
-    def calculate_uniqueness(self, data: Union[pd.DataFrame, List, Dict]) -> float:
+    def calculate_uniqueness(
+        self, data: Union[pd.DataFrame, List, Dict]
+    ) -> float:
         """
         Calculates the uniqueness score for different data types.
 
@@ -64,7 +66,9 @@ class UniquenessMeasurement(MeasurementBase):
             )
 
     def call(
-        self, data: Union[pd.DataFrame, List, Dict], kwargs: Dict[str, Any] = None
+        self,
+        data: Union[pd.DataFrame, List, Dict],
+        kwargs: Dict[str, Any] = None,
     ) -> float:
         """
         Calculates and returns the uniqueness score for the provided data.
@@ -95,4 +99,7 @@ class UniquenessMeasurement(MeasurementBase):
         if not isinstance(df, pd.DataFrame):
             raise ValueError("Input must be a pandas DataFrame")
 
-        return {column: (df[column].nunique() / len(df) * 100) for column in df.columns}
+        return {
+            column: (df[column].nunique() / len(df) * 100)
+            for column in df.columns
+        }

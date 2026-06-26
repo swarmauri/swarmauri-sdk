@@ -66,7 +66,9 @@ class AnyTypeUsageEvaluator(EvaluatorBase, ComponentBase):
                 )
 
         # Calculate penalty score (1.0 is best, lower is worse)
-        penalty = min(self.max_penalty, total_occurrences * self.penalty_per_occurrence)
+        penalty = min(
+            self.max_penalty, total_occurrences * self.penalty_per_occurrence
+        )
         score = 1.0 - penalty
 
         metadata = {
@@ -148,11 +150,17 @@ class AnyTypeUsageEvaluator(EvaluatorBase, ComponentBase):
                 for i, line in enumerate(lines):
                     # Look for Any that's not part of a word (like "Anything")
                     # This regex looks for Any as a standalone word or in type annotations
-                    matches = re.finditer(r"\bAny\b|\[Any\]|: Any|-> Any", line)
+                    matches = re.finditer(
+                        r"\bAny\b|\[Any\]|: Any|-> Any", line
+                    )
                     for match in matches:
                         # Check if this line is already recorded from AST parsing
-                        if not any(occ["line"] == i + 1 for occ in occurrences):
-                            occurrences.append({"line": i + 1, "context": line.strip()})
+                        if not any(
+                            occ["line"] == i + 1 for occ in occurrences
+                        ):
+                            occurrences.append(
+                                {"line": i + 1, "context": line.strip()}
+                            )
 
             except SyntaxError as e:
                 logger.warning(f"Syntax error in file {file_path}: {str(e)}")
@@ -162,7 +170,9 @@ class AnyTypeUsageEvaluator(EvaluatorBase, ComponentBase):
                     if "Any" in line:
                         # Simple pattern matching for files with syntax errors
                         if re.search(r"\bAny\b", line):
-                            occurrences.append({"line": i + 1, "context": line.strip()})
+                            occurrences.append(
+                                {"line": i + 1, "context": line.strip()}
+                            )
 
         except Exception as e:
             logger.error(f"Error analyzing file {file_path}: {str(e)}")
@@ -201,7 +211,10 @@ class AnyTypeVisitor(ast.NodeVisitor):
     def visit_AnnAssign(self, node):
         """Visit annotated assignments to find Any in type annotations."""
         # Check if the annotation contains Any
-        if isinstance(node.annotation, ast.Name) and node.annotation.id == "Any":
+        if (
+            isinstance(node.annotation, ast.Name)
+            and node.annotation.id == "Any"
+        ):
             context = "variable: Any annotation"
             self.any_occurrences.append((node.lineno, context))
         self.generic_visit(node)

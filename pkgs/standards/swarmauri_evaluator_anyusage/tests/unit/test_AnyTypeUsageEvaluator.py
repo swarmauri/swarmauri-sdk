@@ -3,7 +3,9 @@ import tempfile
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
-from swarmauri_evaluator_anyusage.AnyTypeUsageEvaluator import AnyTypeUsageEvaluator
+from swarmauri_evaluator_anyusage.AnyTypeUsageEvaluator import (
+    AnyTypeUsageEvaluator,
+)
 
 
 @pytest.fixture
@@ -43,7 +45,9 @@ def test_initialization():
 @pytest.mark.unit
 def test_initialization_with_custom_values():
     """Test the initialization of AnyTypeUsageEvaluator with custom values."""
-    evaluator = AnyTypeUsageEvaluator(penalty_per_occurrence=0.2, max_penalty=0.5)
+    evaluator = AnyTypeUsageEvaluator(
+        penalty_per_occurrence=0.2, max_penalty=0.5
+    )
     assert evaluator.type == "AnyTypeUsageEvaluator"
     assert evaluator.penalty_per_occurrence == 0.2
     assert evaluator.max_penalty == 0.5
@@ -98,7 +102,9 @@ class MyClass:
     attr: List[Any] = []
 """
 
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as temp_file:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".py", delete=False
+    ) as temp_file:
         temp_file.write(file_content)
         temp_file_path = temp_file.name
 
@@ -169,7 +175,9 @@ def test_analyze_file_for_any_file_error(evaluator):
         (15, 0.0),  # 15 occurrences with 0.1 penalty each -> max penalty (1.0)
     ],
 )
-def test_compute_score(evaluator, mock_program, num_occurrences, expected_score):
+def test_compute_score(
+    evaluator, mock_program, num_occurrences, expected_score
+):
     """Test the _compute_score method with different numbers of Any occurrences."""
     # Mock the methods to control the test
     with (
@@ -191,7 +199,9 @@ def test_compute_score(evaluator, mock_program, num_occurrences, expected_score)
                 ],
                 [
                     {"line": i, "context": f"context {i}"}
-                    for i in range(1, num_occurrences - occurrences_per_file + 1)
+                    for i in range(
+                        1, num_occurrences - occurrences_per_file + 1
+                    )
                 ],
             ]
 
@@ -208,7 +218,9 @@ def test_compute_score(evaluator, mock_program, num_occurrences, expected_score)
 @pytest.mark.unit
 def test_compute_score_custom_penalties(mock_program):
     """Test the _compute_score method with custom penalty settings."""
-    evaluator = AnyTypeUsageEvaluator(penalty_per_occurrence=0.2, max_penalty=0.6)
+    evaluator = AnyTypeUsageEvaluator(
+        penalty_per_occurrence=0.2, max_penalty=0.6
+    )
 
     # Mock the methods to control the test
     with (
@@ -240,5 +252,7 @@ def test_serialization(evaluator):
 
     # Check that the deserialized object has the same attributes
     assert deserialized.type == evaluator.type
-    assert deserialized.penalty_per_occurrence == evaluator.penalty_per_occurrence
+    assert (
+        deserialized.penalty_per_occurrence == evaluator.penalty_per_occurrence
+    )
     assert deserialized.max_penalty == evaluator.max_penalty

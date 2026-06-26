@@ -33,7 +33,9 @@ def symmetric_key():
 def x25519_key():
     # Generate a simple X25519-like key (32 bytes for demo)
     private_key = secrets.token_bytes(32)
-    public_key = secrets.token_bytes(32)  # In real X25519, this would be derived
+    public_key = secrets.token_bytes(
+        32
+    )  # In real X25519, this would be derived
 
     return KeyRef(
         kid="test-x25519",
@@ -131,7 +133,9 @@ async def test_aead_encrypt_with_nonce(rust_crypto, symmetric_key):
     plaintext = b"Message with custom nonce"
     nonce = secrets.token_bytes(12)
 
-    ciphertext = await rust_crypto.encrypt(symmetric_key, plaintext, nonce=nonce)
+    ciphertext = await rust_crypto.encrypt(
+        symmetric_key, plaintext, nonce=nonce
+    )
     decrypted = await rust_crypto.decrypt(symmetric_key, ciphertext)
 
     assert decrypted == plaintext
@@ -163,7 +167,9 @@ async def test_seal_unseal_roundtrip(rust_crypto, x25519_key):
     # Test sealing
     sealed = await rust_crypto.seal(x25519_key, plaintext)
     assert isinstance(sealed, bytes)
-    assert len(sealed) > len(plaintext)  # Should be larger due to encryption overhead
+    assert len(sealed) > len(
+        plaintext
+    )  # Should be larger due to encryption overhead
 
     # Test unsealing
     unsealed = await rust_crypto.unseal(x25519_key, sealed)
@@ -271,4 +277,6 @@ async def test_error_handling_wrong_algorithm(rust_crypto, symmetric_key):
     from swarmauri_core.crypto.types import UnsupportedAlgorithm
 
     with pytest.raises(UnsupportedAlgorithm):
-        await rust_crypto.encrypt(symmetric_key, b"test", alg="UNSUPPORTED-ALG")
+        await rust_crypto.encrypt(
+            symmetric_key, b"test", alg="UNSUPPORTED-ALG"
+        )

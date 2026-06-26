@@ -58,7 +58,9 @@ class IMatrix(ABC):
 
     @abstractmethod
     def __setitem__(
-        self, key: Index, value: Union["IMatrix", IVector, T, Sequence[Sequence[T]]]
+        self,
+        key: Index,
+        value: Union["IMatrix", IVector, T, Sequence[Sequence[T]]],
     ) -> None:
         """
         Set an element, row, column, or submatrix using indexing/slicing.

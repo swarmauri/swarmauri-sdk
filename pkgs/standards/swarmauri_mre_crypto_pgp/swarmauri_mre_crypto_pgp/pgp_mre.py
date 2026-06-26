@@ -16,7 +16,11 @@ from typing import (
     Tuple,
 )
 
-from swarmauri_core.mre_crypto.types import MultiRecipientEnvelope, RecipientId, MreMode
+from swarmauri_core.mre_crypto.types import (
+    MultiRecipientEnvelope,
+    RecipientId,
+    MreMode,
+)
 from swarmauri_core.crypto.types import Alg, KeyRef
 from swarmauri_base.mre_crypto.MreCryptoBase import MreCryptoBase
 from swarmauri_base.ComponentBase import ComponentBase
@@ -67,7 +71,9 @@ def _load_pubkey(ref: KeyRef) -> "pgpy.PGPKey":
     raise TypeError("Unsupported recipient KeyRef for PGP public key.")
 
 
-def _load_privkey(ref: KeyRef, passphrase: Optional[bytes | str]) -> "pgpy.PGPKey":
+def _load_privkey(
+    ref: KeyRef, passphrase: Optional[bytes | str]
+) -> "pgpy.PGPKey":
     _ensure_pgpy()
     if isinstance(ref, dict):
         kind = ref.get("kind")
@@ -215,7 +221,9 @@ class PGPMreCrypto(MreCryptoBase):
                 "mode": MreMode.ENC_ONCE_HEADERS.value,
                 "payload_alg": payload_alg,
                 "recipient_alg": "OpenPGP",
-                "payload": _make_aead_payload(payload_alg, nonce, ct, tag, aad),
+                "payload": _make_aead_payload(
+                    payload_alg, nonce, ct, tag, aad
+                ),
                 "recipients": headers,
             }
             if shared:
@@ -268,11 +276,15 @@ class PGPMreCrypto(MreCryptoBase):
                     except Exception:
                         continue
             if cek is None:
-                raise PermissionError("This identity cannot open the envelope.")
+                raise PermissionError(
+                    "This identity cannot open the envelope."
+                )
 
             payload = env["payload"]
             if payload.get("alg") != "AES-256-GCM":
-                raise ValueError("Unsupported payload_alg for PGPMreCrypto open.")
+                raise ValueError(
+                    "Unsupported payload_alg for PGPMreCrypto open."
+                )
             nonce, ct, tag = payload["nonce"], payload["ct"], payload["tag"]
             bound_aad = payload.get("aad", None)
             if aad is not None and bound_aad is not None and aad != bound_aad:
@@ -289,7 +301,9 @@ class PGPMreCrypto(MreCryptoBase):
                         return _pgp_decrypt_bytes_with(priv, e["sealed"])
                     except Exception:
                         continue
-                raise PermissionError("This identity cannot open the sealed envelope.")
+                raise PermissionError(
+                    "This identity cannot open the sealed envelope."
+                )
             return _pgp_decrypt_bytes_with(priv, target["sealed"])
 
         raise ValueError(f"Unsupported mode: {mode_str}")
@@ -332,7 +346,9 @@ class PGPMreCrypto(MreCryptoBase):
         new_env: MultiRecipientEnvelope = {k: v for k, v in env.items()}
 
         if m == MreMode.ENC_ONCE_HEADERS:
-            current_headers: List[Dict[str, Any]] = list(new_env.get("recipients", []))
+            current_headers: List[Dict[str, Any]] = list(
+                new_env.get("recipients", [])
+            )
             if remove_ids:
                 current_headers = [
                     h for h in current_headers if h.get("id") not in remove_ids
@@ -351,7 +367,9 @@ class PGPMreCrypto(MreCryptoBase):
                     )
                     for h in candidate_headers:
                         try:
-                            cek = _pgp_decrypt_bytes_with(manage_key, h["header"])
+                            cek = _pgp_decrypt_bytes_with(
+                                manage_key, h["header"]
+                            )
                             break
                         except Exception:
                             continue
@@ -364,7 +382,9 @@ class PGPMreCrypto(MreCryptoBase):
                 pubs = [_load_pubkey(r) for r in add]
                 rids = [_fingerprint_pub(pk) for pk in pubs]
                 new_headers = [
-                    _make_recipient_header(rid, _pgp_encrypt_bytes_for(pk, cek))
+                    _make_recipient_header(
+                        rid, _pgp_encrypt_bytes_for(pk, cek)
+                    )
                     for rid, pk in zip(rids, pubs)
                 ]
                 merged: List[Dict[str, Any]] = []
@@ -374,7 +394,9 @@ class PGPMreCrypto(MreCryptoBase):
                 merged.extend(new_headers)
                 current_headers = merged
 
-            rotate = bool(opts.get("rotate_payload_on_revoke")) if opts else False
+            rotate = (
+                bool(opts.get("rotate_payload_on_revoke")) if opts else False
+            )
             if remove_ids and rotate:
                 if not cek:
                     if opts and opts.get("manage_key"):
@@ -383,7 +405,9 @@ class PGPMreCrypto(MreCryptoBase):
                         )
                         for h in env.get("recipients", []):
                             try:
-                                cek = _pgp_decrypt_bytes_with(manage_key, h["header"])
+                                cek = _pgp_decrypt_bytes_with(
+                                    manage_key, h["header"]
+                                )
                                 break
                             except Exception:
                                 continue
@@ -413,14 +437,19 @@ class PGPMreCrypto(MreCryptoBase):
                 )
 
                 add_pubkeys = (opts or {}).get("add_pubkeys")
-                if not isinstance(add_pubkeys, (list, tuple)) or not add_pubkeys:
+                if (
+                    not isinstance(add_pubkeys, (list, tuple))
+                    or not add_pubkeys
+                ):
                     raise RuntimeError(
                         "After rotation, provide opts['add_pubkeys'] = [KeyRef(pub=...), ...] for remaining recipients."
                     )
                 pubs = [_load_pubkey(r) for r in add_pubkeys]
                 rids = [_fingerprint_pub(pk) for pk in pubs]
                 new_headers = [
-                    _make_recipient_header(rid, _pgp_encrypt_bytes_for(pk, new_cek))
+                    _make_recipient_header(
+                        rid, _pgp_encrypt_bytes_for(pk, new_cek)
+                    )
                     for rid, pk in zip(rids, pubs)
                 ]
                 current_headers = new_headers
@@ -429,7 +458,9 @@ class PGPMreCrypto(MreCryptoBase):
             return new_env
 
         if m == MreMode.SEALED_PER_RECIPIENT:
-            current_entries: List[Dict[str, Any]] = list(new_env.get("recipients", []))
+            current_entries: List[Dict[str, Any]] = list(
+                new_env.get("recipients", [])
+            )
             if remove_ids:
                 current_entries = [
                     e for e in current_entries if e.get("id") not in remove_ids
@@ -443,11 +474,15 @@ class PGPMreCrypto(MreCryptoBase):
                 pubs = [_load_pubkey(r) for r in add]
                 rids = [_fingerprint_pub(pk) for pk in pubs]
                 new_entries = [
-                    _make_sealed_recipient(rid, _pgp_encrypt_bytes_for(pk, pt_bytes))
+                    _make_sealed_recipient(
+                        rid, _pgp_encrypt_bytes_for(pk, pt_bytes)
+                    )
                     for rid, pk in zip(rids, pubs)
                 ]
                 remaining = [
-                    e for e in current_entries if e["id"] not in {rid for rid in rids}
+                    e
+                    for e in current_entries
+                    if e["id"] not in {rid for rid in rids}
                 ]
                 current_entries = remaining + new_entries
 

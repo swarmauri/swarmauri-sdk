@@ -46,7 +46,9 @@ async def test_abatch(groq_tool_model, toolkit, model_name):
         conv.add_message(HumanMessage(content=prompt))
         conversations.append(conv)
 
-    results = await groq_tool_model.abatch(conversations=conversations, toolkit=toolkit)
+    results = await groq_tool_model.abatch(
+        conversations=conversations, toolkit=toolkit
+    )
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)

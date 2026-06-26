@@ -57,7 +57,9 @@ def test_call(input_text, expected_score):
 
     expected_keys = {"ari_score"}
 
-    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert isinstance(result, dict), (
+        f"Expected dict, but got {type(result).__name__}"
+    )
     assert expected_keys.issubset(result.keys()), (
         f"Expected keys {expected_keys} but got {result.keys()}"
     )
@@ -65,6 +67,8 @@ def test_call(input_text, expected_score):
         f"Expected float, but got {type(result.get('ari_score')).__name__}"
     )
 
-    assert result.get("ari_score") == pytest.approx(expected_score, rel=1e-2), (
+    assert result.get("ari_score") == pytest.approx(
+        expected_score, rel=1e-2
+    ), (
         f"Expected ARI score 22. {expected_score} ± {1e-2 * expected_score}, but got {result.get('ari_score')}"
     )

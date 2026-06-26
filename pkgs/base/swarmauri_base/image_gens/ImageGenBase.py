@@ -9,7 +9,9 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 @ComponentBase.register_model()
 class ImageGenBase(IGenImage, ComponentBase):
     allowed_models: List[str] = []
-    resource: Optional[str] = Field(default=ResourceTypes.IMAGE_GEN.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.IMAGE_GEN.value, frozen=True
+    )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["ImageGenBase"] = "ImageGenBase"
 
@@ -29,25 +31,33 @@ class ImageGenBase(IGenImage, ComponentBase):
         """
         Generate images based on the input data provided to the model.
         """
-        raise NotImplementedError("generate_image() not implemented in subclass yet.")
+        raise NotImplementedError(
+            "generate_image() not implemented in subclass yet."
+        )
 
     @abstractmethod
     async def agenerate_image(self, *args, **kwargs) -> any:
         """
         Generate images based on the input data provided to the model.
         """
-        raise NotImplementedError("agenerate_image() not implemented in subclass yet.")
+        raise NotImplementedError(
+            "agenerate_image() not implemented in subclass yet."
+        )
 
     @abstractmethod
     def batch_generate(self, *args, **kwargs) -> any:
         """
         Generate images based on the input data provided to the model.
         """
-        raise NotImplementedError("batch_generate() not implemented in subclass yet.")
+        raise NotImplementedError(
+            "batch_generate() not implemented in subclass yet."
+        )
 
     @abstractmethod
     async def abatch_generate(self, *args, **kwargs) -> any:
         """
         Generate images based on the input data provided to the model.
         """
-        raise NotImplementedError("abatch_generate() not implemented in subclass yet.")
+        raise NotImplementedError(
+            "abatch_generate() not implemented in subclass yet."
+        )

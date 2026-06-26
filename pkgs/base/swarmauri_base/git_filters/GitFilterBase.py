@@ -12,7 +12,9 @@ class GitFilterBase(IGitFilter):
     """Base class providing ``clean`` and ``smudge`` helpers."""
 
     @abstractmethod
-    def upload(self, key: str, data: BinaryIO) -> str:  # pragma: no cover - interface
+    def upload(
+        self, key: str, data: BinaryIO
+    ) -> str:  # pragma: no cover - interface
         """Store *data* under *key* and return a URI or identifier."""
 
     @abstractmethod
@@ -21,7 +23,9 @@ class GitFilterBase(IGitFilter):
 
     @classmethod
     @abstractmethod
-    def from_uri(cls, uri: str) -> "GitFilterBase":  # pragma: no cover - interface
+    def from_uri(
+        cls, uri: str
+    ) -> "GitFilterBase":  # pragma: no cover - interface
         """Create a filter instance from *uri*."""
 
     def clean(self, data: bytes) -> str:

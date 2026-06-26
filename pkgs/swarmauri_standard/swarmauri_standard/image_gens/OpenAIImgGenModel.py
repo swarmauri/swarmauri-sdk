@@ -28,7 +28,9 @@ class OpenAIImgGenModel(ImageGenBase):
     name: str = "dall-e-2"
     type: Literal["OpenAIImgGenModel"] = "OpenAIImgGenModel"
     timeout: float = 600.0
-    _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/images/generations")
+    _BASE_URL: str = PrivateAttr(
+        default="https://api.openai.com/v1/images/generations"
+    )
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
     def __init__(self, **kwargs: Dict[str, Any]) -> None:
@@ -67,7 +69,9 @@ class OpenAIImgGenModel(ImageGenBase):
         - List of URLs of the generated images.
         """
         if self.name == "dall-e-3" and n > 1:
-            raise ValueError("DALL-E 3 only supports generating 1 image at a time.")
+            raise ValueError(
+                "DALL-E 3 only supports generating 1 image at a time."
+            )
 
         payload = {
             "model": self.name,
@@ -86,7 +90,9 @@ class OpenAIImgGenModel(ImageGenBase):
                     self._BASE_URL, headers=self._headers, json=payload
                 )
                 response.raise_for_status()
-                return [image["url"] for image in response.json().get("data", [])]
+                return [
+                    image["url"] for image in response.json().get("data", [])
+                ]
         except httpx.HTTPStatusError as e:
             raise RuntimeError(f"Image generation failed: {e}")
 
@@ -113,7 +119,9 @@ class OpenAIImgGenModel(ImageGenBase):
         - List of URLs of the generated images.
         """
         if self.name == "dall-e-3" and n > 1:
-            raise ValueError("DALL-E 3 only supports generating 1 image at a time.")
+            raise ValueError(
+                "DALL-E 3 only supports generating 1 image at a time."
+            )
 
         payload = {
             "model": self.name,
@@ -132,7 +140,9 @@ class OpenAIImgGenModel(ImageGenBase):
                     self._BASE_URL, headers=self._headers, json=payload
                 )
                 response.raise_for_status()
-                return [image["url"] for image in response.json().get("data", [])]
+                return [
+                    image["url"] for image in response.json().get("data", [])
+                ]
         except httpx.HTTPStatusError as e:
             raise RuntimeError(f"Image generation failed: {e}")
 
@@ -158,7 +168,9 @@ class OpenAIImgGenModel(ImageGenBase):
         - List of lists of URLs of the generated images.
         """
         return [
-            self.generate_image(prompt, size=size, quality=quality, n=n, style=style)
+            self.generate_image(
+                prompt, size=size, quality=quality, n=n, style=style
+            )
             for prompt in prompts
         ]
 

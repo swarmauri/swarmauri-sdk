@@ -6,7 +6,10 @@ correctly exposes and imports required classes and variables.
 It also ensures that the exposed objects behave as expected.
 """
 
-from swarmauri_tool_jupyterclearoutput import JupyterClearOutputTool, __version__
+from swarmauri_tool_jupyterclearoutput import (
+    JupyterClearOutputTool,
+    __version__,
+)
 
 
 class BaseTest:
@@ -27,12 +30,18 @@ class TestSwarmAuriToolsInit(BaseTest):
         Test if JupyterClearOutputTool is imported correctly and can be instantiated.
         """
         tool_instance = JupyterClearOutputTool()
-        assert tool_instance is not None, "JupyterClearOutputTool instantiation failed."
+        assert tool_instance is not None, (
+            "JupyterClearOutputTool instantiation failed."
+        )
 
     def test_version_availability(self) -> None:
         """
         Test if __version__ is defined and is a non-empty string.
         """
         assert __version__ is not None, "Expected __version__ to be defined."
-        assert isinstance(__version__, str), "Expected __version__ to be a string."
-        assert __version__ != "", "Expected __version__ to be a non-empty string."
+        assert isinstance(__version__, str), (
+            "Expected __version__ to be a string."
+        )
+        assert __version__ != "", (
+            "Expected __version__ to be a non-empty string."
+        )

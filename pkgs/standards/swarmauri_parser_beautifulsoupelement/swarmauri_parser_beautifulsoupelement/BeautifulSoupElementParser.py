@@ -39,7 +39,8 @@ class BeautifulSoupElementParser(ParserBase):
         # Create a document for each element
         documents = [
             Document(
-                content=str(element), metadata={"element": self.element, "index": index}
+                content=str(element),
+                metadata={"element": self.element, "index": index},
             )
             for index, element in enumerate(elements)
         ]

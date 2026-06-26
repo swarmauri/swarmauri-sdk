@@ -36,7 +36,9 @@ def _extract_quickstart_code() -> str:
                 break
 
     if not code_lines:
-        raise AssertionError("Quickstart python example not found in README.md")
+        raise AssertionError(
+            "Quickstart python example not found in README.md"
+        )
 
     return "\n".join(code_lines)
 

@@ -53,7 +53,8 @@ def test_matrix_arithmetic_respects_binary_field():
     ones = np.ones_like(matrix.generator_matrix)
     complemented = matrix + 1
     np.testing.assert_array_equal(
-        np.mod(matrix.generator_matrix + ones, 2), complemented.generator_matrix
+        np.mod(matrix.generator_matrix + ones, 2),
+        complemented.generator_matrix,
     )
 
     product = matrix @ matrix.transpose()

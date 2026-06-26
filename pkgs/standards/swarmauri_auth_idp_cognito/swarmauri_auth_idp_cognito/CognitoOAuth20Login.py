@@ -6,7 +6,11 @@ from typing import Any, Mapping
 
 from pydantic import Field, SecretBytes, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.auth_idp import OAuth20LoginBase, make_pkce_pair, sign_state
+from swarmauri_base.auth_idp import (
+    OAuth20LoginBase,
+    make_pkce_pair,
+    sign_state,
+)
 
 from .CognitoLoginMixin import CognitoLoginMixin
 
@@ -35,7 +39,9 @@ class CognitoOAuth20Login(CognitoLoginMixin, OAuth20LoginBase):
         )
         return {"url": url, "state": state}
 
-    async def exchange_and_identity(self, code: str, state: str) -> Mapping[str, Any]:
+    async def exchange_and_identity(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         payload = self._state_payload(state)
         metadata = await self._metadata()
         form = {
@@ -46,7 +52,9 @@ class CognitoOAuth20Login(CognitoLoginMixin, OAuth20LoginBase):
             "client_secret": self._client_secret_value(),
             "code_verifier": payload["verifier"],
         }
-        token_json = await self._http_post(metadata["token_endpoint"], data=form)
+        token_json = await self._http_post(
+            metadata["token_endpoint"], data=form
+        )
         access_token = token_json["access_token"]
         userinfo_endpoint = metadata.get("userinfo_endpoint") or (
             f"{self.issuer.rstrip('/')}/oauth2/userInfo"
@@ -58,7 +66,11 @@ class CognitoOAuth20Login(CognitoLoginMixin, OAuth20LoginBase):
         userinfo_json = await self._http_get(
             userinfo_endpoint, headers=userinfo_headers
         )
-        name = userinfo_json.get("name") or userinfo_json.get("given_name") or "Unknown"
+        name = (
+            userinfo_json.get("name")
+            or userinfo_json.get("given_name")
+            or "Unknown"
+        )
         return {
             "issuer": "cognito-oauth2",
             "sub": userinfo_json.get("sub"),

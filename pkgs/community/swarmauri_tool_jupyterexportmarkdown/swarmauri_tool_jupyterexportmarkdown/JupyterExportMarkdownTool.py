@@ -118,7 +118,9 @@ class JupyterExportMarkdownTool(ToolBase):
         try:
             # Convert the incoming JSON to a NotebookNode
             nb_node = nbformat.from_dict(notebook_json)
-            logger.info("Notebook JSON successfully parsed into a NotebookNode.")
+            logger.info(
+                "Notebook JSON successfully parsed into a NotebookNode."
+            )
 
             # Convert each cell's source to a string if it is a list
             for cell in nb_node.cells:

@@ -44,7 +44,10 @@ def test_ubc_type(cohere_model):
 @pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(cohere_model):
-    assert cohere_model.id == LLM.model_validate_json(cohere_model.model_dump_json()).id
+    assert (
+        cohere_model.id
+        == LLM.model_validate_json(cohere_model.model_dump_json()).id
+    )
 
 
 @pytest.mark.timeout(5)

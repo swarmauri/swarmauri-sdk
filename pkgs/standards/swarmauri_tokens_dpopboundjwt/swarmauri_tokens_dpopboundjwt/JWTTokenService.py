@@ -15,7 +15,10 @@ class JWTTokenService:
     type = "JWTTokenService"
 
     def __init__(
-        self, key_provider: IKeyProvider, *, default_issuer: Optional[str] = None
+        self,
+        key_provider: IKeyProvider,
+        *,
+        default_issuer: Optional[str] = None,
     ) -> None:
         self._keys = key_provider
         self._issuer = default_issuer
@@ -61,7 +64,9 @@ class JWTTokenService:
             payload["exp"] = now + int(lifetime_s)
 
         kid = kid or "default"
-        keyref = await self._keys.get_key(kid, version=key_version, include_secret=True)
+        keyref = await self._keys.get_key(
+            kid, version=key_version, include_secret=True
+        )
         secret = keyref.material or b""
         return jwt.encode(
             payload,

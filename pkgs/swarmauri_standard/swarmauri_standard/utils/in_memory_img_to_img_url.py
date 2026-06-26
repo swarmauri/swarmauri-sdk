@@ -46,4 +46,6 @@ def in_memory_img_to_img_url(image: Image.Image, api_key: str) -> str:
                 + data.get("error", {}).get("message", "Unknown error")
             )
     else:
-        raise Exception(f"Failed to upload image. Status code: {response.status_code}")
+        raise Exception(
+            f"Failed to upload image. Status code: {response.status_code}"
+        )

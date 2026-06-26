@@ -5,7 +5,9 @@ import pytest
 from rich.logging import RichHandler
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 
-from swarmauri_standard.logger_handlers.RichLoggingHandler import RichLoggingHandler
+from swarmauri_standard.logger_handlers.RichLoggingHandler import (
+    RichLoggingHandler,
+)
 
 
 @pytest.fixture
@@ -41,7 +43,13 @@ def test_rich_handler_initialization():
 @pytest.mark.unit
 @pytest.mark.parametrize(
     "level",
-    [logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL],
+    [
+        logging.DEBUG,
+        logging.INFO,
+        logging.WARNING,
+        logging.ERROR,
+        logging.CRITICAL,
+    ],
 )
 def test_handler_with_different_levels(level):
     """Test that the handler can be configured with different logging levels."""
@@ -72,7 +80,9 @@ def test_handler_with_formatter_object():
     # Create a mock formatter with proper attributes for Pydantic validation
     mock_formatter = MagicMock(spec=FormatterBase)
     mock_formatter.type = "FormatterBase"
-    mock_formatter.model_dump = MagicMock(return_value={"type": "FormatterBase"})
+    mock_formatter.model_dump = MagicMock(
+        return_value={"type": "FormatterBase"}
+    )
     mock_formatter.compile_formatter.return_value = logging.Formatter(
         "%(levelname)s: %(message)s"
     )

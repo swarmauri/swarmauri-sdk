@@ -21,7 +21,10 @@ def test_tool_decorator_basic_functionality():
 
     # Verify the tool has the correct name and description
     assert add_numbers.name == "add_numbers"
-    assert add_numbers.description == "Add two numbers together and return the result."
+    assert (
+        add_numbers.description
+        == "Add two numbers together and return the result."
+    )
     assert add_numbers.version == "1.0.0"
 
     # Verify the parameters were correctly extracted
@@ -56,7 +59,9 @@ def test_tool_decorator_complex_types():
     """
 
     @tool
-    def process_data(items: List[str], options: Dict[str, Any] = None) -> List[str]:
+    def process_data(
+        items: List[str], options: Dict[str, Any] = None
+    ) -> List[str]:
         """Process a list of items with optional configuration."""
 
         # Just return the items for this test
@@ -67,7 +72,9 @@ def test_tool_decorator_complex_types():
     assert len(process_data.parameters) == 2
 
     # Check list parameter
-    items_param = next((p for p in process_data.parameters if p.name == "items"), None)
+    items_param = next(
+        (p for p in process_data.parameters if p.name == "items"), None
+    )
     assert items_param is not None
     assert items_param.input_type == "List"
     assert items_param.required is True

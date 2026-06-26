@@ -41,4 +41,7 @@ def test_serialization():
         access_token="sq0atp-test",
         location_id="LOC123",
     )
-    assert provider.id == Provider.model_validate_json(provider.model_dump_json()).id
+    assert (
+        provider.id
+        == Provider.model_validate_json(provider.model_dump_json()).id
+    )

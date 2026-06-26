@@ -30,7 +30,9 @@ def test_voyage_type(voyage_embedder):
 def test_voyage_serialization(voyage_embedder):
     assert (
         voyage_embedder.id
-        == VoyageEmbedding.model_validate_json(voyage_embedder.model_dump_json()).id
+        == VoyageEmbedding.model_validate_json(
+            voyage_embedder.model_dump_json()
+        ).id
     )
 
 

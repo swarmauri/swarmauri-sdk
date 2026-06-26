@@ -23,7 +23,8 @@ class BillingProviderBase(IBillingProvider, ComponentBase):
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     api_key: str = Field(
-        ..., description="API key used to authenticate with the billing provider"
+        ...,
+        description="API key used to authenticate with the billing provider",
     )
     base_url: str | None = Field(
         default=None,

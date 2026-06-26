@@ -8,7 +8,9 @@ import pytest
 
 
 README_PATH = Path(__file__).resolve().parents[2] / "README.md"
-_BLOCK_HEADER = '```python title="README example: sign and verify an SSH signature"'
+_BLOCK_HEADER = (
+    '```python title="README example: sign and verify an SSH signature"'
+)
 
 
 def _extract_readme_example() -> str:

@@ -26,8 +26,12 @@ class SalesforceOIDC10Login(SalesforceOIDCLoginMixin, OIDC10LoginBase):
         tokens = await self._exchange_tokens(code, state)
         claims = await self._decode_id_token(tokens, metadata)
         email = claims.get("email")
-        name = claims.get("name") or claims.get("preferred_username") or "Unknown"
-        if (not email or name == "Unknown") and metadata.get("userinfo_endpoint"):
+        name = (
+            claims.get("name") or claims.get("preferred_username") or "Unknown"
+        )
+        if (not email or name == "Unknown") and metadata.get(
+            "userinfo_endpoint"
+        ):
             profile = await self._fetch_userinfo(tokens["access_token"])
             email = email or profile.get("email")
             name = (

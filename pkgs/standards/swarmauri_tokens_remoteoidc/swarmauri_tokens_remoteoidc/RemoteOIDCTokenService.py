@@ -187,7 +187,9 @@ class RemoteOIDCTokenService(TokenServiceBase):
         audience: Optional[str | list[str]] = None,
         leeway_s: int = 60,
         max_age_s: Optional[int] = None,  # optional OIDC 'max_age' enforcement
-        nonce: Optional[str] = None,  # if you flow through /authorize with nonce
+        nonce: Optional[
+            str
+        ] = None,  # if you flow through /authorize with nonce
     ) -> Dict[str, Any]:
         """
         Verify a JWT/JWS against the configured OIDC issuer and remote JWKS.
@@ -218,7 +220,9 @@ class RemoteOIDCTokenService(TokenServiceBase):
                 return (
                     None
                     if self._accept_unsigned
-                    else jwt.InvalidAlgorithmError("Unsigned tokens are not accepted")
+                    else jwt.InvalidAlgorithmError(
+                        "Unsigned tokens are not accepted"
+                    )
                 )
             if not kid:
                 return None
@@ -287,7 +291,9 @@ class RemoteOIDCTokenService(TokenServiceBase):
         if isinstance(self._disc_obj, dict):
             vals = self._disc_obj.get(
                 "id_token_signing_alg_values_supported"
-            ) or self._disc_obj.get("token_endpoint_auth_signing_alg_values_supported")
+            ) or self._disc_obj.get(
+                "token_endpoint_auth_signing_alg_values_supported"
+            )
             if isinstance(vals, list) and vals:
                 algs = tuple(a for a in vals if isinstance(a, str))
         if not algs:
@@ -321,7 +327,9 @@ class RemoteOIDCTokenService(TokenServiceBase):
             self._disc_at = _now()
             return
         if not isinstance(obj, dict) or "jwks_uri" not in obj:
-            raise RuntimeError(f"OIDC discovery did not return jwks_uri: {url}")
+            raise RuntimeError(
+                f"OIDC discovery did not return jwks_uri: {url}"
+            )
         self._disc_obj = obj
         self._disc_etag = etag
         self._disc_lastmod = lastmod

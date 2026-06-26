@@ -18,7 +18,9 @@ class SalesforceOAuth20Login(SalesforceOAuthLoginMixin, OAuth20LoginBase):
         payload = await self._auth_payload()
         return {"url": payload["url"], "state": payload["state"]}
 
-    async def exchange_and_identity(self, code: str, state: str) -> Mapping[str, Any]:
+    async def exchange_and_identity(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         tokens = await self._exchange_tokens(code, state)
         profile = {}
         try:
@@ -50,5 +52,9 @@ class SalesforceOAuth20Login(SalesforceOAuthLoginMixin, OAuth20LoginBase):
             "sub": subject,
             "email": email,
             "name": name,
-            "raw": {"tokens": tokens, "userinfo": profile, "identity": identity},
+            "raw": {
+                "tokens": tokens,
+                "userinfo": profile,
+                "identity": identity,
+            },
         }

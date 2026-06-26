@@ -32,10 +32,14 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
         The specific type identifier for this inner product implementation
     """
 
-    type: Literal["FrobeniusComplexInnerProduct"] = "FrobeniusComplexInnerProduct"
+    type: Literal["FrobeniusComplexInnerProduct"] = (
+        "FrobeniusComplexInnerProduct"
+    )
 
     def compute(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> float:
         """
         Compute the Frobenius inner product between two matrices.
@@ -89,7 +93,9 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             raise
 
     def check_conjugate_symmetry(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> bool:
         """
         Check if the Frobenius inner product satisfies the conjugate symmetry property:
@@ -107,7 +113,9 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
         bool
             True if conjugate symmetry holds, False otherwise
         """
-        logger.debug(f"Checking conjugate symmetry for {type(a)} and {type(b)}")
+        logger.debug(
+            f"Checking conjugate symmetry for {type(a)} and {type(b)}"
+        )
 
         try:
             # Compute <a, b>
@@ -169,7 +177,10 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             b_matrix = np.array(b, dtype=complex)
 
             # Check dimensions
-            if a1_matrix.shape != a2_matrix.shape or a1_matrix.shape != b_matrix.shape:
+            if (
+                a1_matrix.shape != a2_matrix.shape
+                or a1_matrix.shape != b_matrix.shape
+            ):
                 raise ValueError("Matrix dimensions don't match")
 
             # Compute left side: <alpha*a1 + beta*a2, b>
@@ -221,9 +232,9 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             is_nonnegative = inner_product.real >= 0
 
             # Check if <a, a> = 0 iff a = 0
-            is_zero_iff_a_zero = not np.isclose(inner_product, 0) or np.allclose(
-                a_matrix, 0
-            )
+            is_zero_iff_a_zero = not np.isclose(
+                inner_product, 0
+            ) or np.allclose(a_matrix, 0)
 
             result = is_real and is_nonnegative and is_zero_iff_a_zero
 
@@ -263,7 +274,9 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
 
             # The inner product should be real and non-negative
             if not np.isclose(inner_product.imag, 0) or inner_product.real < 0:
-                raise ValueError("Inner product <a,a> must be real and non-negative")
+                raise ValueError(
+                    "Inner product <a,a> must be real and non-negative"
+                )
 
             norm_value = np.sqrt(inner_product.real)
 

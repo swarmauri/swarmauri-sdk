@@ -257,4 +257,6 @@ def test_serialization(hamming_metric):
 
     # Verify functionality is preserved
     seq1, seq2 = [0, 1, 0], [1, 1, 0]
-    assert deserialized.distance(seq1, seq2) == hamming_metric.distance(seq1, seq2)
+    assert deserialized.distance(seq1, seq2) == hamming_metric.distance(
+        seq1, seq2
+    )

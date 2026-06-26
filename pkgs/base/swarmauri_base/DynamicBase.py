@@ -237,13 +237,16 @@ class DynamicBase(BaseModel):
         """
         if type(field_annotation).__name__ == "UnionFactoryMetadata":
             glogger.debug(
-                "Detected UnionFactoryMetadata directly in field: %s", field_annotation
+                "Detected UnionFactoryMetadata directly in field: %s",
+                field_annotation,
             )
             return True
 
         origin = get_origin(field_annotation)
         args = get_args(field_annotation)
-        glogger.debug("Checking field annotation. Origin: %s, Args: %s", origin, args)
+        glogger.debug(
+            "Checking field annotation. Origin: %s, Args: %s", origin, args
+        )
 
         if origin is Annotated:
             for arg in args:
@@ -254,7 +257,9 @@ class DynamicBase(BaseModel):
                     )
                     return True
                 if cls._field_contains_subclass_union(arg):
-                    glogger.debug("Annotated field contains UnionFactory in: %s", arg)
+                    glogger.debug(
+                        "Annotated field contains UnionFactory in: %s", arg
+                    )
                     return True
         elif origin in {
             Union,
@@ -297,13 +302,16 @@ class DynamicBase(BaseModel):
             List[Type[DynamicBase]]: A list of parent classes extracted from the annotation.
         """
         glogger.debug(
-            "Extracting resource types from field annotation: %s", field_annotation
+            "Extracting resource types from field annotation: %s",
+            field_annotation,
         )
         parent_classes = []
         try:
             origin = get_origin(field_annotation)
             args = get_args(field_annotation)
-            glogger.debug("Extraction details - Origin: %s, Args: %s", origin, args)
+            glogger.debug(
+                "Extraction details - Origin: %s, Args: %s", origin, args
+            )
             if origin is Annotated:
                 # Skip the first argument (base type) and process metadata.
                 for arg in args[1:]:
@@ -328,7 +336,9 @@ class DynamicBase(BaseModel):
             }:
                 for arg in args:
                     glogger.debug("Processing container argument: %s", arg)
-                    parent_classes.extend(cls._extract_parent_classes_from_field(arg))
+                    parent_classes.extend(
+                        cls._extract_parent_classes_from_field(arg)
+                    )
             glogger.debug("Extracted parent classes: %s", parent_classes)
             return parent_classes
         except TypeError as e:
@@ -374,7 +384,9 @@ class DynamicBase(BaseModel):
                 union_factory_metadata = args[1]
                 glogger.debug(f"Annotated - {union_factory_metadata}\n\n")
                 metadata = [
-                    m for m in args[1:] if not isinstance(m, UnionFactoryMetadata)
+                    m
+                    for m in args[1:]
+                    if not isinstance(m, UnionFactoryMetadata)
                 ]
                 metadata.append(cls._subclass_union_factory[parent_class])
                 field_annotation = Annotated[tuple([base_type, *metadata])]
@@ -386,7 +398,9 @@ class DynamicBase(BaseModel):
                 union_type = cls._subclass_union_factory[parent_class]
 
             # Reapply Optional if needed.
-            new_type = Union[union_type, type(None)] if is_optional else union_type
+            new_type = (
+                Union[union_type, type(None)] if is_optional else union_type
+            )
             glogger.debug(
                 "Determined new type for:\n\t field %s \n\t with parent %s \n\t to be %s \n",
                 field_annotation,
@@ -437,7 +451,8 @@ class DynamicBase(BaseModel):
         }:
             args = get_args(annotation)
             new_args = tuple(
-                cls._update_annotation_recursively(arg, parent_class) for arg in args
+                cls._update_annotation_recursively(arg, parent_class)
+                for arg in args
             )
             try:
                 if origin is Union:
@@ -450,7 +465,9 @@ class DynamicBase(BaseModel):
             return annotation
 
     @classmethod
-    def _generate_models_with_fields(cls) -> Dict[Type[BaseModel], Dict[str, Any]]:
+    def _generate_models_with_fields(
+        cls,
+    ) -> Dict[Type[BaseModel], Dict[str, Any]]:
         """
         Generate a mapping of model classes to their fields with updated type annotations.
 
@@ -477,7 +494,9 @@ class DynamicBase(BaseModel):
                     field_annotation
                 )
                 glogger.debug(
-                    "Parent classes for field %s: %s", field_name, parent_classes
+                    "Parent classes for field %s: %s",
+                    field_name,
+                    parent_classes,
                 )
                 for parent in parent_classes:
                     new_type = cls._update_annotation_recursively(
@@ -492,7 +511,9 @@ class DynamicBase(BaseModel):
                     field_annotation = subtype.__annotations__.get(field_name)
                     if not field_annotation:
                         continue
-                    if not cls._field_contains_subclass_union(field_annotation):
+                    if not cls._field_contains_subclass_union(
+                        field_annotation
+                    ):
                         continue
                     parent_classes = cls._extract_parent_classes_from_field(
                         field_annotation
@@ -525,7 +546,9 @@ class DynamicBase(BaseModel):
             for model_class in models_with_fields.keys():
                 if model_class.__name__ != "BaseModel":
                     # Merge in any inherited union field updates:
-                    merged_union_fields = cls._collect_union_field_updates(model_class)
+                    merged_union_fields = cls._collect_union_field_updates(
+                        model_class
+                    )
                     for field_name, new_type in merged_union_fields.items():
                         if field_name in model_class.model_fields:
                             original_type = model_class.model_fields[
@@ -545,10 +568,14 @@ class DynamicBase(BaseModel):
                                 )
                     try:
                         model_class.model_rebuild(force=True)
-                        glogger.debug("Rebuilt model '%s'.", model_class.__name__)
+                        glogger.debug(
+                            "Rebuilt model '%s'.", model_class.__name__
+                        )
                     except Exception as e:
                         glogger.error(
-                            "Error rebuilding '%s': %s", model_class.__name__, e
+                            "Error rebuilding '%s': %s",
+                            model_class.__name__,
+                            e,
                         )
 
             glogger.debug(
@@ -573,11 +600,15 @@ class DynamicBase(BaseModel):
             model_name = model_cls.__name__
             if model_name in cls._registry:
                 glogger.warning(
-                    "Model '%s' is already registered; skipping duplicate.", model_name
+                    "Model '%s' is already registered; skipping duplicate.",
+                    model_name,
                 )
                 return model_cls
 
-            cls._registry[model_name] = {"model_cls": model_cls, "subtypes": {}}
+            cls._registry[model_name] = {
+                "model_cls": model_cls,
+                "subtypes": {},
+            }
             glogger.debug("Registered base model '%s'.", model_name)
             DynamicBase._recreate_models()
             return model_cls
@@ -625,7 +656,10 @@ class DynamicBase(BaseModel):
                 base_model_name = rt.__name__
 
                 if base_model_name not in cls._registry:
-                    cls._registry[base_model_name] = {"model_cls": rt, "subtypes": {}}
+                    cls._registry[base_model_name] = {
+                        "model_cls": rt,
+                        "subtypes": {},
+                    }
                     glogger.debug(
                         "Created new registry entry for base model '%s'.",
                         base_model_name,

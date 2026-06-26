@@ -37,7 +37,9 @@ def test_call():
     assert isinstance(result, dict)
     assert set(["lexical_density"]).issubset(result.keys())
 
-    assert result["lexical_density"] == pytest.approx(expected_lexical_density, 0.01)
+    assert result["lexical_density"] == pytest.approx(
+        expected_lexical_density, 0.01
+    )
 
 
 @pytest.mark.unit
@@ -50,4 +52,6 @@ def test_call_empty_text():
     assert isinstance(result, dict)
     assert set(["lexical_density"]).issubset(result.keys())
 
-    assert result["lexical_density"] == pytest.approx(expected_lexical_density, 0.01)
+    assert result["lexical_density"] == pytest.approx(
+        expected_lexical_density, 0.01
+    )

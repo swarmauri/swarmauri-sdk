@@ -8,10 +8,16 @@ from redis.commands.search.field import TextField, VectorField
 
 try:
     # redis<6 uses camelCase module name
-    from redis.commands.search.indexDefinition import IndexDefinition, IndexType
+    from redis.commands.search.indexDefinition import (
+        IndexDefinition,
+        IndexType,
+    )
 except ImportError:
     # redis>=6 uses snake_case module name
-    from redis.commands.search.index_definition import IndexDefinition, IndexType
+    from redis.commands.search.index_definition import (
+        IndexDefinition,
+        IndexType,
+    )
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
@@ -65,9 +71,13 @@ class RedisVectorStore(
             self._redis_client.ft(self.index_name).info()
             print(f"Index '{self.index_name}' exists.")
         except Exception:
-            print(f"Index '{self.index_name}' does not exist. Creating index...")
+            print(
+                f"Index '{self.index_name}' does not exist. Creating index..."
+            )
             schema = (text_field, vector_field)
-            definition = IndexDefinition(prefix=["doc:"], index_type=IndexType.HASH)
+            definition = IndexDefinition(
+                prefix=["doc:"], index_type=IndexType.HASH
+            )
             self._redis_client.ft(self.index_name).create_index(
                 fields=schema, definition=definition
             )
@@ -147,7 +157,9 @@ class RedisVectorStore(
                 mapping={
                     "content": doc.content,
                     "metadata": json.dumps(metadata),
-                    "embedding": np.array(embedding, dtype=np.float32).tobytes(),
+                    "embedding": np.array(
+                        embedding, dtype=np.float32
+                    ).tobytes(),
                 },
             )
         pipeline.execute()
@@ -171,7 +183,9 @@ class RedisVectorStore(
             )
         else:
             embedding = None
-        return Document(id=id, content=content, metadata=metadata, embedding=embedding)
+        return Document(
+            id=id, content=content, metadata=metadata, embedding=embedding
+        )
 
     def get_all_documents(self) -> List[Document]:
         cursor = "0"
@@ -191,12 +205,17 @@ class RedisVectorStore(
                 embedding_bytes = data.get(b"embedding")
                 if embedding_bytes:
                     embedding = Vector(
-                        value=np.frombuffer(embedding_bytes, dtype=np.float32).tolist()
+                        value=np.frombuffer(
+                            embedding_bytes, dtype=np.float32
+                        ).tolist()
                     )
                 else:
                     embedding = None
                 document = Document(
-                    id=doc_id, content=content, metadata=metadata, embedding=embedding
+                    id=doc_id,
+                    content=content,
+                    metadata=metadata,
+                    embedding=embedding,
                 )
                 documents.append(document)
         return documents

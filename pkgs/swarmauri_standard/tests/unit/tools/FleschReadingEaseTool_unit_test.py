@@ -1,5 +1,7 @@
 import pytest
-from swarmauri_standard.tools.FleschReadingEaseTool import FleschReadingEaseTool as Tool
+from swarmauri_standard.tools.FleschReadingEaseTool import (
+    FleschReadingEaseTool as Tool,
+)
 
 
 @pytest.mark.unit
@@ -49,7 +51,9 @@ def test_call(text, expected_score):
 
     result = tool(text)
 
-    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert isinstance(result, dict), (
+        f"Expected dict, but got {type(result).__name__}"
+    )
     assert expected_keys.issubset(result.keys()), (
         f"Expected keys {expected_keys} but got {result.keys()}"
     )

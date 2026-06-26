@@ -18,7 +18,9 @@ def test_readme_quick_start_example() -> None:
     readme_path = Path(__file__).resolve().parents[2] / "README.md"
     readme_text = readme_path.read_text(encoding="utf-8")
 
-    code_blocks = re.findall(r"```python\n(.*?)```", readme_text, flags=re.DOTALL)
+    code_blocks = re.findall(
+        r"```python\n(.*?)```", readme_text, flags=re.DOTALL
+    )
     sentinel = "# README example: verify and parse a development certificate"
 
     snippet = next((block for block in code_blocks if sentinel in block), None)

@@ -32,7 +32,10 @@ async def _run() -> bool:
         env = create_env("hello")
         sigs = await signer.sign_envelope(key, env, canon="json")
         good = await signer.verify_envelope(
-            env, sigs, canon="json", opts={"pubkeys": [pub], "identity": "default"}
+            env,
+            sigs,
+            canon="json",
+            opts={"pubkeys": [pub], "identity": "default"},
         )
         bad = await signer.verify_envelope(
             {"msg": "tampered"},

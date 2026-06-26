@@ -55,14 +55,20 @@ def load_documents_from_folder(
             # File filtering based on include/exclude file criteria
             if (
                 include_all_files
-                or (include_extensions and file_extension in include_extensions)
-                or (exclude_extensions and file_extension not in exclude_extensions)
+                or (
+                    include_extensions and file_extension in include_extensions
+                )
+                or (
+                    exclude_extensions
+                    and file_extension not in exclude_extensions
+                )
             ):
                 try:
                     with open(file_path, "r", encoding="utf-8") as f:
                         file_content = f.read()
                         document = Document(
-                            content=file_content, metadata={"filepath": file_path}
+                            content=file_content,
+                            metadata={"filepath": file_path},
                         )
                         documents.append(document)
                 except json.JSONDecodeError:

@@ -68,13 +68,17 @@ def test_call(method, url, kwargs, tool):
 
     result = tool(method, url, **kwargs)
 
-    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert isinstance(result, dict), (
+        f"Expected dict, but got {type(result).__name__}"
+    )
     assert expected_keys.issubset(result.keys()), (
         f"Expected keys {expected_keys} to be a subset of {result.keys()}"
     )
 
     if method in ["post", "put", "delete"]:
-        assert "json" in result, f"Expected 'json' key for {method.upper()} method"
+        assert "json" in result, (
+            f"Expected 'json' key for {method.upper()} method"
+        )
         if kwargs.get("json"):
             assert result["json"] == kwargs["json"], (
                 f"Expected JSON payload {kwargs['json']}, but got {result['json']}"

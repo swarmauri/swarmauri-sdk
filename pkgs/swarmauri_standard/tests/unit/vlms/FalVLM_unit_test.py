@@ -115,7 +115,9 @@ async def test_abatch(falai_vision_model):
         "Describe the woman in the painting.",
     ]
 
-    results = await falai_vision_model.abatch(image_urls=image_urls, prompts=prompts)
+    results = await falai_vision_model.abatch(
+        image_urls=image_urls, prompts=prompts
+    )
 
     assert len(results) == len(image_urls)
     for result in results:

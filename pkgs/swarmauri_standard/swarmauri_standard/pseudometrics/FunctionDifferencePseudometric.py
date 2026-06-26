@@ -23,7 +23,9 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=Union[int, float, complex])
 
 
-@ComponentBase.register_type(PseudometricBase, "FunctionDifferencePseudometric")
+@ComponentBase.register_type(
+    PseudometricBase, "FunctionDifferencePseudometric"
+)
 class FunctionDifferencePseudometric(PseudometricBase):
     """
     Measures the distance between two functions based on their output differences.
@@ -49,7 +51,9 @@ class FunctionDifferencePseudometric(PseudometricBase):
         The type of norm to use for calculating differences ('l1', 'l2', 'max').
     """
 
-    type: Literal["FunctionDifferencePseudometric"] = "FunctionDifferencePseudometric"
+    type: Literal["FunctionDifferencePseudometric"] = (
+        "FunctionDifferencePseudometric"
+    )
 
     def __init__(
         self,
@@ -136,7 +140,9 @@ class FunctionDifferencePseudometric(PseudometricBase):
         elif self.sampling_strategy == "grid":
             self._generate_grid_points()
         else:
-            raise ValueError(f"Unsupported sampling strategy: {self.sampling_strategy}")
+            raise ValueError(
+                f"Unsupported sampling strategy: {self.sampling_strategy}"
+            )
 
         logger.debug(
             f"Generated {len(self._sample_points)} sample points using {self.sampling_strategy} strategy"
@@ -231,7 +237,9 @@ class FunctionDifferencePseudometric(PseudometricBase):
                 self._generate_sample_points()
             return self._sample_points
 
-    def _evaluate_function(self, func: Callable, points: List[Any]) -> List[float]:
+    def _evaluate_function(
+        self, func: Callable, points: List[Any]
+    ) -> List[float]:
         """
         Evaluate a function at the given points.
 
@@ -271,7 +279,9 @@ class FunctionDifferencePseudometric(PseudometricBase):
                             f"Function output {value} cannot be converted to a float"
                         )
             except Exception as e:
-                logger.error(f"Error evaluating function at point {point}: {e}")
+                logger.error(
+                    f"Error evaluating function at point {point}: {e}"
+                )
                 raise ValueError(
                     f"Failed to evaluate function at point {point}: {e}"
                 ) from e
@@ -393,7 +403,9 @@ class FunctionDifferencePseudometric(PseudometricBase):
             If functions cannot be evaluated at the sample points
         """
         # Validate inputs
-        if not all(callable(f) for f in xs) or not all(callable(f) for f in ys):
+        if not all(callable(f) for f in xs) or not all(
+            callable(f) for f in ys
+        ):
             logger.error("All inputs must be callable functions")
             raise TypeError("All inputs must be callable functions")
 
@@ -417,7 +429,9 @@ class FunctionDifferencePseudometric(PseudometricBase):
             return result
 
         except Exception as e:
-            logger.error(f"Error calculating pairwise function differences: {e}")
+            logger.error(
+                f"Error calculating pairwise function differences: {e}"
+            )
             raise
 
     def check_non_negativity(self, x: Callable, y: Callable) -> bool:
@@ -443,7 +457,9 @@ class FunctionDifferencePseudometric(PseudometricBase):
             result = dist >= 0
 
             if not result:
-                logger.warning(f"Non-negativity check failed: distance = {dist}")
+                logger.warning(
+                    f"Non-negativity check failed: distance = {dist}"
+                )
 
             return result
 
@@ -577,7 +593,9 @@ class FunctionDifferencePseudometric(PseudometricBase):
             result = abs(dist) <= 1e-10
 
             if not result:
-                logger.warning(f"Weak identity check failed: distance = {dist}")
+                logger.warning(
+                    f"Weak identity check failed: distance = {dist}"
+                )
 
             return result
 
@@ -604,7 +622,9 @@ class FunctionDifferencePseudometric(PseudometricBase):
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "FunctionDifferencePseudometric":
+    def from_dict(
+        cls, data: Dict[str, Any]
+    ) -> "FunctionDifferencePseudometric":
         """
         Create a FunctionDifferencePseudometric from a dictionary representation.
 

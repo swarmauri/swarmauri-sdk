@@ -1,7 +1,9 @@
 from typing import List, Union, Any, Literal
 import joblib
 from pydantic import PrivateAttr
-from sklearn.feature_extraction.text import TfidfVectorizer as SklearnTfidfVectorizer
+from sklearn.feature_extraction.text import (
+    TfidfVectorizer as SklearnTfidfVectorizer,
+)
 
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 from swarmauri_standard.vectors.Vector import Vector
@@ -28,12 +30,17 @@ class TfidfEmbedding(EmbeddingBase):
         self._fit_matrix = self._model.fit_transform(documents)
         # Convert the sparse matrix rows into Vector instances
         vectors = [
-            Vector(value=vector.toarray().flatten()) for vector in self._fit_matrix
+            Vector(value=vector.toarray().flatten())
+            for vector in self._fit_matrix
         ]
         return vectors
 
-    def transform(self, data: Union[str, Any], documents: List[str]) -> List[Vector]:
-        raise NotImplementedError("Transform not implemented on TFIDFVectorizer.")
+    def transform(
+        self, data: Union[str, Any], documents: List[str]
+    ) -> List[Vector]:
+        raise NotImplementedError(
+            "Transform not implemented on TFIDFVectorizer."
+        )
 
     def infer_vector(self, data: str, documents: List[str]) -> Vector:
         documents.append(data)

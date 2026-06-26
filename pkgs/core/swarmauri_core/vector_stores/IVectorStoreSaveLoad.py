@@ -30,7 +30,9 @@ class IVectorStoreSaveLoad(ABC):
         pass
 
     @abstractmethod
-    def save_parts(self, directory_path: str, chunk_size: int = 10485760) -> None:
+    def save_parts(
+        self, directory_path: str, chunk_size: int = 10485760
+    ) -> None:
         """
         Save the model in parts to handle large files by splitting them.
 

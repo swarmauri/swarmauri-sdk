@@ -1,7 +1,16 @@
 import asyncio
 import json
 import warnings
-from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
+from typing import (
+    Any,
+    AsyncGenerator,
+    Dict,
+    Generator,
+    List,
+    Literal,
+    Optional,
+    Type,
+)
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -62,12 +71,16 @@ class GroqVisionModel(LLMBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
@@ -159,7 +172,9 @@ class GroqVisionModel(LLMBase):
         usage_data = response_data.get("usage", {})
 
         usage = self._prepare_usage_data(usage_data)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        conversation.add_message(
+            AgentMessage(content=message_content, usage=usage)
+        )
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -207,7 +222,9 @@ class GroqVisionModel(LLMBase):
         usage_data = response_data.get("usage", {})
 
         usage = self._prepare_usage_data(usage_data)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        conversation.add_message(
+            AgentMessage(content=message_content, usage=usage)
+        )
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)

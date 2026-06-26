@@ -3,7 +3,9 @@ import logging
 
 import pytest
 
-from swarmauri_standard.logger_formatters.BorderFormatter import BorderFormatter
+from swarmauri_standard.logger_formatters.BorderFormatter import (
+    BorderFormatter,
+)
 
 
 @pytest.fixture
@@ -131,7 +133,10 @@ def test_apply_border_multiline_message() -> None:
 def test_compile_formatter(log_record: logging.LogRecord) -> None:
     """Test that compile_formatter returns a working formatter."""
     formatter = BorderFormatter(
-        format="%(levelname)s: %(message)s", border_char="-", border_width=20, padding=0
+        format="%(levelname)s: %(message)s",
+        border_char="-",
+        border_width=20,
+        padding=0,
     )
 
     compiled_formatter = formatter.compile_formatter()
@@ -158,7 +163,10 @@ def test_formatter_with_logger() -> None:
 
     # Create and configure the formatter
     formatter = BorderFormatter(
-        format="%(levelname)s: %(message)s", border_char="=", border_width=30, padding=1
+        format="%(levelname)s: %(message)s",
+        border_char="=",
+        border_width=30,
+        padding=1,
     )
 
     # Set the formatter on the handler

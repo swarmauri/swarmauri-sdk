@@ -30,7 +30,9 @@ def test_ubc_type(gemini_embedding):
 def test_serialization(gemini_embedding):
     assert (
         gemini_embedding.id
-        == GeminiEmbedding.model_validate_json(gemini_embedding.model_dump_json()).id
+        == GeminiEmbedding.model_validate_json(
+            gemini_embedding.model_dump_json()
+        ).id
     )
 
 

@@ -88,11 +88,17 @@ class ScepCertService(CertServiceBase):
         from cryptography.hazmat.primitives import serialization, hashes
 
         if not key.material:
-            raise ValueError("Private key material required for CSR generation")
+            raise ValueError(
+                "Private key material required for CSR generation"
+            )
 
         priv = serialization.load_pem_private_key(key.material, password=None)
-        name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, subject["CN"])])
-        csr_builder = x509.CertificateSigningRequestBuilder().subject_name(name)
+        name = x509.Name(
+            [x509.NameAttribute(NameOID.COMMON_NAME, subject["CN"])]
+        )
+        csr_builder = x509.CertificateSigningRequestBuilder().subject_name(
+            name
+        )
 
         if san:
             alt_names = [x509.DNSName(d) for d in san.get("dns", [])]
@@ -109,7 +115,9 @@ class ScepCertService(CertServiceBase):
 
         csr = csr_builder.sign(priv, hashes.SHA256())
         encoding = (
-            serialization.Encoding.DER if output_der else serialization.Encoding.PEM
+            serialization.Encoding.DER
+            if output_der
+            else serialization.Encoding.PEM
         )
         return csr.public_bytes(encoding)
 

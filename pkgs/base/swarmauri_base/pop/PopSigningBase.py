@@ -15,6 +15,8 @@ from .PopSignerMixin import PopSignerMixin
 class PopSigningBase(PopSignerMixin, ComponentBase):
     """Component-backed base for PoP signers."""
 
-    resource: Optional[str] = Field(default=ResourceTypes.CRYPTO.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.CRYPTO.value, frozen=True
+    )
     type: str = "PopSigningBase"
     model_config = ConfigDict(arbitrary_types_allowed=True)

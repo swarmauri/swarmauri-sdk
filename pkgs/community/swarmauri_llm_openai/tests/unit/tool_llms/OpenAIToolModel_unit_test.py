@@ -85,7 +85,9 @@ def test_agent_exec(openai_tool_model, toolkit, model_name):
     openai_tool_model.name = model_name
     conversation = Conversation()
 
-    agent = ToolAgent(llm=openai_tool_model, conversation=conversation, toolkit=toolkit)
+    agent = ToolAgent(
+        llm=openai_tool_model, conversation=conversation, toolkit=toolkit
+    )
     result = agent.exec("Add 512+671")
     assert isinstance(result, str)
 
@@ -96,7 +98,9 @@ def test_agent_exec(openai_tool_model, toolkit, model_name):
 def test_predict(openai_tool_model, toolkit, conversation, model_name):
     openai_tool_model.name = model_name
 
-    conversation = openai_tool_model.predict(conversation=conversation, toolkit=toolkit)
+    conversation = openai_tool_model.predict(
+        conversation=conversation, toolkit=toolkit
+    )
     logging.info(conversation.get_last().content)
 
     assert type(conversation.get_last().content) is str
@@ -109,7 +113,9 @@ def test_stream(openai_tool_model, toolkit, conversation, model_name):
     openai_tool_model.name = model_name
 
     collected_tokens = []
-    for token in openai_tool_model.stream(conversation=conversation, toolkit=toolkit):
+    for token in openai_tool_model.stream(
+        conversation=conversation, toolkit=toolkit
+    ):
         assert isinstance(token, str)
         collected_tokens.append(token)
 
@@ -130,7 +136,9 @@ def test_batch(openai_tool_model, toolkit, model_name):
         conv.add_message(HumanMessage(content=prompt))
         conversations.append(conv)
 
-    results = openai_tool_model.batch(conversations=conversations, toolkit=toolkit)
+    results = openai_tool_model.batch(
+        conversations=conversations, toolkit=toolkit
+    )
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)

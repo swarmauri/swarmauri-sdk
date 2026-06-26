@@ -41,7 +41,9 @@ class EvalResult(EvalResultBase):
         "additionalProperties": True,
     }
 
-    def __init__(self, score: float, metadata: Dict[str, Any], program: IProgram):
+    def __init__(
+        self, score: float, metadata: Dict[str, Any], program: IProgram
+    ):
         """
         Initialize a new evaluation result with score, metadata, and program.
 
@@ -77,7 +79,9 @@ class EvalResult(EvalResultBase):
             raise TypeError("All metadata keys must be strings")
 
         super().__init__(score, metadata, program)
-        logger.debug(f"Created EvalResult with score {score} for program {program}")
+        logger.debug(
+            f"Created EvalResult with score {score} for program {program}"
+        )
 
     def _validate_metadata(self, metadata: Dict[str, Any]) -> None:
         """
@@ -98,11 +102,15 @@ class EvalResult(EvalResultBase):
         # First perform basic validation from parent class
         # Check if metadata is a dictionary
         if not isinstance(metadata, dict):
-            logger.error("Metadata validation failed: Metadata must be a dictionary")
+            logger.error(
+                "Metadata validation failed: Metadata must be a dictionary"
+            )
             raise ValueError("Metadata must be a dictionary")
 
         # Ensure all keys are strings
-        non_string_keys = [key for key in metadata.keys() if not isinstance(key, str)]
+        non_string_keys = [
+            key for key in metadata.keys() if not isinstance(key, str)
+        ]
         if non_string_keys:
             logger.error(
                 f"Metadata validation failed: All metadata keys must be strings. Found non-string keys: {non_string_keys}"

@@ -59,7 +59,11 @@ class DSSESigner(SigningBase):
     codec: DSSEJsonCodec = Field(default_factory=DSSEJsonCodec)
 
     def __init__(
-        self, inner: SigningBase, *, codec: Optional[DSSEJsonCodec] = None, **data
+        self,
+        inner: SigningBase,
+        *,
+        codec: Optional[DSSEJsonCodec] = None,
+        **data,
     ) -> None:
         """Initialize the adapter with an inner signer and optional codec."""
 
@@ -74,7 +78,8 @@ class DSSESigner(SigningBase):
             "algs": inner.get("algs", ()),
             "canons": tuple(set(inner.get("canons", ())) | {"dsse-pae"}),
             "signs": tuple(
-                set(inner.get("signs", ())) | {"envelope", "bytes", "digest", "stream"}
+                set(inner.get("signs", ()))
+                | {"envelope", "bytes", "digest", "stream"}
             ),
             "verifies": tuple(
                 set(inner.get("verifies", ()))
@@ -176,7 +181,9 @@ class DSSESigner(SigningBase):
         """Canonicalize an envelope using DSSE PAE when requested."""
 
         if canon not in (None, "dsse-pae"):
-            return await self.inner.canonicalize_envelope(env, canon=canon, opts=opts)
+            return await self.inner.canonicalize_envelope(
+                env, canon=canon, opts=opts
+            )
 
         envelope = self.decode_envelope(env)
         payload = _b64d(envelope.payload_b64)
@@ -217,14 +224,21 @@ class DSSESigner(SigningBase):
         )
 
     # --------------------------- Helpers for (de)serialization ---------------------------
-    def encode_envelope(self, envelope: DSSEEnvelope | Mapping[str, object]) -> bytes:
+    def encode_envelope(
+        self, envelope: DSSEEnvelope | Mapping[str, object]
+    ) -> bytes:
         """Encode an envelope (object or mapping) into JSON bytes."""
 
         return self.codec.encode(self.decode_envelope(envelope))
 
     def decode_envelope(
         self,
-        blob: Envelope | bytes | bytearray | str | Mapping[str, object] | DSSEEnvelope,
+        blob: Envelope
+        | bytes
+        | bytearray
+        | str
+        | Mapping[str, object]
+        | DSSEEnvelope,
     ) -> DSSEEnvelope:
         """Decode envelope inputs into a :class:`DSSEEnvelope` instance."""
 

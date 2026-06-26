@@ -100,8 +100,12 @@ class FalAIImgGenModel(ImageGenBase):
     name: str = "fal-ai/flux-pro/v1.1-ultra-finetuned"
     timeout: float = 600.0
     type: Literal["FalAIImgGenModel"] = "FalAIImgGenModel"
-    max_retries: int = Field(default=60)  # Maximum number of status check retries
-    retry_delay: float = Field(default=1.0)  # Delay between status checks in seconds
+    max_retries: int = Field(
+        default=60
+    )  # Maximum number of status check retries
+    retry_delay: float = Field(
+        default=1.0
+    )  # Delay between status checks in seconds
 
     def __init__(self, **kwargs: Dict[str, Any]):
         """
@@ -118,7 +122,9 @@ class FalAIImgGenModel(ImageGenBase):
             "Content-Type": "application/json",
             "Authorization": f"Key {self.api_key.get_secret_value()}",
         }
-        self._client = httpx.Client(headers=self._headers, timeout=self.timeout)
+        self._client = httpx.Client(
+            headers=self._headers, timeout=self.timeout
+        )
 
     async def _get_async_client(self) -> httpx.AsyncClient:
         """
@@ -141,7 +147,9 @@ class FalAIImgGenModel(ImageGenBase):
             await self._async_client.aclose()
             self._async_client = None
 
-    def _create_request_payload(self, prompt: str, **kwargs: Dict[str, Any]) -> dict:
+    def _create_request_payload(
+        self, prompt: str, **kwargs: Dict[str, Any]
+    ) -> dict:
         """
         Creates a payload for the image generation request.
 
@@ -206,7 +214,9 @@ class FalAIImgGenModel(ImageGenBase):
         return response.json()
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    async def _async_send_request(self, prompt: str, **kwargs: Dict[str, Any]) -> Dict:
+    async def _async_send_request(
+        self, prompt: str, **kwargs: Dict[str, Any]
+    ) -> Dict:
         """
         Asynchronously sends an image generation request to the queue.
 
@@ -327,7 +337,9 @@ class FalAIImgGenModel(ImageGenBase):
         final_response = self._wait_for_completion(request_id)
         return final_response["images"][0]["url"]
 
-    async def agenerate_image(self, prompt: str, **kwargs: Dict[str, Any]) -> str:
+    async def agenerate_image(
+        self, prompt: str, **kwargs: Dict[str, Any]
+    ) -> str:
         """
         Asynchronously generates an image based on the prompt and returns the image URL.
 
@@ -346,7 +358,9 @@ class FalAIImgGenModel(ImageGenBase):
         finally:
             await self._close_async_client()
 
-    def batch_generate(self, prompts: List[str], **kwargs: Dict[str, Any]) -> List[str]:
+    def batch_generate(
+        self, prompts: List[str], **kwargs: Dict[str, Any]
+    ) -> List[str]:
         """
         Generates images for a batch of prompts.
 
@@ -360,7 +374,10 @@ class FalAIImgGenModel(ImageGenBase):
         return [self.generate_image(prompt, **kwargs) for prompt in prompts]
 
     async def abatch_generate(
-        self, prompts: List[str], max_concurrent: int = 5, **kwargs: Dict[str, Any]
+        self,
+        prompts: List[str],
+        max_concurrent: int = 5,
+        **kwargs: Dict[str, Any],
     ) -> List[str]:
         """
         Asynchronously generates images for a batch of prompts.
@@ -378,9 +395,13 @@ class FalAIImgGenModel(ImageGenBase):
 
             async def process_prompt(prompt):
                 async with semaphore:
-                    initial_response = await self._async_send_request(prompt, **kwargs)
+                    initial_response = await self._async_send_request(
+                        prompt, **kwargs
+                    )
                     request_id = initial_response["request_id"]
-                    final_response = await self._async_wait_for_completion(request_id)
+                    final_response = await self._async_wait_for_completion(
+                        request_id
+                    )
                     return final_response["response"]["images"][0]["url"]
 
             tasks = [process_prompt(prompt) for prompt in prompts]

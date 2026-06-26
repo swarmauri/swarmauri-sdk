@@ -35,7 +35,9 @@ class GithubReleaseFilter(StorageAdapterBase, GitFilterBase):
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
-        token_val = token.get_secret_value() if isinstance(token, SecretStr) else token
+        token_val = (
+            token.get_secret_value() if isinstance(token, SecretStr) else token
+        )
         self._client = Github(token_val)
         self._repo = self._client.get_organization(org).get_repo(repo)
         self._tag = tag
@@ -109,7 +111,9 @@ class GithubReleaseFilter(StorageAdapterBase, GitFilterBase):
                 buf = io.BytesIO(raw)
                 buf.seek(0)
                 return buf
-        raise FileNotFoundError(f"Asset '{key}' not found in release '{self._tag}'")
+        raise FileNotFoundError(
+            f"Asset '{key}' not found in release '{self._tag}'"
+        )
 
     def upload_dir(self, src: str | os.PathLike, *, prefix: str = "") -> None:
         base = Path(src)
@@ -126,11 +130,15 @@ class GithubReleaseFilter(StorageAdapterBase, GitFilterBase):
             name = asset.name
             if name.startswith(full.rstrip("/")):
                 key = name
-                if self._prefix and key.startswith(self._prefix.rstrip("/") + "/"):
+                if self._prefix and key.startswith(
+                    self._prefix.rstrip("/") + "/"
+                ):
                     key = key[len(self._prefix.rstrip("/")) + 1 :]
                 yield key
 
-    def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
+    def download_prefix(
+        self, prefix: str, dest_dir: str | os.PathLike
+    ) -> None:
         dest = Path(dest_dir)
         for rel_key in self.iter_prefix(prefix):
             target = self.download_target_for_key(dest, rel_key)
@@ -149,7 +157,9 @@ class GithubReleaseFilter(StorageAdapterBase, GitFilterBase):
         prefix = rest[0] if rest else ""
 
         cfg = load_peagen_toml()
-        gh_cfg = cfg.get("storage", {}).get("filters", {}).get("gh_release", {})
+        gh_cfg = (
+            cfg.get("storage", {}).get("filters", {}).get("gh_release", {})
+        )
 
         token = gh_cfg.get("token") or os.getenv("GITHUB_TOKEN", "")
 

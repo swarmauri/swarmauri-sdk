@@ -1,6 +1,8 @@
 import warnings
 
-from swarmauri_standard.distances.SquaredEuclideanDistance import SquaredEuclideanDistance as _StandardSquaredEuclideanDistance
+from swarmauri_standard.distances.SquaredEuclideanDistance import (
+    SquaredEuclideanDistance as _StandardSquaredEuclideanDistance,
+)
 
 
 class SquaredEuclideanDistance(_StandardSquaredEuclideanDistance):

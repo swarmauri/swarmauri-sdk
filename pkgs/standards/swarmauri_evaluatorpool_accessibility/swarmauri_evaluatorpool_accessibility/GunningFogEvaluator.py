@@ -52,7 +52,9 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
         if not text or not isinstance(text, str):
             if self.logger:
                 self.logger.warning("Program text is empty or not a string")
-            logging.getLogger(__name__).warning("Program text is empty or not a string")
+            logging.getLogger(__name__).warning(
+                "Program text is empty or not a string"
+            )
             return 0.0, {"error": "No valid text to analyze"}
 
         # Count sentences, words, and complex words
@@ -92,7 +94,9 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
         }
 
         if self.logger:
-            self.logger.debug(f"Computed Gunning Fog Index: {gunning_fog_index:.2f}")
+            self.logger.debug(
+                f"Computed Gunning Fog Index: {gunning_fog_index:.2f}"
+            )
         logging.getLogger(__name__).debug(
             "Computed Gunning Fog Index: %.2f", gunning_fog_index
         )

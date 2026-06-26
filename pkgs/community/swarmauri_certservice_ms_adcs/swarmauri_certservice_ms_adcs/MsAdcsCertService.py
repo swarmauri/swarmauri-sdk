@@ -138,7 +138,8 @@ class MsAdcsCertService(CertServiceBase):
                     "Kerberos auth requested but 'requests-kerberos' not installed. pip install requests-kerberos"
                 )
             self._s.auth = HTTPKerberosAuth(
-                mutual_authentication=DISABLED, delegate=self._auth_cfg.spnego_delegate
+                mutual_authentication=DISABLED,
+                delegate=self._auth_cfg.spnego_delegate,
             )
         elif self._auth_cfg.mode == "basic":
             user = self._auth_cfg.username or ""
@@ -162,7 +163,12 @@ class MsAdcsCertService(CertServiceBase):
             ),
             "sig_algs": ("RSA-PSS-SHA256", "ECDSA-P256-SHA256", "Ed25519"),
             "features": ("sign_from_csr", "verify", "parse", "chain_bundle"),
-            "profiles": ("server", "client", "email_protection", "code_signing"),
+            "profiles": (
+                "server",
+                "client",
+                "email_protection",
+                "code_signing",
+            ),
         }
 
     # ------------------------------------------------------------------- CSR API
@@ -196,11 +202,15 @@ class MsAdcsCertService(CertServiceBase):
                 from ipaddress import ip_address
 
                 ips.append(x509.IPAddress(ip_address(ip)))
-            uris = [x509.UniformResourceIdentifier(u) for u in (san.get("uri") or [])]
+            uris = [
+                x509.UniformResourceIdentifier(u)
+                for u in (san.get("uri") or [])
+            ]
             emails = [x509.RFC822Name(e) for e in (san.get("email") or [])]
             upns = [
                 x509.OtherName(
-                    x509.ObjectIdentifier("1.3.6.1.4.1.311.20.2.3"), u.encode("utf-8")
+                    x509.ObjectIdentifier("1.3.6.1.4.1.311.20.2.3"),
+                    u.encode("utf-8"),
                 )
                 for u in (san.get("upn") or [])
             ]
@@ -253,7 +263,9 @@ class MsAdcsCertService(CertServiceBase):
         sig_hash = hashes.SHA256()
         csr = builder.sign(priv, sig_hash)
         data = csr.public_bytes(
-            serialization.Encoding.DER if output_der else serialization.Encoding.PEM
+            serialization.Encoding.DER
+            if output_der
+            else serialization.Encoding.PEM
         )
         return data
 
@@ -282,7 +294,9 @@ class MsAdcsCertService(CertServiceBase):
         priv = serialization.load_pem_private_key(key.material, password=None)
         pub = priv.public_key()
 
-        nb = datetime.fromtimestamp(not_before or (_now() - 300), tz=timezone.utc)
+        nb = datetime.fromtimestamp(
+            not_before or (_now() - 300), tz=timezone.utc
+        )
         na = datetime.fromtimestamp(
             not_after or (_now() + 365 * 24 * 3600), tz=timezone.utc
         )
@@ -306,7 +320,9 @@ class MsAdcsCertService(CertServiceBase):
 
         cert = builder.sign(private_key=priv, algorithm=hashes.SHA256())
         data = cert.public_bytes(
-            serialization.Encoding.DER if output_der else serialization.Encoding.PEM
+            serialization.Encoding.DER
+            if output_der
+            else serialization.Encoding.PEM
         )
         return data
 

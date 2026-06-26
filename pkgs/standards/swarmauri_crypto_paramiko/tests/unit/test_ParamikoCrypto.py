@@ -26,7 +26,9 @@ def test_ubc_type(paramiko_crypto):
 def test_serialization(paramiko_crypto):
     assert (
         paramiko_crypto.id
-        == ParamikoCrypto.model_validate_json(paramiko_crypto.model_dump_json()).id
+        == ParamikoCrypto.model_validate_json(
+            paramiko_crypto.model_dump_json()
+        ).id
     )
 
 

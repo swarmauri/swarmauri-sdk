@@ -4,7 +4,9 @@ import json
 import os
 
 from pydantic import BaseModel
-from swarmauri_core.vector_stores.IVectorStoreSaveLoad import IVectorStoreSaveLoad
+from swarmauri_core.vector_stores.IVectorStoreSaveLoad import (
+    IVectorStoreSaveLoad,
+)
 
 
 class VectorStoreSaveLoadMixin(IVectorStoreSaveLoad, BaseModel):
@@ -46,7 +48,9 @@ class VectorStoreSaveLoadMixin(IVectorStoreSaveLoad, BaseModel):
         # Load documents
         documents_path = os.path.join(directory_path, "documents.json")
         with open(documents_path, "r", encoding="utf-8") as f:
-            self.documents = [self._load_document(each) for each in json.load(f)]
+            self.documents = [
+                self._load_document(each) for each in json.load(f)
+            ]
 
     def _load_document(self, data):
         document_type = data.pop("type")
@@ -60,7 +64,9 @@ class VectorStoreSaveLoadMixin(IVectorStoreSaveLoad, BaseModel):
         else:
             raise ValueError("Unknown document type")
 
-    def save_parts(self, directory_path: str, chunk_size: int = 10485760) -> None:
+    def save_parts(
+        self, directory_path: str, chunk_size: int = 10485760
+    ) -> None:
         """
         Splits the file into parts if it's too large and saves those parts individually.
         """
@@ -75,7 +81,8 @@ class VectorStoreSaveLoadMixin(IVectorStoreSaveLoad, BaseModel):
             chunk = f.read(chunk_size)
             while chunk:
                 with open(
-                    f"{parts_directory}/model.safetensors.part{file_number:03}", "wb"
+                    f"{parts_directory}/model.safetensors.part{file_number:03}",
+                    "wb",
                 ) as chunk_file:
                     chunk_file.write(chunk)
                 file_number += 1
@@ -90,7 +97,9 @@ class VectorStoreSaveLoadMixin(IVectorStoreSaveLoad, BaseModel):
         self, directory_path: str, max_records=100, chunk_size: int = 10485760
     ):
         # Read the input JSON file
-        combined_documents_file_path = os.path.join(directory_path, "documents.json")
+        combined_documents_file_path = os.path.join(
+            directory_path, "documents.json"
+        )
 
         # load the master JSON file
         with open(combined_documents_file_path, "r") as file:
@@ -128,7 +137,9 @@ class VectorStoreSaveLoadMixin(IVectorStoreSaveLoad, BaseModel):
             with open(output_file, "w") as outfile:
                 json.dump(current_batch, outfile)
 
-    def load_parts(self, directory_path: str, file_pattern: str = "*.part*") -> None:
+    def load_parts(
+        self, directory_path: str, file_pattern: str = "*.part*"
+    ) -> None:
         """
         Combines file parts from a directory back into a single file and loads it.
         """
@@ -153,7 +164,9 @@ class VectorStoreSaveLoadMixin(IVectorStoreSaveLoad, BaseModel):
         """
         Loads the documents from parts stored in the given directory.
         """
-        part_paths = glob.glob(os.path.join(directory_path, "documents/*.json"))
+        part_paths = glob.glob(
+            os.path.join(directory_path, "documents/*.json")
+        )
         for part_path in part_paths:
             with open(part_path, "r") as f:
                 part_documents = json.load(f)

@@ -46,9 +46,7 @@ class JupyterClearOutputTool(ToolBase):
         ]
     )
     name: str = "JupyterClearOutputTool"
-    description: str = (
-        "Removes outputs from a Jupyter notebook while preserving code and metadata."
-    )
+    description: str = "Removes outputs from a Jupyter notebook while preserving code and metadata."
     type: Literal["JupyterClearOutputTool"] = "JupyterClearOutputTool"
 
     def __call__(self, notebook_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -78,7 +76,9 @@ class JupyterClearOutputTool(ToolBase):
                 cells_cleared += 1
 
         # Log the number of cells cleared for auditing.
-        logger.info("Cleared outputs from %d cells in the notebook.", cells_cleared)
+        logger.info(
+            "Cleared outputs from %d cells in the notebook.", cells_cleared
+        )
 
         # Return the cleaned notebook data structure.
         return notebook_data

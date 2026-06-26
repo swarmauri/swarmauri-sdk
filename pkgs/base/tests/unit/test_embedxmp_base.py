@@ -13,7 +13,9 @@ class _ConcreteEmbed(EmbedXmpBase):
     ) -> bool:  # pragma: no cover - behavior tested elsewhere
         return True
 
-    def read_xmp(self, data: bytes) -> str | None:  # pragma: no cover - placeholder
+    def read_xmp(
+        self, data: bytes
+    ) -> str | None:  # pragma: no cover - placeholder
         return None
 
     def write_xmp(
@@ -21,7 +23,9 @@ class _ConcreteEmbed(EmbedXmpBase):
     ) -> bytes:  # pragma: no cover - placeholder
         return data
 
-    def remove_xmp(self, data: bytes) -> bytes:  # pragma: no cover - placeholder
+    def remove_xmp(
+        self, data: bytes
+    ) -> bytes:  # pragma: no cover - placeholder
         return data
 
 

@@ -140,7 +140,10 @@ def test_calculate_score_no_normalization(evaluator):
     [
         ({"output": "Test output"}, "Test output"),
         ({"output": None, "content": "Test content"}, "Test content"),
-        ({"output": None, "content": None, "source": "Test source"}, "Test source"),
+        (
+            {"output": None, "content": None, "source": "Test source"},
+            "Test source",
+        ),
         ({}, ""),  # Default case when no attributes are available
     ],
 )
@@ -236,7 +239,9 @@ def test_compute_score_logging(evaluator, mock_program, caplog):
 
     # Check that debug logs were created
     assert any("Text analysis:" in record.message for record in caplog.records)
-    assert any("Coleman-Liau Index:" in record.message for record in caplog.records)
+    assert any(
+        "Coleman-Liau Index:" in record.message for record in caplog.records
+    )
 
 
 @pytest.mark.unit
@@ -254,7 +259,9 @@ def test_custom_parameters():
 @pytest.mark.unit
 def test_edge_case_identical_target_and_max_grade_level():
     """Test edge case where target and max grade levels are identical."""
-    evaluator = ColemanLiauIndexEvaluator(target_grade_level=10, max_grade_level=10)
+    evaluator = ColemanLiauIndexEvaluator(
+        target_grade_level=10, max_grade_level=10
+    )
 
     # With identical target and max, the score should be 1.0 for target and 0.0 otherwise
     assert evaluator._calculate_score(10) == 1.0

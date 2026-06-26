@@ -10,7 +10,9 @@ from swarmauri_core.similarities.ISimilarity import ComparableType
 logger = logging.getLogger(__name__)
 
 
-@ComponentBase.register_type(SimilarityBase, "BhattacharyyaCoefficientSimilarity")
+@ComponentBase.register_type(
+    SimilarityBase, "BhattacharyyaCoefficientSimilarity"
+)
 class BhattacharyyaCoefficientSimilarity(SimilarityBase):
     """
     Bhattacharyya Coefficient Similarity metric for measuring overlap between probability distributions.
@@ -95,7 +97,9 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
             return float(bc)
 
         except (TypeError, ValueError) as e:
-            logger.error(f"Error calculating Bhattacharyya coefficient: {str(e)}")
+            logger.error(
+                f"Error calculating Bhattacharyya coefficient: {str(e)}"
+            )
             raise
 
     def similarities(
@@ -169,7 +173,9 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
 
                     results.append(sim)
                 except Exception as e:
-                    logger.error(f"Error calculating similarity for item {i}: {str(e)}")
+                    logger.error(
+                        f"Error calculating similarity for item {i}: {str(e)}"
+                    )
                     raise
 
             return results
@@ -213,7 +219,9 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
             return 1.0 - bc
 
         except Exception as e:
-            logger.error(f"Error calculating Bhattacharyya dissimilarity: {str(e)}")
+            logger.error(
+                f"Error calculating Bhattacharyya dissimilarity: {str(e)}"
+            )
             raise
 
     def check_bounded(self) -> bool:

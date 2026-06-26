@@ -14,7 +14,9 @@ class SemanticConversation(IConversation, ABC):
     """
 
     @abstractmethod
-    def register_handler(self, category: str, handler: Callable[[IMessage], None]):
+    def register_handler(
+        self, category: str, handler: Callable[[IMessage], None]
+    ):
         """
         Registers a message handler for a specific semantic category.
 

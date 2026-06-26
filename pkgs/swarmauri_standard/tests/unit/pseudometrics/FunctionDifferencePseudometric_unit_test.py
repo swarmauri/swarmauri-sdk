@@ -25,12 +25,16 @@ def simple_functions() -> Dict[str, Callable]:
         Dictionary of test functions
     """
     return {
-        "f1": lambda x: x**2 if isinstance(x, (int, float)) else sum(x.values()),
+        "f1": lambda x: (
+            x**2 if isinstance(x, (int, float)) else sum(x.values())
+        ),
         "f2": lambda x: (
             2 * x**2 if isinstance(x, (int, float)) else 2 * sum(x.values())
         ),
         "f3": lambda x: (
-            x**3 if isinstance(x, (int, float)) else sum(v**2 for v in x.values())
+            x**3
+            if isinstance(x, (int, float))
+            else sum(v**2 for v in x.values())
         ),
         "f4": lambda x: 0 if isinstance(x, (int, float)) else 0,
         "f5": lambda x: 1 if isinstance(x, (int, float)) else 1,
@@ -48,7 +52,9 @@ def fixed_points_pseudometric() -> FunctionDifferencePseudometric:
         Pseudometric configured with fixed evaluation points
     """
     return FunctionDifferencePseudometric(
-        evaluation_points=[-2, -1, 0, 1, 2], sampling_strategy="fixed", norm_type="l2"
+        evaluation_points=[-2, -1, 0, 1, 2],
+        sampling_strategy="fixed",
+        norm_type="l2",
     )
 
 
@@ -98,7 +104,9 @@ def test_type(fixed_points_pseudometric):
 def test_initialization_fixed_points():
     """Test initialization with fixed evaluation points."""
     pseudometric = FunctionDifferencePseudometric(
-        evaluation_points=[1, 2, 3, 4, 5], sampling_strategy="fixed", norm_type="l2"
+        evaluation_points=[1, 2, 3, 4, 5],
+        sampling_strategy="fixed",
+        norm_type="l2",
     )
     assert pseudometric.evaluation_points == [1, 2, 3, 4, 5]
     assert pseudometric.sampling_strategy == "fixed"
@@ -150,16 +158,22 @@ def test_initialization_validation():
     """Test validation during initialization."""
     # Missing evaluation_points with fixed sampling
     with pytest.raises(ValueError):
-        FunctionDifferencePseudometric(sampling_strategy="fixed", norm_type="l2")
+        FunctionDifferencePseudometric(
+            sampling_strategy="fixed", norm_type="l2"
+        )
 
     # Missing domain_bounds with random sampling
     with pytest.raises(ValueError):
-        FunctionDifferencePseudometric(sampling_strategy="random", norm_type="l2")
+        FunctionDifferencePseudometric(
+            sampling_strategy="random", norm_type="l2"
+        )
 
     # Invalid norm_type
     with pytest.raises(ValueError):
         FunctionDifferencePseudometric(
-            evaluation_points=[1, 2, 3], sampling_strategy="fixed", norm_type="invalid"
+            evaluation_points=[1, 2, 3],
+            sampling_strategy="fixed",
+            norm_type="invalid",
         )
 
 
@@ -254,15 +268,21 @@ def test_different_norm_types(simple_functions):
 
     # Create pseudometrics with different norms
     l1_metric = FunctionDifferencePseudometric(
-        evaluation_points=[-2, -1, 0, 1, 2], sampling_strategy="fixed", norm_type="l1"
+        evaluation_points=[-2, -1, 0, 1, 2],
+        sampling_strategy="fixed",
+        norm_type="l1",
     )
 
     l2_metric = FunctionDifferencePseudometric(
-        evaluation_points=[-2, -1, 0, 1, 2], sampling_strategy="fixed", norm_type="l2"
+        evaluation_points=[-2, -1, 0, 1, 2],
+        sampling_strategy="fixed",
+        norm_type="l2",
     )
 
     max_metric = FunctionDifferencePseudometric(
-        evaluation_points=[-2, -1, 0, 1, 2], sampling_strategy="fixed", norm_type="max"
+        evaluation_points=[-2, -1, 0, 1, 2],
+        sampling_strategy="fixed",
+        norm_type="max",
     )
 
     # Calculate distances with different norms
@@ -284,7 +304,11 @@ def test_different_norm_types(simple_functions):
 @pytest.mark.unit
 def test_distances_pairwise(fixed_points_pseudometric, simple_functions):
     """Test pairwise distance calculation."""
-    functions = [simple_functions["f1"], simple_functions["f2"], simple_functions["f3"]]
+    functions = [
+        simple_functions["f1"],
+        simple_functions["f2"],
+        simple_functions["f3"],
+    ]
 
     # Calculate pairwise distances
     distances = fixed_points_pseudometric.distances(functions, functions)
@@ -327,7 +351,9 @@ def test_pseudometric_properties(fixed_points_pseudometric, simple_functions):
 def test_serialization_deserialization():
     """Test serialization and deserialization of the pseudometric."""
     original = FunctionDifferencePseudometric(
-        evaluation_points=[1, 2, 3, 4, 5], sampling_strategy="fixed", norm_type="l2"
+        evaluation_points=[1, 2, 3, 4, 5],
+        sampling_strategy="fixed",
+        norm_type="l2",
     )
 
     # Convert to dict
@@ -367,7 +393,9 @@ def test_error_handling(fixed_points_pseudometric):
 
 
 @pytest.mark.unit
-def test_with_multidimensional_input(grid_points_pseudometric, simple_functions):
+def test_with_multidimensional_input(
+    grid_points_pseudometric, simple_functions
+):
     """Test with multidimensional input points."""
     f1 = simple_functions["f1"]
     f2 = simple_functions["f2"]
@@ -430,13 +458,17 @@ def test_calculate_difference(fixed_points_pseudometric):
 
     # Expected difference: sqrt((0)^2 + (1)^2 + (2)^2 + (3)^2 + (4)^2) = sqrt(30)
     expected_l2 = np.sqrt(30)
-    actual_l2 = fixed_points_pseudometric._calculate_difference(values1, values2)
+    actual_l2 = fixed_points_pseudometric._calculate_difference(
+        values1, values2
+    )
 
     assert abs(actual_l2 - expected_l2) < 1e-10
 
     # Test with L1 norm
     l1_metric = FunctionDifferencePseudometric(
-        evaluation_points=[-2, -1, 0, 1, 2], sampling_strategy="fixed", norm_type="l1"
+        evaluation_points=[-2, -1, 0, 1, 2],
+        sampling_strategy="fixed",
+        norm_type="l1",
     )
 
     # Expected difference: |0| + |1| + |2| + |3| + |4| = 10
@@ -447,7 +479,9 @@ def test_calculate_difference(fixed_points_pseudometric):
 
     # Test with max norm
     max_metric = FunctionDifferencePseudometric(
-        evaluation_points=[-2, -1, 0, 1, 2], sampling_strategy="fixed", norm_type="max"
+        evaluation_points=[-2, -1, 0, 1, 2],
+        sampling_strategy="fixed",
+        norm_type="max",
     )
 
     # Expected difference: max(|0|, |1|, |2|, |3|, |4|) = 4

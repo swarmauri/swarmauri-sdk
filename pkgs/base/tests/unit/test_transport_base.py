@@ -2,7 +2,11 @@ import asyncio
 
 import pytest
 
-from swarmauri_base.transports import CapabilityError, TransportBase, _require_caps
+from swarmauri_base.transports import (
+    CapabilityError,
+    TransportBase,
+    _require_caps,
+)
 from swarmauri_core.transports import (
     AddressScheme,
     Cast,

@@ -23,7 +23,12 @@ from cryptography.hazmat.primitives.serialization import (
 )
 
 from swarmauri_base.key_providers.KeyProviderBase import KeyProviderBase
-from swarmauri_core.key_providers.types import KeySpec, KeyAlg, KeyClass, ExportPolicy
+from swarmauri_core.key_providers.types import (
+    KeySpec,
+    KeyAlg,
+    KeyClass,
+    ExportPolicy,
+)
 from swarmauri_core.crypto.types import KeyRef
 
 
@@ -54,7 +59,9 @@ def _pem_priv(priv) -> bytes:
     RETURNS (bytes): PKCS#8 encoded PEM bytes.
     """
 
-    return priv.private_bytes(Encoding.PEM, PrivateFormat.PKCS8, NoEncryption())
+    return priv.private_bytes(
+        Encoding.PEM, PrivateFormat.PKCS8, NoEncryption()
+    )
 
 
 def _fingerprint(ssh_pub: bytes) -> str:
@@ -95,8 +102,19 @@ class SshKeyProvider(KeyProviderBase):
     def supports(self) -> Mapping[str, Iterable[str]]:
         return {
             "class": ("asym",),
-            "algs": (KeyAlg.ED25519, KeyAlg.RSA_PSS_SHA256, KeyAlg.ECDSA_P256_SHA256),
-            "features": ("create", "rotate", "import", "jwks", "hkdf", "random"),
+            "algs": (
+                KeyAlg.ED25519,
+                KeyAlg.RSA_PSS_SHA256,
+                KeyAlg.ECDSA_P256_SHA256,
+            ),
+            "features": (
+                "create",
+                "rotate",
+                "import",
+                "jwks",
+                "hkdf",
+                "random",
+            ),
         }
 
     async def create_key(self, spec: KeySpec) -> KeyRef:
@@ -125,7 +143,9 @@ class SshKeyProvider(KeyProviderBase):
             uses=spec.uses,
             export_policy=spec.export_policy,
             public=ssh_pub,
-            material=(pem if spec.export_policy != ExportPolicy.NONE else None),
+            material=(
+                pem if spec.export_policy != ExportPolicy.NONE else None
+            ),
             tags={
                 "label": spec.label,
                 "alg": spec.alg.value,
@@ -139,7 +159,9 @@ class SshKeyProvider(KeyProviderBase):
     async def import_key(
         self, spec: KeySpec, material: bytes, *, public: Optional[bytes] = None
     ) -> KeyRef:
-        kid = hashlib.sha256(material if material else (public or b"")).hexdigest()[:16]
+        kid = hashlib.sha256(
+            material if material else (public or b"")
+        ).hexdigest()[:16]
         if material:
             sk = serialization.load_pem_private_key(material, password=None)
             ssh_pub = _ssh_pub_bytes(sk.public_key())
@@ -157,7 +179,9 @@ class SshKeyProvider(KeyProviderBase):
             uses=spec.uses,
             export_policy=spec.export_policy,
             public=ssh_pub,
-            material=(material if spec.export_policy != ExportPolicy.NONE else None),
+            material=(
+                material if spec.export_policy != ExportPolicy.NONE else None
+            ),
             tags={
                 "label": spec.label,
                 "alg": spec.alg.value,
@@ -187,11 +211,15 @@ class SshKeyProvider(KeyProviderBase):
             tags=base.tags,
         )
         new = await self.create_key(spec)
-        new = new.__class__(**{**new.__dict__, "kid": kid, "version": latest + 1})
+        new = new.__class__(
+            **{**new.__dict__, "kid": kid, "version": latest + 1}
+        )
         self._store[kid][latest + 1] = new
         return new
 
-    async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
+    async def destroy_key(
+        self, kid: str, version: Optional[int] = None
+    ) -> bool:
         if kid not in self._store:
             return False
         if version is None:
@@ -203,7 +231,11 @@ class SshKeyProvider(KeyProviderBase):
         return True
 
     async def get_key(
-        self, kid: str, version: Optional[int] = None, *, include_secret: bool = False
+        self,
+        kid: str,
+        version: Optional[int] = None,
+        *,
+        include_secret: bool = False,
     ) -> KeyRef:
         bucket = self._store[kid]
         v = version or max(bucket)
@@ -212,7 +244,9 @@ class SshKeyProvider(KeyProviderBase):
     async def list_versions(self, kid: str) -> Tuple[int, ...]:
         return tuple(sorted(self._store[kid].keys()))
 
-    async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
+    async def get_public_jwk(
+        self, kid: str, version: Optional[int] = None
+    ) -> dict:
         ref = await self.get_key(kid, version)
         alg = KeyAlg(ref.tags["alg"])
         pk = serialization.load_ssh_public_key(ref.public)
@@ -259,7 +293,9 @@ class SshKeyProvider(KeyProviderBase):
     async def random_bytes(self, n: int) -> bytes:
         return secrets.token_bytes(n)
 
-    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+    async def hkdf(
+        self, ikm: bytes, *, salt: bytes, info: bytes, length: int
+    ) -> bytes:
         return HKDF(
             algorithm=hashes.SHA256(), length=length, salt=salt, info=info
         ).derive(ikm)

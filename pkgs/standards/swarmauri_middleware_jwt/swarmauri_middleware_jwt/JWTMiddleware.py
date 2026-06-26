@@ -39,18 +39,24 @@ class JWTMiddleware(MiddlewareBase, ComponentBase):
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
             logger.warning("Missing or invalid Authorization header")
-            raise HTTPException(status_code=401, detail="Invalid authorization token")
+            raise HTTPException(
+                status_code=401, detail="Invalid authorization token"
+            )
 
         token = auth_header.split("Bearer ", 1)[1].strip()
         try:
             payload = self.verify_token(token)
         except jwt.PyJWTError as exc:
             logger.error(f"Token validation failed: {exc}")
-            raise HTTPException(status_code=401, detail="Invalid token") from exc
+            raise HTTPException(
+                status_code=401, detail="Invalid token"
+            ) from exc
 
         request.state.jwt_payload = payload
         return await call_next(request)
 
     def verify_token(self, token: str) -> Dict[str, Any]:
         """Decode a JWT token using the configured secret key."""
-        return jwt.decode(token, key=self.secret_key, algorithms=[self.algorithm])
+        return jwt.decode(
+            token, key=self.secret_key, algorithms=[self.algorithm]
+        )

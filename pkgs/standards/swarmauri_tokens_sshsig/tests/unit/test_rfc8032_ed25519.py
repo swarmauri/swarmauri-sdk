@@ -25,14 +25,20 @@ class DummyKeyProvider(IKeyProvider):
     async def import_key(self, spec, material, *, public=None):
         raise NotImplementedError
 
-    async def rotate_key(self, kid: str, *, spec_overrides: dict | None = None):
+    async def rotate_key(
+        self, kid: str, *, spec_overrides: dict | None = None
+    ):
         raise NotImplementedError
 
     async def destroy_key(self, kid: str, version: int | None = None) -> bool:
         return True
 
     async def get_key(
-        self, kid: str, version: int | None = None, *, include_secret: bool = False
+        self,
+        kid: str,
+        version: int | None = None,
+        *,
+        include_secret: bool = False,
     ) -> KeyRef:
         priv = (
             self.sk.private_bytes(
@@ -60,7 +66,9 @@ class DummyKeyProvider(IKeyProvider):
     async def list_versions(self, kid: str) -> tuple[int, ...]:
         return (self.version,)
 
-    async def get_public_jwk(self, kid: str, version: int | None = None) -> dict:
+    async def get_public_jwk(
+        self, kid: str, version: int | None = None
+    ) -> dict:
         return {}
 
     async def jwks(self) -> dict:
@@ -69,7 +77,9 @@ class DummyKeyProvider(IKeyProvider):
     async def random_bytes(self, n: int) -> bytes:
         return b"\x00" * n
 
-    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+    async def hkdf(
+        self, ikm: bytes, *, salt: bytes, info: bytes, length: int
+    ) -> bytes:
         return b"\x00" * length
 
 

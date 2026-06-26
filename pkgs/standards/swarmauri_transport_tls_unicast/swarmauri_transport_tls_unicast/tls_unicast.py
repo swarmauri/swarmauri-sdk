@@ -57,7 +57,9 @@ class TlsUnicastTransport(TransportBase):
             schemes=frozenset({AddressScheme.TLS}),
         )
 
-    async def _start_server(self, host: str = "0.0.0.0", port: int = 8443) -> None:
+    async def _start_server(
+        self, host: str = "0.0.0.0", port: int = 8443
+    ) -> None:
         async def _handler(
             reader: asyncio.StreamReader, writer: asyncio.StreamWriter
         ) -> None:
@@ -74,7 +76,9 @@ class TlsUnicastTransport(TransportBase):
             self._server = None
         self._accept_queue = asyncio.Queue()
 
-    async def _open_client(self, host: str = "127.0.0.1", port: int = 8443) -> None:
+    async def _open_client(
+        self, host: str = "127.0.0.1", port: int = 8443
+    ) -> None:
         self._reader, self._writer = await asyncio.open_connection(
             host, port, ssl=self._ssl_ctx, server_hostname=self._sni
         )

@@ -63,7 +63,9 @@ class CustomersMixin(ICustomers, BaseModel):
         """Create a customer via the provider and return its reference."""
 
     @abstractmethod
-    def _get_customer(self, customer_id: str) -> CustomerRefProto | Mapping[str, Any]:
+    def _get_customer(
+        self, customer_id: str
+    ) -> CustomerRefProto | Mapping[str, Any]:
         """Return provider data for the requested customer."""
 
     @abstractmethod

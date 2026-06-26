@@ -44,11 +44,16 @@ class SubprocessTool(ToolBase):
         ]
     )
     name: str = "SubprocessTool"
-    description: str = "Executes a command in a subprocess and captures its output."
+    description: str = (
+        "Executes a command in a subprocess and captures its output."
+    )
     type: Literal["SubprocessTool"] = "SubprocessTool"
 
     def __call__(
-        self, command: str, timeout: Optional[float] = None, shell: bool = False
+        self,
+        command: str,
+        timeout: Optional[float] = None,
+        shell: bool = False,
     ) -> Dict[str, str]:
         """Execute ``command`` and return stdout, stderr, and exit code."""
         try:

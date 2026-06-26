@@ -48,7 +48,9 @@ class H2MuxTransport(
             protocols=frozenset({Protocol.H2}),
             io=IOModel.STREAM,
             casts=frozenset({Cast.UNICAST}),
-            features=frozenset({Feature.RELIABLE, Feature.ORDERED, Feature.MULTIPLEX}),
+            features=frozenset(
+                {Feature.RELIABLE, Feature.ORDERED, Feature.MULTIPLEX}
+            ),
             security=SecurityMode.TLS,
             schemes=frozenset(schemes),
         )
@@ -68,7 +70,9 @@ class H2MuxTransport(
         ) -> None:
             await self._serve_conn(reader, writer, is_server=True)
 
-        self._srv = await asyncio.start_server(_handler, host, port, ssl=ssl_ctx)
+        self._srv = await asyncio.start_server(
+            _handler, host, port, ssl=ssl_ctx
+        )
 
     async def _stop_server(self) -> None:
         if self._srv is not None:
@@ -163,12 +167,17 @@ class H2MuxTransport(
                     from h2.events import DataReceived, StreamEnded
 
                     if isinstance(event, DataReceived):
-                        deque_ = self._streams.setdefault(event.stream_id, deque())
+                        deque_ = self._streams.setdefault(
+                            event.stream_id, deque()
+                        )
                         deque_.append(event.data)
                         self._h2.acknowledge_received_data(
                             len(event.data), event.stream_id
                         )
-                        if self._recv_wait and self._recv_wait[0] == event.stream_id:
+                        if (
+                            self._recv_wait
+                            and self._recv_wait[0] == event.stream_id
+                        ):
                             _, fut = self._recv_wait
                             if not fut.done():
                                 fut.set_result(deque_.popleft())
@@ -186,7 +195,9 @@ class H2MuxTransport(
             from h2.config import H2Configuration
             from h2.connection import H2Connection
         except Exception as exc:  # pragma: no cover - optional dependency
-            raise RuntimeError("Install 'h2' package for H2MuxTransport") from exc
+            raise RuntimeError(
+                "Install 'h2' package for H2MuxTransport"
+            ) from exc
 
         config = H2Configuration(client=not is_server, header_encoding="utf-8")
         self._h2 = H2Connection(config)

@@ -44,27 +44,34 @@ class TestValidation:
     def test_valid_probability_vector(self, hellingeraffinitysimilarity):
         """Test validation of a valid probability vector."""
         vec = np.array([0.2, 0.3, 0.5])
-        validated = hellingeraffinitysimilarity._validate_probability_vector(vec)
+        validated = hellingeraffinitysimilarity._validate_probability_vector(
+            vec
+        )
         assert np.array_equal(validated, vec)
 
     def test_negative_values(self, hellingeraffinitysimilarity):
         """Test validation with negative values."""
         vec = np.array([0.2, -0.3, 1.1])
         with pytest.raises(
-            ValueError, match="All values in probability vector must be non-negative"
+            ValueError,
+            match="All values in probability vector must be non-negative",
         ):
             hellingeraffinitysimilarity._validate_probability_vector(vec)
 
     def test_sum_not_one(self, hellingeraffinitysimilarity):
         """Test validation when sum is not 1."""
         vec = np.array([0.2, 0.3, 0.6])  # Sum is 1.1
-        with pytest.raises(ValueError, match="Probability vector must sum to 1"):
+        with pytest.raises(
+            ValueError, match="Probability vector must sum to 1"
+        ):
             hellingeraffinitysimilarity._validate_probability_vector(vec)
 
     def test_list_conversion(self, hellingeraffinitysimilarity):
         """Test validation converts list to numpy array."""
         vec = [0.2, 0.3, 0.5]
-        validated = hellingeraffinitysimilarity._validate_probability_vector(vec)
+        validated = hellingeraffinitysimilarity._validate_probability_vector(
+            vec
+        )
         assert isinstance(validated, np.ndarray)
         assert np.array_equal(validated, np.array(vec))
 
@@ -76,9 +83,21 @@ class TestSimilarity:
     @pytest.mark.parametrize(
         "x, y, expected",
         [
-            (np.array([1.0, 0.0]), np.array([1.0, 0.0]), 1.0),  # Same distributions
-            (np.array([0.5, 0.5]), np.array([0.5, 0.5]), 1.0),  # Same distributions
-            (np.array([1.0, 0.0]), np.array([0.0, 1.0]), 0.0),  # Completely different
+            (
+                np.array([1.0, 0.0]),
+                np.array([1.0, 0.0]),
+                1.0,
+            ),  # Same distributions
+            (
+                np.array([0.5, 0.5]),
+                np.array([0.5, 0.5]),
+                1.0,
+            ),  # Same distributions
+            (
+                np.array([1.0, 0.0]),
+                np.array([0.0, 1.0]),
+                0.0,
+            ),  # Completely different
             (
                 np.array([0.5, 0.5]),
                 np.array([0.0, 1.0]),
@@ -91,7 +110,9 @@ class TestSimilarity:
             ),  # Partially different (approx value)
         ],
     )
-    def test_similarity_calculation(self, hellingeraffinitysimilarity, x, y, expected):
+    def test_similarity_calculation(
+        self, hellingeraffinitysimilarity, x, y, expected
+    ):
         """Test similarity calculation with different probability distributions."""
         similarity = hellingeraffinitysimilarity.similarity(x, y)
         assert np.isclose(similarity, expected, rtol=1e-2)
@@ -143,9 +164,21 @@ class TestDissimilarity:
     @pytest.mark.parametrize(
         "x, y, expected",
         [
-            (np.array([1.0, 0.0]), np.array([1.0, 0.0]), 0.0),  # Same distributions
-            (np.array([0.5, 0.5]), np.array([0.5, 0.5]), 0.0),  # Same distributions
-            (np.array([1.0, 0.0]), np.array([0.0, 1.0]), 1.0),  # Completely different
+            (
+                np.array([1.0, 0.0]),
+                np.array([1.0, 0.0]),
+                0.0,
+            ),  # Same distributions
+            (
+                np.array([0.5, 0.5]),
+                np.array([0.5, 0.5]),
+                0.0,
+            ),  # Same distributions
+            (
+                np.array([1.0, 0.0]),
+                np.array([0.0, 1.0]),
+                1.0,
+            ),  # Completely different
             (
                 np.array([0.5, 0.5]),
                 np.array([0.0, 1.0]),
@@ -205,13 +238,19 @@ class TestProperties:
         """Test the identity of discernibles property when distributions are equal."""
         x = np.array([0.3, 0.7])
         y = np.array([0.3, 0.7])
-        assert hellingeraffinitysimilarity.check_identity_of_discernibles(x, y) is True
+        assert (
+            hellingeraffinitysimilarity.check_identity_of_discernibles(x, y)
+            is True
+        )
 
     def test_identity_of_discernibles_false(self, hellingeraffinitysimilarity):
         """Test the identity of discernibles property when distributions are different."""
         x = np.array([0.3, 0.7])
         y = np.array([0.7, 0.3])
-        assert hellingeraffinitysimilarity.check_identity_of_discernibles(x, y) is True
+        assert (
+            hellingeraffinitysimilarity.check_identity_of_discernibles(x, y)
+            is True
+        )
 
 
 @pytest.mark.unit

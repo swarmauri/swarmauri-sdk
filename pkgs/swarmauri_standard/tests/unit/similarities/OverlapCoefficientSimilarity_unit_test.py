@@ -90,22 +90,34 @@ def test_similarity_with_collections(overlap_similarity):
     """Test similarity with different collection types."""
     # Lists
     assert (
-        abs(overlap_similarity.similarity([1, 2, 3], [2, 3, 4]) - 0.6666666666666666)
+        abs(
+            overlap_similarity.similarity([1, 2, 3], [2, 3, 4])
+            - 0.6666666666666666
+        )
         < 1e-10
     )
 
     # Tuples
     assert (
-        abs(overlap_similarity.similarity((1, 2, 3), (2, 3, 4)) - 0.6666666666666666)
+        abs(
+            overlap_similarity.similarity((1, 2, 3), (2, 3, 4))
+            - 0.6666666666666666
+        )
         < 1e-10
     )
 
     # Strings
-    assert abs(overlap_similarity.similarity("abc", "bcd") - 0.6666666666666666) < 1e-10
+    assert (
+        abs(overlap_similarity.similarity("abc", "bcd") - 0.6666666666666666)
+        < 1e-10
+    )
 
     # Mixed
     assert (
-        abs(overlap_similarity.similarity({1, 2, 3}, [2, 3, 4]) - 0.6666666666666666)
+        abs(
+            overlap_similarity.similarity({1, 2, 3}, [2, 3, 4])
+            - 0.6666666666666666
+        )
         < 1e-10
     )
 
@@ -219,20 +231,30 @@ def test_check_identity_of_discernibles(overlap_similarity):
     """Test check_identity_of_discernibles method."""
     # Identical sets should return True
     assert (
-        overlap_similarity.check_identity_of_discernibles({1, 2, 3}, {1, 2, 3}) is True
+        overlap_similarity.check_identity_of_discernibles({1, 2, 3}, {1, 2, 3})
+        is True
     )
 
     # Different sets with similarity = 1 (one is subset of other) should return False
-    assert overlap_similarity.check_identity_of_discernibles({1, 2}, {1, 2, 3}) is False
+    assert (
+        overlap_similarity.check_identity_of_discernibles({1, 2}, {1, 2, 3})
+        is False
+    )
 
     # Different sets with similarity < 1 should return True
     assert (
-        overlap_similarity.check_identity_of_discernibles({1, 2, 3}, {2, 3, 4}) is True
+        overlap_similarity.check_identity_of_discernibles({1, 2, 3}, {2, 3, 4})
+        is True
     )
 
     # Test with other collection types
-    assert overlap_similarity.check_identity_of_discernibles([1, 2], [1, 2, 3]) is False
-    assert overlap_similarity.check_identity_of_discernibles("ab", "abc") is False
+    assert (
+        overlap_similarity.check_identity_of_discernibles([1, 2], [1, 2, 3])
+        is False
+    )
+    assert (
+        overlap_similarity.check_identity_of_discernibles("ab", "abc") is False
+    )
 
 
 @pytest.mark.unit

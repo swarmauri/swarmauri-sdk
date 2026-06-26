@@ -8,18 +8,25 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 class DeepFaceVCM(VCMBase, ComponentBase):
     type: Literal["DeepFaceVCM"] = "DeepFaceVCM"
-    resource: str = Field(default=ResourceTypes.VCM.value, description="VCM resource")
+    resource: str = Field(
+        default=ResourceTypes.VCM.value, description="VCM resource"
+    )
     detector_backend: str = Field(
         default="opencv", description="Backend to use for detection"
     )
     align: bool = Field(default=True, description="Whether to align the face")
-    enforce_detection: bool = Field(default=True, description="Enforce face detection")
+    enforce_detection: bool = Field(
+        default=True, description="Enforce face detection"
+    )
     expand_percentage: float = Field(
         default=0, description="Percentage to expand bounding box"
     )
-    anti_spoofing: bool = Field(default=False, description="Enable anti-spoofing")
+    anti_spoofing: bool = Field(
+        default=False, description="Enable anti-spoofing"
+    )
     actions: Tuple[str, ...] = Field(
-        default=("emotion", "age", "gender", "race"), description="Actions to perform"
+        default=("emotion", "age", "gender", "race"),
+        description="Actions to perform",
     )
 
     def predict_vision(

@@ -89,4 +89,6 @@ def test_decorate_instance_method_nonexistent():
     instance = TestClass()
 
     with pytest.raises(AttributeError):
-        decorate_instance_method(instance, "nonexistent_method", decorator_for_testing)
+        decorate_instance_method(
+            instance, "nonexistent_method", decorator_for_testing
+        )

@@ -15,7 +15,9 @@ def test_get_class_hash_basic():
     hash2 = get_class_hash(TestClass)
 
     assert isinstance(hash1, str)
-    assert len(hash1) == 64  # SHA256 produces a 64-character hexadecimal string
+    assert (
+        len(hash1) == 64
+    )  # SHA256 produces a 64-character hexadecimal string
     assert hash1 == hash2  # Hash should be consistent for the same class
 
 

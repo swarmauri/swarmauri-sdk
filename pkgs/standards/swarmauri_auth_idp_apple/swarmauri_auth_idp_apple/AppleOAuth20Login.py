@@ -33,12 +33,16 @@ class AppleOAuth20Login(AppleLoginMixin, OAuth20LoginBase):
     token_endpoint: str = Field(
         default="https://appleid.apple.com/auth/token", frozen=True
     )
-    jwks_uri: str = Field(default="https://appleid.apple.com/auth/keys", frozen=True)
+    jwks_uri: str = Field(
+        default="https://appleid.apple.com/auth/keys", frozen=True
+    )
 
     async def auth_url(self) -> Mapping[str, str]:
         verifier, challenge = make_pkce_pair()
         nonce = make_nonce()
-        state = sign_state(self._state_secret(), {"verifier": verifier, "nonce": nonce})
+        state = sign_state(
+            self._state_secret(), {"verifier": verifier, "nonce": nonce}
+        )
         url = (
             f"{self.authorization_endpoint}?response_type=code"
             f"&client_id={self.client_id}&redirect_uri={self.redirect_uri}"
@@ -47,7 +51,9 @@ class AppleOAuth20Login(AppleLoginMixin, OAuth20LoginBase):
         )
         return {"url": url, "state": state}
 
-    async def exchange_and_identity(self, code: str, state: str) -> Mapping[str, Any]:
+    async def exchange_and_identity(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         payload = self._state_payload(state)
         form = {
             "grant_type": "authorization_code",

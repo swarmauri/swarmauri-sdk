@@ -49,7 +49,11 @@ def test_serialization(jaccard_similarity):
 @pytest.mark.parametrize(
     "set_a, set_b, expected",
     [
-        (set([1, 2, 3]), set([2, 3, 4]), 0.5),  # 2 common elements, 4 total unique
+        (
+            set([1, 2, 3]),
+            set([2, 3, 4]),
+            0.5,
+        ),  # 2 common elements, 4 total unique
         (set([1, 2, 3, 4]), set([1, 2, 3, 4]), 1.0),  # Identical sets
         (set([1, 2, 3]), set([4, 5, 6]), 0.0),  # No common elements
         (set([]), set([]), 1.0),  # Both empty sets
@@ -58,7 +62,9 @@ def test_serialization(jaccard_similarity):
         (set([1, 2, 3]), set([1, 2, 3, 4, 5]), 0.6),  # Subset relation
     ],
 )
-def test_similarity(jaccard_similarity, set_a: Set, set_b: Set, expected: float):
+def test_similarity(
+    jaccard_similarity, set_a: Set, set_b: Set, expected: float
+):
     """
     Test the similarity method with various sets.
 
@@ -116,7 +122,9 @@ def test_similarities_type_error(jaccard_similarity):
         jaccard_similarity.similarities("not a set", [set([1, 2, 3])])
 
     with pytest.raises(TypeError):
-        jaccard_similarity.similarities(set([1, 2, 3]), [set([1, 2]), "not a set"])
+        jaccard_similarity.similarities(
+            set([1, 2, 3]), [set([1, 2]), "not a set"]
+        )
 
 
 @pytest.mark.unit
@@ -128,7 +136,9 @@ def test_similarities_type_error(jaccard_similarity):
         (set([1, 2, 3]), set([4, 5, 6]), 1.0),
     ],
 )
-def test_dissimilarity(jaccard_similarity, set_a: Set, set_b: Set, expected: float):
+def test_dissimilarity(
+    jaccard_similarity, set_a: Set, set_b: Set, expected: float
+):
     """
     Test the dissimilarity method with various sets.
 

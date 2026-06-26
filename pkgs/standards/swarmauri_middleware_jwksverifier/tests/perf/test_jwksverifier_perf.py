@@ -21,7 +21,9 @@ def test_verify_perf(benchmark):
         return _fetch(pk)
 
     v = CachedJWKSVerifier(fetch=fetch)
-    token = jwt.encode({"iss": "me"}, pk, algorithm="RS256", headers={"kid": "perf"})
+    token = jwt.encode(
+        {"iss": "me"}, pk, algorithm="RS256", headers={"kid": "perf"}
+    )
 
     def _run():
         v.verify(token, algorithms_whitelist=["RS256"], issuer="me")

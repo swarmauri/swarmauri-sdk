@@ -48,11 +48,15 @@ class OpenaiSTT(STTBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
         )
 
@@ -195,7 +199,8 @@ class OpenaiSTT(STTBase):
                 return await self.apredict(audio_path=path, task=task)
 
         tasks = [
-            process_conversation(path, task) for path, task in path_task_dict.items()
+            process_conversation(path, task)
+            for path, task in path_task_dict.items()
         ]
         return await asyncio.gather(*tasks)
 
@@ -214,7 +219,9 @@ class OpenaiSTT(STTBase):
         audio_path: str,
         task: Literal["transcription", "translation"] = "transcription",
     ) -> str:
-        raise NotImplementedError("Stream method is not implemented for OpenaiSTT")
+        raise NotImplementedError(
+            "Stream method is not implemented for OpenaiSTT"
+        )
 
     async def astream(
         self,

@@ -13,7 +13,9 @@ from swarmauri_standard.similarities.CosineSimilarity import CosineSimilarity
 @pytest.mark.unit
 def test_metric_comparator_ranks_ascending():
     comparator = MetricVectorStoreComparator(EuclideanMetric())
-    indices = comparator.top_k_indices([0.0, 0.0], [[2.0, 0.0], [1.0, 0.0]], top_k=2)
+    indices = comparator.top_k_indices(
+        [0.0, 0.0], [[2.0, 0.0], [1.0, 0.0]], top_k=2
+    )
     assert comparator.ranking_direction == "ascending"
     assert indices == [1, 0]
 
@@ -21,7 +23,9 @@ def test_metric_comparator_ranks_ascending():
 @pytest.mark.unit
 def test_similarity_comparator_ranks_descending():
     comparator = SimilarityVectorStoreComparator(CosineSimilarity())
-    indices = comparator.top_k_indices([1.0, 0.0], [[0.0, 1.0], [1.0, 0.0]], top_k=2)
+    indices = comparator.top_k_indices(
+        [1.0, 0.0], [[0.0, 1.0], [1.0, 0.0]], top_k=2
+    )
     assert comparator.ranking_direction == "descending"
     assert indices == [1, 0]
 
@@ -39,4 +43,7 @@ def test_deprecated_distance_contract_modules_warn():
         importlib.reload(deprecated_base)
         importlib.reload(deprecated_vision)
 
-    assert len([item for item in caught if item.category is DeprecationWarning]) >= 3
+    assert (
+        len([item for item in caught if item.category is DeprecationWarning])
+        >= 3
+    )

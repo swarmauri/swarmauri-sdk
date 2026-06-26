@@ -5,7 +5,11 @@ from swarmauri_core.models.IModel import IModel
 
 class AWSSageMakerModel(IModel):
     def __init__(
-        self, access_key: str, secret_access_key: str, region_name: str, model_name: str
+        self,
+        access_key: str,
+        secret_access_key: str,
+        region_name: str,
+        model_name: str,
     ):
         """
         Initialize the AWS SageMaker model with AWS credentials, region, and the model name.
@@ -27,7 +31,9 @@ class AWSSageMakerModel(IModel):
         )
         super().__init__(model_name)
 
-    def predict(self, payload: str, content_type: str = "application/json") -> dict:
+    def predict(
+        self, payload: str, content_type: str = "application/json"
+    ) -> dict:
         """
         Generate predictions using the AWS SageMaker model.
 

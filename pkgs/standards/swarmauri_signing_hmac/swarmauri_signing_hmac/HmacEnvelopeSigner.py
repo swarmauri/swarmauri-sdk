@@ -97,8 +97,12 @@ def _resolve_secret(key: KeyRef, *, hash_ctor) -> tuple[bytes, str]:
         hkdf_cfg = key.get("hkdf", {}) or {}
         salt = hkdf_cfg.get("salt")
         info = hkdf_cfg.get("info")
-        salt_b = None if salt is None else _ensure_bytes(salt, name="hkdf.salt")
-        info_b = None if info is None else _ensure_bytes(info, name="hkdf.info")
+        salt_b = (
+            None if salt is None else _ensure_bytes(salt, name="hkdf.salt")
+        )
+        info_b = (
+            None if info is None else _ensure_bytes(info, name="hkdf.info")
+        )
         secret = _hkdf(ikm, salt=salt_b, info=info_b, hash_ctor=hash_ctor)
     else:
         raise TypeError(f"Unsupported HMAC KeyRef kind '{kind}'")
@@ -163,7 +167,9 @@ class HmacEnvelopeSigner(SigningBase):
             tag_size = int(opts["tag_size"])  # type: ignore[arg-type]
             digest_size = hash_ctor().digest_size
             if tag_size < 16:
-                raise ValueError("tag_size must be at least 16 bytes (128 bits)")
+                raise ValueError(
+                    "tag_size must be at least 16 bytes (128 bits)"
+                )
             if tag_size > digest_size:
                 raise ValueError(
                     f"tag_size cannot exceed digest size ({digest_size} bytes)"
@@ -182,7 +188,9 @@ class HmacEnvelopeSigner(SigningBase):
         req = require or {}
         allowed_algs = {
             (a if isinstance(a, JWAAlg) else JWAAlg(a))
-            for a in (req.get("algs") or [JWAAlg.HS256, JWAAlg.HS384, JWAAlg.HS512])
+            for a in (
+                req.get("algs") or [JWAAlg.HS256, JWAAlg.HS384, JWAAlg.HS512]
+            )
         }
         min_signers = int(req.get("min_signers", 1))
         required_kids = set(req.get("kids") or [])
@@ -195,7 +203,11 @@ class HmacEnvelopeSigner(SigningBase):
             )
         for entry in key_entries:  # type: ignore[assignment]
             prefer_alg: Optional[JWAAlg] = None
-            if isinstance(entry, dict) and "alg" in entry and entry["alg"] is not None:
+            if (
+                isinstance(entry, dict)
+                and "alg" in entry
+                and entry["alg"] is not None
+            ):
                 prefer_alg = (
                     entry["alg"]
                     if isinstance(entry["alg"], JWAAlg)
@@ -234,7 +246,9 @@ class HmacEnvelopeSigner(SigningBase):
 
             for _, secret in iter_keys:
                 calc = hmac.new(secret, payload, hash_ctor).digest()
-                if hmac.compare_digest(calc[: len(sig_bytes)], bytes(sig_bytes)):
+                if hmac.compare_digest(
+                    calc[: len(sig_bytes)], bytes(sig_bytes)
+                ):
                     ok_one = True
                     break
 
@@ -263,7 +277,9 @@ class HmacEnvelopeSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            digest, signatures, require=require, opts=opts
+        )
 
     async def canonicalize_envelope(
         self,
@@ -300,4 +316,6 @@ class HmacEnvelopeSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         payload = await self.canonicalize_envelope(env, canon=canon, opts=opts)
-        return await self.verify_bytes(payload, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            payload, signatures, require=require, opts=opts
+        )

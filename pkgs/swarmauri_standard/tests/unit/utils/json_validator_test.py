@@ -1,5 +1,8 @@
 import pytest
-from swarmauri_standard.utils.json_validator import load_json_file, validate_json
+from swarmauri_standard.utils.json_validator import (
+    load_json_file,
+    validate_json,
+)
 import json
 import tempfile
 import os
@@ -60,7 +63,10 @@ def test_validate_json_invalid():
         "required": ["name", "age"],
     }
 
-    invalid_data = {"name": "John Doe", "age": "thirty"}  # age should be an integer
+    invalid_data = {
+        "name": "John Doe",
+        "age": "thirty",
+    }  # age should be an integer
 
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
         json.dump(schema, temp_file)

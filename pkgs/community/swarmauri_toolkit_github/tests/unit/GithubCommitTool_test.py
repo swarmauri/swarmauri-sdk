@@ -64,7 +64,11 @@ def test_serialization(github_commit_tool):
             "create_commit",
         ),
         ("list_commits", {"repo_name": "test-repo"}, "list_commits"),
-        ("get_commit", {"repo_name": "test-repo", "sha": "abcdef"}, "get_commit"),
+        (
+            "get_commit",
+            {"repo_name": "test-repo", "sha": "abcdef"},
+            "get_commit",
+        ),
         (
             "compare_commits",
             {"repo_name": "test-repo", "base": "master", "head": "feature"},
@@ -100,7 +104,11 @@ def test_call(mock_github, github_commit_tool, action, kwargs, method_called):
             assert isinstance(result.get(action), str), (
                 f"Expected int, but got {type(result.get(action)).__name__}"
             )
-            assert result == {f"{action}": "performed a test action successfully"}
+            assert result == {
+                f"{action}": "performed a test action successfully"
+            }
     else:
-        with pytest.raises(ValueError, match=f"Action '{action}' is not supported."):
+        with pytest.raises(
+            ValueError, match=f"Action '{action}' is not supported."
+        ):
             github_commit_tool(action=action, **kwargs)

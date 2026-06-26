@@ -8,7 +8,10 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
 from swarmauri_signing_dpop import DpopSigner
-from swarmauri_signing_dpop.DpopSigner import _b64url_dec, _jwk_thumbprint_b64url
+from swarmauri_signing_dpop.DpopSigner import (
+    _b64url_dec,
+    _jwk_thumbprint_b64url,
+)
 from swarmauri_signing_jws import JwsSignerVerifier
 
 
@@ -165,12 +168,20 @@ async def test_verify_rejects_skewed_iat() -> None:
     sigs = await signer.sign_bytes(
         {"kind": "pem", "priv": pem, "alg": "EdDSA"},
         b"",
-        opts={"htm": "GET", "htu": "https://api.example/x", "iat": skewed_time},
+        opts={
+            "htm": "GET",
+            "htu": "https://api.example/x",
+            "iat": skewed_time,
+        },
     )
     assert not await signer.verify_bytes(
         b"",
         sigs,
-        require={"htm": "GET", "htu": "https://api.example/x", "max_skew_s": 300},
+        require={
+            "htm": "GET",
+            "htu": "https://api.example/x",
+            "max_skew_s": 300,
+        },
     )
 
 
@@ -229,7 +240,11 @@ async def test_verify_rejects_unapproved_alg() -> None:
     assert not await signer.verify_bytes(
         b"",
         sigs,
-        require={"htm": "GET", "htu": "https://api.example/x", "algs": ["ES256"]},
+        require={
+            "htm": "GET",
+            "htu": "https://api.example/x",
+            "algs": ["ES256"],
+        },
     )
 
 

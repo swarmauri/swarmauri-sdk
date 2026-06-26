@@ -14,6 +14,8 @@ def test_rfc7517_jwks_usage(tmp_path):
     jwk["kid"] = "kid1"
     jwks_path = tmp_path / "jwks.json"
     jwks_path.write_text(json.dumps({"keys": [jwk]}))
-    service = RemoteOIDCTokenService("https://issuer", jwks_url=f"file://{jwks_path}")
+    service = RemoteOIDCTokenService(
+        "https://issuer", jwks_url=f"file://{jwks_path}"
+    )
     jwks = asyncio.run(service.jwks())
     assert jwks["keys"][0]["kid"] == "kid1"

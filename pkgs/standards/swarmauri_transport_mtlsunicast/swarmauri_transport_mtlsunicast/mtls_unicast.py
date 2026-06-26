@@ -50,7 +50,9 @@ class MTLSUnicast(
             schemes=frozenset({AddressScheme.MTLS}),
         )
 
-    async def _start_server(self, host: str = "0.0.0.0", port: int = 9443) -> None:
+    async def _start_server(
+        self, host: str = "0.0.0.0", port: int = 9443
+    ) -> None:
         with contextlib.suppress(Exception):
             self._ssl_ctx.set_alpn_protocols(["h2", "http/1.1"])
 

@@ -3,7 +3,11 @@
 from typing import Any, Optional, Dict, List, Union, Literal
 import asyncio
 from pydantic import ConfigDict, Field
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes, SubclassUnion
+from swarmauri_base.ComponentBase import (
+    ComponentBase,
+    ResourceTypes,
+    SubclassUnion,
+)
 from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_core.agents.IAgent import IAgent

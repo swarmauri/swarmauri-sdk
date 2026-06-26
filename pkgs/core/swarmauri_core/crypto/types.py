@@ -97,7 +97,9 @@ class KeyState(str, Enum):
 class ExportPolicy(str, Enum):
     NONE = "none"  # never export
     PUBLIC_ONLY = "public_only"  # export public/verification material
-    SECRET_WHEN_ALLOWED = "secret_when_allowed"  # secret export gated by policy
+    SECRET_WHEN_ALLOWED = (
+        "secret_when_allowed"  # secret export gated by policy
+    )
 
 
 # -----------------------------
@@ -173,7 +175,9 @@ class KeyRef:
             data = self.public or self.material or self.kid.encode("utf-8")
             if isinstance(data, str):
                 data = data.encode("utf-8")
-            object.__setattr__(self, "fingerprint", hashlib.sha256(data).hexdigest())
+            object.__setattr__(
+                self, "fingerprint", hashlib.sha256(data).hexdigest()
+            )
 
 
 @dataclass(frozen=True)

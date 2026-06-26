@@ -113,7 +113,8 @@ class GeminiProModel(LLMBase):
             message["parts"] = message.pop("content")
 
         return [
-            {"parts": [{"text": message["parts"]}]} for message in sanitized_messages
+            {"parts": [{"text": message["parts"]}]}
+            for message in sanitized_messages
         ]
 
     def _get_system_context(self, messages: List[Type[MessageBase]]) -> str:
@@ -206,13 +207,17 @@ class GeminiProModel(LLMBase):
 
         response_data = response.json()
 
-        message_content = response_data["candidates"][0]["content"]["parts"][0]["text"]
+        message_content = response_data["candidates"][0]["content"]["parts"][
+            0
+        ]["text"]
 
         usage_data = response_data["usageMetadata"]
 
         if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -266,12 +271,16 @@ class GeminiProModel(LLMBase):
             response.raise_for_status()
 
         response_data = response.json()
-        message_content = response_data["candidates"][0]["content"]["parts"][0]["text"]
+        message_content = response_data["candidates"][0]["content"]["parts"][
+            0
+        ]["text"]
         usage_data = response_data["usageMetadata"]
 
         if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -333,9 +342,9 @@ class GeminiProModel(LLMBase):
                 json_str = line.replace("data: ", "")
                 if json_str:
                     response_data = json.loads(json_str)
-                    chunk = response_data["candidates"][0]["content"]["parts"][0][
-                        "text"
-                    ]
+                    chunk = response_data["candidates"][0]["content"]["parts"][
+                        0
+                    ]["text"]
                     full_response += chunk
                     yield chunk
 
@@ -346,7 +355,9 @@ class GeminiProModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=full_response, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=full_response, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=full_response))
 
@@ -405,9 +416,9 @@ class GeminiProModel(LLMBase):
                 json_str = line.replace("data: ", "")
                 if json_str:
                     response_data = json.loads(json_str)
-                    chunk = response_data["candidates"][0]["content"]["parts"][0][
-                        "text"
-                    ]
+                    chunk = response_data["candidates"][0]["content"]["parts"][
+                        0
+                    ]["text"]
                     full_response += chunk
                     yield chunk
 
@@ -418,7 +429,9 @@ class GeminiProModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=full_response, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=full_response, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=full_response))
 

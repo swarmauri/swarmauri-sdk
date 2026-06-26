@@ -1,6 +1,8 @@
 import pytest
 import os
-from swarmauri_experimental.llms.ShuttleAIImgGenModel import ShuttleAIImgGenModel
+from swarmauri_experimental.llms.ShuttleAIImgGenModel import (
+    ShuttleAIImgGenModel,
+)
 from dotenv import load_dotenv
 
 load_dotenv()

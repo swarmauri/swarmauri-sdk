@@ -12,7 +12,9 @@ class IOnlinePayments(ABC):
     """Operations for managing payment intents."""
 
     @abstractmethod
-    def create_payment_intent(self, req: PaymentIntentReqProto) -> PaymentRefProto:
+    def create_payment_intent(
+        self, req: PaymentIntentReqProto
+    ) -> PaymentRefProto:
         """Create a payment intent."""
 
     @abstractmethod

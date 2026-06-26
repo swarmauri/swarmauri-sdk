@@ -12,7 +12,9 @@ class IDecompose(ABC):
     """
 
     @abstractmethod
-    def decompose(self, vector: IVector, basis_vectors: List[IVector]) -> List[IVector]:
+    def decompose(
+        self, vector: IVector, basis_vectors: List[IVector]
+    ) -> List[IVector]:
         """
         Decompose the given vector into components along the specified basis vectors.
 

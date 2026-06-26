@@ -3,7 +3,11 @@ from typing import Literal
 import pytest
 from pydantic import ConfigDict
 
-from swarmauri_base.skills import FileSystemSkillMixin, LocalSkillMixin, SkillBase
+from swarmauri_base.skills import (
+    FileSystemSkillMixin,
+    LocalSkillMixin,
+    SkillBase,
+)
 
 
 class MixinSkill(LocalSkillMixin, FileSystemSkillMixin, SkillBase):

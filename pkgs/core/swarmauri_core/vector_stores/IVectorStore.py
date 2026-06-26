@@ -70,7 +70,9 @@ class IVectorStore(ABC):
         pass
 
     @abstractmethod
-    def update_document(self, doc_id: str, updated_document: IDocument) -> None:
+    def update_document(
+        self, doc_id: str, updated_document: IDocument
+    ) -> None:
         """
         Updates a document in the vector store.
 

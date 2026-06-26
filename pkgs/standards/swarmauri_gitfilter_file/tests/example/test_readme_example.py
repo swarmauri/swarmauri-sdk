@@ -14,7 +14,9 @@ def _load_usage_example() -> str:
     content = README_PATH.read_text(encoding="utf-8")
     blocks = re.findall(r"```python\s*(.*?)```", content, re.DOTALL)
     if not blocks:
-        raise AssertionError("README.md does not contain a Python usage example")
+        raise AssertionError(
+            "README.md does not contain a Python usage example"
+        )
     return textwrap.dedent(blocks[0]).strip()
 
 

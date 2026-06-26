@@ -55,7 +55,9 @@ def test_retry_sync_unhandled_status():
         call_count += 1
         request = httpx.Request("GET", "http://test")
         response = httpx.Response(status_code=500, request=request)
-        raise httpx.HTTPStatusError("Server Error", request=request, response=response)
+        raise httpx.HTTPStatusError(
+            "Server Error", request=request, response=response
+        )
 
     with pytest.raises(httpx.HTTPStatusError):
         fail()

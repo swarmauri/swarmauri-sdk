@@ -48,14 +48,18 @@ def test_ubc_type(vector_store):
 def test_serialization(vector_store):
     assert (
         vector_store.id
-        == Neo4jVectorStore.model_validate_json(vector_store.model_dump_json()).id
+        == Neo4jVectorStore.model_validate_json(
+            vector_store.model_dump_json()
+        ).id
     )
 
 
 @pytest.mark.unit
 def test_add_document(vector_store, mock_driver):
     """Test adding a single document"""
-    doc = Document(id="doc1", content="Test content", metadata={"key": "value"})
+    doc = Document(
+        id="doc1", content="Test content", metadata={"key": "value"}
+    )
 
     # Reset the mock to clear initialization calls
     mock_session = mock_driver.session().__enter__()

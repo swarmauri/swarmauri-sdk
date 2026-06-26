@@ -14,7 +14,9 @@ class ParameterBase(IParameter, ComponentBase):
     resource: Optional[str] = Field(default=ResourceTypes.PARAMETER.value)
     input_type: str
 
-    def __eq__(self, other: object) -> bool:  # pragma: no cover - simple equality
+    def __eq__(
+        self, other: object
+    ) -> bool:  # pragma: no cover - simple equality
         if not isinstance(other, ParameterBase):
             return False
         self_dict = self.model_dump()

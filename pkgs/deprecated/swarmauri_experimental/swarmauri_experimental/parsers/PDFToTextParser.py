@@ -22,7 +22,9 @@ class PDFtoTextParser(IParser):
         """
         # Ensure data is a valid str path to a PDF file
         if not isinstance(data, str):
-            raise ValueError("PDFtoTextParser expects a file path in str format.")
+            raise ValueError(
+                "PDFtoTextParser expects a file path in str format."
+            )
 
         try:
             # Open the PDF file

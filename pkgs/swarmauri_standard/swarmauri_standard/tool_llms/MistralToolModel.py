@@ -8,7 +8,9 @@ from pydantic import PrivateAttr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.DynamicBase import SubclassUnion
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_base.schema_converters.SchemaConverterBase import (
+    SchemaConverterBase,
+)
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.conversations.IConversation import IConversation
@@ -76,7 +78,9 @@ class MistralToolModel(ToolLLMBase):
             **data (dict[str, Any]): Arbitrary keyword arguments for initialization.
         """
         super().__init__(**data)
-        self._headers = {"Authorization": f"Bearer {self.api_key.get_secret_value()}"}
+        self._headers = {
+            "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+        }
         self._client = httpx.Client(
             headers=self._headers,
             timeout=self.timeout,
@@ -134,7 +138,10 @@ class MistralToolModel(ToolLLMBase):
         return formatted_messages
 
     def _process_tool_calls(
-        self, tool_calls: List[Any], toolkit: Toolkit, messages: List[Type[MessageBase]]
+        self,
+        tool_calls: List[Any],
+        toolkit: Toolkit,
+        messages: List[Type[MessageBase]],
     ) -> List[Dict]:
         """
         Processes a list of tool calls and appends the results to the messages list.
@@ -225,7 +232,9 @@ class MistralToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice,
             "safe_prompt": safe_prompt,
         }
@@ -248,7 +257,9 @@ class MistralToolModel(ToolLLMBase):
         # Extract tool messages for the conversation
         tool_messages = [
             FunctionMessage(
-                tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                tool_call_id=m["tool_call_id"],
+                name=m["name"],
+                content=m["content"],
             )
             for m in messages
             if m.get("role") == "tool"
@@ -310,7 +321,9 @@ class MistralToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice,
             "safe_prompt": safe_prompt,
         }
@@ -336,7 +349,9 @@ class MistralToolModel(ToolLLMBase):
         # Extract tool messages for the conversation
         tool_messages = [
             FunctionMessage(
-                tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                tool_call_id=m["tool_call_id"],
+                name=m["name"],
+                content=m["content"],
             )
             for m in messages
             if m.get("role") == "tool"
@@ -403,7 +418,9 @@ class MistralToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice,
             "safe_prompt": safe_prompt,
         }
@@ -426,7 +443,9 @@ class MistralToolModel(ToolLLMBase):
         # Extract tool messages for the conversation
         tool_messages = [
             FunctionMessage(
-                tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                tool_call_id=m["tool_call_id"],
+                name=m["name"],
+                content=m["content"],
             )
             for m in messages
             if m.get("role") == "tool"
@@ -448,7 +467,9 @@ class MistralToolModel(ToolLLMBase):
 
         for line in response.iter_lines():
             # Convert bytes to string if needed
-            line_str = line.decode("utf-8") if isinstance(line, bytes) else line
+            line_str = (
+                line.decode("utf-8") if isinstance(line, bytes) else line
+            )
 
             if not line_str or line_str == "data: [DONE]":
                 continue
@@ -510,7 +531,9 @@ class MistralToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice,
             "safe_prompt": safe_prompt,
         }
@@ -536,7 +559,9 @@ class MistralToolModel(ToolLLMBase):
         # Extract tool messages for the conversation
         tool_messages = [
             FunctionMessage(
-                tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                tool_call_id=m["tool_call_id"],
+                name=m["name"],
+                content=m["content"],
             )
             for m in messages
             if m.get("role") == "tool"

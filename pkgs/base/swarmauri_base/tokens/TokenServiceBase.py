@@ -11,5 +11,7 @@ from swarmauri_core.tokens import ITokenService
 class TokenServiceBase(ITokenService, ComponentBase):
     """Base class for token services."""
 
-    resource: Optional[str] = Field(default=ResourceTypes.CRYPTO.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.CRYPTO.value, frozen=True
+    )
     type: Literal["TokenServiceBase"] = "TokenServiceBase"

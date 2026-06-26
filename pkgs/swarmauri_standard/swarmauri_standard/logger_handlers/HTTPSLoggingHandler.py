@@ -139,7 +139,9 @@ class _HTTPSHandler(logging.Handler):
 
         # Load client certificates if provided
         if self.cert_file:
-            context.load_cert_chain(certfile=self.cert_file, keyfile=self.key_file)
+            context.load_cert_chain(
+                certfile=self.cert_file, keyfile=self.key_file
+            )
 
         # Apply any additional SSL context parameters
         if self.ssl_context:
@@ -180,12 +182,18 @@ class _HTTPSHandler(logging.Handler):
 
             # Establish HTTPS connection
             connection = http.client.HTTPSConnection(
-                host=self.host, port=self.port, context=context, timeout=self.timeout
+                host=self.host,
+                port=self.port,
+                context=context,
+                timeout=self.timeout,
             )
 
             # Send the request
             connection.request(
-                method=self.method, url=self.url, body=data, headers=self.headers
+                method=self.method,
+                url=self.url,
+                body=data,
+                headers=self.headers,
             )
 
             # Get the response (optional, but good for debugging)

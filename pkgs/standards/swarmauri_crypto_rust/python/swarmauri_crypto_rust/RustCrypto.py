@@ -62,7 +62,9 @@ _SEAL_ALG = "X25519-SEAL"
 
 def _convert_key_to_rust(key: KeyRef) -> "_RustKeyRef":
     """Convert swarmauri KeyRef to Rust KeyRef"""
-    uses = [use.value if hasattr(use, "value") else str(use) for use in key.uses]
+    uses = [
+        use.value if hasattr(use, "value") else str(use) for use in key.uses
+    ]
     key_type = key.type.value if hasattr(key.type, "value") else str(key.type)
 
     return _RustKeyRef(
@@ -202,7 +204,9 @@ class RustCrypto(CryptoBase):
 
     async def unwrap(self, kek: KeyRef, wrapped: CoreWrappedKey) -> bytes:
         if wrapped.wrap_alg != _WRAP_ALG:
-            raise UnsupportedAlgorithm(f"Unsupported wrap_alg: {wrapped.wrap_alg}")
+            raise UnsupportedAlgorithm(
+                f"Unsupported wrap_alg: {wrapped.wrap_alg}"
+            )
 
         try:
             rust_kek = _convert_key_to_rust(kek)
@@ -327,7 +331,9 @@ class RustCrypto(CryptoBase):
         )
 
         # Encrypt the content
-        aead_ct = await self.encrypt(cek, pt, alg=_AEAD_DEFAULT, aad=aad, nonce=nonce)
+        aead_ct = await self.encrypt(
+            cek, pt, alg=_AEAD_DEFAULT, aad=aad, nonce=nonce
+        )
 
         # Wrap the CEK for each recipient
         infos = []

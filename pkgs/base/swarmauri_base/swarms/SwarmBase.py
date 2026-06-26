@@ -19,7 +19,9 @@ class SwarmBase(ISwarm, ComponentBase):
     """Base class for Swarm implementations"""
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
-    resource: Optional[str] = Field(default=ResourceTypes.SWARM.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.SWARM.value, frozen=True
+    )
     type: Literal["SwarmBase"] = "SwarmBase"
 
     num_agents: int = Field(default=5, gt=0, le=100)
@@ -88,7 +90,9 @@ class SwarmBase(ISwarm, ComponentBase):
         results = []
         while not self._task_queue.empty():
             available_agents = [
-                i for i, status in self._status.items() if status == SwarmStatus.IDLE
+                i
+                for i, status in self._status.items()
+                if status == SwarmStatus.IDLE
             ]
             if not available_agents:
                 await asyncio.sleep(0.1)

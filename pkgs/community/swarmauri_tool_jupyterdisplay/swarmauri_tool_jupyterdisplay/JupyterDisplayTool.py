@@ -73,7 +73,9 @@ class JupyterDisplayTool(ToolBase):
             {'status': 'success', 'message': 'Data displayed successfully.'}
         """
         logger = logging.getLogger(__name__)
-        logger.debug("Attempting to display data with data_format=%s", data_format)
+        logger.debug(
+            "Attempting to display data with data_format=%s", data_format
+        )
 
         try:
             if data_format == "html":
@@ -90,7 +92,10 @@ class JupyterDisplayTool(ToolBase):
                 ipyd.display(ipyd.Markdown(data))
 
             logger.debug("Data displayed successfully.")
-            return {"status": "success", "message": "Data displayed successfully."}
+            return {
+                "status": "success",
+                "message": "Data displayed successfully.",
+            }
 
         except Exception as e:
             error_message = f"Error displaying data: {str(e)}"

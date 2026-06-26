@@ -48,5 +48,9 @@ class WebhookPublisher(PublishBase):
             raise RuntimeError(f"Failed to POST to {self.url}: {exc}") from exc
 
     def __del__(self) -> None:
-        if hasattr(self, "_client") and self._client and not self._client.is_closed:
+        if (
+            hasattr(self, "_client")
+            and self._client
+            and not self._client.is_closed
+        ):
             self._client.close()

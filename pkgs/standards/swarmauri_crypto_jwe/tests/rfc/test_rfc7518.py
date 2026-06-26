@@ -19,7 +19,10 @@ def test_rfc7518_ecdh_es() -> None:
     )
     jwe = asyncio.run(
         crypto.encrypt_compact(
-            payload=b"rfc", alg=JWAAlg.ECDH_ES, enc=JWAAlg.A256GCM, key={"pub": pk_pem}
+            payload=b"rfc",
+            alg=JWAAlg.ECDH_ES,
+            enc=JWAAlg.A256GCM,
+            key={"pub": pk_pem},
         )
     )
     res = asyncio.run(crypto.decrypt_compact(jwe, ecdh_private_key=sk))

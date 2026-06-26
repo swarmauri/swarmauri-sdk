@@ -20,7 +20,9 @@ class LoggerMixin(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def model_post_init(self, logger: Optional[FullUnion[LoggerBase]] = None) -> None:
+    def model_post_init(
+        self, logger: Optional[FullUnion[LoggerBase]] = None
+    ) -> None:
         """Assign a logger instance after model initialization."""
 
         # Directly assign the provided FullUnion[LoggerBase] or fallback to the

@@ -72,7 +72,9 @@ def test_serialization():
     ],
 )
 @pytest.mark.unit
-def test_call(X, n_neighbors, n_components, n_iterations, expected_shape, should_raise):
+def test_call(
+    X, n_neighbors, n_components, n_iterations, expected_shape, should_raise
+):
     tool = Tool()
     kwargs = {
         "X": X,
@@ -134,7 +136,12 @@ def test_call(X, n_neighbors, n_components, n_iterations, expected_shape, should
         )
         @pytest.mark.unit
         def test_call(
-            X, n_neighbors, n_components, n_iterations, expected_shape, should_raise
+            X,
+            n_neighbors,
+            n_components,
+            n_iterations,
+            expected_shape,
+            should_raise,
         ):
             tool = Tool()
             kwargs = {

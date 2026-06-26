@@ -17,4 +17,6 @@ class OAuth21AppClientBase(IOAuth21AppClient, ComponentBase):
     type: Literal["OAuth21AppClientBase"] = "OAuth21AppClientBase"
 
     async def access_token(self, scope: Optional[str] = None) -> str:
-        raise NotImplementedError("access_token must be implemented by subclasses")
+        raise NotImplementedError(
+            "access_token must be implemented by subclasses"
+        )

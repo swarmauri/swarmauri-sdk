@@ -67,4 +67,7 @@ async def test_exchange_and_identity_returns_tokens(
 
     auth = await login.auth_url()
     result = await login.exchange_and_identity("auth-code", auth["state"])
-    assert result == {"issuer": "aws-workforce", "tokens": {"access_token": "atk"}}
+    assert result == {
+        "issuer": "aws-workforce",
+        "tokens": {"access_token": "atk"},
+    }

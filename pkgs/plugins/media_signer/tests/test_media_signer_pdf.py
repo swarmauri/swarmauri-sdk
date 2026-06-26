@@ -29,7 +29,9 @@ async def test_media_signer_pdf_attached_bytes(pdf_context):
 
     assert signatures and signatures[0].mode == "attached"
     assert signatures[0].meta.get("attached") is True
-    assert await signer.verify_bytes(PDF_FORMAT, payload, signatures, opts=trust_opts)
+    assert await signer.verify_bytes(
+        PDF_FORMAT, payload, signatures, opts=trust_opts
+    )
 
 
 @pytest.mark.asyncio
@@ -43,7 +45,9 @@ async def test_media_signer_pdf_detached_bytes(pdf_context):
 
     assert signatures and signatures[0].mode == "detached"
     assert signatures[0].meta.get("attached") is False
-    assert await signer.verify_bytes(PDF_FORMAT, payload, signatures, opts=trust_opts)
+    assert await signer.verify_bytes(
+        PDF_FORMAT, payload, signatures, opts=trust_opts
+    )
 
 
 @pytest.mark.asyncio
@@ -57,7 +61,9 @@ async def test_media_signer_pdf_detached_digest(pdf_context):
     )
 
     assert signatures and signatures[0].meta.get("payload_kind") == "digest"
-    assert await signer.verify_digest(PDF_FORMAT, sha, signatures, opts=trust_opts)
+    assert await signer.verify_digest(
+        PDF_FORMAT, sha, signatures, opts=trust_opts
+    )
 
 
 @pytest.mark.asyncio
@@ -82,7 +88,11 @@ async def test_media_signer_pdf_detached_envelope(pdf_context):
     envelope = {"pdf": {"title": "MediaSigner"}, "data": "payload"}
 
     signatures = await signer.sign_envelope(
-        PDF_FORMAT, key_entry, envelope, canon="json", opts=pdf_sign_opts(False)
+        PDF_FORMAT,
+        key_entry,
+        envelope,
+        canon="json",
+        opts=pdf_sign_opts(False),
     )
 
     assert signatures and signatures[0].meta.get("attached") is False

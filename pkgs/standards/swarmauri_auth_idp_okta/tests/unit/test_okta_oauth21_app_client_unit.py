@@ -10,7 +10,9 @@ from pydantic import SecretStr
 from swarmauri_auth_idp_okta import OktaOAuth21AppClient
 
 
-okta_oauth21_module = import_module("swarmauri_auth_idp_okta.OktaOAuth21AppClient")
+okta_oauth21_module = import_module(
+    "swarmauri_auth_idp_okta.OktaOAuth21AppClient"
+)
 
 
 class DummyResponse:
@@ -53,7 +55,9 @@ class DummyClient:
 
 
 class DummyClientFactory:
-    def __init__(self, *, post_payloads: Optional[list[Dict[str, Any]]] = None):
+    def __init__(
+        self, *, post_payloads: Optional[list[Dict[str, Any]]] = None
+    ):
         self.post_payloads = list(post_payloads or [])
         self.post_calls = 0
         self.last_post_kwargs: Dict[str, Any] | None = None
@@ -118,7 +122,9 @@ async def test_okta_oauth21_with_client_secret() -> None:
     assert token == "secret-token"
     assert factory.post_calls == 1
     assert factory.last_post_kwargs["auth"] == ("client", "secret")
-    assert factory.last_post_kwargs["data"]["grant_type"] == "client_credentials"
+    assert (
+        factory.last_post_kwargs["data"]["grant_type"] == "client_credentials"
+    )
 
 
 @pytest.mark.unit

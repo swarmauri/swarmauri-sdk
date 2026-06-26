@@ -1,7 +1,11 @@
 from typing import Dict, Optional, List, Literal
 from pydantic import Field, ConfigDict
 
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes, SubclassUnion
+from swarmauri_base.ComponentBase import (
+    ComponentBase,
+    ResourceTypes,
+    SubclassUnion,
+)
 from swarmauri_core.toolkits.IToolkit import IToolkit
 from swarmauri_base.tools.ToolBase import ToolBase
 
@@ -14,7 +18,9 @@ class ToolkitBase(IToolkit, ComponentBase):
     """
 
     tools: Dict[str, SubclassUnion[ToolBase]] = {}
-    resource: Optional[str] = Field(default=ResourceTypes.TOOLKIT.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.TOOLKIT.value, frozen=True
+    )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["ToolkitBase"] = "ToolkitBase"
 

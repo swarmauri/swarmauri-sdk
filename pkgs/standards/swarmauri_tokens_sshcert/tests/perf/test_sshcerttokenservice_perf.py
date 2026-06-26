@@ -40,7 +40,11 @@ class DummyKeyProvider(IKeyProvider):
         self.version = 1
 
     async def get_key(
-        self, kid: str, version: int | None = None, *, include_secret: bool = False
+        self,
+        kid: str,
+        version: int | None = None,
+        *,
+        include_secret: bool = False,
     ) -> KeyRef:
         material = self.priv if include_secret else None
         return KeyRef(
@@ -78,13 +82,17 @@ class DummyKeyProvider(IKeyProvider):
     async def list_versions(self, kid: str) -> tuple[int, ...]:  # type: ignore[override]
         return (self.version,)
 
-    async def get_public_jwk(self, kid: str, version: int | None = None) -> dict:  # type: ignore[override]
+    async def get_public_jwk(
+        self, kid: str, version: int | None = None
+    ) -> dict:  # type: ignore[override]
         return {}
 
     async def random_bytes(self, n: int) -> bytes:  # type: ignore[override]
         return os.urandom(n)
 
-    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:  # type: ignore[override]
+    async def hkdf(
+        self, ikm: bytes, *, salt: bytes, info: bytes, length: int
+    ) -> bytes:  # type: ignore[override]
         return os.urandom(length)
 
 
@@ -95,7 +103,8 @@ def test_mint_verify_perf(benchmark) -> None:
 
     async def _run() -> None:
         cert = await svc.mint(
-            {"subject_pub": subj_pub, "principals": ["alice"]}, alg="ssh-ed25519"
+            {"subject_pub": subj_pub, "principals": ["alice"]},
+            alg="ssh-ed25519",
         )
         await svc.verify(cert, audience="alice")
 

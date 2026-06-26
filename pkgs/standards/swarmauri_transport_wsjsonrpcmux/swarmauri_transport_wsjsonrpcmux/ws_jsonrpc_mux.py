@@ -38,7 +38,9 @@ class WsJsonrpcMuxTransport(TransportBase, RunnableMixin, PeerTransportMixin):
             protocols=frozenset({Protocol.WS}),
             io=IOModel.STREAM,
             casts=frozenset({Cast.UNICAST}),
-            features=frozenset({Feature.RELIABLE, Feature.ORDERED, Feature.MULTIPLEX}),
+            features=frozenset(
+                {Feature.RELIABLE, Feature.ORDERED, Feature.MULTIPLEX}
+            ),
             security=SecurityMode.TLS,
             schemes=frozenset({AddressScheme.HTTPS}),
         )
@@ -59,7 +61,10 @@ class WsJsonrpcMuxTransport(TransportBase, RunnableMixin, PeerTransportMixin):
         async def _serve(ws):
             async for message in ws:
                 request = json.loads(message)
-                response: dict[str, Any] = {"jsonrpc": "2.0", "id": request.get("id")}
+                response: dict[str, Any] = {
+                    "jsonrpc": "2.0",
+                    "id": request.get("id"),
+                }
                 try:
                     if self._handler is None:
                         raise RuntimeError("RPC handler not set")

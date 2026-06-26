@@ -20,7 +20,9 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 class MreCryptoBase(IMreCrypto, ComponentBase):
     """Default NotImplemented implementations for :class:`IMreCrypto`."""
 
-    resource: Optional[str] = Field(default=ResourceTypes.CRYPTO.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.CRYPTO.value, frozen=True
+    )
     type: str = "MreCryptoBase"
 
     # ------------------------------------------------------------------
@@ -40,7 +42,9 @@ class MreCryptoBase(IMreCrypto, ComponentBase):
         shared: Optional[Mapping[str, bytes]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> MultiRecipientEnvelope:
-        raise NotImplementedError("encrypt_for_many() must be implemented by subclass")
+        raise NotImplementedError(
+            "encrypt_for_many() must be implemented by subclass"
+        )
 
     # ------------------------------------------------------------------
     async def open_for(
@@ -62,7 +66,9 @@ class MreCryptoBase(IMreCrypto, ComponentBase):
         aad: Optional[bytes] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bytes:
-        raise NotImplementedError("open_for_many() must be implemented by subclass")
+        raise NotImplementedError(
+            "open_for_many() must be implemented by subclass"
+        )
 
     # ------------------------------------------------------------------
     async def rewrap(

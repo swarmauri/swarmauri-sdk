@@ -23,7 +23,9 @@ class BillingRef(BaseModel):
 
     model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
 
-    provider: str = Field(..., description="Identifier for the billing provider")
+    provider: str = Field(
+        ..., description="Identifier for the billing provider"
+    )
     raw: Mapping[str, Any] = Field(
         default_factory=dict,
         description="Raw provider payload used to derive this reference.",
@@ -35,13 +37,16 @@ class ProductRef(ProductRefProto, BillingRef):
 
     id: str = Field(..., description="Provider-specific product identifier")
     name: Optional[str] = Field(
-        default=None, description="Human-friendly product name returned by the provider"
+        default=None,
+        description="Human-friendly product name returned by the provider",
     )
     description: Optional[str] = Field(
-        default=None, description="Product description supplied by the provider"
+        default=None,
+        description="Product description supplied by the provider",
     )
     metadata: Mapping[str, Any] | None = Field(
-        default=None, description="Provider metadata associated with the product"
+        default=None,
+        description="Provider metadata associated with the product",
     )
 
 
@@ -50,22 +55,27 @@ class PriceRef(PriceRefProto, BillingRef):
 
     id: str = Field(..., description="Provider-specific price identifier")
     product_id: Optional[str] = Field(
-        default=None, description="Identifier of the product this price belongs to"
+        default=None,
+        description="Identifier of the product this price belongs to",
     )
     currency: Optional[str] = Field(
         default=None, description="Currency code for the price"
     )
     unit_amount_minor: Optional[int] = Field(
-        default=None, description="Unit amount in the smallest currency denomination"
+        default=None,
+        description="Unit amount in the smallest currency denomination",
     )
 
 
 class CheckoutIntentRef(CheckoutIntentProto, BillingRef):
     """Reference to a hosted checkout intent."""
 
-    id: str = Field(..., description="Provider-specific checkout intent identifier")
+    id: str = Field(
+        ..., description="Provider-specific checkout intent identifier"
+    )
     url: Optional[str] = Field(
-        default=None, description="URL where the customer should complete the checkout"
+        default=None,
+        description="URL where the customer should complete the checkout",
     )
 
 
@@ -89,25 +99,33 @@ class CustomerRef(CustomerRefProto, BillingRef):
     """Reference to a customer profile."""
 
     id: str = Field(..., description="Provider-specific customer identifier")
-    email: Optional[str] = Field(default=None, description="Customer email address")
+    email: Optional[str] = Field(
+        default=None, description="Customer email address"
+    )
     metadata: Mapping[str, Any] | None = Field(
-        default=None, description="Provider metadata associated with the customer"
+        default=None,
+        description="Provider metadata associated with the customer",
     )
 
 
 class PaymentMethodRef(PaymentMethodRefProto, BillingRef):
     """Reference to a payment method record."""
 
-    id: str = Field(..., description="Provider-specific payment method identifier")
+    id: str = Field(
+        ..., description="Provider-specific payment method identifier"
+    )
     type: Optional[str] = Field(
-        default=None, description="Payment method type returned by the provider"
+        default=None,
+        description="Payment method type returned by the provider",
     )
 
 
 class BalanceRef(BalanceRefProto, BillingRef):
     """Reference describing a balance snapshot."""
 
-    snapshot_id: str = Field(..., description="Identifier for the balance snapshot")
+    snapshot_id: str = Field(
+        ..., description="Identifier for the balance snapshot"
+    )
     currency: Optional[str] = Field(
         default=None, description="Currency code for the balance amounts"
     )
@@ -120,5 +138,9 @@ class BalanceRef(BalanceRefProto, BillingRef):
 class WebhookEventRef(WebhookEventProto, BillingRef):
     """Reference representing a parsed webhook event."""
 
-    event_id: str = Field(..., description="Event identifier returned by the provider")
-    type: Optional[str] = Field(default=None, description="Provider event type")
+    event_id: str = Field(
+        ..., description="Event identifier returned by the provider"
+    )
+    type: Optional[str] = Field(
+        default=None, description="Provider event type"
+    )

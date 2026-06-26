@@ -127,11 +127,13 @@ class DynamicRuntimeTool(ToolBase):
                 "Runtime tool '__call__' must be a safe Python expression"
             ) from exc
 
-        allowed_names = {parameter.name for parameter in self.parameters} | set(
-            SAFE_BUILTINS
-        )
+        allowed_names = {
+            parameter.name for parameter in self.parameters
+        } | set(SAFE_BUILTINS)
         SafeExpressionValidator(allowed_names).visit(parsed)
-        return compile(parsed, filename=f"<runtime-tool:{self.name}>", mode="eval")
+        return compile(
+            parsed, filename=f"<runtime-tool:{self.name}>", mode="eval"
+        )
 
     def _bind_inputs(
         self, args: tuple[Any, ...], kwargs: Dict[str, Any]

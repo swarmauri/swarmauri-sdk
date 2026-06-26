@@ -29,7 +29,8 @@ class DummyFileSystemSkill(FileSystemSkillMixin, SkillBase):
     def run_dummy(self, input_text: str = "") -> str:
         normalized_input = " ".join(input_text.strip().split()) or "<empty>"
         resource_count = sum(
-            len(getattr(self, field_name)) for field_name in self._RESOURCE_FIELDS
+            len(getattr(self, field_name))
+            for field_name in self._RESOURCE_FIELDS
         )
         return (
             f"{self.name}|filesystem|resources={resource_count}|"

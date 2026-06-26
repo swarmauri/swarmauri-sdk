@@ -15,4 +15,6 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
     dfvcm = DeepFaceVCM()
-    assert dfvcm.id == DeepFaceVCM.model_validate_json(dfvcm.model_dump_json()).id
+    assert (
+        dfvcm.id == DeepFaceVCM.model_validate_json(dfvcm.model_dump_json()).id
+    )

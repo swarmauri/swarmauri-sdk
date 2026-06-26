@@ -4,7 +4,9 @@ from typing import Any, Callable, Dict, List, Literal, Optional, Union
 from jinja2 import Environment, FileSystemLoader, Template
 from pydantic import ConfigDict, FilePath
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.prompt_templates.PromptTemplateBase import PromptTemplateBase
+from swarmauri_base.prompt_templates.PromptTemplateBase import (
+    PromptTemplateBase,
+)
 
 
 @ComponentBase.register_type(PromptTemplateBase, "J2PromptTemplate")
@@ -94,9 +96,9 @@ class J2PromptTemplate(PromptTemplateBase):
                 abs_dir = os.path.abspath(d)
                 if abs_template.startswith(abs_dir):
                     # Compute the relative path and normalize to forward slashes.
-                    rel_template = os.path.relpath(abs_template, abs_dir).replace(
-                        os.sep, "/"
-                    )
+                    rel_template = os.path.relpath(
+                        abs_template, abs_dir
+                    ).replace(os.sep, "/")
                     try:
                         self.template = env.get_template(rel_template)
                         return
@@ -110,7 +112,9 @@ class J2PromptTemplate(PromptTemplateBase):
                 for root, _, files in os.walk(abs_dir):
                     if os.path.basename(template_path_str) in files:
                         rel_template = os.path.relpath(
-                            os.path.join(root, os.path.basename(template_path_str)),
+                            os.path.join(
+                                root, os.path.basename(template_path_str)
+                            ),
                             abs_dir,
                         ).replace(os.sep, "/")
                         try:

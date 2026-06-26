@@ -17,7 +17,9 @@ class JsonRpcMiddleware(MiddlewareBase):
         self, request: Request, call_next: Callable[[Request], Any]
     ) -> Any:
         """Validate JSON-RPC requests before calling the next middleware."""
-        if request.headers.get("content-type", "").startswith("application/json"):
+        if request.headers.get("content-type", "").startswith(
+            "application/json"
+        ):
             body = await request.body()
             try:
                 data = json.loads(body or b"{}")
@@ -26,5 +28,7 @@ class JsonRpcMiddleware(MiddlewareBase):
                 return Response(status_code=400, content="Invalid JSON")
             if isinstance(data, dict) and "jsonrpc" not in data:
                 logger.error("Missing jsonrpc field")
-                return Response(status_code=400, content="Missing jsonrpc field")
+                return Response(
+                    status_code=400, content="Missing jsonrpc field"
+                )
         return await call_next(request)

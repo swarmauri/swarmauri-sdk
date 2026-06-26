@@ -16,7 +16,9 @@ def test_readme_quickstart_example_runs() -> None:
     """Execute the Quickstart snippet from the README to keep it accurate."""
 
     readme = README_PATH.read_text(encoding="utf-8")
-    match = re.search(r"## Quickstart.*?```python\n(.*?)```", readme, re.DOTALL)
+    match = re.search(
+        r"## Quickstart.*?```python\n(.*?)```", readme, re.DOTALL
+    )
     assert match, "Could not locate Quickstart python example in README"
 
     code = textwrap.dedent(match.group(1)).strip()

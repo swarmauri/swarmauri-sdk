@@ -47,10 +47,14 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("__getitem__ must be implemented by subclasses")
+        raise NotImplementedError(
+            "__getitem__ must be implemented by subclasses"
+        )
 
     def __setitem__(
-        self, key: Index, value: Union["ITensor", IMatrix, IVector, T, Sequence]
+        self,
+        key: Index,
+        value: Union["ITensor", IMatrix, IVector, T, Sequence],
     ) -> None:
         """
         Set an element, slice, or subtensor using indexing/slicing.
@@ -67,7 +71,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("__setitem__ must be implemented by subclasses")
+        raise NotImplementedError(
+            "__setitem__ must be implemented by subclasses"
+        )
 
     @property
     def shape(self) -> Shape:
@@ -84,7 +90,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("shape property must be implemented by subclasses")
+        raise NotImplementedError(
+            "shape property must be implemented by subclasses"
+        )
 
     def reshape(self, shape: Shape) -> "ITensor":
         """
@@ -105,7 +113,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("reshape method must be implemented by subclasses")
+        raise NotImplementedError(
+            "reshape method must be implemented by subclasses"
+        )
 
     @property
     def dtype(self) -> type:
@@ -122,7 +132,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("dtype property must be implemented by subclasses")
+        raise NotImplementedError(
+            "dtype property must be implemented by subclasses"
+        )
 
     def tolist(self) -> List:
         """
@@ -138,7 +150,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("tolist method must be implemented by subclasses")
+        raise NotImplementedError(
+            "tolist method must be implemented by subclasses"
+        )
 
     def __add__(self, other: Union["ITensor", T]) -> "ITensor":
         """
@@ -159,7 +173,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("__add__ method must be implemented by subclasses")
+        raise NotImplementedError(
+            "__add__ method must be implemented by subclasses"
+        )
 
     def __sub__(self, other: Union["ITensor", T]) -> "ITensor":
         """
@@ -180,7 +196,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("__sub__ method must be implemented by subclasses")
+        raise NotImplementedError(
+            "__sub__ method must be implemented by subclasses"
+        )
 
     def __mul__(self, other: Union["ITensor", T]) -> "ITensor":
         """
@@ -201,7 +219,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("__mul__ method must be implemented by subclasses")
+        raise NotImplementedError(
+            "__mul__ method must be implemented by subclasses"
+        )
 
     def __matmul__(self, other: "ITensor") -> "ITensor":
         """
@@ -222,7 +242,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("__matmul__ method must be implemented by subclasses")
+        raise NotImplementedError(
+            "__matmul__ method must be implemented by subclasses"
+        )
 
     def __truediv__(self, other: Union["ITensor", T]) -> "ITensor":
         """
@@ -261,7 +283,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("__neg__ method must be implemented by subclasses")
+        raise NotImplementedError(
+            "__neg__ method must be implemented by subclasses"
+        )
 
     def __eq__(self, other: object) -> bool:
         """
@@ -282,7 +306,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("__eq__ method must be implemented by subclasses")
+        raise NotImplementedError(
+            "__eq__ method must be implemented by subclasses"
+        )
 
     def __iter__(self) -> Iterator[Union["ITensor", IMatrix, IVector]]:
         """
@@ -298,9 +324,13 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("__iter__ method must be implemented by subclasses")
+        raise NotImplementedError(
+            "__iter__ method must be implemented by subclasses"
+        )
 
-    def transpose(self, axes: Union[None, Tuple[int, ...]] = None) -> "ITensor":
+    def transpose(
+        self, axes: Union[None, Tuple[int, ...]] = None
+    ) -> "ITensor":
         """
         Transpose (permute) the tensor's axes.
 
@@ -319,7 +349,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("transpose method must be implemented by subclasses")
+        raise NotImplementedError(
+            "transpose method must be implemented by subclasses"
+        )
 
     def broadcast(self, shape: Shape) -> "ITensor":
         """
@@ -340,7 +372,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("broadcast method must be implemented by subclasses")
+        raise NotImplementedError(
+            "broadcast method must be implemented by subclasses"
+        )
 
     def __array__(self) -> "ITensor":
         """
@@ -356,7 +390,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("__array__ method must be implemented by subclasses")
+        raise NotImplementedError(
+            "__array__ method must be implemented by subclasses"
+        )
 
     def astype(self, dtype: type) -> "ITensor":
         """
@@ -377,7 +413,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("astype method must be implemented by subclasses")
+        raise NotImplementedError(
+            "astype method must be implemented by subclasses"
+        )
 
     def to_matrix(self) -> Literal[IMatrix]:
         """
@@ -393,7 +431,9 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("to_matrix method must be implemented by subclasses")
+        raise NotImplementedError(
+            "to_matrix method must be implemented by subclasses"
+        )
 
     def to_vector(self) -> Literal[IVector]:
         """
@@ -409,4 +449,6 @@ class TensorBase(ITensor, ComponentBase):
         NotImplementedError
             Method must be implemented by subclasses
         """
-        raise NotImplementedError("to_vector method must be implemented by subclasses")
+        raise NotImplementedError(
+            "to_vector method must be implemented by subclasses"
+        )

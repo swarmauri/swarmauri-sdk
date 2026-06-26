@@ -111,9 +111,13 @@ class MiddlewareBase(IMiddleware, ComponentBase):
 
             await self.app(scope, request.receive, send_wrapper)
 
-            response = Response(content=b"".join(body_chunks), status_code=status_code)
+            response = Response(
+                content=b"".join(body_chunks), status_code=status_code
+            )
             for key, value in response_headers:
-                response.headers[key.decode("latin-1")] = value.decode("latin-1")
+                response.headers[key.decode("latin-1")] = value.decode(
+                    "latin-1"
+                )
             return response
 
         response = await self.dispatch(request, call_next)
@@ -133,7 +137,9 @@ class MiddlewareBase(IMiddleware, ComponentBase):
             await send(filtered)
 
         if scope.get("type") == "http" and self._uses_custom_dispatch():
-            await self._dispatch_with_request(scope, wrapped_receive, wrapped_send)
+            await self._dispatch_with_request(
+                scope, wrapped_receive, wrapped_send
+            )
             return
 
         await self.call_next(scope, wrapped_receive, wrapped_send)

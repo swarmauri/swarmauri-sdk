@@ -12,7 +12,9 @@ from swarmauri_base.auth_idp import OAuth21AppClientBase, RetryingAsyncClient
 from .SalesforceOAuth20AppClient import SalesforceOAuth20AppClient
 
 
-@ComponentBase.register_type(OAuth21AppClientBase, "SalesforceOAuth21AppClient")
+@ComponentBase.register_type(
+    OAuth21AppClientBase, "SalesforceOAuth21AppClient"
+)
 class SalesforceOAuth21AppClient(OAuth21AppClientBase):
     """Reuse the OAuth 2.0 JWT bearer client with OAuth 2.1 semantics."""
 
@@ -33,7 +35,9 @@ class SalesforceOAuth21AppClient(OAuth21AppClientBase):
 
     type: Literal["SalesforceOAuth21AppClient"] = "SalesforceOAuth21AppClient"
 
-    async def access_token_payload(self, scope: Optional[str] = None) -> Dict[str, Any]:
+    async def access_token_payload(
+        self, scope: Optional[str] = None
+    ) -> Dict[str, Any]:
         client = SalesforceOAuth20AppClient(
             token_endpoint=self.token_endpoint,
             client_id=self.client_id,

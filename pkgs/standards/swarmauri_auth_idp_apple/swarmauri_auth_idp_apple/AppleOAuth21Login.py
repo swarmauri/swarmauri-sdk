@@ -42,7 +42,9 @@ class AppleOAuth21Login(AppleLoginMixin, OAuth21LoginBase):
         metadata = await self._metadata()
         verifier, challenge = make_pkce_pair()
         nonce = make_nonce()
-        state = sign_state(self._state_secret(), {"verifier": verifier, "nonce": nonce})
+        state = sign_state(
+            self._state_secret(), {"verifier": verifier, "nonce": nonce}
+        )
         endpoint = metadata["authorization_endpoint"]
         url = (
             f"{endpoint}?response_type=code"
@@ -52,7 +54,9 @@ class AppleOAuth21Login(AppleLoginMixin, OAuth21LoginBase):
         )
         return {"url": url, "state": state}
 
-    async def exchange_and_identity(self, code: str, state: str) -> Mapping[str, Any]:
+    async def exchange_and_identity(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         payload = self._state_payload(state)
         metadata = await self._metadata()
         form = {
@@ -63,7 +67,9 @@ class AppleOAuth21Login(AppleLoginMixin, OAuth21LoginBase):
             "client_secret": self._client_secret(),
             "code_verifier": payload["verifier"],
         }
-        token_json = await self._http_post(metadata["token_endpoint"], data=form)
+        token_json = await self._http_post(
+            metadata["token_endpoint"], data=form
+        )
         claims = await self._decode_identity(
             token_json.get("id_token"),
             nonce=payload["nonce"],

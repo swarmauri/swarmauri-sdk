@@ -31,7 +31,13 @@ class RedisPublisher(PublishBase):
 
         individual_opts_present = any(
             v is not None
-            for v in (self.host, self.port, self.db, self.password, self.username)
+            for v in (
+                self.host,
+                self.port,
+                self.db,
+                self.password,
+                self.username,
+            )
         )
 
         # Validate configuration: cannot mix URI with individual components.
@@ -44,7 +50,11 @@ class RedisPublisher(PublishBase):
 
         if self.uri:
             actual_redis_uri = self.uri
-        elif self.host is not None and self.port is not None and self.db is not None:
+        elif (
+            self.host is not None
+            and self.port is not None
+            and self.db is not None
+        ):
             # Construct URI from individual components if URI is not provided.
             auth_segment = ""
             if self.username and self.password:

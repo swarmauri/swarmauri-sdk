@@ -17,7 +17,9 @@ Bytes = bytes
 Headers = Dict[str, str]
 
 
-class H2Transport(TransportBase, RunnableMixin, HttpServerMixin, HttpClientMixin):
+class H2Transport(
+    TransportBase, RunnableMixin, HttpServerMixin, HttpClientMixin
+):
     """HTTP/2 transport adapter that layers HTTP semantics on top of ``H2MuxTransport``."""
 
     def __init__(self, allow_h2c: bool = False):
@@ -58,7 +60,9 @@ class H2Transport(TransportBase, RunnableMixin, HttpServerMixin, HttpClientMixin
             body,
         )
         header_block = [(":status", str(status))]
-        header_block.extend((k.lower(), v) for k, v in response_headers.items())
+        header_block.extend(
+            (k.lower(), v) for k, v in response_headers.items()
+        )
         self._mux._h2.send_headers(
             stream_id, header_block, end_stream=not response_body
         )  # type: ignore[attr-defined]
@@ -111,23 +115,37 @@ class H2Transport(TransportBase, RunnableMixin, HttpServerMixin, HttpClientMixin
                     StreamReset,
                 )
 
-                if isinstance(event, ResponseReceived) and event.stream_id == channel:
+                if (
+                    isinstance(event, ResponseReceived)
+                    and event.stream_id == channel
+                ):
                     for key, value in event.headers:
                         if key == b":status":
                             status = int(value.decode())
                         elif not key.startswith(b":"):
-                            response_headers[key.decode().lower()] = value.decode()
-                elif isinstance(event, DataReceived) and event.stream_id == channel:
+                            response_headers[key.decode().lower()] = (
+                                value.decode()
+                            )
+                elif (
+                    isinstance(event, DataReceived)
+                    and event.stream_id == channel
+                ):
                     payload.append(event.data)
                     self._mux._h2.acknowledge_received_data(
                         len(event.data), event.stream_id
                     )
-                elif isinstance(event, StreamEnded) and event.stream_id == channel:
+                elif (
+                    isinstance(event, StreamEnded)
+                    and event.stream_id == channel
+                ):
                     await self._mux._flush()
                     if owned:
                         await self._mux.close_channel(channel)
                     return status or 200, response_headers, b"".join(payload)
-                elif isinstance(event, StreamReset) and event.stream_id == channel:
+                elif (
+                    isinstance(event, StreamReset)
+                    and event.stream_id == channel
+                ):
                     if owned:
                         await self._mux.close_channel(channel)
                     raise RuntimeError("HTTP/2 stream reset")

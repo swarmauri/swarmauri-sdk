@@ -32,7 +32,9 @@ def test_call():
     tool = Tool()
 
     # Input data for the tool
-    input_data = {"input_text": "This is a simple sentence for testing purposes."}
+    input_data = {
+        "input_text": "This is a simple sentence for testing purposes."
+    }
 
     # Call the tool and capture the result
     result = tool(input_data)
@@ -41,7 +43,9 @@ def test_call():
     expected_keys = {"dale_chall_score"}
 
     # Verify the result is a dictionary
-    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert isinstance(result, dict), (
+        f"Expected dict, but got {type(result).__name__}"
+    )
 
     # Verify the result contains the 'dale_chall_score' key
     assert expected_keys.issubset(result.keys()), (

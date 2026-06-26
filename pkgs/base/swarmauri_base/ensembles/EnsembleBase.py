@@ -30,7 +30,9 @@ class EnsembleBase(IEnsemble, ComponentBase):
     def list_models(self) -> Dict[str, LLMBase]:
         return self.llms
 
-    def route_by_provider(self, provider: str, prompt: str, **kwargs: Any) -> Any:
+    def route_by_provider(
+        self, provider: str, prompt: str, **kwargs: Any
+    ) -> Any:
         llm = self.llms.get(provider)
         if not llm:
             raise ValueError(f"Provider '{provider}' not found")
@@ -60,7 +62,10 @@ class EnsembleBase(IEnsemble, ComponentBase):
         return await self.aroute_by_provider(provider, prompt, **kwargs)
 
     def broadcast(self, prompt: str, **kwargs: Any) -> Dict[str, Any]:
-        return {name: llm.predict(prompt, **kwargs) for name, llm in self.llms.items()}
+        return {
+            name: llm.predict(prompt, **kwargs)
+            for name, llm in self.llms.items()
+        }
 
     async def abroadcast(self, prompt: str, **kwargs: Any) -> Dict[str, Any]:
         responses: Dict[str, Any] = {}

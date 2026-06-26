@@ -10,15 +10,21 @@ from cryptography.x509.oid import NameOID
 def cert_and_crl():
     def _make(*, revoked: bool = False, expired: bool = False):
         ca_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-        subject = issuer = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "CA")])
+        subject = issuer = x509.Name(
+            [x509.NameAttribute(NameOID.COMMON_NAME, "CA")]
+        )
         ca_cert = (
             x509.CertificateBuilder()
             .subject_name(subject)
             .issuer_name(issuer)
             .public_key(ca_key.public_key())
             .serial_number(x509.random_serial_number())
-            .not_valid_before(datetime.datetime.utcnow() - datetime.timedelta(days=1))
-            .not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=1))
+            .not_valid_before(
+                datetime.datetime.utcnow() - datetime.timedelta(days=1)
+            )
+            .not_valid_after(
+                datetime.datetime.utcnow() + datetime.timedelta(days=1)
+            )
             .add_extension(
                 x509.BasicConstraints(ca=True, path_length=None), critical=True
             )
@@ -34,7 +40,9 @@ def cert_and_crl():
         )
         cert = (
             x509.CertificateBuilder()
-            .subject_name(x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "EE")]))
+            .subject_name(
+                x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "EE")])
+            )
             .issuer_name(ca_cert.subject)
             .public_key(ee_key.public_key())
             .serial_number(x509.random_serial_number())
@@ -46,8 +54,12 @@ def cert_and_crl():
         crl_builder = (
             x509.CertificateRevocationListBuilder()
             .issuer_name(ca_cert.subject)
-            .last_update(datetime.datetime.utcnow() - datetime.timedelta(days=1))
-            .next_update(datetime.datetime.utcnow() + datetime.timedelta(days=1))
+            .last_update(
+                datetime.datetime.utcnow() - datetime.timedelta(days=1)
+            )
+            .next_update(
+                datetime.datetime.utcnow() + datetime.timedelta(days=1)
+            )
         )
         if revoked:
             revoked_cert = (

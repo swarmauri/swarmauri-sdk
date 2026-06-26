@@ -104,13 +104,17 @@ from nonexistent_module import something
         assert "nonexistent_module.something" in import_modules
 
         # Check standard library detection
-        standard_imports = [imp for imp in imports if imp.get("is_standard", False)]
+        standard_imports = [
+            imp for imp in imports if imp.get("is_standard", False)
+        ]
         non_standard_imports = [
             imp for imp in imports if not imp.get("is_standard", True)
         ]
 
         assert len(standard_imports) == 4  # os, sys, datetime, collections
-        assert len(non_standard_imports) == 3  # pandas, tensorflow, nonexistent_module
+        assert (
+            len(non_standard_imports) == 3
+        )  # pandas, tensorflow, nonexistent_module
 
     finally:
         # Clean up
@@ -180,11 +184,17 @@ def process_data():
     score, metadata = evaluator._compute_score(mock_program)
 
     # Score should be reduced due to 3 external modules
-    expected_score = 1.0 - (3 * 0.1)  # Base score - (3 modules * penalty per module)
+    expected_score = 1.0 - (
+        3 * 0.1
+    )  # Base score - (3 modules * penalty per module)
     assert score == expected_score
     assert metadata["external_imports_count"] == 3
     assert len(metadata["external_modules"]) == 3
-    assert set(metadata["external_modules"]) == {"pandas", "tensorflow", "numpy"}
+    assert set(metadata["external_modules"]) == {
+        "pandas",
+        "tensorflow",
+        "numpy",
+    }
 
 
 @pytest.mark.unit
@@ -253,9 +263,13 @@ import pandas as pd  # Duplicate external import
     score, metadata = evaluator._compute_score(mock_program)
 
     # Should detect 2 unique external modules (pandas and tensorflow)
-    expected_score = 1.0 - (2 * 0.1)  # Base score - (2 modules * penalty per module)
+    expected_score = 1.0 - (
+        2 * 0.1
+    )  # Base score - (2 modules * penalty per module)
     assert score == expected_score
-    assert metadata["external_imports_count"] == 3  # Total count of external imports
+    assert (
+        metadata["external_imports_count"] == 3
+    )  # Total count of external imports
     assert len(metadata["external_modules"]) == 2  # Unique external modules
     assert set(metadata["external_modules"]) == {"pandas", "tensorflow"}
     assert metadata["files_analyzed"] == 3
@@ -315,7 +329,11 @@ def test_nested_directory_structure(mock_program):
     # Should find 3 Python files with 3 unique external modules
     assert metadata["files_analyzed"] == 3
     assert len(metadata["external_modules"]) == 3
-    assert set(metadata["external_modules"]) == {"pandas", "numpy", "matplotlib"}
+    assert set(metadata["external_modules"]) == {
+        "pandas",
+        "numpy",
+        "matplotlib",
+    }
 
 
 @pytest.mark.unit

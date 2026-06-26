@@ -21,7 +21,12 @@ def get_version_from_pyproject():
         return _cached_version
 
     pyproject_path = os.path.join(
-        os.path.dirname(__file__), "..", "..", "..", "..", "swarmauri/pyproject.toml"
+        os.path.dirname(__file__),
+        "..",
+        "..",
+        "..",
+        "..",
+        "swarmauri/pyproject.toml",
     )
     logging.info(f"Reading Swarmauri version from {pyproject_path}")
     try:
@@ -74,7 +79,9 @@ def get_notebook_name():
 
         cell_id = metadata.get("cellId", "")
         if cell_id and ".ipynb" in cell_id:
-            notebook_parts = [part for part in cell_id.split("/") if ".ipynb" in part]
+            notebook_parts = [
+                part for part in cell_id.split("/") if ".ipynb" in part
+            ]
             if notebook_parts:
                 clean_name = clean_filename(notebook_parts[0])
                 if clean_name:

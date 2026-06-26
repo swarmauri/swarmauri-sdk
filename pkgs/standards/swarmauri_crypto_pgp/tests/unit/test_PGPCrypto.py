@@ -23,7 +23,8 @@ def test_ubc_type(pgp_crypto):
 @pytest.mark.unit
 def test_serialization(pgp_crypto):
     assert (
-        pgp_crypto.id == PGPCrypto.model_validate_json(pgp_crypto.model_dump_json()).id
+        pgp_crypto.id
+        == PGPCrypto.model_validate_json(pgp_crypto.model_dump_json()).id
     )
 
 
@@ -81,7 +82,13 @@ async def test_encrypt_for_many_and_unwrap(pgp_crypto, tmp_path):
     os.chmod(gpg_home, 0o700)
     gpg = gnupg.GPG(
         gnupghome=str(gpg_home),
-        options=["--pinentry-mode", "loopback", "--batch", "--yes", "--no-tty"],
+        options=[
+            "--pinentry-mode",
+            "loopback",
+            "--batch",
+            "--yes",
+            "--no-tty",
+        ],
         use_agent=False,
     )
 
@@ -94,7 +101,9 @@ async def test_encrypt_for_many_and_unwrap(pgp_crypto, tmp_path):
     )
     key = gpg.gen_key(key_input)
     if not key.fingerprint:
-        pytest.skip("GPG key generation failed in this environment; skipping test")
+        pytest.skip(
+            "GPG key generation failed in this environment; skipping test"
+        )
 
     pub_asc = gpg.export_keys(key.fingerprint)
     priv_asc = gpg.export_keys(key.fingerprint, secret=True, passphrase="")

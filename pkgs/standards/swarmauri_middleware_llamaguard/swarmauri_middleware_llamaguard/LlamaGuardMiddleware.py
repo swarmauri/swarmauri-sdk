@@ -120,7 +120,9 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
                 if response_body and not self._is_safe(response_body):
                     return JSONResponse(
                         status_code=400,
-                        content={"error": "Unsafe content detected in response"},
+                        content={
+                            "error": "Unsafe content detected in response"
+                        },
                     )
 
             # Inspect StreamingResponse content
@@ -133,10 +135,14 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
                     logger.info(f" {full_body}")
 
                     if full_body and not self._is_safe(full_body):
-                        logger.info("Unsafe content detected in streaming response")
+                        logger.info(
+                            "Unsafe content detected in streaming response"
+                        )
                         return JSONResponse(
                             status_code=400,
-                            content={"error": "Unsafe streaming content detected"},
+                            content={
+                                "error": "Unsafe streaming content detected"
+                            },
                         )
 
                     async def new_body_iterator():
@@ -154,5 +160,7 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
             self.logger.error(f"Error in LlamaGuardMiddleware: {str(e)}")
             return JSONResponse(
                 status_code=500,
-                content={"error": "Internal server error during content inspection"},
+                content={
+                    "error": "Internal server error during content inspection"
+                },
             )

@@ -2,7 +2,11 @@ from typing import List, Union, Literal
 from pydantic import Field, PrivateAttr, ConfigDict
 
 from swarmauri_core.conversations.IConversation import IConversation
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes, SubclassUnion
+from swarmauri_base.ComponentBase import (
+    ComponentBase,
+    ResourceTypes,
+    SubclassUnion,
+)
 from swarmauri_base.messages.MessageBase import MessageBase
 
 
@@ -12,7 +16,9 @@ class ConversationBase(IConversation, ComponentBase):
     Concrete implementation of IConversation, managing conversation history and operations.
     """
 
-    _history: List[SubclassUnion[MessageBase]] = PrivateAttr(default_factory=list)
+    _history: List[SubclassUnion[MessageBase]] = PrivateAttr(
+        default_factory=list
+    )
     resource: ResourceTypes = Field(default=ResourceTypes.CONVERSATION)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["ConversationBase"] = "ConversationBase"

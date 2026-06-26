@@ -31,7 +31,9 @@ class WebhooksMixin(IWebhooks, BaseModel):
             event_id=str(raw.get("event_id", "")),
             provider=str(raw.get("provider", "")),
             type=str(
-                raw.get("type", getattr(payload, "get", lambda *_: "")("type", ""))
+                raw.get(
+                    "type", getattr(payload, "get", lambda *_: "")("type", "")
+                )
             ),
             raw=payload,
         )

@@ -27,12 +27,13 @@ class AwsIdentityResolver:
         self.role_name = role_name
 
     def _get_role_credentials(self, access_token: str) -> Dict[str, str]:
-        url = (
-            f"https://portal.sso.{self.sso_region}.amazonaws.com/federation/credentials"
-        )
+        url = f"https://portal.sso.{self.sso_region}.amazonaws.com/federation/credentials"
         response = requests.get(
             url,
-            params={"account_id": self.account_id, "role_name": self.role_name},
+            params={
+                "account_id": self.account_id,
+                "role_name": self.role_name,
+            },
             headers={"x-amz-sso_bearer_token": access_token},
             timeout=30,
         )

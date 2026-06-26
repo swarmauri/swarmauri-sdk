@@ -1,5 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Any, Awaitable, Callable, MutableMapping, Protocol, TypedDict
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    MutableMapping,
+    Protocol,
+    TypedDict,
+)
 
 """Middleware interface module.
 Defines the core interface for all middleware implementations.
@@ -23,7 +30,9 @@ class Message(TypedDict, total=False):
 class ReceiveCallable(Protocol):
     """Protocol describing an awaitable callable returning an ASGI message."""
 
-    def __call__(self) -> Awaitable[Message]:  # pragma: no cover - protocol definition
+    def __call__(
+        self,
+    ) -> Awaitable[Message]:  # pragma: no cover - protocol definition
         ...
 
 

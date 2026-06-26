@@ -34,6 +34,8 @@ def test_core_imports_only_stdlib_and_itself():
 
             disallowed = roots - ALLOWED_IMPORT_ROOTS
             if disallowed:
-                external_imports[str(path.relative_to(PACKAGE_ROOT))] = disallowed
+                external_imports[str(path.relative_to(PACKAGE_ROOT))] = (
+                    disallowed
+                )
 
     assert external_imports == {}

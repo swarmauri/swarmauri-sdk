@@ -21,7 +21,9 @@ class PNGXMP(EmbedXmpBase):
     def supports(self, header: bytes, path: str) -> bool:
         return header.startswith(self.PNG_SIG) or path.lower().endswith(".png")
 
-    def _iter_chunks(self, data: bytes) -> Iterator[Tuple[int, bytes, int, int]]:
+    def _iter_chunks(
+        self, data: bytes
+    ) -> Iterator[Tuple[int, bytes, int, int]]:
         if not data.startswith(self.PNG_SIG):
             raise ValueError("Not a PNG payload")
         i = len(self.PNG_SIG)
@@ -69,7 +71,9 @@ class PNGXMP(EmbedXmpBase):
         return last
 
     def _crc(self, ctype: bytes, payload: bytes) -> bytes:
-        return (binascii.crc32(ctype + payload) & 0xFFFFFFFF).to_bytes(4, "big")
+        return (binascii.crc32(ctype + payload) & 0xFFFFFFFF).to_bytes(
+            4, "big"
+        )
 
     def _build_itxt(self, text_utf8: bytes) -> bytes:
         payload = (
@@ -82,7 +86,12 @@ class PNGXMP(EmbedXmpBase):
             + text_utf8
         )
         length = len(payload).to_bytes(4, "big")
-        return length + self.CHUNK_iTXt + payload + self._crc(self.CHUNK_iTXt, payload)
+        return (
+            length
+            + self.CHUNK_iTXt
+            + payload
+            + self._crc(self.CHUNK_iTXt, payload)
+        )
 
     def write_xmp(self, data: bytes, xmp_xml: str) -> bytes:
         xmp_bytes = self._ensure_xml(xmp_xml)
@@ -94,7 +103,9 @@ class PNGXMP(EmbedXmpBase):
             chunk = data[off : d_off + d_len + 4]
             if ctype == self.CHUNK_iTXt:
                 payload = data[d_off : d_off + d_len]
-                keyword = payload.split(b"\x00", 1)[0] if b"\x00" in payload else b""
+                keyword = (
+                    payload.split(b"\x00", 1)[0] if b"\x00" in payload else b""
+                )
                 if keyword == self.KW:
                     continue
             out.write(chunk)
@@ -106,7 +117,9 @@ class PNGXMP(EmbedXmpBase):
         for off, ctype, d_off, d_len in self._iter_chunks(data):
             if ctype == self.CHUNK_iTXt:
                 payload = data[d_off : d_off + d_len]
-                keyword = payload.split(b"\x00", 1)[0] if b"\x00" in payload else b""
+                keyword = (
+                    payload.split(b"\x00", 1)[0] if b"\x00" in payload else b""
+                )
                 if keyword == self.KW:
                     continue
             out.write(data[off : d_off + d_len + 4])

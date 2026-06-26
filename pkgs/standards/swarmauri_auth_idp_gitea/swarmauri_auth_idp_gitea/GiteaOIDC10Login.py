@@ -91,8 +91,12 @@ class GiteaOIDC10Login(OIDC10LoginBase):
             jwks = jwks_response.json()
         claims = await self._decode_id_token(tokens, jwks, metadata)
         email = claims.get("email")
-        name = claims.get("name") or claims.get("preferred_username") or "Unknown"
-        if (not email or name == "Unknown") and metadata.get("userinfo_endpoint"):
+        name = (
+            claims.get("name") or claims.get("preferred_username") or "Unknown"
+        )
+        if (not email or name == "Unknown") and metadata.get(
+            "userinfo_endpoint"
+        ):
             async with self._http_client_factory() as client:
                 userinfo_response = await client.get_retry(
                     metadata["userinfo_endpoint"],
@@ -127,7 +131,12 @@ class GiteaOIDC10Login(OIDC10LoginBase):
         if not kid:
             raise ValueError("missing kid in id_token header")
         key_entry = next(
-            (entry for entry in jwks.get("keys", []) if entry.get("kid") == kid), None
+            (
+                entry
+                for entry in jwks.get("keys", [])
+                if entry.get("kid") == kid
+            ),
+            None,
         )
         if not key_entry:
             raise ValueError("signing key not found")

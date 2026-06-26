@@ -66,10 +66,14 @@ class RazorpayBillingProvider(
     @staticmethod
     def _require(spec: BillingSpec | Any, field: str) -> Any:
         value = getattr(
-            spec, "resolve", lambda name, default=None: getattr(spec, name, default)
+            spec,
+            "resolve",
+            lambda name, default=None: getattr(spec, name, default),
         )(field)
         if value is None or (isinstance(value, str) and not value):
-            raise ValueError(f"{field} is required for {spec.__class__.__name__}")
+            raise ValueError(
+                f"{field} is required for {spec.__class__.__name__}"
+            )
         return value
 
     # ---------------------------------------------------------------- Products & Prices
@@ -79,14 +83,18 @@ class RazorpayBillingProvider(
         client = self._rz()
         name = self._require(product_spec, "name")
         description = (
-            product_spec.resolve("description") or product_spec.resolve("sku") or ""
+            product_spec.resolve("description")
+            or product_spec.resolve("sku")
+            or ""
         )
         item = client.item.create(
             {
                 "name": name,
                 "description": description,
                 "amount": int(product_spec.resolve("amount") or 0),
-                "currency": str(product_spec.resolve("currency") or "INR").upper(),
+                "currency": str(
+                    product_spec.resolve("currency") or "INR"
+                ).upper(),
             }
         )
         ref = ProductRef(
@@ -136,7 +144,8 @@ class RazorpayBillingProvider(
             "amount": price.unit_amount_minor or price.raw.get("amount", 0),
             "currency": price.currency or price.raw.get("currency", "INR"),
             "description": f"Purchase {price.product_id}",
-            "reference_id": request.resolve("idempotency_key") or f"chk-{price.id}",
+            "reference_id": request.resolve("idempotency_key")
+            or f"chk-{price.id}",
             "notify": {"email": True},
             "callback_url": self._require(request, "success_url"),
             "callback_method": "get",
@@ -181,7 +190,9 @@ class RazorpayBillingProvider(
         existing = client.payment.fetch(payment_id)
         amount = existing.get("amount")
         if amount is None:
-            raise RuntimeError("Razorpay payment capture requires a payment amount")
+            raise RuntimeError(
+                "Razorpay payment capture requires a payment amount"
+            )
         payment = client.payment.capture(
             payment_id,
             amount,
@@ -227,7 +238,9 @@ class RazorpayBillingProvider(
         self, spec: SubscriptionSpec, *, idempotency_key: str
     ) -> Mapping[str, Any]:
         if not spec.items:
-            raise ValueError("SubscriptionSpec.items must contain at least one entry")
+            raise ValueError(
+                "SubscriptionSpec.items must contain at least one entry"
+            )
         client = self._rz()
         plan_id = self._require(spec.items[0], "price_id")
         subscription = client.subscription.create(
@@ -397,11 +410,15 @@ class RazorpayBillingProvider(
         import hmac
 
         signature = headers.get("X-Razorpay-Signature", "")
-        digest = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
+        digest = hmac.new(
+            secret.encode(), raw_body, hashlib.sha256
+        ).hexdigest()
         result = hmac.compare_digest(digest, signature)
         return result
 
-    def _list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
+    def _list_disputes(
+        self, *, limit: int = 50
+    ) -> Sequence[Mapping[str, Any]]:
         client = self._rz()
         disputes = client.dispute.all({"count": limit})
         if isinstance(disputes, Mapping):

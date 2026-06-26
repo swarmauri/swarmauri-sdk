@@ -56,14 +56,26 @@ def test_serialization(github_issue_tool):
             {"repo_name": "test-repo", "title": "Test Issue"},
             "create_issue",
         ),
-        ("close_issue", {"repo_name": "test-repo", "issue_number": 1}, "close_issue"),
+        (
+            "close_issue",
+            {"repo_name": "test-repo", "issue_number": 1},
+            "close_issue",
+        ),
         (
             "update_issue",
-            {"repo_name": "test-repo", "issue_number": 1, "title": "Updated Issue"},
+            {
+                "repo_name": "test-repo",
+                "issue_number": 1,
+                "title": "Updated Issue",
+            },
             "update_issue",
         ),
         ("list_issues", {"repo_name": "test-repo"}, "list_issues"),
-        ("get_issue", {"repo_name": "test-repo", "issue_number": 1}, "get_issue"),
+        (
+            "get_issue",
+            {"repo_name": "test-repo", "issue_number": 1},
+            "get_issue",
+        ),
         # Invalid action
         ("invalid_action", {}, None),
     ],
@@ -94,7 +106,11 @@ def test_call(mock_github, github_issue_tool, action, kwargs, method_called):
             assert isinstance(result.get(action), str), (
                 f"Expected int, but got {type(result.get(action)).__name__}"
             )
-            assert result == {f"{action}": "performed a test action successfully"}
+            assert result == {
+                f"{action}": "performed a test action successfully"
+            }
     else:
-        with pytest.raises(ValueError, match=f"Action '{action}' is not supported."):
+        with pytest.raises(
+            ValueError, match=f"Action '{action}' is not supported."
+        ):
             github_issue_tool(action=action, **kwargs)

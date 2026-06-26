@@ -23,7 +23,10 @@ def test_initialization():
 @pytest.mark.unit
 def test_serialization():
     tool = SearchWordTool()
-    assert tool.id == SearchWordTool.model_validate_json(tool.model_dump_json()).id
+    assert (
+        tool.id
+        == SearchWordTool.model_validate_json(tool.model_dump_json()).id
+    )
 
 
 @pytest.mark.unit

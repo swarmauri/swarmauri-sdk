@@ -4,7 +4,9 @@ from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 from swarmauri_core.programs.IProgram import IProgram
-from swarmauri_evaluator_subprocess.SubprocessEvaluator import SubprocessEvaluator
+from swarmauri_evaluator_subprocess.SubprocessEvaluator import (
+    SubprocessEvaluator,
+)
 
 # Configure logger for tests
 logger = logging.getLogger(__name__)
@@ -125,7 +127,10 @@ def test_prepare_command_missing_program(mock_program):
     """Test preparing command for a non-existent program."""
     evaluator = SubprocessEvaluator()
 
-    with patch("os.path.exists", return_value=False), pytest.raises(FileNotFoundError):
+    with (
+        patch("os.path.exists", return_value=False),
+        pytest.raises(FileNotFoundError),
+    ):
         evaluator._prepare_command(mock_program, [])
 
 
@@ -148,7 +153,12 @@ def test_prepare_command_make_executable(mock_program, evaluator):
 @pytest.mark.unit
 def test_calculate_score_success(evaluator):
     """Test score calculation for successful execution."""
-    result = {"stdout": "output", "stderr": "", "exit_code": 0, "timed_out": False}
+    result = {
+        "stdout": "output",
+        "stderr": "",
+        "exit_code": 0,
+        "timed_out": False,
+    }
 
     score, metadata = evaluator._calculate_score(result, None, 1.5)
 
@@ -202,7 +212,9 @@ def test_calculate_score_output_mismatch(evaluator):
         "timed_out": False,
     }
 
-    score, metadata = evaluator._calculate_score(result, "expected output", 1.0)
+    score, metadata = evaluator._calculate_score(
+        result, "expected output", 1.0
+    )
 
     assert score == 0.7
     assert metadata["reason"] == "output_mismatch"
@@ -219,7 +231,9 @@ def test_calculate_score_output_match(evaluator):
         "timed_out": False,
     }
 
-    score, metadata = evaluator._calculate_score(result, "expected output", 1.0)
+    score, metadata = evaluator._calculate_score(
+        result, "expected output", 1.0
+    )
 
     assert score == 1.0
     assert metadata["reason"] == "success"
@@ -235,7 +249,9 @@ def test_execute_subprocess_success(mock_popen, evaluator):
     mock_process.returncode = 0
     mock_popen.return_value = mock_process
 
-    result = evaluator._execute_subprocess(["echo", "test"], "input", 10.0, "/tmp")
+    result = evaluator._execute_subprocess(
+        ["echo", "test"], "input", 10.0, "/tmp"
+    )
 
     assert result["stdout"] == "stdout data"
     assert result["stderr"] == "stderr data"
@@ -268,7 +284,9 @@ def test_execute_subprocess_error(mock_popen, evaluator):
     """Test subprocess execution with error."""
     mock_popen.side_effect = Exception("Test error")
 
-    result = evaluator._execute_subprocess(["invalid", "command"], "", 10.0, "/tmp")
+    result = evaluator._execute_subprocess(
+        ["invalid", "command"], "", 10.0, "/tmp"
+    )
 
     assert result["exit_code"] == -2
     assert "Execution error: Test error" in result["stderr"]
@@ -280,7 +298,12 @@ def test_execute_subprocess_error(mock_popen, evaluator):
 @patch.object(SubprocessEvaluator, "_execute_subprocess")
 @patch.object(SubprocessEvaluator, "_calculate_score")
 def test_compute_score_success(
-    mock_calculate, mock_execute, mock_prepare, mock_temp_dir, evaluator, mock_program
+    mock_calculate,
+    mock_execute,
+    mock_prepare,
+    mock_temp_dir,
+    evaluator,
+    mock_program,
 ):
     """Test successful score computation."""
     mock_temp_dir.return_value.name = "/tmp/test_dir"
@@ -312,8 +335,12 @@ def test_compute_score_with_working_dir(evaluator, mock_program):
 
     with (
         patch.object(SubprocessEvaluator, "_prepare_command") as mock_prepare,
-        patch.object(SubprocessEvaluator, "_execute_subprocess") as mock_execute,
-        patch.object(SubprocessEvaluator, "_calculate_score") as mock_calculate,
+        patch.object(
+            SubprocessEvaluator, "_execute_subprocess"
+        ) as mock_execute,
+        patch.object(
+            SubprocessEvaluator, "_calculate_score"
+        ) as mock_calculate,
     ):
         mock_prepare.return_value = ["cmd"]
         mock_execute.return_value = {
@@ -344,7 +371,11 @@ def test_aggregate_scores(evaluator):
     score, metadata = evaluator.aggregate_scores(scores, metadata_list)
 
     assert score == 0.5  # Default is average
-    assert metadata["reason_counts"] == {"success": 1, "exit_code_1": 1, "timeout": 1}
+    assert metadata["reason_counts"] == {
+        "success": 1,
+        "exit_code_1": 1,
+        "timeout": 1,
+    }
     assert metadata["timeout_rate"] == 1 / 3
     assert metadata["success_rate"] == 1 / 3
     assert metadata["total_executions"] == 3
@@ -366,8 +397,12 @@ def test_compute_score_custom_timeout(custom_timeout, evaluator, mock_program):
     """Test score computation with custom timeout."""
     with (
         patch.object(SubprocessEvaluator, "_prepare_command") as mock_prepare,
-        patch.object(SubprocessEvaluator, "_execute_subprocess") as mock_execute,
-        patch.object(SubprocessEvaluator, "_calculate_score") as mock_calculate,
+        patch.object(
+            SubprocessEvaluator, "_execute_subprocess"
+        ) as mock_execute,
+        patch.object(
+            SubprocessEvaluator, "_calculate_score"
+        ) as mock_calculate,
         patch("tempfile.TemporaryDirectory") as mock_temp_dir,
     ):
         mock_temp_dir.return_value.name = "/tmp/test_dir"

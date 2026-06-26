@@ -14,7 +14,9 @@ def _jwks(pk):
 
 def test_alg_whitelist_rfc7515() -> None:
     pk = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    token = jwt.encode({"iss": "me"}, pk, algorithm="RS256", headers={"kid": "alg"})
+    token = jwt.encode(
+        {"iss": "me"}, pk, algorithm="RS256", headers={"kid": "alg"}
+    )
 
     def fetch():
         return _jwks(pk)

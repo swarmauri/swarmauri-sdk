@@ -11,6 +11,10 @@ class IMulticastTransport(ABC):
 
     @abstractmethod
     async def multicast(
-        self, group: Sequence[str], data: bytes, *, timeout: Optional[float] = None
+        self,
+        group: Sequence[str],
+        data: bytes,
+        *,
+        timeout: Optional[float] = None,
     ) -> None:
         """Send data to a multicast group."""

@@ -4,7 +4,9 @@ from unittest.mock import patch
 
 import pytest
 
-from swarmauri_standard.logger_formatters.IndentedFormatter import IndentedFormatter
+from swarmauri_standard.logger_formatters.IndentedFormatter import (
+    IndentedFormatter,
+)
 
 
 @pytest.fixture
@@ -53,7 +55,9 @@ def test_default_attributes():
         (0, True, "[%(name)s] %(message)s", "%H:%M:%S"),
     ],
 )
-def test_custom_attributes(indent_width, indent_first_line, format_str, date_format):
+def test_custom_attributes(
+    indent_width, indent_first_line, format_str, date_format
+):
     """
     Test the initialization with custom attribute values.
 
@@ -79,7 +83,9 @@ def test_custom_attributes(indent_width, indent_first_line, format_str, date_for
 @pytest.mark.unit
 def test_negative_indent_width_validation():
     """Test that negative indent_width raises ValueError."""
-    with pytest.raises(ValueError, match="indent_width must be a positive integer"):
+    with pytest.raises(
+        ValueError, match="indent_width must be a positive integer"
+    ):
         IndentedFormatter(indent_width=-1)
 
 
@@ -189,7 +195,9 @@ def test_integration_with_logger():
 
     # Create and configure formatter
     formatter = IndentedFormatter(
-        indent_width=2, indent_first_line=False, format="[%(levelname)s] %(message)s"
+        indent_width=2,
+        indent_first_line=False,
+        format="[%(levelname)s] %(message)s",
     )
     handler.setFormatter(formatter.compile_formatter())
 

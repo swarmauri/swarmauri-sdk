@@ -20,9 +20,15 @@ def _generate_chain() -> tuple[bytes, bytes]:
         .issuer_name(root_name)
         .public_key(root_key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.utcnow() - datetime.timedelta(days=1))
-        .not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=1))
-        .add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
+        .not_valid_before(
+            datetime.datetime.utcnow() - datetime.timedelta(days=1)
+        )
+        .not_valid_after(
+            datetime.datetime.utcnow() + datetime.timedelta(days=1)
+        )
+        .add_extension(
+            x509.BasicConstraints(ca=True, path_length=None), critical=True
+        )
         .sign(root_key, hashes.SHA256())
     )
 
@@ -34,8 +40,12 @@ def _generate_chain() -> tuple[bytes, bytes]:
         .issuer_name(root_name)
         .public_key(leaf_key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.utcnow() - datetime.timedelta(days=1))
-        .not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=1))
+        .not_valid_before(
+            datetime.datetime.utcnow() - datetime.timedelta(days=1)
+        )
+        .not_valid_after(
+            datetime.datetime.utcnow() + datetime.timedelta(days=1)
+        )
         .sign(root_key, hashes.SHA256())
     )
 

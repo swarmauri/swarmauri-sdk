@@ -52,7 +52,9 @@ class UdpTransport(
             mreq = socket.inet_aton(group.split(":", 1)[0]) + socket.inet_aton(
                 "0.0.0.0"
             )
-            self._sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+            self._sock.setsockopt(
+                socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq
+            )
         self._sock.setblocking(False)
 
     async def _stop_server(self) -> None:
@@ -83,7 +85,9 @@ class UdpTransport(
         fut = self._loop.run_in_executor(None, self._sock.recv, 65536)
         return await asyncio.wait_for(fut, timeout)
 
-    async def broadcast(self, data: bytes, *, timeout: Optional[float] = None) -> None:
+    async def broadcast(
+        self, data: bytes, *, timeout: Optional[float] = None
+    ) -> None:
         if not self._sock:
             raise RuntimeError("socket not initialized")
         self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -91,7 +95,11 @@ class UdpTransport(
         self._sock.sendto(data, ("255.255.255.255", port))
 
     async def multicast(
-        self, group: Sequence[str], data: bytes, *, timeout: Optional[float] = None
+        self,
+        group: Sequence[str],
+        data: bytes,
+        *,
+        timeout: Optional[float] = None,
     ) -> None:
         if not self._sock:
             raise RuntimeError("socket not initialized")
@@ -100,7 +108,11 @@ class UdpTransport(
             self._sock.sendto(data, (host, int(port)))
 
     async def anycast(
-        self, candidates: Sequence[str], data: bytes, *, timeout: Optional[float] = None
+        self,
+        candidates: Sequence[str],
+        data: bytes,
+        *,
+        timeout: Optional[float] = None,
     ) -> str:
         if not self._sock:
             raise RuntimeError("socket not initialized")

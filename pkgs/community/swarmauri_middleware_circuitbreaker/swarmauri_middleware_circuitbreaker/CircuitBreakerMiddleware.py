@@ -66,7 +66,9 @@ class CircuitBreakerMiddleware(MiddlewareBase):
                 if cb._state_storage.counter > self.fail_max:
                     CircuitBreaker.open(cb)
                     cb.open = True
-                    logger.warning("Circuit opened: Excessive failures detected")
+                    logger.warning(
+                        "Circuit opened: Excessive failures detected"
+                    )
             raise
         else:
             if cb.open:

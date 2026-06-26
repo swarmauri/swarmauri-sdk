@@ -11,7 +11,9 @@ class LocalSkillMixin(BaseModel):
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
     @classmethod
-    def from_name(cls, skill_name: str, roots: Iterable[str | Path], **overrides: Any):
+    def from_name(
+        cls, skill_name: str, roots: Iterable[str | Path], **overrides: Any
+    ):
         expanded_roots = [Path(root).expanduser() for root in roots]
         for root in expanded_roots:
             candidate = root / skill_name
@@ -21,4 +23,6 @@ class LocalSkillMixin(BaseModel):
                 data["skill_name"] = skill_name
                 return cls(**data)
         searched = ", ".join(str(root) for root in expanded_roots)
-        raise FileNotFoundError(f"Skill '{skill_name}' was not found in: {searched}")
+        raise FileNotFoundError(
+            f"Skill '{skill_name}' was not found in: {searched}"
+        )

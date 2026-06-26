@@ -232,7 +232,9 @@ def test_validate_vector_with_scalar(triangle_cosine_similarity):
     triangle_cosine_similarity : TriangleCosineSimilarity
         Fixture providing a TriangleCosineSimilarity instance
     """
-    with pytest.raises(ValueError, match="Input must be a vector, not a scalar"):
+    with pytest.raises(
+        ValueError, match="Input must be a vector, not a scalar"
+    ):
         triangle_cosine_similarity._validate_vector(np.array(5))
 
 

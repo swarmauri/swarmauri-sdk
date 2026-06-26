@@ -59,7 +59,9 @@ class DuckDBVectorStore(
             self._setup_extensions(self._conn)
             self._initialize_table(self._conn)
         else:
-            self._database_path = os.path.join(self.persist_dir, self.database_name)
+            self._database_path = os.path.join(
+                self.persist_dir, self.database_name
+            )
             with duckdb.connect(self._database_path) as conn:
                 self._setup_extensions(conn)
                 self._initialize_table(conn)
@@ -112,7 +114,9 @@ class DuckDBVectorStore(
         if not document.embedding:
             self._embedder.fit([document.content])
             embedding = (
-                self._embedder.transform([document.content])[0].to_numpy().tolist()
+                self._embedder.transform([document.content])[0]
+                .to_numpy()
+                .tolist()
             )
         else:
             embedding = (
@@ -138,13 +142,23 @@ class DuckDBVectorStore(
         if self.database_name == ":memory:":
             self._conn.execute(
                 query,
-                [data["id"], data["content"], data["embedding"], data["metadata"]],
+                [
+                    data["id"],
+                    data["content"],
+                    data["embedding"],
+                    data["metadata"],
+                ],
             )
         else:
             with duckdb.connect(self._database_path) as conn:
                 conn.execute(
                     query,
-                    [data["id"], data["content"], data["embedding"], data["metadata"]],
+                    [
+                        data["id"],
+                        data["content"],
+                        data["embedding"],
+                        data["metadata"],
+                    ],
                 )
 
     def add_documents(self, documents: List[Document]) -> None:
@@ -173,7 +187,9 @@ class DuckDBVectorStore(
                 conn.executemany(query, data_list)
 
     def get_document(self, id: str) -> Optional[Document]:
-        query = f"SELECT id, content, metadata FROM {self.table_name} WHERE id = ?"
+        query = (
+            f"SELECT id, content, metadata FROM {self.table_name} WHERE id = ?"
+        )
         if self.database_name == ":memory:":
             result = self._conn.execute(query, [id]).fetchone()
         else:
@@ -187,7 +203,9 @@ class DuckDBVectorStore(
         return None
 
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
-        query_embedding = self._embedder.transform([query])[0].to_numpy().tolist()
+        query_embedding = (
+            self._embedder.transform([query])[0].to_numpy().tolist()
+        )
         select_query = f"""
             SELECT id, content, metadata, embedding
             FROM {self.table_name}
@@ -212,7 +230,9 @@ class DuckDBVectorStore(
         ]
 
         # Get top-k results sorted by similarity
-        top_results = sorted(similarities, key=lambda x: x[4], reverse=True)[:top_k]
+        top_results = sorted(similarities, key=lambda x: x[4], reverse=True)[
+            :top_k
+        ]
 
         return [
             Document(
@@ -256,19 +276,27 @@ class DuckDBVectorStore(
             """
             if self.database_name == ":memory:":
                 self._conn.execute(
-                    query, [data["content"], data["embedding"], data["metadata"], id]
+                    query,
+                    [data["content"], data["embedding"], data["metadata"], id],
                 )
             else:
                 with duckdb.connect(self._database_path) as conn:
                     conn.execute(
                         query,
-                        [data["content"], data["embedding"], data["metadata"], id],
+                        [
+                            data["content"],
+                            data["embedding"],
+                            data["metadata"],
+                            id,
+                        ],
                     )
         except Exception as e:
             raise RuntimeError(f"Failed to update document {id}: {str(e)}")
 
     @classmethod
-    def from_local(cls, database_path: str, table_name: str = "documents", **kwargs):
+    def from_local(
+        cls, database_path: str, table_name: str = "documents", **kwargs
+    ):
         """Load a DuckDBVectorStore from a local file."""
         database_name = os.path.basename(database_path)
         persist_dir = os.path.dirname(database_path)

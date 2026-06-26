@@ -50,7 +50,9 @@ def test_tool_initialization(
     assert jupyter_read_notebook_tool.version == "1.0.0"
     assert len(jupyter_read_notebook_tool.parameters) == 2
     assert jupyter_read_notebook_tool.name == "JupyterReadNotebookTool"
-    assert jupyter_read_notebook_tool.description.startswith("Reads a Jupyter notebook")
+    assert jupyter_read_notebook_tool.description.startswith(
+        "Reads a Jupyter notebook"
+    )
     assert jupyter_read_notebook_tool.type == "JupyterReadNotebookTool"
 
 
@@ -85,7 +87,9 @@ def test_call_file_not_found(
     """
     Test handling of the FileNotFoundError when the notebook file is absent.
     """
-    result = jupyter_read_notebook_tool("non_existent_path.ipynb", as_version=4)
+    result = jupyter_read_notebook_tool(
+        "non_existent_path.ipynb", as_version=4
+    )
     assert "error" in result
     assert "File not found" in result["error"]
     mock_read.assert_called_once()
@@ -147,7 +151,9 @@ def test_call_non_empty_read(
     mock_read.return_value = non_empty_notebook
 
     # Act
-    result = jupyter_read_notebook_tool("non_empty_notebook.ipynb", as_version=4)
+    result = jupyter_read_notebook_tool(
+        "non_empty_notebook.ipynb", as_version=4
+    )
 
     # Assert
     mock_read.assert_called_once_with("non_empty_notebook.ipynb", as_version=4)

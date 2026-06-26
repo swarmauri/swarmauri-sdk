@@ -26,7 +26,9 @@ def test_initialization(cipher_suite: Fips203CipherSuite) -> None:
 
 @pytest.mark.unit
 def test_serialization(cipher_suite: Fips203CipherSuite) -> None:
-    restored = Fips203CipherSuite.model_validate_json(cipher_suite.model_dump_json())
+    restored = Fips203CipherSuite.model_validate_json(
+        cipher_suite.model_dump_json()
+    )
     assert restored.id == cipher_suite.id
 
 
@@ -37,10 +39,16 @@ def test_suite_identifier(cipher_suite: Fips203CipherSuite) -> None:
 
 # Cipher-suite specific behavior
 @pytest.mark.unit
-def test_supports_expected_algorithms(cipher_suite: Fips203CipherSuite) -> None:
+def test_supports_expected_algorithms(
+    cipher_suite: Fips203CipherSuite,
+) -> None:
     supports = cipher_suite.supports()
     assert set(supports.keys()) == {"wrap", "unwrap"}
-    assert tuple(supports["wrap"]) == ("ML-KEM-512", "ML-KEM-768", "ML-KEM-1024")
+    assert tuple(supports["wrap"]) == (
+        "ML-KEM-512",
+        "ML-KEM-768",
+        "ML-KEM-1024",
+    )
     assert supports["wrap"] == supports["unwrap"]
 
 
@@ -64,13 +72,16 @@ def test_features_descriptor(cipher_suite: Fips203CipherSuite) -> None:
     }
     assert features["ops"]["wrap"]["default"] == "ML-KEM-768"
     assert (
-        features["constraints"]["nistSecurityLevels"] == policy["nist_security_levels"]
+        features["constraints"]["nistSecurityLevels"]
+        == policy["nist_security_levels"]
     )
     assert features["compliance"]["fips203"] is True
 
 
 @pytest.mark.unit
-def test_policy_exposes_expected_metadata(cipher_suite: Fips203CipherSuite) -> None:
+def test_policy_exposes_expected_metadata(
+    cipher_suite: Fips203CipherSuite,
+) -> None:
     policy = cipher_suite.policy()
 
     assert policy["fips"] == "203"
@@ -91,7 +102,10 @@ def test_normalize_with_explicit_alg(cipher_suite: Fips203CipherSuite) -> None:
     assert descriptor["dialect"] == "provider"
     assert descriptor["mapped"] == {"provider": "ml-kem:ML-KEM-1024"}
     assert descriptor["params"] == {"context": "test"}
-    assert descriptor["constraints"] == {"nistLevel": 5, "category": "post-quantum"}
+    assert descriptor["constraints"] == {
+        "nistLevel": 5,
+        "category": "post-quantum",
+    }
     assert descriptor["policy"] == cipher_suite.policy()
 
 
@@ -104,6 +118,8 @@ def test_normalize_defaults(cipher_suite: Fips203CipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_rejects_unsupported_alg(cipher_suite: Fips203CipherSuite) -> None:
+def test_normalize_rejects_unsupported_alg(
+    cipher_suite: Fips203CipherSuite,
+) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="wrap", alg="ML-DSA-65")

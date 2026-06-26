@@ -54,7 +54,9 @@ class RKHSInnerProduct(InnerProductBase):
         logger.info("Initialized RKHSInnerProduct with kernel function")
 
     def compute(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> float:
         """
         Compute the inner product between two objects using the kernel function.
@@ -76,17 +78,23 @@ class RKHSInnerProduct(InnerProductBase):
         TypeError
             If the input types are not supported by the kernel function
         """
-        logger.debug(f"Computing RKHS inner product between {type(a)} and {type(b)}")
+        logger.debug(
+            f"Computing RKHS inner product between {type(a)} and {type(b)}"
+        )
         try:
             result = self.kernel_function(a, b)
             logger.debug(f"Inner product result: {result}")
             return result
         except Exception as e:
             logger.error(f"Error computing RKHS inner product: {str(e)}")
-            raise TypeError(f"Inputs not supported by kernel function: {str(e)}")
+            raise TypeError(
+                f"Inputs not supported by kernel function: {str(e)}"
+            )
 
     def check_conjugate_symmetry(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> bool:
         """
         Check if the kernel-induced inner product satisfies the conjugate symmetry property.
@@ -174,14 +182,18 @@ class RKHSInnerProduct(InnerProductBase):
             left_side = self.compute(linear_combo, b)
 
             # Compute the right side of the linearity equation
-            right_side = alpha * self.compute(a1, b) + beta * self.compute(a2, b)
+            right_side = alpha * self.compute(a1, b) + beta * self.compute(
+                a2, b
+            )
 
             # Check if they are approximately equal
             is_linear = np.isclose(left_side, right_side)
             logger.debug(f"Linearity check result: {is_linear}")
             return is_linear
         else:
-            logger.warning("Linearity check not supported for non-array inputs")
+            logger.warning(
+                "Linearity check not supported for non-array inputs"
+            )
             raise TypeError("Linearity check requires numpy array inputs")
 
     def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:
@@ -201,7 +213,9 @@ class RKHSInnerProduct(InnerProductBase):
         bool
             True if positivity holds, False otherwise
         """
-        logger.debug(f"Checking positivity for RKHS inner product with {type(a)}")
+        logger.debug(
+            f"Checking positivity for RKHS inner product with {type(a)}"
+        )
 
         # Compute the inner product of a with itself
         inner_aa = self.compute(a, a)

@@ -12,7 +12,9 @@ def test_verify_chain_rfc5280(make_key_ref) -> None:
     csr = asyncio.run(svc.create_csr(csr_key, {"CN": "leaf"}))
     ca_cert = asyncio.run(
         svc.create_self_signed(
-            ca_key, {"CN": "ca"}, extensions={"basic_constraints": {"ca": True}}
+            ca_key,
+            {"CN": "ca"},
+            extensions={"basic_constraints": {"ca": True}},
         )
     )
     leaf_cert = asyncio.run(svc.sign_cert(csr, ca_key, ca_cert=ca_cert))

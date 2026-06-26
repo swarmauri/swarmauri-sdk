@@ -1,7 +1,9 @@
 import pytest
 
 
-@pytest.mark.xfail(reason="asn1crypto missing extensions", raises=AttributeError)
+@pytest.mark.xfail(
+    reason="asn1crypto missing extensions", raises=AttributeError
+)
 @pytest.mark.asyncio
 async def test_sign_and_verify(service, ca_key_ref, subject_key_ref):
     ca_cert = await service.create_self_signed(ca_key_ref, {"CN": "CA"})

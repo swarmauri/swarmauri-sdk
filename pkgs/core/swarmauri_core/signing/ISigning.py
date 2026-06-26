@@ -52,7 +52,9 @@ from typing import Mapping, Optional, Sequence, Union
 
 from ..crypto.types import Alg, KeyRef
 from ..crypto.types import AEADCiphertext  # single‑recipient envelope
-from ..mre_crypto.types import MultiRecipientEnvelope  # multi‑recipient envelope
+from ..mre_crypto.types import (
+    MultiRecipientEnvelope,
+)  # multi‑recipient envelope
 from .types import Signature
 
 

@@ -28,7 +28,9 @@ class HTMLTagStripParser(ParserBase):
 
         # Ensure that input is a string
         if not isinstance(data, str):
-            raise ValueError("HTMLTagStripParser expects input data to be of type str.")
+            raise ValueError(
+                "HTMLTagStripParser expects input data to be of type str."
+            )
 
         # Remove HTML tags
         text = re.sub(
@@ -39,6 +41,8 @@ class HTMLTagStripParser(ParserBase):
         text = html.unescape(text)
 
         # Wrap the cleaned text into a Document and return it in a list
-        document = Document(content=text, metadata={"original_length": len(data)})
+        document = Document(
+            content=text, metadata={"original_length": len(data)}
+        )
 
         return [document]

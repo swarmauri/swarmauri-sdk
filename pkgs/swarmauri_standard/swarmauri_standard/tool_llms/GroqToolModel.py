@@ -6,7 +6,9 @@ import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_base.schema_converters.SchemaConverterBase import (
+    SchemaConverterBase,
+)
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 
 from swarmauri_base.tools.ToolBase import ToolBase
@@ -91,7 +93,9 @@ class GroqToolModel(ToolLLMBase):
         """
         return GroqSchemaConverter
 
-    def _schema_convert_tools(self, tools: Dict[str, ToolBase]) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(
+        self, tools: Dict[str, ToolBase]
+    ) -> List[Dict[str, Any]]:
         """
         Converts toolkit items to API-compatible schema format.
 
@@ -116,7 +120,13 @@ class GroqToolModel(ToolLLMBase):
         Returns:
             List[Dict[str, str]]: List of formatted message dictionaries.
         """
-        message_properties = ["content", "role", "name", "tool_call_id", "tool_calls"]
+        message_properties = [
+            "content",
+            "role",
+            "name",
+            "tool_call_id",
+            "tool_calls",
+        ]
         formatted_messages = [
             message.model_dump(include=message_properties, exclude_none=True)
             for message in messages
@@ -192,7 +202,9 @@ class GroqToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice or "auto",
         }
 
@@ -214,7 +226,9 @@ class GroqToolModel(ToolLLMBase):
             # Extract tool messages for the conversation
             tool_messages = [
                 FunctionMessage(
-                    tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                    tool_call_id=m["tool_call_id"],
+                    name=m["name"],
+                    content=m["content"],
                 )
                 for m in messages
                 if m.get("role") == "tool"
@@ -272,7 +286,9 @@ class GroqToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice or "auto",
         }
 
@@ -297,7 +313,9 @@ class GroqToolModel(ToolLLMBase):
             # Extract tool messages for the conversation
             tool_messages = [
                 FunctionMessage(
-                    tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                    tool_call_id=m["tool_call_id"],
+                    name=m["name"],
+                    content=m["content"],
                 )
                 for m in messages
                 if m.get("role") == "tool"
@@ -357,7 +375,9 @@ class GroqToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice or "auto",
         }
 
@@ -378,7 +398,9 @@ class GroqToolModel(ToolLLMBase):
             # Extract tool messages for the conversation
             tool_messages = [
                 FunctionMessage(
-                    tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                    tool_call_id=m["tool_call_id"],
+                    name=m["name"],
+                    content=m["content"],
                 )
                 for m in messages
                 if m.get("role") == "tool"
@@ -399,7 +421,9 @@ class GroqToolModel(ToolLLMBase):
 
         for line in response.iter_lines():
             # Convert bytes to string if needed
-            line_str = line.decode("utf-8") if isinstance(line, bytes) else line
+            line_str = (
+                line.decode("utf-8") if isinstance(line, bytes) else line
+            )
 
             if not line_str or line_str == "data: [DONE]":
                 continue
@@ -454,7 +478,9 @@ class GroqToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice or "auto",
         }
 
@@ -478,7 +504,9 @@ class GroqToolModel(ToolLLMBase):
             # Extract tool messages for the conversation
             tool_messages = [
                 FunctionMessage(
-                    tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                    tool_call_id=m["tool_call_id"],
+                    name=m["name"],
+                    content=m["content"],
                 )
                 for m in messages
                 if m.get("role") == "tool"

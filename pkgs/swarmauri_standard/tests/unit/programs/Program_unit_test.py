@@ -129,7 +129,9 @@ def test_apply_diff(program):
         }
     }
 
-    with patch("swarmauri_standard.programs.Program.datetime") as mock_datetime:
+    with patch(
+        "swarmauri_standard.programs.Program.datetime"
+    ) as mock_datetime:
         mock_datetime.utcnow.return_value = datetime(2023, 1, 2)
         mock_datetime.side_effect = lambda *args, **kw: datetime(*args, **kw)
 
@@ -152,7 +154,9 @@ def test_validate_valid_program(program):
         mock_logger.info.assert_any_call(
             f"Validating standard program with ID {program.id}"
         )
-        mock_logger.info.assert_any_call(f"Program {program.id} validation successful")
+        mock_logger.info.assert_any_call(
+            f"Program {program.id} validation successful"
+        )
 
 
 @pytest.mark.unit

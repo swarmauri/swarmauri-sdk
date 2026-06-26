@@ -3,7 +3,9 @@ from pydantic import Field, ConfigDict, field_validator
 from swarmauri_standard.messages.SystemMessage import SystemMessage
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.messages.AgentMessage import AgentMessage
-from swarmauri_standard.exceptions.IndexErrorWithContext import IndexErrorWithContext
+from swarmauri_standard.exceptions.IndexErrorWithContext import (
+    IndexErrorWithContext,
+)
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.conversations.ConversationSystemContextMixin import (
     ConversationSystemContextMixin,
@@ -20,10 +22,14 @@ class MaxSystemContextConversation(
     system_context: Optional[SystemMessage] = SystemMessage(content="")
     max_size: int = Field(default=2, gt=1)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
-    type: Literal["MaxSystemContextConversation"] = "MaxSystemContextConversation"
+    type: Literal["MaxSystemContextConversation"] = (
+        "MaxSystemContextConversation"
+    )
 
     @field_validator("system_context", mode="before")
-    def set_system_context(cls, value: Union[str, SystemMessage]) -> SystemMessage:
+    def set_system_context(
+        cls, value: Union[str, SystemMessage]
+    ) -> SystemMessage:
         if isinstance(value, str):
             return SystemMessage(content=value)
         return value

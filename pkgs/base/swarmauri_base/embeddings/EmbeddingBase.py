@@ -9,5 +9,7 @@ from swarmauri_core.embeddings.IVectorize import IVectorize
 
 @ComponentBase.register_model()
 class EmbeddingBase(IVectorize, IFeature, ISaveModel, ComponentBase):
-    resource: Optional[str] = Field(default=ResourceTypes.EMBEDDING.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.EMBEDDING.value, frozen=True
+    )
     type: Literal["EmbeddingBase"] = "EmbeddingBase"

@@ -10,7 +10,9 @@ PACKAGE_INDEX_SCRIPT = REPO_ROOT / "scripts" / "package_index.py"
 
 
 def _load_package_index_module():
-    spec = importlib.util.spec_from_file_location("package_index", PACKAGE_INDEX_SCRIPT)
+    spec = importlib.util.spec_from_file_location(
+        "package_index", PACKAGE_INDEX_SCRIPT
+    )
     assert spec is not None
     assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)

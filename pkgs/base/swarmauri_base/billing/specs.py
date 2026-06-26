@@ -57,7 +57,9 @@ class BillingSpec(BaseModel):
 class ProductSpec(ProductSpecProto, BillingSpec):
     """Product creation specification."""
 
-    name: Optional[str] = Field(default=None, description="Product display name")
+    name: Optional[str] = Field(
+        default=None, description="Product display name"
+    )
     description: Optional[str] = Field(
         default=None, description="Detailed description of the product"
     )
@@ -65,12 +67,15 @@ class ProductSpec(ProductSpecProto, BillingSpec):
         default=None, description="Metadata to associate with the product"
     )
     sku: Optional[str] = Field(
-        default=None, description="Optional SKU identifier for inventory systems"
+        default=None,
+        description="Optional SKU identifier for inventory systems",
     )
 
     @model_validator(mode="after")
     def _populate_from_payload(self) -> "ProductSpec":
-        self._apply_payload_defaults(["name", "description", "metadata", "sku"])
+        self._apply_payload_defaults(
+            ["name", "description", "metadata", "sku"]
+        )
         return self
 
 
@@ -102,21 +107,27 @@ class PriceSpec(PriceSpecProto, BillingSpec):
 class CheckoutRequest(CheckoutReqProto, BillingSpec):
     """Hosted checkout request specification."""
 
-    quantity: int = Field(default=1, description="Quantity of the price to purchase")
+    quantity: int = Field(
+        default=1, description="Quantity of the price to purchase"
+    )
     success_url: Optional[str] = Field(
-        default=None, description="URL the customer is redirected to after success"
+        default=None,
+        description="URL the customer is redirected to after success",
     )
     cancel_url: Optional[str] = Field(
-        default=None, description="URL the customer is redirected to after cancellation"
+        default=None,
+        description="URL the customer is redirected to after cancellation",
     )
     customer_email: Optional[str] = Field(
-        default=None, description="Customer email used for the checkout session"
+        default=None,
+        description="Customer email used for the checkout session",
     )
     metadata: Mapping[str, Any] | None = Field(
         default=None, description="Metadata forwarded to the provider checkout"
     )
     idempotency_key: Optional[str] = Field(
-        default=None, description="Optional idempotency key for the checkout session"
+        default=None,
+        description="Optional idempotency key for the checkout session",
     )
 
     @model_validator(mode="after")
@@ -147,16 +158,20 @@ class PaymentIntentRequest(PaymentIntentReqProto, BillingSpec):
     payment_method_id: Optional[str] = Field(
         default=None, description="Identifier of an existing payment method"
     )
-    confirm: bool = Field(default=False, description="Whether to confirm immediately")
+    confirm: bool = Field(
+        default=False, description="Whether to confirm immediately"
+    )
     capture: bool = Field(
         default=True,
         description="Whether to auto-capture the payment upon confirmation",
     )
     metadata: Mapping[str, Any] | None = Field(
-        default=None, description="Provider-specific metadata to attach to the payment"
+        default=None,
+        description="Provider-specific metadata to attach to the payment",
     )
     idempotency_key: Optional[str] = Field(
-        default=None, description="Optional idempotency key for the payment intent"
+        default=None,
+        description="Optional idempotency key for the payment intent",
     )
 
     @model_validator(mode="after")
@@ -178,8 +193,12 @@ class PaymentIntentRequest(PaymentIntentReqProto, BillingSpec):
 class SubscriptionItemSpec(BaseModel):
     """Individual subscription item entry."""
 
-    price_id: str = Field(..., description="Identifier of the price to subscribe to")
-    quantity: int = Field(default=1, description="Quantity for the subscription item")
+    price_id: str = Field(
+        ..., description="Identifier of the price to subscribe to"
+    )
+    quantity: int = Field(
+        default=1, description="Quantity for the subscription item"
+    )
 
 
 class SubscriptionSpec(SubscriptionSpecProto, BillingSpec):
@@ -228,7 +247,8 @@ class InvoiceLineItemSpec(BaseModel):
     """Invoice line item specification."""
 
     price_id: Optional[str] = Field(
-        default=None, description="Identifier of an existing price to reference"
+        default=None,
+        description="Identifier of an existing price to reference",
     )
     amount_minor: Optional[int] = Field(
         default=None,
@@ -247,7 +267,8 @@ class InvoiceSpec(InvoiceSpecProto, BillingSpec):
     """Invoice creation specification."""
 
     customer_id: Optional[str] = Field(
-        default=None, description="Identifier for the customer receiving the invoice"
+        default=None,
+        description="Identifier for the customer receiving the invoice",
     )
     collection_method: Optional[str] = Field(
         default=None, description="Invoice collection method"
@@ -285,14 +306,17 @@ class SplitEntrySpec(BaseModel):
 
     account: str = Field(..., description="Destination account for the split")
     share: float = Field(
-        ..., description="Relative share or percentage to allocate to the account"
+        ...,
+        description="Relative share or percentage to allocate to the account",
     )
 
 
 class SplitSpec(SplitSpecProto, BillingSpec):
     """Split configuration specification for marketplace operations."""
 
-    name: Optional[str] = Field(default=None, description="Human readable split name")
+    name: Optional[str] = Field(
+        default=None, description="Human readable split name"
+    )
     type: Optional[str] = Field(
         default=None, description="Provider-specific split type"
     )
@@ -310,7 +334,9 @@ class SplitSpec(SplitSpecProto, BillingSpec):
         if not self.entries and isinstance(self.payload, Mapping):
             payload_entries = self.payload.get("entries", [])
             entries = [
-                entry if isinstance(entry, SplitEntrySpec) else SplitEntrySpec(**entry)
+                entry
+                if isinstance(entry, SplitEntrySpec)
+                else SplitEntrySpec(**entry)
                 for entry in payload_entries
             ]
             object.__setattr__(self, "entries", tuple(entries))
@@ -341,7 +367,9 @@ class CustomerSpec(CustomerSpecProto, BillingSpec):
     """Customer creation specification."""
 
     name: Optional[str] = Field(default=None, description="Customer full name")
-    email: Optional[str] = Field(default=None, description="Customer email address")
+    email: Optional[str] = Field(
+        default=None, description="Customer email address"
+    )
     metadata: Mapping[str, Any] | None = Field(
         default=None, description="Metadata associated with the customer"
     )
@@ -355,9 +383,12 @@ class CustomerSpec(CustomerSpecProto, BillingSpec):
 class PaymentMethodSpec(PaymentMethodSpecProto, BillingSpec):
     """Payment method creation specification."""
 
-    type: Optional[str] = Field(default=None, description="Payment method type")
+    type: Optional[str] = Field(
+        default=None, description="Payment method type"
+    )
     billing_details: Mapping[str, Any] | None = Field(
-        default=None, description="Billing details associated with the payment method"
+        default=None,
+        description="Billing details associated with the payment method",
     )
     metadata: Mapping[str, Any] | None = Field(
         default=None, description="Metadata attached to the payment method"
@@ -376,9 +407,12 @@ class PayoutRequest(PayoutReqProto, BillingSpec):
         default=None,
         description="Amount to pay out in the smallest currency denomination",
     )
-    currency: Optional[str] = Field(default=None, description="Currency of the payout")
+    currency: Optional[str] = Field(
+        default=None, description="Currency of the payout"
+    )
     destination_account: Optional[str] = Field(
-        default=None, description="Destination account identifier for the payout"
+        default=None,
+        description="Destination account identifier for the payout",
     )
     metadata: Mapping[str, Any] | None = Field(
         default=None, description="Metadata attached to the payout"
@@ -456,7 +490,13 @@ class CouponSpec(CouponSpecProto, BillingSpec):
     @model_validator(mode="after")
     def _populate_from_payload(self) -> "CouponSpec":
         self._apply_payload_defaults(
-            ["percent_off", "amount_off_minor", "currency", "duration", "metadata"]
+            [
+                "percent_off",
+                "amount_off_minor",
+                "currency",
+                "duration",
+                "metadata",
+            ]
         )
         return self
 
@@ -465,7 +505,8 @@ class PromotionSpec(PromotionSpecProto, BillingSpec):
     """Promotion creation specification."""
 
     coupon_id: Optional[str] = Field(
-        default=None, description="Coupon identifier associated with the promotion"
+        default=None,
+        description="Coupon identifier associated with the promotion",
     )
     code: Optional[str] = Field(
         default=None, description="Public code used to redeem the promotion"

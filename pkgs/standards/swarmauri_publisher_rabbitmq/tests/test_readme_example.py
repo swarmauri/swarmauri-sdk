@@ -60,18 +60,31 @@ def test_readme_quickstart_example(monkeypatch: pytest.MonkeyPatch) -> None:
         def __init__(self, **kwargs: Any) -> None:
             self.kwargs = kwargs
 
-    monkeypatch.setattr(publisher_module.pika, "URLParameters", DummyURLParameters)
-    monkeypatch.setattr(publisher_module.pika, "BlockingConnection", DummyConnection)
-    monkeypatch.setattr(publisher_module.pika, "BasicProperties", DummyBasicProperties)
+    monkeypatch.setattr(
+        publisher_module.pika, "URLParameters", DummyURLParameters
+    )
+    monkeypatch.setattr(
+        publisher_module.pika, "BlockingConnection", DummyConnection
+    )
+    monkeypatch.setattr(
+        publisher_module.pika, "BasicProperties", DummyBasicProperties
+    )
 
     namespace: Dict[str, Any] = {"__builtins__": __builtins__}
     exec(quickstart, namespace)
 
     publisher = namespace["publisher"]
     assert publisher.exchange == "demo_exchange"
-    assert publisher._connection.params.uri == "amqp://guest:guest@localhost:5672/"
+    assert (
+        publisher._connection.params.uri
+        == "amqp://guest:guest@localhost:5672/"
+    )
     assert publisher._channel.exchange_declarations == [
-        {"exchange": "demo_exchange", "exchange_type": "direct", "durable": True}
+        {
+            "exchange": "demo_exchange",
+            "exchange_type": "direct",
+            "durable": True,
+        }
     ]
 
     assert created_uris == ["amqp://guest:guest@localhost:5672/"]
@@ -79,7 +92,9 @@ def test_readme_quickstart_example(monkeypatch: pytest.MonkeyPatch) -> None:
     message = published_messages[0]
     assert message["exchange"] == "demo_exchange"
     assert message["routing_key"] == "demo.routing.key"
-    assert json.loads(message["body"].decode("utf-8")) == {"message": "Hello RabbitMQ!"}
+    assert json.loads(message["body"].decode("utf-8")) == {
+        "message": "Hello RabbitMQ!"
+    }
     assert message["properties"].kwargs["delivery_mode"] == (
         publisher_module.pika.spec.PERSISTENT_DELIVERY_MODE
     )

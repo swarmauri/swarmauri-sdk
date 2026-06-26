@@ -14,9 +14,7 @@ class DownloadPDFTool(ToolBase):
     """
 
     name: str = "DownloadPDFTool"
-    description: str = (
-        "Downloads a PDF from a specified URL and saves it to a specified path."
-    )
+    description: str = "Downloads a PDF from a specified URL and saves it to a specified path."
     parameters: List[Parameter] = [
         Parameter(
             name="url",

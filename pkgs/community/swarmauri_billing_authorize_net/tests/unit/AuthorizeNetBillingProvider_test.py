@@ -1,5 +1,7 @@
 import pytest
-from swarmauri_billing_authorize_net import AuthorizeNetBillingProvider as Provider
+from swarmauri_billing_authorize_net import (
+    AuthorizeNetBillingProvider as Provider,
+)
 
 
 @pytest.mark.unit
@@ -10,7 +12,10 @@ def test_ubc_resource():
 
 @pytest.mark.unit
 def test_ubc_type():
-    assert Provider(api_key="authorize-net-key").type == "AuthorizeNetBillingProvider"
+    assert (
+        Provider(api_key="authorize-net-key").type
+        == "AuthorizeNetBillingProvider"
+    )
 
 
 @pytest.mark.unit
@@ -22,4 +27,7 @@ def test_initialization():
 @pytest.mark.unit
 def test_serialization():
     provider = Provider(api_key="authorize-net-key")
-    assert provider.id == Provider.model_validate_json(provider.model_dump_json()).id
+    assert (
+        provider.id
+        == Provider.model_validate_json(provider.model_dump_json()).id
+    )

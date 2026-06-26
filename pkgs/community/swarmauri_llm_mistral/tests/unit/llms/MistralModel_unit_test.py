@@ -48,7 +48,8 @@ def test_ubc_type(mistral_model):
 @pytest.mark.unit
 def test_serialization(mistral_model):
     assert (
-        mistral_model.id == LLM.model_validate_json(mistral_model.model_dump_json()).id
+        mistral_model.id
+        == LLM.model_validate_json(mistral_model.model_dump_json()).id
     )
 
 

@@ -4,7 +4,9 @@ from typing import List
 import numpy as np
 import pytest
 
-from swarmauri_standard.similarities.BrayCurtisSimilarity import BrayCurtisSimilarity
+from swarmauri_standard.similarities.BrayCurtisSimilarity import (
+    BrayCurtisSimilarity,
+)
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -81,7 +83,9 @@ def test_similarity(
 
 
 @pytest.mark.unit
-def test_similarity_with_numpy_arrays(bray_curtis_similarity: BrayCurtisSimilarity):
+def test_similarity_with_numpy_arrays(
+    bray_curtis_similarity: BrayCurtisSimilarity,
+):
     """
     Test the similarity method with numpy arrays.
 
@@ -98,7 +102,9 @@ def test_similarity_with_numpy_arrays(bray_curtis_similarity: BrayCurtisSimilari
 
 
 @pytest.mark.unit
-def test_similarity_with_negative_values(bray_curtis_similarity: BrayCurtisSimilarity):
+def test_similarity_with_negative_values(
+    bray_curtis_similarity: BrayCurtisSimilarity,
+):
     """
     Test that similarity method raises ValueError for negative values.
 
@@ -108,18 +114,22 @@ def test_similarity_with_negative_values(bray_curtis_similarity: BrayCurtisSimil
         The BrayCurtisSimilarity instance
     """
     with pytest.raises(
-        ValueError, match="Bray-Curtis similarity requires non-negative input values"
+        ValueError,
+        match="Bray-Curtis similarity requires non-negative input values",
     ):
         bray_curtis_similarity.similarity([1, -2, 3], [1, 2, 3])
 
     with pytest.raises(
-        ValueError, match="Bray-Curtis similarity requires non-negative input values"
+        ValueError,
+        match="Bray-Curtis similarity requires non-negative input values",
     ):
         bray_curtis_similarity.similarity([1, 2, 3], [1, -2, 3])
 
 
 @pytest.mark.unit
-def test_similarity_with_different_shapes(bray_curtis_similarity: BrayCurtisSimilarity):
+def test_similarity_with_different_shapes(
+    bray_curtis_similarity: BrayCurtisSimilarity,
+):
     """
     Test that similarity method raises ValueError for inputs with different shapes.
 
@@ -128,12 +138,16 @@ def test_similarity_with_different_shapes(bray_curtis_similarity: BrayCurtisSimi
     bray_curtis_similarity : BrayCurtisSimilarity
         The BrayCurtisSimilarity instance
     """
-    with pytest.raises(ValueError, match="Input vectors must have the same shape"):
+    with pytest.raises(
+        ValueError, match="Input vectors must have the same shape"
+    ):
         bray_curtis_similarity.similarity([1, 2, 3], [1, 2])
 
 
 @pytest.mark.unit
-def test_similarity_with_invalid_types(bray_curtis_similarity: BrayCurtisSimilarity):
+def test_similarity_with_invalid_types(
+    bray_curtis_similarity: BrayCurtisSimilarity,
+):
     """
     Test that similarity method raises TypeError for inputs that cannot be converted to numeric arrays.
 
@@ -167,7 +181,9 @@ def test_similarities(bray_curtis_similarity: BrayCurtisSimilarity):
 
 
 @pytest.mark.unit
-def test_similarities_with_invalid_inputs(bray_curtis_similarity: BrayCurtisSimilarity):
+def test_similarities_with_invalid_inputs(
+    bray_curtis_similarity: BrayCurtisSimilarity,
+):
     """
     Test the similarities method with invalid inputs.
 
@@ -178,12 +194,15 @@ def test_similarities_with_invalid_inputs(bray_curtis_similarity: BrayCurtisSimi
     """
     # Test with negative values
     with pytest.raises(
-        ValueError, match="Bray-Curtis similarity requires non-negative input values"
+        ValueError,
+        match="Bray-Curtis similarity requires non-negative input values",
     ):
         bray_curtis_similarity.similarities([1, -2, 3], [[1, 2, 3]])
 
     # Test with different shapes
-    with pytest.raises(ValueError, match="Input vectors must have the same shape"):
+    with pytest.raises(
+        ValueError, match="Input vectors must have the same shape"
+    ):
         bray_curtis_similarity.similarities([1, 2, 3], [[1, 2], [3, 4]])
 
 

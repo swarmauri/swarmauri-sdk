@@ -104,8 +104,12 @@ def test_call(mock_github, github_branch_tool, action, kwargs, method_called):
             assert isinstance(result.get(action), str), (
                 f"Expected str, but got {type(result.get(action)).__name__}"
             )
-            assert result == {f"{action}": "performed a test action successfully"}
+            assert result == {
+                f"{action}": "performed a test action successfully"
+            }
     else:
         # If an invalid action is provided, it should raise a ValueError
-        with pytest.raises(ValueError, match=f"Action '{action}' is not supported."):
+        with pytest.raises(
+            ValueError, match=f"Action '{action}' is not supported."
+        ):
             github_branch_tool(action=action, **kwargs)

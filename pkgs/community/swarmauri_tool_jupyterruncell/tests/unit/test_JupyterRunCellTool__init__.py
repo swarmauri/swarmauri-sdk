@@ -32,6 +32,8 @@ def test_package_version_is_defined() -> None:
     Test that the package's __version__ attribute is defined.
     Ensures that the version is accessible after initialization.
     """
-    assert __version__ is not None, "__version__ should be defined in __init__.py"
+    assert __version__ is not None, (
+        "__version__ should be defined in __init__.py"
+    )
     assert isinstance(__version__, str), "__version__ should be a string"
     # If needed, further checks on version string format could be added here.

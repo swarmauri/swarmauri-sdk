@@ -131,18 +131,25 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
 
     def load_store(self, directory_path: str) -> None:
         payload = json.loads(
-            (Path(directory_path) / "git_vectorstore.json").read_text(encoding="utf-8")
+            (Path(directory_path) / "git_vectorstore.json").read_text(
+                encoding="utf-8"
+            )
         )
         self.repo_path = payload.get("repo_path")
         self.scope = payload.get("scope", "head")
         self.ref = payload.get("ref")
-        self.document_kinds = tuple(payload.get("document_kinds", ["commit", "log"]))
+        self.document_kinds = tuple(
+            payload.get("document_kinds", ["commit", "log"])
+        )
         self.include_diff_stats = payload.get("include_diff_stats", True)
         self.max_commits = payload.get("max_commits")
         self.documents = [
-            Document.model_validate(document) for document in payload["documents"]
+            Document.model_validate(document)
+            for document in payload["documents"]
         ]
-        self._document_map = {document.id: document for document in self.documents}
+        self._document_map = {
+            document.id: document for document in self.documents
+        }
         self._reindex_documents()
 
     def _reindex_documents(self) -> None:
@@ -193,14 +200,18 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
             oid,
         ).split("\x00", 9)
         if len(fields) != 10:
-            raise RuntimeError(f"Unexpected metadata payload for commit '{oid}'")
+            raise RuntimeError(
+                f"Unexpected metadata payload for commit '{oid}'"
+            )
 
         changed_paths = self._run_git(
             "diff-tree", "--root", "--no-commit-id", "--name-only", "-r", oid
         )
         stats = ""
         if self.include_diff_stats:
-            stats = self._run_git("show", "--stat", "--format=", "--summary", oid)
+            stats = self._run_git(
+                "show", "--stat", "--format=", "--summary", oid
+            )
         log_text = self._run_git(
             "log",
             "-1",
@@ -223,7 +234,9 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
             "subject": fields[8].strip(),
             "body": fields[9].strip(),
             "changed_paths": [
-                line.strip() for line in changed_paths.splitlines() if line.strip()
+                line.strip()
+                for line in changed_paths.splitlines()
+                if line.strip()
             ],
             "stats": stats.strip(),
             "log_text": log_text.strip(),
@@ -248,7 +261,9 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
             f"parents {' '.join(metadata['parents']) if metadata['parents'] else '(root)'}",
         ]
         if metadata["body"]:
-            content_lines.extend(["", "message", str(metadata["body"]).strip()])
+            content_lines.extend(
+                ["", "message", str(metadata["body"]).strip()]
+            )
         if changed_paths:
             content_lines.extend(["", "changed_paths", *changed_paths])
         if stats:
@@ -295,7 +310,9 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
 
     def _run_git(self, *args: str) -> str:
         if not self.repo_path:
-            raise ValueError("repo_path must be configured before running git commands")
+            raise ValueError(
+                "repo_path must be configured before running git commands"
+            )
 
         completed = subprocess.run(
             ["git", *args],

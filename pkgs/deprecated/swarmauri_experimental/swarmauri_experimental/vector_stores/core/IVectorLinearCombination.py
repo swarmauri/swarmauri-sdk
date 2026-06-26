@@ -8,7 +8,9 @@ class ILinearCombination(ABC):
     """
 
     @abstractmethod
-    def linear_combination(self, coefficients: List[float], vectors: List[Any]) -> Any:
+    def linear_combination(
+        self, coefficients: List[float], vectors: List[Any]
+    ) -> Any:
         """
         Computes the linear combination of the given vectors with the specified coefficients.
 

@@ -40,7 +40,9 @@ def never_equivalent(x: Any, y: Any) -> bool:
 @pytest.fixture
 def mod3_pseudometric():
     """Fixture for a pseudometric based on mod3 equivalence."""
-    return EquivalenceRelationPseudometric(equivalence_relation=mod3_equivalence)
+    return EquivalenceRelationPseudometric(
+        equivalence_relation=mod3_equivalence
+    )
 
 
 @pytest.fixture
@@ -54,19 +56,25 @@ def string_length_pseudometric():
 @pytest.fixture
 def list_length_pseudometric():
     """Fixture for a pseudometric based on list length equivalence."""
-    return EquivalenceRelationPseudometric(equivalence_relation=list_length_equivalence)
+    return EquivalenceRelationPseudometric(
+        equivalence_relation=list_length_equivalence
+    )
 
 
 @pytest.fixture
 def always_equivalent_pseudometric():
     """Fixture for a pseudometric where everything is equivalent."""
-    return EquivalenceRelationPseudometric(equivalence_relation=always_equivalent)
+    return EquivalenceRelationPseudometric(
+        equivalence_relation=always_equivalent
+    )
 
 
 @pytest.fixture
 def never_equivalent_pseudometric():
     """Fixture for a pseudometric where nothing is equivalent (except to itself)."""
-    return EquivalenceRelationPseudometric(equivalence_relation=never_equivalent)
+    return EquivalenceRelationPseudometric(
+        equivalence_relation=never_equivalent
+    )
 
 
 @pytest.mark.unit
@@ -172,9 +180,13 @@ def test_distance_error_handling():
     def error_relation(x, y):
         raise ValueError("Test error")
 
-    pseudometric = EquivalenceRelationPseudometric(equivalence_relation=error_relation)
+    pseudometric = EquivalenceRelationPseudometric(
+        equivalence_relation=error_relation
+    )
 
-    with pytest.raises(ValueError, match="Failed to calculate distance: Test error"):
+    with pytest.raises(
+        ValueError, match="Failed to calculate distance: Test error"
+    ):
         pseudometric.distance(1, 2)
 
 
@@ -186,7 +198,9 @@ def test_distances_error_handling():
     def error_relation(x, y):
         raise ValueError("Test error")
 
-    pseudometric = EquivalenceRelationPseudometric(equivalence_relation=error_relation)
+    pseudometric = EquivalenceRelationPseudometric(
+        equivalence_relation=error_relation
+    )
 
     with pytest.raises(
         ValueError,
@@ -232,7 +246,9 @@ def test_check_symmetry_error_handling():
     def error_relation(x, y):
         raise ValueError("Test error")
 
-    pseudometric = EquivalenceRelationPseudometric(equivalence_relation=error_relation)
+    pseudometric = EquivalenceRelationPseudometric(
+        equivalence_relation=error_relation
+    )
 
     with pytest.raises(
         ValueError,
@@ -258,7 +274,9 @@ def test_check_triangle_inequality_error_handling():
     def error_relation(x, y):
         raise ValueError("Test error")
 
-    pseudometric = EquivalenceRelationPseudometric(equivalence_relation=error_relation)
+    pseudometric = EquivalenceRelationPseudometric(
+        equivalence_relation=error_relation
+    )
 
     with pytest.raises(
         ValueError,
@@ -272,7 +290,9 @@ def test_check_weak_identity(mod3_pseudometric):
     """Test the check_weak_identity method."""
     # Should be consistent for any inputs
     assert mod3_pseudometric.check_weak_identity(0, 3) is True  # equivalent
-    assert mod3_pseudometric.check_weak_identity(0, 1) is True  # not equivalent
+    assert (
+        mod3_pseudometric.check_weak_identity(0, 1) is True
+    )  # not equivalent
 
 
 @pytest.mark.unit
@@ -283,9 +303,13 @@ def test_check_weak_identity_error_handling():
     def error_relation(x, y):
         raise ValueError("Test error")
 
-    pseudometric = EquivalenceRelationPseudometric(equivalence_relation=error_relation)
+    pseudometric = EquivalenceRelationPseudometric(
+        equivalence_relation=error_relation
+    )
 
-    with pytest.raises(ValueError, match="Failed to check weak identity: Test error"):
+    with pytest.raises(
+        ValueError, match="Failed to check weak identity: Test error"
+    ):
         pseudometric.check_weak_identity(1, 2)
 
 

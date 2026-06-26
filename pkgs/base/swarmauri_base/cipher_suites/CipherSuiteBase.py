@@ -20,7 +20,9 @@ from swarmauri_core.cipher_suites import (
 class CipherSuiteBase(ICipherSuite, ComponentBase):
     """Pydantic-enabled convenience base for cipher suite implementations."""
 
-    resource: str = Field(default=ResourceTypes.CIPHER_SUITE.value, frozen=True)
+    resource: str = Field(
+        default=ResourceTypes.CIPHER_SUITE.value, frozen=True
+    )
     type: str = "CipherSuiteBase"
 
     def suite_id(self) -> str:  # pragma: no cover - abstract placeholder
@@ -28,7 +30,9 @@ class CipherSuiteBase(ICipherSuite, ComponentBase):
 
     def supports(
         self,
-    ) -> Mapping[CipherOp, Iterable[Alg]]:  # pragma: no cover - abstract placeholder
+    ) -> Mapping[
+        CipherOp, Iterable[Alg]
+    ]:  # pragma: no cover - abstract placeholder
         raise NotImplementedError
 
     def default_alg(

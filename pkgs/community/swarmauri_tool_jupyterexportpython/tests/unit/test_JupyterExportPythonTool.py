@@ -35,16 +35,18 @@ def test_tool_initialization() -> None:
     assert tool.name == "JupyterExportPythonTool", (
         "Expected name to match class definition"
     )
-    assert tool.description == "Converts Jupyter Notebooks to Python scripts.", (
-        "Tool description should match the declared string."
-    )
+    assert (
+        tool.description == "Converts Jupyter Notebooks to Python scripts."
+    ), "Tool description should match the declared string."
     assert tool.type == "JupyterExportPythonTool", (
         "Type should be 'JupyterExportPythonTool'"
     )
     assert len(tool.parameters) == 2, "Expected exactly two default parameters"
 
 
-@patch("swarmauri_tool_jupyterexportpython.JupyterExportPythonTool.PythonExporter")
+@patch(
+    "swarmauri_tool_jupyterexportpython.JupyterExportPythonTool.PythonExporter"
+)
 def test_export_notebook_success(
     mock_exporter_class: MagicMock, mock_notebook: NotebookNode
 ) -> None:
@@ -53,18 +55,25 @@ def test_export_notebook_success(
     runs without errors.
     """
     mock_exporter = mock_exporter_class.return_value
-    mock_exporter.from_notebook_node.return_value = ("# Exported Python Script", None)
+    mock_exporter.from_notebook_node.return_value = (
+        "# Exported Python Script",
+        None,
+    )
 
     tool = JupyterExportPythonTool()
     result = tool(notebook=mock_notebook)
 
-    assert "exported_script" in result, "Expected 'exported_script' key in the result"
+    assert "exported_script" in result, (
+        "Expected 'exported_script' key in the result"
+    )
     assert "# Exported Python Script" in result["exported_script"], (
         "Exported script content should match the mock response."
     )
 
 
-@patch("swarmauri_tool_jupyterexportpython.JupyterExportPythonTool.PythonExporter")
+@patch(
+    "swarmauri_tool_jupyterexportpython.JupyterExportPythonTool.PythonExporter"
+)
 def test_export_notebook_with_template(
     mock_exporter_class: MagicMock, mock_notebook: NotebookNode
 ) -> None:
@@ -85,10 +94,14 @@ def test_export_notebook_with_template(
     assert mock_exporter.template_file == custom_template_path, (
         "PythonExporter.template_file should be set to the provided custom template path."
     )
-    assert "exported_script" in result, "Expected 'exported_script' key in the result"
+    assert "exported_script" in result, (
+        "Expected 'exported_script' key in the result"
+    )
 
 
-@patch("swarmauri_tool_jupyterexportpython.JupyterExportPythonTool.PythonExporter")
+@patch(
+    "swarmauri_tool_jupyterexportpython.JupyterExportPythonTool.PythonExporter"
+)
 def test_export_notebook_failure(
     mock_exporter_class: MagicMock, mock_notebook: NotebookNode
 ) -> None:
@@ -101,7 +114,9 @@ def test_export_notebook_failure(
     tool = JupyterExportPythonTool()
     result = tool(notebook=mock_notebook)
 
-    assert "error" in result, "Expected 'error' key in the result due to exception"
+    assert "error" in result, (
+        "Expected 'error' key in the result due to exception"
+    )
     assert "Test failure" in result["error"], (
         "Error message should contain the exception text"
     )
@@ -114,7 +129,9 @@ def test_invalid_notebook_input() -> None:
     tool = JupyterExportPythonTool()
     result = tool(notebook=None)  # type: ignore
 
-    assert "error" in result, "Expected 'error' key due to invalid notebook input"
+    assert "error" in result, (
+        "Expected 'error' key due to invalid notebook input"
+    )
     assert "Export failed" in result["error"], (
         "Error message should indicate export failure for invalid input."
     )

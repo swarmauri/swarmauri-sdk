@@ -62,7 +62,9 @@ class StripeBillingProvider(
     def _require(spec: BillingSpec, field: str) -> Any:
         value = spec.resolve(field)
         if value is None or (isinstance(value, str) and not value.strip()):
-            raise ValueError(f"{field} is required for {spec.__class__.__name__}")
+            raise ValueError(
+                f"{field} is required for {spec.__class__.__name__}"
+            )
         return value
 
     # ---------------------------------------------------------------- Products & Prices
@@ -211,10 +213,13 @@ class StripeBillingProvider(
         stripe = self._client()
         customer_id = self._require(spec, "customer_id")
         items = [
-            {"price": item.price_id, "quantity": item.quantity} for item in spec.items
+            {"price": item.price_id, "quantity": item.quantity}
+            for item in spec.items
         ]
         if not items:
-            raise ValueError("SubscriptionSpec.items must contain at least one item")
+            raise ValueError(
+                "SubscriptionSpec.items must contain at least one item"
+            )
         sub = stripe.Subscription.create(
             customer=customer_id,
             items=items,
@@ -342,7 +347,9 @@ class StripeBillingProvider(
             amount=amount_minor,
             currency=currency.lower(),
             transfer_data={"destination": split_code_or_params["destination"]},
-            application_fee_amount=split_code_or_params["application_fee_amount"],
+            application_fee_amount=split_code_or_params[
+                "application_fee_amount"
+            ],
             idempotency_key=idempotency_key,
         )
         result = {
@@ -405,8 +412,12 @@ class StripeBillingProvider(
             result = False
         return result
 
-    def _list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
+    def _list_disputes(
+        self, *, limit: int = 50
+    ) -> Sequence[Mapping[str, Any]]:
         stripe = self._client()
         disputes = stripe.Dispute.list(limit=limit)
-        data = disputes.get("data", []) if isinstance(disputes, Mapping) else []
+        data = (
+            disputes.get("data", []) if isinstance(disputes, Mapping) else []
+        )
         return cast(Sequence[Mapping[str, Any]], data)

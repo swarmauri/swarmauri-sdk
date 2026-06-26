@@ -69,7 +69,9 @@ class JupyterExecuteAndConvertTool(ToolBase):
     description: str = (
         "Executes a Jupyter notebook and converts it to a specified format."
     )
-    type: Literal["JupyterExecuteAndConvertTool"] = "JupyterExecuteAndConvertTool"
+    type: Literal["JupyterExecuteAndConvertTool"] = (
+        "JupyterExecuteAndConvertTool"
+    )
 
     def __call__(
         self,
@@ -129,7 +131,9 @@ class JupyterExecuteAndConvertTool(ToolBase):
                 executed_notebook,
             ]
 
-            logger.info(f"Executing notebook via command: {' '.join(execute_cmd)}")
+            logger.info(
+                f"Executing notebook via command: {' '.join(execute_cmd)}"
+            )
             subprocess.run(execute_cmd, check=True, timeout=execution_timeout)
             logger.info(f"Notebook execution completed: {executed_notebook}")
 
@@ -142,7 +146,9 @@ class JupyterExecuteAndConvertTool(ToolBase):
                 "message": f"Notebook execution timed out after {execution_timeout} seconds.",
             }
         except subprocess.CalledProcessError as cpe:
-            logger.error(f"Error occurred during notebook execution: {str(cpe)}")
+            logger.error(
+                f"Error occurred during notebook execution: {str(cpe)}"
+            )
             return {
                 "error": "ExecutionError",
                 "message": f"An error occurred while executing the notebook: {str(cpe)}",
@@ -164,11 +170,15 @@ class JupyterExecuteAndConvertTool(ToolBase):
                 output_format,
                 executed_notebook,
             ]
-            logger.info(f"Converting notebook via command: {' '.join(convert_cmd)}")
+            logger.info(
+                f"Converting notebook via command: {' '.join(convert_cmd)}"
+            )
             subprocess.run(convert_cmd, check=True)
 
             # Determine the name of the converted file
-            converted_file = f"{os.path.splitext(executed_notebook)[0]}.{output_format}"
+            converted_file = (
+                f"{os.path.splitext(executed_notebook)[0]}.{output_format}"
+            )
             logger.info(
                 f"Notebook successfully converted to {output_format}. File: {converted_file}"
             )
@@ -176,7 +186,9 @@ class JupyterExecuteAndConvertTool(ToolBase):
             return {"converted_file": converted_file, "status": "success"}
 
         except subprocess.CalledProcessError as cpe:
-            logger.error(f"Error occurred during notebook conversion: {str(cpe)}")
+            logger.error(
+                f"Error occurred during notebook conversion: {str(cpe)}"
+            )
             return {
                 "error": "ConversionError",
                 "message": f"An error occurred while converting the notebook: {str(cpe)}",

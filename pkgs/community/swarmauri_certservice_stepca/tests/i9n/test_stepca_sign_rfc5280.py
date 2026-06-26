@@ -38,7 +38,9 @@ def test_sign_cert_rfc5280(rsa_keyref: KeyRef) -> None:
     csr = asyncio.run(service.create_csr(rsa_keyref, {"CN": "example"}))
 
     ca_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    subject = issuer = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "example")])
+    subject = issuer = x509.Name(
+        [x509.NameAttribute(NameOID.COMMON_NAME, "example")]
+    )
     now = dt.datetime.now(dt.timezone.utc)
     cert = (
         x509.CertificateBuilder()
@@ -62,5 +64,6 @@ def test_sign_cert_rfc5280(rsa_keyref: KeyRef) -> None:
     cert_bytes = asyncio.run(run())
     parsed = x509.load_pem_x509_certificate(cert_bytes)
     assert (
-        parsed.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value == "example"
+        parsed.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
+        == "example"
     )

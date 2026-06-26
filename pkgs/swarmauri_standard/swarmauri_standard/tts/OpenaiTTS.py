@@ -32,11 +32,20 @@ class OpenaiTTS(TTSBase):
     api_key: SecretStr
     allowed_models: List[str] = ["tts-1", "tts-1-hd", "gpt-4o-mini-tts"]
 
-    allowed_voices: List[str] = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
+    allowed_voices: List[str] = [
+        "alloy",
+        "echo",
+        "fable",
+        "onyx",
+        "nova",
+        "shimmer",
+    ]
     name: str = "tts-1"
     type: Literal["OpenaiTTS"] = "OpenaiTTS"
     voice: str = "alloy"
-    _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/audio/speech")
+    _BASE_URL: str = PrivateAttr(
+        default="https://api.openai.com/v1/audio/speech"
+    )
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
     def __init__(self, **data: Dict[str, Any]):
@@ -89,7 +98,9 @@ class OpenaiTTS(TTSBase):
         payload = {"model": self.name, "voice": self.voice, "input": text}
 
         with httpx.Client(timeout=30) as client:
-            response = client.post(self._BASE_URL, headers=self._headers, json=payload)
+            response = client.post(
+                self._BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
 
             with open(audio_path, "wb") as audio_file:
@@ -223,7 +234,8 @@ class OpenaiTTS(TTSBase):
                 return await self.apredict(text=text, audio_path=path)
 
         tasks = [
-            process_conversation(text, path) for text, path in text_path_dict.items()
+            process_conversation(text, path)
+            for text, path in text_path_dict.items()
         ]
         return await asyncio.gather(*tasks)
 

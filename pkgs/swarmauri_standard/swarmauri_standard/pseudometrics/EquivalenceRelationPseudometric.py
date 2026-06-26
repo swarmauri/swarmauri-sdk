@@ -18,7 +18,9 @@ VectorType = Literal[IVector]
 MatrixType = Literal[IMatrix]
 
 
-@ComponentBase.register_type(PseudometricBase, "EquivalenceRelationPseudometric")
+@ComponentBase.register_type(
+    PseudometricBase, "EquivalenceRelationPseudometric"
+)
 class EquivalenceRelationPseudometric(PseudometricBase):
     """
     Implements a pseudometric based on equivalence relations.
@@ -34,12 +36,16 @@ class EquivalenceRelationPseudometric(PseudometricBase):
     3. Transitivity: if x ~ y and y ~ z, then x ~ z
     """
 
-    type: Literal["EquivalenceRelationPseudometric"] = "EquivalenceRelationPseudometric"
+    type: Literal["EquivalenceRelationPseudometric"] = (
+        "EquivalenceRelationPseudometric"
+    )
     equivalence_relation: Callable[[Any, Any], bool] = Field(
         ..., description="Equivalence relation function"
     )
 
-    def __init__(self, equivalence_relation: Callable[[Any, Any], bool], **kwargs):
+    def __init__(
+        self, equivalence_relation: Callable[[Any, Any], bool], **kwargs
+    ):
         """
         Initialize the EquivalenceRelationPseudometric with an equivalence relation.
 
@@ -87,8 +93,12 @@ class EquivalenceRelationPseudometric(PseudometricBase):
 
     def distances(
         self,
-        xs: Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]],
-        ys: Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]],
+        xs: Sequence[
+            Union[VectorType, MatrixType, Sequence[T], str, Callable]
+        ],
+        ys: Sequence[
+            Union[VectorType, MatrixType, Sequence[T], str, Callable]
+        ],
     ) -> List[List[float]]:
         """
         Calculate the pairwise distances between two collections of objects.

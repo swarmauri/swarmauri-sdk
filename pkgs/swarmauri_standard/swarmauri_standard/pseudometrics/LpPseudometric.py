@@ -1,6 +1,15 @@
 import logging
 import math
-from typing import Callable, List, Literal, Optional, Sequence, Tuple, TypeVar, Union
+from typing import (
+    Callable,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 
 try:
@@ -104,7 +113,9 @@ class LpPseudometric(PseudometricBase):
         # Validate coordinates if provided
         if coordinates is not None:
             if any(c < 0 for c in coordinates):
-                raise ValueError("Coordinates must contain non-negative indices")
+                raise ValueError(
+                    "Coordinates must contain non-negative indices"
+                )
 
         self.p = p
         self.domain = domain
@@ -146,7 +157,9 @@ class LpPseudometric(PseudometricBase):
             arr = [ord(c) for c in x]
         elif callable(x):
             if self.domain is None:
-                raise ValueError("Domain must be specified when using callable inputs")
+                raise ValueError(
+                    "Domain must be specified when using callable inputs"
+                )
 
             # Sample the function over the domain
             a, b = self.domain
@@ -162,7 +175,9 @@ class LpPseudometric(PseudometricBase):
                 # Try to convert to array as a last resort
                 arr = list(x)
             except Exception:
-                raise TypeError(f"Unsupported input type for LpPseudometric: {type(x)}")
+                raise TypeError(
+                    f"Unsupported input type for LpPseudometric: {type(x)}"
+                )
         if _NP_AVAILABLE:
             return np.array(arr, dtype=float)
         return arr
@@ -249,7 +264,11 @@ class LpPseudometric(PseudometricBase):
             y_arr = self._convert_to_array(y)
 
             # Check if dimensions are compatible
-            if _NP_AVAILABLE and hasattr(x_arr, "shape") and hasattr(y_arr, "shape"):
+            if (
+                _NP_AVAILABLE
+                and hasattr(x_arr, "shape")
+                and hasattr(y_arr, "shape")
+            ):
                 if x_arr.shape != y_arr.shape:
                     raise ValueError(
                         f"Inputs must have the same shape: {x_arr.shape} vs {y_arr.shape}"
@@ -301,7 +320,9 @@ class LpPseudometric(PseudometricBase):
                     if _NP_AVAILABLE
                     else sum((d**2) * scaling_factor for d in diff)
                 )
-                return float(np.sqrt(total) if _NP_AVAILABLE else math.sqrt(total))
+                return float(
+                    np.sqrt(total) if _NP_AVAILABLE else math.sqrt(total)
+                )
             elif (_NP_AVAILABLE and np.isinf(self.p)) or (
                 not _NP_AVAILABLE and math.isinf(self.p)
             ):
@@ -315,7 +336,9 @@ class LpPseudometric(PseudometricBase):
                 return float((total) ** (1.0 / self.p))
 
         except Exception as e:
-            logger.error(f"Error calculating Lp pseudometric distance: {str(e)}")
+            logger.error(
+                f"Error calculating Lp pseudometric distance: {str(e)}"
+            )
             raise
 
     def distances(
@@ -414,7 +437,11 @@ class LpPseudometric(PseudometricBase):
             return False
 
     def check_triangle_inequality(
-        self, x: InputType, y: InputType, z: InputType, tolerance: float = 1e-10
+        self,
+        x: InputType,
+        y: InputType,
+        z: InputType,
+        tolerance: float = 1e-10,
     ) -> bool:
         """
         Check if the distance function satisfies the triangle inequality.
@@ -494,9 +521,9 @@ class LpPseudometric(PseudometricBase):
 
                 # If the filtered arrays are equal but the original arrays are not,
                 # then we have a case of weak identity
-                return np.array_equal(x_filtered, y_filtered) and not np.array_equal(
-                    x_arr, y_arr
-                )
+                return np.array_equal(
+                    x_filtered, y_filtered
+                ) and not np.array_equal(x_arr, y_arr)
 
             # If we have a domain restriction for callable functions,
             # we can't easily check this property in the general case
@@ -516,7 +543,9 @@ class LpPseudometric(PseudometricBase):
             String representation
         """
         domain_str = f", domain={self.domain}" if self.domain else ""
-        coords_str = f", coordinates={self.coordinates}" if self.coordinates else ""
+        coords_str = (
+            f", coordinates={self.coordinates}" if self.coordinates else ""
+        )
         return f"LpPseudometric(p={self.p}{domain_str}{coords_str})"
 
     def __repr__(self) -> str:

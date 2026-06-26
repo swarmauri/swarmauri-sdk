@@ -20,7 +20,11 @@ class PytesseractOCR(OCRBase):
     tesseract_cmd: str = Field(
         default_factory=lambda: os.environ.get(
             "TESSERACT_CMD",
-            ("/usr/bin/tesseract" if os.path.exists("/usr/bin/tesseract") else None),
+            (
+                "/usr/bin/tesseract"
+                if os.path.exists("/usr/bin/tesseract")
+                else None
+            ),
         )
     )
     type: Literal["PytesseractOCR"] = "PytesseractOCR"
@@ -32,7 +36,9 @@ class PytesseractOCR(OCRBase):
         super().__init__(**data)
         pytesseract.pytesseract.tesseract_cmd = self.tesseract_cmd
 
-    def _process_image(self, image: Union[str, bytes, Image.Image], **kwargs) -> str:
+    def _process_image(
+        self, image: Union[str, bytes, Image.Image], **kwargs
+    ) -> str:
         """Process an image and return extracted text."""
         try:
             # Handle different input types
@@ -52,14 +58,18 @@ class PytesseractOCR(OCRBase):
             custom_config = kwargs.get("config", self.config)
             lang = kwargs.get("language", self.language)
 
-            text = pytesseract.image_to_string(img, lang=lang, config=custom_config)
+            text = pytesseract.image_to_string(
+                img, lang=lang, config=custom_config
+            )
 
             return text.strip()
 
         except Exception as e:
             raise Exception(f"OCR processing failed: {str(e)}")
 
-    def extract_text(self, image: Union[str, bytes, Image.Image], **kwargs) -> str:
+    def extract_text(
+        self, image: Union[str, bytes, Image.Image], **kwargs
+    ) -> str:
         """
         Extracts text from an image.
 
@@ -81,7 +91,9 @@ class PytesseractOCR(OCRBase):
         Asynchronously extracts text from an image.
         """
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, self.extract_text, image, **kwargs)
+        return await loop.run_in_executor(
+            None, self.extract_text, image, **kwargs
+        )
 
     def batch(
         self, images: List[Union[str, bytes, Image.Image]], **kwargs
@@ -154,11 +166,15 @@ class PytesseractOCR(OCRBase):
 
             # Skip the first line which is the directory info
             # and filter out empty lines
-            languages = [lang.strip() for lang in output_lines[1:] if lang.strip()]
+            languages = [
+                lang.strip() for lang in output_lines[1:] if lang.strip()
+            ]
 
             return languages
 
         except subprocess.CalledProcessError as e:
-            raise Exception(f"Failed to get language list from Tesseract: {e.stderr}")
+            raise Exception(
+                f"Failed to get language list from Tesseract: {e.stderr}"
+            )
         except Exception as e:
             raise Exception(f"Error getting supported languages: {str(e)}")

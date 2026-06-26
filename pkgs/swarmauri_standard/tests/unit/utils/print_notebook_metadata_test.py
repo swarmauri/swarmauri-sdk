@@ -51,7 +51,9 @@ def test_get_notebook_name_no_ipython():
 def test_get_notebook_name_invalid_filename():
     """Test with invalid filename format."""
     mock_kernel = Mock()
-    mock_parent = {"metadata": {"filename": "invalid_file.txt"}}  # Not an ipynb file
+    mock_parent = {
+        "metadata": {"filename": "invalid_file.txt"}
+    }  # Not an ipynb file
     mock_kernel.get_parent.return_value = mock_parent
     mock_ip = Mock()
     mock_ip.kernel = mock_kernel
@@ -67,7 +69,9 @@ def test_get_notebook_name_invalid_filename():
 def test_get_notebook_name_with_url_parameters():
     """Test filename cleaning from URL parameters."""
     mock_kernel = Mock()
-    mock_parent = {"metadata": {"filename": "notebook.ipynb?param=value#fragment"}}
+    mock_parent = {
+        "metadata": {"filename": "notebook.ipynb?param=value#fragment"}
+    }
     mock_kernel.get_parent.return_value = mock_parent
     mock_ip = Mock()
     mock_ip.kernel = mock_kernel
@@ -80,7 +84,9 @@ def test_get_notebook_name_with_url_parameters():
         assert result == "notebook.ipynb"
 
 
-@pytest.mark.parametrize("exception_type", [AttributeError, KeyError, Exception])
+@pytest.mark.parametrize(
+    "exception_type", [AttributeError, KeyError, Exception]
+)
 def test_get_notebook_name_exceptions(exception_type):
     """Test exception handling in get_notebook_name."""
     with patch(

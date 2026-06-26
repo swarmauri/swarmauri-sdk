@@ -3,7 +3,9 @@ from typing import Any, Callable, Dict, Literal, Optional
 from pydantic import ConfigDict, Field
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.task_mgmt_strategies.ITaskMgmtStrategy import ITaskMgmtStrategy
+from swarmauri_core.task_mgmt_strategies.ITaskMgmtStrategy import (
+    ITaskMgmtStrategy,
+)
 
 
 @ComponentBase.register_model()
@@ -18,7 +20,10 @@ class TaskMgmtStrategyBase(ITaskMgmtStrategy, ComponentBase):
 
     @abstractmethod
     def assign_task(
-        self, task: Dict[str, Any], agent_factory: Callable, service_registry: Callable
+        self,
+        task: Dict[str, Any],
+        agent_factory: Callable,
+        service_registry: Callable,
     ) -> str:
         """
         Abstract method to assign a task to a service.

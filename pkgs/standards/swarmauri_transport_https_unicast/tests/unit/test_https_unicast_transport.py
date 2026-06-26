@@ -14,8 +14,19 @@ from swarmauri_base.ComponentBase import ResourceTypes
 from swarmauri_base.DynamicBase import DynamicBase
 from swarmauri_base.transports import TransportBase
 from swarmauri_certs_self_signed import SelfSignedCertificate
-from swarmauri_core.crypto.types import ExportPolicy, JWAAlg, KeyRef, KeyType, KeyUse
-from swarmauri_core.transports import AddressScheme, Feature, Protocol, SecurityMode
+from swarmauri_core.crypto.types import (
+    ExportPolicy,
+    JWAAlg,
+    KeyRef,
+    KeyType,
+    KeyUse,
+)
+from swarmauri_core.transports import (
+    AddressScheme,
+    Feature,
+    Protocol,
+    SecurityMode,
+)
 from swarmauri_signing_jws import JwsSignerVerifier
 from swarmauri_transport_https_unicast import (
     HttpsSecurityPolicy,
@@ -32,7 +43,9 @@ JWS_KEY = {
 
 
 def _self_signed_loopback_cert() -> bytes:
-    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    private_key = rsa.generate_private_key(
+        public_exponent=65537, key_size=2048
+    )
     private_pem = private_key.private_bytes(
         serialization.Encoding.PEM,
         serialization.PrivateFormat.PKCS8,
@@ -46,9 +59,9 @@ def _self_signed_loopback_cert() -> bytes:
         export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
         material=private_pem,
     )
-    return SelfSignedCertificate.tls_server("127.0.0.1", ip_addrs=("127.0.0.1",)).issue(
-        key_ref
-    )
+    return SelfSignedCertificate.tls_server(
+        "127.0.0.1", ip_addrs=("127.0.0.1",)
+    ).issue(key_ref)
 
 
 @pytest.mark.unit
@@ -61,7 +74,9 @@ def test_component_registration_and_transport_kind() -> None:
     assert transport.resource == ResourceTypes.TRANSPORT.value
     assert transport.name == "HttpsUnicastTransport"
     assert (
-        DynamicBase._registry["TransportBase"]["subtypes"]["HttpsUnicastTransport"]
+        DynamicBase._registry["TransportBase"]["subtypes"][
+            "HttpsUnicastTransport"
+        ]
         is HttpsUnicastTransport
     )
 
@@ -76,7 +91,11 @@ def test_model_serialization_roundtrip_preserves_component_identity() -> None:
         security_policy=HttpsSecurityPolicy(
             bearer_token="test-token",
             http_signature_secret="shared-secret",
-            request_jws_key={"kind": "raw", "key": "request-secret", "kid": "body.1"},
+            request_jws_key={
+                "kind": "raw",
+                "key": "request-secret",
+                "kid": "body.1",
+            },
             request_jws_kid="body.1",
             response_jws_key={
                 "kind": "raw",
@@ -87,7 +106,9 @@ def test_model_serialization_roundtrip_preserves_component_identity() -> None:
         require_response_jws=True,
     )
 
-    restored = HttpsUnicastTransport.model_validate_json(transport.model_dump_json())
+    restored = HttpsUnicastTransport.model_validate_json(
+        transport.model_dump_json()
+    )
 
     assert restored.id == transport.id
     assert restored.type == transport.type
@@ -129,7 +150,9 @@ def test_cipher_suite_accepts_valid_tls13_ciphers() -> None:
 def test_cipher_suite_rejects_invalid_or_legacy_ciphers() -> None:
     transport = HttpsUnicastTransport()
 
-    assert transport.allowed_tls_cipher("TLS_RSA_WITH_AES_128_CBC_SHA") is False
+    assert (
+        transport.allowed_tls_cipher("TLS_RSA_WITH_AES_128_CBC_SHA") is False
+    )
     assert transport.allowed_tls_cipher("AES-256-GCM") is False
     assert transport.allowed_tls_cipher("") is False
 
@@ -161,7 +184,9 @@ def test_http_signature_uses_httpsig_hmac_shape() -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_request_applies_security_headers_and_verifies_response_jws() -> None:
+async def test_request_applies_security_headers_and_verifies_response_jws() -> (
+    None
+):
     response_body = b'{"ok":true}'
     jws = JwsSignerVerifier()
     response_jws = await jws.sign_compact(
@@ -204,7 +229,9 @@ async def test_request_applies_security_headers_and_verifies_response_jws() -> N
         httpx_transport=httpx.MockTransport(handler),
     )
 
-    status, headers, body = await transport.request("POST", "/orders", body=b"{}")
+    status, headers, body = await transport.request(
+        "POST", "/orders", body=b"{}"
+    )
 
     assert status == 200
     assert body == response_body
@@ -219,7 +246,9 @@ async def test_certificate_preflight_verifies_x509_trust_root() -> None:
     cert_pem = _self_signed_loopback_cert()
     transport = HttpsUnicastTransport()
 
-    result = await transport.verify_certificate(cert_pem, trust_roots=[cert_pem])
+    result = await transport.verify_certificate(
+        cert_pem, trust_roots=[cert_pem]
+    )
 
     assert result["valid"] is True
     assert result["subject"] == "CN=127.0.0.1"

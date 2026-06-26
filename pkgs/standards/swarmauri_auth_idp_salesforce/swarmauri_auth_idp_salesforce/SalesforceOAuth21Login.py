@@ -21,7 +21,9 @@ class SalesforceOAuth21Login(SalesforceOIDCLoginMixin, OAuth21LoginBase):
         payload = await self._auth_payload()
         return {"url": payload["url"], "state": payload["state"]}
 
-    async def exchange_and_identity(self, code: str, state: str) -> Mapping[str, Any]:
+    async def exchange_and_identity(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         metadata = await self._metadata()
         self.discovery_cache = metadata
         tokens = await self._exchange_tokens(code, state)
@@ -31,7 +33,9 @@ class SalesforceOAuth21Login(SalesforceOIDCLoginMixin, OAuth21LoginBase):
         except Exception:
             claims = {}
         email = claims.get("email")
-        name = claims.get("name") or claims.get("preferred_username") or "Unknown"
+        name = (
+            claims.get("name") or claims.get("preferred_username") or "Unknown"
+        )
         subject = claims.get("sub")
         if (not email or not subject) and metadata.get("userinfo_endpoint"):
             profile = await self._fetch_userinfo(tokens["access_token"])

@@ -18,11 +18,15 @@ class DynamicSchemaExampleBase(ComponentBase):
     label: str
 
 
-@ComponentBase.register_type(DynamicSchemaExampleBase, "DynamicSchemaExampleApiSource")
+@ComponentBase.register_type(
+    DynamicSchemaExampleBase, "DynamicSchemaExampleApiSource"
+)
 class DynamicSchemaExampleApiSource(DynamicSchemaExampleBase):
     """Example component configured from an API payload."""
 
-    type: Literal["DynamicSchemaExampleApiSource"] = "DynamicSchemaExampleApiSource"
+    type: Literal["DynamicSchemaExampleApiSource"] = (
+        "DynamicSchemaExampleApiSource"
+    )
     endpoint: str
     auth_required: bool = True
 
@@ -44,7 +48,9 @@ class DynamicSchemaExampleDatabaseSource(DynamicSchemaExampleBase):
 class DynamicSchemaExampleEnvelope(ComponentBase):
     """Envelope that can hold any registered example component kin."""
 
-    type: Literal["DynamicSchemaExampleEnvelope"] = "DynamicSchemaExampleEnvelope"
+    type: Literal["DynamicSchemaExampleEnvelope"] = (
+        "DynamicSchemaExampleEnvelope"
+    )
     component: SubclassUnion[DynamicSchemaExampleBase]
 
 
@@ -137,7 +143,9 @@ def test_database_persistence_round_trips_concrete_component_json():
         (original.model_dump_json(),),
     )
 
-    stored_json = db.execute("SELECT payload FROM component_specs").fetchone()[0]
+    stored_json = db.execute("SELECT payload FROM component_specs").fetchone()[
+        0
+    ]
     restored = DynamicSchemaExampleEnvelope.model_validate_json(stored_json)
 
     assert isinstance(restored.component, DynamicSchemaExampleApiSource)

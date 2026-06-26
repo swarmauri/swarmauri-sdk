@@ -2,7 +2,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from swarmauri_standard.documents.Document import Document
-from swarmauri_vectorstore_redis.RedisDocumentRetriever import RedisDocumentRetriever
+from swarmauri_vectorstore_redis.RedisDocumentRetriever import (
+    RedisDocumentRetriever,
+)
 
 
 @pytest.fixture
@@ -36,7 +38,9 @@ def test_ubc_type(retriever):
 def test_serialization(retriever):
     assert (
         retriever.id
-        == RedisDocumentRetriever.model_validate_json(retriever.model_dump_json()).id
+        == RedisDocumentRetriever.model_validate_json(
+            retriever.model_dump_json()
+        ).id
     )
 
 
@@ -57,9 +61,13 @@ def test_lazy_client_initialization(retriever):
 def test_retrieve_documents(retriever):
     """Test document retrieval functionality using the Document class."""
     # Create real Document instances.
-    doc1 = Document(id="doc1", content="Test document 1", metadata={"field1": "value1"})
+    doc1 = Document(
+        id="doc1", content="Test document 1", metadata={"field1": "value1"}
+    )
 
-    doc2 = Document(id="doc2", content="Test document 2", metadata={"field2": "value2"})
+    doc2 = Document(
+        id="doc2", content="Test document 2", metadata={"field2": "value2"}
+    )
 
     with patch(
         "swarmauri_vectorstore_redis.RedisDocumentRetriever.Client"

@@ -4,7 +4,9 @@ from abc import ABC, abstractmethod
 
 class IMeasurementCalculate(ABC):
     @abstractmethod
-    def calculate(self, *args: tuple[Any, ...], **kwargs: dict[str, Any]) -> Any:
+    def calculate(
+        self, *args: tuple[Any, ...], **kwargs: dict[str, Any]
+    ) -> Any:
         """
         Calculate the measurement based on the provided data.
 

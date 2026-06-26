@@ -12,7 +12,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
-from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, TYPE_CHECKING
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Mapping,
+    Optional,
+    Sequence,
+    TYPE_CHECKING,
+)
 
 try:
     from swarmauri_base.signing.SigningBase import SigningBase
@@ -91,7 +99,9 @@ def _canon_cbor(obj) -> bytes:
     """
 
     if not _CBOR_OK:
-        raise RuntimeError("CBOR canonicalization requires 'cbor2' to be installed.")
+        raise RuntimeError(
+            "CBOR canonicalization requires 'cbor2' to be installed."
+        )
     return cbor2.dumps(obj)
 
 
@@ -101,10 +111,14 @@ class _Sig:
 
     data: Dict[str, Any]
 
-    def __getitem__(self, k: str) -> object:  # pragma: no cover - simple delegation
+    def __getitem__(
+        self, k: str
+    ) -> object:  # pragma: no cover - simple delegation
         return self.data[k]
 
-    def get(self, k: str, default=None):  # pragma: no cover - simple delegation
+    def get(
+        self, k: str, default=None
+    ):  # pragma: no cover - simple delegation
         return self.data.get(k, default)
 
     def __iter__(self):  # pragma: no cover - simple delegation
@@ -184,7 +198,14 @@ class PgpEnvelopeSigner(SigningBase):
         sig_bytes = bytes(sig.__bytes__())
         sig_asc = str(sig)
         return [
-            _Sig({"alg": "OpenPGP", "kid": kid, "sig": sig_bytes, "armored": sig_asc})
+            _Sig(
+                {
+                    "alg": "OpenPGP",
+                    "kid": kid,
+                    "sig": sig_bytes,
+                    "armored": sig_asc,
+                }
+            )
         ]
 
     async def verify_bytes(
@@ -223,7 +244,9 @@ class PgpEnvelopeSigner(SigningBase):
                 elif isinstance(entry, str):
                     pubkeys.append(pgpy.PGPKey.from_blob(entry)[0])
                 else:
-                    raise TypeError("Unsupported public key in opts['pubkeys'].")
+                    raise TypeError(
+                        "Unsupported public key in opts['pubkeys']."
+                    )
 
         accepted = 0
         for sig in signatures:
@@ -267,7 +290,9 @@ class PgpEnvelopeSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            digest, signatures, require=require, opts=opts
+        )
 
     # ---------- canonicalization ----------
     async def canonicalize_envelope(
@@ -347,7 +372,9 @@ class PgpEnvelopeSigner(SigningBase):
         """
 
         payload = await self.canonicalize_envelope(env, canon=canon, opts=opts)
-        return await self.verify_bytes(payload, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            payload, signatures, require=require, opts=opts
+        )
 
     # ---------- internal ----------
     def _load_private_key(
@@ -373,4 +400,6 @@ class PgpEnvelopeSigner(SigningBase):
             if kind == "pgpy_key_armored" and isinstance(key.get("priv"), str):
                 k, _ = pgpy.PGPKey.from_blob(key["priv"])
                 return k
-        raise TypeError("Unsupported KeyRef for PgpEnvelopeSigner private key.")
+        raise TypeError(
+            "Unsupported KeyRef for PgpEnvelopeSigner private key."
+        )

@@ -42,6 +42,9 @@ class TwitterPostTool(ToolBase):
             tweet_id = response.data["id"]
             # Constructing URL to the tweet - Adjust the URL to match Twitter API v2 structure if needed
             tweet_url = f"https://twitter.com/user/status/{tweet_id}"
-            return {"message": "Tweet posted successfully!", "tweet_url": tweet_url}
+            return {
+                "message": "Tweet posted successfully!",
+                "tweet_url": tweet_url,
+            }
         except Exception as e:
             return {"message": f"Failed to post tweet: {e}"}

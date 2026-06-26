@@ -43,7 +43,10 @@ def test_ubc_type(cloud_qdrant_vector_store):
 @pytest.mark.unit
 def test_serialization(cloud_qdrant_vector_store):
     vs = cloud_qdrant_vector_store
-    assert vs.id == CloudQdrantVectorStore.model_validate_json(vs.model_dump_json()).id
+    assert (
+        vs.id
+        == CloudQdrantVectorStore.model_validate_json(vs.model_dump_json()).id
+    )
 
 
 @pytest.mark.unit

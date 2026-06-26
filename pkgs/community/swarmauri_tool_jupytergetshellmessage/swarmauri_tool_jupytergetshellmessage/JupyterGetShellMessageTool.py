@@ -48,7 +48,9 @@ class JupyterGetShellMessageTool(ToolBase):
         ]
     )
     name: str = "JupyterGetShellMessageTool"
-    description: str = "Retrieves messages from the Jupyter kernel's shell channel."
+    description: str = (
+        "Retrieves messages from the Jupyter kernel's shell channel."
+    )
     type: Literal["JupyterGetShellMessageTool"] = "JupyterGetShellMessageTool"
 
     # Public class attributes for patching.

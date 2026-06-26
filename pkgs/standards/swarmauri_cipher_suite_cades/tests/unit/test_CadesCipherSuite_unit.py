@@ -26,7 +26,9 @@ def test_initialization(cipher_suite: CadesCipherSuite) -> None:
 
 @pytest.mark.unit
 def test_serialization(cipher_suite: CadesCipherSuite) -> None:
-    restored = CadesCipherSuite.model_validate_json(cipher_suite.model_dump_json())
+    restored = CadesCipherSuite.model_validate_json(
+        cipher_suite.model_dump_json()
+    )
     assert restored.id == cipher_suite.id
 
 
@@ -74,14 +76,19 @@ def test_normalize_with_explicit_alg(cipher_suite: CadesCipherSuite) -> None:
     assert descriptor["op"] == "sign"
     assert descriptor["alg"] == "ECDSA-SHA256"
     assert descriptor["dialect"] == "cms"
-    assert descriptor["mapped"] == {"cms": "ECDSA-SHA256", "provider": "ECDSA-SHA256"}
+    assert descriptor["mapped"] == {
+        "cms": "ECDSA-SHA256",
+        "provider": "ECDSA-SHA256",
+    }
     assert descriptor["params"] == {"detached": True}
     assert descriptor["constraints"] == {}
     assert descriptor["policy"] == {}
 
 
 @pytest.mark.unit
-def test_normalize_rejects_unsupported_alg(cipher_suite: CadesCipherSuite) -> None:
+def test_normalize_rejects_unsupported_alg(
+    cipher_suite: CadesCipherSuite,
+) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="sign", alg="RSA-PSS-SHA512")
 

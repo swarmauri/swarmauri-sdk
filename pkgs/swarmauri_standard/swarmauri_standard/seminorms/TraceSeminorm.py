@@ -84,7 +84,9 @@ class TraceSeminorm(SeminormBase):
                         f"Failed to compute trace seminorm for numpy array: {str(e)}"
                     )
             else:
-                raise TypeError("Input numpy array must have at least 2 dimensions")
+                raise TypeError(
+                    "Input numpy array must have at least 2 dimensions"
+                )
 
         # If input is a vector, treat it as a column matrix
         elif isinstance(x, IVector):
@@ -95,13 +97,17 @@ class TraceSeminorm(SeminormBase):
                 singular_values = np.linalg.svd(matrix_data, compute_uv=False)
                 return float(np.sum(singular_values))
             except Exception as e:
-                logger.error(f"Error computing trace seminorm for vector: {str(e)}")
+                logger.error(
+                    f"Error computing trace seminorm for vector: {str(e)}"
+                )
                 raise ValueError(
                     f"Failed to compute trace seminorm for vector: {str(e)}"
                 )
 
         else:
-            logger.error(f"Unsupported input type for trace seminorm: {type(x)}")
+            logger.error(
+                f"Unsupported input type for trace seminorm: {type(x)}"
+            )
             raise TypeError(
                 f"Trace seminorm requires a matrix or matrix-like input, got {type(x)}"
             )

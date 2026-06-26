@@ -82,7 +82,9 @@ def _discover_from_pyproject(root: Path) -> list[str]:
 
 def _discover_packages(config: pytest.Config) -> list[GriffeTarget]:
     root_option = config.getoption("griffe_root")
-    root = Path(root_option).resolve() if root_option else Path(config.rootpath)
+    root = (
+        Path(root_option).resolve() if root_option else Path(config.rootpath)
+    )
     packages = config.getoption("griffe_packages")
     explicit = bool(packages)
     package_names: list[str]
@@ -113,9 +115,7 @@ def _discover_packages(config: pytest.Config) -> list[GriffeTarget]:
             # Fall back to importing the module to resolve its path.
             try:
                 module = importlib.import_module(package)
-            except (
-                Exception
-            ):  # pragma: no cover - import failure should surface during test discovery
+            except Exception:  # pragma: no cover - import failure should surface during test discovery
                 if explicit:
                     raise pytest.UsageError(
                         f"Unable to resolve package '{package}' for Griffe inspection."
@@ -129,7 +129,9 @@ def _discover_packages(config: pytest.Config) -> list[GriffeTarget]:
                     )
                 continue
             targets.append(
-                GriffeTarget(name=package, path=Path(module_file).resolve().parent)
+                GriffeTarget(
+                    name=package, path=Path(module_file).resolve().parent
+                )
             )
             seen.add(package)
     return targets
@@ -151,7 +153,9 @@ class GriffeWarningsItem(pytest.Item):
     def runtest(self) -> None:
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
-            griffe.load(self.target.name, search_paths=[str(self.target.search_path)])
+            griffe.load(
+                self.target.name, search_paths=[str(self.target.search_path)]
+            )
         griffe_warnings = [
             warning
             for warning in caught
@@ -171,7 +175,11 @@ class GriffeWarningsItem(pytest.Item):
             )
 
     def reportinfo(self) -> tuple[Path, int | None, str]:
-        return self.target.path, None, f"griffe warnings for {self.target.name}"
+        return (
+            self.target.path,
+            None,
+            f"griffe warnings for {self.target.name}",
+        )
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -183,7 +191,9 @@ def pytest_configure(config: pytest.Config) -> None:
 def pytest_collection_modifyitems(
     session: pytest.Session, config: pytest.Config, items: list[pytest.Item]
 ) -> None:
-    targets: list[GriffeTarget] = getattr(config, "_swarmauri_griffe_targets", [])
+    targets: list[GriffeTarget] = getattr(
+        config, "_swarmauri_griffe_targets", []
+    )
     if not targets:
         return
     for target in targets:

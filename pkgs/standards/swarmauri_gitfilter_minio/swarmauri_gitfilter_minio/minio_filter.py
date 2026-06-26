@@ -155,7 +155,9 @@ class MinioFilter(StorageAdapterBase, GitFilterBase):
                 key = key[len(self._prefix.rstrip("/")) + 1 :]
             yield key
 
-    def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
+    def download_prefix(
+        self, prefix: str, dest_dir: str | os.PathLike
+    ) -> None:
         """Download all objects beneath a prefix into a directory.
 
         prefix (str): Key prefix to copy from the bucket.
@@ -190,8 +192,12 @@ class MinioFilter(StorageAdapterBase, GitFilterBase):
         cfg = load_peagen_toml()
         minio_cfg = cfg.get("storage", {}).get("filters", {}).get("minio", {})
 
-        access_key = minio_cfg.get("access_key") or os.getenv("MINIO_ACCESS_KEY", "")
-        secret_key = minio_cfg.get("secret_key") or os.getenv("MINIO_SECRET_KEY", "")
+        access_key = minio_cfg.get("access_key") or os.getenv(
+            "MINIO_ACCESS_KEY", ""
+        )
+        secret_key = minio_cfg.get("secret_key") or os.getenv(
+            "MINIO_SECRET_KEY", ""
+        )
 
         return cls(
             endpoint=endpoint,

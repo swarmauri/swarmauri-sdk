@@ -5,7 +5,9 @@ from swarmauri_core.messages.IMessage import IMessage
 
 class IAgent(ABC):
     @abstractmethod
-    def exec(self, input_data: Optional[Any], llm_kwargs: Optional[Dict]) -> Any:
+    def exec(
+        self, input_data: Optional[Any], llm_kwargs: Optional[Dict]
+    ) -> Any:
         """
         Executive method that triggers the agent's action based on the input data.
         """

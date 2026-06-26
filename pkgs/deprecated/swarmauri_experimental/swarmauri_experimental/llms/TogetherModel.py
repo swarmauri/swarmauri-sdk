@@ -32,7 +32,9 @@ class TogetherModel(LLMBase):
         type (Literal["TogetherModel"]): Type identifier for the model class.
     """
 
-    _BASE_URL: str = PrivateAttr("https://api.together.xyz/v1/chat/completions")
+    _BASE_URL: str = PrivateAttr(
+        "https://api.together.xyz/v1/chat/completions"
+    )
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
 
@@ -235,7 +237,9 @@ class TogetherModel(LLMBase):
             stream=True,
         )
 
-        with self._client.stream("POST", self._BASE_URL, json=payload) as response:
+        with self._client.stream(
+            "POST", self._BASE_URL, json=payload
+        ) as response:
             response.raise_for_status()
             collected_content = []
 

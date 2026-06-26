@@ -15,7 +15,9 @@ class TestInit:
             version = mod.__version__
             assert isinstance(version, str), "Version must be a string"
         except AttributeError:
-            logging.error("Package version not found. Is the package installed?")
+            logging.error(
+                "Package version not found. Is the package installed?"
+            )
             pytest.fail("Package version not found")
 
     def test_all(self):
@@ -32,7 +34,9 @@ class TestInit:
         mod = import_module("swarmauri_middleware_llamaguard")
         from swarmauri_middleware_llamaguard import LlamaGuardMiddleware
 
-        assert hasattr(mod, "LlamaGuardMiddleware"), "LlamaGuardMiddleware not found"
+        assert hasattr(mod, "LlamaGuardMiddleware"), (
+            "LlamaGuardMiddleware not found"
+        )
         assert isinstance(LlamaGuardMiddleware, type), (
             "LlamaGuardMiddleware is not a class"
         )

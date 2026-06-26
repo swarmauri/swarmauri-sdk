@@ -83,13 +83,19 @@ def test_retrieves_messages(mock_websocket):
             json.dumps(
                 {
                     "msg_type": "stream",
-                    "content": {"name": "stdout", "text": "Hello from stdout\n"},
+                    "content": {
+                        "name": "stdout",
+                        "text": "Hello from stdout\n",
+                    },
                 }
             ),
             json.dumps(
                 {
                     "msg_type": "stream",
-                    "content": {"name": "stderr", "text": "Warning: something\n"},
+                    "content": {
+                        "name": "stderr",
+                        "text": "Warning: something\n",
+                    },
                 }
             ),
             json.dumps(
@@ -98,23 +104,35 @@ def test_retrieves_messages(mock_websocket):
                     "content": {"data": {"text/plain": "Execution result"}},
                 }
             ),
-            json.dumps({"msg_type": "status", "content": {"execution_state": "idle"}}),
+            json.dumps(
+                {"msg_type": "status", "content": {"execution_state": "idle"}}
+            ),
         ]
     )
 
     tool = JupyterGetIOPubMessageTool()
     result = tool("ws://test/api/kernels/1/channels", timeout=2.0)
 
-    assert result["timeout_exceeded"] is False, "Should not have exceeded timeout"
-    assert len(result["stdout"]) == 1, "Should have captured one stdout message"
+    assert result["timeout_exceeded"] is False, (
+        "Should not have exceeded timeout"
+    )
+    assert len(result["stdout"]) == 1, (
+        "Should have captured one stdout message"
+    )
     assert "Hello from stdout" in result["stdout"][0]
-    assert len(result["stderr"]) == 1, "Should have captured one stderr message"
+    assert len(result["stderr"]) == 1, (
+        "Should have captured one stderr message"
+    )
     assert "Warning: something" in result["stderr"][0]
-    assert len(result["execution_results"]) == 1, "Should have one execution result"
+    assert len(result["execution_results"]) == 1, (
+        "Should have one execution result"
+    )
     assert "text/plain" in result["execution_results"][0], (
         "Execution result data missing"
     )
-    assert result["logs"] == [], "Should not have any generic logs in this scenario"
+    assert result["logs"] == [], (
+        "Should not have any generic logs in this scenario"
+    )
 
 
 @pytest.mark.parametrize("idle_messages", [[], None])
@@ -129,7 +147,10 @@ def test_timeout(mock_websocket, idle_messages):
             json.dumps(
                 {
                     "msg_type": "stream",
-                    "content": {"name": "stdout", "text": "Still running...\n"},
+                    "content": {
+                        "name": "stdout",
+                        "text": "Still running...\n",
+                    },
                 }
             ),
             json.dumps(
@@ -175,9 +196,14 @@ def test_error_handling(mock_websocket):
     mock_websocket._messages.extend(
         [
             json.dumps(
-                {"msg_type": "error", "content": {"traceback": error_traceback}}
+                {
+                    "msg_type": "error",
+                    "content": {"traceback": error_traceback},
+                }
             ),
-            json.dumps({"msg_type": "status", "content": {"execution_state": "idle"}}),
+            json.dumps(
+                {"msg_type": "status", "content": {"execution_state": "idle"}}
+            ),
         ]
     )
 

@@ -23,12 +23,16 @@ class _MinimalHandler(IEmbedXMP):
     ) -> bytes:  # pragma: no cover - interface contract
         return data
 
-    def remove_xmp(self, data: bytes) -> bytes:  # pragma: no cover - interface contract
+    def remove_xmp(
+        self, data: bytes
+    ) -> bytes:  # pragma: no cover - interface contract
         return data
 
 
 def test_interface_requires_all_methods() -> None:
-    class _Incomplete(IEmbedXMP):  # pragma: no cover - exercised via instantiation
+    class _Incomplete(
+        IEmbedXMP
+    ):  # pragma: no cover - exercised via instantiation
         def supports(self, header: bytes, path: str) -> bool:
             return False
 
@@ -41,7 +45,9 @@ def test_interface_requires_all_methods() -> None:
 
 def test_interface_can_be_subclassed() -> None:
     handler = _MinimalHandler()
-    assert handler.supports(b"", "example"), "Expected subclass to be instantiable"
+    assert handler.supports(b"", "example"), (
+        "Expected subclass to be instantiable"
+    )
     assert handler.read_xmp(b"") == "<rdf:RDF/>"
     assert handler.write_xmp(b"data", "<rdf:RDF/>") == b"data"
     assert handler.remove_xmp(b"payload") == b"payload"

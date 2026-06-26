@@ -10,7 +10,8 @@ class IChainTracer(ABC):
 
     @abstractmethod
     def process_chain(
-        self, chain: List[Tuple[Any, Callable[..., Any], List[Any], Dict[str, Any]]]
+        self,
+        chain: List[Tuple[Any, Callable[..., Any], List[Any], Dict[str, Any]]],
     ) -> "IChainTracer":
         """
         Processes a sequence of operations defined in a chain.

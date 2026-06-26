@@ -37,14 +37,22 @@ class StaticKeyProvider(IKeyProvider):
     async def import_key(self, spec, material, *, public=None):
         raise NotImplementedError
 
-    async def rotate_key(self, kid: str, *, spec_overrides: Optional[dict] = None):
+    async def rotate_key(
+        self, kid: str, *, spec_overrides: Optional[dict] = None
+    ):
         raise NotImplementedError
 
-    async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
+    async def destroy_key(
+        self, kid: str, version: Optional[int] = None
+    ) -> bool:
         raise NotImplementedError
 
     async def get_key(
-        self, kid: str, version: Optional[int] = None, *, include_secret: bool = False
+        self,
+        kid: str,
+        version: Optional[int] = None,
+        *,
+        include_secret: bool = False,
     ) -> KeyRef:
         return KeyRef(
             kid=kid,
@@ -58,7 +66,9 @@ class StaticKeyProvider(IKeyProvider):
     async def list_versions(self, kid: str):
         return (1,)
 
-    async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
+    async def get_public_jwk(
+        self, kid: str, version: Optional[int] = None
+    ) -> dict:
         return {"kty": "oct", "k": _b64u(self._secret)}
 
     async def jwks(self, *, prefix_kids: Optional[str] = None) -> dict:
@@ -67,7 +77,9 @@ class StaticKeyProvider(IKeyProvider):
     async def random_bytes(self, n: int) -> bytes:
         raise NotImplementedError
 
-    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+    async def hkdf(
+        self, ikm: bytes, *, salt: bytes, info: bytes, length: int
+    ) -> bytes:
         raise NotImplementedError
 
 
@@ -80,7 +92,8 @@ def test_verify_perf(benchmark) -> None:
     sk = ed25519.Ed25519PrivateKey.generate()
     pk = sk.public_key()
     pub = pk.public_bytes(
-        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PublicFormat.Raw,
     )
     jwk = {"kty": "OKP", "crv": "Ed25519", "x": _b64u(pub)}
 
@@ -96,10 +109,17 @@ def test_verify_perf(benchmark) -> None:
         "jti": str(uuid4()),
     }
     proof = jwt.encode(
-        proof_payload, sk, algorithm="EdDSA", headers={"jwk": jwk, "typ": "dpop+jwt"}
+        proof_payload,
+        sk,
+        algorithm="EdDSA",
+        headers={"jwk": jwk, "typ": "dpop+jwt"},
     )
     ctx.update(
-        {"proof": proof, "htm": "GET", "htu": "https://api.example.com/resource"}
+        {
+            "proof": proof,
+            "htm": "GET",
+            "htu": "https://api.example.com/resource",
+        }
     )
 
     def _verify() -> None:

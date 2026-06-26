@@ -6,7 +6,9 @@ import httpx
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.DynamicBase import SubclassUnion
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_base.schema_converters.SchemaConverterBase import (
+    SchemaConverterBase,
+)
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.conversations.IConversation import IConversation
@@ -48,7 +50,13 @@ class ToolLLM(ToolLLMBase):
     def _format_messages(
         self, messages: List[Type[MessageBase]]
     ) -> List[Dict[str, str]]:
-        message_properties = ["content", "role", "name", "tool_call_id", "tool_calls"]
+        message_properties = [
+            "content",
+            "role",
+            "name",
+            "tool_call_id",
+            "tool_calls",
+        ]
         return [
             m.model_dump(include=message_properties, exclude_none=True)
             for m in messages
@@ -56,7 +64,9 @@ class ToolLLM(ToolLLMBase):
         ]
 
     def _process_tool_calls(
-        tool_calls: List[Any], toolkit: Toolkit, messages: List[Type[MessageBase]]
+        tool_calls: List[Any],
+        toolkit: Toolkit,
+        messages: List[Type[MessageBase]],
     ) -> List[Type[MessageBase]]:
         """
         Processes a list of tool calls and appends the results to the messages list.
@@ -117,23 +127,34 @@ class ToolLLM(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
             "tool_choice": tool_choice or "auto",
         }
 
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(self.BASE_URL, headers=self._headers, json=payload)
+            response = client.post(
+                self.BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
             tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
         # Add tool messages to Conversation to enable Conversation hooks
         tool_messages = [
             FunctionMessage(
-                tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                tool_call_id=m["tool_call_id"],
+                name=m["name"],
+                content=m["content"],
             )
             for m in messages
             if m["role"] == "tool"
@@ -188,7 +209,9 @@ class ToolLLM(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
             "tool_choice": tool_choice or "auto",
         }
 
@@ -199,14 +222,21 @@ class ToolLLM(ToolLLMBase):
             response.raise_for_status()
             tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
         # Add tool messages to Conversation to enable Conversation hooks
         tool_messages = [
             FunctionMessage(
-                tool_call_id=m["tool_call_id"], name=m["name"], content=m["content"]
+                tool_call_id=m["tool_call_id"],
+                name=m["name"],
+                content=m["content"],
             )
             for m in messages
             if m["role"] == "tool"
@@ -262,18 +292,27 @@ class ToolLLM(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice or "auto",
         }
 
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(self.BASE_URL, headers=self._headers, json=payload)
+            response = client.post(
+                self.BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
 
         tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
 
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
@@ -283,7 +322,9 @@ class ToolLLM(ToolLLMBase):
         payload.pop("tool_choice", None)
 
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(self.BASE_URL, headers=self._headers, json=payload)
+            response = client.post(
+                self.BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
 
         message_content = ""
@@ -330,7 +371,9 @@ class ToolLLM(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else [],
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else [],
             "tool_choice": tool_choice or "auto",
         }
 
@@ -342,8 +385,13 @@ class ToolLLM(ToolLLMBase):
 
         tool_response = response.json()
 
-        messages = [formatted_messages[-1], tool_response["choices"][0]["message"]]
-        tool_calls = tool_response["choices"][0]["message"].get("tool_calls", [])
+        messages = [
+            formatted_messages[-1],
+            tool_response["choices"][0]["message"],
+        ]
+        tool_calls = tool_response["choices"][0]["message"].get(
+            "tool_calls", []
+        )
 
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 

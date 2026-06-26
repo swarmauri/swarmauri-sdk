@@ -26,7 +26,9 @@ def test_initialization(cipher_suite: Tls13CipherSuite) -> None:
 
 @pytest.mark.unit
 def test_serialization(cipher_suite: Tls13CipherSuite) -> None:
-    restored = Tls13CipherSuite.model_validate_json(cipher_suite.model_dump_json())
+    restored = Tls13CipherSuite.model_validate_json(
+        cipher_suite.model_dump_json()
+    )
     assert restored.id == cipher_suite.id
 
 
@@ -104,6 +106,8 @@ def test_normalize_defaults(cipher_suite: Tls13CipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_rejects_unsupported_alg(cipher_suite: Tls13CipherSuite) -> None:
+def test_normalize_rejects_unsupported_alg(
+    cipher_suite: Tls13CipherSuite,
+) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="encrypt", alg="TLS_AES_128_CCM_SHA256")

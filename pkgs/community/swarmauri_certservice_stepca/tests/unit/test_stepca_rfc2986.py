@@ -38,4 +38,7 @@ def test_create_csr_rfc2986(rsa_keyref: KeyRef) -> None:
     service = StepCaCertService("https://ca.example")
     csr_bytes = asyncio.run(service.create_csr(rsa_keyref, {"CN": "example"}))
     csr = x509.load_pem_x509_csr(csr_bytes)
-    assert csr.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value == "example"
+    assert (
+        csr.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
+        == "example"
+    )

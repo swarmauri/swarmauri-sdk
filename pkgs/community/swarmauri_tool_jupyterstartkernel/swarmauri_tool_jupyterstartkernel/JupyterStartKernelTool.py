@@ -55,7 +55,9 @@ class JupyterStartKernelTool(ToolBase):
     KernelManager: ClassVar = KernelManager
 
     def __call__(
-        self, kernel_name: str = "python3", kernel_spec: Optional[Dict[str, Any]] = None
+        self,
+        kernel_name: str = "python3",
+        kernel_spec: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, str]:
         """
         Starts a new Jupyter kernel instance with the provided kernel name and optional specifications.
@@ -80,7 +82,9 @@ class JupyterStartKernelTool(ToolBase):
             return {"kernel_name": kernel_name, "kernel_id": kernel_id}
 
         except Exception as ex:
-            logger.error(f"Failed to start Jupyter kernel '{kernel_name}': {ex}")
+            logger.error(
+                f"Failed to start Jupyter kernel '{kernel_name}': {ex}"
+            )
             # Ensure that we don't store an invalid manager
             self._kernel_manager = None
             return {"error": str(ex)}

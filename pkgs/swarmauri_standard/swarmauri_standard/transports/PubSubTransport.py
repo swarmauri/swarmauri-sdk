@@ -32,7 +32,9 @@ class PubSubTransport(TransportBase):
             protocols=frozenset({Protocol.STDIO}),
             io=IOModel.DATAGRAM,
             casts=frozenset({Cast.BROADCAST, Cast.MULTICAST}),
-            features=frozenset({Feature.RELIABLE, Feature.ORDERED, Feature.LOCAL_ONLY}),
+            features=frozenset(
+                {Feature.RELIABLE, Feature.ORDERED, Feature.LOCAL_ONLY}
+            ),
             security=SecurityMode.NONE,
             schemes=frozenset({AddressScheme.STDIO}),
         )
@@ -65,7 +67,8 @@ class PubSubTransport(TransportBase):
             if not self._topics[topic]:
                 del self._topics[topic]
         if not any(
-            subscriber_id in subscribers for subscribers in self._topics.values()
+            subscriber_id in subscribers
+            for subscribers in self._topics.values()
         ):
             self._messages.pop(subscriber_id, None)
 
@@ -88,7 +91,9 @@ class PubSubTransport(TransportBase):
         for topic in self._topics:
             await self.publish(topic, message)
 
-    async def multicast(self, sender_id: str, topics: List[str], message: Any) -> None:
+    async def multicast(
+        self, sender_id: str, topics: List[str], message: Any
+    ) -> None:
         """Send message to specified topics."""
         for topic in topics:
             await self.publish(topic, message)

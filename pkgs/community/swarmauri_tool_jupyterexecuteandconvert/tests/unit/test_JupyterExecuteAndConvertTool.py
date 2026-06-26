@@ -28,7 +28,9 @@ def test_tool_attributes(tool_instance: JupyterExecuteAndConvertTool) -> None:
     assert len(tool_instance.parameters) == 3
 
 
-def test_notebook_not_found(tool_instance: JupyterExecuteAndConvertTool) -> None:
+def test_notebook_not_found(
+    tool_instance: JupyterExecuteAndConvertTool,
+) -> None:
     """
     Test that providing a non-existent notebook path returns an error indicating the file does not exist.
     """

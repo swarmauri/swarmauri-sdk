@@ -31,7 +31,9 @@ class HermitianInnerProduct(InnerProductBase):
     type: Literal["HermitianInnerProduct"] = "HermitianInnerProduct"
 
     def compute(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> complex:
         """
         Compute the Hermitian inner product between two objects.
@@ -82,9 +84,7 @@ class HermitianInnerProduct(InnerProductBase):
 
             # Check dimensions
             if a_array.shape != b_array.shape:
-                error_msg = (
-                    f"Vector dimensions don't match: {a_array.shape} vs {b_array.shape}"
-                )
+                error_msg = f"Vector dimensions don't match: {a_array.shape} vs {b_array.shape}"
                 logger.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -97,7 +97,9 @@ class HermitianInnerProduct(InnerProductBase):
         elif isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
             # Check dimensions
             if a.shape != b.shape:
-                error_msg = f"Array dimensions don't match: {a.shape} vs {b.shape}"
+                error_msg = (
+                    f"Array dimensions don't match: {a.shape} vs {b.shape}"
+                )
                 logger.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -128,7 +130,9 @@ class HermitianInnerProduct(InnerProductBase):
             raise TypeError(error_msg)
 
     def check_conjugate_symmetry(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> bool:
         """
         Check if the inner product satisfies the conjugate symmetry property:
@@ -146,7 +150,9 @@ class HermitianInnerProduct(InnerProductBase):
         bool
             True if conjugate symmetry holds, False otherwise
         """
-        logger.debug(f"Checking conjugate symmetry for {type(a)} and {type(b)}")
+        logger.debug(
+            f"Checking conjugate symmetry for {type(a)} and {type(b)}"
+        )
 
         try:
             # Compute <a, b>
@@ -159,7 +165,9 @@ class HermitianInnerProduct(InnerProductBase):
             is_symmetric = np.isclose(ab_inner, np.conj(ba_inner))
 
             logger.debug(f"Conjugate symmetry check result: {is_symmetric}")
-            logger.debug(f"<a, b> = {ab_inner}, conj(<b, a>) = {np.conj(ba_inner)}")
+            logger.debug(
+                f"<a, b> = {ab_inner}, conj(<b, a>) = {np.conj(ba_inner)}"
+            )
 
             return bool(is_symmetric)
 
@@ -224,7 +232,9 @@ class HermitianInnerProduct(InnerProductBase):
                 left_side = self.compute(linear_combo_vector, b)
 
                 # Compute alpha*<a1, b> + beta*<a2, b>
-                right_side = alpha * self.compute(a1, b) + beta * self.compute(a2, b)
+                right_side = alpha * self.compute(a1, b) + beta * self.compute(
+                    a2, b
+                )
 
             # Handle numpy arrays directly
             elif (
@@ -239,7 +249,9 @@ class HermitianInnerProduct(InnerProductBase):
                 left_side = self.compute(linear_combo, b)
 
                 # Compute alpha*<a1, b> + beta*<a2, b>
-                right_side = alpha * self.compute(a1, b) + beta * self.compute(a2, b)
+                right_side = alpha * self.compute(a1, b) + beta * self.compute(
+                    a2, b
+                )
 
             else:
                 error_msg = f"Unsupported types for linearity check: {type(a1)}, {type(a2)}, and {type(b)}"

@@ -26,7 +26,9 @@ def test_initialization(cipher_suite: FipsCipherSuite) -> None:
 
 @pytest.mark.unit
 def test_serialization(cipher_suite: FipsCipherSuite) -> None:
-    restored = FipsCipherSuite.model_validate_json(cipher_suite.model_dump_json())
+    restored = FipsCipherSuite.model_validate_json(
+        cipher_suite.model_dump_json()
+    )
     assert restored.id == cipher_suite.id
 
 
@@ -93,13 +95,19 @@ def test_features_descriptor(cipher_suite: FipsCipherSuite) -> None:
     assert features["ops"]["encrypt"]["default"] == "A256GCM"
     assert features["ops"]["wrap"]["default"] == "RSA-OAEP-256"
     assert features["constraints"]["min_rsa_bits"] == policy["min_rsa_bits"]
-    assert features["constraints"]["allowed_curves"] == list(policy["allowed_curves"])
-    assert features["constraints"]["aead"]["tagBits"] == policy["aead_tag_bits"]
+    assert features["constraints"]["allowed_curves"] == list(
+        policy["allowed_curves"]
+    )
+    assert (
+        features["constraints"]["aead"]["tagBits"] == policy["aead_tag_bits"]
+    )
     assert features["compliance"]["fips"] is policy["fips"]
 
 
 @pytest.mark.unit
-def test_policy_exposes_expected_metadata(cipher_suite: FipsCipherSuite) -> None:
+def test_policy_exposes_expected_metadata(
+    cipher_suite: FipsCipherSuite,
+) -> None:
     policy = cipher_suite.policy()
 
     assert policy["fips"] is True
@@ -131,7 +139,9 @@ def test_normalize_with_explicit_alg(cipher_suite: FipsCipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_applies_aead_defaults(cipher_suite: FipsCipherSuite) -> None:
+def test_normalize_applies_aead_defaults(
+    cipher_suite: FipsCipherSuite,
+) -> None:
     descriptor = cipher_suite.normalize(op="encrypt")
 
     assert descriptor["alg"] == "A256GCM"
@@ -140,7 +150,9 @@ def test_normalize_applies_aead_defaults(cipher_suite: FipsCipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_derives_rsa_pss_defaults(cipher_suite: FipsCipherSuite) -> None:
+def test_normalize_derives_rsa_pss_defaults(
+    cipher_suite: FipsCipherSuite,
+) -> None:
     descriptor = cipher_suite.normalize(op="sign", alg="PS384")
 
     assert descriptor["params"]["saltBits"] == 384
@@ -148,13 +160,17 @@ def test_normalize_derives_rsa_pss_defaults(cipher_suite: FipsCipherSuite) -> No
 
 
 @pytest.mark.unit
-def test_normalize_derives_ecdsa_defaults(cipher_suite: FipsCipherSuite) -> None:
+def test_normalize_derives_ecdsa_defaults(
+    cipher_suite: FipsCipherSuite,
+) -> None:
     descriptor = cipher_suite.normalize(op="sign", alg="ES384")
 
     assert descriptor["params"]["hash"] == "SHA384"
 
 
 @pytest.mark.unit
-def test_normalize_rejects_unsupported_alg(cipher_suite: FipsCipherSuite) -> None:
+def test_normalize_rejects_unsupported_alg(
+    cipher_suite: FipsCipherSuite,
+) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="sign", alg="HS256")

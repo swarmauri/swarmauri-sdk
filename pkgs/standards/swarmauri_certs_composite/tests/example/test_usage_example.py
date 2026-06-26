@@ -31,7 +31,9 @@ class SecondaryCSR(CertServiceBase):
 @pytest.mark.example
 @pytest.mark.asyncio
 async def test_composite_usage_example():
-    svc = CompositeCertService([SelfSignedOnly(), PrimaryCSR(), SecondaryCSR()])
+    svc = CompositeCertService(
+        [SelfSignedOnly(), PrimaryCSR(), SecondaryCSR()]
+    )
 
     features = svc.supports()["features"]
     assert "self_signed" in features and "csr" in features

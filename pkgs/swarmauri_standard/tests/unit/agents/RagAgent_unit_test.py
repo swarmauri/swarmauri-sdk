@@ -55,7 +55,10 @@ def test_ubc_type(rag_agent):
 
 @pytest.mark.unit
 def test_serialization(rag_agent):
-    assert rag_agent.id == RagAgent.model_validate_json(rag_agent.model_dump_json()).id
+    assert (
+        rag_agent.id
+        == RagAgent.model_validate_json(rag_agent.model_dump_json()).id
+    )
 
 
 @pytest.mark.unit

@@ -6,7 +6,9 @@ from .plugin_manager import discover_and_register_plugins
 logger = logging.getLogger(__name__)
 
 try:
-    if not any(isinstance(importer, SwarmauriImporter) for importer in _sys.meta_path):
+    if not any(
+        isinstance(importer, SwarmauriImporter) for importer in _sys.meta_path
+    ):
         logger.info("Registering SwarmauriImporter in _sys.meta_path.")
         _sys.meta_path.insert(0, SwarmauriImporter())
     else:

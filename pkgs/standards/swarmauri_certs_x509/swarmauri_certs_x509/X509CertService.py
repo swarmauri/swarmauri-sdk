@@ -18,7 +18,11 @@ from typing import (
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, ed25519, padding, rsa
-from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID, ObjectIdentifier
+from cryptography.x509.oid import (
+    ExtendedKeyUsageOID,
+    NameOID,
+    ObjectIdentifier,
+)
 from swarmauri_base.certs.CertServiceBase import CertServiceBase
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.certs.ICertService import (
@@ -42,20 +46,30 @@ def _to_x509_name(subject: SubjectSpec) -> x509.Name:
     if "C" in subject:
         rdns.append(x509.NameAttribute(NameOID.COUNTRY_NAME, subject["C"]))
     if "ST" in subject:
-        rdns.append(x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, subject["ST"]))
+        rdns.append(
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, subject["ST"])
+        )
     if "L" in subject:
         rdns.append(x509.NameAttribute(NameOID.LOCALITY_NAME, subject["L"]))
     if "O" in subject:
-        rdns.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, subject["O"]))
+        rdns.append(
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, subject["O"])
+        )
     if "OU" in subject:
-        rdns.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, subject["OU"]))
+        rdns.append(
+            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, subject["OU"])
+        )
     if "CN" in subject:
         rdns.append(x509.NameAttribute(NameOID.COMMON_NAME, subject["CN"]))
     if "emailAddress" in subject:
-        rdns.append(x509.NameAttribute(NameOID.EMAIL_ADDRESS, subject["emailAddress"]))
+        rdns.append(
+            x509.NameAttribute(NameOID.EMAIL_ADDRESS, subject["emailAddress"])
+        )
     for k, v in subject.get("extra_rdns", {}).items():
         try:
-            oid = ObjectIdentifier(k) if k[0].isdigit() else getattr(NameOID, k)
+            oid = (
+                ObjectIdentifier(k) if k[0].isdigit() else getattr(NameOID, k)
+            )
         except Exception:
             oid = ObjectIdentifier(k)
         rdns.append(x509.NameAttribute(oid, v))
@@ -81,16 +95,21 @@ class _SigPlan:
 
 def _plan_from_inputs(key_ref: KeyRef, sig_alg: Optional[str]) -> _SigPlan:
     tok = (
-        sig_alg or str(key_ref.tags.get("sig_alg") or key_ref.tags.get("alg") or "")
+        sig_alg
+        or str(key_ref.tags.get("sig_alg") or key_ref.tags.get("alg") or "")
     ).upper()
     if tok in ("ED25519",):
         return _SigPlan("Ed25519", None, False, None)
     if tok in ("RSA-PSS-SHA256", "RSAPSSSHA256", "PS256", "RSASSA-PSS-SHA256"):
         return _SigPlan("RSA-PSS-SHA256", hashes.SHA256(), True, None)
     if tok in ("ECDSA-P256-SHA256", "ES256", "ECDSA-P256", "ECDSA_SHA256"):
-        return _SigPlan("ECDSA-P256-SHA256", hashes.SHA256(), False, ec.SECP256R1())
+        return _SigPlan(
+            "ECDSA-P256-SHA256", hashes.SHA256(), False, ec.SECP256R1()
+        )
     if key_ref.material:
-        sk = serialization.load_pem_private_key(key_ref.material, password=None)
+        sk = serialization.load_pem_private_key(
+            key_ref.material, password=None
+        )
         if isinstance(sk, ed25519.Ed25519PrivateKey):
             return _SigPlan("Ed25519", None, False, None)
         if isinstance(sk, rsa.RSAPrivateKey):
@@ -154,7 +173,9 @@ def _apply_extensions(
                 oids.append(ExtendedKeyUsageOID.TIME_STAMPING)
             else:
                 oids.append(ObjectIdentifier(oid_s))
-        builder = builder.add_extension(x509.ExtendedKeyUsage(oids), critical=False)
+        builder = builder.add_extension(
+            x509.ExtendedKeyUsage(oids), critical=False
+        )
 
     nc: Optional[NameConstraintsSpec] = ext.get("name_constraints")
     if nc:
@@ -166,7 +187,9 @@ def _apply_extensions(
             _gns(nc.get("permitted_dns"), x509.DNSName)
             + _gns(
                 nc.get("permitted_ip"),
-                lambda s: x509.IPAddress(ipaddress.ip_network(s, strict=False)),
+                lambda s: x509.IPAddress(
+                    ipaddress.ip_network(s, strict=False)
+                ),
             )
             + _gns(nc.get("permitted_uri"), x509.UniformResourceIdentifier)
             + _gns(nc.get("permitted_email"), x509.RFC822Name)
@@ -175,21 +198,25 @@ def _apply_extensions(
             _gns(nc.get("excluded_dns"), x509.DNSName)
             + _gns(
                 nc.get("excluded_ip"),
-                lambda s: x509.IPAddress(ipaddress.ip_network(s, strict=False)),
+                lambda s: x509.IPAddress(
+                    ipaddress.ip_network(s, strict=False)
+                ),
             )
             + _gns(nc.get("excluded_uri"), x509.UniformResourceIdentifier)
             + _gns(nc.get("excluded_email"), x509.RFC822Name)
         )
         builder = builder.add_extension(
             x509.NameConstraints(
-                permitted_subtrees=permitted or None, excluded_subtrees=excluded or None
+                permitted_subtrees=permitted or None,
+                excluded_subtrees=excluded or None,
             ),
             critical=True,
         )
 
     if ext.get("subject_key_identifier", True):
         builder = builder.add_extension(
-            x509.SubjectKeyIdentifier.from_public_key(subject_pub), critical=False
+            x509.SubjectKeyIdentifier.from_public_key(subject_pub),
+            critical=False,
         )
     if (
         ext.get("authority_key_identifier", bool(issuer_cert is not None))
@@ -210,7 +237,9 @@ def _load_priv(material: bytes):
 
 
 def _sign(
-    builder: Union[x509.CertificateSigningRequestBuilder, x509.CertificateBuilder],
+    builder: Union[
+        x509.CertificateSigningRequestBuilder, x509.CertificateBuilder
+    ],
     plan: _SigPlan,
     sk_obj,
 ):
@@ -253,7 +282,9 @@ def _pem_or_der(obj, output_der: bool) -> bytes:
     raise TypeError("Unsupported serialization type")
 
 
-def _mk_san(san: Optional[AltNameSpec]) -> Optional[x509.SubjectAlternativeName]:
+def _mk_san(
+    san: Optional[AltNameSpec],
+) -> Optional[x509.SubjectAlternativeName]:
     if not san:
         return None
     gns = []
@@ -356,8 +387,12 @@ class X509CertService(CertServiceBase):
             .issuer_name(_to_x509_name(subject))
             .public_key(pub)
             .serial_number(serial or x509.random_serial_number())
-            .not_valid_before(datetime.datetime.fromtimestamp(nbf, datetime.UTC))
-            .not_valid_after(datetime.datetime.fromtimestamp(naf, datetime.UTC))
+            .not_valid_before(
+                datetime.datetime.fromtimestamp(nbf, datetime.UTC)
+            )
+            .not_valid_after(
+                datetime.datetime.fromtimestamp(naf, datetime.UTC)
+            )
         )
 
         if extensions is None:
@@ -426,8 +461,12 @@ class X509CertService(CertServiceBase):
             .issuer_name(issuer_name)
             .public_key(_csr.public_key())
             .serial_number(serial or x509.random_serial_number())
-            .not_valid_before(datetime.datetime.fromtimestamp(nbf, datetime.UTC))
-            .not_valid_after(datetime.datetime.fromtimestamp(naf, datetime.UTC))
+            .not_valid_before(
+                datetime.datetime.fromtimestamp(nbf, datetime.UTC)
+            )
+            .not_valid_after(
+                datetime.datetime.fromtimestamp(naf, datetime.UTC)
+            )
         )
 
         try:
@@ -486,7 +525,9 @@ class X509CertService(CertServiceBase):
                     if isinstance(leaf.public_key(), ec.EllipticCurvePublicKey)
                     else None,
                     leaf.signature_hash_algorithm
-                    if not isinstance(leaf.public_key(), ed25519.Ed25519PublicKey)
+                    if not isinstance(
+                        leaf.public_key(), ed25519.Ed25519PublicKey
+                    )
                     else None,
                 )
                 return {
@@ -514,7 +555,8 @@ class X509CertService(CertServiceBase):
             issuer_dn = _name_to_str(cur.issuer)
             subj_dn = _name_to_str(cur.subject)
             maybe_root = next(
-                (r for r in roots if _name_to_str(r.subject) == issuer_dn), None
+                (r for r in roots if _name_to_str(r.subject) == issuer_dn),
+                None,
             )
             if maybe_root:
                 _verify_signed_by(cur, maybe_root)
@@ -529,7 +571,9 @@ class X509CertService(CertServiceBase):
                     "subject": _name_to_str(leaf.subject),
                     "not_before": int(leaf.not_valid_before_utc.timestamp()),
                     "not_after": int(leaf.not_valid_after_utc.timestamp()),
-                    "revocation_checked": False if not check_revocation else False,
+                    "revocation_checked": False
+                    if not check_revocation
+                    else False,
                 }
             inter = chain_pool.get(issuer_dn)
             if not inter:
@@ -579,20 +623,29 @@ class X509CertService(CertServiceBase):
                     x509.SubjectAlternativeName
                 ).value
                 out["san"] = {
-                    "dns": [x.value for x in san.get_values_for_type(x509.DNSName)],
-                    "ip": [str(x) for x in san.get_values_for_type(x509.IPAddress)],
+                    "dns": [
+                        x.value for x in san.get_values_for_type(x509.DNSName)
+                    ],
+                    "ip": [
+                        str(x) for x in san.get_values_for_type(x509.IPAddress)
+                    ],
                     "uri": [
                         x.value
-                        for x in san.get_values_for_type(x509.UniformResourceIdentifier)
+                        for x in san.get_values_for_type(
+                            x509.UniformResourceIdentifier
+                        )
                     ],
                     "email": [
-                        x.value for x in san.get_values_for_type(x509.RFC822Name)
+                        x.value
+                        for x in san.get_values_for_type(x509.RFC822Name)
                     ],
                 }
             except x509.ExtensionNotFound:
                 pass
             try:
-                eku = c.extensions.get_extension_for_class(x509.ExtendedKeyUsage).value
+                eku = c.extensions.get_extension_for_class(
+                    x509.ExtendedKeyUsage
+                ).value
                 out["eku"] = [str(oid.dotted_string) for oid in eku]
             except x509.ExtensionNotFound:
                 pass
@@ -643,7 +696,9 @@ def _name_to_mapping(n: x509.Name) -> Dict[str, str]:
 
 def _is_ca(cert: x509.Certificate) -> bool:
     try:
-        bc = cert.extensions.get_extension_for_class(x509.BasicConstraints).value
+        bc = cert.extensions.get_extension_for_class(
+            x509.BasicConstraints
+        ).value
         return bool(bc.ca)
     except x509.ExtensionNotFound:
         return False
@@ -653,7 +708,9 @@ def _verify_self_signed(cert: x509.Certificate) -> None:
     _verify_signed_by(cert, cert)
 
 
-def _verify_signed_by(child: x509.Certificate, issuer: x509.Certificate) -> None:
+def _verify_signed_by(
+    child: x509.Certificate, issuer: x509.Certificate
+) -> None:
     pk = issuer.public_key()
     if isinstance(pk, rsa.RSAPublicKey):
         pk.verify(

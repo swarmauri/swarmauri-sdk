@@ -29,7 +29,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Semantic retrieval over git commits and git log records."
     )
-    parser.add_argument("--repo-path", default=".", help="Path to the git repository")
+    parser.add_argument(
+        "--repo-path", default=".", help="Path to the git repository"
+    )
     parser.add_argument(
         "--ref",
         default="all",
@@ -50,7 +52,9 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Exclude diff stat text from commit documents",
     )
-    parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
+    parser.add_argument(
+        "--verbose", action="store_true", help="Enable debug logging"
+    )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -61,7 +65,9 @@ def build_parser() -> argparse.ArgumentParser:
     query_parser.add_argument(
         "--top-k", type=int, default=5, help="Number of hits to return"
     )
-    query_parser.add_argument("--json", action="store_true", help="Emit JSON output")
+    query_parser.add_argument(
+        "--json", action="store_true", help="Emit JSON output"
+    )
 
     show_parser = subparsers.add_parser("show", help="Print a document by id")
     show_parser.add_argument(
@@ -74,7 +80,9 @@ def build_parser() -> argparse.ArgumentParser:
 def build_store(args: argparse.Namespace) -> GitVectorStore:
     document_kinds = tuple(args.document_kinds or ("commit", "log"))
     scope = (
-        "all_refs" if args.ref == "all" else ("head" if args.ref == "HEAD" else "ref")
+        "all_refs"
+        if args.ref == "all"
+        else ("head" if args.ref == "HEAD" else "ref")
     )
     ref = None if args.ref in {"all", "HEAD"} else args.ref
     store = GitVectorStore(
@@ -91,14 +99,18 @@ def build_store(args: argparse.Namespace) -> GitVectorStore:
         ",".join(document_kinds),
     )
     store.build_index()
-    LOGGER.info("Indexed [bold green]%s[/bold green] documents", len(store.documents))
+    LOGGER.info(
+        "Indexed [bold green]%s[/bold green] documents", len(store.documents)
+    )
     return store
 
 
 def render_query_results(
     store: GitVectorStore, query: str, top_k: int, as_json: bool
 ) -> int:
-    LOGGER.info("Running retrieval for query [bold yellow]%s[/bold yellow]", query)
+    LOGGER.info(
+        "Running retrieval for query [bold yellow]%s[/bold yellow]", query
+    )
     results = store.retrieve(query, top_k=top_k)
     if as_json:
         payload = [
@@ -132,7 +144,9 @@ def render_query_results(
 def render_document(store: GitVectorStore, document_id: str) -> int:
     document = store.get_document(document_id)
     if not document:
-        LOGGER.error("Document [bold red]%s[/bold red] was not found", document_id)
+        LOGGER.error(
+            "Document [bold red]%s[/bold red] was not found", document_id
+        )
         return 1
 
     LOGGER.info("Printing document [bold cyan]%s[/bold cyan]", document_id)

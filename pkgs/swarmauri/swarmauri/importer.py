@@ -20,7 +20,9 @@ class SwarmauriImporter:
 
     def __init__(self):
         # Define valid namespaces based on interface registry
-        self.VALID_NAMESPACES = set(InterfaceRegistry.INTERFACE_REGISTRY.keys())
+        self.VALID_NAMESPACES = set(
+            InterfaceRegistry.INTERFACE_REGISTRY.keys()
+        )
 
     def find_spec(self, fullname, path=None, target=None):
         logger.debug(f"find_spec called for: {fullname}")
@@ -33,14 +35,16 @@ class SwarmauriImporter:
                 and fullname not in sys.modules
                 and fullname in self.VALID_NAMESPACES
             ):
-                logger.debug(f"Creating placeholder for parent namespace: {fullname}")
+                logger.debug(
+                    f"Creating placeholder for parent namespace: {fullname}"
+                )
                 spec = ModuleSpec(fullname, self)
                 spec.submodule_search_locations = []
                 return spec
 
             # Check PluginCitizenshipRegistry.total_registry() for mappings
-            external_module_path = PluginCitizenshipRegistry.get_external_module_path(
-                fullname
+            external_module_path = (
+                PluginCitizenshipRegistry.get_external_module_path(fullname)
             )
             if external_module_path:
                 logger.debug(
@@ -49,8 +53,8 @@ class SwarmauriImporter:
                 return ModuleSpec(fullname, self)
 
             # If lazy, then we need to add LazyLoader
-            external_module_path = PluginCitizenshipRegistry.get_external_module_path(
-                fullname
+            external_module_path = (
+                PluginCitizenshipRegistry.get_external_module_path(fullname)
             )
             if external_module_path:
                 # If we detect lazy strategy, then we utilize LazyLoader
@@ -74,8 +78,8 @@ class SwarmauriImporter:
             )
             return sys.modules[spec.name]
 
-        external_module_path = PluginCitizenshipRegistry.get_external_module_path(
-            spec.name
+        external_module_path = (
+            PluginCitizenshipRegistry.get_external_module_path(spec.name)
         )
         if external_module_path:
             logger.debug(
@@ -92,7 +96,9 @@ class SwarmauriImporter:
             sys.modules[spec.name] = module
             return module
 
-        logger.error(f"Cannot create module '{spec.name}'. Raising ImportError.")
+        logger.error(
+            f"Cannot create module '{spec.name}'. Raising ImportError."
+        )
         raise ImportError(f"Cannot create module {spec.name}")
 
     def exec_module(self, module):

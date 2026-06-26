@@ -33,7 +33,9 @@ class RetryingAsyncClient(httpx.AsyncClient):
 
         for attempt in range(max_retries + 1):
             response = await self.post(url, **kwargs)
-            if response.status_code < 500 and response.status_code not in (429,):
+            if response.status_code < 500 and response.status_code not in (
+                429,
+            ):
                 return response
             await self._sleep(attempt)
         response.raise_for_status()
@@ -46,7 +48,9 @@ class RetryingAsyncClient(httpx.AsyncClient):
 
         for attempt in range(max_retries + 1):
             response = await self.get(url, **kwargs)
-            if response.status_code < 500 and response.status_code not in (429,):
+            if response.status_code < 500 and response.status_code not in (
+                429,
+            ):
                 return response
             await self._sleep(attempt)
         response.raise_for_status()

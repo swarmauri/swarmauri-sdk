@@ -26,7 +26,9 @@ def test_initialization(cipher_suite: Fips205CipherSuite) -> None:
 
 @pytest.mark.unit
 def test_serialization(cipher_suite: Fips205CipherSuite) -> None:
-    restored = Fips205CipherSuite.model_validate_json(cipher_suite.model_dump_json())
+    restored = Fips205CipherSuite.model_validate_json(
+        cipher_suite.model_dump_json()
+    )
     assert restored.id == cipher_suite.id
 
 
@@ -37,7 +39,9 @@ def test_suite_identifier(cipher_suite: Fips205CipherSuite) -> None:
 
 # Cipher-suite specific behavior
 @pytest.mark.unit
-def test_supports_expected_algorithms(cipher_suite: Fips205CipherSuite) -> None:
+def test_supports_expected_algorithms(
+    cipher_suite: Fips205CipherSuite,
+) -> None:
     supports = cipher_suite.supports()
     assert set(supports.keys()) == {"sign", "verify"}
     assert tuple(supports["sign"]) == (
@@ -78,13 +82,16 @@ def test_features_descriptor(cipher_suite: Fips205CipherSuite) -> None:
     }
     assert features["ops"]["sign"]["default"] == "SLH-DSA-SHAKE-192s"
     assert (
-        features["constraints"]["nistSecurityLevels"] == policy["nist_security_levels"]
+        features["constraints"]["nistSecurityLevels"]
+        == policy["nist_security_levels"]
     )
     assert features["compliance"]["fips205"] is True
 
 
 @pytest.mark.unit
-def test_policy_exposes_expected_metadata(cipher_suite: Fips205CipherSuite) -> None:
+def test_policy_exposes_expected_metadata(
+    cipher_suite: Fips205CipherSuite,
+) -> None:
     policy = cipher_suite.policy()
 
     assert policy["fips"] == "205"
@@ -105,7 +112,10 @@ def test_normalize_with_explicit_alg(cipher_suite: Fips205CipherSuite) -> None:
     assert descriptor["dialect"] == "provider"
     assert descriptor["mapped"] == {"provider": "slh-dsa:SLH-DSA-SHA2-128s"}
     assert descriptor["params"] == {"context": "test"}
-    assert descriptor["constraints"] == {"nistLevel": 1, "category": "post-quantum"}
+    assert descriptor["constraints"] == {
+        "nistLevel": 1,
+        "category": "post-quantum",
+    }
     assert descriptor["policy"] == cipher_suite.policy()
 
 
@@ -118,6 +128,8 @@ def test_normalize_defaults(cipher_suite: Fips205CipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_rejects_unsupported_alg(cipher_suite: Fips205CipherSuite) -> None:
+def test_normalize_rejects_unsupported_alg(
+    cipher_suite: Fips205CipherSuite,
+) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="sign", alg="ML-DSA-44")

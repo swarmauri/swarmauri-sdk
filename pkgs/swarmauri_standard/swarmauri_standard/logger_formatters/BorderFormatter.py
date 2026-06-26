@@ -37,7 +37,9 @@ class BorderFormatter(FormatterBase):
         Returns:
             logging.Formatter: A formatter that adds borders to log messages
         """
-        original_formatter = logging.Formatter(self.message_format, self.date_format)
+        original_formatter = logging.Formatter(
+            self.message_format, self.date_format
+        )
 
         # Create a custom formatter that wraps the original formatter's output with borders
         class BorderedFormatter(logging.Formatter):

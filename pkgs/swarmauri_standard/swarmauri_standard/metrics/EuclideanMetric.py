@@ -93,9 +93,13 @@ class EuclideanMetric(MetricBase):
                 )
 
             try:
-                return math.sqrt(sum((x_i - y_i) ** 2 for x_i, y_i in zip(x, y)))
+                return math.sqrt(
+                    sum((x_i - y_i) ** 2 for x_i, y_i in zip(x, y))
+                )
             except (TypeError, ValueError) as e:
-                logger.error(f"Failed to compute Euclidean distance for sequences: {e}")
+                logger.error(
+                    f"Failed to compute Euclidean distance for sequences: {e}"
+                )
                 raise ValueError(
                     f"Cannot compute Euclidean distance for sequences with non-numeric elements: {e}"
                 )
@@ -146,7 +150,9 @@ class EuclideanMetric(MetricBase):
                 )
 
             # Create distance matrix
-            result = [[self.distance(x_row, y_row) for y_row in y] for x_row in x]
+            result = [
+                [self.distance(x_row, y_row) for y_row in y] for x_row in x
+            ]
             return result
 
         elif (
@@ -166,7 +172,8 @@ class EuclideanMetric(MetricBase):
 
             # Compute pairwise distances
             result = [
-                [self.distance(x_point, y_point) for y_point in y] for x_point in x
+                [self.distance(x_point, y_point) for y_point in y]
+                for x_point in x
             ]
             return result
 
@@ -183,7 +190,9 @@ class EuclideanMetric(MetricBase):
                 raise ValueError("Inconsistent collection structure")
 
         else:
-            logger.error(f"Unsupported collection types: {type(x)} and {type(y)}")
+            logger.error(
+                f"Unsupported collection types: {type(x)} and {type(y)}"
+            )
             raise TypeError(
                 f"Euclidean distances computation not supported for types {type(x)} and {type(y)}"
             )
@@ -212,7 +221,9 @@ class EuclideanMetric(MetricBase):
             logger.error(f"Error checking non-negativity: {e}")
             return False
 
-    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
+    def check_identity_of_indiscernibles(
+        self, x: MetricInput, y: MetricInput
+    ) -> bool:
         """
         Check if the Euclidean metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -254,7 +265,9 @@ class EuclideanMetric(MetricBase):
             )
 
             # Axiom is satisfied if distance is zero iff points are equal
-            return (is_zero_dist and is_equal) or (not is_zero_dist and not is_equal)
+            return (is_zero_dist and is_equal) or (
+                not is_zero_dist and not is_equal
+            )
 
         except (TypeError, ValueError) as e:
             logger.error(f"Error checking identity of indiscernibles: {e}")

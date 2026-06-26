@@ -16,7 +16,8 @@ def test_ubc_type():
 def test_serialization():
     embedder = NmfEmbedding()
     assert (
-        embedder.id == NmfEmbedding.model_validate_json(embedder.model_dump_json()).id
+        embedder.id
+        == NmfEmbedding.model_validate_json(embedder.model_dump_json()).id
     )
 
 

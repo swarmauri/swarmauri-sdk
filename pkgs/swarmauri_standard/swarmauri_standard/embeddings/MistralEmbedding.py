@@ -35,7 +35,9 @@ class MistralEmbedding(EmbeddingBase):
     model: str = Field(default="mistral-embed")
     api_key: Optional[SecretStr] = Field(default=None)
 
-    _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1/embeddings")
+    _BASE_URL: str = PrivateAttr(
+        default="https://api.mistral.ai/v1/embeddings"
+    )
     _headers: dict = PrivateAttr(default_factory=dict)
     _client: httpx.Client = PrivateAttr(default_factory=httpx.Client)
 
@@ -76,7 +78,11 @@ class MistralEmbedding(EmbeddingBase):
         if not data:
             return []
 
-        payload = {"input": data, "model": self.model, "encoding_format": "float"}
+        payload = {
+            "input": data,
+            "model": self.model,
+            "encoding_format": "float",
+        }
 
         try:
             response = self._client.post(
@@ -86,13 +92,17 @@ class MistralEmbedding(EmbeddingBase):
             result = response.json()
 
             # Extract embeddings and convert to Vector objects
-            embeddings = [Vector(value=item["embedding"]) for item in result["data"]]
+            embeddings = [
+                Vector(value=item["embedding"]) for item in result["data"]
+            ]
             return embeddings
 
         except httpx.HTTPError as e:
             raise ValueError(f"Error calling Mistral AI API: {str(e)}")
         except (KeyError, ValueError) as e:
-            raise ValueError(f"Error processing Mistral AI API response: {str(e)}")
+            raise ValueError(
+                f"Error processing Mistral AI API response: {str(e)}"
+            )
 
     def transform(self, data: List[str]) -> List[Vector]:
         """
@@ -107,13 +117,19 @@ class MistralEmbedding(EmbeddingBase):
         return self.infer_vector(data)
 
     def save_model(self, path: str):
-        raise NotImplementedError("save_model is not applicable for Mistral embeddings")
+        raise NotImplementedError(
+            "save_model is not applicable for Mistral embeddings"
+        )
 
     def load_model(self, path: str):
-        raise NotImplementedError("load_model is not applicable for Mistral embeddings")
+        raise NotImplementedError(
+            "load_model is not applicable for Mistral embeddings"
+        )
 
     def fit(self, documents: List[str], labels=None):
-        raise NotImplementedError("fit is not applicable for Mistral embeddings")
+        raise NotImplementedError(
+            "fit is not applicable for Mistral embeddings"
+        )
 
     def fit_transform(self, documents: List[str], **kwargs):
         raise NotImplementedError(

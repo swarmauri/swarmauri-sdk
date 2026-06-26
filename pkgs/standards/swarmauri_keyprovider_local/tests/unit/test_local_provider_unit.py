@@ -45,4 +45,6 @@ async def test_create_with_encoding_formats() -> None:
     )
     ref = await kp.create_key(spec)
     assert ref.public.startswith(b"-----BEGIN PUBLIC KEY-----")
-    assert ref.material and ref.material.startswith(b"-----BEGIN PRIVATE KEY-----")
+    assert ref.material and ref.material.startswith(
+        b"-----BEGIN PRIVATE KEY-----"
+    )

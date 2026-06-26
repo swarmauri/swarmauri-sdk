@@ -69,7 +69,10 @@ class LInfNorm(NormBase):
         return v
 
     def compute(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> float:
         """
         Compute the L-infinity norm of the input.
@@ -110,7 +113,9 @@ class LInfNorm(NormBase):
             # For callable functions
             return self._compute_for_function(x)
         else:
-            raise TypeError(f"Unsupported input type for L-infinity norm: {type(x)}")
+            raise TypeError(
+                f"Unsupported input type for L-infinity norm: {type(x)}"
+            )
 
     def _compute_for_sequence(self, seq: Sequence) -> float:
         """
@@ -133,7 +138,9 @@ class LInfNorm(NormBase):
         """
         # Fix: Check for empty sequence using len() which works for both lists and NumPy arrays
         if len(seq) == 0:
-            raise ValueError("Cannot compute L-infinity norm of an empty sequence")
+            raise ValueError(
+                "Cannot compute L-infinity norm of an empty sequence"
+            )
 
         try:
             # Convert to numpy array for efficient computation
@@ -171,10 +178,15 @@ class LInfNorm(NormBase):
             return float(np.max(np.abs(function_values)))
         except Exception as e:
             logger.error(f"Error evaluating function for L-infinity norm: {e}")
-            raise ValueError(f"Failed to compute L-infinity norm for function: {e}")
+            raise ValueError(
+                f"Failed to compute L-infinity norm for function: {e}"
+            )
 
     def check_non_negativity(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the L-infinity norm satisfies the non-negativity property.
@@ -200,7 +212,10 @@ class LInfNorm(NormBase):
             return False
 
     def check_definiteness(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the L-infinity norm satisfies the definiteness property.
@@ -251,8 +266,12 @@ class LInfNorm(NormBase):
 
     def check_triangle_inequality(
         self,
-        x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
-        y: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
+        y: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the L-infinity norm satisfies the triangle inequality.
@@ -281,7 +300,9 @@ class LInfNorm(NormBase):
         # Handle different input types
         if isinstance(x, IVector) and isinstance(y, type(x)):
             # For Vector types
-            z = type(x)(data=[x_val + y_val for x_val, y_val in zip(x.data, y.data)])
+            z = type(x)(
+                data=[x_val + y_val for x_val, y_val in zip(x.data, y.data)]
+            )
         elif isinstance(x, IMatrix) and isinstance(y, type(x)):
             # For Matrix types - use numpy array handling
             x_array = np.asarray(x.data)
@@ -311,7 +332,8 @@ class LInfNorm(NormBase):
             if len(x) != len(y):
                 raise ValueError("Strings must have the same length")
             z = "".join(
-                chr(min(ord(x_char) + ord(y_char), 255)) for x_char, y_char in zip(x, y)
+                chr(min(ord(x_char) + ord(y_char), 255))
+                for x_char, y_char in zip(x, y)
             )
         elif callable(x) and callable(y):
             # For callable functions
@@ -319,7 +341,9 @@ class LInfNorm(NormBase):
                 return x(t) + y(t)
 
         else:
-            raise TypeError("Inputs must be of the same type and must support addition")
+            raise TypeError(
+                "Inputs must be of the same type and must support addition"
+            )
 
         try:
             # Compute norms
@@ -336,7 +360,9 @@ class LInfNorm(NormBase):
 
     def check_absolute_homogeneity(
         self,
-        x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
         scalar: float,
     ) -> bool:
         """
@@ -381,7 +407,8 @@ class LInfNorm(NormBase):
                 # For strings, scaling is not well-defined
                 # We'll scale the ASCII values and ensure they're valid (0-255)
                 scaled_x = "".join(
-                    chr(max(0, min(255, int(scalar * ord(char))))) for char in x
+                    chr(max(0, min(255, int(scalar * ord(char)))))
+                    for char in x
                 )
             elif callable(x):
 
@@ -389,7 +416,9 @@ class LInfNorm(NormBase):
                     return scalar * x(t)
 
             else:
-                raise TypeError(f"Unsupported input type for scaling: {type(x)}")
+                raise TypeError(
+                    f"Unsupported input type for scaling: {type(x)}"
+                )
 
             # Compute norms
             norm_x = self.compute(x)

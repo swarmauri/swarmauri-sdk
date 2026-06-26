@@ -29,7 +29,9 @@ class CoordinateProjectionSeminorm(SeminormBase):
         The set of indices to project onto
     """
 
-    type: Literal["CoordinateProjectionSeminorm"] = "CoordinateProjectionSeminorm"
+    type: Literal["CoordinateProjectionSeminorm"] = (
+        "CoordinateProjectionSeminorm"
+    )
 
     def __init__(self, projection_indices: Set[int]):
         """
@@ -77,7 +79,9 @@ class CoordinateProjectionSeminorm(SeminormBase):
         ValueError
             If the computation cannot be performed on the given input
         """
-        logger.debug(f"Computing projection seminorm for input of type {type(x)}")
+        logger.debug(
+            f"Computing projection seminorm for input of type {type(x)}"
+        )
 
         # Handle different input types
         if isinstance(x, IVector):
@@ -107,7 +111,9 @@ class CoordinateProjectionSeminorm(SeminormBase):
         components = x.components
 
         # Check if indices are valid for this vector
-        max_index = max(self.projection_indices) if self.projection_indices else -1
+        max_index = (
+            max(self.projection_indices) if self.projection_indices else -1
+        )
         if max_index >= len(components):
             raise ValueError(
                 f"Projection index {max_index} out of bounds for vector of length {len(components)}"
@@ -115,7 +121,9 @@ class CoordinateProjectionSeminorm(SeminormBase):
 
         # Project onto the selected coordinates
         projected_components = [
-            components[i] for i in self.projection_indices if i < len(components)
+            components[i]
+            for i in self.projection_indices
+            if i < len(components)
         ]
 
         # Compute the Euclidean norm of the projected components
@@ -143,7 +151,9 @@ class CoordinateProjectionSeminorm(SeminormBase):
             flattened.extend(row)
 
         # Check if indices are valid for this flattened matrix
-        max_index = max(self.projection_indices) if self.projection_indices else -1
+        max_index = (
+            max(self.projection_indices) if self.projection_indices else -1
+        )
         if max_index >= len(flattened):
             raise ValueError(
                 f"Projection index {max_index} out of bounds for flattened matrix of length {len(flattened)}"
@@ -176,14 +186,18 @@ class CoordinateProjectionSeminorm(SeminormBase):
             x = x.flatten().tolist()
 
         # Check if indices are valid for this sequence
-        max_index = max(self.projection_indices) if self.projection_indices else -1
+        max_index = (
+            max(self.projection_indices) if self.projection_indices else -1
+        )
         if max_index >= len(x):
             raise ValueError(
                 f"Projection index {max_index} out of bounds for sequence of length {len(x)}"
             )
 
         # Project onto the selected coordinates
-        projected_components = [x[i] for i in self.projection_indices if i < len(x)]
+        projected_components = [
+            x[i] for i in self.projection_indices if i < len(x)
+        ]
 
         # Compute the Euclidean norm of the projected components
         return np.sqrt(sum(abs(complex(c)) ** 2 for c in projected_components))
@@ -229,11 +243,15 @@ class CoordinateProjectionSeminorm(SeminormBase):
             sum_xy = x + y
         elif isinstance(x, (list, tuple)) and isinstance(y, (list, tuple)):
             if len(x) != len(y):
-                raise ValueError("Sequences must have the same length for addition")
+                raise ValueError(
+                    "Sequences must have the same length for addition"
+                )
             sum_xy = [x[i] + y[i] for i in range(len(x))]
         elif isinstance(x, np.ndarray) and isinstance(y, np.ndarray):
             if x.shape != y.shape:
-                raise ValueError("Arrays must have the same shape for addition")
+                raise ValueError(
+                    "Arrays must have the same shape for addition"
+                )
             sum_xy = x + y
         else:
             raise TypeError(

@@ -43,7 +43,9 @@ def test_embedxmp_delegates_to_handlers() -> None:
 
     written = manager.embed(data, xmp, path="example.png")
     assert manager.read(written, path="example.png") == xmp
-    assert manager.remove(written, path="example.png").startswith(PNGXMP.PNG_SIG)
+    assert manager.remove(written, path="example.png").startswith(
+        PNGXMP.PNG_SIG
+    )
 
 
 def test_module_helpers_use_cached_instance() -> None:
@@ -54,7 +56,9 @@ def test_module_helpers_use_cached_instance() -> None:
     try:
         written = manager.embed(data, xmp, path="example.png")
         assert manager.read(written, path="example.png") == xmp
-        assert manager.read(manager.remove(written, path="example.png")) is None
+        assert (
+            manager.read(manager.remove(written, path="example.png")) is None
+        )
     finally:
         manager._default_embed = original
 

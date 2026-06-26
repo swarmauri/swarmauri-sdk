@@ -27,7 +27,10 @@ def generate_key() -> PGPKey:
 @pytest.fixture
 def pgp_keys():
     key = generate_key()
-    return {"kind": "pgpy_pub", "pub": key.pubkey}, {"kind": "pgpy_key", "key": key}
+    return {"kind": "pgpy_pub", "pub": key.pubkey}, {
+        "kind": "pgpy_key",
+        "key": key,
+    }
 
 
 @pytest.fixture

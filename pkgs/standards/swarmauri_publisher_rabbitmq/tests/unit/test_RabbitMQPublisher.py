@@ -12,7 +12,9 @@ from swarmauri_publisher_rabbitmq import RabbitMQPublisher
 @pytest.fixture
 def mock_pika_channel():
     """Fixture to mock pika.adapters.blocking_connection.BlockingChannel."""
-    mock_chan = MagicMock(spec=pika.adapters.blocking_connection.BlockingChannel)
+    mock_chan = MagicMock(
+        spec=pika.adapters.blocking_connection.BlockingChannel
+    )
     return mock_chan
 
 
@@ -112,9 +114,7 @@ def test_initialization_with_host_port_exchange(
     )
     assert isinstance(instance.id, str)
 
-    expected_uri = (
-        f"amqp://{quote_plus('testuser')}:{quote_plus('testpassword')}@rabbithost:1234/"
-    )
+    expected_uri = f"amqp://{quote_plus('testuser')}:{quote_plus('testpassword')}@rabbithost:1234/"
     mock_url_params.assert_called_once_with(expected_uri)
     mock_blocking_connection_constructor.assert_called_once_with(
         mock_url_params.return_value
@@ -158,7 +158,9 @@ def test_initialization_missing_args():
     ):  # Pydantic v2 for missing 'exchange'
         RabbitMQPublisher(host="localhost", port=5672)
 
-    with pytest.raises(ValueError, match="When no `uri` is given, `host` is required."):
+    with pytest.raises(
+        ValueError, match="When no `uri` is given, `host` is required."
+    ):
         RabbitMQPublisher(exchange="test_exchange")  # Missing host
 
     # Port has a default, so this is okay if host and exchange are provided
@@ -194,7 +196,9 @@ def test_serialization(publisher_with_uri):
     with patch("pika.BlockingConnection"), patch("pika.URLParameters"):
         rehydrated_publisher = RabbitMQPublisher.model_validate(original_dump)
 
-    assert publisher_with_uri.id == rehydrated_publisher.id  # id is from ComponentBase
+    assert (
+        publisher_with_uri.id == rehydrated_publisher.id
+    )  # id is from ComponentBase
     assert publisher_with_uri.uri == rehydrated_publisher.uri
     assert publisher_with_uri.exchange == rehydrated_publisher.exchange
     assert publisher_with_uri.type == rehydrated_publisher.type

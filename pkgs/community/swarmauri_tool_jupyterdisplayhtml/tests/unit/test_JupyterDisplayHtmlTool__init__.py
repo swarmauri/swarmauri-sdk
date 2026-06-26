@@ -58,4 +58,6 @@ class TestInit(object):
             pytest.fail(
                 f"Instantiating JupyterDisplayHtmlTool raised an exception: {exc}"
             )
-        assert tool is not None, "Failed to instantiate JupyterDisplayHtmlTool."
+        assert tool is not None, (
+            "Failed to instantiate JupyterDisplayHtmlTool."
+        )

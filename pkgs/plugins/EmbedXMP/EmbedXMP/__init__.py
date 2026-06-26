@@ -52,7 +52,9 @@ class EmbedXMP(EmbedXmpBase):
         classes = [cls for cls in subtypes.values() if cls is not EmbedXMP]
         return sorted(classes, key=lambda cls: cls.__name__)
 
-    def refresh(self, handlers: Iterable[Type[EmbedXmpBase]] | None = None) -> None:
+    def refresh(
+        self, handlers: Iterable[Type[EmbedXmpBase]] | None = None
+    ) -> None:
         classes: Sequence[Type[EmbedXmpBase]]
         if handlers is None:
             classes = self._registry_classes()
@@ -62,7 +64,8 @@ class EmbedXMP(EmbedXmpBase):
 
     def supports(self, header: bytes, path: str = "") -> bool:
         return any(
-            self._supports_handler(handler, header, path) for handler in self._handlers
+            self._supports_handler(handler, header, path)
+            for handler in self._handlers
         )
 
     def _supports_handler(

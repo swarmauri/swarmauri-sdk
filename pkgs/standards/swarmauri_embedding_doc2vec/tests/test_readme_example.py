@@ -45,7 +45,9 @@ def test_readme_example(tmp_path: Path) -> None:
         os.chdir(original_cwd)
 
     model_path = tmp_path / "doc2vec.model"
-    assert model_path.exists(), "The README example should persist the trained model."
+    assert model_path.exists(), (
+        "The README example should persist the trained model."
+    )
 
     vectors = namespace.get("vectors")
     new_vector = namespace.get("new_vector")

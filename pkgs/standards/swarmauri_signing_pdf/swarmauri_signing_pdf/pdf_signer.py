@@ -79,7 +79,9 @@ class PDFSigner(SigningBase):
         self._cms.set_key_provider(provider)
 
     # ------------------------------------------------------------------
-    def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
+    def supports(
+        self, key_ref: Optional[str] = None
+    ) -> Mapping[str, Iterable[str]]:
         base_caps = {
             "signs": ("bytes", "digest", "envelope", "stream"),
             "verifies": ("bytes", "digest", "envelope", "stream"),
@@ -123,7 +125,9 @@ class PDFSigner(SigningBase):
     ) -> Sequence[Signature]:
         pdf_opts = dict(opts or {})
         pdf_opts.setdefault("attached", True)
-        cms_sigs = await self._cms.sign_digest(key, digest, alg=alg, opts=pdf_opts)
+        cms_sigs = await self._cms.sign_digest(
+            key, digest, alg=alg, opts=pdf_opts
+        )
         pdf_meta = _pdf_meta(pdf_opts)
         return [
             _adapt_signature(sig, payload_kind="digest", pdf_meta=pdf_meta)
@@ -140,7 +144,9 @@ class PDFSigner(SigningBase):
     ) -> Sequence[Signature]:
         pdf_opts = dict(opts or {})
         pdf_opts.setdefault("attached", True)
-        cms_sigs = await self._cms.sign_stream(key, payload, alg=alg, opts=pdf_opts)
+        cms_sigs = await self._cms.sign_stream(
+            key, payload, alg=alg, opts=pdf_opts
+        )
         pdf_meta = _pdf_meta(pdf_opts)
         return [
             _adapt_signature(sig, payload_kind="stream", pdf_meta=pdf_meta)
@@ -156,10 +162,14 @@ class PDFSigner(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        canonical = await self.canonicalize_envelope(env, canon=canon, opts=opts)
+        canonical = await self.canonicalize_envelope(
+            env, canon=canon, opts=opts
+        )
         pdf_opts = dict(opts or {})
         pdf_opts.setdefault("attached", True)
-        cms_sigs = await self._cms.sign_bytes(key, canonical, alg=alg, opts=pdf_opts)
+        cms_sigs = await self._cms.sign_bytes(
+            key, canonical, alg=alg, opts=pdf_opts
+        )
         pdf_meta = _pdf_meta(pdf_opts)
         return [
             _adapt_signature(sig, payload_kind="envelope", pdf_meta=pdf_meta)
@@ -212,7 +222,9 @@ class PDFSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        canonical = await self.canonicalize_envelope(env, canon=canon, opts=opts)
+        canonical = await self.canonicalize_envelope(
+            env, canon=canon, opts=opts
+        )
         return await self._cms.verify_envelope(
             canonical,
             signatures,
@@ -236,5 +248,7 @@ class PDFSigner(SigningBase):
         if canon == "json":
             if isinstance(env, Mapping):
                 return _canon_json(env)
-            raise TypeError("json canon expects mapping envelope for PDFSigner")
+            raise TypeError(
+                "json canon expects mapping envelope for PDFSigner"
+            )
         raise ValueError(f"Unsupported canon for PDFSigner: {canon}")

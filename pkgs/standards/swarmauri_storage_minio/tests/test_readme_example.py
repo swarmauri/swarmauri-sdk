@@ -29,10 +29,14 @@ class _DummyClient:
     def bucket_exists(self, bucket: str) -> bool:
         return True
 
-    def make_bucket(self, bucket: str) -> None:  # pragma: no cover - never called
+    def make_bucket(
+        self, bucket: str
+    ) -> None:  # pragma: no cover - never called
         pass
 
-    def put_object(self, bucket: str, key: str, data, *, length: int, part_size: int):
+    def put_object(
+        self, bucket: str, key: str, data, *, length: int, part_size: int
+    ):
         self.objects[key] = data.read()
 
     def get_object(self, bucket: str, key: str) -> _DummyObject:

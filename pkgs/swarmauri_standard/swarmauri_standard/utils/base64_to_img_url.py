@@ -39,4 +39,6 @@ def base64_to_img_url(base64_str: str, api_key: str) -> str:
                 + data.get("error", {}).get("message", "Unknown error")
             )
     else:
-        raise Exception(f"Failed to upload image. Status code: {response.status_code}")
+        raise Exception(
+            f"Failed to upload image. Status code: {response.status_code}"
+        )

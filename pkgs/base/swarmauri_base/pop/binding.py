@@ -13,7 +13,9 @@ def normalize_cnf(cnf_claim: Mapping[str, Any]) -> CnfBinding:
     if "x5t#S256" in cnf_claim:
         return CnfBinding(BindType.X5T_S256, str(cnf_claim["x5t#S256"]))
     if "cose_key_thumbprint" in cnf_claim:
-        return CnfBinding(BindType.COSE_THUMB, str(cnf_claim["cose_key_thumbprint"]))
+        return CnfBinding(
+            BindType.COSE_THUMB, str(cnf_claim["cose_key_thumbprint"])
+        )
     raise ValueError("Unsupported cnf claim")
 
 

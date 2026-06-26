@@ -17,7 +17,12 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.asymmetric import ed25519, rsa, ec, x25519
 
 from swarmauri_base.key_providers.KeyProviderBase import KeyProviderBase
-from swarmauri_core.key_providers.types import KeySpec, KeyAlg, KeyClass, ExportPolicy
+from swarmauri_core.key_providers.types import (
+    KeySpec,
+    KeyAlg,
+    KeyClass,
+    ExportPolicy,
+)
 from swarmauri_core.crypto.types import KeyRef
 
 
@@ -58,7 +63,9 @@ def _serialize_keypair(priv, spec: KeySpec) -> tuple[bytes, Optional[bytes]]:
         spec.public_format,
         serialization.PublicFormat.SubjectPublicKeyInfo,
     )
-    public = priv.public_key().public_bytes(encoding=encoding, format=public_format)
+    public = priv.public_key().public_bytes(
+        encoding=encoding, format=public_format
+    )
 
     material: Optional[bytes] = None
     if spec.export_policy != ExportPolicy.PUBLIC_ONLY:
@@ -109,7 +116,14 @@ class LocalKeyProvider(KeyProviderBase):
         return {
             "class": ("sym", "asym"),
             "algs": algs,
-            "features": ("create", "rotate", "import", "jwks", "hkdf", "random"),
+            "features": (
+                "create",
+                "rotate",
+                "import",
+                "jwks",
+                "hkdf",
+                "random",
+            ),
         }
 
     async def create_key(self, spec: KeySpec) -> KeyRef:
@@ -128,7 +142,9 @@ class LocalKeyProvider(KeyProviderBase):
                 sk = x25519.X25519PrivateKey.generate()
             elif spec.alg in (KeyAlg.RSA_OAEP_SHA256, KeyAlg.RSA_PSS_SHA256):
                 bits = spec.size_bits or 3072
-                sk = rsa.generate_private_key(public_exponent=65537, key_size=bits)
+                sk = rsa.generate_private_key(
+                    public_exponent=65537, key_size=bits
+                )
             elif spec.alg == KeyAlg.ECDSA_P256_SHA256:
                 sk = ec.generate_private_key(ec.SECP256R1())
             else:
@@ -142,9 +158,17 @@ class LocalKeyProvider(KeyProviderBase):
             uses=tuple(spec.uses),
             export_policy=spec.export_policy,
             public=public,
-            material=(material if spec.export_policy != ExportPolicy.NONE else None),
-            tags={"label": spec.label, "alg": spec.alg.value, **(spec.tags or {})},
-            fingerprint=self._fingerprint(public=public, material=material, kid=kid),
+            material=(
+                material if spec.export_policy != ExportPolicy.NONE else None
+            ),
+            tags={
+                "label": spec.label,
+                "alg": spec.alg.value,
+                **(spec.tags or {}),
+            },
+            fingerprint=self._fingerprint(
+                public=public, material=material, kid=kid
+            ),
         )
         self._store.setdefault(kid, {})[version] = ref
         return ref
@@ -164,14 +188,18 @@ class LocalKeyProvider(KeyProviderBase):
             uses=tuple(spec.uses),
             export_policy=spec.export_policy,
             public=public,
-            material=(material if spec.export_policy != ExportPolicy.NONE else None),
+            material=(
+                material if spec.export_policy != ExportPolicy.NONE else None
+            ),
             tags={
                 "label": spec.label,
                 "alg": spec.alg.value,
                 "imported": True,
                 **(spec.tags or {}),
             },
-            fingerprint=self._fingerprint(public=public, material=material, kid=kid),
+            fingerprint=self._fingerprint(
+                public=public, material=material, kid=kid
+            ),
         )
         self._store.setdefault(kid, {})[1] = ref
         return ref
@@ -186,7 +214,9 @@ class LocalKeyProvider(KeyProviderBase):
         alg = KeyAlg(base.tags["alg"])
         spec = KeySpec(
             klass=(
-                KeyClass.symmetric if alg == KeyAlg.AES256_GCM else KeyClass.asymmetric
+                KeyClass.symmetric
+                if alg == KeyAlg.AES256_GCM
+                else KeyClass.asymmetric
             ),
             alg=alg,
             size_bits=(spec_overrides or {}).get("size_bits"),
@@ -202,7 +232,9 @@ class LocalKeyProvider(KeyProviderBase):
         self._store[kid][latest + 1] = rotated
         return rotated
 
-    async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
+    async def destroy_key(
+        self, kid: str, version: Optional[int] = None
+    ) -> bool:
         bucket = self._store.get(kid)
         if not bucket:
             return False
@@ -231,7 +263,9 @@ class LocalKeyProvider(KeyProviderBase):
     async def list_versions(self, kid: str) -> Tuple[int, ...]:
         return tuple(sorted(self._store[kid].keys()))
 
-    async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
+    async def get_public_jwk(
+        self, kid: str, version: Optional[int] = None
+    ) -> dict:
         ref = await self.get_key(kid, version)
         alg = KeyAlg(ref.tags["alg"])
         if alg == KeyAlg.ED25519:
@@ -280,7 +314,11 @@ class LocalKeyProvider(KeyProviderBase):
                 "kid": f"{ref.kid}.{ref.version}",
             }
         if alg == KeyAlg.AES256_GCM:
-            return {"kty": "oct", "alg": "A256GCM", "kid": f"{ref.kid}.{ref.version}"}
+            return {
+                "kty": "oct",
+                "alg": "A256GCM",
+                "kid": f"{ref.kid}.{ref.version}",
+            }
         raise ValueError(f"Unsupported alg for JWK export: {alg}")
 
     async def jwks(self, *, prefix_kids: Optional[str] = None) -> dict:
@@ -295,7 +333,9 @@ class LocalKeyProvider(KeyProviderBase):
     async def random_bytes(self, n: int) -> bytes:
         return secrets.token_bytes(n)
 
-    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+    async def hkdf(
+        self, ikm: bytes, *, salt: bytes, info: bytes, length: int
+    ) -> bytes:
         return HKDF(
             algorithm=hashes.SHA256(), length=length, salt=salt, info=info
         ).derive(ikm)

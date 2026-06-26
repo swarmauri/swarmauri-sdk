@@ -40,4 +40,6 @@ def file_path_to_img_url(file_path: str, api_key: str) -> str:
                 + data.get("error", {}).get("message", "Unknown error")
             )
     else:
-        raise Exception(f"Failed to upload image. Status code: {response.status_code}")
+        raise Exception(
+            f"Failed to upload image. Status code: {response.status_code}"
+        )

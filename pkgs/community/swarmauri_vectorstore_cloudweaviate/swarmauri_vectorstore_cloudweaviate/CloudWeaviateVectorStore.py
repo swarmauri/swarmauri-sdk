@@ -18,7 +18,9 @@ from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
 from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
-from swarmauri_base.vector_stores.VectorStoreCloudMixin import VectorStoreCloudMixin
+from swarmauri_base.vector_stores.VectorStoreCloudMixin import (
+    VectorStoreCloudMixin,
+)
 
 
 @ComponentBase.register_type(VectorStoreBase, "CloudWeaviateVectorStore")

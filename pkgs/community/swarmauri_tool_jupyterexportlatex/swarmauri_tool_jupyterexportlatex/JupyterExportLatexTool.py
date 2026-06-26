@@ -121,7 +121,9 @@ class JupyterExportLatexTool(ToolBase):
                 latex_exporter.extra_template_basedirs = [
                     os.path.dirname(abs_template_path)
                 ]
-                latex_exporter.template_file = os.path.basename(abs_template_path)
+                latex_exporter.template_file = os.path.basename(
+                    abs_template_path
+                )
 
             # Attempt to convert the notebook to LaTeX.
             try:
@@ -151,11 +153,15 @@ class JupyterExportLatexTool(ToolBase):
                     pdf_exporter.extra_template_basedirs = [
                         os.path.dirname(abs_template_path)
                     ]
-                    pdf_exporter.template_file = os.path.basename(abs_template_path)
+                    pdf_exporter.template_file = os.path.basename(
+                        abs_template_path
+                    )
 
                 # Check if xelatex is available. If not, create a dummy PDF file in a persistent temp directory.
                 if shutil.which("xelatex") is None:
-                    temp_dir = tempfile.mkdtemp()  # Persistent temporary directory.
+                    temp_dir = (
+                        tempfile.mkdtemp()
+                    )  # Persistent temporary directory.
                     dummy_pdf_path = os.path.join(temp_dir, "dummy.pdf")
                     with open(dummy_pdf_path, "wb") as f:
                         f.write(b"%PDF-1.4\n%Dummy PDF file for testing.\n")
@@ -163,12 +169,18 @@ class JupyterExportLatexTool(ToolBase):
                 else:
                     with tempfile.TemporaryDirectory() as temp_dir:
                         pdf_exporter.output_filename = "converted_notebook.pdf"
-                        pdf_data, _ = pdf_exporter.from_notebook_node(notebook_node)
+                        pdf_data, _ = pdf_exporter.from_notebook_node(
+                            notebook_node
+                        )
                         writer = FilesWriter(build_directory=temp_dir)
                         writer.write(pdf_data, pdf_exporter.output_filename)
-                        pdf_path = os.path.join(temp_dir, pdf_exporter.output_filename)
+                        pdf_path = os.path.join(
+                            temp_dir, pdf_exporter.output_filename
+                        )
                         result["pdf_file_path"] = pdf_path
 
             return result
         except Exception as e:
-            return {"error": f"An error occurred during LaTeX export: {str(e)}"}
+            return {
+                "error": f"An error occurred during LaTeX export: {str(e)}"
+            }

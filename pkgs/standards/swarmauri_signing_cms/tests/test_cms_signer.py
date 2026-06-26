@@ -59,7 +59,9 @@ def _build_certificates() -> tuple[Any, Any, list[Any]]:
     extra_cert = (
         x509.CertificateBuilder()
         .subject_name(
-            x509.Name([x509.NameAttribute(x509.NameOID.COMMON_NAME, "Extra Cert")])
+            x509.Name(
+                [x509.NameAttribute(x509.NameOID.COMMON_NAME, "Extra Cert")]
+            )
         )
         .issuer_name(issuer)
         .public_key(extra_key.public_key())
@@ -241,7 +243,9 @@ def test_serialize_signature_captures_metadata():
     assert signature.meta["payload_kind"] == "bytes"
     assert signature.meta["attached"] is True
     assert signature.mode == "attached"
-    assert signature.cert_chain_der[0] == cert.public_bytes(serialization.Encoding.DER)
+    assert signature.cert_chain_der[0] == cert.public_bytes(
+        serialization.Encoding.DER
+    )
 
 
 def test_load_pkcs7_supports_der_and_pem():
@@ -270,14 +274,17 @@ def test_serialize_certs_concatenates_chain():
     _, cert, extras = _build_certificates()
     from cryptography.hazmat.primitives import serialization
 
-    expected = cert.public_bytes(serialization.Encoding.PEM) + extras[0].public_bytes(
-        serialization.Encoding.PEM
-    )
+    expected = cert.public_bytes(serialization.Encoding.PEM) + extras[
+        0
+    ].public_bytes(serialization.Encoding.PEM)
     assert _serialize_certs([cert, extras[0]]) == expected
 
 
 def test_openssl_verify_requires_trust():
-    assert _openssl_verify(b"payload", b"sig", attached=False, trusted=[]) is False
+    assert (
+        _openssl_verify(b"payload", b"sig", attached=False, trusted=[])
+        is False
+    )
 
 
 def test_openssl_verify_invokes_openssl(monkeypatch):
@@ -300,10 +307,16 @@ def test_openssl_verify_invokes_openssl(monkeypatch):
             return Proc(stdout=b"")
         return Proc(stdout=b"payload")
 
-    monkeypatch.setattr("swarmauri_signing_cms.cms_signer.shutil.which", fake_which)
-    monkeypatch.setattr("swarmauri_signing_cms.cms_signer.subprocess.run", fake_run)
+    monkeypatch.setattr(
+        "swarmauri_signing_cms.cms_signer.shutil.which", fake_which
+    )
+    monkeypatch.setattr(
+        "swarmauri_signing_cms.cms_signer.subprocess.run", fake_run
+    )
 
-    assert _openssl_verify(b"payload", b"-----BEGIN", attached=True, trusted=[cert])
+    assert _openssl_verify(
+        b"payload", b"-----BEGIN", attached=True, trusted=[cert]
+    )
     cmd = called["cmd"]
     assert "-inform" in cmd and "-CAfile" in cmd
 
@@ -323,7 +336,9 @@ async def test_verify_pkcs7_uses_loader(monkeypatch):
     monkeypatch.setattr(
         "swarmauri_signing_cms.cms_signer._HAS_PKCS7_SIGNED_LOADER", True
     )
-    from cryptography.hazmat.primitives.serialization import pkcs7 as pkcs7_module
+    from cryptography.hazmat.primitives.serialization import (
+        pkcs7 as pkcs7_module,
+    )
 
     monkeypatch.setattr(
         "swarmauri_signing_cms.cms_signer.pkcs7.load_der_pkcs7_signed_data",
@@ -350,7 +365,8 @@ async def test_verify_pkcs7_falls_back_to_openssl(monkeypatch):
 
     monkeypatch.setattr("asyncio.to_thread", fake_to_thread)
     monkeypatch.setattr(
-        "swarmauri_signing_cms.cms_signer._openssl_verify", lambda *a, **k: True
+        "swarmauri_signing_cms.cms_signer._openssl_verify",
+        lambda *a, **k: True,
     )
 
     assert await _verify_pkcs7(
@@ -403,7 +419,8 @@ async def test_sign_methods_delegate_to_sign_payload(monkeypatch):
         return b"stream"
 
     monkeypatch.setattr(
-        "swarmauri_signing_cms.cms_signer._stream_to_bytes", fake_stream_to_bytes
+        "swarmauri_signing_cms.cms_signer._stream_to_bytes",
+        fake_stream_to_bytes,
     )
 
     await signer.sign_bytes("key", b"data")
@@ -438,7 +455,8 @@ async def test_verify_methods_delegate_to_verify_payload(monkeypatch):
         return b"stream"
 
     monkeypatch.setattr(
-        "swarmauri_signing_cms.cms_signer._stream_to_bytes", fake_stream_to_bytes
+        "swarmauri_signing_cms.cms_signer._stream_to_bytes",
+        fake_stream_to_bytes,
     )
 
     sigs = [Signature("kid", None, "cms", "attached", "SHA256", b"art")]  # type: ignore[arg-type]
@@ -456,7 +474,10 @@ async def test_verify_methods_delegate_to_verify_payload(monkeypatch):
 @pytest.mark.asyncio
 async def test_canonicalize_envelope_supports_json_and_raw():
     signer = CMSSigner()
-    assert await signer.canonicalize_envelope({"b": 2, "a": 1}) == b'{"a":1,"b":2}'
+    assert (
+        await signer.canonicalize_envelope({"b": 2, "a": 1})
+        == b'{"a":1,"b":2}'
+    )
 
     raw = await signer.canonicalize_envelope(b"raw", canon="raw")
     assert raw == b"raw"
@@ -515,7 +536,9 @@ async def test_verify_payload_validates_signatures(monkeypatch):
         assert attached is True
         return artifact_bytes == artifact
 
-    monkeypatch.setattr("swarmauri_signing_cms.cms_signer._verify_pkcs7", fake_verify)
+    monkeypatch.setattr(
+        "swarmauri_signing_cms.cms_signer._verify_pkcs7", fake_verify
+    )
 
     signatures = [
         Signature(
@@ -574,7 +597,9 @@ async def test_verify_payload_handles_str_artifacts_and_errors(monkeypatch):
             raise RuntimeError("boom")
         return True
 
-    monkeypatch.setattr("swarmauri_signing_cms.cms_signer._verify_pkcs7", fake_verify)
+    monkeypatch.setattr(
+        "swarmauri_signing_cms.cms_signer._verify_pkcs7", fake_verify
+    )
 
     signatures = [
         Signature(

@@ -46,7 +46,9 @@ class S3StorageAdapter(StorageAdapterBase):
 
         config_options = dict(config_kwargs or {})
         if addressing_style:
-            config_options.setdefault("s3", {})["addressing_style"] = addressing_style
+            config_options.setdefault("s3", {})["addressing_style"] = (
+                addressing_style
+            )
 
         options = dict(client_kwargs or {})
         options.update(
@@ -61,7 +63,9 @@ class S3StorageAdapter(StorageAdapterBase):
                 "verify": verify,
             }
         )
-        options = {key: value for key, value in options.items() if value is not None}
+        options = {
+            key: value for key, value in options.items() if value is not None
+        }
         if config_options:
             options["config"] = Config(**config_options)
 
@@ -98,7 +102,9 @@ class S3StorageAdapter(StorageAdapterBase):
         """Download *key* into a binary in-memory stream."""
         buffer = io.BytesIO()
         try:
-            self._client.download_fileobj(self._bucket, self._full_key(key), buffer)
+            self._client.download_fileobj(
+                self._bucket, self._full_key(key), buffer
+            )
         except ClientError as exc:
             if self._is_missing(exc):
                 raise FileNotFoundError(key) from exc
@@ -142,7 +148,9 @@ class S3StorageAdapter(StorageAdapterBase):
         normalized_prefix = self.normalize_prefix(prefix)
         for rel_key in self.iter_prefix(prefix):
             target_rel = rel_key
-            if normalized_prefix and rel_key.startswith(f"{normalized_prefix}/"):
+            if normalized_prefix and rel_key.startswith(
+                f"{normalized_prefix}/"
+            ):
                 target_rel = rel_key[len(normalized_prefix) + 1 :]
             if not target_rel:
                 continue
@@ -162,7 +170,9 @@ class S3StorageAdapter(StorageAdapterBase):
                 return
             raise
 
-    async def put_bytes(self, object_key: str, data: bytes, content_type: str) -> None:
+    async def put_bytes(
+        self, object_key: str, data: bytes, content_type: str
+    ) -> None:
         """Store raw bytes under *object_key* with an explicit content type."""
         self._client.put_object(
             Bucket=self._bucket,
@@ -184,7 +194,9 @@ class S3StorageAdapter(StorageAdapterBase):
             raise
         return response["Body"].read()
 
-    async def get_range(self, object_key: str, start: int, length: int) -> bytes:
+    async def get_range(
+        self, object_key: str, start: int, length: int
+    ) -> bytes:
         """Retrieve a byte range using S3 range requests."""
         try:
             head = self._client.head_object(
@@ -207,7 +219,9 @@ class S3StorageAdapter(StorageAdapterBase):
 
     async def remove_object(self, object_key: str) -> None:
         """Delete ``object_key`` when it exists."""
-        self._client.delete_object(Bucket=self._bucket, Key=self._full_key(object_key))
+        self._client.delete_object(
+            Bucket=self._bucket, Key=self._full_key(object_key)
+        )
 
     @staticmethod
     def _is_missing(exc: ClientError) -> bool:

@@ -1,6 +1,8 @@
 import pytest
 import os
-from swarmauri_standard.image_gens.DeepInfraImgGenModel import DeepInfraImgGenModel
+from swarmauri_standard.image_gens.DeepInfraImgGenModel import (
+    DeepInfraImgGenModel,
+)
 from dotenv import load_dotenv
 
 from swarmauri_standard.utils.timeout_wrapper import timeout
@@ -51,7 +53,9 @@ def test_serialization(deepinfra_imggen_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(deepinfra_imggen_model):
-    assert deepinfra_imggen_model.name == deepinfra_imggen_model.allowed_models[0]
+    assert (
+        deepinfra_imggen_model.name == deepinfra_imggen_model.allowed_models[0]
+    )
 
 
 @timeout(5)
@@ -94,7 +98,9 @@ def test_batch_base64(deepinfra_imggen_model):
         "A steaming cup of coffee on a wooden table",
     ]
 
-    result_base64_images = deepinfra_imggen_model.batch_generate(prompts=prompts)
+    result_base64_images = deepinfra_imggen_model.batch_generate(
+        prompts=prompts
+    )
 
     assert len(result_base64_images) == len(prompts)
     for image_base64 in result_base64_images:
@@ -112,7 +118,9 @@ async def test_abatch_base64(deepinfra_imggen_model):
         "A vintage car on a rural road",
     ]
 
-    result_base64_images = await deepinfra_imggen_model.abatch_generate(prompts=prompts)
+    result_base64_images = await deepinfra_imggen_model.abatch_generate(
+        prompts=prompts
+    )
 
     assert len(result_base64_images) == len(prompts)
     for image_base64 in result_base64_images:

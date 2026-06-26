@@ -1,6 +1,8 @@
 import warnings
 
-from swarmauri_standard.distances.CosineDistance import CosineDistance as _StandardCosineDistance
+from swarmauri_standard.distances.CosineDistance import (
+    CosineDistance as _StandardCosineDistance,
+)
 
 
 class CosineDistance(_StandardCosineDistance):

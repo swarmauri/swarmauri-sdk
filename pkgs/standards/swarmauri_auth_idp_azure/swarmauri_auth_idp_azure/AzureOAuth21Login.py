@@ -20,14 +20,18 @@ class AzureOAuth21Login(AzureLoginMixin, OAuth21LoginBase):
         payload = await self._auth_payload(prompt="select_account")
         return {"url": payload["url"], "state": payload["state"]}
 
-    async def exchange_and_identity(self, code: str, state: str) -> Mapping[str, Any]:
+    async def exchange_and_identity(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         tokens = await self._exchange_tokens(code, state)
         access_token = tokens.get("access_token")
         profile: Mapping[str, Any] = {}
         if access_token:
             profile = await self._fetch_profile(access_token)
         email = (
-            profile.get("mail") or profile.get("userPrincipalName") if profile else None
+            profile.get("mail") or profile.get("userPrincipalName")
+            if profile
+            else None
         )
         name = profile.get("displayName") if profile else None
         return {

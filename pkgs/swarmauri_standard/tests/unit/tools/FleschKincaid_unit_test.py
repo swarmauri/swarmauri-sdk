@@ -1,5 +1,7 @@
 import pytest
-from swarmauri_standard.tools.FleschKincaidTool import FleschKincaidTool as Tool
+from swarmauri_standard.tools.FleschKincaidTool import (
+    FleschKincaidTool as Tool,
+)
 
 
 @pytest.mark.unit
@@ -43,13 +45,17 @@ def test_call():
     expected_reading_ease = (
         206.835 - 1.015 * words_per_sentence - 84.6 * syllables_per_word
     )
-    expected_grade_level = 0.39 * words_per_sentence + 11.8 * syllables_per_word - 15.59
+    expected_grade_level = (
+        0.39 * words_per_sentence + 11.8 * syllables_per_word - 15.59
+    )
 
     expected_keys = {"reading_ease", "grade_level"}
 
     result = tool(input_data)
 
-    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert isinstance(result, dict), (
+        f"Expected dict, but got {type(result).__name__}"
+    )
     assert expected_keys.issubset(result.keys()), (
         f"Expected keys {expected_keys} but got {result.keys()}"
     )

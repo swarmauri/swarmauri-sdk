@@ -104,7 +104,10 @@ def test_compute_default(default_seminorm, input_vector, expected_output):
     "input_vector, expected_output",
     [
         ([1, 2, 3, 4, 5], 5),  # Sum of elements at indices 1 and 2 (2+3)
-        ([-1, 2, -3, 4, -5], 5),  # Sum of absolute values at indices 1 and 2 (2+3)
+        (
+            [-1, 2, -3, 4, -5],
+            5,
+        ),  # Sum of absolute values at indices 1 and 2 (2+3)
         ([0, 0, 0, 0, 0], 0),  # Zero vector
     ],
 )
@@ -119,7 +122,10 @@ def test_compute_range(range_seminorm, input_vector, expected_output):
     "input_vector, expected_output",
     [
         ([1, 2, 3, 4, 5], 9),  # Sum of elements at indices 0, 2, 4 (1+3+5)
-        ([-1, 2, -3, 4, -5], 9),  # Sum of absolute values at indices 0, 2, 4 (1+3+5)
+        (
+            [-1, 2, -3, 4, -5],
+            9,
+        ),  # Sum of absolute values at indices 0, 2, 4 (1+3+5)
         ([0, 0, 0, 0, 0], 0),  # Zero vector
     ],
 )

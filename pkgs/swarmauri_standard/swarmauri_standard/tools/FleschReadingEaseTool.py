@@ -21,9 +21,7 @@ class FleschReadingEaseTool(ToolBase):
     )
 
     name: str = "FleschReadingEaseTool"
-    description: str = (
-        "Calculates the readability of text using the Flesch Reading Ease formula."
-    )
+    description: str = "Calculates the readability of text using the Flesch Reading Ease formula."
     type: Literal["FleschReadingEaseTool"] = "FleschReadingEaseTool"
 
     def __call__(self, text: str) -> Dict[str, float]:
@@ -36,7 +34,9 @@ class FleschReadingEaseTool(ToolBase):
         Returns:
         - float: The Flesch Reading Ease score.
         """
-        return {"flesch_reading_ease": self.calculate_flesch_reading_ease(text)}
+        return {
+            "flesch_reading_ease": self.calculate_flesch_reading_ease(text)
+        }
 
     def calculate_flesch_reading_ease(self, text: str) -> float:
         """
@@ -62,7 +62,9 @@ class FleschReadingEaseTool(ToolBase):
 
         # Calculate the Flesch Reading Ease score
         score = (
-            206.835 - 1.015 * (num_words / sentences) - 84.6 * (syllables / num_words)
+            206.835
+            - 1.015 * (num_words / sentences)
+            - 84.6 * (syllables / num_words)
         )
         return score
 

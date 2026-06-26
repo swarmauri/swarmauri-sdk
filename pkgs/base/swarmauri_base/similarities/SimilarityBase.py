@@ -265,7 +265,9 @@ class SimilarityBase(ISimilarity, ComponentBase):
         try:
             similarity_value = self.similarity(x, y)
             # If x and y are identical (by value, not necessarily by reference)
-            if str(x) == str(y):  # Simple string comparison as a basic equality check
+            if str(x) == str(
+                y
+            ):  # Simple string comparison as a basic equality check
                 # Then the similarity should be 1
                 return abs(similarity_value - 1.0) < 1e-10
             else:

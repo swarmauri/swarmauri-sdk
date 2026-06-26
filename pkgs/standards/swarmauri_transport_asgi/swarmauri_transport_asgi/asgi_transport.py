@@ -33,7 +33,9 @@ class ASGITransport(TransportBase, RunnableMixin, HttpServerMixin):
             protocols=frozenset({Protocol.HTTP1, Protocol.H2}),
             io=IOModel.STREAM,
             casts=frozenset({Cast.UNICAST}),
-            features=frozenset({Feature.RELIABLE, Feature.ORDERED, Feature.MULTIPLEX}),
+            features=frozenset(
+                {Feature.RELIABLE, Feature.ORDERED, Feature.MULTIPLEX}
+            ),
             security=SecurityMode.TLS,
             schemes=frozenset({AddressScheme.HTTP, AddressScheme.HTTPS}),
         )

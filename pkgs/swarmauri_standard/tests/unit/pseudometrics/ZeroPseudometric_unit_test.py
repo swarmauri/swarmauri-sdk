@@ -113,11 +113,15 @@ def test_check_triangle_inequality(zero_pseudometric):
     # Test with arbitrary inputs
     assert zero_pseudometric.check_triangle_inequality("x", "y", "z") is True
     assert zero_pseudometric.check_triangle_inequality(1, 2, 3) is True
-    assert zero_pseudometric.check_triangle_inequality(None, None, None) is True
+    assert (
+        zero_pseudometric.check_triangle_inequality(None, None, None) is True
+    )
 
     # Test with custom tolerance
     assert (
-        zero_pseudometric.check_triangle_inequality("x", "y", "z", tolerance=0.001)
+        zero_pseudometric.check_triangle_inequality(
+            "x", "y", "z", tolerance=0.001
+        )
         is True
     )
 
@@ -129,7 +133,10 @@ def test_check_weak_identity(zero_pseudometric):
     """
     # Test with arbitrary inputs
     assert zero_pseudometric.check_weak_identity("same", "same") is True
-    assert zero_pseudometric.check_weak_identity("different1", "different2") is True
+    assert (
+        zero_pseudometric.check_weak_identity("different1", "different2")
+        is True
+    )
     assert zero_pseudometric.check_weak_identity(None, None) is True
 
 
@@ -138,7 +145,9 @@ def test_string_representation(zero_pseudometric):
     """
     Test the string representation of ZeroPseudometric.
     """
-    expected = "ZeroPseudometric (trivial pseudometric that returns 0 for all inputs)"
+    expected = (
+        "ZeroPseudometric (trivial pseudometric that returns 0 for all inputs)"
+    )
     assert str(zero_pseudometric) == expected
 
 

@@ -74,7 +74,9 @@ class DummySigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            digest, signatures, require=require, opts=opts
+        )
 
     async def canonicalize_envelope(
         self,
@@ -108,7 +110,9 @@ class DummySigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         pae = await self.canonicalize_envelope(env, canon=canon, opts=opts)
-        return await self.verify_bytes(pae, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            pae, signatures, require=require, opts=opts
+        )
 
     async def sign_stream(
         self,
@@ -130,7 +134,9 @@ class DummySigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         data = await _stream_to_bytes(payload)
-        return await self.verify_bytes(data, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            data, signatures, require=require, opts=opts
+        )
 
 
 @pytest.mark.unit
@@ -140,7 +146,9 @@ async def test_canonicalize_envelope_mapping() -> None:
     signer = DSSESigner(inner)
     envelope = {
         "payloadType": "text/plain",
-        "payload": base64.urlsafe_b64encode(b"hello").decode("ascii").rstrip("="),
+        "payload": base64.urlsafe_b64encode(b"hello")
+        .decode("ascii")
+        .rstrip("="),
         "signatures": [{"sig": "ZmFrZVNpZw"}],
     }
 

@@ -37,7 +37,9 @@ def position_dependent_weight_function() -> Callable[[Any], np.ndarray]:
         A function that returns position-dependent weights
     """
     return lambda x: (
-        np.exp(-0.1 * x) if isinstance(x, np.ndarray) else np.exp(-0.1 * np.array(x))
+        np.exp(-0.1 * x)
+        if isinstance(x, np.ndarray)
+        else np.exp(-0.1 * np.array(x))
     )
 
 
@@ -76,7 +78,9 @@ def weighted_l2_variable() -> WeightedL2InnerProduct:
 @pytest.mark.unit
 def test_initialization_with_weight_function(constant_weight_function):
     """Test proper initialization with a weight function."""
-    inner_product = WeightedL2InnerProduct(weight_function=constant_weight_function)
+    inner_product = WeightedL2InnerProduct(
+        weight_function=constant_weight_function
+    )
     assert inner_product.weight_function is constant_weight_function
     assert inner_product.type == "WeightedL2InnerProduct"
     assert inner_product.resource == "InnerProduct"
@@ -104,9 +108,13 @@ def test_validate_weight_at_points_invalid():
     def negative_weight_func(x):
         return -1.0
 
-    inner_product = WeightedL2InnerProduct(weight_function=negative_weight_func)
+    inner_product = WeightedL2InnerProduct(
+        weight_function=negative_weight_func
+    )
 
-    with pytest.raises(ValueError, match="Weight function must be strictly positive"):
+    with pytest.raises(
+        ValueError, match="Weight function must be strictly positive"
+    ):
         inner_product._validate_weight_at_points(np.array([1, 2, 3]))
 
 
@@ -185,7 +193,9 @@ def test_check_linearity_first_argument_with_arrays(weighted_l2_constant):
     alpha = 2.0
     beta = 3.0
 
-    assert weighted_l2_constant.check_linearity_first_argument(a1, a2, b, alpha, beta)
+    assert weighted_l2_constant.check_linearity_first_argument(
+        a1, a2, b, alpha, beta
+    )
 
 
 @pytest.mark.unit
@@ -248,7 +258,9 @@ def test_invalid_weight_function():
     a = np.array([1, 2, 3])
     b = np.array([4, 5, 6])
 
-    with pytest.raises(ValueError, match="Weight function must be strictly positive"):
+    with pytest.raises(
+        ValueError, match="Weight function must be strictly positive"
+    ):
         inner_product.compute(a, b)
 
 

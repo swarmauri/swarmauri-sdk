@@ -71,7 +71,9 @@ ALL_CAPABILITIES: FrozenSet[Capability] = frozenset(cap for cap in Capability)
 CAPABILITY_TO_TIGRBL: Dict[Capability, FrozenSet[str]] = {
     Capability.PRODUCTS_PRICES: frozenset({"PRICE"}),
     Capability.HOSTED_CHECKOUT: frozenset({"CHARGE"}),
-    Capability.ONLINE_PAYMENTS: frozenset({"CHARGE", "REFUND", "PARTIAL_REFUND"}),
+    Capability.ONLINE_PAYMENTS: frozenset(
+        {"CHARGE", "REFUND", "PARTIAL_REFUND"}
+    ),
     Capability.SUBSCRIPTIONS: frozenset({"SUBS_BASIC", "SUBS_TRIALS"}),
     Capability.INVOICING: frozenset({"INVOICE_PAYMENT"}),
     Capability.MARKETPLACE: frozenset({"PAYMENT_SPLIT", "TRANSFER"}),
@@ -88,7 +90,9 @@ CAPABILITY_TO_TIGRBL: Dict[Capability, FrozenSet[str]] = {
 """Map capability identifiers to the underlying tigrbl API capability names."""
 
 
-def capabilities_to_tigrbl(capabilities: Iterable[Capability]) -> FrozenSet[str]:
+def capabilities_to_tigrbl(
+    capabilities: Iterable[Capability],
+) -> FrozenSet[str]:
     """Translate Swarmauri billing capabilities to tigrbl capability identifiers."""
 
     mapped = set()

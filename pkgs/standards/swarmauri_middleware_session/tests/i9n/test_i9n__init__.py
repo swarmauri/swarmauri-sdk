@@ -14,11 +14,15 @@ class TestInit:
     def test_version(self):
         """Test that the version is correctly defined."""
         init_module = import_module("swarmauri_middleware_session")
-        assert hasattr(init_module, "__version__"), "Package version is not defined"
+        assert hasattr(init_module, "__version__"), (
+            "Package version is not defined"
+        )
         assert isinstance(init_module.__version__, str), (
             "Package version is not a string"
         )
-        assert len(init_module.__version__) > 0, "Package version string is empty"
+        assert len(init_module.__version__) > 0, (
+            "Package version string is empty"
+        )
         logger.debug("Package version: %s", init_module.__version__)
 
     def test_all_definition(self):

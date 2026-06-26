@@ -46,7 +46,9 @@ class S3OverSftpStorageAdapter(StorageAdapterBase):
         self._port = port
         self._username = username
         self._password = self._secret_value(password)
-        self._key_filename = str(key_filename) if key_filename is not None else None
+        self._key_filename = (
+            str(key_filename) if key_filename is not None else None
+        )
         self._root_dir = self._normalize_remote_root(root_dir)
         self._owns_connection = transport is None and sftp_client is None
         self._owns_sftp = sftp_client is None
@@ -83,7 +85,11 @@ class S3OverSftpStorageAdapter(StorageAdapterBase):
         if self._key_filename is not None:
             options.setdefault("key_filename", self._key_filename)
         self._ssh_client.connect(
-            **{key: value for key, value in options.items() if value is not None}
+            **{
+                key: value
+                for key, value in options.items()
+                if value is not None
+            }
         )
         return self._ssh_client.open_sftp()
 
@@ -107,7 +113,9 @@ class S3OverSftpStorageAdapter(StorageAdapterBase):
         )
 
     def _remote_path(self, key: str, *, allow_empty: bool = False) -> str:
-        return self._remote_join(self._bucket_key(key, allow_empty=allow_empty))
+        return self._remote_join(
+            self._bucket_key(key, allow_empty=allow_empty)
+        )
 
     def _relative_key(self, remote_path: str) -> str:
         base = self._remote_path("", allow_empty=True).rstrip("/")
@@ -214,7 +222,9 @@ class S3OverSftpStorageAdapter(StorageAdapterBase):
         normalized_prefix = self.normalize_prefix(prefix)
         for rel_key in self.iter_prefix(prefix):
             target_rel = rel_key
-            if normalized_prefix and rel_key.startswith(f"{normalized_prefix}/"):
+            if normalized_prefix and rel_key.startswith(
+                f"{normalized_prefix}/"
+            ):
                 target_rel = rel_key[len(normalized_prefix) + 1 :]
             if not target_rel:
                 continue
@@ -228,7 +238,9 @@ class S3OverSftpStorageAdapter(StorageAdapterBase):
         """Create the bucket directory when it does not already exist."""
         self._mkdir_p(self._remote_join(self._bucket))
 
-    async def put_bytes(self, object_key: str, data: bytes, content_type: str) -> None:
+    async def put_bytes(
+        self, object_key: str, data: bytes, content_type: str
+    ) -> None:
         """Store raw bytes under *object_key*."""
         del content_type
         self.upload(object_key, io.BytesIO(data))
@@ -237,7 +249,9 @@ class S3OverSftpStorageAdapter(StorageAdapterBase):
         """Retrieve the stored object as bytes."""
         return self.get_blob(object_key)
 
-    async def get_range(self, object_key: str, start: int, length: int) -> bytes:
+    async def get_range(
+        self, object_key: str, start: int, length: int
+    ) -> bytes:
         """Retrieve a byte range from the remote object."""
         remote_path = self._remote_path(object_key)
         try:

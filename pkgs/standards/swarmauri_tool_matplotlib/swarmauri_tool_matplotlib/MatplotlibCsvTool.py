@@ -75,4 +75,8 @@ class MatplotlibCsvTool(ToolBase):
         with open(output_file, "rb") as image_file:
             encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
 
-        return {"img_path": output_file, "img_base64": encoded_image, "data": []}
+        return {
+            "img_path": output_file,
+            "img_base64": encoded_image,
+            "data": [],
+        }

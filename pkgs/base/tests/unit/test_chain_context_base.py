@@ -10,7 +10,9 @@ def test_resolve_fstring_uses_direct_context_lookup() -> None:
     )
 
 
-def test_resolve_fstring_preserves_unknown_or_expression_placeholders() -> None:
+def test_resolve_fstring_preserves_unknown_or_expression_placeholders() -> (
+    None
+):
     context = ChainContextBase(context={"name": "Ada"})
 
     assert (

@@ -142,7 +142,9 @@ def test_predict(tool_llm_config, toolkit, conversation):
 
     logging.info(f"Testing predict with provider: {provider}")
 
-    result_conv = llm.predict(conversation=conversation.model_copy(), toolkit=toolkit)
+    result_conv = llm.predict(
+        conversation=conversation.model_copy(), toolkit=toolkit
+    )
     response = result_conv.get_last().content
 
     logging.info(f"Provider {provider} response: {response}")
@@ -160,7 +162,9 @@ def test_stream(tool_llm_config, toolkit, conversation):
     logging.info(f"Testing stream with provider: {provider}")
 
     collected_tokens = []
-    for token in llm.stream(conversation=conversation.model_copy(), toolkit=toolkit):
+    for token in llm.stream(
+        conversation=conversation.model_copy(), toolkit=toolkit
+    ):
         assert isinstance(token, str)
         collected_tokens.append(token)
 
@@ -207,7 +211,9 @@ async def test_apredict(tool_llm_config, toolkit, conversation):
 
     logging.info(f"Testing apredict with provider: {provider}")
 
-    result = await llm.apredict(conversation=conversation.model_copy(), toolkit=toolkit)
+    result = await llm.apredict(
+        conversation=conversation.model_copy(), toolkit=toolkit
+    )
     prediction = result.get_last().content
 
     assert isinstance(prediction, str)
@@ -260,4 +266,6 @@ async def test_abatch(tool_llm_config, toolkit):
     for i, result in enumerate(results):
         response = result.get_last().content
         assert isinstance(response, str)
-        assert response != "", f"Empty async batch response #{i + 1} from {provider}"
+        assert response != "", (
+            f"Empty async batch response #{i + 1} from {provider}"
+        )

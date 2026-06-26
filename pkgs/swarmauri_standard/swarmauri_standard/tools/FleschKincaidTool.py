@@ -64,11 +64,15 @@ class FleschKincaidTool(ToolBase):
 
             # Flesch Reading Ease score
             reading_ease = (
-                206.835 - 1.015 * words_per_sentence - 84.6 * syllables_per_word
+                206.835
+                - 1.015 * words_per_sentence
+                - 84.6 * syllables_per_word
             )
 
             # Flesch-Kincaid Grade Level
-            grade_level = 0.39 * words_per_sentence + 11.8 * syllables_per_word - 15.59
+            grade_level = (
+                0.39 * words_per_sentence + 11.8 * syllables_per_word - 15.59
+            )
 
             return {"reading_ease": reading_ease, "grade_level": grade_level}
         else:
@@ -86,7 +90,9 @@ class FleschKincaidTool(ToolBase):
         """
         sentence_endings = re.compile(r"[.!?]")
         sentences = sentence_endings.split(text)
-        return len([s for s in sentences if s.strip()])  # Count non-empty sentences
+        return len(
+            [s for s in sentences if s.strip()]
+        )  # Count non-empty sentences
 
     def count_words(self, text: str) -> int:
         """

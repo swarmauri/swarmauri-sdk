@@ -34,10 +34,13 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
         The weight matrix used to modulate the inner product calculation
     """
 
-    type: Literal["TraceFormWeightedInnerProduct"] = "TraceFormWeightedInnerProduct"
+    type: Literal["TraceFormWeightedInnerProduct"] = (
+        "TraceFormWeightedInnerProduct"
+    )
     weight_matrix: np.ndarray
     model_config = ConfigDict(
-        arbitrary_types_allowed=True, json_encoders={np.ndarray: lambda v: v.tolist()}
+        arbitrary_types_allowed=True,
+        json_encoders={np.ndarray: lambda v: v.tolist()},
     )
 
     def __init__(self, weight_matrix: Optional[np.ndarray] = None, **kwargs):
@@ -64,7 +67,9 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
         super().__init__(**kwargs)
 
     def compute(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> float:
         """
         Compute the weighted trace inner product between two matrices.
@@ -125,7 +130,9 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
                 )
             else:
                 # Calculate A^T * W * B (regular transpose for real matrices)
-                weighted_product = np.matmul(a.T, np.matmul(self.weight_matrix, b))
+                weighted_product = np.matmul(
+                    a.T, np.matmul(self.weight_matrix, b)
+                )
 
             # Take the trace
             result = np.trace(weighted_product)
@@ -136,7 +143,9 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             raise
 
     def check_conjugate_symmetry(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> bool:
         """
         Check if the inner product satisfies the conjugate symmetry property:
@@ -157,11 +166,16 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
         bool
             True if conjugate symmetry holds, False otherwise
         """
-        logger.debug(f"Checking conjugate symmetry for {type(a)} and {type(b)}")
+        logger.debug(
+            f"Checking conjugate symmetry for {type(a)} and {type(b)}"
+        )
 
         # First, check if the weight matrix is Hermitian
         is_hermitian = np.allclose(
-            self.weight_matrix, self.weight_matrix.T.conj(), rtol=1e-5, atol=1e-8
+            self.weight_matrix,
+            self.weight_matrix.T.conj(),
+            rtol=1e-5,
+            atol=1e-8,
         )
 
         if not is_hermitian:
@@ -276,7 +290,9 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
         try:
             # Compute eigenvalues of the weight matrix
             eigenvalues = np.linalg.eigvalsh(self.weight_matrix)
-            is_psd = np.all(eigenvalues >= -1e-10)  # Allow for small numerical errors
+            is_psd = np.all(
+                eigenvalues >= -1e-10
+            )  # Allow for small numerical errors
 
             if not is_psd:
                 logger.debug(
@@ -321,7 +337,9 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
         weight_matrix : np.ndarray
             The new weight matrix to use
         """
-        logger.info(f"Setting new weight matrix of shape {weight_matrix.shape}")
+        logger.info(
+            f"Setting new weight matrix of shape {weight_matrix.shape}"
+        )
         self.weight_matrix = np.array(weight_matrix)
 
     def get_weight_matrix(self) -> np.ndarray:

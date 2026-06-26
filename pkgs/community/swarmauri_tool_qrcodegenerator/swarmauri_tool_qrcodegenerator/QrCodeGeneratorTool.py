@@ -11,7 +11,9 @@ import base64
 @ComponentBase.register_type(ToolBase, "QrCodeGeneratorTool")
 class QrCodeGeneratorTool(ToolBase):
     type: Literal["QrCodeGeneratorTool"] = "QrCodeGeneratorTool"
-    name: str = Field("QrCodeGeneratorTool", description="Tool to generate QR codes.")
+    name: str = Field(
+        "QrCodeGeneratorTool", description="Tool to generate QR codes."
+    )
     description: str = Field(
         "Generates QR codes from input data.",
         description="Description of the QrCodeGeneratorTool",

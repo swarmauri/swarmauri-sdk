@@ -125,7 +125,10 @@ def test_get_full_name(evaluator):
     code = "module.submodule.attribute"
     tree = ast.parse(code)
     attribute_node = tree.body[0].value
-    assert evaluator._get_full_name(attribute_node) == "module.submodule.attribute"
+    assert (
+        evaluator._get_full_name(attribute_node)
+        == "module.submodule.attribute"
+    )
 
 
 @pytest.mark.unit

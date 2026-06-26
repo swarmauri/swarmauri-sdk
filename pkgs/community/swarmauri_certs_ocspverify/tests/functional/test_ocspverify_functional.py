@@ -11,7 +11,9 @@ from swarmauri_certs_ocspverify import OcspVerifyService
 
 def _make_cert(with_ocsp: bool = True) -> bytes:
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    subject = issuer = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "example")])
+    subject = issuer = x509.Name(
+        [x509.NameAttribute(NameOID.COMMON_NAME, "example")]
+    )
     builder = (
         x509.CertificateBuilder()
         .subject_name(subject)

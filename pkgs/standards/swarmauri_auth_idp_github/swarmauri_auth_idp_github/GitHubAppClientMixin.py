@@ -42,7 +42,9 @@ class GitHubAppClientMixin:
     def _app_jwt(self) -> str:
         now = int(time.time())
         payload = {"iat": now - 60, "exp": now + 600, "iss": self.app_id}
-        return jwt.encode(payload, self._private_key_value(), algorithm="RS256")
+        return jwt.encode(
+            payload, self._private_key_value(), algorithm="RS256"
+        )
 
     def _request_payload(self) -> Dict[str, Any]:
         payload: Dict[str, Any] = {}

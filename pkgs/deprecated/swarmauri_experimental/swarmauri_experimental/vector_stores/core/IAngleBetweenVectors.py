@@ -8,7 +8,9 @@ class IAngleBetweenVectors(ABC):
     """
 
     @abstractmethod
-    def angle_between(self, vector_a: List[float], vector_b: List[float]) -> float:
+    def angle_between(
+        self, vector_a: List[float], vector_b: List[float]
+    ) -> float:
         """
         Method to calculate and return the angle in radians between two vectors.
 

@@ -24,7 +24,8 @@ def test_serialization():
         name="test_name", content="test", tool_call_id="test_tool_call_id"
     )
     assert (
-        message.id == FunctionMessage.model_validate_json(message.model_dump_json()).id
+        message.id
+        == FunctionMessage.model_validate_json(message.model_dump_json()).id
     )
 
 

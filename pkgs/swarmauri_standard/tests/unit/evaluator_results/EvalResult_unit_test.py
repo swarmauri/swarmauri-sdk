@@ -61,7 +61,9 @@ def eval_result(mock_program, sample_metadata):
     EvalResult
         Initialized evaluation result for testing
     """
-    return EvalResult(score=0.85, metadata=sample_metadata, program=mock_program)
+    return EvalResult(
+        score=0.85, metadata=sample_metadata, program=mock_program
+    )
 
 
 @pytest.mark.unit
@@ -76,7 +78,9 @@ def test_init_valid_parameters(mock_program, sample_metadata):
     sample_metadata : Dict[str, Any]
         Sample metadata dictionary
     """
-    result = EvalResult(score=0.85, metadata=sample_metadata, program=mock_program)
+    result = EvalResult(
+        score=0.85, metadata=sample_metadata, program=mock_program
+    )
 
     assert result.score == 0.85
     assert result.metadata == sample_metadata
@@ -96,7 +100,9 @@ def test_init_with_integer_score(mock_program, sample_metadata):
     sample_metadata : Dict[str, Any]
         Sample metadata dictionary
     """
-    result = EvalResult(score=1, metadata=sample_metadata, program=mock_program)
+    result = EvalResult(
+        score=1, metadata=sample_metadata, program=mock_program
+    )
 
     assert result.score == 1
     assert isinstance(result.score, (int, float))
@@ -115,7 +121,11 @@ def test_init_with_invalid_score_type(mock_program, sample_metadata):
         Sample metadata dictionary
     """
     with pytest.raises(TypeError, match="Score must be a number"):
-        EvalResult(score="not_a_number", metadata=sample_metadata, program=mock_program)
+        EvalResult(
+            score="not_a_number",
+            metadata=sample_metadata,
+            program=mock_program,
+        )
 
 
 @pytest.mark.unit
@@ -200,7 +210,9 @@ def test_update_metadata_with_invalid_keys(eval_result):
         (0.85, 0.85, 0),  # Results are equal
     ],
 )
-def test_compare_to(this_score, other_score, expected, mock_program, sample_metadata):
+def test_compare_to(
+    this_score, other_score, expected, mock_program, sample_metadata
+):
     """
     Test comparing two evaluation results.
 

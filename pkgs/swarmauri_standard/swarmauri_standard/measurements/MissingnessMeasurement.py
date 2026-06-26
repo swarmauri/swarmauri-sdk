@@ -27,7 +27,9 @@ class MissingnessMeasurement(MeasurementCalculateMixin, MeasurementBase):
     unit: str = "%"
     measurements: List[Optional[float]] = []
 
-    def calculate_missingness(self, data: Union[pd.DataFrame, List, Dict]) -> float:
+    def calculate_missingness(
+        self, data: Union[pd.DataFrame, List, Dict]
+    ) -> float:
         """
         Calculates the missingness score for different data types.
 
@@ -59,7 +61,9 @@ class MissingnessMeasurement(MeasurementCalculateMixin, MeasurementBase):
 
         return (missing_values / total_values) * 100
 
-    def __call__(self, data: Union[pd.DataFrame, List, Dict], **kwargs) -> float:
+    def __call__(
+        self, data: Union[pd.DataFrame, List, Dict], **kwargs
+    ) -> float:
         """
         Calculates and returns the missingness score for the provided data.
 
@@ -90,7 +94,8 @@ class MissingnessMeasurement(MeasurementCalculateMixin, MeasurementBase):
             raise ValueError("Input must be a pandas DataFrame")
 
         return {
-            column: (df[column].isna().sum() / len(df) * 100) for column in df.columns
+            column: (df[column].isna().sum() / len(df) * 100)
+            for column in df.columns
         }
 
     def calculate(self) -> float:

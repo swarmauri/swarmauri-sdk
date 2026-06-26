@@ -116,7 +116,9 @@ def test_push_pull(monkeypatch, tmp_path):
 
 def test_pull_rejects_path_traversal_asset(monkeypatch, tmp_path):
     adapter = create_adapter(monkeypatch)
-    adapter._release.assets.append(DummyAsset("prefix/../escaped.txt", b"owned"))
+    adapter._release.assets.append(
+        DummyAsset("prefix/../escaped.txt", b"owned")
+    )
     dest = tmp_path / "dest"
     outside = tmp_path / "escaped.txt"
 

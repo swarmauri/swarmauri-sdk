@@ -23,7 +23,9 @@ async def test_self_signed_roundtrip_functional() -> None:
         export_policy=ExportPolicy.PUBLIC_ONLY,
         material=pem,
     )
-    svc = MsAdcsCertService(base_url="https://example.com", auth=_AuthCfg(mode="none"))
+    svc = MsAdcsCertService(
+        base_url="https://example.com", auth=_AuthCfg(mode="none")
+    )
     subject: SubjectSpec = {"CN": "test"}
     cert = await svc.create_self_signed(key, subject)
     parsed = await svc.parse_cert(cert)

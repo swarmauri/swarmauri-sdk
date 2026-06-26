@@ -191,7 +191,10 @@ def test_check_non_negativity(supremum_metric):
     """Test the check_non_negativity method."""
     # The supremum metric should always satisfy non-negativity
     assert supremum_metric.check_non_negativity([1, 2, 3], [4, 5, 6]) is True
-    assert supremum_metric.check_non_negativity([-1, -2, -3], [-4, -5, -6]) is True
+    assert (
+        supremum_metric.check_non_negativity([-1, -2, -3], [-4, -5, -6])
+        is True
+    )
     assert supremum_metric.check_non_negativity(5, 10) is True
 
 
@@ -200,10 +203,12 @@ def test_check_identity_of_indiscernibles(supremum_metric):
     """Test the check_identity_of_indiscernibles method."""
     # The supremum metric should satisfy identity of indiscernibles
     assert (
-        supremum_metric.check_identity_of_indiscernibles([1, 2, 3], [1, 2, 3]) is True
+        supremum_metric.check_identity_of_indiscernibles([1, 2, 3], [1, 2, 3])
+        is True
     )
     assert (
-        supremum_metric.check_identity_of_indiscernibles([1, 2, 3], [1, 2, 4]) is True
+        supremum_metric.check_identity_of_indiscernibles([1, 2, 3], [1, 2, 4])
+        is True
     )
     assert supremum_metric.check_identity_of_indiscernibles(5, 5) is True
     assert supremum_metric.check_identity_of_indiscernibles(5, 6) is True

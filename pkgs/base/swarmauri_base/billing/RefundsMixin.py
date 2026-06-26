@@ -19,17 +19,27 @@ class RefundsMixin(IRefunds, BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     def create_refund(
-        self, payment: PaymentRefProto, req: RefundReqProto, *, idempotency_key: str
+        self,
+        payment: PaymentRefProto,
+        req: RefundReqProto,
+        *,
+        idempotency_key: str,
     ) -> Mapping[str, Any]:
         require_idempotency(idempotency_key)
-        return self._create_refund(payment, req, idempotency_key=idempotency_key)
+        return self._create_refund(
+            payment, req, idempotency_key=idempotency_key
+        )
 
     def get_refund(self, refund_id: str) -> Mapping[str, Any]:
         return self._get_refund(refund_id)
 
     @abstractmethod
     def _create_refund(
-        self, payment: PaymentRefProto, req: RefundReqProto, *, idempotency_key: str
+        self,
+        payment: PaymentRefProto,
+        req: RefundReqProto,
+        *,
+        idempotency_key: str,
     ) -> Mapping[str, Any]:
         """Create a refund using the provider API."""
 

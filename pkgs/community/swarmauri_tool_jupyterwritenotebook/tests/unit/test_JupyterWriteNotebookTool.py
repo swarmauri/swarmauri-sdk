@@ -25,7 +25,11 @@ def sample_notebook_data() -> Dict[str, Any]:
         "nbformat_minor": 5,
         "metadata": {},
         "cells": [
-            {"cell_type": "markdown", "metadata": {}, "source": ["# Sample Notebook"]}
+            {
+                "cell_type": "markdown",
+                "metadata": {},
+                "source": ["# Sample Notebook"],
+            }
         ],
     }
 
@@ -42,8 +46,12 @@ def test_tool_attributes() -> None:
     assert tool.type == "JupyterWriteNotebookTool", (
         "Tool type does not match expected value."
     )
-    assert tool.version == "1.0.0", "Tool version does not match expected value."
-    assert len(tool.parameters) == 3, "Unexpected number of parameters in the tool."
+    assert tool.version == "1.0.0", (
+        "Tool version does not match expected value."
+    )
+    assert len(tool.parameters) == 3, (
+        "Unexpected number of parameters in the tool."
+    )
     assert tool.parameters[0].name == "notebook_data", (
         "Expected parameter 'notebook_data' missing."
     )
@@ -73,12 +81,16 @@ def test_call_success(
     assert "Notebook written successfully" in result["message"], (
         "Success message not found."
     )
-    assert os.path.exists(output_file), "Output file does not exist after writing."
+    assert os.path.exists(output_file), (
+        "Output file does not exist after writing."
+    )
 
     # Verify the written content
     with open(output_file, "r", encoding="utf-8") as f:
         loaded_data = json.load(f)
-    assert loaded_data["nbformat"] == 4, "Written notebook data has incorrect nbformat."
+    assert loaded_data["nbformat"] == 4, (
+        "Written notebook data has incorrect nbformat."
+    )
     assert loaded_data["nbformat_minor"] == 5, (
         "Written notebook data has incorrect nbformat_minor."
     )
@@ -94,7 +106,9 @@ def test_call_empty_notebook_data(tmp_path: pytest.TempPathFactory) -> None:
 
     empty_data = {}
     result = tool(
-        notebook_data=empty_data, output_file=str(output_file), encoding="utf-8"
+        notebook_data=empty_data,
+        output_file=str(output_file),
+        encoding="utf-8",
     )
 
     # If verification fails, an error key is returned in the result
@@ -109,11 +123,13 @@ def test_call_invalid_file_path(sample_notebook_data: Dict[str, Any]) -> None:
     """
     tool = JupyterWriteNotebookTool()
     # Using an invalid path (e.g., empty string or invalid characters) should trigger an exception
-    result = tool(notebook_data=sample_notebook_data, output_file="", encoding="utf-8")
+    result = tool(
+        notebook_data=sample_notebook_data, output_file="", encoding="utf-8"
+    )
 
     assert "error" in result, (
         "Expected an error for an invalid file path but got a success response."
     )
-    assert "An error occurred during notebook write operation" in result["error"], (
-        "Unexpected error message returned."
-    )
+    assert (
+        "An error occurred during notebook write operation" in result["error"]
+    ), "Unexpected error message returned."

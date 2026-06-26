@@ -6,4 +6,6 @@ from swarmauri_core.tools.ITool import ITool
 class ISchemaConvert(ABC):
     @abstractmethod
     def convert(self, tool: ITool) -> Dict[str, Any]:
-        raise NotImplementedError("Subclasses must implement the convert method.")
+        raise NotImplementedError(
+            "Subclasses must implement the convert method."
+        )

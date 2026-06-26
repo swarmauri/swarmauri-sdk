@@ -25,7 +25,9 @@ class YubiKeyFipsCipherSuite(CipherSuiteBase):
     def supports(self) -> Mapping[CipherOp, Iterable[Alg]]:
         return {"sign": _SIGN, "verify": _SIGN, "wrap": _WRAP, "unwrap": _WRAP}
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         return {"sign": "PS256", "wrap": "RSA-OAEP-256"}.get(op, "PS256")
 
     def policy(self) -> Mapping[str, object]:
@@ -88,7 +90,9 @@ class YubiKeyFipsCipherSuite(CipherSuiteBase):
         normalized_params = dict(params or {})
         if chosen_alg.startswith("PS"):
             if "saltLen" not in normalized_params:
-                normalized_params["saltLen"] = {"PS256": 32, "PS384": 48}[chosen_alg]
+                normalized_params["saltLen"] = {"PS256": 32, "PS384": 48}[
+                    chosen_alg
+                ]
             normalized_params.setdefault(
                 "mgf1Hash",
                 {"PS256": "SHA256", "PS384": "SHA384"}[chosen_alg],

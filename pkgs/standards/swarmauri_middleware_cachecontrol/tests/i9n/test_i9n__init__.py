@@ -32,7 +32,9 @@ def test_init_module_version(clean_environment):
     """Test that the __version__ variable is correctly defined."""
     logger.info("Testing __version__ variable.")
     module = importlib.import_module("swarmauri_middleware_cachecontrol")
-    assert hasattr(module, "__version__"), "__version__ not found in __init__.py"
+    assert hasattr(module, "__version__"), (
+        "__version__ not found in __init__.py"
+    )
     assert isinstance(module.__version__, str), "__version__ is not a string"
     assert len(module.__version__) > 0, "__version__ is empty"
     logger.info("__version__ variable is correctly defined.")
@@ -56,7 +58,9 @@ def test_init_module_cachecontrol_middleware(clean_environment):
     """Test that CacheControlMiddleware is properly exposed."""
     logger.info("Testing CacheControlMiddleware exposure.")
     module = importlib.import_module("swarmauri_middleware_cachecontrol")
-    assert hasattr(module, "CacheControlMiddleware"), "CacheControlMiddleware not found"
+    assert hasattr(module, "CacheControlMiddleware"), (
+        "CacheControlMiddleware not found"
+    )
     assert isinstance(module.CacheControlMiddleware, type), (
         "CacheControlMiddleware is not a class"
     )

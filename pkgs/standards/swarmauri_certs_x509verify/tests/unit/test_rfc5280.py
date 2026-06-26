@@ -20,8 +20,12 @@ def _future_self_signed() -> bytes:
         .issuer_name(name)
         .public_key(key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.utcnow() + datetime.timedelta(days=1))
-        .not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=2))
+        .not_valid_before(
+            datetime.datetime.utcnow() + datetime.timedelta(days=1)
+        )
+        .not_valid_after(
+            datetime.datetime.utcnow() + datetime.timedelta(days=2)
+        )
     )
     cert = builder.sign(key, hashes.SHA256())
     return cert.public_bytes(Encoding.PEM)

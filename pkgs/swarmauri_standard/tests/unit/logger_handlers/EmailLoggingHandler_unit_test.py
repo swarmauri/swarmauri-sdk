@@ -5,7 +5,9 @@ from email.utils import formataddr
 import pytest
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 
-from swarmauri_standard.logger_handlers.EmailLoggingHandler import EmailLoggingHandler
+from swarmauri_standard.logger_handlers.EmailLoggingHandler import (
+    EmailLoggingHandler,
+)
 
 
 @pytest.mark.unit
@@ -75,7 +77,9 @@ class TestEmailLoggingHandler:
         Test that the handler raises ValueError when toaddrs is empty.
         """
         handler = EmailLoggingHandler()
-        with pytest.raises(ValueError, match="Email recipients .* must be specified"):
+        with pytest.raises(
+            ValueError, match="Email recipients .* must be specified"
+        ):
             handler.compile_handler()
 
     @pytest.mark.unit
@@ -103,7 +107,9 @@ class TestEmailLoggingHandler:
         """
         Test that HTML formatting is correctly applied when enabled.
         """
-        handler = EmailLoggingHandler(toaddrs=["recipient@example.com"], html=True)
+        handler = EmailLoggingHandler(
+            toaddrs=["recipient@example.com"], html=True
+        )
 
         with mock.patch("logging.handlers.SMTPHandler") as mock_smtp_handler:
             mock_instance = mock_smtp_handler.return_value
@@ -125,7 +131,8 @@ class TestEmailLoggingHandler:
         """
         # Test with string formatter
         handler_with_str_formatter = EmailLoggingHandler(
-            toaddrs=["recipient@example.com"], formatter="%(levelname)s: %(message)s"
+            toaddrs=["recipient@example.com"],
+            formatter="%(levelname)s: %(message)s",
         )
 
         with mock.patch("logging.handlers.SMTPHandler") as mock_smtp_handler:
@@ -138,7 +145,9 @@ class TestEmailLoggingHandler:
         # Test with FormatterBase instance
         mock_formatter = mock.MagicMock(spec=FormatterBase)
         mock_formatter.type = "FormatterBase"
-        mock_formatter.compile_formatter.return_value = logging.Formatter("%(message)s")
+        mock_formatter.compile_formatter.return_value = logging.Formatter(
+            "%(message)s"
+        )
 
         handler_with_obj_formatter = EmailLoggingHandler(
             toaddrs=["recipient@example.com"], formatter=mock_formatter
@@ -187,7 +196,9 @@ class TestEmailLoggingHandler:
             original_emit.assert_called_once_with(non_empty_record)
 
     @pytest.mark.unit
-    def test_get_configuration(self, basic_handler: EmailLoggingHandler) -> None:
+    def test_get_configuration(
+        self, basic_handler: EmailLoggingHandler
+    ) -> None:
         """
         Test that get_configuration returns the correct configuration dictionary.
 
@@ -212,7 +223,8 @@ class TestEmailLoggingHandler:
         Test that credentials are properly redacted in the configuration.
         """
         handler = EmailLoggingHandler(
-            toaddrs=["recipient@example.com"], credentials=("username", "password")
+            toaddrs=["recipient@example.com"],
+            credentials=("username", "password"),
         )
 
         config = handler.get_configuration()
@@ -228,7 +240,9 @@ class TestEmailLoggingHandler:
             (("keyfile", "certfile", "password"), True),
         ],
     )
-    def test_secure_parameter_handling(self, secure_param, expected_result) -> None:
+    def test_secure_parameter_handling(
+        self, secure_param, expected_result
+    ) -> None:
         """
         Test that the secure parameter is handled correctly in the configuration.
 
@@ -249,7 +263,8 @@ class TestEmailLoggingHandler:
         Test that mailhost can be specified as a (host, port) tuple.
         """
         handler = EmailLoggingHandler(
-            toaddrs=["recipient@example.com"], mailhost=("smtp.example.com", 587)
+            toaddrs=["recipient@example.com"],
+            mailhost=("smtp.example.com", 587),
         )
 
         with mock.patch("logging.handlers.SMTPHandler") as mock_smtp_handler:

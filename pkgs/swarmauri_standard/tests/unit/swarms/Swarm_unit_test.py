@@ -46,7 +46,9 @@ def test_serialization(swarm):
 async def test_swarm_initialization(swarm):
     assert len(swarm.agents) == 3
     assert swarm.queue_size == 0
-    assert all(s == SwarmStatus.IDLE for s in swarm.get_swarm_status().values())
+    assert all(
+        s == SwarmStatus.IDLE for s in swarm.get_swarm_status().values()
+    )
 
 
 @pytest.mark.asyncio
@@ -89,7 +91,8 @@ async def test_swarm_status_changes(swarm):
     # Check intermediate status
     status = swarm.get_swarm_status()
     assert any(
-        s in [SwarmStatus.WORKING, SwarmStatus.COMPLETED] for s in status.values()
+        s in [SwarmStatus.WORKING, SwarmStatus.COMPLETED]
+        for s in status.values()
     )
 
     # Wait for completion with timeout

@@ -55,7 +55,9 @@ class SessionCacheConversation(
         Converts session messages to a list of dictionaries.
         """
         included_fields = {"role", "content"}
-        return [message.dict(include=included_fields) for message in self.session]
+        return [
+            message.dict(include=included_fields) for message in self.session
+        ]
 
     @property
     def session(self) -> List[IMessage]:
@@ -77,11 +79,15 @@ class SessionCacheConversation(
         for message in self._history[-self.max_size :]:
             if isinstance(message, HumanMessage) and alternating:
                 res.append(message)
-                alternating = not alternating  # Switch to expecting AgentMessage
+                alternating = (
+                    not alternating
+                )  # Switch to expecting AgentMessage
                 count += 1
             elif isinstance(message, AgentMessage) and not alternating:
                 res.append(message)
-                alternating = not alternating  # Switch to expecting HumanMessage
+                alternating = (
+                    not alternating
+                )  # Switch to expecting HumanMessage
                 count += 1
 
             if count >= self.max_size:

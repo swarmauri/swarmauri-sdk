@@ -41,7 +41,9 @@ class IndentedFormatter(FormatterBase):
                 self.indent_width = indent_width
                 self.indent_first_line = indent_first_line
                 # Initialize with the same format as the parent
-                super().__init__(fmt=parent_fmt._fmt, datefmt=parent_fmt.datefmt)
+                super().__init__(
+                    fmt=parent_fmt._fmt, datefmt=parent_fmt.datefmt
+                )
 
             def format(self, record):
                 # Get the formatted message from the parent formatter

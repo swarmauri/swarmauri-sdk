@@ -53,11 +53,17 @@ class SquaredEuclideanDistance(DistanceBase):
             "Similarity calculation is not implemented for Squared Euclidean distance."
         )
 
-    def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+    def distances(
+        self, vector_a: Vector, vectors_b: List[Vector]
+    ) -> List[float]:
+        distances = [
+            self.distance(vector_a, vector_b) for vector_b in vectors_b
+        ]
         return distances
 
-    def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
+    def similarities(
+        self, vector_a: Vector, vectors_b: List[Vector]
+    ) -> List[float]:
         raise NotImplementedError(
             "Similarity calculation is not implemented for Squared Euclidean distance."
         )

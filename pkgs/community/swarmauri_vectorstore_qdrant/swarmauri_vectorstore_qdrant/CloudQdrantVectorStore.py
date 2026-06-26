@@ -108,7 +108,9 @@ class CloudQdrantVectorStore(
         if not document.embedding:
             self._embedder.fit([document.content])  # Fit only once
             embedding = (
-                self._embedder.transform([document.content])[0].to_numpy().tolist()
+                self._embedder.transform([document.content])[0]
+                .to_numpy()
+                .tolist()
             )
         else:
             embedding = document.embedding
@@ -136,7 +138,9 @@ class CloudQdrantVectorStore(
             PointStruct(
                 id=doc.id,
                 vector=doc.embedding
-                or self._embedder.fit_transform([doc.content])[0].to_numpy().tolist(),
+                or self._embedder.fit_transform([doc.content])[0]
+                .to_numpy()
+                .tolist(),
                 payload={"content": doc.content, "metadata": doc.metadata},
             )
             for doc in documents
@@ -204,7 +208,9 @@ class CloudQdrantVectorStore(
         # Precompute the embedding outside the update process
         if not updated_document.embedding:
             # Transform without refitting to avoid vocabulary issues
-            document_vector = self._embedder.transform([updated_document.content])[0]
+            document_vector = self._embedder.transform(
+                [updated_document.content]
+            )[0]
         else:
             document_vector = updated_document.embedding
 
@@ -253,7 +259,9 @@ class CloudQdrantVectorStore(
         """
         query_vector = self._embedder.infer_vector(query).value
         results = self.client.search(
-            collection_name=self.collection_name, query_vector=query_vector, limit=top_k
+            collection_name=self.collection_name,
+            query_vector=query_vector,
+            limit=top_k,
         )
 
         return [

@@ -35,7 +35,9 @@ class FipsCipherSuite(CipherSuiteBase):
             "unwrap": _ALLOWED_WRAP,
         }
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         return {
             "sign": "PS256",
             "encrypt": "A256GCM",
@@ -66,8 +68,14 @@ class FipsCipherSuite(CipherSuiteBase):
             },
             "ops": {
                 "sign": {"default": "PS256", "allowed": list(_ALLOWED_SIGN)},
-                "encrypt": {"default": "A256GCM", "allowed": list(_ALLOWED_ENC)},
-                "wrap": {"default": "RSA-OAEP-256", "allowed": list(_ALLOWED_WRAP)},
+                "encrypt": {
+                    "default": "A256GCM",
+                    "allowed": list(_ALLOWED_ENC),
+                },
+                "wrap": {
+                    "default": "RSA-OAEP-256",
+                    "allowed": list(_ALLOWED_WRAP),
+                },
             },
             "constraints": {
                 "min_rsa_bits": 2048,

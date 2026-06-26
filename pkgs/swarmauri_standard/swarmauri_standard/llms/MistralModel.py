@@ -72,12 +72,16 @@ class MistralModel(LLMBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
@@ -201,7 +205,9 @@ class MistralModel(LLMBase):
         if self.include_usage:
             usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
 
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -246,7 +252,9 @@ class MistralModel(LLMBase):
             payload["response_format"] = {"type": "json_object"}
 
         with DurationManager() as prompt_timer:
-            response = await self._async_client.post("chat/completions", json=payload)
+            response = await self._async_client.post(
+                "chat/completions", json=payload
+            )
             response.raise_for_status()
 
         response_data = response.json()
@@ -257,7 +265,9 @@ class MistralModel(LLMBase):
 
         if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -326,7 +336,9 @@ class MistralModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -365,7 +377,9 @@ class MistralModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            response = await self._async_client.post("chat/completions", json=payload)
+            response = await self._async_client.post(
+                "chat/completions", json=payload
+            )
             response.raise_for_status()
 
         usage_data = {}
@@ -393,7 +407,9 @@ class MistralModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 

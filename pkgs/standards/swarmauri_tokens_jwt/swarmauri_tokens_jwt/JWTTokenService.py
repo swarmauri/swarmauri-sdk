@@ -40,7 +40,9 @@ def _ref_to_signing_key(ref: KeyRef, alg: JWAAlg) -> Mapping[str, Any]:
     if mat is None:
         raise RuntimeError("key material not available for signing")
     if alg == JWAAlg.EDDSA:
-        if isinstance(mat, (bytes, bytearray)) and mat.startswith(b"-----BEGIN"):
+        if isinstance(mat, (bytes, bytearray)) and mat.startswith(
+            b"-----BEGIN"
+        ):
             from cryptography.hazmat.primitives import serialization
 
             key_obj = serialization.load_pem_private_key(mat, password=None)
@@ -62,7 +64,10 @@ class JWTTokenService(TokenServiceBase):
     type: Literal["JWTTokenService"] = "JWTTokenService"
 
     def __init__(
-        self, key_provider: IKeyProvider, *, default_issuer: Optional[str] = None
+        self,
+        key_provider: IKeyProvider,
+        *,
+        default_issuer: Optional[str] = None,
     ) -> None:
         """Initialize the token service.
 
@@ -136,7 +141,9 @@ class JWTTokenService(TokenServiceBase):
             raise ValueError("mint requires 'kid' of a signing key")
         ref = await self._kp.get_key(kid, key_version, include_secret=True)
         if ref.material is None:
-            raise RuntimeError("Signing key is not exportable under current policy")
+            raise RuntimeError(
+                "Signing key is not exportable under current policy"
+            )
 
         headers = dict(headers or {})
         headers.setdefault("kid", f"{ref.kid}.{ref.version}")

@@ -38,7 +38,9 @@ class ConsensusBuildingConversation(IConversation):
 
     def add_message(self, message: IMessage):
         if not isinstance(message, ConsensusBuildingMessage):
-            raise ValueError("Only instances of ConsensusBuildingMessage are accepted")
+            raise ValueError(
+                "Only instances of ConsensusBuildingMessage are accepted"
+            )
         self._history.append(message)
 
     def get_last(self) -> IMessage:
@@ -68,7 +70,9 @@ class ConsensusBuildingConversation(IConversation):
 
     def add_comment(self, sender_id: str, comment: str):
         """Adds a comment or feedback regarding a proposal."""
-        comment_message = ConsensusBuildingMessage(sender_id, comment, "CommentMessage")
+        comment_message = ConsensusBuildingMessage(
+            sender_id, comment, "CommentMessage"
+        )
         self.add_message(comment_message)
 
     def vote(self, sender_id: str, vote: str):

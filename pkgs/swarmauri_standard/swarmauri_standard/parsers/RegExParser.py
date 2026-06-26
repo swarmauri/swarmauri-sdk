@@ -35,7 +35,8 @@ class RegExParser(ParserBase):
 
         # Create a Document for each match and collect them into a list
         documents = [
-            Document(content=match, metadata={}) for i, match in enumerate(matches)
+            Document(content=match, metadata={})
+            for i, match in enumerate(matches)
         ]
 
         return documents

@@ -59,7 +59,9 @@ class RichLoggingHandler(HandlerBase):
             A configured RichHandler instance
         """
         # Set up the Rich console with custom theme if needed
-        console_kwargs = self.console_kwargs.copy() if self.console_kwargs else {}
+        console_kwargs = (
+            self.console_kwargs.copy() if self.console_kwargs else {}
+        )
 
         # If a log file is specified, configure the console to write to that file
         if self.log_file_path:
@@ -69,7 +71,9 @@ class RichLoggingHandler(HandlerBase):
                 os.makedirs(log_dir)
 
             # Create a file for the console to write to
-            console_kwargs["file"] = open(self.log_file_path, "a", encoding="utf-8")
+            console_kwargs["file"] = open(
+                self.log_file_path, "a", encoding="utf-8"
+            )
 
         # Create the console with the specified settings
         console = Console(**console_kwargs)

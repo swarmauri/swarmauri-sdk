@@ -30,7 +30,9 @@ class L1ManhattanNorm(NormBase):
 
     type: Literal["L1ManhattanNorm"] = "L1ManhattanNorm"
 
-    def compute(self, x: Union[IVector, IMatrix, Sequence, str, float]) -> float:
+    def compute(
+        self, x: Union[IVector, IMatrix, Sequence, str, float]
+    ) -> float:
         """
         Compute the L1 (Manhattan) norm of the input.
 
@@ -51,7 +53,9 @@ class L1ManhattanNorm(NormBase):
         ValueError
             If the norm cannot be computed for the given input.
         """
-        logger.debug(f"Computing L1 Manhattan norm for input of type: {type(x)}")
+        logger.debug(
+            f"Computing L1 Manhattan norm for input of type: {type(x)}"
+        )
 
         # Handle IVector implementation
         if isinstance(x, IVector):
@@ -70,7 +74,9 @@ class L1ManhattanNorm(NormBase):
                 logger.error(
                     f"Cannot compute L1 norm for sequence with non-numeric elements: {e}"
                 )
-                raise TypeError(f"L1 norm requires numeric elements in sequence: {e}")
+                raise TypeError(
+                    f"L1 norm requires numeric elements in sequence: {e}"
+                )
 
         # Handle numpy arrays
         elif hasattr(x, "__array__"):  # Check for numpy array compatibility
@@ -85,7 +91,9 @@ class L1ManhattanNorm(NormBase):
         # Handle unsupported types
         else:
             logger.error(f"Unsupported input type for L1 norm: {type(x)}")
-            raise TypeError(f"L1 norm computation not supported for type: {type(x)}")
+            raise TypeError(
+                f"L1 norm computation not supported for type: {type(x)}"
+            )
 
     def check_non_negativity(
         self, x: Union[IVector, IMatrix, Sequence, str, float]
@@ -107,7 +115,9 @@ class L1ManhattanNorm(NormBase):
         """
         try:
             norm_value = self.compute(x)
-            logger.debug(f"L1 norm value: {norm_value}, checking non-negativity")
+            logger.debug(
+                f"L1 norm value: {norm_value}, checking non-negativity"
+            )
             return norm_value >= 0
         except (TypeError, ValueError) as e:
             logger.error(f"Error checking non-negativity: {e}")
@@ -139,7 +149,9 @@ class L1ManhattanNorm(NormBase):
             logger.debug(f"L1 norm value: {norm_value}, is_zero: {is_zero}")
 
             # The norm is 0 if and only if x is 0
-            return (norm_value == 0 and is_zero) or (norm_value > 0 and not is_zero)
+            return (norm_value == 0 and is_zero) or (
+                norm_value > 0 and not is_zero
+            )
         except (TypeError, ValueError) as e:
             logger.error(f"Error checking definiteness: {e}")
             return False
@@ -242,7 +254,9 @@ class L1ManhattanNorm(NormBase):
             logger.error(f"Error checking absolute homogeneity: {e}")
             raise
 
-    def _is_zero(self, x: Union[IVector, IMatrix, Sequence, str, float]) -> bool:
+    def _is_zero(
+        self, x: Union[IVector, IMatrix, Sequence, str, float]
+    ) -> bool:
         """
         Check if all elements in the input are zero.
 
@@ -283,7 +297,9 @@ class L1ManhattanNorm(NormBase):
             return np.all(x == 0)
 
         else:
-            raise TypeError(f"Cannot check if elements are zero for type: {type(x)}")
+            raise TypeError(
+                f"Cannot check if elements are zero for type: {type(x)}"
+            )
 
     def _are_compatible(self, x: float, y: float) -> bool:
         """
@@ -312,7 +328,8 @@ class L1ManhattanNorm(NormBase):
         # For IMatrix, check if dimensions match
         elif isinstance(x, IMatrix):
             return len(x.values) == len(y.values) and all(
-                len(x_row) == len(y_row) for x_row, y_row in zip(x.values, y.values)
+                len(x_row) == len(y_row)
+                for x_row, y_row in zip(x.values, y.values)
             )
 
         # For sequences, check if lengths match
@@ -348,7 +365,9 @@ class L1ManhattanNorm(NormBase):
         """
         # For IVector
         if isinstance(x, IVector):
-            result_values = [x_val + y_val for x_val, y_val in zip(x.values, y.values)]
+            result_values = [
+                x_val + y_val for x_val, y_val in zip(x.values, y.values)
+            ]
             # Create a new vector with the same class as x
             new_vector = x.__class__()
             new_vector.values = result_values

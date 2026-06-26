@@ -59,12 +59,12 @@ class JupyterRunCellTool(ToolBase):
         ]
     )
     name: str = "JupyterRunCellTool"
-    description: str = (
-        "Executes Python code in an IPython environment, capturing stdout and stderr."
-    )
+    description: str = "Executes Python code in an IPython environment, capturing stdout and stderr."
     type: Literal["JupyterRunCellTool"] = "JupyterRunCellTool"
 
-    def __call__(self, code: str, timeout: Optional[float] = 0) -> Dict[str, Any]:
+    def __call__(
+        self, code: str, timeout: Optional[float] = 0
+    ) -> Dict[str, Any]:
         """
         Executes the provided Python code in an interactive IPython session.
 
@@ -126,7 +126,9 @@ class JupyterRunCellTool(ToolBase):
                     "success": True,
                 }
             except Exception as exc:
-                logger.error("An error occurred during cell execution: %s", str(exc))
+                logger.error(
+                    "An error occurred during cell execution: %s", str(exc)
+                )
                 traceback_str = traceback.format_exc()
                 cell_output = output_buffer.getvalue()
                 error_output = error_buffer.getvalue() + "\n" + traceback_str

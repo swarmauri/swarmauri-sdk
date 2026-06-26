@@ -118,7 +118,11 @@ def test_load_private_key_unlocks_with_passphrase(pgp_material):
         HashAlgorithm.SHA256,
     )
     loaded = _load_private_key(
-        {"kind": "pgpy-key", "data": str(protected_key), "passphrase": "secret"}
+        {
+            "kind": "pgpy-key",
+            "data": str(protected_key),
+            "passphrase": "secret",
+        }
     )
     assert loaded.fingerprint == protected_key.fingerprint
 
@@ -200,7 +204,10 @@ def test_serialize_signature_captures_metadata(pgp_material):
         keyid=pgp_material.fingerprint.keyid,
         hash_alg=_hash_from_alg(None),
     )
-    assert result.meta == {"payload_kind": "bytes", "signature_type": "BinaryDocument"}
+    assert result.meta == {
+        "payload_kind": "bytes",
+        "signature_type": "BinaryDocument",
+    }
     assert result.kid == pgp_material.fingerprint.keyid
 
 
@@ -321,7 +328,9 @@ async def test_sign_envelope_canonicalizes(monkeypatch):
 async def test_verify_bytes_delegates_to_internal_helper(monkeypatch):
     signer = OpenPGPSigner()
 
-    async def fake_verify(self, payload, signatures, *, require, opts, payload_kind):
+    async def fake_verify(
+        self, payload, signatures, *, require, opts, payload_kind
+    ):
         return payload_kind == "bytes"
 
     monkeypatch.setattr(OpenPGPSigner, "_verify_payload", fake_verify)
@@ -332,7 +341,9 @@ async def test_verify_bytes_delegates_to_internal_helper(monkeypatch):
 async def test_verify_digest_delegates_to_internal_helper(monkeypatch):
     signer = OpenPGPSigner()
 
-    async def fake_verify(self, payload, signatures, *, require, opts, payload_kind):
+    async def fake_verify(
+        self, payload, signatures, *, require, opts, payload_kind
+    ):
         return payload_kind == "digest"
 
     monkeypatch.setattr(OpenPGPSigner, "_verify_payload", fake_verify)
@@ -343,7 +354,9 @@ async def test_verify_digest_delegates_to_internal_helper(monkeypatch):
 async def test_verify_stream_canonicalizes_payload(monkeypatch):
     signer = OpenPGPSigner()
 
-    async def fake_verify(self, payload, signatures, *, require, opts, payload_kind):
+    async def fake_verify(
+        self, payload, signatures, *, require, opts, payload_kind
+    ):
         return payload_kind == "stream" and payload == b"data"
 
     monkeypatch.setattr(OpenPGPSigner, "_verify_payload", fake_verify)
@@ -362,7 +375,9 @@ async def test_verify_envelope_canonicalizes(monkeypatch):
     async def fake_canon(self, env, *, canon, opts):
         return b"canonical"
 
-    async def fake_verify(self, payload, signatures, *, require, opts, payload_kind):
+    async def fake_verify(
+        self, payload, signatures, *, require, opts, payload_kind
+    ):
         return payload_kind == "envelope" and payload == b"canonical"
 
     monkeypatch.setattr(OpenPGPSigner, "canonicalize_envelope", fake_canon)
@@ -522,7 +537,9 @@ async def test_verify_payload_skips_mismatched_payload_kind(pgp_material):
 
 
 @pytest.mark.asyncio
-async def test_verify_payload_rejects_signature_for_different_payload(pgp_material):
+async def test_verify_payload_rejects_signature_for_different_payload(
+    pgp_material,
+):
     signer = OpenPGPSigner()
     signatures = await signer._sign_payload(
         pgp_material,

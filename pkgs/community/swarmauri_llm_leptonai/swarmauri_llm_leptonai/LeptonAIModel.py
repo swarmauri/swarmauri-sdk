@@ -43,7 +43,9 @@ class LeptonAIModel(LLMBase):
     def __init__(self, **data):
         super().__init__(**data)
         url = f"https://{self.name}.lepton.run/api/v1/"
-        self.client = OpenAI(base_url=url, api_key=self.api_key.get_secret_value())
+        self.client = OpenAI(
+            base_url=url, api_key=self.api_key.get_secret_value()
+        )
         self.async_client = AsyncOpenAI(
             base_url=url, api_key=self.api_key.get_secret_value()
         )
@@ -58,7 +60,9 @@ class LeptonAIModel(LLMBase):
         ]
         return formatted_messages
 
-    def _get_system_context(self, messages: List[SubclassUnion[MessageBase]]) -> str:
+    def _get_system_context(
+        self, messages: List[SubclassUnion[MessageBase]]
+    ) -> str:
         system_context = None
         for message in messages:
             if message.role == "system":
@@ -126,7 +130,9 @@ class LeptonAIModel(LLMBase):
             prompt_timer.duration,
         )
 
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        conversation.add_message(
+            AgentMessage(content=message_content, usage=usage)
+        )
         return conversation
 
     async def apredict(
@@ -157,7 +163,9 @@ class LeptonAIModel(LLMBase):
             prompt_timer.duration,
         )
 
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        conversation.add_message(
+            AgentMessage(content=message_content, usage=usage)
+        )
         return conversation
 
     def stream(
@@ -201,7 +209,9 @@ class LeptonAIModel(LLMBase):
             completion_timer.duration,
         )
 
-        conversation.add_message(AgentMessage(content=full_content, usage=usage))
+        conversation.add_message(
+            AgentMessage(content=full_content, usage=usage)
+        )
 
     async def astream(
         self,
@@ -244,7 +254,9 @@ class LeptonAIModel(LLMBase):
             prompt_timer.duration,
             completion_timer.duration,
         )
-        conversation.add_message(AgentMessage(content=full_content, usage=usage))
+        conversation.add_message(
+            AgentMessage(content=full_content, usage=usage)
+        )
 
     def batch(
         self,

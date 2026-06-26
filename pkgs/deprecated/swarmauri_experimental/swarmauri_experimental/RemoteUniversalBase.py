@@ -23,7 +23,12 @@ def remote_local_transport(cls):
             self.id = id
             # self.path = path
             url = f"{host}/{owner}/{resource}/{id}"
-            data = {"class_name": cls.__name__, "owner": owner, "name": name, **kwargs}
+            data = {
+                "class_name": cls.__name__,
+                "owner": owner,
+                "name": name,
+                **kwargs,
+            }
             response = requests.post(url, json=data)
             if not response.ok:
                 raise Exception(
@@ -58,7 +63,9 @@ def method_wrapper(method):
         if getattr(self, "host"):
             print("[x] Executing remote call...")
             url = f"{self.path}".lower()
-            response = requests.post(url, json={"args": args[1:], "kwargs": kwargs})
+            response = requests.post(
+                url, json={"args": args[1:], "kwargs": kwargs}
+            )
             if response.ok:
                 return response.json()
             else:
@@ -97,9 +104,7 @@ class BaseComponent(metaclass=RemoteLocalMeta):
         # self.is_remote = bool(self.host)
         self.members = members
         self.resource = resource if resource else self.__class__.__name__
-        self.path = (
-            f"{self.host if self.host else ''}/{self.owner}/{self.resource}/{self.id}"
-        )
+        self.path = f"{self.host if self.host else ''}/{self.owner}/{self.resource}/{self.id}"
 
     @property
     def is_remote(self):
@@ -112,9 +117,9 @@ class BaseComponent(metaclass=RemoteLocalMeta):
             # Retrieve the attribute
             attr_value = getattr(cls, attr_name)
             # Check if it's callable or a property and not a private method
-            if (callable(attr_value) and not attr_name.startswith("_")) or isinstance(
-                attr_value, property
-            ):
+            if (
+                callable(attr_value) and not attr_name.startswith("_")
+            ) or isinstance(attr_value, property):
                 methods.append(attr_name)
         return methods
 

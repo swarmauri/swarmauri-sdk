@@ -58,7 +58,9 @@ class JupyterReadNotebookTool(ToolBase):
     )
     type: Literal["JupyterReadNotebookTool"] = "JupyterReadNotebookTool"
 
-    def __call__(self, notebook_file_path: str, as_version: int = 4) -> Dict[str, Any]:
+    def __call__(
+        self, notebook_file_path: str, as_version: int = 4
+    ) -> Dict[str, Any]:
         """
         Reads a Jupyter notebook from the filesystem and returns it as a validated NotebookNode.
 

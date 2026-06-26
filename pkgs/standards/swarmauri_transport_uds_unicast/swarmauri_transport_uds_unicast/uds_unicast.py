@@ -20,7 +20,9 @@ from swarmauri_core.transports import (
 )
 
 
-class UdsUnicastTransport(TransportBase, UnicastTransportMixin, PeerTransportMixin):
+class UdsUnicastTransport(
+    TransportBase, UnicastTransportMixin, PeerTransportMixin
+):
     """Unix domain socket transport supporting unicast messaging."""
 
     def __init__(self, path: str):
@@ -35,7 +37,9 @@ class UdsUnicastTransport(TransportBase, UnicastTransportMixin, PeerTransportMix
             protocols=frozenset({Protocol.UDS}),
             io=IOModel.STREAM,
             casts=frozenset({Cast.UNICAST}),
-            features=frozenset({Feature.RELIABLE, Feature.ORDERED, Feature.LOCAL_ONLY}),
+            features=frozenset(
+                {Feature.RELIABLE, Feature.ORDERED, Feature.LOCAL_ONLY}
+            ),
             security=SecurityMode.NONE,
             schemes=frozenset({AddressScheme.UDS}),
         )
@@ -43,7 +47,9 @@ class UdsUnicastTransport(TransportBase, UnicastTransportMixin, PeerTransportMix
     async def _start_server(self) -> None:
         if os.path.exists(self._path):
             os.unlink(self._path)
-        self._server = await asyncio.start_unix_server(self._on_client, path=self._path)
+        self._server = await asyncio.start_unix_server(
+            self._on_client, path=self._path
+        )
 
     async def _stop_server(self) -> None:
         if self._server:
@@ -56,7 +62,9 @@ class UdsUnicastTransport(TransportBase, UnicastTransportMixin, PeerTransportMix
             pass
 
     async def _open_client(self) -> None:
-        self._reader, self._writer = await asyncio.open_unix_connection(self._path)
+        self._reader, self._writer = await asyncio.open_unix_connection(
+            self._path
+        )
 
     async def _close_client(self) -> None:
         if self._writer:

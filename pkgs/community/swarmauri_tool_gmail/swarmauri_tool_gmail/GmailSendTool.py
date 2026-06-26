@@ -81,7 +81,9 @@ class GmailSendTool(ToolBase):
         ).decode("utf-8")
         return {"raw": raw_message}
 
-    def __call__(self, recipients: str, subject: str, htmlMsg: str) -> Dict[str, str]:
+    def __call__(
+        self, recipients: str, subject: str, htmlMsg: str
+    ) -> Dict[str, str]:
         """
         Sends an email to the specified recipients with the given subject and HTML message.
 
@@ -93,12 +95,14 @@ class GmailSendTool(ToolBase):
         Returns:
             Dict[str, str]: A message indicating the status of the email sending process.
         """
-        service = (
-            self.authenticate()
-        )  # Authenticate within this function and do not store in the object state
+        service = self.authenticate()  # Authenticate within this function and do not store in the object state
         try:
             message = self.create_message(recipients, subject, htmlMsg)
-            service.users().messages().send(userId="me", body=message).execute()
+            service.users().messages().send(
+                userId="me", body=message
+            ).execute()
             return {"success": f"Email sent successfully to {recipients}"}
         except Exception as e:
-            return {"error": f"An error occurred in sending the email: {str(e)}"}
+            return {
+                "error": f"An error occurred in sending the email: {str(e)}"
+            }

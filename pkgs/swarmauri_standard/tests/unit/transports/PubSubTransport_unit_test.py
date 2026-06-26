@@ -29,7 +29,9 @@ def test_ubc_type(pubsub_transport):
 def test_serialization(pubsub_transport):
     assert (
         pubsub_transport.id
-        == PubSubTransport.model_validate_json(pubsub_transport.model_dump_json()).id
+        == PubSubTransport.model_validate_json(
+            pubsub_transport.model_dump_json()
+        ).id
     )
 
 
@@ -114,7 +116,9 @@ async def test_multicast(pubsub_transport):
     assert received_message2 == message
 
     try:
-        await asyncio.wait_for(pubsub_transport.receive(subscriber_id3), timeout=1.0)
+        await asyncio.wait_for(
+            pubsub_transport.receive(subscriber_id3), timeout=1.0
+        )
         pytest.fail("Expected no message, but received one.")
     except asyncio.TimeoutError:
         pass
@@ -128,7 +132,9 @@ async def test_receive_no_messages(pubsub_transport):
     subscriber_id = await pubsub_transport.subscribe(topic)
 
     try:
-        await asyncio.wait_for(pubsub_transport.receive(subscriber_id), timeout=1.0)
+        await asyncio.wait_for(
+            pubsub_transport.receive(subscriber_id), timeout=1.0
+        )
         pytest.fail("Expected no message, but received one.")
     except asyncio.TimeoutError:
         pass

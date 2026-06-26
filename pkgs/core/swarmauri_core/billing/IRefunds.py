@@ -13,7 +13,11 @@ class IRefunds(ABC):
 
     @abstractmethod
     def create_refund(
-        self, payment: PaymentRefProto, req: RefundReqProto, *, idempotency_key: str
+        self,
+        payment: PaymentRefProto,
+        req: RefundReqProto,
+        *,
+        idempotency_key: str,
     ) -> Mapping[str, Any]:
         """Create a refund."""
 

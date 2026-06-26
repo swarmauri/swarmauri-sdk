@@ -115,7 +115,9 @@ class TestGzipCompressionMiddleware:
         request = Request(scope=scope, receive=lambda: b"")
 
         # Mock response with non-compressible content
-        original_response = Response(content=b"binary data", media_type="image/png")
+        original_response = Response(
+            content=b"binary data", media_type="image/png"
+        )
 
         async def mock_call_next(req):
             return original_response

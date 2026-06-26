@@ -53,7 +53,9 @@ class EmbedSigner:
             self._default_provider = key_provider
             self._default_provider_name = key_provider.__class__.__name__
         elif key_provider_name is not None:
-            self._default_provider = self._instantiate_provider(key_provider_name)
+            self._default_provider = self._instantiate_provider(
+                key_provider_name
+            )
             self._default_provider_name = key_provider_name
 
         provider_for_signer = self._default_provider
@@ -78,7 +80,9 @@ class EmbedSigner:
                 Exception
             ):  # pragma: no cover - defensive against broken entry points
                 continue
-            if not inspect.isclass(provider_cls) and not callable(provider_cls):
+            if not inspect.isclass(provider_cls) and not callable(
+                provider_cls
+            ):
                 continue
             factories[entry.name] = provider_cls
         return factories
@@ -106,7 +110,10 @@ class EmbedSigner:
             raise ValueError(
                 "No default key provider configured; include a provider name in the key reference."
             )
-        if name == self._default_provider_name and self._default_provider is not None:
+        if (
+            name == self._default_provider_name
+            and self._default_provider is not None
+        ):
             return self._default_provider
         return self._instantiate_provider(name)
 
@@ -142,7 +149,9 @@ class EmbedSigner:
                 ) from exc
         if not kid:
             raise ValueError("Key reference must include a key identifier")
-        return _ParsedKeyRef(provider=provider_name, kid=kid, version=version_number)
+        return _ParsedKeyRef(
+            provider=provider_name, kid=kid, version=version_number
+        )
 
     async def _resolve_key(
         self, key: KeyRef | Mapping[str, Any] | str
@@ -155,10 +164,14 @@ class EmbedSigner:
             ref = self._parse_key_reference(key)
             provider = self._get_provider(ref.provider)
             try:
-                resolved = await provider.get_key_by_ref(ref.kid, include_secret=True)
+                resolved = await provider.get_key_by_ref(
+                    ref.kid, include_secret=True
+                )
             except NotImplementedError:
                 resolved = None
-            except AttributeError:  # pragma: no cover - provider without method
+            except (
+                AttributeError
+            ):  # pragma: no cover - provider without method
                 resolved = None
             if resolved is None:
                 resolved = await provider.get_key(
@@ -178,13 +191,17 @@ class EmbedSigner:
         ref = str(path) if path is not None else None
         return self._embedder.embed(data, xmp_xml, ref)
 
-    def read_xmp(self, data: bytes, *, path: str | Path | None = None) -> str | None:
+    def read_xmp(
+        self, data: bytes, *, path: str | Path | None = None
+    ) -> str | None:
         """Read XMP metadata from *data* using the configured handlers."""
 
         ref = str(path) if path is not None else None
         return self._embedder.read(data, ref)
 
-    def remove_xmp(self, data: bytes, *, path: str | Path | None = None) -> bytes:
+    def remove_xmp(
+        self, data: bytes, *, path: str | Path | None = None
+    ) -> bytes:
         """Remove XMP metadata from *data* using the configured handlers."""
 
         ref = str(path) if path is not None else None
@@ -201,7 +218,9 @@ class EmbedSigner:
         """Embed XMP metadata directly into a file on disk."""
 
         file_path = Path(path)
-        updated = self.embed_bytes(file_path.read_bytes(), xmp_xml, path=file_path)
+        updated = self.embed_bytes(
+            file_path.read_bytes(), xmp_xml, path=file_path
+        )
         target = Path(output) if output is not None else file_path
         if write_back:
             target.write_bytes(updated)

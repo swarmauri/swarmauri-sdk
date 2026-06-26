@@ -53,7 +53,10 @@ class DummyClient:
         headers: Optional[Dict[str, str]] = None,
     ) -> DummyResponse:
         self._factory.get_calls += 1
-        self._factory.last_get_kwargs = {"url": url, "headers": dict(headers or {})}
+        self._factory.last_get_kwargs = {
+            "url": url,
+            "headers": dict(headers or {}),
+        }
         payload = self._factory.get_payloads.pop(0)
         return DummyResponse(payload)
 

@@ -30,7 +30,9 @@ def test_serialization():
 @pytest.mark.unit
 def test_call():
     tool = Tool()
-    valid_text = "This is a simple sentence. This is another sentence, with a clause."
+    valid_text = (
+        "This is a simple sentence. This is another sentence, with a clause."
+    )
 
     expected_keys = {"average_sentence_length", "average_clauses_per_sentence"}
 
@@ -41,7 +43,9 @@ def test_call():
 
     result = tool(valid_text)
 
-    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert isinstance(result, dict), (
+        f"Expected dict, but got {type(result).__name__}"
+    )
     assert expected_keys.issubset(result.keys()), (
         f"Expected keys {expected_keys} but got {result.keys()}"
     )

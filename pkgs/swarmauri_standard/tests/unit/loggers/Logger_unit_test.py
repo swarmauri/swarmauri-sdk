@@ -3,7 +3,9 @@ import io
 import pytest
 from swarmauri_standard.loggers.Logger import Logger
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
-from swarmauri_standard.logger_formatters.LoggerFormatter import LoggerFormatter
+from swarmauri_standard.logger_formatters.LoggerFormatter import (
+    LoggerFormatter,
+)
 
 
 @pytest.mark.unit

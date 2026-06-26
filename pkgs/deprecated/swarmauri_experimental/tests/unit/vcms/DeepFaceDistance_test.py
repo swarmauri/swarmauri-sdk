@@ -15,7 +15,10 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
     dfd = DeepFaceDistance()
-    assert dfd.id == DeepFaceDistance.model_validate_json(dfd.model_dump_json()).id
+    assert (
+        dfd.id
+        == DeepFaceDistance.model_validate_json(dfd.model_dump_json()).id
+    )
 
 
 @pytest.mark.unit

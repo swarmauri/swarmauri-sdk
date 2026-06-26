@@ -23,7 +23,9 @@ class IEnsemble(ABC):
         pass
 
     @abstractmethod
-    def route_by_provider(self, provider: str, prompt: str, **kwargs: Any) -> Any:
+    def route_by_provider(
+        self, provider: str, prompt: str, **kwargs: Any
+    ) -> Any:
         """Route a request to a specific provider."""
         pass
 

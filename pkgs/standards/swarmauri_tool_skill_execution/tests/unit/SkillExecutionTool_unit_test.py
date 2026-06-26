@@ -24,7 +24,8 @@ def test_component_identity():
     assert dumped["skills"][0]["resource"] == "Skill"
     assert dumped["skills"][0]["type"] == "DummyFileSystemSkill"
     assert all(
-        parameter["resource"] == "Parameter" for parameter in dumped["parameters"]
+        parameter["resource"] == "Parameter"
+        for parameter in dumped["parameters"]
     )
     assert {parameter["name"] for parameter in dumped["parameters"]} == {
         "skill_name",
@@ -123,7 +124,13 @@ def test_passes_input_to_command_stdin():
 
     result = tool(
         skill.name,
-        [[sys.executable, "-c", "import sys; print(sys.stdin.read().upper())"]],
+        [
+            [
+                sys.executable,
+                "-c",
+                "import sys; print(sys.stdin.read().upper())",
+            ]
+        ],
         input_text="hello",
     )
 

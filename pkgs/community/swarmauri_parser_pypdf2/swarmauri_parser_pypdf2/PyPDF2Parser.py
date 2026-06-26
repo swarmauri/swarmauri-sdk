@@ -42,7 +42,9 @@ class PyPDF2Parser(ParserBase):
                             )
                             documents.append(document)
             except Exception as e:
-                print(f"An error occurred while parsing the PDF '{source}': {e}")
+                print(
+                    f"An error occurred while parsing the PDF '{source}': {e}"
+                )
                 return []
         elif isinstance(source, bytes):
             try:
@@ -55,7 +57,10 @@ class PyPDF2Parser(ParserBase):
                     if text:
                         document = Document(
                             content=text.strip(),
-                            metadata={"page_number": page_num + 1, "source": "bytes"},
+                            metadata={
+                                "page_number": page_num + 1,
+                                "source": "bytes",
+                            },
                         )
                         documents.append(document)
             except Exception as e:

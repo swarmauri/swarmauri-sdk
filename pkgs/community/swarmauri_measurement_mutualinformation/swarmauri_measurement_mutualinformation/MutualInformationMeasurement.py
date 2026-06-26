@@ -17,7 +17,9 @@ class MutualInformationMeasurement(MeasurementBase, MeasurementCalculateMixin):
     and the target column itself, and returns the average mutual information score.
     """
 
-    type: Literal["MutualInformationMeasurement"] = "MutualInformationMeasurement"
+    type: Literal["MutualInformationMeasurement"] = (
+        "MutualInformationMeasurement"
+    )
     unit: str = "bits"
 
     def calculate(self, data: pd.DataFrame, target_column: str) -> float:

@@ -4,7 +4,11 @@ from pydantic import BaseModel
 
 from swarmauri_base.ComponentBase import SubclassUnion
 from swarmauri_base.DynamicBase import DynamicBase
-from swarmauri_base.skills import FileSystemSkillMixin, LocalSkillMixin, SkillBase
+from swarmauri_base.skills import (
+    FileSystemSkillMixin,
+    LocalSkillMixin,
+    SkillBase,
+)
 from swarmauri_skill_dummy_local import DummyLocalSkill
 
 
@@ -78,7 +82,9 @@ def test_dummy_local_skill_roundtrip_preserves_identity_and_fields():
 def test_dummy_local_skill_base_roundtrip_preserves_subclass_type():
     skill = DummyLocalSkill.from_default()
 
-    restored = SkillEnvelope.model_validate({"skill": skill.model_dump(mode="json")})
+    restored = SkillEnvelope.model_validate(
+        {"skill": skill.model_dump(mode="json")}
+    )
 
     assert isinstance(restored.skill, DummyLocalSkill)
     assert restored.skill.type == "DummyLocalSkill"

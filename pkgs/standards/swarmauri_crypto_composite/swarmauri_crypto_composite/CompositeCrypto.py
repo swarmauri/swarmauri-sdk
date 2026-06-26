@@ -60,7 +60,9 @@ class CompositeCrypto(ICrypto, ComponentBase):
             else:
                 if any(_norm_alg(a) == alg_n for a in caps[area]):
                     return p
-        raise UnsupportedAlgorithm(f"No provider supports {area} with alg={alg_n!r}")
+        raise UnsupportedAlgorithm(
+            f"No provider supports {area} with alg={alg_n!r}"
+        )
 
     # -------- AEAD --------
     async def encrypt(
@@ -99,7 +101,9 @@ class CompositeCrypto(ICrypto, ComponentBase):
         )
 
     async def unwrap(self, kek: KeyRef, wrapped: WrappedKey) -> bytes:
-        return await self._pick("unwrap", wrapped.wrap_alg).unwrap(kek, wrapped)
+        return await self._pick("unwrap", wrapped.wrap_alg).unwrap(
+            kek, wrapped
+        )
 
     # -------- for-many --------
     async def encrypt_for_many(
@@ -136,7 +140,9 @@ class CompositeCrypto(ICrypto, ComponentBase):
         alg: Optional[Alg] = None,
     ) -> bytes:
         # Some providers embed alg tag in sealed blob; we still require alg for routing clarity.
-        return await self._pick("unseal", alg).unseal(recipient_priv, sealed, alg=alg)
+        return await self._pick("unseal", alg).unseal(
+            recipient_priv, sealed, alg=alg
+        )
 
     # -------- encaps / decaps --------
     async def encaps(

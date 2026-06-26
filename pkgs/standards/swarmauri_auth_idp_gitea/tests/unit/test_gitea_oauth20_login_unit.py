@@ -45,7 +45,9 @@ def test_serialization(login: GiteaOAuth20Login) -> None:
 @pytest.mark.asyncio
 async def test_auth_url_uses_base_url(login: GiteaOAuth20Login) -> None:
     payload = await login.auth_url()
-    assert payload["url"].startswith("https://gitea.example/login/oauth/authorize?")
+    assert payload["url"].startswith(
+        "https://gitea.example/login/oauth/authorize?"
+    )
 
 
 @pytest.mark.unit

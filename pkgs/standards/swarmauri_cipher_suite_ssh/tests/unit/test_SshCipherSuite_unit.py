@@ -26,7 +26,9 @@ def test_initialization(cipher_suite: SshCipherSuite) -> None:
 
 @pytest.mark.unit
 def test_serialization(cipher_suite: SshCipherSuite) -> None:
-    restored = SshCipherSuite.model_validate_json(cipher_suite.model_dump_json())
+    restored = SshCipherSuite.model_validate_json(
+        cipher_suite.model_dump_json()
+    )
     assert restored.id == cipher_suite.id
 
 
@@ -51,7 +53,9 @@ def test_supports_expected_algorithms(cipher_suite: SshCipherSuite) -> None:
 @pytest.mark.unit
 @pytest.mark.parametrize("operation", ["encrypt", "decrypt"])
 def test_default_alg(cipher_suite: SshCipherSuite, operation: str) -> None:
-    assert cipher_suite.default_alg(operation) == "chacha20-poly1305@openssh.com"
+    assert (
+        cipher_suite.default_alg(operation) == "chacha20-poly1305@openssh.com"
+    )
 
 
 @pytest.mark.unit
@@ -68,7 +72,10 @@ def test_features_descriptor(cipher_suite: SshCipherSuite) -> None:
         "host_key": ("ssh-ed25519", "rsa-sha2-256"),
         "mac": ("hmac-sha2-256",),
     }
-    assert features["ops"]["encrypt"]["default"] == "chacha20-poly1305@openssh.com"
+    assert (
+        features["ops"]["encrypt"]["default"]
+        == "chacha20-poly1305@openssh.com"
+    )
     assert set(features["ops"]["encrypt"]["allowed"]) == {
         "chacha20-poly1305@openssh.com",
         "aes256-gcm@openssh.com",
@@ -112,6 +119,8 @@ def test_normalize_defaults(cipher_suite: SshCipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_rejects_unsupported_alg(cipher_suite: SshCipherSuite) -> None:
+def test_normalize_rejects_unsupported_alg(
+    cipher_suite: SshCipherSuite,
+) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="encrypt", alg="aes128-ctr")

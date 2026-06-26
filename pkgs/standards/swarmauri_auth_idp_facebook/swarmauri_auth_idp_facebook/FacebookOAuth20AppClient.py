@@ -34,9 +34,13 @@ class FacebookOAuth20AppClient(OAuth20AppClientBase):
         return self.client_secret.get_secret_value()
 
     def _token_endpoint(self) -> str:
-        return f"{self.graph_base.rstrip('/')}/{self.version}/oauth/access_token"
+        return (
+            f"{self.graph_base.rstrip('/')}/{self.version}/oauth/access_token"
+        )
 
-    async def _request_token(self, form: Mapping[str, str]) -> Mapping[str, str]:
+    async def _request_token(
+        self, form: Mapping[str, str]
+    ) -> Mapping[str, str]:
         async with self._http_client_factory() as client:
             response = await client.post_retry(
                 self._token_endpoint(),

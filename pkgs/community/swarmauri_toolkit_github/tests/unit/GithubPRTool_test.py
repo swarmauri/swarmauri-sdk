@@ -52,9 +52,21 @@ def test_serialization(github_pr_tool):
     "action, kwargs, method_called",
     [
         # Valid cases for repo management
-        ("create_pull", {"repo_name": "test-repo", "title": "Test PR"}, "create_pull"),
-        ("merge_pull", {"repo_name": "test-repo", "pull_number": 1}, "merge_pull"),
-        ("close_pull", {"repo_name": "test-repo", "pull_number": 1}, "close_pull"),
+        (
+            "create_pull",
+            {"repo_name": "test-repo", "title": "Test PR"},
+            "create_pull",
+        ),
+        (
+            "merge_pull",
+            {"repo_name": "test-repo", "pull_number": 1},
+            "merge_pull",
+        ),
+        (
+            "close_pull",
+            {"repo_name": "test-repo", "pull_number": 1},
+            "close_pull",
+        ),
         ("list_pulls", {"repo_name": "test-repo"}, "list_pulls"),
         ("get_pull", {"repo_name": "test-repo", "pull_number": 1}, "get_pull"),
         # Invalid action
@@ -87,7 +99,11 @@ def test_call(mock_github, github_pr_tool, action, kwargs, method_called):
             assert isinstance(result.get(action), str), (
                 f"Expected int, but got {type(result.get(action)).__name__}"
             )
-            assert result == {f"{action}": "performed a test action successfully"}
+            assert result == {
+                f"{action}": "performed a test action successfully"
+            }
     else:
-        with pytest.raises(ValueError, match=f"Action '{action}' is not supported."):
+        with pytest.raises(
+            ValueError, match=f"Action '{action}' is not supported."
+        ):
             github_pr_tool(action=action, **kwargs)

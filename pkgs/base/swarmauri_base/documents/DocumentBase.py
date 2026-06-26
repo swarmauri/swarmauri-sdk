@@ -12,5 +12,7 @@ class DocumentBase(IDocument, ComponentBase):
     metadata: Dict = {}
     embedding: Optional[Vector] = None
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
-    resource: Optional[str] = Field(default=ResourceTypes.DOCUMENT.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.DOCUMENT.value, frozen=True
+    )
     type: Literal["DocumentBase"] = "DocumentBase"

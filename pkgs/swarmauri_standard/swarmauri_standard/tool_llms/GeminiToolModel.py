@@ -7,7 +7,9 @@ import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_base.schema_converters.SchemaConverterBase import (
+    SchemaConverterBase,
+)
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
@@ -49,7 +51,9 @@ class GeminiToolModel(ToolLLMBase):
     timeout: float = 600.0
     BASE_URL: str = "https://generativelanguage.googleapis.com/v1beta/models"
 
-    _headers: Dict[str, str] = PrivateAttr(default={"Content-Type": "application/json"})
+    _headers: Dict[str, str] = PrivateAttr(
+        default={"Content-Type": "application/json"}
+    )
 
     _safety_settings: List[Dict[str, str]] = PrivateAttr(
         default=[
@@ -175,7 +179,9 @@ class GeminiToolModel(ToolLLMBase):
 
                     func_call = toolkit.get_tool_by_name(func_name)
                     if not func_call:
-                        logging.warning(f"Tool {func_name} not found in toolkit")
+                        logging.warning(
+                            f"Tool {func_name} not found in toolkit"
+                        )
                         continue
 
                     func_result = func_call(**func_args)
@@ -183,7 +189,9 @@ class GeminiToolModel(ToolLLMBase):
 
                     # Create a FunctionMessage for each tool call result
                     tool_messages.append(
-                        FunctionMessage(name=func_name, content=json.dumps(func_result))
+                        FunctionMessage(
+                            name=func_name, content=json.dumps(func_result)
+                        )
                     )
                 except Exception as e:
                     logging.error(f"Error processing tool call: {str(e)}")
@@ -275,7 +283,9 @@ class GeminiToolModel(ToolLLMBase):
 
         system_context = self._get_system_context(conversation.history)
         if system_context:
-            payload["system_instruction"] = {"parts": [{"text": system_context}]}
+            payload["system_instruction"] = {
+                "parts": [{"text": system_context}]
+            }
 
         with httpx.Client(timeout=self.timeout) as client:
             response = client.post(
@@ -324,15 +334,20 @@ class GeminiToolModel(ToolLLMBase):
                     response.raise_for_status()
                     agent_response = response.json()
 
-                if "candidates" in agent_response and agent_response["candidates"]:
-                    content = agent_response["candidates"][0]["content"]["parts"][0][
-                        "text"
-                    ]
+                if (
+                    "candidates" in agent_response
+                    and agent_response["candidates"]
+                ):
+                    content = agent_response["candidates"][0]["content"][
+                        "parts"
+                    ][0]["text"]
                     conversation.add_message(AgentMessage(content=content))
         else:
             # If no tool calls, just add the assistant's message
             if "candidates" in tool_response and tool_response["candidates"]:
-                content = tool_response["candidates"][0]["content"]["parts"][0]["text"]
+                content = tool_response["candidates"][0]["content"]["parts"][
+                    0
+                ]["text"]
                 conversation.add_message(AgentMessage(content=content))
 
         return conversation
@@ -387,7 +402,9 @@ class GeminiToolModel(ToolLLMBase):
 
         system_context = self._get_system_context(conversation.history)
         if system_context:
-            payload["system_instruction"] = {"parts": [{"text": system_context}]}
+            payload["system_instruction"] = {
+                "parts": [{"text": system_context}]
+            }
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
@@ -436,15 +453,20 @@ class GeminiToolModel(ToolLLMBase):
                     response.raise_for_status()
                     agent_response = response.json()
 
-                if "candidates" in agent_response and agent_response["candidates"]:
-                    content = agent_response["candidates"][0]["content"]["parts"][0][
-                        "text"
-                    ]
+                if (
+                    "candidates" in agent_response
+                    and agent_response["candidates"]
+                ):
+                    content = agent_response["candidates"][0]["content"][
+                        "parts"
+                    ][0]["text"]
                     conversation.add_message(AgentMessage(content=content))
         else:
             # If no tool calls, just add the assistant's message
             if "candidates" in tool_response and tool_response["candidates"]:
-                content = tool_response["candidates"][0]["content"]["parts"][0]["text"]
+                content = tool_response["candidates"][0]["content"]["parts"][
+                    0
+                ]["text"]
                 conversation.add_message(AgentMessage(content=content))
 
         return conversation
@@ -497,7 +519,9 @@ class GeminiToolModel(ToolLLMBase):
 
         system_context = self._get_system_context(conversation.history)
         if system_context:
-            payload["system_instruction"] = {"parts": [{"text": system_context}]}
+            payload["system_instruction"] = {
+                "parts": [{"text": system_context}]
+            }
 
         # First, handle tool calls
         with httpx.Client(timeout=self.timeout) as client:
@@ -547,7 +571,9 @@ class GeminiToolModel(ToolLLMBase):
 
             full_response = ""
             for line in response.iter_lines():
-                line_str = line.decode("utf-8") if isinstance(line, bytes) else line
+                line_str = (
+                    line.decode("utf-8") if isinstance(line, bytes) else line
+                )
                 if not line_str or line_str.startswith("data: [DONE]"):
                     continue
 
@@ -576,7 +602,9 @@ class GeminiToolModel(ToolLLMBase):
         else:
             # If no tool calls, just stream the response directly
             if "candidates" in tool_response and tool_response["candidates"]:
-                content = tool_response["candidates"][0]["content"]["parts"][0]["text"]
+                content = tool_response["candidates"][0]["content"]["parts"][
+                    0
+                ]["text"]
                 conversation.add_message(AgentMessage(content=content))
                 yield content
 
@@ -628,7 +656,9 @@ class GeminiToolModel(ToolLLMBase):
 
         system_context = self._get_system_context(conversation.history)
         if system_context:
-            payload["system_instruction"] = {"parts": [{"text": system_context}]}
+            payload["system_instruction"] = {
+                "parts": [{"text": system_context}]
+            }
 
         # First, handle tool calls
         async with httpx.AsyncClient(timeout=self.timeout) as client:
@@ -706,7 +736,9 @@ class GeminiToolModel(ToolLLMBase):
         else:
             # If no tool calls, just stream the response directly
             if "candidates" in tool_response and tool_response["candidates"]:
-                content = tool_response["candidates"][0]["content"]["parts"][0]["text"]
+                content = tool_response["candidates"][0]["content"]["parts"][
+                    0
+                ]["text"]
                 conversation.add_message(AgentMessage(content=content))
                 yield content
 

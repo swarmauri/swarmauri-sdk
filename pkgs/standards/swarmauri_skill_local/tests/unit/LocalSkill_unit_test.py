@@ -13,7 +13,8 @@ def test_resolves_golden_local_skill_fixture():
     assert skill.skill_name == "golden-local"
     assert skill.description == "Golden local skill fixture"
     assert (
-        skill.instructions == "Use this local fixture to verify named skill resolution."
+        skill.instructions
+        == "Use this local fixture to verify named skill resolution."
     )
     assert skill.references == ["references/guide.md"]
     assert skill.type == "LocalSkill"

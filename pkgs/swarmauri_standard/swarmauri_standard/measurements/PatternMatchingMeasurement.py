@@ -17,7 +17,9 @@ class PatternMatchingMeasurement(MeasurementBase, MeasurementCalculateMixin):
     unit: str = "percentage"
     type: Literal["PatternMatchingMeasurement"] = "PatternMatchingMeasurement"
 
-    def calculate(self, data: pd.DataFrame, column: str, pattern: str) -> float:
+    def calculate(
+        self, data: pd.DataFrame, column: str, pattern: str
+    ) -> float:
         """
         Calculate the percentage of data points that match a given pattern in a column.
 

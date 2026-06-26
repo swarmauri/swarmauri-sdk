@@ -124,7 +124,9 @@ def test_html_logging_formatter_format_basic(html_formatter, log_record):
     assert '<span class="log-timestamp">' in result
 
     # Check log level with styling
-    assert f'<span class="{html_formatter.level_css_classes["INFO"]}"' in result
+    assert (
+        f'<span class="{html_formatter.level_css_classes["INFO"]}"' in result
+    )
     assert 'style="color: ' in result
     assert "[INFO]</span>" in result
 
@@ -231,7 +233,9 @@ def test_html_logging_formatter_without_css_class():
         (logging.CRITICAL, "log-critical", "#8B0000"),
     ],
 )
-def test_html_logging_formatter_level_styling(level, expected_class, expected_color):
+def test_html_logging_formatter_level_styling(
+    level, expected_class, expected_color
+):
     """
     Test that HTMLLoggingFormatter applies correct styling for different log levels.
     """
@@ -285,7 +289,9 @@ def test_custom_date_format():
     result = formatter.format(record)
 
     # The formatted time should be just the hours:minutes:seconds
-    formatted_time = time.strftime(custom_format, time.localtime(record.created))
+    formatted_time = time.strftime(
+        custom_format, time.localtime(record.created)
+    )
     assert formatted_time in result
 
 

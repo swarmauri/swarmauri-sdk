@@ -26,7 +26,9 @@ def test_initialization(cipher_suite: IpsecCipherSuite) -> None:
 
 @pytest.mark.unit
 def test_serialization(cipher_suite: IpsecCipherSuite) -> None:
-    restored = IpsecCipherSuite.model_validate_json(cipher_suite.model_dump_json())
+    restored = IpsecCipherSuite.model_validate_json(
+        cipher_suite.model_dump_json()
+    )
     assert restored.id == cipher_suite.id
 
 
@@ -60,8 +62,14 @@ def test_features_descriptor(cipher_suite: IpsecCipherSuite) -> None:
         "AES-GCM-16",
         "CHACHA20-POLY1305",
     }
-    assert set(features["dialects"]["ike"]) == {"AES-GCM-16", "CHACHA20-POLY1305"}
-    assert tuple(features["constraints"]["prf"]) == ("HMAC-SHA2-256", "HMAC-SHA2-384")
+    assert set(features["dialects"]["ike"]) == {
+        "AES-GCM-16",
+        "CHACHA20-POLY1305",
+    }
+    assert tuple(features["constraints"]["prf"]) == (
+        "HMAC-SHA2-256",
+        "HMAC-SHA2-384",
+    )
     assert tuple(features["constraints"]["dh"]) == (
         "group14",
         "group19",
@@ -93,7 +101,9 @@ def test_normalize_with_explicit_alg(cipher_suite: IpsecCipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_rejects_unsupported_alg(cipher_suite: IpsecCipherSuite) -> None:
+def test_normalize_rejects_unsupported_alg(
+    cipher_suite: IpsecCipherSuite,
+) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="encrypt", alg="AES-GCM-8")
 

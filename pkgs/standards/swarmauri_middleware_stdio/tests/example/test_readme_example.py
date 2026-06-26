@@ -37,5 +37,7 @@ def test_readme_usage_example(caplog: pytest.LogCaptureFixture) -> None:
         for record in caplog.records
         if record.name == "swarmauri_middleware_stdio.StdioMiddleware"
     ]
-    assert any("STDIO Request: GET /" in message for message in middleware_logs)
+    assert any(
+        "STDIO Request: GET /" in message for message in middleware_logs
+    )
     assert any("STDIO Response: 200" in message for message in middleware_logs)

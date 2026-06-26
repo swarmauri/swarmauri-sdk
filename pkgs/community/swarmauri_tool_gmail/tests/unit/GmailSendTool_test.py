@@ -51,7 +51,9 @@ def test_serialization():
 @patch.object(Tool, "authenticate")
 @patch.object(Tool, "create_message")
 @patch("googleapiclient.discovery.build")
-def test_send_email_success(mock_build, mock_create_message, mock_authenticate):
+def test_send_email_success(
+    mock_build, mock_create_message, mock_authenticate
+):
     # Initialize the tool with mock credentials and sender email
     tool = Tool(
         credentials_path="fake_credentials.json",
@@ -79,7 +81,9 @@ def test_send_email_success(mock_build, mock_create_message, mock_authenticate):
     assert isinstance(result, dict)
 
     # Assert that the email was sent successfully
-    assert result == {"success": "Email sent successfully to recipient@example.com"}
+    assert result == {
+        "success": "Email sent successfully to recipient@example.com"
+    }
 
     # Check that authenticate and create_message were called with correct arguments
     mock_authenticate.assert_called_once()

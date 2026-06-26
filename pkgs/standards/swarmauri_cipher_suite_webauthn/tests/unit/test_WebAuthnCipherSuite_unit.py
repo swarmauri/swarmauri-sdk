@@ -28,7 +28,9 @@ def test_initialization(cipher_suite: WebAuthnCipherSuite) -> None:
 
 @pytest.mark.unit
 def test_serialization(cipher_suite: WebAuthnCipherSuite) -> None:
-    restored = WebAuthnCipherSuite.model_validate_json(cipher_suite.model_dump_json())
+    restored = WebAuthnCipherSuite.model_validate_json(
+        cipher_suite.model_dump_json()
+    )
     assert restored.id == cipher_suite.id
 
 
@@ -39,7 +41,9 @@ def test_suite_identifier(cipher_suite: WebAuthnCipherSuite) -> None:
 
 # Cipher-suite specific behavior
 @pytest.mark.unit
-def test_supports_expected_algorithms(cipher_suite: WebAuthnCipherSuite) -> None:
+def test_supports_expected_algorithms(
+    cipher_suite: WebAuthnCipherSuite,
+) -> None:
     supports = cipher_suite.supports()
     assert set(supports.keys()) == {"sign", "verify"}
     assert set(supports["sign"]) == {"-7", "-8", "-257"}
@@ -48,7 +52,9 @@ def test_supports_expected_algorithms(cipher_suite: WebAuthnCipherSuite) -> None
 
 @pytest.mark.unit
 @pytest.mark.parametrize("operation", ["sign", "verify"])
-def test_default_alg(cipher_suite: WebAuthnCipherSuite, operation: str) -> None:
+def test_default_alg(
+    cipher_suite: WebAuthnCipherSuite, operation: str
+) -> None:
     assert cipher_suite.default_alg(operation) == "-7"
 
 
@@ -71,7 +77,9 @@ def test_features_descriptor(cipher_suite: WebAuthnCipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_coerces_alg_to_string(cipher_suite: WebAuthnCipherSuite) -> None:
+def test_normalize_coerces_alg_to_string(
+    cipher_suite: WebAuthnCipherSuite,
+) -> None:
     descriptor = cipher_suite.normalize(op="sign", alg=-8)
 
     assert descriptor["op"] == "sign"
@@ -80,10 +88,16 @@ def test_normalize_coerces_alg_to_string(cipher_suite: WebAuthnCipherSuite) -> N
 
 
 @pytest.mark.unit
-def test_normalize_maps_cose_identifier(cipher_suite: WebAuthnCipherSuite) -> None:
+def test_normalize_maps_cose_identifier(
+    cipher_suite: WebAuthnCipherSuite,
+) -> None:
     descriptor = cipher_suite.normalize(op="sign", alg="-7")
 
-    assert descriptor["mapped"] == {"cose": -7, "fido2": "-7", "provider": "-7"}
+    assert descriptor["mapped"] == {
+        "cose": -7,
+        "fido2": "-7",
+        "provider": "-7",
+    }
 
 
 @pytest.mark.unit

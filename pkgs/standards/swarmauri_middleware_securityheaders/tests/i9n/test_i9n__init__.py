@@ -35,6 +35,10 @@ def test_security_headers_middleware() -> None:
             return await call_next(request)
 
         instance = module.SecurityHeadersMiddleware(app=mock_app)
-        assert instance is not None, "Failed to instantiate SecurityHeadersMiddleware"
+        assert instance is not None, (
+            "Failed to instantiate SecurityHeadersMiddleware"
+        )
     except Exception as e:
-        pytest.fail(f"Failed to create SecurityHeadersMiddleware instance: {str(e)}")
+        pytest.fail(
+            f"Failed to create SecurityHeadersMiddleware instance: {str(e)}"
+        )

@@ -56,7 +56,9 @@ class StorageAdapterBase(IStorageAdapter, ComponentBase):
             normalized_part = self.normalize_prefix(part)
             if normalized_part:
                 normalized_parts.append(normalized_part)
-        return self.normalize_key("/".join(normalized_parts), allow_empty=allow_empty)
+        return self.normalize_key(
+            "/".join(normalized_parts), allow_empty=allow_empty
+        )
 
     # ------------------------------------------------------------------
     def storage_path_for_key(
@@ -77,7 +79,9 @@ class StorageAdapterBase(IStorageAdapter, ComponentBase):
         return target
 
     # ------------------------------------------------------------------
-    def download_target_for_key(self, dest_dir: str | os.PathLike, key: str) -> Path:
+    def download_target_for_key(
+        self, dest_dir: str | os.PathLike, key: str
+    ) -> Path:
         """Resolve a downloaded object key beneath *dest_dir*."""
         root = Path(dest_dir).expanduser().resolve()
         normalized_key = self.normalize_key(key)
@@ -138,7 +142,9 @@ class StorageAdapterBase(IStorageAdapter, ComponentBase):
 
     # ------------------------------------------------------------------
     def upload_dir(self, src: str | os.PathLike, *, prefix: str = "") -> None:
-        raise NotImplementedError("upload_dir() must be implemented by subclass")
+        raise NotImplementedError(
+            "upload_dir() must be implemented by subclass"
+        )
 
     # ------------------------------------------------------------------
     def push(self, src: str | os.PathLike, *, prefix: str = "") -> None:
@@ -146,7 +152,9 @@ class StorageAdapterBase(IStorageAdapter, ComponentBase):
 
     # ------------------------------------------------------------------
     def download_dir(self, prefix: str, dest_dir: str | os.PathLike) -> None:
-        raise NotImplementedError("download_dir() must be implemented by subclass")
+        raise NotImplementedError(
+            "download_dir() must be implemented by subclass"
+        )
 
     # ------------------------------------------------------------------
     def pull(self, prefix: str, dest_dir: str | os.PathLike) -> None:
@@ -157,7 +165,9 @@ class StorageAdapterBase(IStorageAdapter, ComponentBase):
         return
 
     # ------------------------------------------------------------------
-    async def put_bytes(self, object_key: str, data: bytes, content_type: str) -> None:
+    async def put_bytes(
+        self, object_key: str, data: bytes, content_type: str
+    ) -> None:
         del content_type
         self.put_blob(object_key, data)
 
@@ -166,7 +176,9 @@ class StorageAdapterBase(IStorageAdapter, ComponentBase):
         return self.get_blob(object_key)
 
     # ------------------------------------------------------------------
-    def _parse_range(self, start: int, length: int, total: int) -> tuple[int, int]:
+    def _parse_range(
+        self, start: int, length: int, total: int
+    ) -> tuple[int, int]:
         if total < 0:
             raise ValueError("total must be >= 0")
         if start < 0:
@@ -221,14 +233,20 @@ class StorageAdapterBase(IStorageAdapter, ComponentBase):
         return start, end
 
     # ------------------------------------------------------------------
-    async def get_range(self, object_key: str, start: int, length: int) -> bytes:
+    async def get_range(
+        self, object_key: str, start: int, length: int
+    ) -> bytes:
         payload = await self.get_bytes(object_key)
-        parsed_start, parsed_end = self._parse_range(start, length, len(payload))
+        parsed_start, parsed_end = self._parse_range(
+            start, length, len(payload)
+        )
         return payload[parsed_start:parsed_end]
 
     # ------------------------------------------------------------------
     async def remove_object(self, object_key: str) -> None:
-        raise NotImplementedError("remove_object() must be implemented by subclass")
+        raise NotImplementedError(
+            "remove_object() must be implemented by subclass"
+        )
 
     # ------------------------------------------------------------------
     @classmethod

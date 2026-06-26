@@ -69,7 +69,9 @@ def _signature_from_json(data: Mapping[str, Any]) -> MutableMapping[str, Any]:
             and isinstance(value[0], Mapping)
             and "b64" in value[0]
         ):
-            result[key] = tuple(base64.b64decode(str(entry["b64"])) for entry in value)
+            result[key] = tuple(
+                base64.b64decode(str(entry["b64"])) for entry in value
+            )
         else:
             result[key] = value
     return result
@@ -81,13 +83,17 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    list_parser = subparsers.add_parser("list", help="List discovered signing formats")
+    list_parser = subparsers.add_parser(
+        "list", help="List discovered signing formats"
+    )
     list_parser.set_defaults(func=_cmd_list)
 
     supports_parser = subparsers.add_parser(
         "supports", help="Describe plugin capabilities"
     )
-    supports_parser.add_argument("format", help="Format token, e.g. jws or cms")
+    supports_parser.add_argument(
+        "format", help="Format token, e.g. jws or cms"
+    )
     supports_parser.add_argument(
         "--key-ref", dest="key_ref", help="Optional key reference string"
     )
@@ -97,15 +103,23 @@ def _build_parser() -> argparse.ArgumentParser:
         "sign-bytes", help="Sign raw bytes using a plugin"
     )
     sign_parser.add_argument("format", help="Format token")
-    sign_parser.add_argument("--alg", dest="alg", help="Algorithm hint for the signer")
     sign_parser.add_argument(
-        "--key", required=True, help="Path to a JSON file describing the KeyRef"
+        "--alg", dest="alg", help="Algorithm hint for the signer"
     )
-    sign_parser.add_argument("--input", required=True, help="Payload file to sign")
+    sign_parser.add_argument(
+        "--key",
+        required=True,
+        help="Path to a JSON file describing the KeyRef",
+    )
+    sign_parser.add_argument(
+        "--input", required=True, help="Payload file to sign"
+    )
     sign_parser.add_argument(
         "--output", help="Write signatures to this file (defaults to stdout)"
     )
-    sign_parser.add_argument("--opts", help="Path to JSON options passed to the signer")
+    sign_parser.add_argument(
+        "--opts", help="Path to JSON options passed to the signer"
+    )
     sign_parser.set_defaults(func=_cmd_sign_bytes)
 
     verify_parser = subparsers.add_parser(
@@ -163,7 +177,9 @@ async def _cmd_verify_bytes(args: argparse.Namespace) -> int:
     if not isinstance(sig_payload, list):
         raise SystemExit("--sigs must point to a JSON array")
     signature_payloads = [_signature_from_json(entry) for entry in sig_payload]
-    signature_entries = [Signature(**dict(entry)) for entry in signature_payloads]
+    signature_entries = [
+        Signature(**dict(entry)) for entry in signature_payloads
+    ]
     opts = _load_json_file(args.opts)
     require = _load_json_file(args.require)
     ok = await signer.verify_bytes(

@@ -38,6 +38,8 @@ def test_serialization(app_client: AppleOAuth21AppClient) -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_access_token_unsupported(app_client: AppleOAuth21AppClient) -> None:
+async def test_access_token_unsupported(
+    app_client: AppleOAuth21AppClient,
+) -> None:
     with pytest.raises(NotImplementedError):
         await app_client.access_token()

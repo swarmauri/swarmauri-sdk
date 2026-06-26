@@ -25,7 +25,8 @@ class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
 
     # Configuration fields
     ignore_private: bool = Field(
-        default=True, description="Whether to ignore private methods (starting with _)"
+        default=True,
+        description="Whether to ignore private methods (starting with _)",
     )
 
     ignore_dunder: bool = Field(
@@ -100,7 +101,9 @@ class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
 
         return score, metadata
 
-    def _check_file(self, file_path: str, source_code: str) -> List[Dict[str, Any]]:
+    def _check_file(
+        self, file_path: str, source_code: str
+    ) -> List[Dict[str, Any]]:
         """
         Analyzes a Python source file for abstract method compliance.
 
@@ -127,7 +130,9 @@ class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
                     if self._is_abstract_class(node):
                         # Check all methods in the class
                         for method_node in [
-                            n for n in node.body if isinstance(n, ast.FunctionDef)
+                            n
+                            for n in node.body
+                            if isinstance(n, ast.FunctionDef)
                         ]:
                             # Skip methods based on configuration
                             method_name = method_node.name
@@ -143,8 +148,8 @@ class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
                                 continue
 
                             # Check if the method has @abstractmethod decorator
-                            has_abstractmethod = self._has_abstractmethod_decorator(
-                                method_node
+                            has_abstractmethod = (
+                                self._has_abstractmethod_decorator(method_node)
                             )
 
                             # If not abstract, add to issues
@@ -250,7 +255,9 @@ class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
         # Reverse and join with dots
         return ".".join(reversed(parts))
 
-    def _has_abstractmethod_decorator(self, method_node: ast.FunctionDef) -> bool:
+    def _has_abstractmethod_decorator(
+        self, method_node: ast.FunctionDef
+    ) -> bool:
         """
         Checks if a method has the @abstractmethod decorator.
 
@@ -264,7 +271,10 @@ class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
         """
         for decorator in method_node.decorator_list:
             # Simple decorator: @abstractmethod
-            if isinstance(decorator, ast.Name) and decorator.id == "abstractmethod":
+            if (
+                isinstance(decorator, ast.Name)
+                and decorator.id == "abstractmethod"
+            ):
                 return True
 
             # Qualified decorator: @abc.abstractmethod
@@ -311,7 +321,9 @@ class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
             total_abstract_classes += metadata.get("total_abstract_classes", 0)
             total_methods += metadata.get("total_methods", 0)
             total_abstract_methods += metadata.get("total_abstract_methods", 0)
-            total_missing_decorators += metadata.get("total_missing_decorators", 0)
+            total_missing_decorators += metadata.get(
+                "total_missing_decorators", 0
+            )
 
         # Create aggregated metadata
         aggregated_metadata = {

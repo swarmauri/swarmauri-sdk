@@ -4,7 +4,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 
-from swarmauri_standard.logger_handlers.MemoryLoggingHandler import MemoryLoggingHandler
+from swarmauri_standard.logger_handlers.MemoryLoggingHandler import (
+    MemoryLoggingHandler,
+)
 
 
 @pytest.fixture
@@ -21,7 +23,9 @@ def target_handler():
 
     # Change from "MockHandlerBase" to "HandlerBase" for Pydantic validation
     mock_handler_base.type = "HandlerBase"
-    mock_handler_base.model_dump = MagicMock(return_value={"type": "HandlerBase"})
+    mock_handler_base.model_dump = MagicMock(
+        return_value={"type": "HandlerBase"}
+    )
     mock_handler_base.to_dict = MagicMock(return_value={"type": "HandlerBase"})
 
     return mock_handler_base
@@ -125,7 +129,9 @@ def test_compile_handler(target_handler):
 def test_compile_handler_with_formatter():
     """Test that compile_handler sets the formatter correctly."""
     target_handler = MagicMock(spec=HandlerBase)
-    target_handler.compile_handler.return_value = MagicMock(spec=logging.Handler)
+    target_handler.compile_handler.return_value = MagicMock(
+        spec=logging.Handler
+    )
 
     # Add these for Pydantic validation
     target_handler.type = "HandlerBase"
@@ -163,13 +169,17 @@ def test_compile_handler_with_formatter():
 def test_compile_handler_with_string_formatter():
     """Test that compile_handler handles string formatters correctly."""
     target_handler = MagicMock(spec=HandlerBase)
-    target_handler.compile_handler.return_value = MagicMock(spec=logging.Handler)
+    target_handler.compile_handler.return_value = MagicMock(
+        spec=logging.Handler
+    )
 
     target_handler.type = "HandlerBase"
     target_handler.model_dump = MagicMock(return_value={"type": "HandlerBase"})
 
     format_string = "%(levelname)s: %(message)s"
-    handler = MemoryLoggingHandler(target=target_handler, formatter=format_string)
+    handler = MemoryLoggingHandler(
+        target=target_handler, formatter=format_string
+    )
 
     with (
         patch(
@@ -233,7 +243,10 @@ def test_to_dict(target_handler):
     target_handler.to_dict.return_value = {"type": "MockHandler"}
 
     handler = MemoryLoggingHandler(
-        capacity=50, flushLevel=logging.DEBUG, target=target_handler, level=logging.INFO
+        capacity=50,
+        flushLevel=logging.DEBUG,
+        target=target_handler,
+        level=logging.INFO,
     )
 
     result = handler.to_dict()

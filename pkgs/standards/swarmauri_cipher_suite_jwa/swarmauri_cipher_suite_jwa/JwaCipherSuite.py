@@ -36,15 +36,33 @@ class JwaCipherSuite(CipherSuiteBase):
 
     def supports(self) -> Mapping[CipherOp, Iterable[Alg]]:
         return {
-            "sign": ("EdDSA", "PS256", "PS384", "PS512", "ES256", "ES384", "ES512"),
-            "verify": ("EdDSA", "PS256", "PS384", "PS512", "ES256", "ES384", "ES512"),
+            "sign": (
+                "EdDSA",
+                "PS256",
+                "PS384",
+                "PS512",
+                "ES256",
+                "ES384",
+                "ES512",
+            ),
+            "verify": (
+                "EdDSA",
+                "PS256",
+                "PS384",
+                "PS512",
+                "ES256",
+                "ES384",
+                "ES512",
+            ),
             "encrypt": ("A128GCM", "A192GCM", "A256GCM"),
             "decrypt": ("A128GCM", "A192GCM", "A256GCM"),
             "wrap": ("RSA-OAEP", "RSA-OAEP-256", "A256KW"),
             "unwrap": ("RSA-OAEP", "RSA-OAEP-256", "A256KW"),
         }
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         defaults = {
             "sign": "EdDSA",
             "encrypt": "A256GCM",
@@ -103,7 +121,9 @@ class JwaCipherSuite(CipherSuiteBase):
         return {
             "op": op,
             "alg": chosen,
-            "dialect": "jwa" if dialect is None else dialect,  # allow caller override
+            "dialect": "jwa"
+            if dialect is None
+            else dialect,  # allow caller override
             "mapped": mapped,
             "params": resolved,
             "constraints": {"minKeyBits": 0},

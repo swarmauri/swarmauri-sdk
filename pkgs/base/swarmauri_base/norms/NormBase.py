@@ -36,7 +36,10 @@ class NormBase(INorm, ComponentBase):
     resource: Optional[str] = Field(default=ResourceTypes.NORM.value)
 
     def compute(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> float:
         """
         Compute the norm of the input.
@@ -65,7 +68,10 @@ class NormBase(INorm, ComponentBase):
         )
 
     def check_non_negativity(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the norm satisfies the non-negativity property.
@@ -90,7 +96,10 @@ class NormBase(INorm, ComponentBase):
         )
 
     def check_definiteness(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the norm satisfies the definiteness property.
@@ -118,8 +127,12 @@ class NormBase(INorm, ComponentBase):
 
     def check_triangle_inequality(
         self,
-        x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
-        y: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
+        y: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the norm satisfies the triangle inequality.
@@ -151,7 +164,9 @@ class NormBase(INorm, ComponentBase):
 
     def check_absolute_homogeneity(
         self,
-        x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
         scalar: float,
     ) -> bool:
         """

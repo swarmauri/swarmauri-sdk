@@ -19,8 +19,13 @@ def test_type():
 
 @pytest.mark.unit
 def test_serialization():
-    misc = MiscMeasurement(unit="count", value={"sum": 15, "minimum": 1, "maximum": 5})
-    assert misc.id == MiscMeasurement.model_validate_json(misc.model_dump_json()).id
+    misc = MiscMeasurement(
+        unit="count", value={"sum": 15, "minimum": 1, "maximum": 5}
+    )
+    assert (
+        misc.id
+        == MiscMeasurement.model_validate_json(misc.model_dump_json()).id
+    )
 
 
 @pytest.mark.unit
@@ -98,7 +103,10 @@ def test_invalid_metric_type():
         with pytest.raises(ValueError) as exc_info:
             misc(data, metric_type="invalid")
 
-        assert str(exc_info.value) == "metric_type must be either 'numeric' or 'string'"
+        assert (
+            str(exc_info.value)
+            == "metric_type must be either 'numeric' or 'string'"
+        )
 
     test()
 

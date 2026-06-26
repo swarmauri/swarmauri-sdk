@@ -54,7 +54,11 @@ async def test_exchange_and_identity_returns_profile(
 
     async def fake_fetch_profile(access_token: str):
         assert access_token == "access-token"
-        return {"id": "123", "email": "user@example.com", "name": "Example User"}
+        return {
+            "id": "123",
+            "email": "user@example.com",
+            "name": "Example User",
+        }
 
     monkeypatch.setattr(login, "_exchange_tokens", fake_exchange_tokens)
     monkeypatch.setattr(login, "_fetch_profile", fake_fetch_profile)

@@ -43,7 +43,9 @@ class ReplaceRuntimeTool(ToolBase):
         if self.toolkit is None:
             raise ValueError("toolkit is not configured")
         if tool_name in self.protected_tool_names:
-            raise ValueError(f"Tool '{tool_name}' is reserved by RuntimeToolkit")
+            raise ValueError(
+                f"Tool '{tool_name}' is reserved by RuntimeToolkit"
+            )
         if tool_name not in self.toolkit.tools:
             raise ValueError(f"Tool '{tool_name}' not found in the toolkit")
 
@@ -52,9 +54,16 @@ class ReplaceRuntimeTool(ToolBase):
             replacement.name in self.protected_tool_names
             and replacement.name != tool_name
         ):
-            raise ValueError(f"Tool '{replacement.name}' is reserved by RuntimeToolkit")
-        if replacement.name != tool_name and replacement.name in self.toolkit.tools:
-            raise ValueError(f"Tool '{replacement.name}' already exists in the toolkit")
+            raise ValueError(
+                f"Tool '{replacement.name}' is reserved by RuntimeToolkit"
+            )
+        if (
+            replacement.name != tool_name
+            and replacement.name in self.toolkit.tools
+        ):
+            raise ValueError(
+                f"Tool '{replacement.name}' already exists in the toolkit"
+            )
 
         self.toolkit.remove_tool(tool_name)
         self.toolkit.add_tool(replacement)

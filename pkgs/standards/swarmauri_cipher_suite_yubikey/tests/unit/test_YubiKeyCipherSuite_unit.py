@@ -26,7 +26,9 @@ def test_initialization(cipher_suite: YubiKeyCipherSuite) -> None:
 
 @pytest.mark.unit
 def test_serialization(cipher_suite: YubiKeyCipherSuite) -> None:
-    restored = YubiKeyCipherSuite.model_validate_json(cipher_suite.model_dump_json())
+    restored = YubiKeyCipherSuite.model_validate_json(
+        cipher_suite.model_dump_json()
+    )
     assert restored.id == cipher_suite.id
 
 
@@ -37,7 +39,9 @@ def test_suite_identifier(cipher_suite: YubiKeyCipherSuite) -> None:
 
 # Cipher-suite specific behavior
 @pytest.mark.unit
-def test_supports_expected_algorithms(cipher_suite: YubiKeyCipherSuite) -> None:
+def test_supports_expected_algorithms(
+    cipher_suite: YubiKeyCipherSuite,
+) -> None:
     supports = cipher_suite.supports()
     assert set(supports.keys()) == {"sign", "verify", "wrap", "unwrap"}
     assert set(supports["sign"]) == {
@@ -118,8 +122,12 @@ def test_normalize_provider_mapping_without_slot(
 
 
 @pytest.mark.unit
-def test_normalize_provider_mapping_with_slot(cipher_suite: YubiKeyCipherSuite) -> None:
-    descriptor = cipher_suite.normalize(op="sign", alg="ES384", key={"slot": "9a"})
+def test_normalize_provider_mapping_with_slot(
+    cipher_suite: YubiKeyCipherSuite,
+) -> None:
+    descriptor = cipher_suite.normalize(
+        op="sign", alg="ES384", key={"slot": "9a"}
+    )
 
     assert descriptor["mapped"]["provider"] == "piv:ES384:slot=9a"
 
@@ -135,6 +143,8 @@ def test_normalize_constraints(cipher_suite: YubiKeyCipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_rejects_unsupported_alg(cipher_suite: YubiKeyCipherSuite) -> None:
+def test_normalize_rejects_unsupported_alg(
+    cipher_suite: YubiKeyCipherSuite,
+) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="sign", alg="RS256")

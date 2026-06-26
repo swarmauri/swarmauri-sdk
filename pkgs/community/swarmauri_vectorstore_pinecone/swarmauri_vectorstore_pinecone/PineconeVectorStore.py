@@ -121,15 +121,23 @@ class PineconeVectorStore(
         if not document.embedding:
             self._embedder.fit([document.content])
             embedding = (
-                self._embedder.transform([document.content])[0].to_numpy().tolist()
+                self._embedder.transform([document.content])[0]
+                .to_numpy()
+                .tolist()
             )
         else:
             embedding = document.embedding
 
         document.metadata["content"] = document.content
-        return {"id": document.id, "values": embedding, "metadata": document.metadata}
+        return {
+            "id": document.id,
+            "values": embedding,
+            "metadata": document.metadata,
+        }
 
-    def add_document(self, document: Document, namespace: Optional[str] = "") -> None:
+    def add_document(
+        self, document: Document, namespace: Optional[str] = ""
+    ) -> None:
         """
         Add a single document to the Pinecone index.
 
@@ -141,7 +149,9 @@ class PineconeVectorStore(
             vector = self._prepare_vector(document)
             self.client.upsert(vectors=[vector], namespace=namespace)
         except Exception as e:
-            raise RuntimeError(f"Failed to add document {document.id}: {str(e)}")
+            raise RuntimeError(
+                f"Failed to add document {document.id}: {str(e)}"
+            )
 
     def add_documents(
         self,
@@ -221,9 +231,9 @@ class PineconeVectorStore(
         Returns:
             set: A set of all document IDs in the index.
         """
-        num_vectors = self.client.describe_index_stats()["namespaces"][namespace][
-            "vector_count"
-        ]
+        num_vectors = self.client.describe_index_stats()["namespaces"][
+            namespace
+        ]["vector_count"]
         all_ids = set()
         while len(all_ids) < num_vectors:
             input_vector = np.random.rand(self.vector_size).tolist()
@@ -231,7 +241,9 @@ class PineconeVectorStore(
             all_ids.update(ids)
         return all_ids
 
-    def get_all_documents(self, namespace: Optional[str] = "") -> List[Document]:
+    def get_all_documents(
+        self, namespace: Optional[str] = ""
+    ) -> List[Document]:
         """
         Retrieve all documents from the Pinecone index.
 
@@ -304,7 +316,9 @@ class PineconeVectorStore(
         """
         try:
             embedding = (
-                self._embedder.transform([document.content])[0].to_numpy().tolist()
+                self._embedder.transform([document.content])[0]
+                .to_numpy()
+                .tolist()
             )
             document.metadata["content"] = document.content
             self.client.update(

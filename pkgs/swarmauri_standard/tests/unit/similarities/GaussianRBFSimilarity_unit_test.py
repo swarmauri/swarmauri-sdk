@@ -5,7 +5,9 @@ from typing import Any, List
 import numpy as np
 import pytest
 
-from swarmauri_standard.similarities.GaussianRBFSimilarity import GaussianRBFSimilarity
+from swarmauri_standard.similarities.GaussianRBFSimilarity import (
+    GaussianRBFSimilarity,
+)
 
 # Set up logger for testing
 logger = logging.getLogger(__name__)
@@ -95,7 +97,10 @@ def test_initialization_invalid_gamma():
     ],
 )
 def test_similarity(
-    gaussian_rbf_similarity: GaussianRBFSimilarity, x: Any, y: Any, expected: float
+    gaussian_rbf_similarity: GaussianRBFSimilarity,
+    x: Any,
+    y: Any,
+    expected: float,
 ):
     """
     Test the similarity calculation for various input pairs.
@@ -148,7 +153,9 @@ def test_similarity_with_different_gamma(
 
 
 @pytest.mark.unit
-def test_similarity_input_validation(gaussian_rbf_similarity: GaussianRBFSimilarity):
+def test_similarity_input_validation(
+    gaussian_rbf_similarity: GaussianRBFSimilarity,
+):
     """
     Test that the similarity function properly validates inputs.
 
@@ -193,7 +200,9 @@ def test_similarities(gaussian_rbf_similarity: GaussianRBFSimilarity):
 
 
 @pytest.mark.unit
-def test_similarities_with_numpy_array(gaussian_rbf_similarity: GaussianRBFSimilarity):
+def test_similarities_with_numpy_array(
+    gaussian_rbf_similarity: GaussianRBFSimilarity,
+):
     """
     Test the similarities method with numpy array inputs.
 

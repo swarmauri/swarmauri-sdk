@@ -43,7 +43,9 @@ class CSVParser(ParserBase):
         for row in reader:
             # Each row represents a document, where the column headers are metadata fields
             document = Document(
-                doc_id=row.get("id", None), content=row.get("content", ""), metadata=row
+                doc_id=row.get("id", None),
+                content=row.get("content", ""),
+                metadata=row,
             )
             documents.append(document)
 

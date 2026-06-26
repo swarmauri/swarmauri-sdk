@@ -11,7 +11,9 @@ class PipelineBase(IPipeline, ComponentBase):
     error handling, and result aggregation.
     """
 
-    resource: Optional[str] = Field(default=ResourceTypes.PIPELINE.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.PIPELINE.value, frozen=True
+    )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: str = "PipelineBase"
 

@@ -249,8 +249,12 @@ def test_check_linearity_with_mismatched_shapes(
     a2 = np.array([[5.0, 6.0, 7.0], [8.0, 9.0, 10.0]])
     b = np.array([[11.0, 12.0], [13.0, 14.0]])
 
-    with pytest.raises(ValueError, match="All matrices must have the same shape"):
-        frobenius_inner_product.check_linearity_first_argument(a1, a2, b, 1.0, 1.0)
+    with pytest.raises(
+        ValueError, match="All matrices must have the same shape"
+    ):
+        frobenius_inner_product.check_linearity_first_argument(
+            a1, a2, b, 1.0, 1.0
+        )
 
 
 @pytest.mark.unit
@@ -292,7 +296,9 @@ def test_check_positivity_zero_matrix(
 
 
 @pytest.mark.unit
-def test_serialization(frobenius_inner_product: FrobeniusRealInnerProduct) -> None:
+def test_serialization(
+    frobenius_inner_product: FrobeniusRealInnerProduct,
+) -> None:
     """
     Test serialization and deserialization of the FrobeniusRealInnerProduct.
 

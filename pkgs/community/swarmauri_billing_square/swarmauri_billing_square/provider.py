@@ -47,8 +47,12 @@ class SquareBillingProvider(
 
     component_name: str = "square"
     access_token: SecretStr = Field(repr=False)
-    environment: str = Field(default="sandbox", description="Square environment")
-    location_id: str = Field(..., description="Default Square location identifier")
+    environment: str = Field(
+        default="sandbox", description="Square environment"
+    )
+    location_id: str = Field(
+        ..., description="Default Square location identifier"
+    )
     _client: Any = PrivateAttr(default=None)
 
     # ------------------------------------------------------------------ Client
@@ -72,7 +76,9 @@ class SquareBillingProvider(
     @staticmethod
     def _body(response: Any) -> dict[str, Any]:
         if hasattr(response, "model_dump"):
-            return response.model_dump(mode="json", by_alias=True, exclude_none=True)
+            return response.model_dump(
+                mode="json", by_alias=True, exclude_none=True
+            )
         if isinstance(response, Mapping):
             return dict(response)
         return {}
@@ -86,10 +92,14 @@ class SquareBillingProvider(
     @staticmethod
     def _require(spec: BillingSpec | Any, field: str) -> Any:
         value = getattr(
-            spec, "resolve", lambda name, default=None: getattr(spec, name, default)
+            spec,
+            "resolve",
+            lambda name, default=None: getattr(spec, name, default),
         )(field)
         if value is None or (isinstance(value, str) and not value):
-            raise ValueError(f"{field} is required for {spec.__class__.__name__}")
+            raise ValueError(
+                f"{field} is required for {spec.__class__.__name__}"
+            )
         return value
 
     # ---------------------------------------------------------------- Products & Prices
@@ -169,11 +179,17 @@ class SquareBillingProvider(
         body = self._body(response)
         mappings = body.get("id_mappings", [])
         object_id = next(
-            (m["object_id"] for m in mappings if m["client_object_id"] == tmp_id),
+            (
+                m["object_id"]
+                for m in mappings
+                if m["client_object_id"] == tmp_id
+            ),
             None,
         )
         if object_id is None:
-            raise RuntimeError("Square did not return a mapped price identifier")
+            raise RuntimeError(
+                "Square did not return a mapped price identifier"
+            )
         ref = PriceRef(
             id=object_id,
             product_id=product.id,
@@ -190,7 +206,8 @@ class SquareBillingProvider(
     ) -> CheckoutIntentRef:
         sq = self._sq()
         response = sq.checkout.payment_links.create(
-            idempotency_key=request.resolve("idempotency_key") or f"chk-{price.id}",
+            idempotency_key=request.resolve("idempotency_key")
+            or f"chk-{price.id}",
             order={
                 "location_id": self.location_id,
                 "line_items": [
@@ -343,7 +360,8 @@ class SquareBillingProvider(
                         "request_type": "BALANCE",
                         **(
                             {"due_date": f"+{spec.resolve('days_until_due')}d"}
-                            if spec.resolve("collection_method") == "send_invoice"
+                            if spec.resolve("collection_method")
+                            == "send_invoice"
                             else {}
                         ),
                     }
@@ -435,7 +453,10 @@ class SquareBillingProvider(
         response = sq.payments.create(
             source_id=split_code_or_params.get("source_id", "EXTERNAL"),
             idempotency_key=idempotency_key,
-            amount_money={"amount": amount_minor, "currency": currency.upper()},
+            amount_money={
+                "amount": amount_minor,
+                "currency": currency.upper(),
+            },
             app_fee_money={
                 "amount": split_code_or_params["app_fee_amount"],
                 "currency": currency.upper(),
@@ -500,14 +521,16 @@ class SquareBillingProvider(
     ) -> bool:
         from square.utils.webhooks_helper import verify_signature
 
-        notification_url = headers.get("X-Square-Notification-Url") or headers.get(
-            "x-square-notification-url"
-        )
+        notification_url = headers.get(
+            "X-Square-Notification-Url"
+        ) or headers.get("x-square-notification-url")
         if not notification_url:
-            raise ValueError("Square webhook verification requires notification URL")
-        signature = headers.get("X-Square-Hmacsha256-Signature") or headers.get(
-            "x-square-hmacsha256-signature", ""
-        )
+            raise ValueError(
+                "Square webhook verification requires notification URL"
+            )
+        signature = headers.get(
+            "X-Square-Hmacsha256-Signature"
+        ) or headers.get("x-square-hmacsha256-signature", "")
         return verify_signature(
             request_body=raw_body.decode("utf-8"),
             signature_header=signature,
@@ -515,7 +538,9 @@ class SquareBillingProvider(
             notification_url=notification_url,
         )
 
-    def _list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
+    def _list_disputes(
+        self, *, limit: int = 50
+    ) -> Sequence[Mapping[str, Any]]:
         sq = self._sq()
         response = sq.disputes.list(location_id=self.location_id)
         items = []
@@ -523,7 +548,9 @@ class SquareBillingProvider(
             if index >= limit:
                 break
             items.append(
-                dispute.model_dump(mode="json", by_alias=True, exclude_none=True)
+                dispute.model_dump(
+                    mode="json", by_alias=True, exclude_none=True
+                )
                 if hasattr(dispute, "model_dump")
                 else cast(Mapping[str, Any], dispute)
             )

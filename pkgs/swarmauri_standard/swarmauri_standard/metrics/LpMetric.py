@@ -35,7 +35,9 @@ class LpMetric(MetricBase):
     """
 
     type: Literal["LpMetric"] = "LpMetric"
-    p: float = Field(..., description="Parameter p for the Lp metric (must be > 1)")
+    p: float = Field(
+        ..., description="Parameter p for the Lp metric (must be > 1)"
+    )
     resource: Optional[str] = Field(default=ResourceTypes.METRIC.value)
 
     @field_validator("p")
@@ -131,9 +133,13 @@ class LpMetric(MetricBase):
                 )
 
             # Calculate Lp distance: (sum(|x_i - y_i|^p))^(1/p)
-            distance_value = np.sum(np.abs(x_array - y_array) ** self.p) ** (1 / self.p)
+            distance_value = np.sum(np.abs(x_array - y_array) ** self.p) ** (
+                1 / self.p
+            )
 
-            logger.debug(f"Calculated Lp distance with p={self.p}: {distance_value}")
+            logger.debug(
+                f"Calculated Lp distance with p={self.p}: {distance_value}"
+            )
             return float(distance_value)
         except Exception as e:
             logger.error(f"Error calculating Lp distance: {str(e)}")
@@ -243,7 +249,9 @@ class LpMetric(MetricBase):
             logger.error(f"Error in non-negativity check: {str(e)}")
             return False
 
-    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
+    def check_identity_of_indiscernibles(
+        self, x: MetricInput, y: MetricInput
+    ) -> bool:
         """
         Check if the Lp metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -281,7 +289,9 @@ class LpMetric(MetricBase):
             logger.debug(f"Identity of indiscernibles check result: {result}")
             return result
         except Exception as e:
-            logger.error(f"Error in identity of indiscernibles check: {str(e)}")
+            logger.error(
+                f"Error in identity of indiscernibles check: {str(e)}"
+            )
             return False
 
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:

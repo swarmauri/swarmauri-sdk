@@ -11,7 +11,9 @@ def vector_store(request, tmp_path):
         vs = DuckDBVectorStore(database_name=":memory:")
     else:
         db_path = tmp_path / request.param
-        vs = DuckDBVectorStore(database_name=str(db_path), persist_dir=str(tmp_path))
+        vs = DuckDBVectorStore(
+            database_name=str(db_path), persist_dir=str(tmp_path)
+        )
     vs.connect()
     yield vs
     vs.disconnect()
@@ -61,7 +63,9 @@ def test_serialization(vector_store):
 
 def test_add_and_get_document(vector_store):
     doc = Document(
-        id="test1", content="This is a test document", metadata={"key": "value"}
+        id="test1",
+        content="This is a test document",
+        metadata={"key": "value"},
     )
     vector_store.add_document(doc)
 
@@ -77,7 +81,9 @@ def test_add_and_get_multiple_documents(vector_store, sample_documents):
 
     all_docs = vector_store.get_all_documents()
     assert len(all_docs) == len(sample_documents)
-    assert set(doc.id for doc in all_docs) == set(doc.id for doc in sample_documents)
+    assert set(doc.id for doc in all_docs) == set(
+        doc.id for doc in sample_documents
+    )
 
 
 def test_delete_document(vector_store):
@@ -104,7 +110,9 @@ def test_update_document(vector_store):
 
 def test_persistence(tmp_path):
     db_path = tmp_path / "persist_test.db"
-    vs1 = DuckDBVectorStore(database_name=str(db_path), persist_dir=str(tmp_path))
+    vs1 = DuckDBVectorStore(
+        database_name=str(db_path), persist_dir=str(tmp_path)
+    )
     vs1.connect()
 
     doc = Document(id="persist_test", content="This document should persist")

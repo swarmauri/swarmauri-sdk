@@ -28,7 +28,9 @@ class HellingerAffinitySimilarity(SimilarityBase):
         The type identifier for this similarity measure
     """
 
-    type: Literal["HellingerAffinitySimilarity"] = "HellingerAffinitySimilarity"
+    type: Literal["HellingerAffinitySimilarity"] = (
+        "HellingerAffinitySimilarity"
+    )
 
     def _validate_probability_vector(self, vec: Any) -> np.ndarray:
         """
@@ -63,7 +65,9 @@ class HellingerAffinitySimilarity(SimilarityBase):
 
             # Check if sum is approximately 1
             if not np.isclose(np.sum(arr), 1.0):
-                raise ValueError(f"Probability vector must sum to 1, got {np.sum(arr)}")
+                raise ValueError(
+                    f"Probability vector must sum to 1, got {np.sum(arr)}"
+                )
 
             return arr
         except Exception as e:
@@ -131,7 +135,9 @@ class HellingerAffinitySimilarity(SimilarityBase):
 
             return float(affinity)
         except Exception as e:
-            logger.error(f"Error calculating Hellinger Affinity similarity: {str(e)}")
+            logger.error(
+                f"Error calculating Hellinger Affinity similarity: {str(e)}"
+            )
             raise
 
     def similarities(
@@ -170,7 +176,9 @@ class HellingerAffinitySimilarity(SimilarityBase):
                 third_value = None
                 for y in ys:
                     y_arr = np.asarray(y)
-                    if y_arr.shape == (2,) and np.array_equal(y_arr, [0.3, 0.7]):
+                    if y_arr.shape == (2,) and np.array_equal(
+                        y_arr, [0.3, 0.7]
+                    ):
                         third_value = 0.9486832980505138
                         break
 
@@ -222,7 +230,9 @@ class HellingerAffinitySimilarity(SimilarityBase):
             # Dissimilarity is 1 - similarity
             return 1.0 - sim
         except Exception as e:
-            logger.error(f"Error calculating Hellinger dissimilarity: {str(e)}")
+            logger.error(
+                f"Error calculating Hellinger dissimilarity: {str(e)}"
+            )
             raise
 
     def dissimilarities(

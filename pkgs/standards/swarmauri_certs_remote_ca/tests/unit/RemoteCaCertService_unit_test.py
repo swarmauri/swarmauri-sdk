@@ -49,7 +49,9 @@ def test_sign_cert_unit():
         assert request.url == httpx.URL("https://ca.example/sign")
         data = json.loads(request.content)
         assert base64.b64decode(data["csr"]) == csr
-        return httpx.Response(200, json={"cert": base64.b64encode(cert_bytes).decode()})
+        return httpx.Response(
+            200, json={"cert": base64.b64encode(cert_bytes).decode()}
+        )
 
     transport = httpx.MockTransport(handler)
     svc = RemoteCaCertService("https://ca.example/sign")

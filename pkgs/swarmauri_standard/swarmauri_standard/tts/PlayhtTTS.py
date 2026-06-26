@@ -47,7 +47,8 @@ class PlayhtTTS(TTSBase):
     output_format: str = "mp3"
     _voice_id: str = PrivateAttr(default=None)
     _prebuilt_voices: Dict[
-        Literal["Play3.0-mini", "PlayHT2.0-turbo", "PlayHT1.0", "PlayHT2.0"], List[dict]
+        Literal["Play3.0-mini", "PlayHT2.0-turbo", "PlayHT1.0", "PlayHT2.0"],
+        List[dict],
     ] = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.play.ht/api/v2")
     _headers: Dict[str, str] = PrivateAttr(default=None)
@@ -105,12 +106,16 @@ class PlayhtTTS(TTSBase):
             if voice_engine in self.allowed_models:
                 if voice_engine not in prebuilt_voices:
                     prebuilt_voices[voice_engine] = []
-            prebuilt_voices[voice_engine].append({item.get("id"): item.get("name")})
+            prebuilt_voices[voice_engine].append(
+                {item.get("id"): item.get("name")}
+            )
 
         cloned_voice_response = self.get_cloned_voices()
         if cloned_voice_response:
             for item in cloned_voice_response:
-                prebuilt_voices["PlayHT2.0"].append({item.get("id"): item.get("name")})
+                prebuilt_voices["PlayHT2.0"].append(
+                    {item.get("id"): item.get("name")}
+                )
 
         return prebuilt_voices
 
@@ -150,7 +155,9 @@ class PlayhtTTS(TTSBase):
                 if voice_name in item.values():
                     return list(item.keys())[0]
 
-        raise ValueError(f"Voice name {voice_name} not found in allowed voices.")
+        raise ValueError(
+            f"Voice name {voice_name} not found in allowed voices."
+        )
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(self, text: str, audio_path: str = "output.mp3") -> str:
@@ -171,7 +178,9 @@ class PlayhtTTS(TTSBase):
         }
 
         try:
-            with httpx.Client(base_url=self._BASE_URL, timeout=30) as self._client:
+            with httpx.Client(
+                base_url=self._BASE_URL, timeout=30
+            ) as self._client:
                 response = self._client.post(
                     "/tts/stream", json=payload, headers=self._headers
                 )
@@ -226,7 +235,9 @@ class PlayhtTTS(TTSBase):
         Returns:
             List: List of audio file paths.
         """
-        return [self.predict(text, path) for text, path in text_path_dict.items()]
+        return [
+            self.predict(text, path) for text, path in text_path_dict.items()
+        ]
 
     async def abatch(
         self, text_path_dict: Dict[str, str], max_concurrent: int = 5
@@ -246,10 +257,14 @@ class PlayhtTTS(TTSBase):
             async with semaphore:
                 return await self.apredict(text, path)
 
-        tasks = [process_text(text, path) for text, path in text_path_dict.items()]
+        tasks = [
+            process_text(text, path) for text, path in text_path_dict.items()
+        ]
         return await asyncio.gather(*tasks)
 
-    def clone_voice_from_file(self, voice_name: str, sample_file_path: str) -> dict:
+    def clone_voice_from_file(
+        self, voice_name: str, sample_file_path: str
+    ) -> dict:
         """
         Clone a voice using an audio file.
 
@@ -285,7 +300,9 @@ class PlayhtTTS(TTSBase):
             print(f"An error occurred while cloning the voice: {e}")
             return {"error": str(e)}
 
-    def clone_voice_from_url(self, voice_name: str, sample_file_url: str) -> dict:
+    def clone_voice_from_url(
+        self, voice_name: str, sample_file_url: str
+    ) -> dict:
         """
         Clone a voice by sending a URL to an audio file to Play.ht API.
 
@@ -308,7 +325,9 @@ class PlayhtTTS(TTSBase):
         try:
             with httpx.Client(base_url=self._BASE_URL) as client:
                 response = client.post(
-                    "/cloned-voices/instant", data=payload, headers=self._headers
+                    "/cloned-voices/instant",
+                    data=payload,
+                    headers=self._headers,
                 )
                 response.raise_for_status()
 
@@ -368,7 +387,12 @@ class PlayhtTTS(TTSBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        models_data = ["Play3.0-mini", "PlayHT2.0-turbo", "PlayHT1.0", "PlayHT2.0"]
+        models_data = [
+            "Play3.0-mini",
+            "PlayHT2.0-turbo",
+            "PlayHT1.0",
+            "PlayHT2.0",
+        ]
         return models_data
 
     def stream(self, text: str) -> bytes:
@@ -381,7 +405,9 @@ class PlayhtTTS(TTSBase):
         Returns:
             bytes: bytes of the audio.
         """
-        raise NotImplementedError("Stream method not implemented for PlayhtTTS")
+        raise NotImplementedError(
+            "Stream method not implemented for PlayhtTTS"
+        )
 
     async def astream(self, text: str) -> bytes:
         """
@@ -393,4 +419,6 @@ class PlayhtTTS(TTSBase):
         Returns:
             bytes: bytes of the audio.
         """
-        raise NotImplementedError("AStream method not implemented for PlayhtTTS")
+        raise NotImplementedError(
+            "AStream method not implemented for PlayhtTTS"
+        )

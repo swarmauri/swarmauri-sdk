@@ -36,7 +36,9 @@ class PythonParser(ParserBase):
         tree = ast.parse(data)
 
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef) or isinstance(node, ast.ClassDef):
+            if isinstance(node, ast.FunctionDef) or isinstance(
+                node, ast.ClassDef
+            ):
                 element_name = node.name
                 docstring = ast.get_docstring(node)
 

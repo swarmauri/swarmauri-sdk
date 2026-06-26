@@ -33,10 +33,14 @@ class TemperatureConverterTool(ToolBase):
         ]
     )
     name: str = "TemperatureConverterTool"
-    description: str = "Converts temperatures between Celsius, Fahrenheit, and Kelvin."
+    description: str = (
+        "Converts temperatures between Celsius, Fahrenheit, and Kelvin."
+    )
     type: Literal["TemperatureConverterTool"] = "TemperatureConverterTool"
 
-    def __call__(self, from_unit: str, to_unit: str, value: float) -> Dict[str, str]:
+    def __call__(
+        self, from_unit: str, to_unit: str, value: float
+    ) -> Dict[str, str]:
         result = None
         try:
             if from_unit == to_unit:

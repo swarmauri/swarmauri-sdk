@@ -69,7 +69,10 @@ def _sig_input(namespace: str, payload_b64u: str) -> bytes:
     RETURNS (bytes): Bytes used as signing input.
     """
     return (
-        b"sshsig:v1:" + namespace.encode("utf-8") + b":" + payload_b64u.encode("ascii")
+        b"sshsig:v1:"
+        + namespace.encode("utf-8")
+        + b":"
+        + payload_b64u.encode("ascii")
     )
 
 
@@ -158,7 +161,9 @@ class SshSigTokenService(TokenServiceBase):
             raise ValueError("mint() requires 'kid' of a signing key")
         ref = await self._kp.get_key(kid, key_version, include_secret=True)
         if ref.material is None:
-            raise RuntimeError("Signing key is not exportable under current policy")
+            raise RuntimeError(
+                "Signing key is not exportable under current policy"
+            )
 
         kidver = f"{ref.kid}.{ref.version}"
         hdr = dict(headers or {})
@@ -174,10 +179,14 @@ class SshSigTokenService(TokenServiceBase):
         sk = load_pem_private_key(ref.material, password=None)
         if alg == "ssh-ed25519":
             if not isinstance(sk, Ed25519PrivateKey):
-                raise ValueError("ssh-ed25519 requires an Ed25519 private key (PEM)")
+                raise ValueError(
+                    "ssh-ed25519 requires an Ed25519 private key (PEM)"
+                )
             sig = sk.sign(preimage)
         elif alg == "ecdsa-sha2-nistp256":
-            if not isinstance(sk, ec.EllipticCurvePrivateKey) or sk.curve.name not in (
+            if not isinstance(
+                sk, ec.EllipticCurvePrivateKey
+            ) or sk.curve.name not in (
                 "secp256r1",
                 "prime256v1",
             ):
@@ -275,7 +284,8 @@ class SshSigTokenService(TokenServiceBase):
                 )
             else:
                 ok = any(
-                    a == aud_claim or (isinstance(aud_claim, list) and a in aud_claim)
+                    a == aud_claim
+                    or (isinstance(aud_claim, list) and a in aud_claim)
                     for a in audience
                 )
             if not ok:

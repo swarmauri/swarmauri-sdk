@@ -7,12 +7,16 @@ from swarmauri_core.tool_llms.IToolPredict import IToolPredict
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_base.schema_converters.SchemaConverterBase import (
+    SchemaConverterBase,
+)
 
 
 @ComponentBase.register_model()
 class ToolLLMBase(IToolPredict, ComponentBase):
-    resource: Optional[str] = Field(default=ResourceTypes.TOOL_LLM.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.TOOL_LLM.value, frozen=True
+    )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["ToolLLMBase"] = "ToolLLMBase"
     api_key: Optional[SecretStr] = None
@@ -51,7 +55,9 @@ class ToolLLMBase(IToolPredict, ComponentBase):
             ValueError: If the model is not in the allowed models list.
         """
         if model not in self.allowed_models:
-            raise ValueError(f"Model '{model}' is not in the allowed models list.")
+            raise ValueError(
+                f"Model '{model}' is not in the allowed models list."
+            )
         self.allowed_models.remove(model)
 
     @abstractmethod
@@ -60,16 +66,22 @@ class ToolLLMBase(IToolPredict, ComponentBase):
             "get_schema_converter() not implemented in subclass yet."
         )
 
-    def _schema_convert_tools(self, tools: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(
+        self, tools: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         converter = self.get_schema_converter()
         return [converter.convert(tools[tool]) for tool in tools]
 
     def _format_messages(
         self, messages: List[Type[MessageBase]]
     ) -> List[Dict[str, str]]:
-        raise NotImplementedError("_format_messages() not implemented in subclass yet.")
+        raise NotImplementedError(
+            "_format_messages() not implemented in subclass yet."
+        )
 
-    def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[MessageBase]:
+    def _process_tool_calls(
+        self, tool_calls, toolkit, messages
+    ) -> List[MessageBase]:
         """
         Processes a list of tool calls and appends the results to the messages list.
 
@@ -107,7 +119,9 @@ class ToolLLMBase(IToolPredict, ComponentBase):
 
     @abstractmethod
     async def apredict(self, *args, **kwargs):
-        raise NotImplementedError("apredict() not implemented in subclass yet.")
+        raise NotImplementedError(
+            "apredict() not implemented in subclass yet."
+        )
 
     @abstractmethod
     def stream(self, *args, **kwargs):

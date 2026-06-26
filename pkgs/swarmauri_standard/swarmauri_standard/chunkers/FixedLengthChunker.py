@@ -32,7 +32,8 @@ class FixedLengthChunker(ChunkerBase):
 
         # Using list comprehension to split text into chunks of fixed size
         chunks = [
-            text[i : i + self.chunk_size] for i in range(0, len(text), self.chunk_size)
+            text[i : i + self.chunk_size]
+            for i in range(0, len(text), self.chunk_size)
         ]
 
         return chunks

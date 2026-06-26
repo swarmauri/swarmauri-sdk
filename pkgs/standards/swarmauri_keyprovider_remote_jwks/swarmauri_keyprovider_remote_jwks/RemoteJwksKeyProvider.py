@@ -17,7 +17,9 @@ from pydantic import PrivateAttr
 
 from swarmauri_base.key_providers.KeyProviderBase import KeyProviderBase
 from swarmauri_core.key_providers.types import KeySpec, ExportPolicy, KeyUse
-from swarmauri_core.crypto.types import KeyRef  # canonical KeyRef from your core types
+from swarmauri_core.crypto.types import (
+    KeyRef,
+)  # canonical KeyRef from your core types
 from swarmauri_keyprovider_local import LocalKeyProvider
 
 
@@ -111,8 +113,20 @@ class RemoteJwksKeyProvider(KeyProviderBase):
     def supports(self) -> Mapping[str, Iterable[str]]:
         return {
             "class": ("sym", "asym"),
-            "algs": ("RSA", "EC", "OKP", "oct"),  # JWKS kty families we may encounter
-            "features": ("create", "import", "rotate", "destroy", "jwks", "refresh"),
+            "algs": (
+                "RSA",
+                "EC",
+                "OKP",
+                "oct",
+            ),  # JWKS kty families we may encounter
+            "features": (
+                "create",
+                "import",
+                "rotate",
+                "destroy",
+                "jwks",
+                "refresh",
+            ),
         }
 
     # ───────────────────────── read/write lifecycle ─────────────────────────
@@ -130,13 +144,19 @@ class RemoteJwksKeyProvider(KeyProviderBase):
     ) -> KeyRef:
         return await self._local.rotate_key(kid, spec_overrides=spec_overrides)
 
-    async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
+    async def destroy_key(
+        self, kid: str, version: Optional[int] = None
+    ) -> bool:
         return await self._local.destroy_key(kid, version)
 
     # ───────────────────────── getters / jwks ─────────────────────────
 
     async def get_key(
-        self, kid: str, version: Optional[int] = None, *, include_secret: bool = False
+        self,
+        kid: str,
+        version: Optional[int] = None,
+        *,
+        include_secret: bool = False,
     ) -> KeyRef:
         """
         Return a KeyRef for the given kid(.version) if present in JWKS.
@@ -154,9 +174,9 @@ class RemoteJwksKeyProvider(KeyProviderBase):
 
         # For compatibility with your KeyRef, we put the public JWK bytes into 'public'
         # (wire consumers typically use jwks() directly; this is mainly for parity).
-        public_bytes = json.dumps(jwk, separators=(",", ":"), sort_keys=True).encode(
-            "utf-8"
-        )
+        public_bytes = json.dumps(
+            jwk, separators=(",", ":"), sort_keys=True
+        ).encode("utf-8")
         parsed_kid, parsed_ver = self._split_kid_version(jwk.get("kid", ""))
 
         return _RemoteKeyRef(
@@ -168,7 +188,9 @@ class RemoteJwksKeyProvider(KeyProviderBase):
             public=public_bytes,
             material=None,
             tags={"kty": jwk.get("kty"), "alg": jwk.get("alg")},
-            fingerprint=self._fingerprint(public=public_bytes, kid=parsed_kid or kid),
+            fingerprint=self._fingerprint(
+                public=public_bytes, kid=parsed_kid or kid
+            ),
         )
 
     async def list_versions(self, kid: str) -> Tuple[int, ...]:
@@ -195,7 +217,9 @@ class RemoteJwksKeyProvider(KeyProviderBase):
             return tuple(sorted(versions))
         return (1,) if found_plain else tuple()
 
-    async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
+    async def get_public_jwk(
+        self, kid: str, version: Optional[int] = None
+    ) -> dict:
         try:
             return await self._local.get_public_jwk(kid, version)
         except Exception:
@@ -214,7 +238,11 @@ class RemoteJwksKeyProvider(KeyProviderBase):
             pass
         remote = await self._get_jwks_keys()
         if prefix_kids:
-            remote = [k for k in remote if (k.get("kid") or "").startswith(prefix_kids)]
+            remote = [
+                k
+                for k in remote
+                if (k.get("kid") or "").startswith(prefix_kids)
+            ]
         existing = {k.get("kid") for k in keys}
         for jwk in remote:
             if jwk.get("kid") not in existing:
@@ -226,7 +254,9 @@ class RemoteJwksKeyProvider(KeyProviderBase):
     async def random_bytes(self, n: int) -> bytes:
         return secrets.token_bytes(n)
 
-    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+    async def hkdf(
+        self, ikm: bytes, *, salt: bytes, info: bytes, length: int
+    ) -> bytes:
         return HKDF(
             algorithm=hashes.SHA256(), length=length, salt=salt, info=info
         ).derive(ikm)
@@ -240,7 +270,9 @@ class RemoteJwksKeyProvider(KeyProviderBase):
         with self._lock:
             self._ensure_jwks_locked(force=force)
 
-    async def _find_jwk(self, kid: str, version: Optional[int]) -> Optional[dict]:
+    async def _find_jwk(
+        self, kid: str, version: Optional[int]
+    ) -> Optional[dict]:
         keys = await self._get_jwks_keys()
         # 1) Exact match by kid when version is provided -> "kid.version"
         if version is not None:
@@ -285,7 +317,11 @@ class RemoteJwksKeyProvider(KeyProviderBase):
                 # Otherwise, keep old cache until TTL
         # Check TTL
         age = _now() - self._jwks_fetched_at
-        if (not force) and self._jwks_obj is not None and age < self._cache_ttl_s:
+        if (
+            (not force)
+            and self._jwks_obj is not None
+            and age < self._cache_ttl_s
+        ):
             return
         # Fetch (with conditional headers if available)
         if not self._jwks_url:
@@ -311,7 +347,9 @@ class RemoteJwksKeyProvider(KeyProviderBase):
         well_known = urljoin(issuer + "/", ".well-known/openid-configuration")
         obj, _, _, _ = self._fetch_json_conditional(well_known, None, None)
         if not isinstance(obj, dict) or "jwks_uri" not in obj:
-            raise RuntimeError(f"OIDC discovery did not return jwks_uri: {well_known}")
+            raise RuntimeError(
+                f"OIDC discovery did not return jwks_uri: {well_known}"
+            )
         return obj["jwks_uri"]
 
     def _fetch_json_conditional(
@@ -339,7 +377,9 @@ class RemoteJwksKeyProvider(KeyProviderBase):
                 data = resp.read()
                 obj = json.loads(data.decode("utf-8"))
                 new_etag = resp.headers.get("ETag") or etag
-                new_last_mod = resp.headers.get("Last-Modified") or last_modified
+                new_last_mod = (
+                    resp.headers.get("Last-Modified") or last_modified
+                )
                 return obj, new_etag, new_last_mod, False
         except HTTPError as e:
             if e.code == 304 and self._jwks_obj is not None:

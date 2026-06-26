@@ -13,7 +13,8 @@ from swarmauri_standard.tools.Parameter import Parameter
 class PsutilTool(ToolBase):
     type: Literal["PsutilTool"] = "PsutilTool"
     name: str = Field(
-        "PsutilTool", description="Tool to gather system information using psutil."
+        "PsutilTool",
+        description="Tool to gather system information using psutil.",
     )
     description: str = Field(
         "This tool gathers system information like CPU, memory, disk, network, and sensors using the psutil library.",
@@ -56,7 +57,9 @@ class PsutilTool(ToolBase):
             for partition in partitions
         }
         return {
-            "disk_partitions": [partition._asdict() for partition in partitions],
+            "disk_partitions": [
+                partition._asdict() for partition in partitions
+            ],
             "disk_usage": disk_usage,
             "disk_io_counters": psutil.disk_io_counters()._asdict(),
         }

@@ -44,7 +44,9 @@ class TimedRotatingFileLoggingHandler(HandlerBase):
         The formatter to use for log messages
     """
 
-    type: Literal["TimedRotatingFileLoggingHandler"] = "TimedRotatingFileLoggingHandler"
+    type: Literal["TimedRotatingFileLoggingHandler"] = (
+        "TimedRotatingFileLoggingHandler"
+    )
     filename: str
     when: str = "midnight"
     interval: int = 1

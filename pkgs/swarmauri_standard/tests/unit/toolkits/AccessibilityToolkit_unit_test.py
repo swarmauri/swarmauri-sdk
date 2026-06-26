@@ -1,7 +1,9 @@
 import pytest
 
 from swarmauri_standard.tools.AdditionTool import AdditionTool
-from swarmauri_standard.toolkits.AccessibilityToolkit import AccessibilityToolkit
+from swarmauri_standard.toolkits.AccessibilityToolkit import (
+    AccessibilityToolkit,
+)
 
 
 @pytest.fixture(scope="module")
@@ -24,7 +26,9 @@ def test_serialization(accessibility_toolkit):
     """Test serialization/deserialization of toolkit"""
     # Exclude validation of tools during serialization test
     serialized_data = accessibility_toolkit.model_dump_json(exclude={"tools"})
-    deserialized_toolkit = AccessibilityToolkit.model_validate_json(serialized_data)
+    deserialized_toolkit = AccessibilityToolkit.model_validate_json(
+        serialized_data
+    )
     assert deserialized_toolkit.id == accessibility_toolkit.id
 
 

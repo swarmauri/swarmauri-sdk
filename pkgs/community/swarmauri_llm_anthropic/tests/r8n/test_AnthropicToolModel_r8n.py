@@ -114,9 +114,13 @@ def test_batch(anthropic_tool_model, toolkit, model_name):
     conversations = []
     for prompt in ["20+20", "100+50", "500+500"]:
         conv = Conversation()
-        conv.add_message(HumanMessage(content=[{"type": "text", "text": prompt}]))
+        conv.add_message(
+            HumanMessage(content=[{"type": "text", "text": prompt}])
+        )
         conversations.append(conv)
-    results = anthropic_tool_model.batch(conversations=conversations, toolkit=toolkit)
+    results = anthropic_tool_model.batch(
+        conversations=conversations, toolkit=toolkit
+    )
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)
@@ -126,7 +130,9 @@ def test_batch(anthropic_tool_model, toolkit, model_name):
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
-async def test_apredict(anthropic_tool_model, toolkit, conversation, model_name):
+async def test_apredict(
+    anthropic_tool_model, toolkit, conversation, model_name
+):
     anthropic_tool_model.name = model_name
     result = await anthropic_tool_model.apredict(
         conversation=conversation, toolkit=toolkit
@@ -144,7 +150,9 @@ async def test_abatch(anthropic_tool_model, toolkit, model_name):
     conversations = []
     for prompt in ["20+20", "100+50", "500+500"]:
         conv = Conversation()
-        conv.add_message(HumanMessage(content=[{"type": "text", "text": prompt}]))
+        conv.add_message(
+            HumanMessage(content=[{"type": "text", "text": prompt}])
+        )
         conversations.append(conv)
     results = await anthropic_tool_model.abatch(
         conversations=conversations, toolkit=toolkit

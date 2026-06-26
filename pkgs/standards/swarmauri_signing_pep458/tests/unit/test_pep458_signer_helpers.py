@@ -42,7 +42,9 @@ def test_supports_reports_expected_values(signer: Pep458Signer):
 
 
 @pytest.mark.asyncio
-async def test_canonicalize_envelope_rejects_unknown_canon(signer: Pep458Signer):
+async def test_canonicalize_envelope_rejects_unknown_canon(
+    signer: Pep458Signer,
+):
     with pytest.raises(ValueError):
         await signer.canonicalize_envelope({}, canon="yaml")
 
@@ -77,7 +79,9 @@ def test_alg_from_method_rejects_unknown_method():
         _alg_from_method("unknown")
 
 
-def test_resolve_method_prefers_explicit_alg(signer: Pep458Signer, ed_key_pair):
+def test_resolve_method_prefers_explicit_alg(
+    signer: Pep458Signer, ed_key_pair
+):
     method = signer._resolve_method(
         {"kind": "cryptography_obj", "obj": ed_key_pair[0]}, "RSA-PSS-SHA256"
     )
@@ -86,7 +90,11 @@ def test_resolve_method_prefers_explicit_alg(signer: Pep458Signer, ed_key_pair):
 
 def test_resolve_method_uses_alg_field(signer: Pep458Signer, ed_key_pair):
     method = signer._resolve_method(
-        {"kind": "cryptography_obj", "obj": ed_key_pair[0], "alg": "rsa_pss_sha256"},
+        {
+            "kind": "cryptography_obj",
+            "obj": ed_key_pair[0],
+            "alg": "rsa_pss_sha256",
+        },
         None,
     )
     assert method == "rsa-pss-sha256"
@@ -111,7 +119,9 @@ def test_load_private_key_accepts_cryptography_object(
     assert key is ed_key_pair[0]
 
 
-def test_load_private_key_accepts_pem_string(signer: Pep458Signer, ed_key_pair):
+def test_load_private_key_accepts_pem_string(
+    signer: Pep458Signer, ed_key_pair
+):
     pem = (
         ed_key_pair[0]
         .private_bytes(
@@ -145,11 +155,15 @@ def test_load_private_key_rejects_unknown_kind(signer: Pep458Signer):
         signer._load_private_key({"kind": "unknown"}, "ed25519")
 
 
-def test_coerce_public_key_returns_objects_unchanged(signer: Pep458Signer, ed_key_pair):
+def test_coerce_public_key_returns_objects_unchanged(
+    signer: Pep458Signer, ed_key_pair
+):
     assert signer._coerce_public_key(ed_key_pair[1]) is ed_key_pair[1]
 
 
-def test_coerce_public_key_accepts_pem_bytes(signer: Pep458Signer, ed_key_pair):
+def test_coerce_public_key_accepts_pem_bytes(
+    signer: Pep458Signer, ed_key_pair
+):
     pem = ed_key_pair[1].public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo,
@@ -164,7 +178,9 @@ def test_coerce_public_key_accepts_pem_bytes(signer: Pep458Signer, ed_key_pair):
     )
 
 
-def test_coerce_public_key_accepts_pem_string(signer: Pep458Signer, ed_key_pair):
+def test_coerce_public_key_accepts_pem_string(
+    signer: Pep458Signer, ed_key_pair
+):
     pem = (
         ed_key_pair[1]
         .public_bytes(
@@ -186,7 +202,9 @@ def test_coerce_public_key_accepts_mapping_with_object(
     assert loaded is ed_key_pair[1]
 
 
-def test_coerce_public_key_accepts_mapping_with_pem(signer: Pep458Signer, ed_key_pair):
+def test_coerce_public_key_accepts_mapping_with_pem(
+    signer: Pep458Signer, ed_key_pair
+):
     pem = ed_key_pair[1].public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo,
@@ -195,20 +213,31 @@ def test_coerce_public_key_accepts_mapping_with_pem(signer: Pep458Signer, ed_key
     assert isinstance(loaded, ed25519.Ed25519PublicKey)
 
 
-def test_coerce_public_key_returns_none_for_unknown_input(signer: Pep458Signer):
+def test_coerce_public_key_returns_none_for_unknown_input(
+    signer: Pep458Signer,
+):
     assert signer._coerce_public_key(42) is None
 
 
-def test_methods_for_public_key_detects_ed25519(signer: Pep458Signer, ed_key_pair):
+def test_methods_for_public_key_detects_ed25519(
+    signer: Pep458Signer, ed_key_pair
+):
     assert signer._methods_for_public_key(ed_key_pair[1]) == ("ed25519",)
 
 
-def test_methods_for_public_key_detects_rsa(signer: Pep458Signer, rsa_key_pair):
-    assert signer._methods_for_public_key(rsa_key_pair[1]) == ("rsa-pss-sha256",)
+def test_methods_for_public_key_detects_rsa(
+    signer: Pep458Signer, rsa_key_pair
+):
+    assert signer._methods_for_public_key(rsa_key_pair[1]) == (
+        "rsa-pss-sha256",
+    )
 
 
 def test_methods_for_public_key_falls_back_to_supported(signer: Pep458Signer):
-    assert signer._methods_for_public_key(object()) == ("ed25519", "rsa-pss-sha256")
+    assert signer._methods_for_public_key(object()) == (
+        "ed25519",
+        "rsa-pss-sha256",
+    )
 
 
 @pytest.mark.asyncio
@@ -223,7 +252,9 @@ async def test_verify_bytes_returns_false_without_pubkeys(
 
 
 @pytest.mark.asyncio
-async def test_verify_bytes_respects_allowed_methods(signer: Pep458Signer, ed_key_pair):
+async def test_verify_bytes_respects_allowed_methods(
+    signer: Pep458Signer, ed_key_pair
+):
     payload = b"allowed-methods"
     signatures = await signer.sign_bytes(
         {"kind": "cryptography_obj", "obj": ed_key_pair[0]}, payload
@@ -283,7 +314,9 @@ async def test_verify_bytes_skips_unknown_signature_format(
 
 
 @pytest.mark.asyncio
-async def test_verify_bytes_skips_unknown_methods(signer: Pep458Signer, ed_key_pair):
+async def test_verify_bytes_skips_unknown_methods(
+    signer: Pep458Signer, ed_key_pair
+):
     payload = b"unknown-method"
     signatures = await signer.sign_bytes(
         {"kind": "cryptography_obj", "obj": ed_key_pair[0]}, payload
@@ -328,7 +361,9 @@ async def test_verify_bytes_ignores_invalid_alg_requirements(
 
 
 @pytest.mark.asyncio
-async def test_sign_digest_delegates_to_sign_bytes(signer: Pep458Signer, ed_key_pair):
+async def test_sign_digest_delegates_to_sign_bytes(
+    signer: Pep458Signer, ed_key_pair
+):
     payload = b"digest"
     expected = await signer.sign_bytes(
         {"kind": "cryptography_obj", "obj": ed_key_pair[0]}, payload
@@ -357,7 +392,9 @@ async def test_verify_digest_delegates_to_verify_bytes(
 
 
 @pytest.mark.asyncio
-async def test_sign_envelope_delegates_to_sign_bytes(signer: Pep458Signer, ed_key_pair):
+async def test_sign_envelope_delegates_to_sign_bytes(
+    signer: Pep458Signer, ed_key_pair
+):
     envelope = {"meta": 1}
     expected_payload = await signer.canonicalize_envelope(envelope)
     signatures = await signer.sign_envelope(

@@ -3,7 +3,16 @@ from __future__ import annotations
 import json
 import base64
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 from swarmauri_core.crypto.types import JWAAlg
 
@@ -20,7 +29,9 @@ except Exception:  # pragma: no cover - optional
     _HAS_K1 = False
 
 try:  # ECDSA DER<->raw conversion
-    from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
+    from cryptography.hazmat.primitives.asymmetric.utils import (
+        decode_dss_signature,
+    )
 
     _CRYPTO_OK = True
 except Exception:  # pragma: no cover - optional
@@ -41,7 +52,9 @@ _ECDSA_RAW_LEN = {JWAAlg.ES256: 64, JWAAlg.ES384: 96, JWAAlg.ES512: 132}
 
 def _ecdsa_der_to_raw(sig_der: bytes, alg: JWAAlg) -> bytes:
     if not _CRYPTO_OK:
-        raise RuntimeError("cryptography is required for ECDSA DER→raw conversion")
+        raise RuntimeError(
+            "cryptography is required for ECDSA DER→raw conversion"
+        )
     r, s = decode_dss_signature(sig_der)
     n = _ECDSA_RAW_LEN[alg] // 2
     return r.to_bytes(n, "big") + s.to_bytes(n, "big")
@@ -156,9 +169,9 @@ class JwsSignerVerifier:
             header.update(dict(header_extra))
 
         b64_header = _b64u(
-            json.dumps(header, separators=(",", ":"), ensure_ascii=False).encode(
-                "utf-8"
-            )
+            json.dumps(
+                header, separators=(",", ":"), ensure_ascii=False
+            ).encode("utf-8")
         )
         b64_payload = _b64u(payload_b)
         signing_input = f"{b64_header}.{b64_payload}".encode("ascii")
@@ -194,10 +207,13 @@ class JwsSignerVerifier:
         alg = JWAAlg(alg_raw)
         if alg_allowlist:
             allowed = {
-                a if isinstance(a, JWAAlg) else JWAAlg(str(a)) for a in alg_allowlist
+                a if isinstance(a, JWAAlg) else JWAAlg(str(a))
+                for a in alg_allowlist
             }
             if alg not in allowed:
-                raise ValueError(f"Rejected alg '{alg.value}' (not in allowlist).")
+                raise ValueError(
+                    f"Rejected alg '{alg.value}' (not in allowlist)."
+                )
 
         payload_b = _b64u_dec(b64_payload)
         sig = _b64u_dec(b64_sig)
@@ -320,13 +336,15 @@ class JwsSignerVerifier:
             if header_extra:
                 header.update(dict(header_extra))
             b64_hdr = _b64u(
-                json.dumps(header, separators=(",", ":"), ensure_ascii=False).encode(
-                    "utf-8"
-                )
+                json.dumps(
+                    header, separators=(",", ":"), ensure_ascii=False
+                ).encode("utf-8")
             )
             signing_input = f"{b64_hdr}.{b64_payload}".encode("ascii")
             sig_bytes = await self._sign_for_alg(signing_input, alg_token, key)
-            out_sigs.append({"protected": b64_hdr, "signature": _b64u(sig_bytes)})
+            out_sigs.append(
+                {"protected": b64_hdr, "signature": _b64u(sig_bytes)}
+            )
         return {"payload": b64_payload, "signatures": out_sigs}
 
     async def verify_general_json(
@@ -352,7 +370,10 @@ class JwsSignerVerifier:
 
         accepted = 0
         allowed = (
-            {a if isinstance(a, JWAAlg) else JWAAlg(str(a)) for a in require_any}
+            {
+                a if isinstance(a, JWAAlg) else JWAAlg(str(a))
+                for a in require_any
+            }
             if require_any
             else None
         )
@@ -411,7 +432,9 @@ class JwsSignerVerifier:
             sig = await self.rsa.sign_bytes(key, signing_input, alg=mapped)
             return sig[0]["sig"]  # type: ignore[index]
         if _is_ec(alg):
-            sig = await self.ecdsa.sign_bytes(key, signing_input, alg=alg.value)
+            sig = await self.ecdsa.sign_bytes(
+                key, signing_input, alg=alg.value
+            )
             der = sig[0]["sig"]  # type: ignore[index]
             return _ecdsa_der_to_raw(der, alg)
         if _is_k1(alg):
@@ -423,7 +446,9 @@ class JwsSignerVerifier:
             der = sig[0]["sig"]  # type: ignore[index]
             return _ecdsa_der_to_raw(der, JWAAlg.ES256)
         if _is_eddsa(alg):
-            sig = await self.eddsa.sign_bytes(key, signing_input, alg="Ed25519")
+            sig = await self.eddsa.sign_bytes(
+                key, signing_input, alg="Ed25519"
+            )
             return sig[0]["sig"]  # type: ignore[index]
         raise ValueError(f"Unsupported alg: {alg.value}")
 
@@ -447,7 +472,9 @@ class JwsSignerVerifier:
                     [{"alg": alg.value, "sig": sig}],
                     require={"min_signers": 1, "algs": [alg]},
                     opts={
-                        "keys": [{"kind": "raw", "key": _jwk_to_pub_for_signer(jwk)}]
+                        "keys": [
+                            {"kind": "raw", "key": _jwk_to_pub_for_signer(jwk)}
+                        ]
                     },
                 )
             if _is_rsa(alg):

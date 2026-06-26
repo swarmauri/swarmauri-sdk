@@ -42,7 +42,9 @@ class IKeyProvider(ABC):
         """Create a new version for an existing key."""
 
     @abstractmethod
-    async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
+    async def destroy_key(
+        self, kid: str, version: Optional[int] = None
+    ) -> bool:
         """Destroy a key or specific version."""
 
     @abstractmethod
@@ -72,7 +74,9 @@ class IKeyProvider(ABC):
         """Return available versions for a key."""
 
     @abstractmethod
-    async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
+    async def get_public_jwk(
+        self, kid: str, version: Optional[int] = None
+    ) -> dict:
         """Return an RFC 7517 JWK for the public portion of the key."""
 
     @abstractmethod
@@ -84,5 +88,7 @@ class IKeyProvider(ABC):
         """Return ``n`` cryptographically secure random bytes."""
 
     @abstractmethod
-    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+    async def hkdf(
+        self, ikm: bytes, *, salt: bytes, info: bytes, length: int
+    ) -> bytes:
         """Derive key material using HKDF-SHA256."""

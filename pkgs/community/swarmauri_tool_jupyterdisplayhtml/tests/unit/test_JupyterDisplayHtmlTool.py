@@ -40,9 +40,10 @@ def test_tool_attributes(tool: JupyterDisplayHtmlTool) -> None:
     match the expected values.
     """
     assert tool.name == "JupyterDisplayHtmlTool", "Tool name is incorrect."
-    assert tool.description == "Renders HTML content within a Jupyter environment.", (
-        "Tool description is incorrect."
-    )
+    assert (
+        tool.description
+        == "Renders HTML content within a Jupyter environment."
+    ), "Tool description is incorrect."
     assert tool.version == "1.0.0", "Tool version is incorrect."
     assert tool.type == "JupyterDisplayHtmlTool", "Tool type is incorrect."
     assert len(tool.parameters) == 1, "Unexpected number of parameters."

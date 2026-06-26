@@ -29,7 +29,13 @@ class CsrOnlyService(CertServiceBase):
 
     def supports(self) -> Mapping[str, Iterable[str]]:
         return {
-            "key_algs": ("RSA-2048", "RSA-3072", "RSA-4096", "EC-P256", "Ed25519"),
+            "key_algs": (
+                "RSA-2048",
+                "RSA-3072",
+                "RSA-4096",
+                "EC-P256",
+                "Ed25519",
+            ),
             "sig_algs": ("RSA-PSS-SHA256", "ECDSA-P256-SHA256", "Ed25519"),
             "features": ("csr",),
         }
@@ -56,26 +62,38 @@ class CsrOnlyService(CertServiceBase):
 
         name_attrs = []
         if "CN" in subject:
-            name_attrs.append(x509.NameAttribute(NameOID.COMMON_NAME, subject["CN"]))
+            name_attrs.append(
+                x509.NameAttribute(NameOID.COMMON_NAME, subject["CN"])
+            )
         if "C" in subject:
-            name_attrs.append(x509.NameAttribute(NameOID.COUNTRY_NAME, subject["C"]))
+            name_attrs.append(
+                x509.NameAttribute(NameOID.COUNTRY_NAME, subject["C"])
+            )
         if "ST" in subject:
             name_attrs.append(
-                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, subject["ST"])
+                x509.NameAttribute(
+                    NameOID.STATE_OR_PROVINCE_NAME, subject["ST"]
+                )
             )
         if "L" in subject:
-            name_attrs.append(x509.NameAttribute(NameOID.LOCALITY_NAME, subject["L"]))
+            name_attrs.append(
+                x509.NameAttribute(NameOID.LOCALITY_NAME, subject["L"])
+            )
         if "O" in subject:
             name_attrs.append(
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, subject["O"])
             )
         if "OU" in subject:
             name_attrs.append(
-                x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, subject["OU"])
+                x509.NameAttribute(
+                    NameOID.ORGANIZATIONAL_UNIT_NAME, subject["OU"]
+                )
             )
         if "emailAddress" in subject:
             name_attrs.append(
-                x509.NameAttribute(NameOID.EMAIL_ADDRESS, subject["emailAddress"])
+                x509.NameAttribute(
+                    NameOID.EMAIL_ADDRESS, subject["emailAddress"]
+                )
             )
 
         csr_builder = x509.CertificateSigningRequestBuilder().subject_name(
@@ -113,23 +131,35 @@ class CsrOnlyService(CertServiceBase):
 
         sig = (
             None
-            if isinstance(sk, (ed25519.Ed25519PrivateKey, ed448.Ed448PrivateKey))
+            if isinstance(
+                sk, (ed25519.Ed25519PrivateKey, ed448.Ed448PrivateKey)
+            )
             else hashes.SHA256()
         )
         csr = csr_builder.sign(private_key=sk, algorithm=sig)
 
         return csr.public_bytes(
-            serialization.Encoding.DER if output_der else serialization.Encoding.PEM
+            serialization.Encoding.DER
+            if output_der
+            else serialization.Encoding.PEM
         )
 
-    async def create_self_signed(self, *a, **kw):  # pragma: no cover - not implemented
-        raise NotImplementedError("CsrOnlyService does not create certificates")
+    async def create_self_signed(
+        self, *a, **kw
+    ):  # pragma: no cover - not implemented
+        raise NotImplementedError(
+            "CsrOnlyService does not create certificates"
+        )
 
     async def sign_cert(self, *a, **kw):  # pragma: no cover - not implemented
         raise NotImplementedError("CsrOnlyService does not sign certificates")
 
-    async def verify_cert(self, *a, **kw):  # pragma: no cover - not implemented
-        raise NotImplementedError("CsrOnlyService does not verify certificates")
+    async def verify_cert(
+        self, *a, **kw
+    ):  # pragma: no cover - not implemented
+        raise NotImplementedError(
+            "CsrOnlyService does not verify certificates"
+        )
 
     async def parse_cert(self, *a, **kw):  # pragma: no cover - not implemented
         raise NotImplementedError("CsrOnlyService does not parse certificates")

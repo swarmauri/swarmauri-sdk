@@ -54,12 +54,12 @@ class JupyterShutdownKernelTool(ToolBase):
         ]
     )
     name: str = "JupyterShutdownKernelTool"
-    description: str = (
-        "Shuts down a running Jupyter kernel and releases associated resources."
-    )
+    description: str = "Shuts down a running Jupyter kernel and releases associated resources."
     type: Literal["JupyterShutdownKernelTool"] = "JupyterShutdownKernelTool"
 
-    def __call__(self, kernel_id: str, shutdown_timeout: int = 5) -> Dict[str, str]:
+    def __call__(
+        self, kernel_id: str, shutdown_timeout: int = 5
+    ) -> Dict[str, str]:
         """
         Shuts down the specified Jupyter kernel using the provided kernel_id.
 
@@ -132,14 +132,25 @@ class JupyterShutdownKernelTool(ToolBase):
         except NoSuchKernel:
             error_message = f"No such kernel: {kernel_id}."
             logger.error(error_message)
-            return {"kernel_id": kernel_id, "status": "error", "message": error_message}
+            return {
+                "kernel_id": kernel_id,
+                "status": "error",
+                "message": error_message,
+            }
         except FileNotFoundError:
-            error_message = f"Connection file not found for kernel: {kernel_id}."
+            error_message = (
+                f"Connection file not found for kernel: {kernel_id}."
+            )
             logger.error(error_message)
-            return {"kernel_id": kernel_id, "status": "error", "message": error_message}
+            return {
+                "kernel_id": kernel_id,
+                "status": "error",
+                "message": error_message,
+            }
         except Exception as e:
             logger.exception(
-                "An error occurred while shutting down kernel_id='%s'.", kernel_id
+                "An error occurred while shutting down kernel_id='%s'.",
+                kernel_id,
             )
             return {
                 "kernel_id": kernel_id,

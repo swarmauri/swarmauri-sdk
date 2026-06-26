@@ -45,7 +45,10 @@ class SentenceComplexityTool(ToolBase):
         num_sentences = len(sentences)
 
         if num_sentences == 0:
-            return {"average_sentence_length": 0.0, "average_clauses_per_sentence": 0.0}
+            return {
+                "average_sentence_length": 0.0,
+                "average_clauses_per_sentence": 0.0,
+            }
 
         total_words = 0
         total_clauses = 0

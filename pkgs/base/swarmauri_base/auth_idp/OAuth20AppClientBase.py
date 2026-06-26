@@ -17,4 +17,6 @@ class OAuth20AppClientBase(IOAuth20AppClient, ComponentBase):
     type: Literal["OAuth20AppClientBase"] = "OAuth20AppClientBase"
 
     async def access_token(self, scope: Optional[str] = None) -> str:
-        raise NotImplementedError("access_token must be implemented by subclasses")
+        raise NotImplementedError(
+            "access_token must be implemented by subclasses"
+        )

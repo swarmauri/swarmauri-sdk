@@ -70,7 +70,9 @@ class UnionFactory:
         args = get_args(annotated_type)
         base_type = args[0]
         old_metadata = args[1:]
-        return Annotated.__class_getitem__((base_type, *old_metadata, new_metadata))
+        return Annotated.__class_getitem__(
+            (base_type, *old_metadata, new_metadata)
+        )
 
     def __getitem__(self, input_data: Union[Type[T], str]) -> type:
         """
@@ -99,11 +101,14 @@ class UnionFactory:
         else:
             union_type = Union[tuple(union_members)]
             final_annotated = Annotated[
-                union_type, UnionFactoryMetadata(data=model_name, name=self.name)
+                union_type,
+                UnionFactoryMetadata(data=model_name, name=self.name),
             ]
 
             # Add any additional metadata
             for extension in self._annotation_extenders:
-                final_annotated = self._add_metadata(final_annotated, extension)
+                final_annotated = self._add_metadata(
+                    final_annotated, extension
+                )
 
         return final_annotated

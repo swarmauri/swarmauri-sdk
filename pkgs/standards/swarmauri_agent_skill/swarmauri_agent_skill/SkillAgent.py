@@ -3,14 +3,25 @@ from __future__ import annotations
 import asyncio
 import inspect
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Literal, Optional, Sequence, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Union,
+)
 
 from pydantic import ConfigDict, Field
 
 from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.agents.AgentBase import AgentBase
 from swarmauri_base.agents.AgentConversationMixin import AgentConversationMixin
-from swarmauri_base.agents.AgentSystemContextMixin import AgentSystemContextMixin
+from swarmauri_base.agents.AgentSystemContextMixin import (
+    AgentSystemContextMixin,
+)
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.skills.SkillBase import SkillBase
@@ -60,7 +71,9 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
 
     def exec(
         self,
-        input_str: Optional[Union[str, IMessage, Sequence[Union[str, IMessage]]]] = "",
+        input_str: Optional[
+            Union[str, IMessage, Sequence[Union[str, IMessage]]]
+        ] = "",
         llm_kwargs: Optional[Dict] = None,
         skill_names: Optional[Sequence[str]] = None,
     ) -> Any:
@@ -70,13 +83,17 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
                 inputs[0], llm_kwargs=llm_kwargs, skill_names=skill_names
             )
         return [
-            self._exec_one(item, llm_kwargs=llm_kwargs, skill_names=skill_names)
+            self._exec_one(
+                item, llm_kwargs=llm_kwargs, skill_names=skill_names
+            )
             for item in inputs
         ]
 
     async def aexec(
         self,
-        input_str: Optional[Union[str, IMessage, Sequence[Union[str, IMessage]]]] = "",
+        input_str: Optional[
+            Union[str, IMessage, Sequence[Union[str, IMessage]]]
+        ] = "",
         llm_kwargs: Optional[Dict] = None,
         skill_names: Optional[Sequence[str]] = None,
     ) -> Any:
@@ -110,11 +127,17 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
     ) -> List[SkillBase]:
         if skill_names:
             selected = [
-                skill for skill in self.skills if skill.name in set(skill_names)
+                skill
+                for skill in self.skills
+                if skill.name in set(skill_names)
             ]
-            missing = sorted(set(skill_names) - {skill.name for skill in selected})
+            missing = sorted(
+                set(skill_names) - {skill.name for skill in selected}
+            )
             if missing:
-                raise ValueError(f"Unknown skill name(s): {', '.join(missing)}")
+                raise ValueError(
+                    f"Unknown skill name(s): {', '.join(missing)}"
+                )
             return selected
 
         if len(self.skills) == 1:
@@ -160,7 +183,9 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
         )
         result = await self.llm.apredict(
             conversation=conversation,
-            **self._llm_kwargs(selected_skills, llm_kwargs, method_name="apredict"),
+            **self._llm_kwargs(
+                selected_skills, llm_kwargs, method_name="apredict"
+            ),
         )
         if result is not None:
             conversation = result
@@ -178,7 +203,9 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
             conversation = self.conversation.model_copy(deep=True)
             conversation.clear_history()
 
-        selected_skills = self.select_skills(input_data, skill_names=skill_names)
+        selected_skills = self.select_skills(
+            input_data, skill_names=skill_names
+        )
         self._apply_system_context(conversation, selected_skills)
         conversation.add_message(self._to_message(input_data))
         return conversation, selected_skills
@@ -238,7 +265,9 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
             for parameter in signature.parameters.values()
         )
         if "toolkit" in signature.parameters or accepts_kwargs:
-            kwargs.setdefault("toolkit", self.get_skill_toolkit(selected_skills))
+            kwargs.setdefault(
+                "toolkit", self.get_skill_toolkit(selected_skills)
+            )
         return kwargs
 
     @classmethod
@@ -290,7 +319,10 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
             path.relative_to(root)
         except ValueError:
             return ""
-        if path.suffix.lower() not in {".md", ".yaml", ".yml"} or not path.is_file():
+        if (
+            path.suffix.lower() not in {".md", ".yaml", ".yml"}
+            or not path.is_file()
+        ):
             return ""
         return path.read_text(encoding="utf-8").strip()
 
@@ -321,11 +353,15 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
             return HumanMessage(content=input_data)
         if isinstance(input_data, IMessage):
             return input_data
-        raise TypeError("Input data must be a string or an instance of Message.")
+        raise TypeError(
+            "Input data must be a string or an instance of Message."
+        )
 
     @staticmethod
     def _normalize_inputs(
-        input_data: Optional[Union[str, IMessage, Sequence[Union[str, IMessage]]]],
+        input_data: Optional[
+            Union[str, IMessage, Sequence[Union[str, IMessage]]]
+        ],
     ) -> List[Union[str, IMessage]]:
         if input_data is None:
             return [""]

@@ -5,7 +5,9 @@ import pytest
 from dotenv import load_dotenv
 from fastapi import Request
 from fastapi.responses import JSONResponse, StreamingResponse
-from swarmauri_middleware_llamaguard.LlamaGuardMiddleware import LlamaGuardMiddleware
+from swarmauri_middleware_llamaguard.LlamaGuardMiddleware import (
+    LlamaGuardMiddleware,
+)
 
 from swarmauri_standard.llms.GroqModel import GroqModel
 from swarmauri_standard.messages.AgentMessage import AgentMessage
@@ -22,7 +24,9 @@ def middleware():
         logger.info("Using GroqModel with API key for LlamaGuardMiddleware")
         llm = GroqModel(api_key=api_key, name="llama-guard-3-8b")
     else:
-        logger.info("No GROQ_API_KEY found, using a fake GroqModel for testing")
+        logger.info(
+            "No GROQ_API_KEY found, using a fake GroqModel for testing"
+        )
 
         class FakeGroqModel:
             def predict(self, conversation, *args, **kwargs):
@@ -171,7 +175,9 @@ async def test_llamaguard_middleware_inspects_streaming_response(middleware):
 
 @pytest.mark.unit
 @pytest.mark.asyncio  # Add asyncio marker
-async def test_llamaguard_middleware_blocks_unsafe_streaming_response(middleware):
+async def test_llamaguard_middleware_blocks_unsafe_streaming_response(
+    middleware,
+):
     """Test that middleware blocks streaming responses with unsafe content."""
 
     async def receive():
@@ -206,7 +212,11 @@ async def test_llamaguard_middleware_error_handling(middleware, caplog):
     """Test that middleware handles exceptions properly."""
 
     async def receive():
-        return {"type": "http.request", "body": b"invalid_json", "more_body": False}
+        return {
+            "type": "http.request",
+            "body": b"invalid_json",
+            "more_body": False,
+        }
 
     scope = {"type": "http", "method": "POST", "path": "/", "headers": []}
     request = Request(scope=scope, receive=receive)

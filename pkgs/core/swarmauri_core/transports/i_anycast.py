@@ -11,6 +11,10 @@ class IAnycastTransport(ABC):
 
     @abstractmethod
     async def anycast(
-        self, candidates: Sequence[str], data: bytes, *, timeout: Optional[float] = None
+        self,
+        candidates: Sequence[str],
+        data: bytes,
+        *,
+        timeout: Optional[float] = None,
     ) -> str:
         """Send data to one of the candidate addresses and return the chosen target."""

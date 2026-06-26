@@ -74,7 +74,9 @@ class PointEvaluationSeminorm(SeminormBase):
         ValueError
             If the point is not in the domain of the function.
         """
-        logger.debug(f"Computing point evaluation seminorm for input of type {type(x)}")
+        logger.debug(
+            f"Computing point evaluation seminorm for input of type {type(x)}"
+        )
 
         try:
             # Handle different input types
@@ -185,7 +187,9 @@ class PointEvaluationSeminorm(SeminormBase):
                 # For objects that support addition
                 norm_sum = self.compute(x + y)
             else:
-                raise TypeError(f"Cannot add inputs of types {type(x)} and {type(y)}")
+                raise TypeError(
+                    f"Cannot add inputs of types {type(x)} and {type(y)}"
+                )
 
             # Check the triangle inequality
             return norm_sum <= norm_x + norm_y
@@ -241,7 +245,10 @@ class PointEvaluationSeminorm(SeminormBase):
             elif isinstance(x, dict):
                 # For dictionaries, scale each value
                 scaled_x = {key: alpha * value for key, value in x.items()}
-            elif hasattr(x, "__mul__") and x.__mul__(alpha) is not NotImplemented:
+            elif (
+                hasattr(x, "__mul__")
+                and x.__mul__(alpha) is not NotImplemented
+            ):
                 # For objects that support multiplication
                 scaled_x = x * alpha
             else:
@@ -268,7 +275,11 @@ class PointEvaluationSeminorm(SeminormBase):
         Dict[str, T]
             Dictionary representation of the seminorm
         """
-        return {"type": self.type, "point": self.point, "absolute": self.absolute}
+        return {
+            "type": self.type,
+            "point": self.point,
+            "absolute": self.absolute,
+        }
 
     @classmethod
     def from_dict(cls, data: Dict[str, T]) -> "PointEvaluationSeminorm":

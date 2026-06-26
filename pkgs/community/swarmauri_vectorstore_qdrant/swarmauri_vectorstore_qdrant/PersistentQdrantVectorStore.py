@@ -40,7 +40,9 @@ class PersistentQdrantVectorStore(
     hosted Qdrant instance as the backend.
     """
 
-    type: Literal["PersistentQdrantVectorStore"] = "PersistentQdrantVectorStore"
+    type: Literal["PersistentQdrantVectorStore"] = (
+        "PersistentQdrantVectorStore"
+    )
 
     # allow arbitary types in the model config
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -65,7 +67,9 @@ class PersistentQdrantVectorStore(
 
         # Check if the collection exists
         existing_collections = self.client.get_collections().collections
-        collection_names = [collection.name for collection in existing_collections]
+        collection_names = [
+            collection.name for collection in existing_collections
+        ]
 
         if self.collection_name not in collection_names:
             # Ensure the collection exists with the desired configuration
@@ -94,7 +98,9 @@ class PersistentQdrantVectorStore(
         if not document.embedding:
             self._embedder.fit([document.content])  # Fit only once
             embedding = (
-                self._embedder.transform([document.content])[0].to_numpy().tolist()
+                self._embedder.transform([document.content])[0]
+                .to_numpy()
+                .tolist()
             )
         else:
             embedding = document.embedding
@@ -122,7 +128,9 @@ class PersistentQdrantVectorStore(
             PointStruct(
                 id=doc.id,
                 vector=doc.embedding
-                or self._embedder.fit_transform([doc.content])[0].to_numpy().tolist(),
+                or self._embedder.fit_transform([doc.content])[0]
+                .to_numpy()
+                .tolist(),
                 payload={"content": doc.content, "metadata": doc.metadata},
             )
             for doc in documents
@@ -190,7 +198,9 @@ class PersistentQdrantVectorStore(
         # Precompute the embedding outside the update process
         if not updated_document.embedding:
             # Transform without refitting to avoid vocabulary issues
-            document_vector = self._embedder.transform([updated_document.content])[0]
+            document_vector = self._embedder.transform(
+                [updated_document.content]
+            )[0]
         else:
             document_vector = updated_document.embedding
 
@@ -239,7 +249,9 @@ class PersistentQdrantVectorStore(
         """
         query_vector = self._embedder.infer_vector(query).value
         results = self.client.search(
-            collection_name=self.collection_name, query_vector=query_vector, limit=top_k
+            collection_name=self.collection_name,
+            query_vector=query_vector,
+            limit=top_k,
         )
 
         return [

@@ -19,7 +19,10 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
     vs = Doc2VecVectorStore()
-    assert vs.id == Doc2VecVectorStore.model_validate_json(vs.model_dump_json()).id
+    assert (
+        vs.id
+        == Doc2VecVectorStore.model_validate_json(vs.model_dump_json()).id
+    )
 
 
 @pytest.mark.unit

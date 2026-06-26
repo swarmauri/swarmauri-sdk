@@ -8,7 +8,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 
-from swarmauri_standard.logger_handlers.FileLoggingHandler import FileLoggingHandler
+from swarmauri_standard.logger_handlers.FileLoggingHandler import (
+    FileLoggingHandler,
+)
 
 
 @pytest.fixture
@@ -154,7 +156,9 @@ def test_handler_with_formatter_object():
     """Tests that the handler correctly applies a FormatterBase object."""
     mock_formatter = MagicMock(spec=FormatterBase)
     mock_formatter.type = "FormatterBase"  # Add type for Pydantic validation
-    mock_formatter.model_dump = MagicMock(return_value={"type": "FormatterBase"})
+    mock_formatter.model_dump = MagicMock(
+        return_value={"type": "FormatterBase"}
+    )
     compiled_formatter = MagicMock()
     mock_formatter.compile_formatter.return_value = compiled_formatter
 

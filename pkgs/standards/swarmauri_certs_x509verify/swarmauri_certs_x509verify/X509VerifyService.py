@@ -76,7 +76,9 @@ class X509VerifyService(CertServiceBase):
             Dict[str, Any]: Structured validation result.
         """
         now = (
-            datetime.datetime.fromtimestamp(check_time, tz=datetime.timezone.utc)
+            datetime.datetime.fromtimestamp(
+                check_time, tz=datetime.timezone.utc
+            )
             if check_time
             else datetime.datetime.now(datetime.timezone.utc)
         )
@@ -135,7 +137,9 @@ class X509VerifyService(CertServiceBase):
 
         return {
             "valid": valid_time and chain_ok,
-            "reason": None if (valid_time and chain_ok) else "invalid_chain_or_time",
+            "reason": None
+            if (valid_time and chain_ok)
+            else "invalid_chain_or_time",
             "subject": cert_obj.subject.rfc4514_string(),
             "issuer": cert_obj.issuer.rfc4514_string(),
             "not_before": int(not_before.timestamp()),
@@ -184,9 +188,13 @@ class X509VerifyService(CertServiceBase):
         if include_extensions:
             for ext in cert_obj.extensions:
                 if isinstance(ext.value, x509.SubjectAlternativeName):
-                    info["san"] = {"dns": ext.value.get_values_for_type(x509.DNSName)}
+                    info["san"] = {
+                        "dns": ext.value.get_values_for_type(x509.DNSName)
+                    }
                 if isinstance(ext.value, x509.ExtendedKeyUsage):
-                    info["eku"] = [oid._name or oid.dotted_string for oid in ext.value]
+                    info["eku"] = [
+                        oid._name or oid.dotted_string for oid in ext.value
+                    ]
 
         return info
 

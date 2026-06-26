@@ -19,7 +19,9 @@ class IStorageAdapter(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def normalize_prefix(self, prefix: str) -> str:  # pragma: no cover - interface
+    def normalize_prefix(
+        self, prefix: str
+    ) -> str:  # pragma: no cover - interface
         """Return a normalized logical storage prefix."""
         raise NotImplementedError
 
@@ -49,7 +51,9 @@ class IStorageAdapter(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def upload(self, key: str, data: BinaryIO) -> str:  # pragma: no cover - interface
+    def upload(
+        self, key: str, data: BinaryIO
+    ) -> str:  # pragma: no cover - interface
         """Upload *data* under *key* and return the resulting URI."""
         raise NotImplementedError
 
@@ -78,7 +82,9 @@ class IStorageAdapter(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def put_blob(self, key: str, data: bytes) -> str:  # pragma: no cover - interface
+    def put_blob(
+        self, key: str, data: bytes
+    ) -> str:  # pragma: no cover - interface
         """Upload raw *data* under *key* and return the resulting URI."""
         raise NotImplementedError
 
@@ -137,7 +143,9 @@ class IStorageAdapter(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def get_bytes(self, object_key: str) -> bytes:  # pragma: no cover - interface
+    async def get_bytes(
+        self, object_key: str
+    ) -> bytes:  # pragma: no cover - interface
         """Retrieve the stored object as bytes."""
         raise NotImplementedError
 
@@ -149,7 +157,9 @@ class IStorageAdapter(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _parse_range(self, start: int, length: int, total: int) -> tuple[int, int]:
+    def _parse_range(
+        self, start: int, length: int, total: int
+    ) -> tuple[int, int]:
         """Normalize and validate byte range values."""
         raise NotImplementedError
 
@@ -169,6 +179,8 @@ class IStorageAdapter(ABC):
 
     @classmethod
     @abstractmethod
-    def from_uri(cls, uri: str) -> "IStorageAdapter":  # pragma: no cover - interface
+    def from_uri(
+        cls, uri: str
+    ) -> "IStorageAdapter":  # pragma: no cover - interface
         """Create an adapter instance from *uri*."""
         raise NotImplementedError

@@ -2,7 +2,9 @@ from abc import abstractmethod
 from typing import List
 from pydantic import BaseModel
 from swarmauri_standard.documents.Document import Document
-from swarmauri_core.vector_stores.IVectorStoreRetrieve import IVectorStoreRetrieve
+from swarmauri_core.vector_stores.IVectorStoreRetrieve import (
+    IVectorStoreRetrieve,
+)
 
 
 class VectorStoreRetrieveMixin(IVectorStoreRetrieve, BaseModel):

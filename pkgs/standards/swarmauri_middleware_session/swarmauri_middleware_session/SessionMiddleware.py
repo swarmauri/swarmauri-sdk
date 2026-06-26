@@ -40,7 +40,9 @@ class SessionMiddleware(MiddlewareBase, ComponentBase):
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
-        self.session_storage = session_storage if session_storage is not None else {}
+        self.session_storage = (
+            session_storage if session_storage is not None else {}
+        )
         self.session_header = session_header or "X-Session-ID"
         self.session_cookie = session_cookie or "session_id"
         self.max_age = max_age

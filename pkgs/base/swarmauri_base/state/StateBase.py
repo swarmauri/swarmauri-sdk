@@ -15,7 +15,9 @@ class StateBase(IState, ComponentBase):
         default_factory=dict, description="The current state data."
     )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
-    resource: Optional[str] = Field(default=ResourceTypes.STATE.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.STATE.value, frozen=True
+    )
     type: Literal["StateBase"] = "StateBase"
 
     def read(self) -> Dict[str, Any]:

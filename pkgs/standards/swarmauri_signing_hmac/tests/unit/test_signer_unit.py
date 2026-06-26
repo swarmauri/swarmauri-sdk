@@ -44,7 +44,9 @@ def test_tag_too_short():
     key = {"kind": "raw", "key": "a" * 32}
     with pytest.raises(ValueError):
         asyncio.run(
-            signer.sign_bytes(key, b"payload", alg=JWAAlg.HS256, opts={"tag_size": 8})
+            signer.sign_bytes(
+                key, b"payload", alg=JWAAlg.HS256, opts={"tag_size": 8}
+            )
         )
 
 
@@ -53,7 +55,9 @@ def test_verify_rejects_short_sig():
     key = {"kind": "raw", "key": "a" * 32}
     payload = b"unit-test"
     sigs = asyncio.run(
-        signer.sign_bytes(key, payload, alg=JWAAlg.HS256, opts={"tag_size": 16})
+        signer.sign_bytes(
+            key, payload, alg=JWAAlg.HS256, opts={"tag_size": 16}
+        )
     )
     sigs[0].data["sig"] = sigs[0].data["sig"][:10]
     ok = asyncio.run(signer.verify_bytes(payload, sigs, opts={"keys": [key]}))

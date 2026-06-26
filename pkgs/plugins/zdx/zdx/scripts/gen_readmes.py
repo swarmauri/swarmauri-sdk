@@ -38,7 +38,9 @@ def main() -> None:
             out.write(src.read_bytes())
 
     def write_text(src: Path, dest: Path) -> None:
-        with mkdocs_gen_files.open(dest.as_posix(), "w", encoding="utf-8") as out:
+        with mkdocs_gen_files.open(
+            dest.as_posix(), "w", encoding="utf-8"
+        ) as out:
             out.write(src.read_text(encoding="utf-8"))
 
     for base in ROOTS:
@@ -52,7 +54,9 @@ def main() -> None:
             out_md = Path(*doc_dir_parts) / "index.md"
 
             write_text(readme, out_md)
-            mkdocs_gen_files.set_edit_path(out_md.as_posix(), readme.as_posix())
+            mkdocs_gen_files.set_edit_path(
+                out_md.as_posix(), readme.as_posix()
+            )
 
             nav[doc_dir_parts] = out_md.as_posix()
 

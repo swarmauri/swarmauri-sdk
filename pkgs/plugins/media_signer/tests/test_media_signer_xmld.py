@@ -25,7 +25,9 @@ async def test_media_signer_xmld_detached_bytes(xmld_context):
     signatures = await signer.sign_bytes(XMLD_FORMAT, key_entry, payload)
 
     assert signatures and signatures[0].mode == "detached"
-    assert await signer.verify_bytes(XMLD_FORMAT, payload, signatures, opts=verify_opts)
+    assert await signer.verify_bytes(
+        XMLD_FORMAT, payload, signatures, opts=verify_opts
+    )
 
 
 @pytest.mark.asyncio
@@ -37,7 +39,9 @@ async def test_media_signer_xmld_detached_digest(xmld_context):
     signatures = await signer.sign_digest(XMLD_FORMAT, key_entry, sha)
 
     assert signatures and signatures[0].mode == "detached"
-    assert await signer.verify_digest(XMLD_FORMAT, sha, signatures, opts=verify_opts)
+    assert await signer.verify_digest(
+        XMLD_FORMAT, sha, signatures, opts=verify_opts
+    )
 
 
 @pytest.mark.asyncio
@@ -46,7 +50,9 @@ async def test_media_signer_xmld_detached_stream(xmld_context):
     payload = b"<root>stream</root>"
     stream_factory = async_chunks(payload, size=5)
 
-    signatures = await signer.sign_stream(XMLD_FORMAT, key_entry, stream_factory())
+    signatures = await signer.sign_stream(
+        XMLD_FORMAT, key_entry, stream_factory()
+    )
 
     assert signatures and signatures[0].mode == "detached"
     assert await signer.verify_stream(

@@ -35,12 +35,12 @@ class ImportMemoryModuleTool(ToolBase):
     )
 
     name: str = "ImportMemoryModuleTool"
-    description: str = (
-        "Dynamically imports a module from memory into a specified package path."
-    )
+    description: str = "Dynamically imports a module from memory into a specified package path."
     type: Literal["ImportMemoryModuleTool"] = "ImportMemoryModuleTool"
 
-    def __call__(self, name: str, code: str, package_path: str) -> Dict[str, str]:
+    def __call__(
+        self, name: str, code: str, package_path: str
+    ) -> Dict[str, str]:
         """
         Dynamically creates a module from a code snippet and inserts it into the specified package path.
 
@@ -62,7 +62,9 @@ class ImportMemoryModuleTool(ToolBase):
         # Insert the new module into the desired location
         setattr(current_package, name, module)
         sys.modules[package_path + "." + name] = module
-        return {"message": f"{name} has been successfully imported into {package_path}"}
+        return {
+            "message": f"{name} has been successfully imported into {package_path}"
+        }
 
     @staticmethod
     def ensure_module(package_path: str):

@@ -1,5 +1,7 @@
 import pytest
-from swarmauri_standard.service_registries.ServiceRegistry import ServiceRegistry
+from swarmauri_standard.service_registries.ServiceRegistry import (
+    ServiceRegistry,
+)
 
 
 @pytest.fixture
@@ -21,7 +23,9 @@ def test_ubc_type(service_registry):
 def test_serialization(service_registry):
     assert (
         service_registry.id
-        == service_registry.model_validate_json(service_registry.model_dump_json()).id
+        == service_registry.model_validate_json(
+            service_registry.model_dump_json()
+        ).id
     )
 
 
@@ -47,7 +51,9 @@ def test_get_services_by_roles(service_registry):
     assert recipients == ["auth"]
     recipients = service_registry.get_services_by_roles(["database"])
     assert recipients == ["db"]
-    recipients = service_registry.get_services_by_roles(["authentication", "database"])
+    recipients = service_registry.get_services_by_roles(
+        ["authentication", "database"]
+    )
     assert set(recipients) == {"auth", "db"}
 
 
@@ -68,7 +74,9 @@ def test_unregister_service_nonexistent(service_registry):
 @pytest.mark.unit
 def test_update_service(service_registry):
     service_registry.register_service("auth", {"role": "authentication"})
-    service_registry.update_service("auth", {"role": "auth_service", "version": "1.0"})
+    service_registry.update_service(
+        "auth", {"role": "auth_service", "version": "1.0"}
+    )
     assert service_registry.services["auth"] == {
         "role": "auth_service",
         "version": "1.0",

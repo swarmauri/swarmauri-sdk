@@ -36,16 +36,22 @@ class ClipboardState(StateBase):
         platform = sys.platform
         if platform.startswith("win"):
             # Windows: uses 'clip' command
-            with subprocess.Popen(["clip"], stdin=subprocess.PIPE, text=True) as proc:
+            with subprocess.Popen(
+                ["clip"], stdin=subprocess.PIPE, text=True
+            ) as proc:
                 proc.communicate(text)
         elif platform.startswith("darwin"):
             # macOS: uses 'pbcopy'
-            with subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE, text=True) as proc:
+            with subprocess.Popen(
+                ["pbcopy"], stdin=subprocess.PIPE, text=True
+            ) as proc:
                 proc.communicate(text)
         else:
             # Linux/Unix: uses 'xclip'
             with subprocess.Popen(
-                ["xclip", "-selection", "clipboard"], stdin=subprocess.PIPE, text=True
+                ["xclip", "-selection", "clipboard"],
+                stdin=subprocess.PIPE,
+                text=True,
             ) as proc:
                 proc.communicate(text)
 
@@ -68,7 +74,9 @@ class ClipboardState(StateBase):
             return completed.stdout
         elif platform.startswith("darwin"):
             # macOS: uses 'pbpaste'
-            completed = subprocess.run(["pbpaste"], capture_output=True, text=True)
+            completed = subprocess.run(
+                ["pbpaste"], capture_output=True, text=True
+            )
             return completed.stdout
         else:
             # Linux/Unix: uses 'xclip'

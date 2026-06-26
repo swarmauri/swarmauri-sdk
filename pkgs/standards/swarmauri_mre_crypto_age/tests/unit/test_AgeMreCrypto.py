@@ -22,5 +22,7 @@ async def test_encrypt_open_roundtrip(age_crypto: AgeMreCrypto) -> None:
     pk = sk.public_key()
     ref = {"kind": "cryptography_obj", "obj": pk}
     env = await age_crypto.encrypt_for_many([ref], b"hello")
-    pt = await age_crypto.open_for({"kind": "cryptography_obj", "obj": sk}, env)
+    pt = await age_crypto.open_for(
+        {"kind": "cryptography_obj", "obj": sk}, env
+    )
     assert pt == b"hello"

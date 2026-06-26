@@ -31,7 +31,11 @@ def test_serialization():
 @pytest.mark.parametrize(
     "url, selector, expected_substring",
     [
-        ("https://example.com", "h1", "Example Domain"),  # Valid page, valid selector
+        (
+            "https://example.com",
+            "h1",
+            "Example Domain",
+        ),  # Valid page, valid selector
         (
             "https://example.com",
             "p",

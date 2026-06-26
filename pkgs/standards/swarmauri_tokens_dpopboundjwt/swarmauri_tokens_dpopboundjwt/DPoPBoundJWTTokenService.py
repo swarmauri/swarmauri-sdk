@@ -27,12 +27,19 @@ def jwk_thumbprint_sha256(jwk: Dict[str, object]) -> str:
     if kty == "OKP":
         material = {"crv": jwk["crv"], "kty": "OKP", "x": jwk["x"]}
     elif kty == "EC":
-        material = {"crv": jwk["crv"], "kty": "EC", "x": jwk["x"], "y": jwk["y"]}
+        material = {
+            "crv": jwk["crv"],
+            "kty": "EC",
+            "x": jwk["x"],
+            "y": jwk["y"],
+        }
     elif kty == "RSA":
         material = {"e": jwk["e"], "kty": "RSA", "n": jwk["n"]}
     else:
         raise ValueError("Unsupported JWK kty for thumbprint")
-    blob = json.dumps(material, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    blob = json.dumps(material, separators=(",", ":"), sort_keys=True).encode(
+        "utf-8"
+    )
     return _b64u(hashlib.sha256(blob).digest())
 
 
@@ -58,7 +65,9 @@ class DPoPBoundJWTTokenService(JWTTokenService):
         key_provider: IKeyProvider,
         *,
         default_issuer: Optional[str] = None,
-        dpop_ctx_getter: Optional[Callable[[], Optional[Dict[str, object]]]] = None,
+        dpop_ctx_getter: Optional[
+            Callable[[], Optional[Dict[str, object]]]
+        ] = None,
         proof_max_age_s: int = 300,
         replay_check: Optional[Callable[[str], bool]] = None,
         enforce_proof: bool = True,
@@ -167,7 +176,12 @@ class DPoPBoundJWTTokenService(JWTTokenService):
             key=key,
             algorithms=[
                 alg.value
-                for alg in (JWAAlg.RS256, JWAAlg.PS256, JWAAlg.ES256, JWAAlg.EDDSA)
+                for alg in (
+                    JWAAlg.RS256,
+                    JWAAlg.PS256,
+                    JWAAlg.ES256,
+                    JWAAlg.EDDSA,
+                )
             ],
             options={"verify_aud": False, "verify_iss": False},
         )
@@ -175,7 +189,9 @@ class DPoPBoundJWTTokenService(JWTTokenService):
         # 2) Check the JWK thumbprint matches the token's cnf.jkt
         thumb = jwk_thumbprint_sha256(jwk)
         if thumb != jkt:
-            raise ValueError("DPoP binding mismatch (cnf.jkt != proof JWK thumbprint)")
+            raise ValueError(
+                "DPoP binding mismatch (cnf.jkt != proof JWK thumbprint)"
+            )
 
         # 3) Validate method, URL, iat, nonce (if present)
         if proof_claims.get("htm") != htm:

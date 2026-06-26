@@ -8,7 +8,10 @@ from typing import Any, Mapping, Optional, cast
 from pydantic import BaseModel, ConfigDict
 
 from swarmauri_core.billing import IOnlinePayments
-from swarmauri_core.billing.protos import PaymentIntentReqProto, PaymentRefProto
+from swarmauri_core.billing.protos import (
+    PaymentIntentReqProto,
+    PaymentRefProto,
+)
 
 from .utils import extract_raw_payload
 from .refs import PaymentRef
@@ -19,7 +22,9 @@ class OnlinePaymentsMixin(IOnlinePayments, BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
-    def create_payment_intent(self, req: PaymentIntentReqProto) -> PaymentRefProto:
+    def create_payment_intent(
+        self, req: PaymentIntentReqProto
+    ) -> PaymentRefProto:
         result = self._create_payment_intent(req)
         if isinstance(result, PaymentRefProto):
             return result
@@ -35,7 +40,9 @@ class OnlinePaymentsMixin(IOnlinePayments, BaseModel):
     def capture_payment(
         self, payment_id: str, *, idempotency_key: Optional[str] = None
     ) -> PaymentRefProto:
-        result = self._capture_payment(payment_id, idempotency_key=idempotency_key)
+        result = self._capture_payment(
+            payment_id, idempotency_key=idempotency_key
+        )
         if isinstance(result, PaymentRefProto):
             return result
         raw = cast(Mapping[str, Any], result)

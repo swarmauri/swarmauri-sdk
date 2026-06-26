@@ -28,7 +28,9 @@ def _pub_from_keyref(ref: KeyRef) -> ec.EllipticCurvePublicKey:
         ):
             return obj
     if hasattr(ref, "public") and isinstance(ref.public, bytes):
-        return ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), ref.public)
+        return ec.EllipticCurvePublicKey.from_encoded_point(
+            ec.SECP256R1(), ref.public
+        )
     raise TypeError("Unsupported KeyRef for EC public key")
 
 

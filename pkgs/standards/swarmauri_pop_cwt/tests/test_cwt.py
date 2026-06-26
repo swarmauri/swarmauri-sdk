@@ -112,7 +112,9 @@ def cwt_module():
             self._verify_result = True
 
         def encode(self):
-            return json.dumps({"phdr": self.phdr, "payload": self.payload}).encode()
+            return json.dumps(
+                {"phdr": self.phdr, "payload": self.payload}
+            ).encode()
 
         def verify_signature(self):
             if isinstance(self._verify_result, Exception):
@@ -239,7 +241,9 @@ class DummyPolicy:
 
 def make_context(cwt, *, require_ath=False):
     return cwt.RequestContext(
-        "GET", "https://example.test/resource", DummyPolicy(require_ath=require_ath)
+        "GET",
+        "https://example.test/resource",
+        DummyPolicy(require_ath=require_ath),
     )
 
 
@@ -314,7 +318,9 @@ def make_payload(cwt, claims):
     return cwt.cbor2.dumps(claims, canonical=True)
 
 
-def build_message(cwt, *, algorithm="ES256", claims=None, verify=True, kid=None):
+def build_message(
+    cwt, *, algorithm="ES256", claims=None, verify=True, kid=None
+):
     phdr = {cwt.Algorithm: cwt.SignatureAlg(algorithm)}
     if kid is not None:
         phdr[cwt.KID] = kid
@@ -334,7 +340,9 @@ def setup_thumbprint(monkeypatch, cwt, value="thumb"):
     monkeypatch.setattr(cwt, "_compute_cose_thumbprint", lambda _key: value)
 
 
-def run_verify(verifier, proof, context, cnf, *, replay=None, keys=None, extras=None):
+def run_verify(
+    verifier, proof, context, cnf, *, replay=None, keys=None, extras=None
+):
     if replay is None:
         replay = object()
     if extras is None:
@@ -362,7 +370,9 @@ def test_ensure_cose_key_accepts_mapping(monkeypatch, cwt_module):
         inst.update(data)
         return inst
 
-    monkeypatch.setattr(cwt_module.CoseKey, "from_dict", classmethod(fake_from_dict))
+    monkeypatch.setattr(
+        cwt_module.CoseKey, "from_dict", classmethod(fake_from_dict)
+    )
 
     mapping = {"a": "b"}
     result = cwt_module._ensure_cose_key(mapping)
@@ -419,7 +429,11 @@ def test_compute_thumbprint_rsa(monkeypatch, cwt_module):
     )
     key = make_rsa_key(cwt_module)
     cwt_module._compute_cose_thumbprint(key)
-    assert json.loads(captured["data"].decode()) == {"-2": "e", "-1": "n", "1": "RSA"}
+    assert json.loads(captured["data"].decode()) == {
+        "-2": "e",
+        "-1": "n",
+        "1": "RSA",
+    }
 
 
 def test_compute_thumbprint_rejects_unknown_type(cwt_module):
@@ -453,7 +467,9 @@ async def test_verify_rejects_invalid_cwt_payload(monkeypatch, cwt_module):
     def bad_decode(cls, _data):
         raise ValueError("boom")
 
-    monkeypatch.setattr(cwt_module.Sign1Message, "decode", classmethod(bad_decode))
+    monkeypatch.setattr(
+        cwt_module.Sign1Message, "decode", classmethod(bad_decode)
+    )
 
     with pytest.raises(cwt_module.PoPParseError):
         await run_verify(verifier, "cHJvb2Y", context, cnf)
@@ -486,7 +502,9 @@ async def test_verify_enforces_algorithm_policy(monkeypatch, cwt_module):
         called["alg"] = alg
         called["policy"] = policy
 
-    monkeypatch.setattr(verifier, "_enforce_alg_policy", enforce.__get__(verifier))
+    monkeypatch.setattr(
+        verifier, "_enforce_alg_policy", enforce.__get__(verifier)
+    )
 
     extras = {"public_cose_key": make_public_key(cwt_module)}
     await run_verify(verifier, "cHJvb2Y", context, cnf, extras=extras)
@@ -511,7 +529,9 @@ async def test_verify_requires_key(monkeypatch, cwt_module):
             return None
 
     with pytest.raises(cwt_module.PoPVerificationError):
-        await run_verify(verifier, "cHJvb2Y", context, cnf, keys=Resolver(), extras={})
+        await run_verify(
+            verifier, "cHJvb2Y", context, cnf, keys=Resolver(), extras={}
+        )
 
 
 @pytest.mark.asyncio
@@ -644,7 +664,10 @@ async def test_verify_detects_nonce_mismatch(monkeypatch, cwt_module):
     claims = build_claims(nonce="different")
     message = build_message(cwt_module, claims=claims)
     set_decode(monkeypatch, cwt_module, message)
-    extras = {"public_cose_key": make_public_key(cwt_module), "nonce": "expected"}
+    extras = {
+        "public_cose_key": make_public_key(cwt_module),
+        "nonce": "expected",
+    }
 
     with pytest.raises(cwt_module.PoPVerificationError):
         await run_verify(verifier, "cHJvb2Y", context, cnf, extras=extras)
@@ -663,15 +686,22 @@ async def test_verify_checks_ath_when_optional(monkeypatch, cwt_module):
     def compute_ath(_self, token):
         return "expected"
 
-    monkeypatch.setattr(verifier, "_compute_ath", compute_ath.__get__(verifier))
-    extras = {"public_cose_key": make_public_key(cwt_module), "access_token": "token"}
+    monkeypatch.setattr(
+        verifier, "_compute_ath", compute_ath.__get__(verifier)
+    )
+    extras = {
+        "public_cose_key": make_public_key(cwt_module),
+        "access_token": "token",
+    }
 
     with pytest.raises(cwt_module.PoPVerificationError):
         await run_verify(verifier, "cHJvb2Y", context, cnf, extras=extras)
 
 
 @pytest.mark.asyncio
-async def test_verify_requires_ath_when_policy_demands(monkeypatch, cwt_module):
+async def test_verify_requires_ath_when_policy_demands(
+    monkeypatch, cwt_module
+):
     verifier = cwt_module.CwtPoPVerifier()
     context = make_context(cwt_module, require_ath=True)
     cnf = make_cnf(cwt_module)
@@ -719,7 +749,9 @@ async def test_verify_success_checks_replay(monkeypatch, cwt_module):
     def compute_ath(self, token):
         return "token-ath"
 
-    monkeypatch.setattr(verifier, "_compute_ath", compute_ath.__get__(verifier))
+    monkeypatch.setattr(
+        verifier, "_compute_ath", compute_ath.__get__(verifier)
+    )
     extras = {
         "public_cose_key": make_public_key(cwt_module),
         "nonce": "nonce",
@@ -727,7 +759,9 @@ async def test_verify_success_checks_replay(monkeypatch, cwt_module):
     }
     replay = object()
 
-    await run_verify(verifier, "cHJvb2Y", context, cnf, extras=extras, replay=replay)
+    await run_verify(
+        verifier, "cHJvb2Y", context, cnf, extras=extras, replay=replay
+    )
     assert replay_calls == {
         "scope": f"cwt:{context.htu}",
         "key": "jti-123",
@@ -739,7 +773,9 @@ async def test_verify_success_checks_replay(monkeypatch, cwt_module):
 def test_signer_cnf_binding_uses_thumbprint(monkeypatch, cwt_module):
     private = make_okp_key(cwt_module)
     public = make_okp_key(cwt_module)
-    monkeypatch.setattr(cwt_module, "_compute_cose_thumbprint", lambda key: "thumb")
+    monkeypatch.setattr(
+        cwt_module, "_compute_cose_thumbprint", lambda key: "thumb"
+    )
     signer = cwt_module.CwtPoPSigner(
         private_key=private,
         public_key=public,
@@ -806,7 +842,9 @@ def test_sign_request_builds_message(monkeypatch, cwt_module):
 def test_sign_request_uses_thumbprint_binding(monkeypatch, cwt_module):
     private = make_okp_key(cwt_module)
     public = make_okp_key(cwt_module)
-    monkeypatch.setattr(cwt_module, "_compute_cose_thumbprint", lambda key: "thumb")
+    monkeypatch.setattr(
+        cwt_module, "_compute_cose_thumbprint", lambda key: "thumb"
+    )
     signer = cwt_module.CwtPoPSigner(
         private_key=private,
         public_key=public,

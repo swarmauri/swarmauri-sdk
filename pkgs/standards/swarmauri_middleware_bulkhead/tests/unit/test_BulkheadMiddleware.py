@@ -42,7 +42,9 @@ class TestBulkheadMiddleware:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_dispatch(self, bulkhead_middleware: BulkheadMiddleware) -> None:
+    async def test_dispatch(
+        self, bulkhead_middleware: BulkheadMiddleware
+    ) -> None:
         """Test the dispatch method of BulkheadMiddleware."""
         # Setup mock request and call_next
         mock_request = Request(scope={"type": "http"})
@@ -51,7 +53,9 @@ class TestBulkheadMiddleware:
             return {"message": "Test response"}
 
         # Execute the dispatch method
-        response = await bulkhead_middleware.dispatch(mock_request, mock_call_next)
+        response = await bulkhead_middleware.dispatch(
+            mock_request, mock_call_next
+        )
 
         # Assert the response and semaphore usage
         assert response == {"message": "Test response"}
@@ -59,7 +63,9 @@ class TestBulkheadMiddleware:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_close(self, bulkhead_middleware: BulkheadMiddleware) -> None:
+    async def test_close(
+        self, bulkhead_middleware: BulkheadMiddleware
+    ) -> None:
         """Test the close method of BulkheadMiddleware."""
         await bulkhead_middleware.close()
         # Add assertions as needed based on actual implementation

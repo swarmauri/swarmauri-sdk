@@ -51,12 +51,18 @@ class AbsoluteValueMetric(MetricBase):
         TypeError
             If inputs are not scalar numeric values
         """
-        logger.debug(f"Calculating absolute value distance between {x} and {y}")
+        logger.debug(
+            f"Calculating absolute value distance between {x} and {y}"
+        )
 
         # Validate inputs are scalar numeric values
         if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
-            logger.error(f"Invalid input types: x is {type(x)}, y is {type(y)}")
-            raise TypeError("AbsoluteValueMetric requires scalar numeric inputs")
+            logger.error(
+                f"Invalid input types: x is {type(x)}, y is {type(y)}"
+            )
+            raise TypeError(
+                "AbsoluteValueMetric requires scalar numeric inputs"
+            )
 
         # Calculate absolute difference
         return abs(x - y)
@@ -103,7 +109,8 @@ class AbsoluteValueMetric(MetricBase):
 
         # Both inputs are collections - return matrix of pairwise distances
         return [
-            [self.distance(x_val, y_val) for y_val in y_values] for x_val in x_values
+            [self.distance(x_val, y_val) for y_val in y_values]
+            for x_val in x_values
         ]
 
     def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
@@ -129,7 +136,9 @@ class AbsoluteValueMetric(MetricBase):
         # Absolute value is always non-negative
         return dist >= 0
 
-    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
+    def check_identity_of_indiscernibles(
+        self, x: MetricInput, y: MetricInput
+    ) -> bool:
         """
         Check if the metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -146,7 +155,9 @@ class AbsoluteValueMetric(MetricBase):
         bool
             True if the axiom is satisfied
         """
-        logger.debug(f"Checking identity of indiscernibles axiom for {x} and {y}")
+        logger.debug(
+            f"Checking identity of indiscernibles axiom for {x} and {y}"
+        )
         dist = self.distance(x, y)
 
         # Check if distance is 0 iff x equals y
@@ -198,7 +209,9 @@ class AbsoluteValueMetric(MetricBase):
         bool
             True if the axiom is satisfied
         """
-        logger.debug(f"Checking triangle inequality axiom for {x}, {y}, and {z}")
+        logger.debug(
+            f"Checking triangle inequality axiom for {x}, {y}, and {z}"
+        )
 
         # Calculate all three distances
         dist_xy = self.distance(x, y)

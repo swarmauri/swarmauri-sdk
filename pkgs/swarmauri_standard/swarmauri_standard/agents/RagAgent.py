@@ -14,7 +14,9 @@ from swarmauri_base.agents.AgentBase import AgentBase
 from swarmauri_base.agents.AgentRetrieveMixin import AgentRetrieveMixin
 from swarmauri_base.agents.AgentConversationMixin import AgentConversationMixin
 from swarmauri_base.agents.AgentVectorStoreMixin import AgentVectorStoreMixin
-from swarmauri_base.agents.AgentSystemContextMixin import AgentSystemContextMixin
+from swarmauri_base.agents.AgentSystemContextMixin import (
+    AgentSystemContextMixin,
+)
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri_core.messages import IMessage
 from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase
@@ -34,9 +36,9 @@ class RagAgent(
     """
 
     llm: SubclassUnion[LLMBase]
-    conversation: Union[MaxSystemContextConversation, SessionCacheConversation] = (
-        MaxSystemContextConversation(system_context="")
-    )
+    conversation: Union[
+        MaxSystemContextConversation, SessionCacheConversation
+    ] = MaxSystemContextConversation(system_context="")
     vector_store: SubclassUnion[VectorStoreBase]
     system_context: Union[SystemMessage, str] = SystemMessage(content="")
     type: Literal["RagAgent"] = "RagAgent"
@@ -66,7 +68,9 @@ class RagAgent(
         elif isinstance(input_data, IMessage):
             human_message = input_data
         else:
-            raise TypeError("Input data must be a string or an instance of IMessage.")
+            raise TypeError(
+                "Input data must be a string or an instance of IMessage."
+            )
 
         self.conversation.add_message(human_message)
 
@@ -125,7 +129,9 @@ class RagAgent(
         try:
             self._prepare_context(input_data, top_k, preamble, fixed)
             if llm_kwargs:
-                await self.llm.apredict(conversation=self.conversation, **llm_kwargs)
+                await self.llm.apredict(
+                    conversation=self.conversation, **llm_kwargs
+                )
             else:
                 await self.llm.apredict(conversation=self.conversation)
             return self.conversation.get_last().content

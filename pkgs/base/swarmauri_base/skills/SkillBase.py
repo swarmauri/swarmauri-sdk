@@ -71,12 +71,16 @@ class SkillBase(ISkill, ComponentBase):
                 raw_frontmatter = "\n".join(lines[1:index])
                 body = "\n".join(lines[index + 1 :])
                 parsed = (
-                    yaml.safe_load(raw_frontmatter) if raw_frontmatter.strip() else {}
+                    yaml.safe_load(raw_frontmatter)
+                    if raw_frontmatter.strip()
+                    else {}
                 )
                 if parsed is None:
                     parsed = {}
                 if not isinstance(parsed, dict):
-                    raise ValueError("SKILL.md frontmatter must be a YAML mapping")
+                    raise ValueError(
+                        "SKILL.md frontmatter must be a YAML mapping"
+                    )
                 return parsed, body
         return {}, markdown
 
@@ -91,7 +95,11 @@ class SkillBase(ISkill, ComponentBase):
         data.update(frontmatter or {})
         data.update(manifest or {})
         data.update(
-            {key: value for key, value in overrides.items() if value is not None}
+            {
+                key: value
+                for key, value in overrides.items()
+                if value is not None
+            }
         )
         return data
 

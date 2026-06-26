@@ -47,7 +47,9 @@ def _extract_usage_code(readme: Path) -> str:
 
 
 @pytest.mark.example
-def test_readme_usage_example(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_readme_usage_example(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Run the README example and assert it produces the expected artifacts."""
 
     readme = PACKAGE_DIR / "README.md"

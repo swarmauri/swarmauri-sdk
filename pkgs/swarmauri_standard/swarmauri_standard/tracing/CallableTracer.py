@@ -19,7 +19,8 @@ def CallableTracer(func):
 
         # Start a new trace context for this callable
         tracer.start_trace(
-            name=caller_info, initial_attributes={"args": args, "kwargs": kwargs}
+            name=caller_info,
+            initial_attributes={"args": args, "kwargs": kwargs},
         )
 
         try:

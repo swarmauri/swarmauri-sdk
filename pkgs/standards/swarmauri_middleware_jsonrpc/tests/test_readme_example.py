@@ -50,4 +50,6 @@ def test_readme_usage_example() -> None:
         json={"jsonrpc": "2.0", "method": "ping"},
     )
     assert valid_jsonrpc.status_code == 200
-    assert valid_jsonrpc.json() == {"payload": {"jsonrpc": "2.0", "method": "ping"}}
+    assert valid_jsonrpc.json() == {
+        "payload": {"jsonrpc": "2.0", "method": "ping"}
+    }

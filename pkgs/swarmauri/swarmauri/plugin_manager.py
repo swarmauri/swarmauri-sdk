@@ -58,7 +58,9 @@ def _fetch_and_group_entry_points(
             if selected:
                 namespace = group[prefix_len:]
                 grouped_entry_points[namespace] = list(selected)
-        logger.debug("Grouped entry points (fresh scan): %s", grouped_entry_points)
+        logger.debug(
+            "Grouped entry points (fresh scan): %s", grouped_entry_points
+        )
     except Exception as e:
         logger.error("Failed to retrieve entry points: %s", e)
         return {}
@@ -132,7 +134,9 @@ def process_plugin(entry_point: EntryPoint) -> bool:
 
         metadata = _load_plugin_metadata(entry_point)
         loading_strategy = (
-            metadata.get("loading_strategy", "eager").lower() if metadata else "eager"
+            metadata.get("loading_strategy", "eager").lower()
+            if metadata
+            else "eager"
         )
         logger.debug(
             f"Plugin '{entry_point.name}' loading_strategy: {loading_strategy}"
@@ -145,7 +149,9 @@ def process_plugin(entry_point: EntryPoint) -> bool:
         if loading_strategy == "lazy":
             # Register plugin based on classification (first, second)
             _register_lazy_plugin_from_metadata(entry_point, metadata)
-            logger.info(f"Plugin '{entry_point.name}' registered for lazy loading.")
+            logger.info(
+                f"Plugin '{entry_point.name}' registered for lazy loading."
+            )
             return True
         else:
             # Eager loading: load the plugin module
@@ -226,18 +232,26 @@ def _load_plugin_metadata(entry_point: EntryPoint) -> Optional[Dict[str, Any]]:
 
         if metadata_path:
             # Read the metadata.json file
-            with dist.locate_file(metadata_path).open("r", encoding="utf-8") as f:
+            with dist.locate_file(metadata_path).open(
+                "r", encoding="utf-8"
+            ) as f:
                 metadata = json.load(f)
                 logger.debug(
                     f"Loaded metadata for plugin '{entry_point.name}': {metadata}"
                 )
                 return metadata
         else:
-            logger.debug(f"No metadata.json found for plugin '{entry_point.name}'.")
+            logger.debug(
+                f"No metadata.json found for plugin '{entry_point.name}'."
+            )
     except importlib.metadata.PackageNotFoundError:
-        logger.debug(f"Distribution not found for plugin '{entry_point.name}'.")
+        logger.debug(
+            f"Distribution not found for plugin '{entry_point.name}'."
+        )
     except FileNotFoundError:
-        logger.debug(f"metadata.json not found for plugin '{entry_point.name}'.")
+        logger.debug(
+            f"metadata.json not found for plugin '{entry_point.name}'."
+        )
     except json.JSONDecodeError as e:
         logger.error(
             f"Invalid JSON in metadata.json for plugin '{entry_point.name}': {e}"
@@ -287,10 +301,14 @@ def _register_lazy_plugin_from_metadata(
         # Determine classification: first or second class
         if PluginCitizenshipRegistry.is_first_class(entry_point):
             citizenship = "first"
-            logger.debug(f"Plugin '{resource_path}' identified as first-class.")
+            logger.debug(
+                f"Plugin '{resource_path}' identified as first-class."
+            )
         else:
             citizenship = "second"
-            logger.debug(f"Plugin '{resource_path}' identified as second-class.")
+            logger.debug(
+                f"Plugin '{resource_path}' identified as second-class."
+            )
 
         # Register in PluginCitizenshipRegistry with 'lazy' loading strategy
         module_path = (
@@ -327,7 +345,9 @@ def _register_lazy_plugin_from_metadata(
         logger.error(
             f"Missing required metadata field: {e} in plugin '{entry_point.name}'"
         )
-        raise PluginValidationError(f"Missing required metadata field: {e}") from e
+        raise PluginValidationError(
+            f"Missing required metadata field: {e}"
+        ) from e
     except Exception as e:
         logger.exception(
             f"Failed to register lazy plugin '{entry_point.name}' from metadata: {e}"
@@ -519,9 +539,13 @@ def _process_module_plugin(
                     citizenship = determine_plugin_citizenship(ep_class)
                     if citizenship in ["first", "second"]:
                         # Validate subclass
-                        resource_kind = resource_path.split(".")[1]  # e.g., 'agents'
-                        interface_class = InterfaceRegistry.get_interface_for_resource(
-                            f"swarmauri.{resource_kind}"
+                        resource_kind = resource_path.split(".")[
+                            1
+                        ]  # e.g., 'agents'
+                        interface_class = (
+                            InterfaceRegistry.get_interface_for_resource(
+                                f"swarmauri.{resource_kind}"
+                            )
                         )
                         if not issubclass(attr, interface_class):
                             msg = f"Plugin class '{attr_name}' must subclass '{interface_class.__name__}'."
@@ -530,7 +554,9 @@ def _process_module_plugin(
 
                         # Register in PluginCitizenshipRegistry
                         PluginCitizenshipRegistry.add_to_registry(
-                            citizenship, class_resource_path, plugin_module.__name__
+                            citizenship,
+                            class_resource_path,
+                            plugin_module.__name__,
                         )
                         logger.info(
                             f"Registered {citizenship}-class plugin '{attr_name}' at '{class_resource_path}'"
@@ -557,7 +583,9 @@ def _process_module_plugin(
                         group=entry_point.group,
                         dist=entry_point.dist,
                     )
-                    logger.debug(f"Recursively processing sub-module '{attr.__name__}'")
+                    logger.debug(
+                        f"Recursively processing sub-module '{attr.__name__}'"
+                    )
                     process_plugin(sub_entry_point)
 
                 else:
@@ -573,7 +601,9 @@ def _process_module_plugin(
                     if citizenship == "third":
                         # Register as third-class
                         PluginCitizenshipRegistry.add_to_registry(
-                            "third", generic_resource_path, plugin_module.__name__
+                            "third",
+                            generic_resource_path,
+                            plugin_module.__name__,
                         )
                         logger.info(
                             f"Registered third-class generic plugin '{attr_name}' at '{generic_resource_path}'"
@@ -599,7 +629,9 @@ def _process_module_plugin(
         return True
 
     except Exception as e:
-        logger.error(f"Failed to process module-based plugin '{entry_point.name}': {e}")
+        logger.error(
+            f"Failed to process module-based plugin '{entry_point.name}': {e}"
+        )
         raise PluginValidationError(
             f"Failed to process module-based plugin '{entry_point.name}': {e}"
         ) from e
@@ -643,7 +675,9 @@ def _process_generic_plugin(
         return True
 
     except Exception as e:
-        logger.error(f"Failed to process generic plugin '{entry_point.name}': {e}")
+        logger.error(
+            f"Failed to process generic plugin '{entry_point.name}': {e}"
+        )
         raise PluginValidationError(
             f"Failed to process generic plugin '{entry_point.name}': {e}"
         ) from e
@@ -696,7 +730,9 @@ def determine_plugin_citizenship(entry_point: EntryPoint) -> Optional[str]:
     name = entry_point.name
 
     # Debugging information
-    logger.debug(f"Determining citizenship for plugin '{name}' with group '{group}'.")
+    logger.debug(
+        f"Determining citizenship for plugin '{name}' with group '{group}'."
+    )
 
     # Check for Third-Class Plugins
     if group == "swarmauri.plugins":
@@ -758,13 +794,17 @@ def discover_and_register_plugins(group_prefix="swarmauri."):
                 try:
                     process(ep)
                 except PluginLoadError as e:
-                    logger.error(f"Skipping plugin '{ep.name}' due to load error: {e}")
+                    logger.error(
+                        f"Skipping plugin '{ep.name}' due to load error: {e}"
+                    )
                 except PluginValidationError as e:
                     logger.error(
                         f"Skipping plugin '{ep.name}' due to validation error: {e}"
                     )
     except Exception as e:
-        logger.exception(f"Failed during plugin discovery and registration: {e}")
+        logger.exception(
+            f"Failed during plugin discovery and registration: {e}"
+        )
 
 
 def get_plugin_type_info(resource_path: str) -> Optional[Dict[str, Any]]:

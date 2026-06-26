@@ -3,7 +3,9 @@ import pytest
 import os
 from PIL import Image
 from dotenv import load_dotenv
-from swarmauri_standard.utils.in_memory_img_to_img_url import in_memory_img_to_img_url
+from swarmauri_standard.utils.in_memory_img_to_img_url import (
+    in_memory_img_to_img_url,
+)
 
 # Load environment variables
 load_dotenv()
@@ -21,7 +23,9 @@ TEST_IMAGE_PATH = "pkgs/swarmauri_standard/tests/static/cityscape.png"
 @pytest.mark.unit
 def test_in_memory_img_to_img_url():
     # Ensure the test image file exists
-    assert os.path.exists(TEST_IMAGE_PATH), f"Test image not found at {TEST_IMAGE_PATH}"
+    assert os.path.exists(TEST_IMAGE_PATH), (
+        f"Test image not found at {TEST_IMAGE_PATH}"
+    )
 
     # Open the image file as a PIL Image
     with Image.open(TEST_IMAGE_PATH) as img:
@@ -32,7 +36,9 @@ def test_in_memory_img_to_img_url():
         )
 
     # Assert that we got a URL back
-    assert isinstance(image_url, str), "Expected a string URL, but got a different type"
+    assert isinstance(image_url, str), (
+        "Expected a string URL, but got a different type"
+    )
     assert image_url.startswith("http"), "Expected URL to start with 'http'"
 
     # Optionally, check if the URL is accessible

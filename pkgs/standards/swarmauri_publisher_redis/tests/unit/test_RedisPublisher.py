@@ -100,7 +100,9 @@ def test_serialization(publisher_with_uri):
     )
     assert (
         publisher_with_uri.id
-        == RedisPublisher.model_validate_json(publisher_with_uri.model_dump_json()).id
+        == RedisPublisher.model_validate_json(
+            publisher_with_uri.model_dump_json()
+        ).id
     )
 
 

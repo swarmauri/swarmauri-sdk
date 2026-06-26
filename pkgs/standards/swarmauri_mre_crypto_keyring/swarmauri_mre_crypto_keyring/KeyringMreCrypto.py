@@ -15,12 +15,19 @@ from typing import (
     Literal,
 )
 
-from swarmauri_core.mre_crypto.types import MultiRecipientEnvelope, RecipientId, MreMode
+from swarmauri_core.mre_crypto.types import (
+    MultiRecipientEnvelope,
+    RecipientId,
+    MreMode,
+)
 from swarmauri_core.crypto.types import Alg, KeyRef
 from swarmauri_base.mre_crypto import MreCryptoBase
 
 try:  # pragma: no cover - handled in runtime
-    from cryptography.hazmat.primitives.ciphers.aead import AESGCM, XChaCha20Poly1305
+    from cryptography.hazmat.primitives.ciphers.aead import (
+        AESGCM,
+        XChaCha20Poly1305,
+    )
 
     _CRYPTO_OK = True
     _XCHACHA_OK = True
@@ -47,10 +54,14 @@ class KeyringClient(Protocol):
     def id(self) -> str:
         """Stable identifier for this keyring."""
 
-    async def wrap_cek(self, cek: bytes, *, context: Mapping[str, bytes]) -> bytes:
+    async def wrap_cek(
+        self, cek: bytes, *, context: Mapping[str, bytes]
+    ) -> bytes:
         """Return an opaque header which lets this keyring later release the same CEK."""
 
-    async def unwrap_cek(self, header: bytes, *, context: Mapping[str, bytes]) -> bytes:
+    async def unwrap_cek(
+        self, header: bytes, *, context: Mapping[str, bytes]
+    ) -> bytes:
         """Return the CEK if the caller is authorized and policy is satisfied."""
 
 
@@ -77,7 +88,9 @@ class _AEAD:
                     "XChaCha20-Poly1305 not supported in this environment."
                 )
             if len(cek) != 32:
-                raise ValueError("XChaCha20-Poly1305 expects 256-bit key (32 bytes).")
+                raise ValueError(
+                    "XChaCha20-Poly1305 expects 256-bit key (32 bytes)."
+                )
             nonce = secrets.token_bytes(24)
             ct = XChaCha20Poly1305(cek).encrypt(nonce, pt, aad)
             return nonce, ct
@@ -138,7 +151,9 @@ class KeyringMreCrypto(MreCryptoBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> MultiRecipientEnvelope:
         if not recipients:
-            raise ValueError("encrypt_for_many: 'recipients' must be non-empty.")
+            raise ValueError(
+                "encrypt_for_many: 'recipients' must be non-empty."
+            )
 
         mode = MreMode(mode or MreMode.SEALED_CEK_AEAD)
         if mode is not MreMode.SEALED_CEK_AEAD:
@@ -146,7 +161,9 @@ class KeyringMreCrypto(MreCryptoBase):
 
         recipient_alg = recipient_alg or "KEYRING"
         if recipient_alg != "KEYRING":
-            raise ValueError("KeyringMreCrypto only supports recipient_alg='KEYRING'.")
+            raise ValueError(
+                "KeyringMreCrypto only supports recipient_alg='KEYRING'."
+            )
 
         payload_alg = payload_alg or "AES-256-GCM"
         if payload_alg not in VALID_AEAD_ALGS:
@@ -154,7 +171,9 @@ class KeyringMreCrypto(MreCryptoBase):
 
         quorum_k = int((opts or {}).get("quorum_k", len(recipients)))
         if not (1 <= quorum_k <= len(recipients)):
-            raise ValueError("opts['quorum_k'] must satisfy 1 <= k <= len(recipients).")
+            raise ValueError(
+                "opts['quorum_k'] must satisfy 1 <= k <= len(recipients)."
+            )
 
         cek_len = 32
         cek = secrets.token_bytes(cek_len)
@@ -164,7 +183,8 @@ class KeyringMreCrypto(MreCryptoBase):
         for keyref in recipients:
             client, r_context = self._extract_keyring_client(keyref)
             header = await client.wrap_cek(
-                cek, context=self._default_context(shared).update_copy(r_context)
+                cek,
+                context=self._default_context(shared).update_copy(r_context),
             )
             rid = self._stable_id(client)
             recipient_entries.append({"id": rid, "header": header})
@@ -181,7 +201,10 @@ class KeyringMreCrypto(MreCryptoBase):
             },
             "recipients": recipient_entries,
             "shared": dict(shared or {}),
-            "meta": {"quorum_k": quorum_k, "recipients_m": len(recipient_entries)},
+            "meta": {
+                "quorum_k": quorum_k,
+                "recipients_m": len(recipient_entries),
+            },
         }
 
     async def open_for_many(
@@ -193,7 +216,9 @@ class KeyringMreCrypto(MreCryptoBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bytes:
         if not my_identities:
-            raise ValueError("open_for_many: 'my_identities' must be non-empty.")
+            raise ValueError(
+                "open_for_many: 'my_identities' must be non-empty."
+            )
 
         self._assert_env_shape(env)
         meta = env.get("meta", {}) or {}
@@ -202,7 +227,9 @@ class KeyringMreCrypto(MreCryptoBase):
         if quorum_k < 1:
             raise ValueError("Envelope meta.quorum_k must be >= 1.")
 
-        headers_by_id: Dict[str, bytes] = {r["id"]: r["header"] for r in recips}
+        headers_by_id: Dict[str, bytes] = {
+            r["id"]: r["header"] for r in recips
+        }
         shared: Mapping[str, bytes] = env.get("shared") or {}
         recovered: Dict[bytes, int] = {}
         payload = env["payload"]
@@ -226,7 +253,9 @@ class KeyringMreCrypto(MreCryptoBase):
                 try:
                     cek = await client.unwrap_cek(
                         header,
-                        context=self._default_context(shared).update_copy(id_context),
+                        context=self._default_context(shared).update_copy(
+                            id_context
+                        ),
                     )
                     recovered[cek] = recovered.get(cek, 0) + 1
                     if recovered[cek] >= quorum_k:
@@ -240,7 +269,9 @@ class KeyringMreCrypto(MreCryptoBase):
                 except Exception:
                     continue
 
-        raise PermissionError(f"Unable to satisfy CEK quorum (required {quorum_k}).")
+        raise PermissionError(
+            f"Unable to satisfy CEK quorum (required {quorum_k})."
+        )
 
     async def open_for(
         self,
@@ -263,13 +294,17 @@ class KeyringMreCrypto(MreCryptoBase):
     ) -> MultiRecipientEnvelope:
         self._assert_env_shape(env)
         if recipient_alg not in (None, "KEYRING"):
-            raise ValueError("KeyringMreCrypto only supports recipient_alg='KEYRING'.")
+            raise ValueError(
+                "KeyringMreCrypto only supports recipient_alg='KEYRING'."
+            )
 
         add = add or []
         remove = remove or []
         shared: Mapping[str, bytes] = env.get("shared") or {}
 
-        rotate_on_revoke = bool((opts or {}).get("rotate_payload_on_revoke", False))
+        rotate_on_revoke = bool(
+            (opts or {}).get("rotate_payload_on_revoke", False)
+        )
 
         if remove or rotate_on_revoke:
             identities = (opts or {}).get("identities", None)
@@ -310,7 +345,8 @@ class KeyringMreCrypto(MreCryptoBase):
         for keyref in add:
             client, a_context = self._extract_keyring_client(keyref)
             header = await client.wrap_cek(
-                cek, context=self._default_context(shared).update_copy(a_context)
+                cek,
+                context=self._default_context(shared).update_copy(a_context),
             )
             rid = self._stable_id(client)
             kept.append({"id": rid, "header": header})
@@ -340,7 +376,9 @@ class KeyringMreCrypto(MreCryptoBase):
         meta = env.get("meta", {}) or {}
         quorum_k = int(meta.get("quorum_k", 1))
         recipients = env["recipients"]
-        headers_by_id: Dict[str, bytes] = {r["id"]: r["header"] for r in recipients}
+        headers_by_id: Dict[str, bytes] = {
+            r["id"]: r["header"] for r in recipients
+        }
         recovered: Dict[bytes, int] = {}
 
         for keyref in identities:
@@ -354,7 +392,9 @@ class KeyringMreCrypto(MreCryptoBase):
                 try:
                     cek = await client.unwrap_cek(
                         header,
-                        context=self._default_context(shared).update_copy(id_context),
+                        context=self._default_context(shared).update_copy(
+                            id_context
+                        ),
                     )
                     recovered[cek] = recovered.get(cek, 0) + 1
                     if recovered[cek] >= quorum_k:
@@ -389,7 +429,9 @@ class KeyringMreCrypto(MreCryptoBase):
                 isinstance(k, str) and isinstance(v, (bytes, bytearray))
                 for k, v in context.items()
             ):
-                raise TypeError("KeyRef['context'] must be a dict[str, bytes].")
+                raise TypeError(
+                    "KeyRef['context'] must be a dict[str, bytes]."
+                )
             if isinstance(client, KeyringClient) or (
                 isinstance(client, object)
                 and hasattr(client, "wrap_cek")
@@ -406,10 +448,14 @@ class KeyringMreCrypto(MreCryptoBase):
         return hashlib.sha256(raw).hexdigest()
 
     class _Ctx(dict):
-        def update_copy(self, extras: Mapping[str, bytes]) -> "KeyringMreCrypto._Ctx":
+        def update_copy(
+            self, extras: Mapping[str, bytes]
+        ) -> "KeyringMreCrypto._Ctx":
             d = KeyringMreCrypto._Ctx(self)
             d.update(extras)
             return d
 
-    def _default_context(self, shared: Mapping[str, bytes]) -> "KeyringMreCrypto._Ctx":
+    def _default_context(
+        self, shared: Mapping[str, bytes]
+    ) -> "KeyringMreCrypto._Ctx":
         return KeyringMreCrypto._Ctx(shared or {})

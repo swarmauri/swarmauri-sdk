@@ -169,7 +169,9 @@ class LLM(LLMBase):
         # Prepare usage data if tracking is enabled
         if self.include_usage:
             usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
         return conversation
@@ -230,7 +232,9 @@ class LLM(LLMBase):
         # Prepare usage data if tracking is enabled
         if self.include_usage:
             usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -294,7 +298,9 @@ class LLM(LLMBase):
         with DurationManager() as completion_timer:
             for line in response.iter_lines():
                 if line.startswith("data: "):
-                    json_str = line.replace("data: ", "")  # Remove 'data: ' prefix
+                    json_str = line.replace(
+                        "data: ", ""
+                    )  # Remove 'data: ' prefix
 
                     if json_str.strip() == "[DONE]":
                         break
@@ -329,7 +335,9 @@ class LLM(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -426,7 +434,9 @@ class LLM(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 

@@ -85,7 +85,9 @@ class KeyValueFormatter(FormatterBase):
             if isinstance(extra, dict):
                 for key, value in extra.items():
                     if key not in self.fields:
-                        output_parts.append(f"{key}{self.key_value_separator}{value}")
+                        output_parts.append(
+                            f"{key}{self.key_value_separator}{value}"
+                        )
 
         # Include any non-standard attributes directly attached to the LogRecord
         if self.include_extra:
@@ -109,7 +111,9 @@ class KeyValueFormatter(FormatterBase):
                         "msg",
                     )
                 ):
-                    output_parts.append(f"{key}{self.key_value_separator}{value}")
+                    output_parts.append(
+                        f"{key}{self.key_value_separator}{value}"
+                    )
 
         # Join all parts with the specified delimiter
         return self.pair_delimiter.join(output_parts)

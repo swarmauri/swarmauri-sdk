@@ -3,7 +3,12 @@
 import pytest
 
 from swarmauri_keyprovider_file import FileKeyProvider
-from swarmauri_core.key_providers.types import KeySpec, KeyClass, KeyAlg, ExportPolicy
+from swarmauri_core.key_providers.types import (
+    KeySpec,
+    KeyClass,
+    KeyAlg,
+    ExportPolicy,
+)
 from swarmauri_core.crypto.types import KeyUse
 
 

@@ -36,7 +36,9 @@ def test_sign_verify_perf(benchmark):
 
     async def _run():
         sigs = await signer.sign_bytes(key_ref, payload)
-        return await signer.verify_bytes(payload, sigs, opts={"pubkeys": [key.pubkey]})
+        return await signer.verify_bytes(
+            payload, sigs, opts={"pubkeys": [key.pubkey]}
+        )
 
     result = benchmark(lambda: asyncio.run(_run()))
     assert result

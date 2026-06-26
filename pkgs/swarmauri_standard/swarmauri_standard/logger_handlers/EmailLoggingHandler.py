@@ -55,7 +55,9 @@ class EmailLoggingHandler(HandlerBase):
         # Prepare from address with optional display name
         from_addr = self.fromaddr
         if self.mail_from_display_name:
-            from_addr = formataddr((self.mail_from_display_name, self.fromaddr))
+            from_addr = formataddr(
+                (self.mail_from_display_name, self.fromaddr)
+            )
 
         # Create the SMTP handler
         handler = logging.handlers.SMTPHandler(

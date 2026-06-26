@@ -4,7 +4,16 @@ import base64
 import threading
 import time
 from collections import OrderedDict
-from typing import Any, Callable, Dict, Iterable, Literal, Mapping, Optional, Tuple
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Literal,
+    Mapping,
+    Optional,
+    Tuple,
+)
 
 import jwt
 from jwt import algorithms
@@ -49,13 +58,17 @@ class CachedJWKSVerifier:
         self._override_jwks: Dict[str, JsonDict] = {}
 
         self._allowed_algs = tuple(a for a in (allowed_algs or ()))
-        self._allowed_issuers = tuple(i.rstrip("/") for i in (allowed_issuers or ()))
+        self._allowed_issuers = tuple(
+            i.rstrip("/") for i in (allowed_issuers or ())
+        )
 
     def key_resolver(self) -> Callable[[JsonDict, JsonDict], Any]:
         def _resolver(header: JsonDict, payload: JsonDict) -> Any:
             alg = header.get("alg")
             if self._allowed_algs and alg not in self._allowed_algs:
-                raise jwt.InvalidAlgorithmError(f"Algorithm {alg!r} not allowed")
+                raise jwt.InvalidAlgorithmError(
+                    f"Algorithm {alg!r} not allowed"
+                )
 
             kid = header.get("kid")
             if kid:

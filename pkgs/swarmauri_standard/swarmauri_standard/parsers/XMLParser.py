@@ -32,7 +32,9 @@ class XMLParser(ParserBase):
                 data
             )  # Parse the XML string into an ElementTree element
         else:
-            raise TypeError("Data for XMLParser must be a string containing valid XML.")
+            raise TypeError(
+                "Data for XMLParser must be a string containing valid XML."
+            )
 
         documents = []
         for element in root.findall(self.element_tag):

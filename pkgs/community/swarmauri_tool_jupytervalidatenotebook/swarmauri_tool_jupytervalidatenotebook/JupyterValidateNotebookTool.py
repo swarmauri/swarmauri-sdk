@@ -47,8 +47,12 @@ class JupyterValidateNotebookTool(ToolBase):
         ]
     )
     name: str = "JupyterValidateNotebookTool"
-    description: str = "Validates a Jupyter notebook structure against its JSON schema."
-    type: Literal["JupyterValidateNotebookTool"] = "JupyterValidateNotebookTool"
+    description: str = (
+        "Validates a Jupyter notebook structure against its JSON schema."
+    )
+    type: Literal["JupyterValidateNotebookTool"] = (
+        "JupyterValidateNotebookTool"
+    )
 
     def __call__(self, notebook: NotebookNode) -> Dict[str, str]:
         logger = logging.getLogger(__name__)
@@ -72,5 +76,7 @@ class JupyterValidateNotebookTool(ToolBase):
             logger.error(f"Notebook validation error: {e}")
             return {"valid": "False", "report": f"Validation error: {str(e)}"}
         except Exception as e:
-            logger.error(f"An unexpected error occurred during validation: {e}")
+            logger.error(
+                f"An unexpected error occurred during validation: {e}"
+            )
             return {"valid": "False", "report": f"Unexpected error: {str(e)}"}

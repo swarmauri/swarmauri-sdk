@@ -5,7 +5,9 @@ import pytest
 from swarmauri_keyprovider_remote_jwks import RemoteJwksKeyProvider
 
 SAMPLE_JWKS = {
-    "keys": [{"kty": "RSA", "kid": "test.1", "n": "0", "e": "AQAB", "alg": "RS256"}]
+    "keys": [
+        {"kty": "RSA", "kid": "test.1", "n": "0", "e": "AQAB", "alg": "RS256"}
+    ]
 }
 
 
@@ -17,7 +19,9 @@ async def test_refresh_uses_cache() -> None:
         (SAMPLE_JWKS, "E", "L", False),
         ({}, "E", "L", True),
     ]
-    with patch.object(provider, "_fetch_json_conditional", side_effect=side_effect):
+    with patch.object(
+        provider, "_fetch_json_conditional", side_effect=side_effect
+    ):
         provider.refresh(force=True)
         provider.refresh(force=True)
     jwk = await provider.get_public_jwk("test", 1)

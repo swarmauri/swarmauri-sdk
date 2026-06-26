@@ -176,7 +176,9 @@ def test_push_pull(adapter, tmp_path):
 
 
 def test_pull_rejects_path_traversal_object_key(adapter, tmp_path):
-    DummyClient.instances[0].store[("bucket", "runs/safe/../escaped.txt")] = b"owned"
+    DummyClient.instances[0].store[("bucket", "runs/safe/../escaped.txt")] = (
+        b"owned"
+    )
     dest = tmp_path / "dest"
     outside = tmp_path / "escaped.txt"
 
@@ -193,7 +195,9 @@ def test_upload_memoryview_and_mmap(adapter, tmp_path):
     path = tmp_path / "blob.bin"
     path.write_bytes(b"mmap-content")
     with path.open("r+b") as file_handle:
-        with mmap.mmap(file_handle.fileno(), 0, access=mmap.ACCESS_READ) as source:
+        with mmap.mmap(
+            file_handle.fileno(), 0, access=mmap.ACCESS_READ
+        ) as source:
             adapter.upload_mmap("mmap.bin", source)
 
     with adapter.open_mmap("mmap.bin") as mapped:
@@ -220,6 +224,8 @@ def test_storage_entry_points_declared():
         == "swarmauri_storage_s3.s3_storage_adapter:S3StorageAdapter"
     )
     assert (
-        data["project"]["entry-points"]["peagen.plugins.storage_adapters"]["s3"]
+        data["project"]["entry-points"]["peagen.plugins.storage_adapters"][
+            "s3"
+        ]
         == "swarmauri_storage_s3.s3_storage_adapter:S3StorageAdapter"
     )

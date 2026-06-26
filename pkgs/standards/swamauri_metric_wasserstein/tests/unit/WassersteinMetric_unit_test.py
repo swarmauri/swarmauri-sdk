@@ -25,7 +25,10 @@ def test_serialization():
 @pytest.mark.unit
 def test_distance_is_zero_for_identical_vectors():
     assert (
-        WassersteinMetric().distance(Vector(value=[1, 2]), Vector(value=[1, 2])) == 0.0
+        WassersteinMetric().distance(
+            Vector(value=[1, 2]), Vector(value=[1, 2])
+        )
+        == 0.0
     )
 
 

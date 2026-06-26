@@ -31,9 +31,7 @@ def test_serialization():
 def test_call():
     tool = Tool()
     name_of_new_module = "test_module"
-    code_snippet = (
-        "def example_function():\t\treturn 'This function is imported from memory.'"
-    )
+    code_snippet = "def example_function():\t\treturn 'This function is imported from memory.'"
 
     dot_separated_package_page = "test_package"
 
@@ -43,7 +41,9 @@ def test_call():
 
     result = tool(name_of_new_module, code_snippet, dot_separated_package_page)
 
-    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert isinstance(result, dict), (
+        f"Expected dict, but got {type(result).__name__}"
+    )
     assert expected_keys.issubset(result.keys()), (
         f"Expected keys {expected_keys} but got {result.keys()}"
     )

@@ -34,14 +34,21 @@ class SubprocessEvaluator(EvaluatorBase):
     timeout: float = Field(
         default=30.0, description="Maximum execution time in seconds"
     )
-    max_memory_mb: int = Field(default=512, description="Maximum memory usage in MB")
-    max_processes: int = Field(default=64, description="Maximum number of processes")
-    max_file_size_mb: int = Field(default=10, description="Maximum file size in MB")
+    max_memory_mb: int = Field(
+        default=512, description="Maximum memory usage in MB"
+    )
+    max_processes: int = Field(
+        default=64, description="Maximum number of processes"
+    )
+    max_file_size_mb: int = Field(
+        default=10, description="Maximum file size in MB"
+    )
     working_dir: Optional[str] = Field(
         default=None, description="Working directory for execution"
     )
     env_vars: Dict[str, str] = Field(
-        default_factory=dict, description="Environment variables for the subprocess"
+        default_factory=dict,
+        description="Environment variables for the subprocess",
     )
 
     # Scoring parameters
@@ -132,7 +139,9 @@ class SubprocessEvaluator(EvaluatorBase):
             # Clean up temporary directory if we created one
             if use_temp_dir:
                 temp_dir.cleanup()
-                logger.debug(f"Cleaned up temporary working directory: {working_dir}")
+                logger.debug(
+                    f"Cleaned up temporary working directory: {working_dir}"
+                )
 
     def _prepare_command(self, program: Program, args: List[str]) -> List[str]:
         """
@@ -206,7 +215,9 @@ class SubprocessEvaluator(EvaluatorBase):
 
             # Set memory limit
             memory_bytes = self.max_memory_mb * 1024 * 1024
-            resource.setrlimit(resource.RLIMIT_AS, (memory_bytes, memory_bytes))
+            resource.setrlimit(
+                resource.RLIMIT_AS, (memory_bytes, memory_bytes)
+            )
 
             # Set file size limit
             file_size_bytes = self.max_file_size_mb * 1024 * 1024
@@ -265,7 +276,9 @@ class SubprocessEvaluator(EvaluatorBase):
                     # Attempt to collect any output that was produced before timeout
                     stdout_data, stderr_data = process.communicate()
                 except Exception as e:
-                    logger.warning(f"Error while killing timed-out process: {e}")
+                    logger.warning(
+                        f"Error while killing timed-out process: {e}"
+                    )
 
             timed_out = True
             exit_code = -1  # Use -1 to indicate timeout
@@ -374,16 +387,22 @@ class SubprocessEvaluator(EvaluatorBase):
             timeout_count = sum(
                 1 for meta in metadata_list if meta.get("timed_out", False)
             )
-            timeout_rate = timeout_count / len(metadata_list) if metadata_list else 0
+            timeout_rate = (
+                timeout_count / len(metadata_list) if metadata_list else 0
+            )
 
             # Calculate exit code statistics
             exit_codes = [
-                meta.get("exit_code") for meta in metadata_list if "exit_code" in meta
+                meta.get("exit_code")
+                for meta in metadata_list
+                if "exit_code" in meta
             ]
             success_exit_count = sum(
                 1 for code in exit_codes if code in self.success_exit_codes
             )
-            success_rate = success_exit_count / len(exit_codes) if exit_codes else 0
+            success_rate = (
+                success_exit_count / len(exit_codes) if exit_codes else 0
+            )
 
             # Add to aggregated metadata
             aggregated_metadata.update(

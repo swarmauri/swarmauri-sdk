@@ -19,7 +19,9 @@ class DummyService:
         self.minted.append((claims, alg))
         return f"{self.name}:{alg}"
 
-    async def verify(self, token, **kwargs):  # pragma: no cover - not used here
+    async def verify(
+        self, token, **kwargs
+    ):  # pragma: no cover - not used here
         return {"token": token, "service": self.name}
 
     async def jwks(self):  # pragma: no cover - not used here

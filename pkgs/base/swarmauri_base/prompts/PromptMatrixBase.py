@@ -18,7 +18,9 @@ class PromptMatrixBase(IPromptMatrix, ComponentBase):
         return 0, 0
 
     def add_prompt_sequence(self, sequence: List[Optional[str]]) -> None:
-        if not self.matrix or (self.matrix and len(sequence) == len(self.matrix[0])):
+        if not self.matrix or (
+            self.matrix and len(sequence) == len(self.matrix[0])
+        ):
             self.matrix.append(sequence)
         else:
             raise ValueError(

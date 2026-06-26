@@ -27,7 +27,9 @@ class SSIVSimilarity(ISimilarity):
         Returns:
         - float: The SSIV similarity measure, ranging from 0 to 1.
         """
-        return self.calculate_ssiv(state_a, state_b, importance_a, importance_b)
+        return self.calculate_ssiv(
+            state_a, state_b, importance_a, importance_b
+        )
 
     @staticmethod
     def calculate_ssiv(
@@ -58,7 +60,9 @@ class SSIVSimilarity(ISimilarity):
         ) + sum(importance_b[var] for var in shared_variables)
 
         # Calculate the total importance of all variables in both states
-        total_importance_sum = sum(importance_a.values()) + sum(importance_b.values())
+        total_importance_sum = sum(importance_a.values()) + sum(
+            importance_b.values()
+        )
 
         # Calculate and return the SSIV
         ssiv = (

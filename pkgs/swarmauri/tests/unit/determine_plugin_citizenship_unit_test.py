@@ -18,18 +18,22 @@ def restore_registry():
 
 @pytest.mark.unit
 def test_third_class_detection():
-    ep = EntryPoint(name="Dummy", value="pkg.module:Dummy", group="swarmauri.plugins")
+    ep = EntryPoint(
+        name="Dummy", value="pkg.module:Dummy", group="swarmauri.plugins"
+    )
     assert determine_plugin_citizenship(ep) == "third"
 
 
 @pytest.mark.unit
 def test_first_class_detection():
     ep = EntryPoint(
-        name="DummyAgent", value="pkg.agent:DummyAgent", group="swarmauri.agents"
+        name="DummyAgent",
+        value="pkg.agent:DummyAgent",
+        group="swarmauri.agents",
     )
-    PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY["swarmauri.agents.DummyAgent"] = (
-        "pkg.agent:DummyAgent"
-    )
+    PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
+        "swarmauri.agents.DummyAgent"
+    ] = "pkg.agent:DummyAgent"
     assert determine_plugin_citizenship(ep) == "first"
 
 
@@ -45,5 +49,7 @@ def test_second_class_detection():
 
 @pytest.mark.unit
 def test_unrecognized_plugin():
-    ep = EntryPoint(name="Unknown", value="pkg.unknown:Unknown", group="unknown.group")
+    ep = EntryPoint(
+        name="Unknown", value="pkg.unknown:Unknown", group="unknown.group"
+    )
     assert determine_plugin_citizenship(ep) is None

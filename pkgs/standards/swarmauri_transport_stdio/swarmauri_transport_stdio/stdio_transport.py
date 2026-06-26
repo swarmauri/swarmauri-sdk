@@ -40,7 +40,9 @@ class StdioTransport(
         )
 
     async def _start_server(self, **kwargs) -> None:
-        raise NotImplementedError("STDIO transport launches child processes only")
+        raise NotImplementedError(
+            "STDIO transport launches child processes only"
+        )
 
     async def _open_client(self) -> None:
         self._process = await asyncio.create_subprocess_exec(
@@ -67,4 +69,6 @@ class StdioTransport(
     async def recv(self, *, timeout: Optional[float] = None) -> bytes:
         if self._process is None or self._process.stdout is None:
             raise RuntimeError("not connected")
-        return await asyncio.wait_for(self._process.stdout.read(65536), timeout)
+        return await asyncio.wait_for(
+            self._process.stdout.read(65536), timeout
+        )

@@ -44,7 +44,9 @@ class MeshSidecarHttp2(TransportBase, RunnableMixin, PeerTransportMixin):
         )
 
     async def _start_server(self, **kwargs) -> None:
-        raise NotImplementedError("Server role is handled by the service mesh sidecar")
+        raise NotImplementedError(
+            "Server role is handled by the service mesh sidecar"
+        )
 
     async def _stop_server(self) -> None:
         return None
@@ -56,9 +58,13 @@ class MeshSidecarHttp2(TransportBase, RunnableMixin, PeerTransportMixin):
         port: int = 15001,
     ) -> None:
         if uds_path:
-            self._reader, self._writer = await asyncio.open_unix_connection(uds_path)
+            self._reader, self._writer = await asyncio.open_unix_connection(
+                uds_path
+            )
         else:
-            self._reader, self._writer = await asyncio.open_connection(host, port)
+            self._reader, self._writer = await asyncio.open_connection(
+                host, port
+            )
 
     async def _close_client(self) -> None:
         if self._writer is not None:

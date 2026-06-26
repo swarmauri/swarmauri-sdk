@@ -94,7 +94,9 @@ class QuicTransport(TransportBase):
     # ------------------------------------------------------------------
     # Lifecycle management
     # ------------------------------------------------------------------
-    async def _start_server(self, host: str = "0.0.0.0", port: int = 4433) -> None:
+    async def _start_server(
+        self, host: str = "0.0.0.0", port: int = 4433
+    ) -> None:
         self._reset_state()
         loop = asyncio.get_running_loop()
         transport, protocol = await loop.create_datagram_endpoint(
@@ -113,7 +115,9 @@ class QuicTransport(TransportBase):
             self._server_protocol = None
         self._reset_state()
 
-    async def _open_client(self, host: str = "127.0.0.1", port: int = 4433) -> None:
+    async def _open_client(
+        self, host: str = "127.0.0.1", port: int = 4433
+    ) -> None:
         self._reset_state()
         loop = asyncio.get_running_loop()
         transport, protocol = await loop.create_datagram_endpoint(
@@ -168,7 +172,11 @@ class QuicTransport(TransportBase):
         self._channels.pop(int(handle), None)
 
     async def send_on(
-        self, handle: ChannelHandle, data: bytes, *, timeout: Optional[float] = None
+        self,
+        handle: ChannelHandle,
+        data: bytes,
+        *,
+        timeout: Optional[float] = None,
     ) -> None:
         channel = self._ensure_channel(handle)
         if channel.remote is None:

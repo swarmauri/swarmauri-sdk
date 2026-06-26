@@ -43,7 +43,9 @@ def polynomial_rkhs():
 @pytest.fixture
 def rbf_rkhs():
     """Fixture for an RBF kernel RKHS inner product."""
-    return RKHSInnerProduct(kernel_function=lambda x, y: rbf_kernel(x, y, gamma=0.5))
+    return RKHSInnerProduct(
+        kernel_function=lambda x, y: rbf_kernel(x, y, gamma=0.5)
+    )
 
 
 @pytest.fixture
@@ -159,7 +161,9 @@ def test_rkhs_linearity_first_argument(linear_rkhs):
 
 
 @pytest.mark.unit
-def test_rkhs_positivity(linear_rkhs, polynomial_rkhs, rbf_rkhs, vector_samples):
+def test_rkhs_positivity(
+    linear_rkhs, polynomial_rkhs, rbf_rkhs, vector_samples
+):
     """Test that the RKHS inner product satisfies positivity."""
     for rkhs in [linear_rkhs, polynomial_rkhs, rbf_rkhs]:
         for a in vector_samples:
@@ -172,7 +176,9 @@ def test_rkhs_positivity(linear_rkhs, polynomial_rkhs, rbf_rkhs, vector_samples)
 
 
 @pytest.mark.unit
-def test_rkhs_positive_definite(linear_rkhs, polynomial_rkhs, rbf_rkhs, vector_samples):
+def test_rkhs_positive_definite(
+    linear_rkhs, polynomial_rkhs, rbf_rkhs, vector_samples
+):
     """Test that the kernel functions are positive definite."""
     for rkhs in [linear_rkhs, polynomial_rkhs, rbf_rkhs]:
         assert rkhs.is_positive_definite(vector_samples)

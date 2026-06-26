@@ -3,7 +3,16 @@
 from __future__ import annotations
 
 import time
-from typing import Any, Callable, ClassVar, Dict, Literal, Mapping, Optional, Tuple
+from typing import (
+    Any,
+    Callable,
+    ClassVar,
+    Dict,
+    Literal,
+    Mapping,
+    Optional,
+    Tuple,
+)
 
 import jwt
 from pydantic import ConfigDict, Field, PrivateAttr, SecretBytes, SecretStr
@@ -15,7 +24,9 @@ from swarmauri_base.auth_idp import OAuth20AppClientBase, RetryingAsyncClient
 PrivateKeySecret = SecretStr | SecretBytes
 
 
-@ComponentBase.register_type(OAuth20AppClientBase, "SalesforceOAuth20AppClient")
+@ComponentBase.register_type(
+    OAuth20AppClientBase, "SalesforceOAuth20AppClient"
+)
 class SalesforceOAuth20AppClient(OAuth20AppClientBase):
     """Request machine-to-machine access tokens using Salesforce's JWT bearer flow."""
 
@@ -26,8 +37,12 @@ class SalesforceOAuth20AppClient(OAuth20AppClientBase):
     token_endpoint: str
     client_id: str
     user: str
-    private_key_pem: Optional[PrivateKeySecret] = Field(default=None, repr=False)
-    private_key_jwk: Optional[Mapping[str, Any]] = Field(default=None, repr=False)
+    private_key_pem: Optional[PrivateKeySecret] = Field(
+        default=None, repr=False
+    )
+    private_key_jwk: Optional[Mapping[str, Any]] = Field(
+        default=None, repr=False
+    )
     aud: Optional[str] = None
     scope: Optional[str] = None
     jwt_lifetime_seconds: int = Field(default=180, ge=1)
@@ -39,7 +54,9 @@ class SalesforceOAuth20AppClient(OAuth20AppClientBase):
 
     type: Literal["SalesforceOAuth20AppClient"] = "SalesforceOAuth20AppClient"
 
-    _token_cache: Optional[Tuple[Dict[str, Any], float]] = PrivateAttr(default=None)
+    _token_cache: Optional[Tuple[Dict[str, Any], float]] = PrivateAttr(
+        default=None
+    )
 
     def model_post_init(self, __context: Any) -> None:
         if not self.private_key_jwk and not self.private_key_pem:
@@ -97,7 +114,9 @@ class SalesforceOAuth20AppClient(OAuth20AppClientBase):
             response.raise_for_status()
             return response.json()
 
-    async def access_token_payload(self, scope: Optional[str] = None) -> Dict[str, Any]:
+    async def access_token_payload(
+        self, scope: Optional[str] = None
+    ) -> Dict[str, Any]:
         now = time.time()
         if self.cache_ttl_seconds and self._token_cache:
             cached_payload, expires_at = self._token_cache

@@ -52,7 +52,9 @@ def _canon_json(obj: Any) -> bytes:
 
 def _canon_cbor(obj: Any) -> bytes:
     if not _CBOR_OK:
-        raise RuntimeError("CBOR canonicalization requires 'cbor2' to be installed.")
+        raise RuntimeError(
+            "CBOR canonicalization requires 'cbor2' to be installed."
+        )
     return cbor2.dumps(obj)
 
 
@@ -90,7 +92,9 @@ def _curve_from_crv(crv: str):
     c = crv.upper()
     if c in ("SECP256K1", "P-256K", "K-256"):
         return ec.SECP256K1()
-    raise ValueError(f"Unsupported curve for this signer: {crv} (expected secp256k1)")
+    raise ValueError(
+        f"Unsupported curve for this signer: {crv} (expected secp256k1)"
+    )
 
 
 def _load_private_from_pem(
@@ -170,7 +174,9 @@ def _keyref_to_private(
             if isinstance(data, str):
                 data = data.encode("utf-8")
             if not isinstance(data, (bytes, bytearray)):
-                raise TypeError("pem_priv KeyRef requires 'data' as bytes/str.")
+                raise TypeError(
+                    "pem_priv KeyRef requires 'data' as bytes/str."
+                )
             return _load_private_from_pem(bytes(data), passphrase)
         if k == "pem_priv_path":
             path = key.get("path")
@@ -227,7 +233,9 @@ def _keyref_to_public(entry: Any) -> ec.EllipticCurvePublicKey:
             raise TypeError("Provided public key is not secp256k1.")
         return entry
     elif isinstance(entry, (bytes, bytearray, str)):
-        data = entry.encode("utf-8") if isinstance(entry, str) else bytes(entry)
+        data = (
+            entry.encode("utf-8") if isinstance(entry, str) else bytes(entry)
+        )
         try:
             return _load_public_from_pem(data)
         except Exception as e:  # pragma: no cover
@@ -246,7 +254,8 @@ def _kid_from_public(
     except Exception:  # pragma: no cover
         pass
     spki = pk.public_bytes(
-        serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo
+        serialization.Encoding.DER,
+        serialization.PublicFormat.SubjectPublicKeyInfo,
     )
     return hashlib.sha256(spki).hexdigest()
 
@@ -368,7 +377,9 @@ class Secp256k1EnvelopeSigner(ISigning):
         if isinstance(fmt_opt, str) and fmt_opt.upper() == "RAW":
             r, s = decode_dss_signature(der_sig)
             size_bytes = (sk.curve.key_size + 7) // 8
-            sig_bytes = r.to_bytes(size_bytes, "big") + s.to_bytes(size_bytes, "big")
+            sig_bytes = r.to_bytes(size_bytes, "big") + s.to_bytes(
+                size_bytes, "big"
+            )
             fmt_value = "RAW"
 
         kid_hint = opts_map.get("kid_jwk_hint")
@@ -487,7 +498,9 @@ class Secp256k1EnvelopeSigner(ISigning):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         data = await _stream_to_bytes(payload)
-        return await self.verify_bytes(data, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            data, signatures, require=require, opts=opts
+        )
 
     def _verify_signatures(
         self,
@@ -524,7 +537,9 @@ class Secp256k1EnvelopeSigner(ISigning):
         for entry in pub_entries:
             pk = _keyref_to_public(entry)
             if not isinstance(pk.curve, ec.SECP256K1):
-                raise TypeError("All verification public keys must be secp256k1.")
+                raise TypeError(
+                    "All verification public keys must be secp256k1."
+                )
             pubs.append(pk)
 
         accepted = 0
@@ -544,7 +559,9 @@ class Secp256k1EnvelopeSigner(ISigning):
                         if prehashed
                         else ec.ECDSA(hashes.SHA256())
                     )
-                    if (isinstance(fmt_pref, str) and fmt_pref.upper() == "RAW") or (
+                    if (
+                        isinstance(fmt_pref, str) and fmt_pref.upper() == "RAW"
+                    ) or (
                         isinstance(sig.get("fmt"), str)
                         and sig.get("fmt").upper() == "RAW"
                     ):
@@ -610,4 +627,6 @@ class Secp256k1EnvelopeSigner(ISigning):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         payload = await self.canonicalize_envelope(env, canon=canon, opts=opts)
-        return await self.verify_bytes(payload, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            payload, signatures, require=require, opts=opts
+        )

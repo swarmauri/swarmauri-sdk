@@ -8,13 +8,17 @@ from swarmauri_base.measurements.MeasurementCalculateMixin import (
 
 
 @ComponentBase.register_type(MeasurementBase, "TokenCountEstimatorMeasurement")
-class TokenCountEstimatorMeasurement(MeasurementBase, MeasurementCalculateMixin):
+class TokenCountEstimatorMeasurement(
+    MeasurementBase, MeasurementCalculateMixin
+):
     """
     A measurement class to estimate the number of tokens in a given text.
     """
 
     unit: str = "tokens"
-    type: Literal["TokenCountEstimatorMeasurement"] = "TokenCountEstimatorMeasurement"
+    type: Literal["TokenCountEstimatorMeasurement"] = (
+        "TokenCountEstimatorMeasurement"
+    )
 
     def calculate(self, text: str, encoding="cl100k_base") -> int:
         """

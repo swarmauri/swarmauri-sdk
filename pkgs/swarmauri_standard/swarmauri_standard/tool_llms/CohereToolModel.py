@@ -2,7 +2,16 @@ import asyncio
 import json
 import logging
 import uuid
-from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type, Union
+from typing import (
+    Any,
+    AsyncIterator,
+    Dict,
+    Iterator,
+    List,
+    Literal,
+    Type,
+    Union,
+)
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -10,7 +19,9 @@ from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.DynamicBase import SubclassUnion
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_base.schema_converters.SchemaConverterBase import (
+    SchemaConverterBase,
+)
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.conversations.IConversation import IConversation
@@ -111,7 +122,9 @@ class CohereToolModel(ToolLLMBase):
             return []
         return [CohereSchemaConverter().convert(tools[tool]) for tool in tools]
 
-    def _extract_text_content(self, content: Union[str, List[contentItem]]) -> str:
+    def _extract_text_content(
+        self, content: Union[str, List[contentItem]]
+    ) -> str:
         """
         Extract text content from either a string or a list of content items.
 
@@ -334,7 +347,9 @@ class CohereToolModel(ToolLLMBase):
             tool_payload = self._prepare_chat_payload(
                 message=formatted_messages[-1]["message"],
                 chat_history=(
-                    formatted_messages[:-1] if len(formatted_messages) > 1 else None
+                    formatted_messages[:-1]
+                    if len(formatted_messages) > 1
+                    else None
                 ),
                 tools=tools,
                 force_single_step=True,
@@ -345,7 +360,9 @@ class CohereToolModel(ToolLLMBase):
             tool_response.raise_for_status()
             tool_data = tool_response.json()
 
-        tool_results, tool_messages = self._process_tool_calls(tool_data, toolkit)
+        tool_results, tool_messages = self._process_tool_calls(
+            tool_data, toolkit
+        )
 
         conversation.add_messages(tool_messages)
 
@@ -354,7 +371,9 @@ class CohereToolModel(ToolLLMBase):
                 response_payload = self._prepare_chat_payload(
                     message=formatted_messages[-1]["message"],
                     chat_history=(
-                        formatted_messages[:-1] if len(formatted_messages) > 1 else None
+                        formatted_messages[:-1]
+                        if len(formatted_messages) > 1
+                        else None
                     ),
                     tools=tools,
                     tool_results=tool_results,
@@ -373,7 +392,9 @@ class CohereToolModel(ToolLLMBase):
             )
 
             conversation.add_message(
-                AgentMessage(content=response_data.get("text", ""), usage=usage)
+                AgentMessage(
+                    content=response_data.get("text", ""), usage=usage
+                )
             )
         return conversation
 
@@ -405,7 +426,9 @@ class CohereToolModel(ToolLLMBase):
         tool_payload = self._prepare_chat_payload(
             message=formatted_messages[-1]["message"],
             chat_history=(
-                formatted_messages[:-1] if len(formatted_messages) > 1 else None
+                formatted_messages[:-1]
+                if len(formatted_messages) > 1
+                else None
             ),
             tools=tools,
             force_single_step=True,
@@ -415,7 +438,9 @@ class CohereToolModel(ToolLLMBase):
             tool_response.raise_for_status()
             tool_data = tool_response.json()
 
-        tool_results, tool_messages = self._process_tool_calls(tool_data, toolkit)
+        tool_results, tool_messages = self._process_tool_calls(
+            tool_data, toolkit
+        )
 
         conversation.add_messages(tool_messages)
 
@@ -423,7 +448,9 @@ class CohereToolModel(ToolLLMBase):
         stream_payload = self._prepare_chat_payload(
             message=formatted_messages[-1]["message"],
             chat_history=(
-                formatted_messages[:-1] if len(formatted_messages) > 1 else None
+                formatted_messages[:-1]
+                if len(formatted_messages) > 1
+                else None
             ),
             tools=tools,
             tool_results=tool_results,
@@ -435,7 +462,9 @@ class CohereToolModel(ToolLLMBase):
         collected_content = []
         usage_data = {}
         with DurationManager() as completion_timer:
-            with self._client.stream("POST", "/chat", json=stream_payload) as response:
+            with self._client.stream(
+                "POST", "/chat", json=stream_payload
+            ) as response:
                 response.raise_for_status()
                 for line in response.iter_lines():
                     if line:
@@ -451,7 +480,9 @@ class CohereToolModel(ToolLLMBase):
         usage = self._prepare_usage_data(
             usage_data, prompt_timer.duration, completion_timer.duration
         )
-        conversation.add_message(AgentMessage(content=full_content), usage=usage)
+        conversation.add_message(
+            AgentMessage(content=full_content), usage=usage
+        )
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
@@ -483,17 +514,23 @@ class CohereToolModel(ToolLLMBase):
             tool_payload = self._prepare_chat_payload(
                 message=formatted_messages[-1]["message"],
                 chat_history=(
-                    formatted_messages[:-1] if len(formatted_messages) > 1 else None
+                    formatted_messages[:-1]
+                    if len(formatted_messages) > 1
+                    else None
                 ),
                 tools=tools,
                 force_single_step=True,
             )
 
-            tool_response = await self._async_client.post("/chat", json=tool_payload)
+            tool_response = await self._async_client.post(
+                "/chat", json=tool_payload
+            )
             tool_response.raise_for_status()
             tool_data = tool_response.json()
 
-        tool_results, tool_messages = self._process_tool_calls(tool_data, toolkit)
+        tool_results, tool_messages = self._process_tool_calls(
+            tool_data, toolkit
+        )
 
         conversation.add_messages(tool_messages)
 
@@ -502,7 +539,9 @@ class CohereToolModel(ToolLLMBase):
                 response_payload = self._prepare_chat_payload(
                     message=formatted_messages[-1]["message"],
                     chat_history=(
-                        formatted_messages[:-1] if len(formatted_messages) > 1 else None
+                        formatted_messages[:-1]
+                        if len(formatted_messages) > 1
+                        else None
                     ),
                     tools=tools,
                     tool_results=tool_results,
@@ -510,7 +549,9 @@ class CohereToolModel(ToolLLMBase):
                     force_single_step=True,
                 )
 
-                response = await self._async_client.post("/chat", json=response_payload)
+                response = await self._async_client.post(
+                    "/chat", json=response_payload
+                )
                 response.raise_for_status()
                 response_data = response.json()
 
@@ -521,7 +562,9 @@ class CohereToolModel(ToolLLMBase):
             )
 
             conversation.add_message(
-                AgentMessage(content=response_data.get("text", ""), usage=usage)
+                AgentMessage(
+                    content=response_data.get("text", ""), usage=usage
+                )
             )
         return conversation
 
@@ -553,17 +596,23 @@ class CohereToolModel(ToolLLMBase):
         tool_payload = self._prepare_chat_payload(
             message=formatted_messages[-1]["message"],
             chat_history=(
-                formatted_messages[:-1] if len(formatted_messages) > 1 else None
+                formatted_messages[:-1]
+                if len(formatted_messages) > 1
+                else None
             ),
             tools=tools,
             force_single_step=True,
         )
         with DurationManager() as prompt_timer:
-            tool_response = await self._async_client.post("/chat", json=tool_payload)
+            tool_response = await self._async_client.post(
+                "/chat", json=tool_payload
+            )
             tool_response.raise_for_status()
             tool_data = tool_response.json()
 
-        tool_results, tool_messages = self._process_tool_calls(tool_data, toolkit)
+        tool_results, tool_messages = self._process_tool_calls(
+            tool_data, toolkit
+        )
 
         conversation.add_messages(tool_messages)
 
@@ -571,7 +620,9 @@ class CohereToolModel(ToolLLMBase):
         stream_payload = self._prepare_chat_payload(
             message=formatted_messages[-1]["message"],
             chat_history=(
-                formatted_messages[:-1] if len(formatted_messages) > 1 else None
+                formatted_messages[:-1]
+                if len(formatted_messages) > 1
+                else None
             ),
             tools=tools,
             tool_results=tool_results,
@@ -605,7 +656,9 @@ class CohereToolModel(ToolLLMBase):
         usage = self._prepare_usage_data(
             usage_data, prompt_timer.duration, completion_timer.duration
         )
-        conversation.add_message(AgentMessage(content=full_content), usage=usage)
+        conversation.add_message(
+            AgentMessage(content=full_content), usage=usage
+        )
 
     def batch(
         self,
@@ -634,7 +687,10 @@ class CohereToolModel(ToolLLMBase):
         """
         return [
             self.predict(
-                conv, toolkit=toolkit, temperature=temperature, max_tokens=max_tokens
+                conv,
+                toolkit=toolkit,
+                temperature=temperature,
+                max_tokens=max_tokens,
             )
             for conv in conversations
         ]
@@ -692,7 +748,11 @@ class CohereToolModel(ToolLLMBase):
         Returns:
             List[str]: List of allowed model names from the API
         """
-        non_tool_models = ["c4ai-aya-expanse-32b", "command-light-nightly", "command"]
+        non_tool_models = [
+            "c4ai-aya-expanse-32b",
+            "command-light-nightly",
+            "command",
+        ]
         response = self._client.get("/models")
         response.raise_for_status()
         models_data = response.json()

@@ -47,9 +47,12 @@ async def test_dispatch_logs_request_info(mock_info, logging_middleware):
     # Verify the logging calls
     assert mock_info.call_count >= 2
     assert any(
-        "Incoming request: GET /test" in str(call) for call in mock_info.call_args_list
+        "Incoming request: GET /test" in str(call)
+        for call in mock_info.call_args_list
     )
-    assert any("Request headers:" in str(call) for call in mock_info.call_args_list)
+    assert any(
+        "Request headers:" in str(call) for call in mock_info.call_args_list
+    )
 
 
 @pytest.mark.unit
@@ -76,10 +79,12 @@ async def test_dispatch_logs_response_info(mock_info, logging_middleware):
     # Verify response logging
     assert mock_info.call_count >= 3
     assert any(
-        "Response status code: 200" in str(call) for call in mock_info.call_args_list
+        "Response status code: 200" in str(call)
+        for call in mock_info.call_args_list
     )
     assert any(
-        "Request completed in:" in str(call) for call in mock_info.call_args_list
+        "Request completed in:" in str(call)
+        for call in mock_info.call_args_list
     )
 
 
@@ -111,9 +116,13 @@ async def test_dispatch_logs_request_body(
 
     # Verify request body logging
     if request_body:
-        assert any(expected_body in str(call) for call in mock_info.call_args_list)
+        assert any(
+            expected_body in str(call) for call in mock_info.call_args_list
+        )
     else:
-        assert any("Request body:" in str(call) for call in mock_info.call_args_list)
+        assert any(
+            "Request body:" in str(call) for call in mock_info.call_args_list
+        )
 
 
 @pytest.mark.unit

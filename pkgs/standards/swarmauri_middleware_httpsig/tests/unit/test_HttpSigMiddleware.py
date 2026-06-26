@@ -34,14 +34,18 @@ def test_ubc_resource(middleware):
 @pytest.mark.unit
 def test_serialization(middleware):
     serialized = middleware.model_dump_json()
-    assert HttpSigMiddleware.model_validate_json(serialized).id == middleware.id
+    assert (
+        HttpSigMiddleware.model_validate_json(serialized).id == middleware.id
+    )
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_dispatch_valid_signature(middleware, mock_request):
     digest = hmac.new(b"secret", b"payload", hashlib.sha256).digest()
-    mock_request.headers[middleware.header_name] = base64.b64encode(digest).decode()
+    mock_request.headers[middleware.header_name] = base64.b64encode(
+        digest
+    ).decode()
     call_next = AsyncMock(return_value="ok")
     result = await middleware.dispatch(mock_request, call_next)
     assert result == "ok"

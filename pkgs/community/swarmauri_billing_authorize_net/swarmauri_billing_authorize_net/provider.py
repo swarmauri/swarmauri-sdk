@@ -51,7 +51,9 @@ class AuthorizeNetBillingProvider(
     login_id: str | None = Field(
         default=None, description="Authorize.Net API login ID."
     )
-    environment: str = Field(default="sandbox", description="Authorize.Net environment")
+    environment: str = Field(
+        default="sandbox", description="Authorize.Net environment"
+    )
 
     @property
     def _endpoint(self) -> str:
@@ -63,13 +65,17 @@ class AuthorizeNetBillingProvider(
 
     def _merchant_auth(self) -> Mapping[str, str]:
         if not self.login_id:
-            raise ValueError("login_id is required for Authorize.Net API calls")
+            raise ValueError(
+                "login_id is required for Authorize.Net API calls"
+            )
         return {
             "name": self.login_id,
             "transactionKey": self.api_key,
         }
 
-    def _post(self, request_name: str, payload: Mapping[str, Any]) -> Mapping[str, Any]:
+    def _post(
+        self, request_name: str, payload: Mapping[str, Any]
+    ) -> Mapping[str, Any]:
         body = {
             request_name: {
                 "merchantAuthentication": self._merchant_auth(),
@@ -201,9 +207,13 @@ class AuthorizeNetBillingProvider(
         self, payment: Any, req: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
         metadata = dict(req.resolve("metadata") or {})
-        payment_payload = metadata.get("payment") or metadata.get("credit_card")
+        payment_payload = metadata.get("payment") or metadata.get(
+            "credit_card"
+        )
         if not payment_payload:
-            raise ValueError("Authorize.Net refunds require payment card metadata")
+            raise ValueError(
+                "Authorize.Net refunds require payment card metadata"
+            )
         raw = self._post(
             "createTransactionRequest",
             {
@@ -236,7 +246,9 @@ class AuthorizeNetBillingProvider(
         }
 
     # ------------------------------------------------------------------- customer
-    def _create_customer(self, spec: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+    def _create_customer(
+        self, spec: Any, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
         raw = self._post(
             "createCustomerProfileRequest",
             {
@@ -287,8 +299,12 @@ class AuthorizeNetBillingProvider(
             ),
         }
 
-    def _detach_payment_method(self, payment_method_id: str) -> Mapping[str, Any]:
-        return self._stub("detach_payment_method", payment_method_id=payment_method_id)
+    def _detach_payment_method(
+        self, payment_method_id: str
+    ) -> Mapping[str, Any]:
+        return self._stub(
+            "detach_payment_method", payment_method_id=payment_method_id
+        )
 
     def _list_payment_methods(
         self,
@@ -316,7 +332,9 @@ class AuthorizeNetBillingProvider(
         return methods
 
     # --------------------------------------------------------------------- reports
-    def _create_report(self, req: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+    def _create_report(
+        self, req: Any, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
         return {
             "report_id": f"anet_report_{uuid4().hex[:10]}",
             "status": "QUEUED",
@@ -342,7 +360,9 @@ class AuthorizeNetBillingProvider(
         ).hexdigest()
         return hmac.compare_digest(digest.upper(), signature.upper())
 
-    def _list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
+    def _list_disputes(
+        self, *, limit: int = 50
+    ) -> Sequence[Mapping[str, Any]]:
         if limit <= 0:
             return tuple()
         return (
@@ -363,7 +383,9 @@ class AuthorizeNetBillingProvider(
             "X-ANET-Event-Type", "authorize_net.event"
         )
         return {
-            "event_id": payload.get("notificationId", f"anet_evt_{uuid4().hex[:10]}"),
+            "event_id": payload.get(
+                "notificationId", f"anet_evt_{uuid4().hex[:10]}"
+            ),
             "type": event_type,
             "provider": self.component_name,
             "raw": payload,

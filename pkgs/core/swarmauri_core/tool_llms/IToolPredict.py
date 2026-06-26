@@ -25,7 +25,9 @@ class IToolPredict(ABC):
         pass
 
     @abstractmethod
-    def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[IMessage]:
+    def _process_tool_calls(
+        self, tool_calls, toolkit, messages
+    ) -> List[IMessage]:
         pass
 
     @abstractmethod

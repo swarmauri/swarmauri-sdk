@@ -47,7 +47,9 @@ def _cek_len_for_enc(enc: JWAAlg) -> int:
         return 24
     if enc == JWAAlg.A256GCM:
         return 32
-    raise ValueError(f"Unsupported enc '{enc.value}'. Use A128GCM/A192GCM/A256GCM.")
+    raise ValueError(
+        f"Unsupported enc '{enc.value}'. Use A128GCM/A192GCM/A256GCM."
+    )
 
 
 def _hash_for_oaep(alg: JWAAlg):
@@ -68,7 +70,9 @@ def _compute_aad(protected_b64: str, aad_bytes: Optional[bytes]) -> bytes:
     return (protected_b64 + "." + _b64u(aad_bytes)).encode("ascii")
 
 
-def _jwk_ec_public_numbers(jwk: Mapping[str, Any]) -> ec.EllipticCurvePublicNumbers:
+def _jwk_ec_public_numbers(
+    jwk: Mapping[str, Any],
+) -> ec.EllipticCurvePublicNumbers:
     crv = jwk.get("crv")
     curve_map = {
         "P-256": ec.SECP256R1(),
@@ -85,7 +89,11 @@ def _jwk_ec_public_numbers(jwk: Mapping[str, Any]) -> ec.EllipticCurvePublicNumb
 def _ec_jwk_from_public_key(pk: ec.EllipticCurvePublicKey) -> Dict[str, Any]:
     numbers = pk.public_numbers()
     crv = pk.curve.name
-    crv_map = {"secp256r1": "P-256", "secp384r1": "P-384", "secp521r1": "P-521"}
+    crv_map = {
+        "secp256r1": "P-256",
+        "secp384r1": "P-384",
+        "secp521r1": "P-521",
+    }
     if crv not in crv_map:
         raise ValueError(f"Unsupported EC curve: {crv}")
     size = (pk.curve.key_size + 7) // 8
@@ -96,7 +104,8 @@ def _ec_jwk_from_public_key(pk: ec.EllipticCurvePublicKey) -> Dict[str, Any]:
 
 def _x25519_jwk_from_public_key(pk: x25519.X25519PublicKey) -> Dict[str, Any]:
     raw = pk.public_bytes(
-        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PublicFormat.Raw,
     )
     return {"kty": "OKP", "crv": "X25519", "x": _b64u(raw)}
 
@@ -105,7 +114,9 @@ def _load_rsa_public(key: Any) -> rsa.RSAPublicKey:
     if isinstance(key, rsa.RSAPublicKey):
         return key
     if isinstance(key, (bytes, bytearray, str)):
-        data = key if isinstance(key, (bytes, bytearray)) else key.encode("utf-8")
+        data = (
+            key if isinstance(key, (bytes, bytearray)) else key.encode("utf-8")
+        )
         pk = load_pem_public_key(data)
         if not isinstance(pk, rsa.RSAPublicKey):
             raise TypeError("PEM provided is not an RSA public key")
@@ -128,7 +139,9 @@ def _load_rsa_private(
     elif isinstance(password, (bytes, bytearray)):
         pwd = bytes(password)
     if isinstance(key, (bytes, bytearray, str)):
-        data = key if isinstance(key, (bytes, bytearray)) else key.encode("utf-8")
+        data = (
+            key if isinstance(key, (bytes, bytearray)) else key.encode("utf-8")
+        )
         sk = load_pem_private_key(data, password=pwd)
         if not isinstance(sk, rsa.RSAPrivateKey):
             raise TypeError("PEM provided is not an RSA private key")
@@ -259,7 +272,9 @@ class JweCrypto:
         if alg == JWAAlg.DIR:
             secret = key.get("k")
             secret_b = (
-                secret.encode("utf-8") if isinstance(secret, str) else bytes(secret)
+                secret.encode("utf-8")
+                if isinstance(secret, str)
+                else bytes(secret)
             )
             if len(secret_b) != _cek_len_for_enc(enc):
                 raise ValueError(
@@ -363,7 +378,9 @@ class JweCrypto:
 
         parts = jwe.split(".")
         if len(parts) != 5:
-            raise ValueError("Invalid JWE compact: expected 5 dot-separated parts.")
+            raise ValueError(
+                "Invalid JWE compact: expected 5 dot-separated parts."
+            )
         b64_prot, b64_ekey, b64_iv, b64_ct, b64_tag = parts
 
         header = json.loads(_b64u_dec(b64_prot))
@@ -389,33 +406,49 @@ class JweCrypto:
             if dir_key is None:
                 raise ValueError("dir_key is required for alg='dir'.")
             cek = (
-                dir_key.encode("utf-8") if isinstance(dir_key, str) else bytes(dir_key)
+                dir_key.encode("utf-8")
+                if isinstance(dir_key, str)
+                else bytes(dir_key)
             )
             if len(cek) != _cek_len_for_enc(enc):
                 raise ValueError("dir_key length mismatch for enc.")
         elif alg in (JWAAlg.RSA_OAEP, JWAAlg.RSA_OAEP_256):
             if rsa_private_pem is None:
-                raise ValueError("rsa_private_pem is required for RSA-OAEP decryption.")
-            sk = _load_rsa_private(rsa_private_pem, password=rsa_private_password)
+                raise ValueError(
+                    "rsa_private_pem is required for RSA-OAEP decryption."
+                )
+            sk = _load_rsa_private(
+                rsa_private_pem, password=rsa_private_password
+            )
             ekey = _b64u_dec(b64_ekey)
             hash_alg = _hash_for_oaep(alg)
             cek = sk.decrypt(
                 ekey,
                 padding.OAEP(
-                    mgf=padding.MGF1(algorithm=hash_alg), algorithm=hash_alg, label=None
+                    mgf=padding.MGF1(algorithm=hash_alg),
+                    algorithm=hash_alg,
+                    label=None,
                 ),
             )
         elif alg == JWAAlg.ECDH_ES:
             if ecdh_private_key is None:
-                raise ValueError("ecdh_private_key is required for ECDH-ES decryption.")
+                raise ValueError(
+                    "ecdh_private_key is required for ECDH-ES decryption."
+                )
             epk = header.get("epk")
             if not isinstance(epk, Mapping):
-                raise ValueError("Missing/invalid 'epk' in JWE header for ECDH-ES.")
+                raise ValueError(
+                    "Missing/invalid 'epk' in JWE header for ECDH-ES."
+                )
             if epk.get("kty") == "OKP" and epk.get("crv") == "X25519":
                 if not isinstance(ecdh_private_key, x25519.X25519PrivateKey):
-                    raise TypeError("ECDH-ES with X25519 requires an X25519PrivateKey.")
+                    raise TypeError(
+                        "ECDH-ES with X25519 requires an X25519PrivateKey."
+                    )
                 z = ecdh_private_key.exchange(
-                    x25519.X25519PublicKey.from_public_bytes(_b64u_dec(epk["x"]))
+                    x25519.X25519PublicKey.from_public_bytes(
+                        _b64u_dec(epk["x"])
+                    )
                 )
             elif epk.get("kty") == "EC":
                 crv = epk.get("crv")
@@ -426,7 +459,9 @@ class JweCrypto:
                 }.get(crv)
                 if curve is None:
                     raise ValueError(f"Unsupported EC curve in epk: {crv}")
-                if not isinstance(ecdh_private_key, ec.EllipticCurvePrivateKey):
+                if not isinstance(
+                    ecdh_private_key, ec.EllipticCurvePrivateKey
+                ):
                     raise TypeError(
                         "ECDH-ES with EC requires an EllipticCurvePrivateKey."
                     )
@@ -454,7 +489,9 @@ class JweCrypto:
             try:
                 pt = zlib.decompress(pt)
             except Exception as exc:  # noqa: BLE001
-                raise ValueError(f"Failed to decompress (zip=DEF): {exc}") from exc
+                raise ValueError(
+                    f"Failed to decompress (zip=DEF): {exc}"
+                ) from exc
 
         return JweDecryptResult(header=header, plaintext=pt)
 

@@ -78,7 +78,9 @@ def test_call_github_repo_tool(
             method_called,
             return_value="performed a test action successfully",
         ) as mock_method:
-            result = github_toolkit.get_tool_by_name(tool_name)(action=action, **kwargs)
+            result = github_toolkit.get_tool_by_name(tool_name)(
+                action=action, **kwargs
+            )
 
             mock_method.assert_called_once_with(**kwargs)
 
@@ -91,7 +93,11 @@ def test_call_github_repo_tool(
             assert isinstance(result.get(action), str), (
                 f"Expected str, but got {type(result.get(action)).__name__}"
             )
-            assert result == {f"{action}": "performed a test action successfully"}
+            assert result == {
+                f"{action}": "performed a test action successfully"
+            }
     else:
-        with pytest.raises(ValueError, match=f"Action '{action}' is not supported."):
+        with pytest.raises(
+            ValueError, match=f"Action '{action}' is not supported."
+        ):
             github_toolkit.get_tool_by_name(tool_name)(action=action, **kwargs)

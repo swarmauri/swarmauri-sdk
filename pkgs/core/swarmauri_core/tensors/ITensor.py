@@ -58,7 +58,9 @@ class ITensor(ABC):
 
     @abstractmethod
     def __setitem__(
-        self, key: Index, value: Union["ITensor", IMatrix, IVector, T, Sequence]
+        self,
+        key: Index,
+        value: Union["ITensor", IMatrix, IVector, T, Sequence],
     ) -> None:
         """
         Set an element, slice, or subtensor using indexing/slicing.
@@ -293,7 +295,9 @@ class ITensor(ABC):
         pass
 
     @abstractmethod
-    def transpose(self, axes: Union[None, Tuple[int, ...]] = None) -> "ITensor":
+    def transpose(
+        self, axes: Union[None, Tuple[int, ...]] = None
+    ) -> "ITensor":
         """
         Transpose (permute) the tensor's axes.
 

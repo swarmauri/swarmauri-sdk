@@ -121,7 +121,9 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
         # Calculate Flesch Reading Ease score
         # FRE = 206.835 - 1.015*(words/sentences) - 84.6*(syllables/words)
         fre_score = (
-            206.835 - (1.015 * avg_sentence_length) - (84.6 * avg_syllables_per_word)
+            206.835
+            - (1.015 * avg_sentence_length)
+            - (84.6 * avg_syllables_per_word)
         )
 
         # Ensure score is within 0-100 range
@@ -148,7 +150,9 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
         try:
             source_files = program.get_source_files()
             if isinstance(source_files, dict):
-                return " ".join(v for v in source_files.values() if isinstance(v, str))
+                return " ".join(
+                    v for v in source_files.values() if isinstance(v, str)
+                )
         except Exception as exc:
             if self.logger:
                 self.logger.debug(f"Failed to obtain program text: {exc}")

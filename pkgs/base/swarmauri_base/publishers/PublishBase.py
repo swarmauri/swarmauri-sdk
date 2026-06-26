@@ -11,7 +11,9 @@ from swarmauri_core.publishers.IPublish import IPublish
 class PublishBase(IPublish, ComponentBase):
     """Abstract base class implementing the :class:`IPublish` interface."""
 
-    resource: Optional[str] = Field(default=ResourceTypes.PUBLISHER.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.PUBLISHER.value, frozen=True
+    )
     type: Literal["PublishBase"] = "PublishBase"
 
     @abstractmethod

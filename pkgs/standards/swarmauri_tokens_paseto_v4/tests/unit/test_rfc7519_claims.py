@@ -6,7 +6,10 @@ import pytest
 
 async def _expired(service):
     token = await service.mint(
-        {"exp": int(time.time()) - 1000}, alg="v4.public", kid="ed1", lifetime_s=None
+        {"exp": int(time.time()) - 1000},
+        alg="v4.public",
+        kid="ed1",
+        lifetime_s=None,
     )
     with pytest.raises(ValueError):
         await service.verify(token, leeway_s=0)

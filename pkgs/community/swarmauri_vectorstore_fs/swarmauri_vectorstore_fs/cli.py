@@ -40,7 +40,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--chunk-size", type=int, default=1200, help="Chunk size in characters"
     )
     parser.add_argument(
-        "--chunk-overlap", type=int, default=120, help="Chunk overlap in characters"
+        "--chunk-overlap",
+        type=int,
+        default=120,
+        help="Chunk overlap in characters",
     )
     parser.add_argument(
         "--include", action="append", dest="include", help="Glob to include"
@@ -54,7 +57,9 @@ def build_parser() -> argparse.ArgumentParser:
         default=1_000_000,
         help="Maximum file size in bytes to index",
     )
-    parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
+    parser.add_argument(
+        "--verbose", action="store_true", help="Enable debug logging"
+    )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -65,7 +70,9 @@ def build_parser() -> argparse.ArgumentParser:
     query_parser.add_argument(
         "--top-k", type=int, default=5, help="Number of hits to return"
     )
-    query_parser.add_argument("--json", action="store_true", help="Emit JSON output")
+    query_parser.add_argument(
+        "--json", action="store_true", help="Emit JSON output"
+    )
 
     show_parser = subparsers.add_parser("show", help="Print a document by id")
     show_parser.add_argument(
@@ -91,7 +98,9 @@ def build_store(args: argparse.Namespace) -> FsVectorStore:
         args.mode,
     )
     store.build_index()
-    LOGGER.info("Indexed [bold green]%s[/bold green] documents", len(store.documents))
+    LOGGER.info(
+        "Indexed [bold green]%s[/bold green] documents", len(store.documents)
+    )
     return store
 
 
@@ -99,12 +108,14 @@ def render_query_results(
     store: FsVectorStore, query: str, top_k: int, as_json: bool
 ) -> int:
     LOGGER.info(
-        "Running BM25F retrieval for query [bold yellow]%s[/bold yellow]", query
+        "Running BM25F retrieval for query [bold yellow]%s[/bold yellow]",
+        query,
     )
     results = store.search(query, top_k=top_k)
     if not results:
         LOGGER.warning(
-            "No lexical matches found for query [bold yellow]%s[/bold yellow]", query
+            "No lexical matches found for query [bold yellow]%s[/bold yellow]",
+            query,
         )
 
     if as_json:
@@ -142,7 +153,9 @@ def render_query_results(
 def render_document(store: FsVectorStore, document_id: str) -> int:
     document = store.get_document(document_id)
     if not document:
-        LOGGER.error("Document [bold red]%s[/bold red] was not found", document_id)
+        LOGGER.error(
+            "Document [bold red]%s[/bold red] was not found", document_id
+        )
         return 1
 
     LOGGER.info("Printing document [bold cyan]%s[/bold cyan]", document_id)

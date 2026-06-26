@@ -1,6 +1,8 @@
 import warnings
 
-from swarmauri_standard.distances.SorensenDiceDistance import SorensenDiceDistance as _StandardSorensenDiceDistance
+from swarmauri_standard.distances.SorensenDiceDistance import (
+    SorensenDiceDistance as _StandardSorensenDiceDistance,
+)
 
 
 class SorensenDiceDistance(_StandardSorensenDiceDistance):

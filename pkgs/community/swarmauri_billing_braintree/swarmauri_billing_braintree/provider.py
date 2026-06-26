@@ -53,12 +53,18 @@ class BraintreeBillingProvider(
         }
     )
     component_name: str = "braintree"
-    merchant_id: str | None = Field(default=None, description="Braintree merchant ID")
-    public_key: str | None = Field(default=None, description="Braintree public key")
+    merchant_id: str | None = Field(
+        default=None, description="Braintree merchant ID"
+    )
+    public_key: str | None = Field(
+        default=None, description="Braintree public key"
+    )
     private_key: SecretStr | None = Field(
         default=None, description="Braintree private key"
     )
-    environment: str = Field(default="sandbox", description="Braintree environment")
+    environment: str = Field(
+        default="sandbox", description="Braintree environment"
+    )
     _gateway: Any = PrivateAttr(default=None)
 
     def _bt(self) -> Any:
@@ -178,7 +184,9 @@ class BraintreeBillingProvider(
                 "amount": f"{amount / 100:.2f}",
                 "payment_method_nonce": req.resolve("payment_method_id")
                 or metadata.get("payment_method_nonce", "fake-valid-nonce"),
-                "options": {"submit_for_settlement": bool(req.resolve("capture"))},
+                "options": {
+                    "submit_for_settlement": bool(req.resolve("capture"))
+                },
                 "order_id": req.resolve("idempotency_key"),
             }
         )
@@ -225,7 +233,9 @@ class BraintreeBillingProvider(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
         if not spec.items:
-            raise ValueError("Braintree subscription creation requires a plan_id")
+            raise ValueError(
+                "Braintree subscription creation requires a plan_id"
+            )
         result = self._bt().subscription.create(
             {
                 "payment_method_token": (spec.metadata or {}).get(
@@ -273,7 +283,11 @@ class BraintreeBillingProvider(
 
     def _get_refund(self, refund_id: str) -> Mapping[str, Any]:
         transaction = self._bt().transaction.find(refund_id)
-        raw = dict(transaction.__dict__) if hasattr(transaction, "__dict__") else {}
+        raw = (
+            dict(transaction.__dict__)
+            if hasattr(transaction, "__dict__")
+            else {}
+        )
         return {
             "id": refund_id,
             "status": raw.get("status"),
@@ -282,7 +296,9 @@ class BraintreeBillingProvider(
         }
 
     # ------------------------------------------------------------------- customer
-    def _create_customer(self, spec: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+    def _create_customer(
+        self, spec: Any, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
         result = self._bt().customer.create(
             {
                 "id": idempotency_key,
@@ -335,7 +351,9 @@ class BraintreeBillingProvider(
             "raw": raw,
         }
 
-    def _detach_payment_method(self, payment_method_id: str) -> Mapping[str, Any]:
+    def _detach_payment_method(
+        self, payment_method_id: str
+    ) -> Mapping[str, Any]:
         self._bt().payment_method.delete(payment_method_id)
         return {"id": payment_method_id, "provider": self.component_name}
 
@@ -365,7 +383,9 @@ class BraintreeBillingProvider(
         return methods
 
     # --------------------------------------------------------------------- reports
-    def _create_report(self, req: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+    def _create_report(
+        self, req: Any, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
         return {
             "report_id": f"bt_report_{uuid4().hex[:8]}",
             "status": "QUEUED",
@@ -389,13 +409,17 @@ class BraintreeBillingProvider(
         except Exception:
             return False
 
-    def _list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
+    def _list_disputes(
+        self, *, limit: int = 50
+    ) -> Sequence[Mapping[str, Any]]:
         # Braintree's Python SDK exposes disputes through a search iterator.
         rows = []
         for index, dispute in enumerate(self._bt().dispute.search()):
             if index >= limit:
                 break
-            rows.append(dict(dispute.__dict__) if hasattr(dispute, "__dict__") else {})
+            rows.append(
+                dict(dispute.__dict__) if hasattr(dispute, "__dict__") else {}
+            )
         return rows
 
     # --------------------------------------------------------------------- webhooks
@@ -404,9 +428,13 @@ class BraintreeBillingProvider(
     ) -> Mapping[str, Any]:
         signature = headers.get("BT-Signature", "")
         payload = headers.get("BT-Payload") or raw_body.decode("utf-8")
-        notification = self._bt().webhook_notification.parse(signature, payload)
+        notification = self._bt().webhook_notification.parse(
+            signature, payload
+        )
         return {
-            "event_id": getattr(notification, "timestamp", f"bt_evt_{uuid4().hex[:8]}"),
+            "event_id": getattr(
+                notification, "timestamp", f"bt_evt_{uuid4().hex[:8]}"
+            ),
             "type": getattr(notification, "kind", "braintree.event"),
             "provider": self.component_name,
             "raw": dict(notification.__dict__),

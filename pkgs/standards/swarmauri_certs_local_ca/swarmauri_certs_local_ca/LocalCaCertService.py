@@ -25,17 +25,23 @@ def _name_from_spec(spec: SubjectSpec) -> x509.Name:
     if "C" in spec:
         rdns.append(x509.NameAttribute(NameOID.COUNTRY_NAME, spec["C"]))
     if "ST" in spec:
-        rdns.append(x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, spec["ST"]))
+        rdns.append(
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, spec["ST"])
+        )
     if "L" in spec:
         rdns.append(x509.NameAttribute(NameOID.LOCALITY_NAME, spec["L"]))
     if "O" in spec:
         rdns.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, spec["O"]))
     if "OU" in spec:
-        rdns.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, spec["OU"]))
+        rdns.append(
+            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, spec["OU"])
+        )
     if "CN" in spec:
         rdns.append(x509.NameAttribute(NameOID.COMMON_NAME, spec["CN"]))
     if "emailAddress" in spec:
-        rdns.append(x509.NameAttribute(NameOID.EMAIL_ADDRESS, spec["emailAddress"]))
+        rdns.append(
+            x509.NameAttribute(NameOID.EMAIL_ADDRESS, spec["emailAddress"])
+        )
     return x509.Name(rdns)
 
 
@@ -102,7 +108,13 @@ class LocalCaCertService(CertServiceBase):
         return {
             "key_algs": ("RSA-2048", "RSA-3072", "EC-P256", "Ed25519"),
             "sig_algs": ("RSA-PSS-SHA256", "ECDSA-P256-SHA256", "Ed25519"),
-            "features": ("csr", "self_signed", "sign_from_csr", "verify", "parse"),
+            "features": (
+                "csr",
+                "self_signed",
+                "sign_from_csr",
+                "verify",
+                "parse",
+            ),
         }
 
     async def create_csr(
@@ -127,11 +139,15 @@ class LocalCaCertService(CertServiceBase):
                 {"subject_alt_name": san},
             )
         algorithm = (
-            None if isinstance(sk, ed25519.Ed25519PrivateKey) else hashes.SHA256()
+            None
+            if isinstance(sk, ed25519.Ed25519PrivateKey)
+            else hashes.SHA256()
         )
         csr = csr_builder.sign(sk, algorithm)
         return csr.public_bytes(
-            serialization.Encoding.DER if output_der else serialization.Encoding.PEM
+            serialization.Encoding.DER
+            if output_der
+            else serialization.Encoding.PEM
         )
 
     async def create_self_signed(
@@ -158,15 +174,21 @@ class LocalCaCertService(CertServiceBase):
             .not_valid_before(
                 datetime.datetime.utcnow() - datetime.timedelta(minutes=5)
             )
-            .not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=365))
+            .not_valid_after(
+                datetime.datetime.utcnow() + datetime.timedelta(days=365)
+            )
         )
         builder = _apply_extensions(builder, extensions, ca=True)
         algorithm = (
-            None if isinstance(sk, ed25519.Ed25519PrivateKey) else hashes.SHA256()
+            None
+            if isinstance(sk, ed25519.Ed25519PrivateKey)
+            else hashes.SHA256()
         )
         cert = builder.sign(private_key=sk, algorithm=algorithm)
         return cert.public_bytes(
-            serialization.Encoding.DER if output_der else serialization.Encoding.PEM
+            serialization.Encoding.DER
+            if output_der
+            else serialization.Encoding.PEM
         )
 
     async def sign_cert(
@@ -189,8 +211,12 @@ class LocalCaCertService(CertServiceBase):
             if b"BEGIN" in csr
             else x509.load_der_x509_csr(csr)
         )
-        ca_sk = serialization.load_pem_private_key(ca_key.material, password=None)
-        ca_name = csr_obj.subject if issuer is None else _name_from_spec(issuer)
+        ca_sk = serialization.load_pem_private_key(
+            ca_key.material, password=None
+        )
+        ca_name = (
+            csr_obj.subject if issuer is None else _name_from_spec(issuer)
+        )
 
         builder = (
             x509.CertificateBuilder()
@@ -201,15 +227,21 @@ class LocalCaCertService(CertServiceBase):
             .not_valid_before(
                 datetime.datetime.utcnow() - datetime.timedelta(minutes=5)
             )
-            .not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=365))
+            .not_valid_after(
+                datetime.datetime.utcnow() + datetime.timedelta(days=365)
+            )
         )
         builder = _apply_extensions(builder, extensions, ca=False)
         algorithm = (
-            None if isinstance(ca_sk, ed25519.Ed25519PrivateKey) else hashes.SHA256()
+            None
+            if isinstance(ca_sk, ed25519.Ed25519PrivateKey)
+            else hashes.SHA256()
         )
         cert = builder.sign(private_key=ca_sk, algorithm=algorithm)
         return cert.public_bytes(
-            serialization.Encoding.DER if output_der else serialization.Encoding.PEM
+            serialization.Encoding.DER
+            if output_der
+            else serialization.Encoding.PEM
         )
 
     async def verify_cert(

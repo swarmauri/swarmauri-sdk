@@ -1,5 +1,7 @@
 import pytest
-from swarmauri_standard.parsers.URLExtractorParser import URLExtractorParser as Parser
+from swarmauri_standard.parsers.URLExtractorParser import (
+    URLExtractorParser as Parser,
+)
 
 
 @pytest.mark.unit

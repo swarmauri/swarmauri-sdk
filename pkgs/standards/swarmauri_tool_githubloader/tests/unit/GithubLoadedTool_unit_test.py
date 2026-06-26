@@ -15,7 +15,8 @@ def test_ubc_resource():
 @pytest.mark.unit
 def test_ubc_type():
     assert (
-        GithubLoadedTool(owner="o", repo="r", path="p.yaml").type == "GithubLoadedTool"
+        GithubLoadedTool(owner="o", repo="r", path="p.yaml").type
+        == "GithubLoadedTool"
     )
 
 

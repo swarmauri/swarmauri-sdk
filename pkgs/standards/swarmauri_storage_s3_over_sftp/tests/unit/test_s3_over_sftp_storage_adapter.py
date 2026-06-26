@@ -109,7 +109,9 @@ def test_resource_type_serialization(adapter, sftp):
     assert adapter.resource == "StorageAdapter"
     assert adapter.type == "S3OverSftpStorageAdapter"
     data = adapter.model_dump()
-    restored = S3OverSftpStorageAdapter(bucket="bucket", sftp_client=sftp, **data)
+    restored = S3OverSftpStorageAdapter(
+        bucket="bucket", sftp_client=sftp, **data
+    )
     assert restored.type == adapter.type
 
 
@@ -153,7 +155,9 @@ def test_push_pull(adapter, tmp_path):
     assert (dest / "nested.txt").read_bytes() == b"payload"
 
 
-def test_pull_rejects_path_traversal_object_key(adapter, sftp, tmp_path, monkeypatch):
+def test_pull_rejects_path_traversal_object_key(
+    adapter, sftp, tmp_path, monkeypatch
+):
     def hostile_listdir(path):
         assert path == "/remote/root/bucket/runs/safe"
         return [Attr("../escaped.txt", stat.S_IFREG, 5)]
@@ -176,7 +180,9 @@ def test_upload_memoryview_and_mmap(adapter, tmp_path):
     path = tmp_path / "blob.bin"
     path.write_bytes(b"mmap-content")
     with path.open("r+b") as file_handle:
-        with mmap.mmap(file_handle.fileno(), 0, access=mmap.ACCESS_READ) as source:
+        with mmap.mmap(
+            file_handle.fileno(), 0, access=mmap.ACCESS_READ
+        ) as source:
             adapter.upload_mmap("mmap.bin", source)
 
     with adapter.open_mmap("mmap.bin") as mapped:
@@ -215,7 +221,10 @@ def test_from_uri(monkeypatch, sftp):
         "?root_dir=/remote/root"
     )
 
-    assert adapter.root_uri == "s3+sftp://deploy@example.test:2222/demo-bucket/models/"
+    assert (
+        adapter.root_uri
+        == "s3+sftp://deploy@example.test:2222/demo-bucket/models/"
+    )
     assert DummySshClient.instances[0].loaded_keys is True
     assert DummySshClient.instances[0].kwargs["hostname"] == "example.test"
     assert DummySshClient.instances[0].kwargs["port"] == 2222

@@ -7,7 +7,8 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,9 @@ class LoggingMiddleware(MiddlewareBase, ComponentBase):
             the request.
         """
         # Log incoming request details
-        self.logger.info(f"Incoming request: {request.method} {request.url.path}")
+        self.logger.info(
+            f"Incoming request: {request.method} {request.url.path}"
+        )
         self.logger.info(f"Request headers: {dict(request.headers)}")
 
         try:

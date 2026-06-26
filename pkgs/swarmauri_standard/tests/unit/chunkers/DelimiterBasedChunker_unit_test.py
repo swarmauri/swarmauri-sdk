@@ -1,5 +1,7 @@
 import pytest
-from swarmauri_standard.chunkers.DelimiterBasedChunker import DelimiterBasedChunker
+from swarmauri_standard.chunkers.DelimiterBasedChunker import (
+    DelimiterBasedChunker,
+)
 
 
 @pytest.mark.unit
@@ -26,5 +28,7 @@ def test_serialization():
     chunker = DelimiterBasedChunker()
     assert (
         chunker.id
-        == DelimiterBasedChunker.model_validate_json(chunker.model_dump_json()).id
+        == DelimiterBasedChunker.model_validate_json(
+            chunker.model_dump_json()
+        ).id
     )

@@ -129,9 +129,13 @@ async def test_discovers_and_reuses_token_client(
         captured_endpoints.append(self.token_endpoint)
         return {"access_token": "oidc-token"}
 
-    from swarmauri_auth_idp_salesforce import SalesforceOAuth20AppClient as _SF20
+    from swarmauri_auth_idp_salesforce import (
+        SalesforceOAuth20AppClient as _SF20,
+    )
 
-    monkeypatch.setattr(_SF20, "access_token_payload", fake_access_token_payload)
+    monkeypatch.setattr(
+        _SF20, "access_token_payload", fake_access_token_payload
+    )
 
     client = SalesforceOIDC10AppClient(
         issuer="https://login.salesforce.com",
@@ -147,5 +151,6 @@ async def test_discovers_and_reuses_token_client(
     assert token_one == token_two == "oidc-token"
     assert factory.get_calls == 1
     assert (
-        captured_endpoints == ["https://login.salesforce.com/services/oauth2/token"] * 2
+        captured_endpoints
+        == ["https://login.salesforce.com/services/oauth2/token"] * 2
     )

@@ -28,7 +28,9 @@ class IpsecCipherSuite(CipherSuiteBase):
     def supports(self) -> Mapping[CipherOp, Iterable[Alg]]:
         return {"encrypt": _IPSEC_AEAD, "decrypt": _IPSEC_AEAD}
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         return "AES-GCM-16"
 
     def features(self) -> Features:
@@ -37,7 +39,12 @@ class IpsecCipherSuite(CipherSuiteBase):
             "version": 1,
             "dialects": {"ike": list(_IPSEC_AEAD)},
             "constraints": {"prf": _IPSEC_PRF, "dh": _IPSEC_DH, "pfs": True},
-            "ops": {"encrypt": {"default": "AES-GCM-16", "allowed": list(_IPSEC_AEAD)}},
+            "ops": {
+                "encrypt": {
+                    "default": "AES-GCM-16",
+                    "allowed": list(_IPSEC_AEAD),
+                }
+            },
             "compliance": {"fips": False},
         }
 

@@ -1,6 +1,8 @@
 import warnings
 
-from swarmauri_standard.distances.JaccardIndexDistance import JaccardIndexDistance as _StandardJaccardIndexDistance
+from swarmauri_standard.distances.JaccardIndexDistance import (
+    JaccardIndexDistance as _StandardJaccardIndexDistance,
+)
 
 
 class JaccardIndexDistance(_StandardJaccardIndexDistance):

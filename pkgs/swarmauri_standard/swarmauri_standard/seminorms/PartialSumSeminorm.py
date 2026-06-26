@@ -72,15 +72,21 @@ class PartialSumSeminorm(SeminormBase):
             logger.warning(
                 "Neither range nor indices specified. Will use entire input."
             )
-        elif indices is not None and (start_idx is not None or end_idx is not None):
-            logger.warning("Both range and indices provided. Will use indices.")
+        elif indices is not None and (
+            start_idx is not None or end_idx is not None
+        ):
+            logger.warning(
+                "Both range and indices provided. Will use indices."
+            )
 
         logger.debug(
             f"Initialized PartialSumSeminorm with start_idx={start_idx}, "
             f"end_idx={end_idx}, indices={indices}"
         )
 
-    def _extract_partial_data(self, x: Union[Sequence, np.ndarray]) -> np.ndarray:
+    def _extract_partial_data(
+        self, x: Union[Sequence, np.ndarray]
+    ) -> np.ndarray:
         """
         Extract the partial data from the input based on configured indices.
 
@@ -147,7 +153,9 @@ class PartialSumSeminorm(SeminormBase):
         ValueError
             If the computation cannot be performed on the given input
         """
-        logger.debug(f"Computing PartialSumSeminorm for input of type {type(x)}")
+        logger.debug(
+            f"Computing PartialSumSeminorm for input of type {type(x)}"
+        )
 
         try:
             # Handle different input types

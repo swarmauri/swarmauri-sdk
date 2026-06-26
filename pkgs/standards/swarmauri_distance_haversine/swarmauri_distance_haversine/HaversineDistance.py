@@ -1,6 +1,8 @@
 import warnings
 
-from swarmauri_standard.distances.HaversineDistance import HaversineDistance as _StandardHaversineDistance
+from swarmauri_standard.distances.HaversineDistance import (
+    HaversineDistance as _StandardHaversineDistance,
+)
 
 
 class HaversineDistance(_StandardHaversineDistance):

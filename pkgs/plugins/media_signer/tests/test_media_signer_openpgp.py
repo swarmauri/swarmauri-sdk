@@ -15,7 +15,9 @@ from ._helpers import (
 
 @pytest_asyncio.fixture
 async def openpgp_context():
-    signer, _provider, key_ref = await build_media_signer_with_openpgp("openpgp-test")
+    signer, _provider, key_ref = await build_media_signer_with_openpgp(
+        "openpgp-test"
+    )
     return signer, openpgp_private_entry(key_ref), openpgp_verify_opts(key_ref)
 
 
@@ -41,7 +43,9 @@ async def test_media_signer_openpgp_detached_digest(openpgp_context):
     signatures = await signer.sign_digest(OPENPGP_FORMAT, key_entry, sha)
 
     assert signatures and signatures[0].mode == "detached"
-    assert await signer.verify_digest(OPENPGP_FORMAT, sha, signatures, opts=verify_opts)
+    assert await signer.verify_digest(
+        OPENPGP_FORMAT, sha, signatures, opts=verify_opts
+    )
 
 
 @pytest.mark.asyncio
@@ -50,7 +54,9 @@ async def test_media_signer_openpgp_detached_stream(openpgp_context):
     payload = b"openpgp stream payload"
     stream_factory = async_chunks(payload, size=8)
 
-    signatures = await signer.sign_stream(OPENPGP_FORMAT, key_entry, stream_factory())
+    signatures = await signer.sign_stream(
+        OPENPGP_FORMAT, key_entry, stream_factory()
+    )
 
     assert signatures and signatures[0].mode == "detached"
     assert await signer.verify_stream(

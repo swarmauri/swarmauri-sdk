@@ -55,7 +55,9 @@ class LeptonAIImgGenModel(ImageGenBase):
     async def agenerate_image(self, prompt: str, **kwargs) -> bytes:
         """Asynchronously generates an image based on the prompt and returns the image as bytes."""
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, self.generate_image, prompt, **kwargs)
+        return await loop.run_in_executor(
+            None, self.generate_image, prompt, **kwargs
+        )
 
     def batch_generate(self, prompts: List[str], **kwargs) -> List[bytes]:
         """

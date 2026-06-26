@@ -19,7 +19,9 @@ from zdx.scripts.gen_api import (
 )
 
 
-def _create_dummy_package(root: Path, modules: int = 60, classes: int = 30) -> None:
+def _create_dummy_package(
+    root: Path, modules: int = 60, classes: int = 30
+) -> None:
     pkg_dir = root / "src" / "pkg"
     pkg_dir.mkdir(parents=True)
     (pkg_dir / "__init__.py").write_text("", encoding="utf-8")
@@ -29,7 +31,11 @@ def _create_dummy_package(root: Path, modules: int = 60, classes: int = 30) -> N
 
 
 def _baseline_process_target(
-    docs_root: str, api_output_dir: str, target: Target, cache: Dict, changed_only: bool
+    docs_root: str,
+    api_output_dir: str,
+    target: Target,
+    cache: Dict,
+    changed_only: bool,
 ) -> Dict[str, List[str]]:
     search_path = os.path.normpath(os.path.join(docs_root, target.search_path))
     packages = [(target.package, search_path)] if target.package else []
@@ -57,7 +63,11 @@ def _baseline_process_target(
             h = file_hash(content)
             ckey = os.path.relpath(fpath, docs_root)
             prev = cache["files"].get(ckey)
-            dirty = prev is None or prev.get("mtime") != mtime or prev.get("hash") != h
+            dirty = (
+                prev is None
+                or prev.get("mtime") != mtime
+                or prev.get("hash") != h
+            )
             top_dir = os.path.join(
                 docs_root, "docs", api_output_dir, target.name.lower()
             )
@@ -74,7 +84,11 @@ def _baseline_process_target(
                 continue
             for cls in classes:
                 out_path = os.path.join(mod_dir, f"{cls}.md")
-                if (not changed_only) or dirty or (not os.path.exists(out_path)):
+                if (
+                    (not changed_only)
+                    or dirty
+                    or (not os.path.exists(out_path))
+                ):
                     write_class_page(out_path, module, cls)
             cache["files"][ckey] = {"mtime": mtime, "hash": h}
     for k, v in list(module_classes.items()):

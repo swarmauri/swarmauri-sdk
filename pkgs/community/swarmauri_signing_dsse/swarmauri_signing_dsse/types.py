@@ -19,10 +19,14 @@ class DSSESignatureRecord:
         """Construct a signature record from a mapping."""
 
         if "sig" not in data:
-            raise ValueError("DSSE signature mapping is missing the 'sig' field")
+            raise ValueError(
+                "DSSE signature mapping is missing the 'sig' field"
+            )
         sig_value = data["sig"]
         if not isinstance(sig_value, str):
-            raise TypeError("DSSE signature field 'sig' must be a base64 string")
+            raise TypeError(
+                "DSSE signature field 'sig' must be a base64 string"
+            )
 
         keyid_value = data.get("keyid")
         if keyid_value is not None and not isinstance(keyid_value, str):
@@ -80,7 +84,9 @@ class DSSEEnvelope:
             return signature
         if isinstance(signature, Mapping):
             return DSSESignatureRecord.from_mapping(signature)
-        raise TypeError("Unsupported signature representation in DSSE envelope")
+        raise TypeError(
+            "Unsupported signature representation in DSSE envelope"
+        )
 
     def to_mapping(self) -> MutableMapping[str, object]:
         """Return the JSON-serializable mapping representation of the envelope."""
@@ -112,7 +118,9 @@ class DSSEEnvelope:
         if not isinstance(signatures, Iterable):
             raise TypeError("signatures must be an iterable of mappings")
 
-        normalized_signatures = [cls._coerce_signature(sig) for sig in signatures]
+        normalized_signatures = [
+            cls._coerce_signature(sig) for sig in signatures
+        ]
         return cls(
             payload_type=payload_type,
             payload_b64=payload_b64,
@@ -123,5 +131,7 @@ class DSSEEnvelope:
         """Return a copy of the envelope without signature records."""
 
         return DSSEEnvelope(
-            payload_type=self.payload_type, payload_b64=self.payload_b64, signatures=()
+            payload_type=self.payload_type,
+            payload_b64=self.payload_b64,
+            signatures=(),
         )

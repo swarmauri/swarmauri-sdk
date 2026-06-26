@@ -28,7 +28,14 @@ def test_serialization():
 @pytest.mark.unit
 def test_measurement_value():
     measurement = Measurement(unit="%")
-    test_data = ["A", "B", "A", "C", "B", "D"]  # 4 unique values out of 6 total
+    test_data = [
+        "A",
+        "B",
+        "A",
+        "C",
+        "B",
+        "D",
+    ]  # 4 unique values out of 6 total
     result = measurement.call(test_data)
     assert result == pytest.approx(
         66.66666666666667, rel=1e-9

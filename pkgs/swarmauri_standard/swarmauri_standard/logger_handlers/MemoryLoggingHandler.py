@@ -71,9 +71,13 @@ class MemoryLoggingHandler(HandlerBase):
         # Set formatter if provided
         if self.formatter:
             if isinstance(self.formatter, str):
-                self._memory_handler.setFormatter(logging.Formatter(self.formatter))
+                self._memory_handler.setFormatter(
+                    logging.Formatter(self.formatter)
+                )
             else:
-                self._memory_handler.setFormatter(self.formatter.compile_formatter())
+                self._memory_handler.setFormatter(
+                    self.formatter.compile_formatter()
+                )
         else:
             default_formatter = logging.Formatter(
                 "[%(name)s][%(levelname)s] %(message)s"

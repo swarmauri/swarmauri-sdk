@@ -105,7 +105,9 @@ class CwtPoPVerifier(PopVerifierBase):
         keys,
         extras,
     ) -> None:
-        self._enforce_bind_type(cnf, context.policy, expected=BindType.COSE_THUMB)
+        self._enforce_bind_type(
+            cnf, context.policy, expected=BindType.COSE_THUMB
+        )
 
         try:
             sign1 = Sign1Message.decode(_b64u_decode(proof))
@@ -128,7 +130,9 @@ class CwtPoPVerifier(PopVerifierBase):
                 resolved = keys.by_thumb(cnf)
             key_obj = resolved
         if key_obj is None:
-            raise PoPVerificationError("Verification key unavailable for CWT PoP")
+            raise PoPVerificationError(
+                "Verification key unavailable for CWT PoP"
+            )
 
         try:
             cose_key = _ensure_cose_key(key_obj)
@@ -137,21 +141,30 @@ class CwtPoPVerifier(PopVerifierBase):
 
         thumb = _compute_cose_thumbprint(cose_key)
         if thumb != cnf.value_b64u:
-            raise PoPBindingError("COSE key thumbprint does not match access token cnf")
+            raise PoPBindingError(
+                "COSE key thumbprint does not match access token cnf"
+            )
 
         sign1.key = cose_key
         try:
             if not sign1.verify_signature():
-                raise PoPVerificationError("COSE signature verification failed")
+                raise PoPVerificationError(
+                    "COSE signature verification failed"
+                )
         except CoseException as exc:
-            raise PoPVerificationError("COSE signature verification failed") from exc
+            raise PoPVerificationError(
+                "COSE signature verification failed"
+            ) from exc
 
         try:
             claims = cbor2.loads(sign1.payload)
         except (ValueError, TypeError) as exc:
             raise PoPParseError("CWT PoP payload is not valid CBOR") from exc
 
-        if claims.get("htm") != context.method or claims.get("htu") != context.htu:
+        if (
+            claims.get("htm") != context.method
+            or claims.get("htu") != context.htu
+        ):
             raise PoPVerificationError("CWT htm/htu mismatch")
 
         try:
@@ -171,7 +184,9 @@ class CwtPoPVerifier(PopVerifierBase):
 
         ath_claim = claims.get("ath")
         if context.policy.require_ath:
-            self._require_ath(ath_claim=ath_claim, policy=context.policy, extras=extras)
+            self._require_ath(
+                ath_claim=ath_claim, policy=context.policy, extras=extras
+            )
         elif ath_claim and "access_token" in extras:
             expected_ath = self._compute_ath(extras["access_token"])
             if expected_ath != ath_claim:

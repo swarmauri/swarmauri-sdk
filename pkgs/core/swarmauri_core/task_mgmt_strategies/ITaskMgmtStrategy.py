@@ -7,7 +7,10 @@ class ITaskMgmtStrategy(ABC):
 
     @abstractmethod
     def assign_task(
-        self, task: Dict[str, Any], agent_factory: Callable, service_registry: Callable
+        self,
+        task: Dict[str, Any],
+        agent_factory: Callable,
+        service_registry: Callable,
     ) -> str:
         """
         Abstract method to assign a task to a service.

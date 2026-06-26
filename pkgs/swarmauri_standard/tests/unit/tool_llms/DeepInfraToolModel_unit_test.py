@@ -7,7 +7,9 @@ from dotenv import load_dotenv
 from swarmauri_standard.agents.ToolAgent import ToolAgent
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.HumanMessage import HumanMessage
-from swarmauri_standard.tool_llms.DeepInfraToolModel import DeepInfraToolModel as LLM
+from swarmauri_standard.tool_llms.DeepInfraToolModel import (
+    DeepInfraToolModel as LLM,
+)
 from swarmauri_standard.toolkits.Toolkit import Toolkit
 from swarmauri_standard.tools.AdditionTool import AdditionTool
 from swarmauri_standard.utils.timeout_wrapper import timeout
@@ -77,7 +79,9 @@ def test_serialization(deep_infra_tool_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(deep_infra_tool_model):
-    assert deep_infra_tool_model.name == deep_infra_tool_model.allowed_models[0]
+    assert (
+        deep_infra_tool_model.name == deep_infra_tool_model.allowed_models[0]
+    )
 
 
 @pytest.mark.unit
@@ -135,7 +139,9 @@ def test_batch(deep_infra_tool_model, toolkit, model_name):
         conv.add_message(HumanMessage(content=prompt))
         conversations.append(conv)
 
-    results = deep_infra_tool_model.batch(conversations=conversations, toolkit=toolkit)
+    results = deep_infra_tool_model.batch(
+        conversations=conversations, toolkit=toolkit
+    )
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)
@@ -145,7 +151,9 @@ def test_batch(deep_infra_tool_model, toolkit, model_name):
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
-async def test_apredict(deep_infra_tool_model, toolkit, conversation, model_name):
+async def test_apredict(
+    deep_infra_tool_model, toolkit, conversation, model_name
+):
     deep_infra_tool_model.name = model_name
 
     result = await deep_infra_tool_model.apredict(
@@ -159,7 +167,9 @@ async def test_apredict(deep_infra_tool_model, toolkit, conversation, model_name
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize("model_name", get_allowed_models())
-async def test_astream(deep_infra_tool_model, toolkit, conversation, model_name):
+async def test_astream(
+    deep_infra_tool_model, toolkit, conversation, model_name
+):
     deep_infra_tool_model.name = model_name
 
     collected_tokens = []

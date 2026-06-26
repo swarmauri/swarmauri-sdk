@@ -42,9 +42,13 @@ def test_serialization_round_trip(login: GitHubOAuth20Login) -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_auth_url_contains_github_base(login: GitHubOAuth20Login) -> None:
+async def test_auth_url_contains_github_base(
+    login: GitHubOAuth20Login,
+) -> None:
     payload = await login.auth_url()
-    assert payload["url"].startswith("https://github.com/login/oauth/authorize?")
+    assert payload["url"].startswith(
+        "https://github.com/login/oauth/authorize?"
+    )
 
 
 @pytest.mark.unit

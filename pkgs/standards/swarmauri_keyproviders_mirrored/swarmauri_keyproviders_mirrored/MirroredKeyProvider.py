@@ -6,7 +6,12 @@ from typing import Dict, Iterable, Literal, Mapping, Optional, Tuple
 
 from swarmauri_base.key_providers.KeyProviderBase import KeyProviderBase
 from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
-from swarmauri_core.key_providers.types import ExportPolicy, KeyAlg, KeyClass, KeySpec
+from swarmauri_core.key_providers.types import (
+    ExportPolicy,
+    KeyAlg,
+    KeyClass,
+    KeySpec,
+)
 from swarmauri_core.crypto.types import KeyRef
 
 log = logging.getLogger(__name__)
@@ -99,7 +104,11 @@ class MirroredKeyProvider(KeyProviderBase):
         return self._shadow.get(kid, {}).get(version)
 
     async def _mirror_created(
-        self, spec: KeySpec, primary_ref: KeyRef, *, imported_material: Optional[bytes]
+        self,
+        spec: KeySpec,
+        primary_ref: KeyRef,
+        *,
+        imported_material: Optional[bytes],
     ) -> Optional[KeyRef]:
         """Mirror a freshly created or imported key."""
         if self._mode == "none":
@@ -120,7 +129,9 @@ class MirroredKeyProvider(KeyProviderBase):
                         material=b"",
                         public=primary_ref.public,
                     )
-                    self._set_shadow(primary_ref.kid, primary_ref.version, sec_ref)
+                    self._set_shadow(
+                        primary_ref.kid, primary_ref.version, sec_ref
+                    )
                     return sec_ref
                 return None
             if self._mode == "full":
@@ -140,7 +151,9 @@ class MirroredKeyProvider(KeyProviderBase):
                         material=imported_material,
                         public=primary_ref.public,
                     )
-                    self._set_shadow(primary_ref.kid, primary_ref.version, sec_ref)
+                    self._set_shadow(
+                        primary_ref.kid, primary_ref.version, sec_ref
+                    )
                     return sec_ref
                 if primary_ref.public:
                     sec_ref = await self._s.import_key(
@@ -160,7 +173,9 @@ class MirroredKeyProvider(KeyProviderBase):
                         material=b"",
                         public=primary_ref.public,
                     )
-                    self._set_shadow(primary_ref.kid, primary_ref.version, sec_ref)
+                    self._set_shadow(
+                        primary_ref.kid, primary_ref.version, sec_ref
+                    )
                     return sec_ref
                 return None
         except Exception as e:  # best-effort
@@ -178,7 +193,9 @@ class MirroredKeyProvider(KeyProviderBase):
         material: Optional[bytes] = None
         try:
             if spec.export_policy == ExportPolicy.SECRET_WHEN_ALLOWED:
-                got = await self._p.get_key(pref.kid, pref.version, include_secret=True)
+                got = await self._p.get_key(
+                    pref.kid, pref.version, include_secret=True
+                )
                 material = got.material
         except Exception:
             material = None
@@ -198,7 +215,9 @@ class MirroredKeyProvider(KeyProviderBase):
         pref = await self._p.rotate_key(kid, spec_overrides=spec_overrides)
         material: Optional[bytes] = None
         try:
-            got = await self._p.get_key(pref.kid, pref.version, include_secret=True)
+            got = await self._p.get_key(
+                pref.kid, pref.version, include_secret=True
+            )
             material = got.material
         except Exception:
             material = None
@@ -221,7 +240,9 @@ class MirroredKeyProvider(KeyProviderBase):
         )
         return pref
 
-    async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
+    async def destroy_key(
+        self, kid: str, version: Optional[int] = None
+    ) -> bool:
         ok = await self._p.destroy_key(kid, version)
         if version is None:
             for v, sref in list(self._shadow.get(kid, {}).items()):
@@ -234,7 +255,9 @@ class MirroredKeyProvider(KeyProviderBase):
             shadow = self._get_shadow(kid, version)
             if shadow:
                 try:
-                    await self._s.destroy_key(shadow.sec_kid, shadow.sec_version)
+                    await self._s.destroy_key(
+                        shadow.sec_kid, shadow.sec_version
+                    )
                 except Exception:
                     pass
                 self._shadow.get(kid, {}).pop(version, None)
@@ -243,10 +266,16 @@ class MirroredKeyProvider(KeyProviderBase):
         return ok
 
     async def get_key(
-        self, kid: str, version: Optional[int] = None, *, include_secret: bool = False
+        self,
+        kid: str,
+        version: Optional[int] = None,
+        *,
+        include_secret: bool = False,
     ) -> KeyRef:
         try:
-            return await self._p.get_key(kid, version, include_secret=include_secret)
+            return await self._p.get_key(
+                kid, version, include_secret=include_secret
+            )
         except Exception as e:
             if not self._fail_open_reads:
                 raise
@@ -260,9 +289,13 @@ class MirroredKeyProvider(KeyProviderBase):
                 sref = self._get_shadow(kid, version)
                 if sref:
                     return await self._s.get_key(
-                        sref.sec_kid, sref.sec_version, include_secret=include_secret
+                        sref.sec_kid,
+                        sref.sec_version,
+                        include_secret=include_secret,
                     )
-            return await self._s.get_key(kid, version, include_secret=include_secret)
+            return await self._s.get_key(
+                kid, version, include_secret=include_secret
+            )
 
     async def list_versions(self, kid: str) -> Tuple[int, ...]:
         try:
@@ -277,7 +310,9 @@ class MirroredKeyProvider(KeyProviderBase):
             )
             return await self._s.list_versions(kid)
 
-    async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
+    async def get_public_jwk(
+        self, kid: str, version: Optional[int] = None
+    ) -> dict:
         try:
             return await self._p.get_public_jwk(kid, version)
         except Exception as e:
@@ -292,7 +327,9 @@ class MirroredKeyProvider(KeyProviderBase):
             if version is not None:
                 sref = self._get_shadow(kid, version)
                 if sref:
-                    return await self._s.get_public_jwk(sref.sec_kid, sref.sec_version)
+                    return await self._s.get_public_jwk(
+                        sref.sec_kid, sref.sec_version
+                    )
             return await self._s.get_public_jwk(kid, version)
 
     async def jwks(self, *, prefix_kids: Optional[str] = None) -> dict:
@@ -304,7 +341,8 @@ class MirroredKeyProvider(KeyProviderBase):
             if not self._fail_open_reads:
                 raise
             log.warning(
-                "MirroredKeyProvider: primary jwks failed (%s); using secondary only", e
+                "MirroredKeyProvider: primary jwks failed (%s); using secondary only",
+                e,
             )
             try:
                 s = await self._s.jwks(prefix_kids=prefix_kids)  # type: ignore[arg-type]
@@ -340,7 +378,9 @@ class MirroredKeyProvider(KeyProviderBase):
             )
             return await self._s.random_bytes(n)
 
-    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+    async def hkdf(
+        self, ikm: bytes, *, salt: bytes, info: bytes, length: int
+    ) -> bytes:
         try:
             return await self._p.hkdf(ikm, salt=salt, info=info, length=length)
         except Exception as e:

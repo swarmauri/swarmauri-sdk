@@ -68,7 +68,9 @@ class DummyKeyProvider(IKeyProvider):
             ]
         }
 
-    def supports(self) -> Mapping[str, Iterable[str]]:  # pragma: no cover - not used
+    def supports(
+        self,
+    ) -> Mapping[str, Iterable[str]]:  # pragma: no cover - not used
         return {}
 
     async def create_key(self, spec):  # pragma: no cover - not used
@@ -84,7 +86,9 @@ class DummyKeyProvider(IKeyProvider):
     ):  # pragma: no cover - not used
         raise NotImplementedError()
 
-    async def destroy_key(self, kid, version=None):  # pragma: no cover - not used
+    async def destroy_key(
+        self, kid, version=None
+    ):  # pragma: no cover - not used
         raise NotImplementedError()
 
     async def get_key(self, kid, version=None, include_secret=False):
@@ -93,13 +97,17 @@ class DummyKeyProvider(IKeyProvider):
     async def list_versions(self, kid):  # pragma: no cover - not used
         return (1,)
 
-    async def get_public_jwk(self, kid, version=None):  # pragma: no cover - not used
+    async def get_public_jwk(
+        self, kid, version=None
+    ):  # pragma: no cover - not used
         return self._jwks["keys"][0]
 
     async def jwks(self, *, prefix_kids: Optional[str] = None):
         return self._jwks
 
-    async def random_bytes(self, n: int) -> bytes:  # pragma: no cover - not used
+    async def random_bytes(
+        self, n: int
+    ) -> bytes:  # pragma: no cover - not used
         return os.urandom(n)
 
     async def hkdf(
@@ -117,4 +125,6 @@ def provider() -> DummyKeyProvider:
 
 @pytest.fixture
 def token_service(provider: DummyKeyProvider) -> PasetoV4TokenService:
-    return PasetoV4TokenService(provider, local_kids=["sym1"], default_issuer="issuer")
+    return PasetoV4TokenService(
+        provider, local_kids=["sym1"], default_issuer="issuer"
+    )

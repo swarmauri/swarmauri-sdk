@@ -43,11 +43,14 @@ class MethodSignatureExtractor(BaseModel):
                 return {"type": "object"}
             elif origin in (Union, Optional):
                 if len(args) == 2 and type(None) in args:
-                    non_none_type = args[0] if args[1] is type(None) else args[1]
+                    non_none_type = (
+                        args[0] if args[1] is type(None) else args[1]
+                    )
                     return self._python_type_to_json_schema_type(non_none_type)
                 return {
                     "oneOf": [
-                        self._python_type_to_json_schema_type(arg) for arg in args
+                        self._python_type_to_json_schema_type(arg)
+                        for arg in args
                     ]
                 }
             return {"type": self._type_mapping.get(origin, "string")}
@@ -64,10 +67,16 @@ class MethodSignatureExtractor(BaseModel):
                 continue
 
             param_type = type_hints.get(param_name, Any)
-            (param.default if param.default is not inspect.Parameter.empty else None)
+            (
+                param.default
+                if param.default is not inspect.Parameter.empty
+                else None
+            )
             required = param.default is inspect.Parameter.empty
             enum = None
-            param_type_json_schema = self._python_type_to_json_schema_type(param_type)
+            param_type_json_schema = self._python_type_to_json_schema_type(
+                param_type
+            )
             print(param_type_json_schema)
 
             if "oneOf" in param_type_json_schema:
@@ -75,7 +84,9 @@ class MethodSignatureExtractor(BaseModel):
                     type_["type"] for type_ in param_type_json_schema["oneOf"]
                 ]
 
-            description = f"Parameter {param_name} of type {param_type_json_schema}"
+            description = (
+                f"Parameter {param_name} of type {param_type_json_schema}"
+            )
 
             detail = Parameter(
                 name=param_name,

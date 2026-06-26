@@ -44,9 +44,15 @@ async def test_create_csr_and_verify_cert() -> None:
         )
         .public_key(key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.utcnow() - datetime.timedelta(days=1))
-        .not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=1))
-        .add_extension(x509.BasicConstraints(ca=False, path_length=None), critical=True)
+        .not_valid_before(
+            datetime.datetime.utcnow() - datetime.timedelta(days=1)
+        )
+        .not_valid_after(
+            datetime.datetime.utcnow() + datetime.timedelta(days=1)
+        )
+        .add_extension(
+            x509.BasicConstraints(ca=False, path_length=None), critical=True
+        )
     )
     cert = builder.sign(key, hashes.SHA256())
     cert_pem = cert.public_bytes(serialization.Encoding.PEM)

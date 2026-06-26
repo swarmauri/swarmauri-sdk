@@ -4,7 +4,9 @@ import numpy as np
 import pytest
 from swarmauri_core.vectors.IVector import IVector
 
-from swarmauri_standard.seminorms.PointEvaluationSeminorm import PointEvaluationSeminorm
+from swarmauri_standard.seminorms.PointEvaluationSeminorm import (
+    PointEvaluationSeminorm,
+)
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -282,7 +284,11 @@ def test_to_dict():
 @pytest.mark.unit
 def test_from_dict():
     """Test the from_dict class method."""
-    data = {"type": "PointEvaluationSeminorm", "point": "test_point", "absolute": False}
+    data = {
+        "type": "PointEvaluationSeminorm",
+        "point": "test_point",
+        "absolute": False,
+    }
 
     seminorm = PointEvaluationSeminorm.from_dict(data)
 

@@ -27,7 +27,9 @@ class PaymentMethodsMixin(IPaymentMethods, BaseModel):
         self, spec: PaymentMethodSpecProto, *, idempotency_key: str
     ) -> PaymentMethodRefProto:
         require_idempotency(idempotency_key)
-        result = self._create_payment_method(spec, idempotency_key=idempotency_key)
+        result = self._create_payment_method(
+            spec, idempotency_key=idempotency_key
+        )
         if isinstance(result, PaymentMethodRefProto):
             return result
         raw = cast(Mapping[str, Any], result)
@@ -38,7 +40,9 @@ class PaymentMethodsMixin(IPaymentMethods, BaseModel):
             raw=payload,
         )
 
-    def detach_payment_method(self, payment_method_id: str) -> Mapping[str, Any]:
+    def detach_payment_method(
+        self, payment_method_id: str
+    ) -> Mapping[str, Any]:
         return self._detach_payment_method(payment_method_id)
 
     def list_payment_methods(
@@ -58,7 +62,9 @@ class PaymentMethodsMixin(IPaymentMethods, BaseModel):
             if isinstance(item, PaymentMethodRefProto)
             else PaymentMethodRef(
                 id=str(cast(Mapping[str, Any], item).get("id", "")),
-                provider=str(cast(Mapping[str, Any], item).get("provider", "")),
+                provider=str(
+                    cast(Mapping[str, Any], item).get("provider", "")
+                ),
                 raw=extract_raw_payload(cast(Mapping[str, Any], item)),
             )
             for item in items
@@ -72,7 +78,9 @@ class PaymentMethodsMixin(IPaymentMethods, BaseModel):
         """Create a new payment method with the provider."""
 
     @abstractmethod
-    def _detach_payment_method(self, payment_method_id: str) -> Mapping[str, Any]:
+    def _detach_payment_method(
+        self, payment_method_id: str
+    ) -> Mapping[str, Any]:
         """Detach the given payment method from its customer."""
 
     @abstractmethod

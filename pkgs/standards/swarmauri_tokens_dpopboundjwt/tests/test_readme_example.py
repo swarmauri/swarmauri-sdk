@@ -27,7 +27,9 @@ def test_readme_example_executes(monkeypatch: pytest.MonkeyPatch) -> None:
     readme = package_dir / "README.md"
     readme_text = readme.read_text(encoding="utf-8")
 
-    code_blocks = re.findall(r"```python\n(.*?)```", readme_text, flags=re.DOTALL)
+    code_blocks = re.findall(
+        r"```python\n(.*?)```", readme_text, flags=re.DOTALL
+    )
     example_block = next(
         (block for block in code_blocks if EXAMPLE_MARKER in block),
         None,

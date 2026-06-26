@@ -35,7 +35,9 @@ def test_readme_usage_example() -> None:
     exec(_extract_usage_snippet(), namespace)
 
     response = namespace.get("response")
-    assert response is not None, "README example must assign a `response` variable."
+    assert response is not None, (
+        "README example must assign a `response` variable."
+    )
 
     status_code = getattr(response, "status_code", None)
     assert status_code == 500, (

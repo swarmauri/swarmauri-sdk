@@ -81,7 +81,9 @@ class MlmVectorStore(
 
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
         query_vector = self._embedder.infer_vector(query)
-        document_vectors = [_d.embedding for _d in self.documents if _d.content]
+        document_vectors = [
+            _d.embedding for _d in self.documents if _d.content
+        ]
         top_k_indices = self._comparator.top_k_indices(
             query_vector, document_vectors, top_k
         )

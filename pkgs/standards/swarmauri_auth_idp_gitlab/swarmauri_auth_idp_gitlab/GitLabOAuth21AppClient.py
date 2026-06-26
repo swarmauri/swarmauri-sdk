@@ -36,7 +36,11 @@ class GitLabOAuth21AppClient(OAuth21AppClientBase):
         return f"{self.base_url.rstrip('/')}/oauth/token"
 
     def _client_secret_value(self) -> Optional[str]:
-        return self.client_secret.get_secret_value() if self.client_secret else None
+        return (
+            self.client_secret.get_secret_value()
+            if self.client_secret
+            else None
+        )
 
     @staticmethod
     def _load_private_key(jwk_payload: Dict[str, Any], algorithm: str) -> Any:
@@ -81,7 +85,9 @@ class GitLabOAuth21AppClient(OAuth21AppClientBase):
         else:
             secret = self._client_secret_value()
             if not secret:
-                raise ValueError("client_secret or private_key_jwk must be provided")
+                raise ValueError(
+                    "client_secret or private_key_jwk must be provided"
+                )
             auth = (self.client_id, secret)
         payload = {**form, **body}
         async with self.http_client_factory() as client:

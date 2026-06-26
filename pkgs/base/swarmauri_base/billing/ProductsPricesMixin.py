@@ -28,7 +28,9 @@ class ProductsPricesMixin(IProductsPrices, BaseModel):
         self, product_spec: ProductSpecProto, *, idempotency_key: str
     ) -> ProductRefProto:
         require_idempotency(idempotency_key)
-        result = self._create_product(product_spec, idempotency_key=idempotency_key)
+        result = self._create_product(
+            product_spec, idempotency_key=idempotency_key
+        )
         if isinstance(result, ProductRefProto):
             return result
         raw = cast(Mapping[str, Any], result)

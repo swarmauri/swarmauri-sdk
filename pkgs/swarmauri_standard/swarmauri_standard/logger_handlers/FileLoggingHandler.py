@@ -68,7 +68,9 @@ class FileLoggingHandler(HandlerBase):
         else:
             # Create a standard file handler
             handler = logging.FileHandler(
-                filename=self.file_path, mode=self.file_mode, encoding=self.encoding
+                filename=self.file_path,
+                mode=self.file_mode,
+                encoding=self.encoding,
             )
 
         # Set the logging level

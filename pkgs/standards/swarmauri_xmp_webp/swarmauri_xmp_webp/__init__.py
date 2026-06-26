@@ -22,7 +22,9 @@ class WebPXMP(EmbedXmpBase):
         if data[8:12] != self.FORMAT:
             raise ValueError("RIFF container is not WebP formatted")
 
-    def _iter_chunks(self, data: bytes) -> Iterator[Tuple[int, bytes, int, int]]:
+    def _iter_chunks(
+        self, data: bytes
+    ) -> Iterator[Tuple[int, bytes, int, int]]:
         self._validate(data)
         pos = 12
         end = len(data)

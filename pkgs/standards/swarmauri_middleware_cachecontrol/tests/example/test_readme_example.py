@@ -31,7 +31,9 @@ def _find_line(prefix: str, lines: Iterable[str]) -> str:
     for line in lines:
         if line.startswith(prefix):
             return line
-    raise AssertionError(f"Expected line starting with {prefix!r} in example output")
+    raise AssertionError(
+        f"Expected line starting with {prefix!r} in example output"
+    )
 
 
 @pytest.mark.example
@@ -48,7 +50,9 @@ def test_readme_example_runs(capsys: pytest.CaptureFixture[str]) -> None:
     assert "Cache-Control: max-age=60, public" in normalized
 
     etag_line = _find_line("ETag:", normalized)
-    assert etag_line.split(":", 1)[1].strip(), "ETag header should not be empty"
+    assert etag_line.split(":", 1)[1].strip(), (
+        "ETag header should not be empty"
+    )
 
     vary_line = _find_line("Vary:", normalized)
     assert vary_line == "Vary: Accept-Encoding"

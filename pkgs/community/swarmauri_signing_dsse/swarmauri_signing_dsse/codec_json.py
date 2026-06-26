@@ -15,9 +15,9 @@ class DSSEJsonCodec:
         """Serialize a DSSE envelope into canonical JSON bytes."""
 
         payload = envelope.to_mapping()
-        return json.dumps(payload, separators=(",", ":"), sort_keys=True).encode(
-            "utf-8"
-        )
+        return json.dumps(
+            payload, separators=(",", ":"), sort_keys=True
+        ).encode("utf-8")
 
     def decode(
         self, blob: bytes | bytearray | str | Mapping[str, Any] | DSSEEnvelope
@@ -33,7 +33,9 @@ class DSSEJsonCodec:
         elif isinstance(blob, str):
             data = json.loads(blob)
         else:
-            raise TypeError("Unsupported DSSE envelope representation for decoding")
+            raise TypeError(
+                "Unsupported DSSE envelope representation for decoding"
+            )
         if not isinstance(data, Mapping):
             raise TypeError("Decoded DSSE envelope must produce a mapping")
         return DSSEEnvelope.from_mapping(data)

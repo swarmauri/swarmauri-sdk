@@ -43,7 +43,8 @@ class TextBlobSentenceParser(ParserBase):
         # Create a document instance for each sentence
         documents = [
             Document(
-                content=str(sentence), metadata={"parser": "TextBlobSentenceParser"}
+                content=str(sentence),
+                metadata={"parser": "TextBlobSentenceParser"},
             )
             for index, sentence in enumerate(sentences)
         ]

@@ -48,21 +48,29 @@ def _to_name(subj: SubjectSpec) -> x509.Name:
     if "C" in subj:
         parts.append(x509.NameAttribute(NameOID.COUNTRY_NAME, subj["C"]))
     if "ST" in subj:
-        parts.append(x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, subj["ST"]))
+        parts.append(
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, subj["ST"])
+        )
     if "L" in subj:
         parts.append(x509.NameAttribute(NameOID.LOCALITY_NAME, subj["L"]))
     if "O" in subj:
         parts.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, subj["O"]))
     if "OU" in subj:
-        parts.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, subj["OU"]))
+        parts.append(
+            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, subj["OU"])
+        )
     if "emailAddress" in subj:
-        parts.append(x509.NameAttribute(NameOID.EMAIL_ADDRESS, subj["emailAddress"]))
+        parts.append(
+            x509.NameAttribute(NameOID.EMAIL_ADDRESS, subj["emailAddress"])
+        )
     if "CN" in subj:
         parts.append(x509.NameAttribute(NameOID.COMMON_NAME, subj["CN"]))
     return x509.Name(parts)
 
 
-def _san_from_spec(san: Optional[AltNameSpec]) -> Optional[x509.SubjectAlternativeName]:
+def _san_from_spec(
+    san: Optional[AltNameSpec],
+) -> Optional[x509.SubjectAlternativeName]:
     """Build a SubjectAlternativeName from a specification."""
     if not san:
         return None
@@ -78,7 +86,9 @@ def _san_from_spec(san: Optional[AltNameSpec]) -> Optional[x509.SubjectAlternati
     return x509.SubjectAlternativeName(gen) if gen else None
 
 
-def _extensions_from_spec(ext: Optional[CertExtensionSpec]) -> Sequence[x509.Extension]:
+def _extensions_from_spec(
+    ext: Optional[CertExtensionSpec],
+) -> Sequence[x509.Extension]:
     """Translate extension specification into X.509 extensions."""
     if not ext:
         return ()
@@ -103,7 +113,9 @@ def _extensions_from_spec(ext: Optional[CertExtensionSpec]) -> Sequence[x509.Ext
                 critical=True,
                 value=x509.KeyUsage(
                     digital_signature=bool(ku.get("digital_signature", False)),
-                    content_commitment=bool(ku.get("content_commitment", False)),
+                    content_commitment=bool(
+                        ku.get("content_commitment", False)
+                    ),
                     key_encipherment=bool(ku.get("key_encipherment", False)),
                     data_encipherment=bool(ku.get("data_encipherment", False)),
                     key_agreement=bool(ku.get("key_agreement", False)),
@@ -152,7 +164,9 @@ class StepCaCertService(CertServiceBase):
     Implements portions of RFC 2986 (CSRs) and RFC 5280 (X.509 certificates).
     """
 
-    resource: Optional[str] = Field(default=ResourceTypes.CRYPTO.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.CRYPTO.value, frozen=True
+    )
     type: Literal["StepCaCertService"] = "StepCaCertService"
 
     ca_url: str
@@ -168,7 +182,9 @@ class StepCaCertService(CertServiceBase):
         verify_tls: Union[bool, str, bytes] = True,
         timeout_s: float = 6.0,
         provisioner: Optional[str] = None,
-        token_provider: Optional[Callable[[Dict[str, Any]], Awaitable[str]]] = None,
+        token_provider: Optional[
+            Callable[[Dict[str, Any]], Awaitable[str]]
+        ] = None,
     ) -> None:
         super().__init__(
             ca_url=ca_url.rstrip("/"),
@@ -201,7 +217,13 @@ class StepCaCertService(CertServiceBase):
         return {
             "key_algs": ("RSA-2048", "RSA-3072", "EC-P256", "Ed25519"),
             "sig_algs": ("RSA-PSS-SHA256", "ECDSA-P256-SHA256", "Ed25519"),
-            "features": ("csr", "sign_from_csr", "verify", "parse", "remote_ca"),
+            "features": (
+                "csr",
+                "sign_from_csr",
+                "verify",
+                "parse",
+                "remote_ca",
+            ),
         }
 
     async def create_csr(
@@ -236,7 +258,9 @@ class StepCaCertService(CertServiceBase):
             elif isinstance(sk, ed25519.Ed25519PrivateKey):
                 csr = builder.sign(sk, None)
             else:
-                raise ValueError("Unsupported private key type for CSR signing.")
+                raise ValueError(
+                    "Unsupported private key type for CSR signing."
+                )
         else:
             if isinstance(sk, rsa.RSAPrivateKey):
                 csr = builder.sign(sk, hashes.SHA256())
@@ -245,9 +269,13 @@ class StepCaCertService(CertServiceBase):
             elif isinstance(sk, ed25519.Ed25519PrivateKey):
                 csr = builder.sign(sk, None)
             else:
-                raise ValueError("Unsupported private key type for CSR signing.")
+                raise ValueError(
+                    "Unsupported private key type for CSR signing."
+                )
         encoding = (
-            serialization.Encoding.DER if output_der else serialization.Encoding.PEM
+            serialization.Encoding.DER
+            if output_der
+            else serialization.Encoding.PEM
         )
         return csr.public_bytes(encoding)
 
@@ -255,7 +283,9 @@ class StepCaCertService(CertServiceBase):
         """Extract claims for token generation from a CSR."""
         csr = x509.load_pem_x509_csr(csr_pem.encode())
         try:
-            cn = csr.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
+            cn = csr.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[
+                0
+            ].value
         except IndexError:
             cn = ""
         sans: list[str] = []
@@ -288,7 +318,9 @@ class StepCaCertService(CertServiceBase):
             b"BEGIN CERTIFICATE REQUEST" in csr
             or b"BEGIN NEW CERTIFICATE REQUEST" in csr
         ):
-            csr_pem = csr.decode() if isinstance(csr, (bytes, bytearray)) else csr
+            csr_pem = (
+                csr.decode() if isinstance(csr, (bytes, bytearray)) else csr
+            )
         else:
             csr_pem = (
                 x509.load_der_x509_csr(csr)

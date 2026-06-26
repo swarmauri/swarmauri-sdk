@@ -45,7 +45,9 @@ async def test_middleware_as_decorator_on_fastapi_stack() -> None:
     wrapped_app = TrackingMiddleware(app=app, tracker=tracker)
 
     transport = ASGITransport(app=wrapped_app)
-    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+    async with AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
         response = await client.post("/echo", json={"value": "decorated"})
 
     assert response.status_code == 200
@@ -55,8 +57,12 @@ async def test_middleware_as_decorator_on_fastapi_stack() -> None:
     assert tracking_header[1] == "dispatch:before_call_next"
     assert tracking_header[-1] == "dispatch:after_call_next"
     assert tracking_header[2:-1]
-    assert all(entry.startswith("on_receive:") for entry in tracking_header[2:-1])
-    assert any(entry == "on_receive:http.request" for entry in tracking_header[2:-1])
+    assert all(
+        entry.startswith("on_receive:") for entry in tracking_header[2:-1]
+    )
+    assert any(
+        entry == "on_receive:http.request" for entry in tracking_header[2:-1]
+    )
     assert tracker == tracking_header + [
         "on_send:http.response.start",
         "on_send:http.response.body",
@@ -75,7 +81,9 @@ async def test_middleware_added_to_fastapi_stack() -> None:
     app.add_middleware(TrackingMiddleware, tracker=tracker)
 
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+    async with AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
         response = await client.post("/echo", json={"value": "added"})
 
     assert response.status_code == 200
@@ -85,8 +93,12 @@ async def test_middleware_added_to_fastapi_stack() -> None:
     assert tracking_header[1] == "dispatch:before_call_next"
     assert tracking_header[-1] == "dispatch:after_call_next"
     assert tracking_header[2:-1]
-    assert all(entry.startswith("on_receive:") for entry in tracking_header[2:-1])
-    assert any(entry == "on_receive:http.request" for entry in tracking_header[2:-1])
+    assert all(
+        entry.startswith("on_receive:") for entry in tracking_header[2:-1]
+    )
+    assert any(
+        entry == "on_receive:http.request" for entry in tracking_header[2:-1]
+    )
     assert tracker == tracking_header + [
         "on_send:http.response.start",
         "on_send:http.response.body",

@@ -82,7 +82,9 @@ class SharedConversation(ConversationBase):
                     else:
                         if message.content:
                             # The caller is not the sender; treat as HumanMessage
-                            history.append(HumanMessage(message.content).as_dict())
+                            history.append(
+                                HumanMessage(message.content).as_dict()
+                            )
         return history
 
     def get_last(self) -> IMessage:

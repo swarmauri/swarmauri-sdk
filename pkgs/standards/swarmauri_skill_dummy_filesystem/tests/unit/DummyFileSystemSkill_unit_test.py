@@ -61,7 +61,9 @@ def test_dummy_filesystem_skill_loads_packaged_skill():
 def test_dummy_filesystem_skill_roundtrip_preserves_identity_and_fields():
     skill = DummyFileSystemSkill.from_default()
 
-    restored = DummyFileSystemSkill.model_validate_json(skill.model_dump_json())
+    restored = DummyFileSystemSkill.model_validate_json(
+        skill.model_dump_json()
+    )
 
     assert restored.type == "DummyFileSystemSkill"
     assert resource_value(restored) == "Skill"
@@ -77,7 +79,9 @@ def test_dummy_filesystem_skill_roundtrip_preserves_identity_and_fields():
 def test_dummy_filesystem_skill_base_roundtrip_preserves_subclass_type():
     skill = DummyFileSystemSkill.from_default()
 
-    restored = SkillEnvelope.model_validate({"skill": skill.model_dump(mode="json")})
+    restored = SkillEnvelope.model_validate(
+        {"skill": skill.model_dump(mode="json")}
+    )
 
     assert isinstance(restored.skill, DummyFileSystemSkill)
     assert restored.skill.type == "DummyFileSystemSkill"
@@ -95,7 +99,9 @@ def test_dummy_filesystem_skill_has_verifiable_behavior():
 
 def test_dummy_filesystem_skill_roundtrip_preserves_behavior():
     skill = DummyFileSystemSkill.from_default()
-    restored = DummyFileSystemSkill.model_validate_json(skill.model_dump_json())
+    restored = DummyFileSystemSkill.model_validate_json(
+        skill.model_dump_json()
+    )
 
     assert restored.run_dummy("  hello   filesystem  ") == skill.run_dummy(
         "  hello   filesystem  "

@@ -23,7 +23,9 @@ async def test_create_csr_pem_rfc2986() -> None:
         export_policy=ExportPolicy.PUBLIC_ONLY,
         material=pem,
     )
-    svc = MsAdcsCertService(base_url="https://example.com", auth=_AuthCfg(mode="none"))
+    svc = MsAdcsCertService(
+        base_url="https://example.com", auth=_AuthCfg(mode="none")
+    )
     subject: SubjectSpec = {"CN": "test"}
     csr = await svc.create_csr(key, subject)
     assert csr.startswith(b"-----BEGIN CERTIFICATE REQUEST-----")

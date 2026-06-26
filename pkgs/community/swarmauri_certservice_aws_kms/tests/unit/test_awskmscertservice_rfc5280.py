@@ -11,7 +11,9 @@ from swarmauri_certservice_aws_kms.AwsKmsCertService import _skid_from_pub
 
 @pytest.mark.xfail(reason="asn1crypto missing extensions", raises=TypeError)
 def test_skid_from_public(subject_key_ref):
-    priv = serialization.load_pem_private_key(subject_key_ref.material, password=None)
+    priv = serialization.load_pem_private_key(
+        subject_key_ref.material, password=None
+    )
     pub = priv.public_key()
     skid = _skid_from_pub(pub)
     spki = ax509.PublicKeyInfo.load(

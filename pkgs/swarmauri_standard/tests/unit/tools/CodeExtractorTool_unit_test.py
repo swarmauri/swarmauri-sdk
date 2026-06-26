@@ -7,7 +7,9 @@ Tests created must follow python syntax to avoid errors
 
 import pytest
 import tempfile
-from swarmauri_standard.tools.CodeExtractorTool import CodeExtractorTool as Tool
+from swarmauri_standard.tools.CodeExtractorTool import (
+    CodeExtractorTool as Tool,
+)
 
 
 @pytest.mark.unit
@@ -164,7 +166,9 @@ variable1 = 10"""
         ),
     ],
 )
-def test_call(file_content, extract_documentation, to_be_ignored, expected_code):
+def test_call(
+    file_content, extract_documentation, to_be_ignored, expected_code
+):
     with tempfile.NamedTemporaryFile("w+", delete=False) as file:
         file.write(file_content)
         file_name = file.name
@@ -175,7 +179,9 @@ def test_call(file_content, extract_documentation, to_be_ignored, expected_code)
 
     result = tool(file_name, extract_documentation, to_be_ignored)
 
-    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert isinstance(result, dict), (
+        f"Expected dict, but got {type(result).__name__}"
+    )
     assert expected_keys.issubset(result.keys()), (
         f"Expected keys {expected_keys} but got {result.keys()}"
     )

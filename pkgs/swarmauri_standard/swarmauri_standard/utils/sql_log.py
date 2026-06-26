@@ -77,7 +77,12 @@ def sql_log_decorator(func):
         model_name = kwargs.get("model_name", "")
         conversation_id = str(self.agent.conversation.id)
         sql_log(
-            conversation_id, model_name, message, response, start_datetime, end_datetime
+            conversation_id,
+            model_name,
+            message,
+            response,
+            start_datetime,
+            end_datetime,
         )
         return result
 

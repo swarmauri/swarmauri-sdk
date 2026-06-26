@@ -12,7 +12,9 @@ async def _sign_and_verify() -> bool:
     sigs = await signer.sign_bytes(key, payload)
     pk = sk.public_key()
     ok = await signer.verify_bytes(
-        payload, sigs, opts={"pubkeys": [{"kind": "cryptography_obj", "obj": pk}]}
+        payload,
+        sigs,
+        opts={"pubkeys": [{"kind": "cryptography_obj", "obj": pk}]},
     )
     return ok
 

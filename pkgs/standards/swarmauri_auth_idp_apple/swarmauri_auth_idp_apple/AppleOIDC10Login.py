@@ -42,7 +42,9 @@ class AppleOIDC10Login(AppleLoginMixin, OIDC10LoginBase):
         metadata = await self._metadata()
         verifier, challenge = make_pkce_pair()
         nonce = make_nonce()
-        state = sign_state(self._state_secret(), {"verifier": verifier, "nonce": nonce})
+        state = sign_state(
+            self._state_secret(), {"verifier": verifier, "nonce": nonce}
+        )
         endpoint = metadata["authorization_endpoint"]
         url = (
             f"{endpoint}?response_type=code"
@@ -63,7 +65,9 @@ class AppleOIDC10Login(AppleLoginMixin, OIDC10LoginBase):
             "client_secret": self._client_secret(),
             "code_verifier": payload["verifier"],
         }
-        token_json = await self._http_post(metadata["token_endpoint"], data=form)
+        token_json = await self._http_post(
+            metadata["token_endpoint"], data=form
+        )
         claims = await self._decode_identity(
             token_json.get("id_token"),
             nonce=payload["nonce"],

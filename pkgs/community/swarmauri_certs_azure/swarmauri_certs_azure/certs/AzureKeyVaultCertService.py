@@ -61,7 +61,9 @@ class AzureKeyVaultCertService(CertServiceBase):
 
     type: Literal["AzureKeyVaultCertService"] = "AzureKeyVaultCertService"
 
-    def __init__(self, vault_url: str, *, credential: Optional[Any] = None) -> None:
+    def __init__(
+        self, vault_url: str, *, credential: Optional[Any] = None
+    ) -> None:
         super().__init__()
         self._cred = credential or DefaultAzureCredential()
         self._keys = KeyClient(vault_url=vault_url, credential=self._cred)
@@ -92,10 +94,14 @@ class AzureKeyVaultCertService(CertServiceBase):
                 "Non-exportable keys are not supported in this simplified service."
             )
         subject_name = _to_x509_name(subject)
-        builder = x509.CertificateSigningRequestBuilder().subject_name(subject_name)
+        builder = x509.CertificateSigningRequestBuilder().subject_name(
+            subject_name
+        )
         priv = serialization.load_pem_private_key(pem_priv, password=None)
         csr = builder.sign(priv, hashes.SHA256())
         encoding = (
-            serialization.Encoding.DER if output_der else serialization.Encoding.PEM
+            serialization.Encoding.DER
+            if output_der
+            else serialization.Encoding.PEM
         )
         return csr.public_bytes(encoding)

@@ -43,7 +43,9 @@ class Pep458CipherSuite(CipherSuiteBase):
     def supports(self) -> Mapping[CipherOp, Iterable[Alg]]:
         return {"sign": _PEP458_ALGS, "verify": _PEP458_ALGS}
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         inferred = _infer_alg_from_key(for_key)
         if inferred:
             return inferred
@@ -56,7 +58,10 @@ class Pep458CipherSuite(CipherSuiteBase):
             "dialects": {"provider": ["pep458"], "sigstore": []},
             "ops": {
                 "sign": {"default": "Ed25519", "allowed": list(_PEP458_ALGS)},
-                "verify": {"default": "Ed25519", "allowed": list(_PEP458_ALGS)},
+                "verify": {
+                    "default": "Ed25519",
+                    "allowed": list(_PEP458_ALGS),
+                },
             },
             "constraints": {
                 "canonicalization": _DEFAULT_CANON,
@@ -80,10 +85,26 @@ class Pep458CipherSuite(CipherSuiteBase):
                 "keyid_hash": "sha256",
             },
             "roles": {
-                "root": {"threshold": 2, "expires": "P365D", "alg": "RSA-PSS-SHA256"},
-                "targets": {"threshold": 1, "expires": "P90D", "alg": "Ed25519"},
-                "snapshot": {"threshold": 1, "expires": "P14D", "alg": "Ed25519"},
-                "timestamp": {"threshold": 1, "expires": "P1D", "alg": "Ed25519"},
+                "root": {
+                    "threshold": 2,
+                    "expires": "P365D",
+                    "alg": "RSA-PSS-SHA256",
+                },
+                "targets": {
+                    "threshold": 1,
+                    "expires": "P90D",
+                    "alg": "Ed25519",
+                },
+                "snapshot": {
+                    "threshold": 1,
+                    "expires": "P14D",
+                    "alg": "Ed25519",
+                },
+                "timestamp": {
+                    "threshold": 1,
+                    "expires": "P1D",
+                    "alg": "Ed25519",
+                },
             },
         }
 
@@ -103,7 +124,9 @@ class Pep458CipherSuite(CipherSuiteBase):
 
         resolved_params: Dict[str, Any] = dict(params or {})
         canon = resolved_params.pop("canon", _DEFAULT_CANON)
-        role = resolved_params.pop("role", resolved_params.pop("tuf_role", "generic"))
+        role = resolved_params.pop(
+            "role", resolved_params.pop("tuf_role", "generic")
+        )
         threshold = int(resolved_params.pop("threshold", 1))
 
         mapped = {

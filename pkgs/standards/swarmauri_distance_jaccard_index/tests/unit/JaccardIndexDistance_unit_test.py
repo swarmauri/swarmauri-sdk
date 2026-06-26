@@ -2,7 +2,9 @@ import warnings
 
 import pytest
 
-from swarmauri_distance_jaccard_index.JaccardIndexDistance import JaccardIndexDistance
+from swarmauri_distance_jaccard_index.JaccardIndexDistance import (
+    JaccardIndexDistance,
+)
 
 
 @pytest.mark.unit

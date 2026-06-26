@@ -68,14 +68,17 @@ async def test_canonicalize_envelope_pdf_bytes() -> None:
     payload = b"%PDF"
     assert await signer.canonicalize_envelope(payload) == payload
     assert (
-        await signer.canonicalize_envelope(bytearray(payload), canon="pdf") == payload
+        await signer.canonicalize_envelope(bytearray(payload), canon="pdf")
+        == payload
     )
 
 
 @pytest.mark.asyncio
 async def test_canonicalize_envelope_pdf_requires_bytes() -> None:
     signer = PDFSigner()
-    with pytest.raises(TypeError, match="PDF envelopes require bytes payloads"):
+    with pytest.raises(
+        TypeError, match="PDF envelopes require bytes payloads"
+    ):
         await signer.canonicalize_envelope({"a": 1})
 
 
@@ -83,7 +86,9 @@ async def test_canonicalize_envelope_pdf_requires_bytes() -> None:
 async def test_canonicalize_envelope_json_mapping() -> None:
     signer = PDFSigner()
     env = {"b": 2, "a": 1}
-    assert await signer.canonicalize_envelope(env, canon="json") == _canon_json(env)
+    assert await signer.canonicalize_envelope(
+        env, canon="json"
+    ) == _canon_json(env)
 
 
 @pytest.mark.asyncio

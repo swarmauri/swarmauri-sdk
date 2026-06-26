@@ -24,7 +24,9 @@ class EvaluatorBase(IEvaluate, ComponentBase):
     resource: Optional[str] = Field(default=ResourceTypes.EVALUATOR.value)
     type: Literal["EvaluatorBase"] = "EvaluatorBase"
 
-    def evaluate(self, program: Program, **kwargs) -> Tuple[float, Dict[str, Any]]:
+    def evaluate(
+        self, program: Program, **kwargs
+    ) -> Tuple[float, Dict[str, Any]]:
         """
         Evaluate a program and return a fitness score with metadata.
 
@@ -64,7 +66,9 @@ class EvaluatorBase(IEvaluate, ComponentBase):
 
         except Exception as e:
             execution_time = time.time() - start_time
-            logger.error(f"Evaluation failed after {execution_time:.4f}s: {str(e)}")
+            logger.error(
+                f"Evaluation failed after {execution_time:.4f}s: {str(e)}"
+            )
             raise EvaluationError(f"Evaluation failed: {str(e)}") from e
 
     def _compute_score(
@@ -87,7 +91,9 @@ class EvaluatorBase(IEvaluate, ComponentBase):
         Raises:
             NotImplementedError: This method must be implemented by subclasses
         """
-        raise NotImplementedError("_compute_score must be implemented by subclasses")
+        raise NotImplementedError(
+            "_compute_score must be implemented by subclasses"
+        )
 
     def aggregate_scores(
         self, scores: List[float], metadata_list: List[Dict[str, Any]]
@@ -128,8 +134,13 @@ class EvaluatorBase(IEvaluate, ComponentBase):
             for key in common_keys:
                 # Skip keys that are not numeric or are already handled
                 if key == "execution_time":
-                    aggregated_metadata[key] = sum(meta[key] for meta in metadata_list)
-                elif all(isinstance(meta[key], (int, float)) for meta in metadata_list):
+                    aggregated_metadata[key] = sum(
+                        meta[key] for meta in metadata_list
+                    )
+                elif all(
+                    isinstance(meta[key], (int, float))
+                    for meta in metadata_list
+                ):
                     aggregated_metadata[key] = sum(
                         meta[key] for meta in metadata_list
                     ) / len(metadata_list)

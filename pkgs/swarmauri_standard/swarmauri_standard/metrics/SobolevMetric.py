@@ -35,7 +35,9 @@ class SobolevMetric(MetricBase):
     """
 
     type: Literal["SobolevMetric"] = "SobolevMetric"
-    order: int = Field(default=1, description="Highest derivative order to consider")
+    order: int = Field(
+        default=1, description="Highest derivative order to consider"
+    )
     weights: Dict[int, float] = Field(
         default_factory=lambda: {0: 1.0, 1: 1.0},
         description="Weights for each derivative order",
@@ -90,7 +92,9 @@ class SobolevMetric(MetricBase):
 
         try:
             # Ensure x and y are of the same type
-            if not isinstance(y, type(x)) and not (callable(x) and callable(y)):
+            if not isinstance(y, type(x)) and not (
+                callable(x) and callable(y)
+            ):
                 raise TypeError(
                     f"Inputs must be of the same type, got {type(x).__name__} and {type(y).__name__}"
                 )
@@ -106,7 +110,9 @@ class SobolevMetric(MetricBase):
                     # Add derivative method to diff_func
                     def create_derivative(func_x, func_y):
                         def derivative_func(t):
-                            return func_x.derivative()(t) - func_y.derivative()(t)
+                            return func_x.derivative()(
+                                t
+                            ) - func_y.derivative()(t)
 
                         return derivative_func
 
@@ -120,7 +126,9 @@ class SobolevMetric(MetricBase):
 
                 x_array = x.to_numpy()
                 y_array = y.to_numpy()
-                diff_values = [x_array[i] - y_array[i] for i in range(len(x_array))]
+                diff_values = [
+                    x_array[i] - y_array[i] for i in range(len(x_array))
+                ]
                 diff_vector = Vector(value=diff_values)
                 return self.norm.compute(diff_vector)
 
@@ -198,14 +206,18 @@ class SobolevMetric(MetricBase):
             elif isinstance(x, list) and isinstance(y, list):
                 # Return a distance matrix even for same-length lists if they contain Vector objects
                 if len(x) > 0 and isinstance(x[0], IVector):
-                    result = [[0.0 for _ in range(len(y))] for _ in range(len(x))]
+                    result = [
+                        [0.0 for _ in range(len(y))] for _ in range(len(x))
+                    ]
                     for i in range(len(x)):
                         for j in range(len(y)):
                             result[i][j] = self.distance(x[i], y[j])
                     return result
                 elif len(x) != len(y):
                     # Return distance matrix for different length lists
-                    result = [[0.0 for _ in range(len(y))] for _ in range(len(x))]
+                    result = [
+                        [0.0 for _ in range(len(y))] for _ in range(len(x))
+                    ]
                     for i in range(len(x)):
                         for j in range(len(y)):
                             result[i][j] = self.distance(x[i], y[j])
@@ -214,7 +226,11 @@ class SobolevMetric(MetricBase):
                     # Return list of distances for same-length lists of non-Vector objects
                     return [self.distance(x[i], y[i]) for i in range(len(x))]
 
-            elif hasattr(x, "shape") and hasattr(y, "shape") and hasattr(x, "zeros"):
+            elif (
+                hasattr(x, "shape")
+                and hasattr(y, "shape")
+                and hasattr(x, "zeros")
+            ):
                 # Handle matrix-like objects, including mocks
                 result = x.zeros((x.shape[0], y.shape[0]))
                 for i in range(x.shape[0]):
@@ -229,7 +245,9 @@ class SobolevMetric(MetricBase):
 
         except Exception as e:
             logger.error(f"Error calculating Sobolev distances: {str(e)}")
-            raise ValueError(f"Failed to calculate Sobolev distances: {str(e)}")
+            raise ValueError(
+                f"Failed to calculate Sobolev distances: {str(e)}"
+            )
 
     def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
@@ -255,7 +273,9 @@ class SobolevMetric(MetricBase):
             logger.error(f"Error checking non-negativity: {str(e)}")
             return False
 
-    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
+    def check_identity_of_indiscernibles(
+        self, x: MetricInput, y: MetricInput
+    ) -> bool:
         """
         Check if the Sobolev metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -272,7 +292,9 @@ class SobolevMetric(MetricBase):
         bool
             True if the axiom is satisfied, False otherwise
         """
-        logger.debug("Checking identity of indiscernibles axiom for Sobolev metric")
+        logger.debug(
+            "Checking identity of indiscernibles axiom for Sobolev metric"
+        )
         try:
             dist = self.distance(x, y)
 
@@ -284,7 +306,9 @@ class SobolevMetric(MetricBase):
                 # If distance is not 0, x and y should be different
                 return not self._are_effectively_equal(x, y)
         except Exception as e:
-            logger.error(f"Error checking identity of indiscernibles: {str(e)}")
+            logger.error(
+                f"Error checking identity of indiscernibles: {str(e)}"
+            )
             return False
 
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
@@ -341,7 +365,9 @@ class SobolevMetric(MetricBase):
             dist_xz = self.distance(x, z)
 
             # Check the triangle inequality with a small tolerance for numerical issues
-            return dist_xz <= dist_xy + dist_yz + 1e-10 * (1 + dist_xy + dist_yz)
+            return dist_xz <= dist_xy + dist_yz + 1e-10 * (
+                1 + dist_xy + dist_yz
+            )
         except Exception as e:
             logger.error(f"Error checking triangle inequality: {str(e)}")
             return False
@@ -390,7 +416,8 @@ class SobolevMetric(MetricBase):
                 if len(x) != len(y):
                     return False
                 return all(
-                    abs(float(x[i]) - float(y[i])) < 1e-10 for i in range(len(x))
+                    abs(float(x[i]) - float(y[i])) < 1e-10
+                    for i in range(len(x))
                 )
 
             else:

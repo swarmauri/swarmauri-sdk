@@ -12,8 +12,8 @@ from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase
 
 @ComponentBase.register_type(AgentBase, "QAAgent")
 class QAAgent(AgentBase):
-    conversation: SubclassUnion[ConversationBase] = MaxSystemContextConversation(
-        max_size=2
+    conversation: SubclassUnion[ConversationBase] = (
+        MaxSystemContextConversation(max_size=2)
     )
     type: Literal["QAAgent"] = "QAAgent"
 

@@ -57,7 +57,8 @@ class GoogleOIDCLoginMixin:
         if self.discovery_cache is None:
             async with self.http_client_factory() as client:
                 response = await client.get_retry(
-                    self.discovery_endpoint, headers={"Accept": "application/json"}
+                    self.discovery_endpoint,
+                    headers={"Accept": "application/json"},
                 )
                 response.raise_for_status()
                 self.discovery_cache = response.json()
@@ -78,9 +79,16 @@ class GoogleOIDCLoginMixin:
             f"&code_challenge={challenge}&code_challenge_method=S256"
             f"&include_granted_scopes=true&prompt=select_account"
         )
-        return {"url": url, "state": state, "verifier": verifier, "nonce": nonce}
+        return {
+            "url": url,
+            "state": state,
+            "verifier": verifier,
+            "nonce": nonce,
+        }
 
-    async def _exchange_tokens(self, code: str, state: str) -> Mapping[str, Any]:
+    async def _exchange_tokens(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         payload = verify_state(self._state_secret_value(), state)
         metadata = await self._metadata()
         form = {
@@ -136,7 +144,11 @@ class GoogleOIDCLoginMixin:
         if not kid:
             raise ValueError("missing kid in id_token header")
         key_entry = next(
-            (entry for entry in jwks.get("keys", []) if entry.get("kid") == kid),
+            (
+                entry
+                for entry in jwks.get("keys", [])
+                if entry.get("kid") == kid
+            ),
             None,
         )
         if not key_entry:

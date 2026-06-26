@@ -44,7 +44,9 @@ class TestInit(unittest.TestCase):
         Test that the __version__ attribute is properly exposed and valid.
         """
         # Ensure __version__ is a non-empty string.
-        self.assertIsInstance(__version__, str, "__version__ should be a string")
+        self.assertIsInstance(
+            __version__, str, "__version__ should be a string"
+        )
         self.assertGreater(
             len(__version__), 0, "__version__ string should not be empty"
         )

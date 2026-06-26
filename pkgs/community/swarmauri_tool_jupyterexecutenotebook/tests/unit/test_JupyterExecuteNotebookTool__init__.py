@@ -15,7 +15,9 @@ def test_jupyter_execute_notebook_tool_exposed() -> None:
     """
     # Import the tool from the package top level.
     # If the import fails, this test will error out.
-    from swarmauri_tool_jupyterexecutenotebook import JupyterExecuteNotebookTool
+    from swarmauri_tool_jupyterexecutenotebook import (
+        JupyterExecuteNotebookTool,
+    )
 
     # Check if the imported object is callable (i.e., a class).
     assert callable(JupyterExecuteNotebookTool), (
@@ -45,7 +47,9 @@ def test_jupyter_execute_notebook_tool_inherits_base_class() -> None:
     from the appropriate base tool class, providing full implementations of
     all required methods.
     """
-    from swarmauri_tool_jupyterexecutenotebook import JupyterExecuteNotebookTool
+    from swarmauri_tool_jupyterexecutenotebook import (
+        JupyterExecuteNotebookTool,
+    )
     from swarmauri_tool_jupyterexecutenotebook.JupyterExecuteNotebookTool import (
         ToolBase,
     )
@@ -63,7 +67,9 @@ def test_jupyter_execute_notebook_tool_methods() -> None:
     This ensures that JupyterExecuteNotebookTool provides fully functional
     implementations and there are no missing methods or abstract placeholders.
     """
-    from swarmauri_tool_jupyterexecutenotebook import JupyterExecuteNotebookTool
+    from swarmauri_tool_jupyterexecutenotebook import (
+        JupyterExecuteNotebookTool,
+    )
 
     # Create an instance of the tool for testing.
     tool_instance = JupyterExecuteNotebookTool()

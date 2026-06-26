@@ -61,7 +61,9 @@ def ed25519_private_key() -> ed25519.Ed25519PrivateKey:
     return ed25519.Ed25519PrivateKey.generate()
 
 
-def test_ensure_deps_raises_when_lxml_missing(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_ensure_deps_raises_when_lxml_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from swarmauri_signing_xmld import xmld_signer
 
     monkeypatch.setattr(xmld_signer, "_LXML_OK", False)
@@ -218,7 +220,9 @@ def test_load_private_key_from_pkcs12(
         encryption_algorithm=serialization.BestAvailableEncryption(b"secret"),
     )
 
-    loaded = _load_private_key({"kind": "pkcs12", "data": bundle, "password": "secret"})
+    loaded = _load_private_key(
+        {"kind": "pkcs12", "data": bundle, "password": "secret"}
+    )
 
     assert isinstance(loaded, rsa.RSAPrivateKey)
 
@@ -258,7 +262,9 @@ def test_resolve_alg_for_rsa_defaults_to_pss(
     assert mode.salt_length == mode.MAX_LENGTH
 
 
-def test_resolve_alg_for_rsa_honors_pkcs1(rsa_private_key: rsa.RSAPrivateKey) -> None:
+def test_resolve_alg_for_rsa_honors_pkcs1(
+    rsa_private_key: rsa.RSAPrivateKey,
+) -> None:
     name, mode, _ = _resolve_alg(rsa_private_key, "rsa-pkcs1-sha256")
 
     assert name == "RSA-PKCS1-SHA256"
@@ -334,8 +340,12 @@ def test_serialize_signature_includes_cert_details(
         cert=rsa_certificate,
     )
 
-    assert signature.kid == _fingerprint(rsa_certificate.public_bytes(Encoding.DER))
-    assert signature.cert_chain_der == (rsa_certificate.public_bytes(Encoding.DER),)
+    assert signature.kid == _fingerprint(
+        rsa_certificate.public_bytes(Encoding.DER)
+    )
+    assert signature.cert_chain_der == (
+        rsa_certificate.public_bytes(Encoding.DER),
+    )
 
 
 def test_serialize_signature_without_cert_has_no_kid() -> None:
@@ -442,7 +452,9 @@ async def test_sign_stream_round_trip(
     )
     signer = XMLDSigner()
 
-    signatures = await signer.sign_stream({"kind": "pem", "private_key": pem}, source())
+    signatures = await signer.sign_stream(
+        {"kind": "pem", "private_key": pem}, source()
+    )
 
     assert signatures[0].meta == {"payload_kind": "bytes", "canon": "raw"}
 
@@ -514,7 +526,9 @@ async def test_verify_bytes_round_trip(
     signer = XMLDSigner()
     payload = b"verify"
 
-    signatures = await signer.sign_bytes({"kind": "pem", "private_key": pem}, payload)
+    signatures = await signer.sign_bytes(
+        {"kind": "pem", "private_key": pem}, payload
+    )
 
     assert await signer.verify_bytes(
         payload,
@@ -534,7 +548,9 @@ async def test_verify_bytes_requires_pubkeys(
     )
     signer = XMLDSigner()
     payload = b"verify"
-    signatures = await signer.sign_bytes({"kind": "pem", "private_key": pem}, payload)
+    signatures = await signer.sign_bytes(
+        {"kind": "pem", "private_key": pem}, payload
+    )
 
     with pytest.raises(RuntimeError, match="requires opts\['pubkeys'\]"):
         await signer.verify_bytes(payload, signatures)
@@ -558,8 +574,12 @@ async def test_verify_bytes_respects_min_signers(
     signer = XMLDSigner()
     payload = b"threshold"
 
-    ed_sig = await signer.sign_bytes({"kind": "pem", "private_key": ed_pem}, payload)
-    rsa_sig = await signer.sign_bytes({"kind": "pem", "private_key": rsa_pem}, payload)
+    ed_sig = await signer.sign_bytes(
+        {"kind": "pem", "private_key": ed_pem}, payload
+    )
+    rsa_sig = await signer.sign_bytes(
+        {"kind": "pem", "private_key": rsa_pem}, payload
+    )
 
     assert await signer.verify_bytes(
         payload,
@@ -597,7 +617,9 @@ async def test_verify_bytes_rejects_meta_mismatch(
     )
     signer = XMLDSigner()
     payload = b"verify"
-    signatures = await signer.sign_bytes({"kind": "pem", "private_key": pem}, payload)
+    signatures = await signer.sign_bytes(
+        {"kind": "pem", "private_key": pem}, payload
+    )
     bad = Signature(
         kid=signatures[0].kid,
         version=signatures[0].version,
@@ -660,7 +682,9 @@ async def test_verify_payload_accepts_string_signature(
     )
     signer = XMLDSigner()
     payload = b"text"
-    signatures = await signer.sign_bytes({"kind": "pem", "private_key": pem}, payload)
+    signatures = await signer.sign_bytes(
+        {"kind": "pem", "private_key": pem}, payload
+    )
     text_signature = Signature(
         kid=signatures[0].kid,
         version=signatures[0].version,

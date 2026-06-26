@@ -27,7 +27,9 @@ def test_type(client: CognitoOAuth20AppClient) -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_access_token_returns_cached(client: CognitoOAuth20AppClient) -> None:
+async def test_access_token_returns_cached(
+    client: CognitoOAuth20AppClient,
+) -> None:
     client._cached_token = ("cached", time.time() + 100)
     token = await client.access_token()
     assert token == "cached"
@@ -35,7 +37,9 @@ async def test_access_token_returns_cached(client: CognitoOAuth20AppClient) -> N
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_access_token_refreshes_cache(client: CognitoOAuth20AppClient) -> None:
+async def test_access_token_refreshes_cache(
+    client: CognitoOAuth20AppClient,
+) -> None:
     async def fake_fetch(scope: str | None) -> tuple[str, float]:
         assert scope == "scope-a"
         return "fresh", time.time() + 60

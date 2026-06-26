@@ -38,22 +38,34 @@ def test_parse(parser):
     # Basic structure checks
     assert isinstance(results, list), "Result should be a list of documents"
     assert len(results) > 0, "Parser should return at least one document"
-    assert isinstance(results[0], Document), "Result should contain Document instances"
+    assert isinstance(results[0], Document), (
+        "Result should contain Document instances"
+    )
 
     # Check that content is the original text
-    assert results[0].content == sample_text, "Content should be the original text"
+    assert results[0].content == sample_text, (
+        "Content should be the original text"
+    )
 
     # Check the embeddings properties in metadata
-    assert "embedding" in results[0].metadata, "Metadata should contain embedding"
+    assert "embedding" in results[0].metadata, (
+        "Metadata should contain embedding"
+    )
     embedding = results[0].metadata["embedding"]
-    assert isinstance(embedding, np.ndarray), "Embedding should be a numpy array"
-    assert embedding.ndim == 1, "Embedding should be a 1D array (mean across tokens)"
+    assert isinstance(embedding, np.ndarray), (
+        "Embedding should be a numpy array"
+    )
+    assert embedding.ndim == 1, (
+        "Embedding should be a 1D array (mean across tokens)"
+    )
     assert embedding.shape[0] == 768, (
         "BERT base model produces 768-dimensional embeddings"
     )
 
     # Check metadata
-    assert "source" in results[0].metadata, "Metadata should contain source information"
+    assert "source" in results[0].metadata, (
+        "Metadata should contain source information"
+    )
     assert results[0].metadata["source"] == "BERTEmbeddingParser", (
         "Source should be BERTEmbeddingParser"
     )
@@ -81,7 +93,9 @@ def test_parse(parser):
     )
 
     # Different texts should have somewhat different embeddings
-    assert similarity < 0.95, "Different texts should produce distinct embeddings"
+    assert similarity < 0.95, (
+        "Different texts should produce distinct embeddings"
+    )
 
     # Verify document contents match input
     for i, doc in enumerate(batch_results):

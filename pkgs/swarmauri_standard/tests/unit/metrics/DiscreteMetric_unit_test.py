@@ -231,10 +231,14 @@ def test_all_metric_axioms(discrete_metric):
             assert (discrete_metric.distance(x, y) == 0) == (x == y)
 
             # Symmetry
-            assert discrete_metric.distance(x, y) == discrete_metric.distance(y, x)
+            assert discrete_metric.distance(x, y) == discrete_metric.distance(
+                y, x
+            )
 
             for z in test_points:
                 # Triangle inequality
-                assert discrete_metric.distance(x, z) <= discrete_metric.distance(
-                    x, y
-                ) + discrete_metric.distance(y, z)
+                assert discrete_metric.distance(
+                    x, z
+                ) <= discrete_metric.distance(x, y) + discrete_metric.distance(
+                    y, z
+                )

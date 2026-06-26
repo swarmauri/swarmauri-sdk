@@ -46,7 +46,9 @@ class ExceptionHandlingMiddleware(MiddlewareBase, IMiddleware):
 
             # Return a JSON response with 500 status code
             return Response(
-                content=json.dumps(error_response),  # Fix: Serialize to JSON string
+                content=json.dumps(
+                    error_response
+                ),  # Fix: Serialize to JSON string
                 status_code=500,
                 media_type="application/json",
             )
@@ -63,4 +65,6 @@ class ExceptionHandlingMiddleware(MiddlewareBase, IMiddleware):
         Returns:
             The response object after processing.
         """
-        return await self.dispatch(request, call_next)  # Fix: Pass call_next parameter
+        return await self.dispatch(
+            request, call_next
+        )  # Fix: Pass call_next parameter

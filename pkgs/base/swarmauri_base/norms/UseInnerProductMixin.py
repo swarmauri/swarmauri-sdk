@@ -24,7 +24,9 @@ class UseInnerProductMixin(IUseInnerProduct):
         Reference to the inner product implementation used by this component
     """
 
-    def __init__(self, inner_product: IInnerProduct, *args: Any, **kwargs: Any):
+    def __init__(
+        self, inner_product: IInnerProduct, *args: Any, **kwargs: Any
+    ):
         """
         Initialize the mixin with an inner product.
 

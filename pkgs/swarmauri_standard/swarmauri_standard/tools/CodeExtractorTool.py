@@ -55,7 +55,9 @@ class CodeExtractorTool(ToolBase):
             str: Extracted code.
         """
         return {
-            "code": self.extract_code(file_name, extract_documentation, to_be_ignored)
+            "code": self.extract_code(
+                file_name, extract_documentation, to_be_ignored
+            )
         }
 
     def extract_code(

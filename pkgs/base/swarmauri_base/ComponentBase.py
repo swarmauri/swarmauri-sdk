@@ -30,7 +30,9 @@ T = TypeVar("T", bound="ComponentBase")
 
 
 @DynamicBase.register_type()
-class ComponentBase(LoggerMixin, YamlMixin, TomlMixin, ServiceMixin, DynamicBase):
+class ComponentBase(
+    LoggerMixin, YamlMixin, TomlMixin, ServiceMixin, DynamicBase
+):
     """
     Base class for all components.
     """

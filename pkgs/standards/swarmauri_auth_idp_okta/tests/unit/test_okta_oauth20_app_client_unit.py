@@ -50,7 +50,9 @@ class DummyClient:
 
 
 class DummyClientFactory:
-    def __init__(self, *, post_payloads: Optional[list[Dict[str, Any]]] = None):
+    def __init__(
+        self, *, post_payloads: Optional[list[Dict[str, Any]]] = None
+    ):
         self.post_payloads = list(post_payloads or [])
         self.post_calls = 0
         self.last_post_kwargs: Dict[str, Any] | None = None

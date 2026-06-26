@@ -27,7 +27,9 @@ class Fips204CipherSuite(CipherSuiteBase):
     def supports(self) -> Mapping[CipherOp, Iterable[Alg]]:
         return {"sign": _ML_DSA, "verify": _ML_DSA}
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         return "ML-DSA-65"
 
     def policy(self) -> Mapping[str, object]:
@@ -70,7 +72,10 @@ class Fips204CipherSuite(CipherSuiteBase):
         chosen_dialect = "provider" if dialect is None else dialect
         mapped = {"provider": f"ml-dsa:{chosen}"}
 
-        constraints = {"nistLevel": _ML_DSA_LEVEL[chosen], "category": "post-quantum"}
+        constraints = {
+            "nistLevel": _ML_DSA_LEVEL[chosen],
+            "category": "post-quantum",
+        }
 
         return {
             "op": op,

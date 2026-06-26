@@ -98,9 +98,13 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
                 self.weights.setdefault(cls.__name__, 1.0)
             except Exception as exc:  # pragma: no cover
                 if self.logger:
-                    self.logger.error("Failed to instantiate %s: %s", cls.__name__, exc)
+                    self.logger.error(
+                        "Failed to instantiate %s: %s", cls.__name__, exc
+                    )
 
-    def _register_evaluator_internal(self, evaluator: IEvaluate, name: str) -> None:
+    def _register_evaluator_internal(
+        self, evaluator: IEvaluate, name: str
+    ) -> None:
         super().add_evaluator(evaluator, name)
 
     def add_evaluator(self, evaluator: IEvaluate, name: Any = None) -> str:  # type: ignore[override]
@@ -169,7 +173,9 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
 
     def _legacy_evaluate(self, program: Program) -> Dict[str, Any]:
         source_files = (
-            program.get_source_files() if hasattr(program, "get_source_files") else {}
+            program.get_source_files()
+            if hasattr(program, "get_source_files")
+            else {}
         )
         file_scores = {
             path: self._evaluate_file(path, content)
@@ -202,7 +208,9 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
 
     def evaluate(self, programs: Any, **kwargs: Any) -> Any:  # type: ignore[override]
         # Backward-compatible single-program mode used in unit tests.
-        if not isinstance(programs, Sequence) or isinstance(programs, (str, bytes)):
+        if not isinstance(programs, Sequence) or isinstance(
+            programs, (str, bytes)
+        ):
             return self._legacy_evaluate(programs)
         return super().evaluate(programs, **kwargs)
 

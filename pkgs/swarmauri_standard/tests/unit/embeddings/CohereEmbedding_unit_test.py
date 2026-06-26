@@ -29,7 +29,9 @@ def test_ubc_type(cohere_embedding):
 def test_serialization(cohere_embedding):
     assert (
         cohere_embedding.id
-        == CohereEmbedding.model_validate_json(cohere_embedding.model_dump_json()).id
+        == CohereEmbedding.model_validate_json(
+            cohere_embedding.model_dump_json()
+        ).id
     )
 
 

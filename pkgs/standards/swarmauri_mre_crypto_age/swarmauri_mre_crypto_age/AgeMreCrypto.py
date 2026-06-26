@@ -2,7 +2,16 @@ from __future__ import annotations
 
 import hashlib
 import os
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Union,
+)
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric.x25519 import (
@@ -41,7 +50,9 @@ def _pub_from_keyref(ref: KeyRef) -> X25519PublicKey:
     """Extract an X25519 public key from a KeyRef."""
     if isinstance(ref, dict):
         kind = ref.get("kind")
-        if kind == "cryptography_obj" and isinstance(ref.get("obj"), X25519PublicKey):
+        if kind == "cryptography_obj" and isinstance(
+            ref.get("obj"), X25519PublicKey
+        ):
             return ref["obj"]  # type: ignore[return-value]
         if kind in ("raw_x25519_pk", "age_x25519_pk"):
             b = ref.get("bytes")
@@ -54,7 +65,9 @@ def _priv_from_keyref(ref: KeyRef) -> X25519PrivateKey:
     """Extract an X25519 private key from a KeyRef."""
     if isinstance(ref, dict):
         kind = ref.get("kind")
-        if kind == "cryptography_obj" and isinstance(ref.get("obj"), X25519PrivateKey):
+        if kind == "cryptography_obj" and isinstance(
+            ref.get("obj"), X25519PrivateKey
+        ):
             return ref["obj"]  # type: ignore[return-value]
         if kind in ("raw_x25519_sk", "age_x25519_sk"):
             b = ref.get("bytes")
@@ -65,7 +78,8 @@ def _priv_from_keyref(ref: KeyRef) -> X25519PrivateKey:
 
 def _pub_bytes(pk: X25519PublicKey) -> bytes:
     return pk.public_bytes(
-        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PublicFormat.Raw,
     )
 
 
@@ -157,9 +171,13 @@ class AgeMreCrypto(MreCryptoBase):
     ) -> MultiRecipientEnvelope:
         m = _mode_token(mode)
         if m != "sealed_per_recipient":
-            raise ValueError("AgeMreCrypto supports only mode='sealed_per_recipient'.")
+            raise ValueError(
+                "AgeMreCrypto supports only mode='sealed_per_recipient'."
+            )
         if recipient_alg not in (None, "X25519-SEAL"):
-            raise ValueError("AgeMreCrypto supports only recipient_alg='X25519-SEAL'.")
+            raise ValueError(
+                "AgeMreCrypto supports only recipient_alg='X25519-SEAL'."
+            )
         recs: List[Dict[str, Any]] = []
         for ref in recipients:
             pk = _pub_from_keyref(ref)
@@ -244,7 +262,9 @@ class AgeMreCrypto(MreCryptoBase):
                 "Envelope mode is not 'sealed_per_recipient' for AgeMreCrypto."
             )
         if recipient_alg not in (None, "X25519-SEAL"):
-            raise ValueError("AgeMreCrypto supports only recipient_alg='X25519-SEAL'.")
+            raise ValueError(
+                "AgeMreCrypto supports only recipient_alg='X25519-SEAL'."
+            )
         recipients_list: List[Dict[str, Any]] = list(env.get("recipients", []))
         if remove:
             remove_set = set(remove)

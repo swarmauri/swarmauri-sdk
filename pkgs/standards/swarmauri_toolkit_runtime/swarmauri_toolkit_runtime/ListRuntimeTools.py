@@ -11,7 +11,9 @@ from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 class ListRuntimeTools(ToolBase):
     version: str = "0.1.0"
     name: str = "ListRuntimeTools"
-    description: str = "List all tools currently available in the active toolkit."
+    description: str = (
+        "List all tools currently available in the active toolkit."
+    )
     type: Literal["ListRuntimeTools"] = "ListRuntimeTools"
     toolkit: ToolkitBase | None = Field(default=None, exclude=True, repr=False)
     parameters: List[Any] = Field(default_factory=list)

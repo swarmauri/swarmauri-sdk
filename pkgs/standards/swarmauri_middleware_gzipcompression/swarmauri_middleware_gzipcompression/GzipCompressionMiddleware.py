@@ -33,12 +33,17 @@ class GzipCompressionMiddleware(MiddlewareBase):
 
         # Check if the client supports gzip encoding
         if "gzip" not in request.headers.get("Accept-Encoding", "").lower():
-            _logger.debug("Client does not support gzip encoding, skipping compression")
+            _logger.debug(
+                "Client does not support gzip encoding, skipping compression"
+            )
             return response
 
         # Check if the response content type is compressible
         content_type = response.headers.get("Content-Type", "")
-        if "application/json" not in content_type and "text/" not in content_type:
+        if (
+            "application/json" not in content_type
+            and "text/" not in content_type
+        ):
             _logger.debug(
                 f"Content type {content_type} is not compressible, skipping compression"
             )

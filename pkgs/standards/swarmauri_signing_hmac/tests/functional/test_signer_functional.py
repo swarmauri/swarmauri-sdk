@@ -13,7 +13,9 @@ async def _run() -> bool:
     key = {"kind": "raw", "key": "a" * 32}
     env = create_env("hello")
     sigs = await signer.sign_envelope(key, env, alg=JWAAlg.HS256, canon="json")
-    good = await signer.verify_envelope(env, sigs, canon="json", opts={"keys": [key]})
+    good = await signer.verify_envelope(
+        env, sigs, canon="json", opts={"keys": [key]}
+    )
     bad = await signer.verify_envelope(
         {"msg": "tampered"}, sigs, canon="json", opts={"keys": [key]}
     )

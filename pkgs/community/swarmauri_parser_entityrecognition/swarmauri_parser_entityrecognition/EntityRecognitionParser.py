@@ -113,7 +113,9 @@ class EntityRecognitionParser(ParserBase):
                 content=ent.text,
                 metadata={
                     "entity_type": ent.label_,
-                    "entity_id": str(i),  # Add an identifier in metadata if needed
+                    "entity_id": str(
+                        i
+                    ),  # Add an identifier in metadata if needed
                     "text": ent.text,  # Store the entity text in metadata too
                 },
             )

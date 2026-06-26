@@ -28,7 +28,9 @@ class VectorStoreComparator(IVectorStoreComparator):
     def ranking_direction(self) -> RankingDirection:
         raise NotImplementedError
 
-    def score(self, query: ComparableValue, candidate: ComparableValue) -> float:
+    def score(
+        self, query: ComparableValue, candidate: ComparableValue
+    ) -> float:
         raise NotImplementedError
 
     def score_many(
@@ -45,7 +47,9 @@ class VectorStoreComparator(IVectorStoreComparator):
         scores = self.score_many(query, candidates)
         reverse = self.ranking_direction == "descending"
         return sorted(
-            range(len(scores)), key=lambda index: scores[index], reverse=reverse
+            range(len(scores)),
+            key=lambda index: scores[index],
+            reverse=reverse,
         )[:top_k]
 
 
@@ -59,7 +63,9 @@ class MetricVectorStoreComparator(VectorStoreComparator):
     def ranking_direction(self) -> RankingDirection:
         return "ascending"
 
-    def score(self, query: ComparableValue, candidate: ComparableValue) -> float:
+    def score(
+        self, query: ComparableValue, candidate: ComparableValue
+    ) -> float:
         return self.metric.distance(
             _coerce_comparable(query),
             _coerce_comparable(candidate),
@@ -88,7 +94,9 @@ class SimilarityVectorStoreComparator(VectorStoreComparator):
     def ranking_direction(self) -> RankingDirection:
         return "descending"
 
-    def score(self, query: ComparableValue, candidate: ComparableValue) -> float:
+    def score(
+        self, query: ComparableValue, candidate: ComparableValue
+    ) -> float:
         return self.similarity.similarity(
             _coerce_comparable(query),
             _coerce_comparable(candidate),
@@ -101,4 +109,6 @@ class SimilarityVectorStoreComparator(VectorStoreComparator):
         normalized_candidates = [
             _coerce_comparable(candidate) for candidate in candidates
         ]
-        return self.similarity.similarities(normalized_query, normalized_candidates)
+        return self.similarity.similarities(
+            normalized_query, normalized_candidates
+        )

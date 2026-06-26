@@ -15,7 +15,9 @@ from swarmauri_base.auth_idp import (
 
 GOOGLE_AUTHORIZATION_ENDPOINT = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token"
-GOOGLE_USERINFO_ENDPOINT = "https://www.googleapis.com/oauth2/v1/userinfo?alt=json"
+GOOGLE_USERINFO_ENDPOINT = (
+    "https://www.googleapis.com/oauth2/v1/userinfo?alt=json"
+)
 GOOGLE_DEFAULT_SCOPE = (
     "https://www.googleapis.com/auth/userinfo.email "
     "https://www.googleapis.com/auth/userinfo.profile"
@@ -54,7 +56,9 @@ class GoogleOAuthLoginMixin:
         )
         return {"url": url, "state": state, "verifier": verifier}
 
-    async def _exchange_tokens(self, code: str, state: str) -> Mapping[str, Any]:
+    async def _exchange_tokens(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         payload = verify_state(self._state_secret_value(), state)
         form = {
             "grant_type": "authorization_code",
@@ -79,7 +83,9 @@ class GoogleOAuthLoginMixin:
             "Accept": "application/json",
         }
         async with self.http_client_factory() as client:
-            response = await client.get_retry(GOOGLE_USERINFO_ENDPOINT, headers=headers)
+            response = await client.get_retry(
+                GOOGLE_USERINFO_ENDPOINT, headers=headers
+            )
             response.raise_for_status()
             return response.json()
 

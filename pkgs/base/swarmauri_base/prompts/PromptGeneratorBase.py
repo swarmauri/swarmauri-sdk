@@ -14,7 +14,9 @@ class PromptGeneratorBase(IPrompt, ITemplate, ComponentBase):
 
     template: str = ""
     variables: Union[List[Dict[str, Any]], Dict[str, Any]] = {}
-    resource: Optional[str] = Field(default=ResourceTypes.PROMPT.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.PROMPT.value, frozen=True
+    )
     type: Literal["PromptGeneratorBase"] = "PromptGeneratorBase"
 
     def set_template(self, template: str) -> None:
@@ -29,7 +31,11 @@ class PromptGeneratorBase(IPrompt, ITemplate, ComponentBase):
         else uses the next variables set in the list.
         """
         variables = (
-            variables if variables else self.variables.pop(0) if self.variables else {}
+            variables
+            if variables
+            else self.variables.pop(0)
+            if self.variables
+            else {}
         )
         return self.template.format(**variables)
 

@@ -44,7 +44,9 @@ class ToolBase(ITool, ComponentBase):
 
         Subclasses must implement their single‐item logic here.
         """
-        raise NotImplementedError("Subclasses must implement the __call__ method.")
+        raise NotImplementedError(
+            "Subclasses must implement the __call__ method."
+        )
 
     def batch(self, inputs: List[Any], *args, **kwargs) -> List[Any]:
         """

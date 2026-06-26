@@ -7,7 +7,16 @@ import os
 import random
 import time
 from dataclasses import dataclass
-from typing import Any, Callable, ClassVar, Dict, List, Literal, Sequence, Tuple
+from typing import (
+    Any,
+    Callable,
+    ClassVar,
+    Dict,
+    List,
+    Literal,
+    Sequence,
+    Tuple,
+)
 
 from swarmauri_base.evaluators.EvaluatorBase import EvaluatorBase
 from swarmauri_core.programs.IProgram import IProgram as Program
@@ -122,7 +131,9 @@ def _mk_inputs_fixed_vs_random(
     fixed_pair: Tuple[bytes, bytes],
     n_samples: int,
 ) -> Tuple[List[Tuple[tuple, dict]], List[Tuple[tuple, dict]]]:
-    fixed_inputs = [((fixed_pair[0], fixed_pair[1]), {}) for _ in range(n_samples)]
+    fixed_inputs = [
+        ((fixed_pair[0], fixed_pair[1]), {}) for _ in range(n_samples)
+    ]
     random_inputs = [make_input_pair() for _ in range(n_samples)]
     rnd_inputs = [((a, b), {}) for (a, b) in random_inputs]
     return fixed_inputs, rnd_inputs

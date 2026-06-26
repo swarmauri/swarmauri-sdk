@@ -18,7 +18,9 @@ with the Swarmauri framework.
 """
 
 
-@ComponentBase.register_type(ToolBase, "JupyterExecuteNotebookWithParametersTool")
+@ComponentBase.register_type(
+    ToolBase, "JupyterExecuteNotebookWithParametersTool"
+)
 class JupyterExecuteNotebookWithParametersTool(ToolBase):
     """
     JupyterExecuteNotebookWithParametersTool is a tool that executes Jupyter notebooks with custom
@@ -104,7 +106,9 @@ class JupyterExecuteNotebookWithParametersTool(ToolBase):
             return {"error": error_message}
 
         if not output_notebook_path.endswith(".ipynb"):
-            error_message = "The specified output_notebook_path is not a .ipynb file."
+            error_message = (
+                "The specified output_notebook_path is not a .ipynb file."
+            )
             logger.error(error_message)
             return {"error": error_message}
 
@@ -117,6 +121,8 @@ class JupyterExecuteNotebookWithParametersTool(ToolBase):
             logger.info("Notebook execution completed successfully.")
             return {"executed_notebook": output_notebook_path}
         except Exception as e:
-            error_message = f"An error occurred during notebook execution: {str(e)}"
+            error_message = (
+                f"An error occurred during notebook execution: {str(e)}"
+            )
             logger.error(error_message)
             return {"error": error_message}

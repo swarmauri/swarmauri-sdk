@@ -14,7 +14,10 @@ def restore_interfaces():
 
 @pytest.mark.unit
 def test_get_registered_interface():
-    assert InterfaceRegistry.get_interface_for_resource("swarmauri.agents") is AgentBase
+    assert (
+        InterfaceRegistry.get_interface_for_resource("swarmauri.agents")
+        is AgentBase
+    )
 
 
 @pytest.mark.unit
@@ -26,7 +29,10 @@ def test_get_interface_invalid_raises():
 @pytest.mark.unit
 def test_register_and_unregister_interface():
     InterfaceRegistry.register_interface("swarmauri.tests", AgentBase)
-    assert InterfaceRegistry.get_interface_for_resource("swarmauri.tests") is AgentBase
+    assert (
+        InterfaceRegistry.get_interface_for_resource("swarmauri.tests")
+        is AgentBase
+    )
     InterfaceRegistry.unregister_interface("swarmauri.tests")
     assert InterfaceRegistry.INTERFACE_REGISTRY["swarmauri.tests"] is None
 

@@ -20,7 +20,9 @@ def test_resource_and_type(client: FacebookOAuth21AppClient) -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_access_token_delegates(client: FacebookOAuth21AppClient, monkeypatch):
+async def test_access_token_delegates(
+    client: FacebookOAuth21AppClient, monkeypatch
+):
     async def fake_access_token(self, scope=None):
         return "delegated-token"
 

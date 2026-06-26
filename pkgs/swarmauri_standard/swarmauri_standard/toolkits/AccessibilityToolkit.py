@@ -11,7 +11,9 @@ from swarmauri_standard.tools.ColemanLiauIndexTool import ColemanLiauIndexTool
 
 from swarmauri_standard.tools.FleschKincaidTool import FleschKincaidTool
 
-from swarmauri_standard.tools.FleschReadingEaseTool import FleschReadingEaseTool
+from swarmauri_standard.tools.FleschReadingEaseTool import (
+    FleschReadingEaseTool,
+)
 
 from swarmauri_standard.tools.GunningFogTool import GunningFogTool
 

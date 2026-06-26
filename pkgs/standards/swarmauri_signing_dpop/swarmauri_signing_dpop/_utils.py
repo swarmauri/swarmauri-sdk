@@ -39,7 +39,12 @@ def _jwk_thumbprint_b64url(jwk: dict) -> str:
     if kty == "RSA":
         ordered = {"e": jwk["e"], "kty": "RSA", "n": jwk["n"]}
     elif kty == "EC":
-        ordered = {"crv": jwk["crv"], "kty": "EC", "x": jwk["x"], "y": jwk["y"]}
+        ordered = {
+            "crv": jwk["crv"],
+            "kty": "EC",
+            "x": jwk["x"],
+            "y": jwk["y"],
+        }
     elif kty == "OKP":
         ordered = {"crv": jwk["crv"], "kty": "OKP", "x": jwk["x"]}
     else:
@@ -75,7 +80,12 @@ def _derive_public_jwk_from_priv_pem(pem_bytes: bytes) -> dict:
         if isinstance(pub.curve, ec.SECP256R1):
             x = nums.x.to_bytes(32, "big")
             y = nums.y.to_bytes(32, "big")
-            return {"kty": "EC", "crv": "P-256", "x": _b64url(x), "y": _b64url(y)}
+            return {
+                "kty": "EC",
+                "crv": "P-256",
+                "x": _b64url(x),
+                "y": _b64url(y),
+            }
         raise ValueError("Unsupported EC curve for JWK export")
     if isinstance(pub, ed25519.Ed25519PublicKey):
         raw = pub.public_bytes(
@@ -95,7 +105,9 @@ def _resolve_keyref(key: KeyRef, alg: t.Optional[str]) -> _KeyMat:
         if isinstance(priv, str):
             priv = priv.encode("utf-8")
         if not isinstance(priv, (bytes, bytearray)):
-            raise TypeError("KeyRef['priv'] must be PEM bytes|str for kind='pem'")
+            raise TypeError(
+                "KeyRef['priv'] must be PEM bytes|str for kind='pem'"
+            )
         priv_bytes = bytes(priv)
         pub_jwk = _derive_public_jwk_from_priv_pem(priv_bytes)
         if alg_token == JWAAlg.EDDSA:
@@ -109,10 +121,14 @@ def _resolve_keyref(key: KeyRef, alg: t.Optional[str]) -> _KeyMat:
     if kind == "jwk":
         priv_jwk = key.get("priv")
         if not isinstance(priv_jwk, dict):
-            raise TypeError("KeyRef['priv'] must be a private JWK dict for kind='jwk'")
+            raise TypeError(
+                "KeyRef['priv'] must be a private JWK dict for kind='jwk'"
+            )
         alg_token = JWAAlg(alg or priv_jwk.get("alg") or "ES256")
         pub_jwk = {
-            k: v for k, v in priv_jwk.items() if k in ("kty", "crv", "x", "y", "n", "e")
+            k: v
+            for k, v in priv_jwk.items()
+            if k in ("kty", "crv", "x", "y", "n", "e")
         }
         if alg_token == JWAAlg.EDDSA and priv_jwk.get("kty") == "OKP":
             d = priv_jwk.get("d")

@@ -19,7 +19,8 @@ def test_ubc_type():
 def test_serialization():
     embedder = TfidfEmbedding()
     assert (
-        embedder.id == TfidfEmbedding.model_validate_json(embedder.model_dump_json()).id
+        embedder.id
+        == TfidfEmbedding.model_validate_json(embedder.model_dump_json()).id
     )
 
 

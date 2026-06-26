@@ -133,7 +133,9 @@ def test_distance_callable_functions(sobolev_metric, test_functions):
     f1, f2, _ = test_functions
 
     # Patch the norm.compute method to return a known value
-    with patch.object(sobolev_metric.norm, "compute", return_value=1.0) as mock_compute:
+    with patch.object(
+        sobolev_metric.norm, "compute", return_value=1.0
+    ) as mock_compute:
         dist = sobolev_metric.distance(f1, f2)
 
         # Check that the norm.compute was called once
@@ -153,7 +155,9 @@ def test_distance_vectors(sobolev_metric, vector_pair):
     v1, v2 = vector_pair
 
     # Patch the norm.compute method to return a known value
-    with patch.object(sobolev_metric.norm, "compute", return_value=2.5) as mock_compute:
+    with patch.object(
+        sobolev_metric.norm, "compute", return_value=2.5
+    ) as mock_compute:
         dist = sobolev_metric.distance(v1, v2)
 
         # Check that the norm.compute was called once
@@ -176,7 +180,9 @@ def test_distance_sequences(sobolev_metric):
     seq2 = [4, 5, 6]
 
     # Patch the norm.compute method to return a known value
-    with patch.object(sobolev_metric.norm, "compute", return_value=3.0) as mock_compute:
+    with patch.object(
+        sobolev_metric.norm, "compute", return_value=3.0
+    ) as mock_compute:
         dist = sobolev_metric.distance(seq1, seq2)
 
         # Check that the norm.compute was called once
@@ -301,28 +307,36 @@ def test_check_identity_of_indiscernibles(sobolev_metric, test_functions):
     # Patch the distance method to return zero and _are_effectively_equal to return True
     with (
         patch.object(sobolev_metric, "distance", return_value=0.0),
-        patch.object(sobolev_metric, "_are_effectively_equal", return_value=True),
+        patch.object(
+            sobolev_metric, "_are_effectively_equal", return_value=True
+        ),
     ):
         assert sobolev_metric.check_identity_of_indiscernibles(f1, f1) is True
 
     # Patch the distance method to return non-zero and _are_effectively_equal to return False
     with (
         patch.object(sobolev_metric, "distance", return_value=1.5),
-        patch.object(sobolev_metric, "_are_effectively_equal", return_value=False),
+        patch.object(
+            sobolev_metric, "_are_effectively_equal", return_value=False
+        ),
     ):
         assert sobolev_metric.check_identity_of_indiscernibles(f1, f2) is True
 
     # Patch the distance method to return zero but _are_effectively_equal to return False (inconsistent)
     with (
         patch.object(sobolev_metric, "distance", return_value=0.0),
-        patch.object(sobolev_metric, "_are_effectively_equal", return_value=False),
+        patch.object(
+            sobolev_metric, "_are_effectively_equal", return_value=False
+        ),
     ):
         assert sobolev_metric.check_identity_of_indiscernibles(f1, f2) is False
 
     # Patch the distance method to return non-zero but _are_effectively_equal to return True (inconsistent)
     with (
         patch.object(sobolev_metric, "distance", return_value=1.5),
-        patch.object(sobolev_metric, "_are_effectively_equal", return_value=True),
+        patch.object(
+            sobolev_metric, "_are_effectively_equal", return_value=True
+        ),
     ):
         assert sobolev_metric.check_identity_of_indiscernibles(f1, f2) is False
 

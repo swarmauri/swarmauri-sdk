@@ -29,7 +29,9 @@ class SshCipherSuite(CipherSuiteBase):
     def supports(self) -> Mapping[CipherOp, Iterable[Alg]]:
         return {"encrypt": _SSH_CIPHER, "decrypt": _SSH_CIPHER}
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         return "chacha20-poly1305@openssh.com"
 
     def features(self) -> Features:

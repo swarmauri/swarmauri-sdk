@@ -72,7 +72,9 @@ def test_lookup_user_min(
             return FakeIdentityStore()
 
     monkeypatch.setattr("requests.get", lambda *args, **kwargs: FakeResponse())
-    monkeypatch.setattr("boto3.Session", lambda **kwargs: FakeSession(**kwargs))
+    monkeypatch.setattr(
+        "boto3.Session", lambda **kwargs: FakeSession(**kwargs)
+    )
 
     result = resolver.lookup_user_min("access-token")
     assert result["userId"] == "u-1"

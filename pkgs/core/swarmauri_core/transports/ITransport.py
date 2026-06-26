@@ -17,7 +17,9 @@ class ITransport(ABC):
         """Return the capability set advertised by the transport."""
 
     @abstractmethod
-    def server(self, **bind_kwargs: Any) -> AbstractAsyncContextManager["ITransport"]:
+    def server(
+        self, **bind_kwargs: Any
+    ) -> AbstractAsyncContextManager["ITransport"]:
         """Return a context manager that starts the transport's server side."""
 
     @abstractmethod

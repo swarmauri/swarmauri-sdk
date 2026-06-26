@@ -44,7 +44,9 @@ class EvalResultBase(IEvalResult, ComponentBase):
         "additionalProperties": True,  # Allow additional properties by default
     }
 
-    def __init__(self, score: float, metadata: Dict[str, Any], program: IProgram):
+    def __init__(
+        self, score: float, metadata: Dict[str, Any], program: IProgram
+    ):
         """
         Initialize a new evaluation result.
 

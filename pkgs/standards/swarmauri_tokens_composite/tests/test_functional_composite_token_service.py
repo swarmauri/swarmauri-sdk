@@ -15,7 +15,9 @@ class DummyService:
     def supports(self):
         return {"formats": self._formats, "algs": self._algs}
 
-    async def mint(self, claims, *, alg, **kwargs):  # pragma: no cover - unused
+    async def mint(
+        self, claims, *, alg, **kwargs
+    ):  # pragma: no cover - unused
         return f"{self.name}:{alg}"
 
     async def verify(self, token, **kwargs):

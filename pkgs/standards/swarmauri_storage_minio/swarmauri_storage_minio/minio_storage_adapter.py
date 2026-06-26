@@ -137,7 +137,9 @@ class MinioStorageAdapter(StorageAdapterBase):
             if not rel_key:
                 continue
             source_key = (
-                f"{normalized_prefix}/{rel_key}" if normalized_prefix else rel_key
+                f"{normalized_prefix}/{rel_key}"
+                if normalized_prefix
+                else rel_key
             )
             target = self.download_target_for_key(dest, rel_key)
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -153,7 +155,9 @@ class MinioStorageAdapter(StorageAdapterBase):
     async def remove_object(self, object_key: str) -> None:
         """Delete ``object_key`` when it exists."""
         try:
-            self._client.remove_object(self._bucket, self._full_key(object_key))
+            self._client.remove_object(
+                self._bucket, self._full_key(object_key)
+            )
         except S3Error as exc:
             if getattr(exc, "code", "") in {
                 "NoSuchKey",

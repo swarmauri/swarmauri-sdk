@@ -66,7 +66,8 @@ class ShuttleAIModel(LLMBase):
     ) -> List[Dict[str, str]]:
         message_properties = ["content", "role"]
         formatted_messages = [
-            message.model_dump(include=message_properties) for message in messages
+            message.model_dump(include=message_properties)
+            for message in messages
         ]
         return formatted_messages
 
@@ -142,7 +143,9 @@ class ShuttleAIModel(LLMBase):
         logging.info(f"Response received: {response.text}")
 
         try:
-            message_content = response.json()["choices"][0]["message"]["content"]
+            message_content = response.json()["choices"][0]["message"][
+                "content"
+            ]
         except KeyError as e:
             logging.info(f"Error parsing response: {response.text}")
             raise e
@@ -182,7 +185,9 @@ class ShuttleAIModel(LLMBase):
         }
 
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload, headers=headers) as response:
+            async with session.post(
+                url, json=payload, headers=headers
+            ) as response:
                 response_json = await response.json()
 
         message_content = response_json["choices"][0]["message"]["content"]
@@ -221,13 +226,17 @@ class ShuttleAIModel(LLMBase):
             "Content-Type": "application/json",
         }
 
-        response = requests.post(url, json=payload, headers=headers, stream=True)
+        response = requests.post(
+            url, json=payload, headers=headers, stream=True
+        )
 
         collected_content = []
         for line in response.iter_lines():
             if line:
                 try:
-                    chunk = json.loads(line.decode("utf-8").split("data: ", 1)[-1])
+                    chunk = json.loads(
+                        line.decode("utf-8").split("data: ", 1)[-1]
+                    )
                     if (
                         chunk.get("choices")
                         and chunk["choices"][0].get("delta")
@@ -275,7 +284,9 @@ class ShuttleAIModel(LLMBase):
         }
 
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload, headers=headers) as response:
+            async with session.post(
+                url, json=payload, headers=headers
+            ) as response:
                 collected_content = []
                 async for line in response.content:
                     if line:
@@ -288,7 +299,9 @@ class ShuttleAIModel(LLMBase):
                                 and chunk["choices"][0].get("delta")
                                 and chunk["choices"][0]["delta"].get("content")
                             ):
-                                content = chunk["choices"][0]["delta"]["content"]
+                                content = chunk["choices"][0]["delta"][
+                                    "content"
+                                ]
                                 collected_content.append(content)
                                 yield content
                         except json.JSONDecodeError:

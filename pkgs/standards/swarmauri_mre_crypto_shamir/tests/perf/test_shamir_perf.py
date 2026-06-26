@@ -9,9 +9,27 @@ from swarmauri_mre_crypto_shamir import ShamirMreCrypto
 def test_encrypt_perf(benchmark):
     crypto = ShamirMreCrypto()
     recips = [
-        KeyRef("r1", 1, KeyType.SYMMETRIC, (KeyUse.ENCRYPT,), ExportPolicy.PUBLIC_ONLY),
-        KeyRef("r2", 1, KeyType.SYMMETRIC, (KeyUse.ENCRYPT,), ExportPolicy.PUBLIC_ONLY),
-        KeyRef("r3", 1, KeyType.SYMMETRIC, (KeyUse.ENCRYPT,), ExportPolicy.PUBLIC_ONLY),
+        KeyRef(
+            "r1",
+            1,
+            KeyType.SYMMETRIC,
+            (KeyUse.ENCRYPT,),
+            ExportPolicy.PUBLIC_ONLY,
+        ),
+        KeyRef(
+            "r2",
+            1,
+            KeyType.SYMMETRIC,
+            (KeyUse.ENCRYPT,),
+            ExportPolicy.PUBLIC_ONLY,
+        ),
+        KeyRef(
+            "r3",
+            1,
+            KeyType.SYMMETRIC,
+            (KeyUse.ENCRYPT,),
+            ExportPolicy.PUBLIC_ONLY,
+        ),
     ]
 
     async def _enc():

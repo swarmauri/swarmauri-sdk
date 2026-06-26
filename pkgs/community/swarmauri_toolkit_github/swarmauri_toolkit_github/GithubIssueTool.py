@@ -75,7 +75,9 @@ class GithubIssueTool(ToolBase):
         raise ValueError(f"Action '{action}' is not supported.")
 
     # Issue Management Methods
-    def create_issue(self, repo_name: str, title: str, body: str = None) -> str:
+    def create_issue(
+        self, repo_name: str, title: str, body: str = None
+    ) -> str:
         try:
             repo = self._github.get_repo(repo_name)
             repo.create_issue(title=title, body=body)

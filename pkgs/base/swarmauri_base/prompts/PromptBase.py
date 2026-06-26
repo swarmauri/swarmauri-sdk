@@ -14,7 +14,9 @@ class PromptBase(IPrompt, ComponentBase):
     """
 
     prompt: str = ""
-    resource: Optional[str] = Field(default=ResourceTypes.PROMPT.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.PROMPT.value, frozen=True
+    )
     type: Literal["PromptBase"] = "PromptBase"
 
     def __call__(self):

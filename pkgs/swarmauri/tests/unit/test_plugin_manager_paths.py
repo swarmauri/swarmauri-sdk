@@ -19,7 +19,9 @@ def test_process_plugin_happy_path():
 def test_process_plugin_worst_case_path_performance():
     """Failing plugins raise errors quickly (<100ms)."""
     bad_ep = EntryPoint(
-        name="missing", value="nonexistent.module:obj", group="swarmauri.agents"
+        name="missing",
+        value="nonexistent.module:obj",
+        group="swarmauri.agents",
     )
     start = time.perf_counter()
     with pytest.raises(PluginLoadError):

@@ -99,7 +99,9 @@ class IntrospectionTokenService(TokenServiceBase):
 
         self._client: Optional[httpx.AsyncClient] = None
         self._cache: Dict[str, _CacheEntry] = {}
-        self._jwks_cache: Optional[Tuple[dict, float]] = None  # (value, expires_at)
+        self._jwks_cache: Optional[Tuple[dict, float]] = (
+            None  # (value, expires_at)
+        )
 
         # Basic sanity for auth config
         if self._client_auth == "client_secret_basic":
@@ -156,7 +158,9 @@ class IntrospectionTokenService(TokenServiceBase):
         audience: Optional[str | list[str]] = None,
         scope: Optional[str] = None,
     ) -> str:
-        raise NotImplementedError("IntrospectionTokenService does not mint tokens.")
+        raise NotImplementedError(
+            "IntrospectionTokenService does not mint tokens."
+        )
 
     async def verify(  # type: ignore[override]
         self,

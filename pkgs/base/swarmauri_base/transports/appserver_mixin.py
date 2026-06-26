@@ -23,7 +23,9 @@ class AppServerMixin(IAppServer, BaseModel):
     def app(self) -> HttpApp:
         if self._app is None:
 
-            async def _default_app(method: str, path: str, headers, body: bytes):
+            async def _default_app(
+                method: str, path: str, headers, body: bytes
+            ):
                 return 200, {"content-type": "application/octet-stream"}, body
 
             return _default_app  # type: ignore[return-value]

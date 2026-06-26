@@ -27,7 +27,9 @@ class OverlapCoefficientSimilarity(SimilarityBase):
         The type identifier for this similarity measure
     """
 
-    type: Literal["OverlapCoefficientSimilarity"] = "OverlapCoefficientSimilarity"
+    type: Literal["OverlapCoefficientSimilarity"] = (
+        "OverlapCoefficientSimilarity"
+    )
 
     def _convert_to_set(self, x: Any) -> Set:
         """
@@ -57,7 +59,9 @@ class OverlapCoefficientSimilarity(SimilarityBase):
                 return set(x)
             except (TypeError, ValueError) as e:
                 logger.error(f"Cannot convert input to set: {str(e)}")
-                raise TypeError(f"Input must be convertible to a set: {str(e)}")
+                raise TypeError(
+                    f"Input must be convertible to a set: {str(e)}"
+                )
 
     def similarity(self, x: ComparableType, y: ComparableType) -> float:
         """
@@ -91,7 +95,9 @@ class OverlapCoefficientSimilarity(SimilarityBase):
             # Check if sets are non-empty
             if not set_x or not set_y:
                 logger.error("Sets must be non-empty for Overlap Coefficient")
-                raise ValueError("Sets must be non-empty for Overlap Coefficient")
+                raise ValueError(
+                    "Sets must be non-empty for Overlap Coefficient"
+                )
 
             # Calculate intersection
             intersection_size = len(set_x.intersection(set_y))
@@ -102,7 +108,9 @@ class OverlapCoefficientSimilarity(SimilarityBase):
             # Calculate overlap coefficient
             return intersection_size / min_size
         except Exception as e:
-            logger.error(f"Error calculating Overlap Coefficient similarity: {str(e)}")
+            logger.error(
+                f"Error calculating Overlap Coefficient similarity: {str(e)}"
+            )
             raise
 
     def similarities(
@@ -135,7 +143,9 @@ class OverlapCoefficientSimilarity(SimilarityBase):
             set_x = self._convert_to_set(x)
 
             if not set_x:
-                logger.error("Reference set must be non-empty for Overlap Coefficient")
+                logger.error(
+                    "Reference set must be non-empty for Overlap Coefficient"
+                )
                 raise ValueError(
                     "Reference set must be non-empty for Overlap Coefficient"
                 )
@@ -236,7 +246,9 @@ class OverlapCoefficientSimilarity(SimilarityBase):
 
             if not set_x:
                 logger.error("Set must be non-empty for Overlap Coefficient")
-                raise ValueError("Set must be non-empty for Overlap Coefficient")
+                raise ValueError(
+                    "Set must be non-empty for Overlap Coefficient"
+                )
 
             # For any non-empty set, the overlap with itself is the set itself,
             # and the minimum size is the size of the set, so the result is 1.0
@@ -306,7 +318,9 @@ class OverlapCoefficientSimilarity(SimilarityBase):
 
             if not set_x or not set_y:
                 logger.error("Sets must be non-empty for Overlap Coefficient")
-                raise ValueError("Sets must be non-empty for Overlap Coefficient")
+                raise ValueError(
+                    "Sets must be non-empty for Overlap Coefficient"
+                )
 
             similarity_value = self.similarity(set_x, set_y)
 

@@ -1,6 +1,8 @@
 import warnings
 
-from swarmauri_standard.distances.LevenshteinDistance import LevenshteinDistance as _StandardLevenshteinDistance
+from swarmauri_standard.distances.LevenshteinDistance import (
+    LevenshteinDistance as _StandardLevenshteinDistance,
+)
 
 
 class LevenshteinDistance(_StandardLevenshteinDistance):

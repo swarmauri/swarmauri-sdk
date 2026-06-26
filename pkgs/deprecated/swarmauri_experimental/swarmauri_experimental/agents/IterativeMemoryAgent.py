@@ -17,7 +17,9 @@ from swarmauri.messages.HumanMessage import HumanMessage
 from swarmauri.conversations.MaxSystemContextConversation import (
     MaxSystemContextConversation,
 )
-from swarmauri.conversations.SessionCacheConversation import SessionCacheConversation
+from swarmauri.conversations.SessionCacheConversation import (
+    SessionCacheConversation,
+)
 from swarmauri.messages.SystemMessage import SystemMessage
 from swarmauri.prompts.PromptTemplate import PromptTemplate
 
@@ -30,7 +32,9 @@ from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
 from swarmauri_base.agents.AgentRetrieveMixin import AgentRetrieveMixin
 from swarmauri_base.agents.AgentConversationMixin import AgentConversationMixin
 from swarmauri_base.agents.AgentVectorStoreMixin import AgentVectorStoreMixin
-from swarmauri_base.agents.AgentSystemContextMixin import AgentSystemContextMixin
+from swarmauri_base.agents.AgentSystemContextMixin import (
+    AgentSystemContextMixin,
+)
 
 from swarmauri_core.ComponentBase import SubclassUnion, ComponentBase
 from swarmauri_core.messages.IMessage import IMessage
@@ -50,9 +54,9 @@ class IterativeMemoryAgent(
 
     llm: SubclassUnion[LLMBase]
     vector_store: SubclassUnion[VectorStoreBase]
-    conversation: Union[MaxSystemContextConversation, SessionCacheConversation] = (
-        MaxSystemContextConversation(max_size=3)
-    )
+    conversation: Union[
+        MaxSystemContextConversation, SessionCacheConversation
+    ] = MaxSystemContextConversation(max_size=3)
     system_context: Union[SystemMessage, str] = SystemMessage(content="")
     chunker: SubclassUnion[ChunkerBase] = MdSnippetChunker()
     prompt_template: SubclassUnion[PromptTemplateBase] = PromptTemplate()
@@ -231,7 +235,8 @@ class IterativeMemoryAgent(
                     with open(file_path, "r", encoding="utf-8") as f:
                         file_content = f.read()
                         document = Document(
-                            content=file_content, metadata={"filepath": file_path}
+                            content=file_content,
+                            metadata={"filepath": file_path},
                         )
                         documents.append(document)
                 except json.JSONDecodeError:

@@ -62,7 +62,11 @@ from swarmauri_signing_jws import JwsSignerVerifier
 
 # Align with your base / interfaces
 from swarmauri_base.signing.SigningBase import SigningBase
-from swarmauri_core.signing.ISigning import Signature, Envelope, Canon  # types only
+from swarmauri_core.signing.ISigning import (
+    Signature,
+    Envelope,
+    Canon,
+)  # types only
 from swarmauri_core.crypto.types import Alg, KeyRef, JWAAlg
 
 from ._utils import (
@@ -128,7 +132,9 @@ class DpopSigner(SigningBase):
         htm = (o.get("htm") or "").upper()
         htu = o.get("htu") or ""
         if not htm or not htu:
-            raise ValueError("DPoP signing requires opts['htm'] and opts['htu']")
+            raise ValueError(
+                "DPoP signing requires opts['htm'] and opts['htu']"
+            )
 
         km = _resolve_keyref(key, alg)
         if km.alg not in _ALLOWED_ALGS:
@@ -139,7 +145,12 @@ class DpopSigner(SigningBase):
         nonce = o.get("nonce")
         access_token = o.get("access_token")
 
-        claims: dict[str, t.Any] = {"htm": htm, "htu": htu, "iat": iat, "jti": jti}
+        claims: dict[str, t.Any] = {
+            "htm": htm,
+            "htu": htu,
+            "iat": iat,
+            "jti": jti,
+        }
         if nonce:
             claims["nonce"] = str(nonce)
         if access_token:
@@ -176,7 +187,9 @@ class DpopSigner(SigningBase):
         method_req = (req.get("htm") or "").upper()
         url_req = req.get("htu") or ""
         if not method_req or not url_req:
-            raise ValueError("DPoP verify requires require['htm'] and require['htu']")
+            raise ValueError(
+                "DPoP verify requires require['htm'] and require['htu']"
+            )
 
         max_skew = int(req.get("max_skew_s", 300))
         allowed_algs = {
@@ -222,13 +235,16 @@ class DpopSigner(SigningBase):
                 iat = int(claims.get("iat", 0))
                 if abs(now - iat) > max_skew:
                     continue
-                if expect_nonce is not None and claims.get("nonce") != expect_nonce:
+                if (
+                    expect_nonce is not None
+                    and claims.get("nonce") != expect_nonce
+                ):
                     continue
                 if expect_ath is not None:
                     ath = claims.get("ath")
-                    if not isinstance(ath, str) or ath != _ath_from_access_token(
-                        expect_ath
-                    ):
+                    if not isinstance(
+                        ath, str
+                    ) or ath != _ath_from_access_token(expect_ath):
                         continue
 
                 jti = claims.get("jti")
@@ -265,7 +281,9 @@ class DpopSigner(SigningBase):
         require: t.Optional[t.Mapping[str, t.Any]] = None,
         opts: t.Optional[t.Mapping[str, t.Any]] = None,
     ) -> bool:
-        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            digest, signatures, require=require, opts=opts
+        )
 
     async def sign_envelope(
         self,
@@ -289,4 +307,6 @@ class DpopSigner(SigningBase):
         opts: t.Optional[dict[str, t.Any]] = None,
     ) -> bool:
         _ = await self.canonicalize_envelope(env, canon=canon, opts=opts)
-        return await self.verify_bytes(b"", signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            b"", signatures, require=require, opts=opts
+        )

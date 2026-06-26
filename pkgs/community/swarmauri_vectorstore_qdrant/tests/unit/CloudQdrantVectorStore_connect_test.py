@@ -60,7 +60,9 @@ def test_connect_creates_collection(monkeypatch):
 
 @pytest.mark.unit
 def test_connect_skips_existing(monkeypatch):
-    CloudQdrantVectorStore, DummyClient = _patch_qdrant(monkeypatch, existing=["bar"])
+    CloudQdrantVectorStore, DummyClient = _patch_qdrant(
+        monkeypatch, existing=["bar"]
+    )
     vs = CloudQdrantVectorStore(
         api_key="k",
         collection_name="bar",

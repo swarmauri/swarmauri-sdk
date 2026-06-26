@@ -41,7 +41,11 @@ async def test_invalid_json():
     }
 
     async def receive():
-        return {"type": "http.request", "body": b"{invalid", "more_body": False}
+        return {
+            "type": "http.request",
+            "body": b"{invalid",
+            "more_body": False,
+        }
 
     request = Request(scope=scope, receive=receive)
 

@@ -36,7 +36,8 @@ class RabbitMQPublisher(PublishBase):
         super().__init__(**data)
 
         individual_opts_present = any(
-            v is not None for v in (self.host, self.port, self.username, self.password)
+            v is not None
+            for v in (self.host, self.port, self.username, self.password)
         )
 
         if self.uri and individual_opts_present:
@@ -56,7 +57,9 @@ class RabbitMQPublisher(PublishBase):
                 raise ValueError("When no `uri` is given, `host` is required.")
             auth = ""
             if self.username and self.password:
-                auth = f"{quote_plus(self.username)}:{quote_plus(self.password)}@"
+                auth = (
+                    f"{quote_plus(self.username)}:{quote_plus(self.password)}@"
+                )
             elif self.username:
                 auth = f"{quote_plus(self.username)}@"
             actual_amqp_uri = f"amqp://{auth}{self.host}:{self.port}/"

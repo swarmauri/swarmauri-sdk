@@ -13,7 +13,9 @@ except ImportError:
     from importlib_metadata import version, PackageNotFoundError
 
 try:
-    __version__ = version("swarmauri_tool_jupyterexecutenotebookwithparameters")
+    __version__ = version(
+        "swarmauri_tool_jupyterexecutenotebookwithparameters"
+    )
 except PackageNotFoundError:
     # If the package is not installed (for example, during development)
     __version__ = "0.0.0"

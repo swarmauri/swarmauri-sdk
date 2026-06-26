@@ -11,7 +11,9 @@ async def _tamper(service):
 
 
 async def _aud_success(service):
-    token = await service.mint({}, alg="v4.public", kid="ed1", audience=["app"])
+    token = await service.mint(
+        {}, alg="v4.public", kid="ed1", audience=["app"]
+    )
     claims = await service.verify(token, audience="app")
     return claims.get("aud") == ["app"]
 

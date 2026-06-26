@@ -94,10 +94,16 @@ def test_similarity(similarity_instance, p, q, expected):
         # Partially overlapping with different keys
         ({"A": 0.5, "B": 0.5}, {"B": 0.5, "C": 0.5}, 0.5),
         # More complex case with missing keys
-        ({"A": 0.4, "B": 0.6}, {"A": 0.3, "B": 0.2, "C": 0.5}, 0.6928203230275509),
+        (
+            {"A": 0.4, "B": 0.6},
+            {"A": 0.3, "B": 0.2, "C": 0.5},
+            0.6928203230275509,
+        ),
     ],
 )
-def test_similarity_with_dictionaries(similarity_instance, p_dict, q_dict, expected):
+def test_similarity_with_dictionaries(
+    similarity_instance, p_dict, q_dict, expected
+):
     """
     Test the similarity method with dictionary probability distributions.
 
@@ -208,7 +214,11 @@ def test_similarities_with_dictionaries(similarity_instance):
 @pytest.mark.parametrize(
     "p, q, expected",
     [
-        ([0.2, 0.3, 0.5], [0.2, 0.3, 0.5], 0.0),  # Identical: dissimilarity = 0
+        (
+            [0.2, 0.3, 0.5],
+            [0.2, 0.3, 0.5],
+            0.0,
+        ),  # Identical: dissimilarity = 0
         ([1.0, 0.0, 0.0], [0.0, 0.0, 1.0], 1.0),  # Disjoint: dissimilarity = 1
         ([0.5, 0.5, 0.0], [0.0, 0.5, 0.5], 0.5),  # Partial overlap
         (
@@ -249,7 +259,9 @@ def test_serialization():
     json_str = similarity.model_dump_json()
 
     # Deserialize from JSON
-    deserialized = BhattacharyyaCoefficientSimilarity.model_validate_json(json_str)
+    deserialized = BhattacharyyaCoefficientSimilarity.model_validate_json(
+        json_str
+    )
 
     # Check that the deserialized object has the same type
     assert deserialized.type == similarity.type

@@ -26,7 +26,9 @@ class IEvaluate(ABC):
     """
 
     @abstractmethod
-    def evaluate(self, program: IProgram, **kwargs) -> Tuple[float, Dict[str, Any]]:
+    def evaluate(
+        self, program: IProgram, **kwargs
+    ) -> Tuple[float, Dict[str, Any]]:
         """
         Evaluate a program and return a fitness score with metadata.
 

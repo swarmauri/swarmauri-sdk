@@ -66,8 +66,12 @@ class ZeroPseudometric(PseudometricBase):
 
     def distances(
         self,
-        xs: Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]],
-        ys: Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]],
+        xs: Sequence[
+            Union[VectorType, MatrixType, Sequence[T], str, Callable]
+        ],
+        ys: Sequence[
+            Union[VectorType, MatrixType, Sequence[T], str, Callable]
+        ],
     ) -> List[List[float]]:
         """
         Calculate the pairwise distances between two collections of objects.

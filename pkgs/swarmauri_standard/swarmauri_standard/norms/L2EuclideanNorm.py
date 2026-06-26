@@ -38,7 +38,10 @@ class L2EuclideanNorm(NormBase):
     type: Literal["L2EuclideanNorm"] = "L2EuclideanNorm"
 
     def compute(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> float:
         """
         Compute the Euclidean (L2) norm of the input.
@@ -60,7 +63,9 @@ class L2EuclideanNorm(NormBase):
         ValueError
             If the norm cannot be computed for the given input.
         """
-        logger.debug(f"Computing L2 Euclidean norm for input of type {type(x)}")
+        logger.debug(
+            f"Computing L2 Euclidean norm for input of type {type(x)}"
+        )
 
         # Handle different input types
         if isinstance(x, IVector):
@@ -84,13 +89,20 @@ class L2EuclideanNorm(NormBase):
             return math.sqrt(sum(ord(char) ** 2 for char in x))
         elif callable(x):
             # For functions - not a standard operation, but could implement a custom behavior
-            raise TypeError("L2 norm computation for callable objects is not supported")
+            raise TypeError(
+                "L2 norm computation for callable objects is not supported"
+            )
         else:
             logger.error(f"Unsupported input type for L2 norm: {type(x)}")
-            raise TypeError(f"L2 norm computation not supported for type {type(x)}")
+            raise TypeError(
+                f"L2 norm computation not supported for type {type(x)}"
+            )
 
     def check_non_negativity(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the Euclidean norm satisfies the non-negativity property.
@@ -116,7 +128,10 @@ class L2EuclideanNorm(NormBase):
             return False
 
     def check_definiteness(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the Euclidean norm satisfies the definiteness property.
@@ -147,7 +162,9 @@ class L2EuclideanNorm(NormBase):
                 ):
                     is_zero = all(abs(element) < 1e-10 for element in x)
                 elif isinstance(x, IMatrix):
-                    is_zero = all(abs(element) < 1e-10 for row in x for element in row)
+                    is_zero = all(
+                        abs(element) < 1e-10 for row in x for element in row
+                    )
                 elif isinstance(x, str):
                     is_zero = len(x) == 0
                 else:
@@ -169,8 +186,12 @@ class L2EuclideanNorm(NormBase):
 
     def check_triangle_inequality(
         self,
-        x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
-        y: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
+        y: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the Euclidean norm satisfies the triangle inequality.
@@ -216,7 +237,8 @@ class L2EuclideanNorm(NormBase):
                 if x.shape != y.shape:
                     raise ValueError("Matrices must have the same shape")
                 z = [
-                    [x[i][j] + y[i][j] for j in range(len(x[0]))] for i in range(len(x))
+                    [x[i][j] + y[i][j] for j in range(len(x[0]))]
+                    for i in range(len(x))
                 ]
             elif isinstance(x, Sequence) and not isinstance(x, str):
                 # Sequence addition
@@ -249,7 +271,9 @@ class L2EuclideanNorm(NormBase):
 
     def check_absolute_homogeneity(
         self,
-        x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
         scalar: float,
     ) -> bool:
         """
@@ -283,7 +307,8 @@ class L2EuclideanNorm(NormBase):
                 scaled_x = [scalar * x_i for x_i in x]
             elif isinstance(x, IMatrix):
                 scaled_x = [
-                    [scalar * x[i][j] for j in range(len(x[0]))] for i in range(len(x))
+                    [scalar * x[i][j] for j in range(len(x[0]))]
+                    for i in range(len(x))
                 ]
             elif isinstance(x, Sequence) and not isinstance(x, str):
                 scaled_x = [scalar * x_i for x_i in x]

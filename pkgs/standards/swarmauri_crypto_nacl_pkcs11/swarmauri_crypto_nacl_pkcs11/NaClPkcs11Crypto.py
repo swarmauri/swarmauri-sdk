@@ -43,7 +43,9 @@ def _resolve_keyref_for_aead(key: KeyRef) -> _Resolved:
     raise ValueError("Unsupported KeyRef for AEAD")
 
 
-def _resolve_keyref_for_sealed_box(key: KeyRef, private: bool = False) -> _Resolved:
+def _resolve_keyref_for_sealed_box(
+    key: KeyRef, private: bool = False
+) -> _Resolved:
     if not private:
         if key.type == KeyType.X25519 and key.public:
             return _Resolved(kind="x25519_pub", material=key.public)
@@ -53,12 +55,16 @@ def _resolve_keyref_for_sealed_box(key: KeyRef, private: bool = False) -> _Resol
     raise ValueError("Unsupported KeyRef for sealed-box")
 
 
-def _resolve_keyref_for_hsm_kek(kek: KeyRef) -> Tuple[pkcs11.Session, pkcs11.SecretKey]:
+def _resolve_keyref_for_hsm_kek(
+    kek: KeyRef,
+) -> Tuple[pkcs11.Session, pkcs11.SecretKey]:
     tags = kek.tags or {}
     module_path = tags.get("module") or os.environ.get("PKCS11_MODULE")
     slot_label = tags.get("slot_label") or os.environ.get("PKCS11_SLOT_LABEL")
     user_pin = tags.get("user_pin") or os.environ.get("PKCS11_USER_PIN")
-    kek_label = tags.get("label") or os.environ.get("PKCS11_KEK_LABEL", "autokms-kek")
+    kek_label = tags.get("label") or os.environ.get(
+        "PKCS11_KEK_LABEL", "autokms-kek"
+    )
 
     lib = pkcs11.lib(module_path)
     token = next(t for t in lib.get_tokens() if t.label == slot_label)
@@ -160,7 +166,10 @@ class NaClPkcs11Crypto(CryptoBase):
         wrapped = kek_obj.wrap_key(tmp, mechanism=Mechanism.AES_KEY_WRAP_PAD)
         tmp.destroy()
         return WrappedKey(
-            kek_kid=kek.kid, kek_version=kek.version, wrap_alg=alg, wrapped=wrapped
+            kek_kid=kek.kid,
+            kek_version=kek.version,
+            wrap_alg=alg,
+            wrapped=wrapped,
         )
 
     async def unwrap(self, kek: KeyRef, wrapped: WrappedKey) -> bytes:
@@ -192,7 +201,9 @@ class NaClPkcs11Crypto(CryptoBase):
     ) -> MultiRecipientEnvelope:
         alg = enc_alg or _SEAL_ALG
         if alg != _SEAL_ALG:
-            raise UnsupportedAlgorithm(f"Unsupported multi-recipient alg: {alg}")
+            raise UnsupportedAlgorithm(
+                f"Unsupported multi-recipient alg: {alg}"
+            )
 
         infos = []
         for ref in recipients:
@@ -213,7 +224,10 @@ class NaClPkcs11Crypto(CryptoBase):
             aead = AESGCM(dek)
             n = os.urandom(12)
             packed = json.dumps(
-                {i.kid: base64.b64encode(i.wrapped_key).decode("ascii") for i in infos}
+                {
+                    i.kid: base64.b64encode(i.wrapped_key).decode("ascii")
+                    for i in infos
+                }
             ).encode("utf-8")
             ct_with_tag = aead.encrypt(n, packed, aad)
             ct, tag = ct_with_tag[:-16], ct_with_tag[-16:]

@@ -25,7 +25,9 @@ def test_startup_and_first_class_registration_performance() -> None:
             importlib.import_module(module_path)
         except (ModuleNotFoundError, ImportError):
             continue
-        PluginCitizenshipRegistry.add_to_registry("first", resource_path, module_path)
+        PluginCitizenshipRegistry.add_to_registry(
+            "first", resource_path, module_path
+        )
     registration_time = time.perf_counter() - start
 
     PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY = original_registry
@@ -62,7 +64,8 @@ def test_namespace_startup_and_registration_of_random_classes():
         return module_name
 
     names = [
-        "Dummy" + "".join(random.choices(string.ascii_letters, k=8)) for _ in range(10)
+        "Dummy" + "".join(random.choices(string.ascii_letters, k=8))
+        for _ in range(10)
     ]
 
     start = time.perf_counter()

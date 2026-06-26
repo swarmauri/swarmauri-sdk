@@ -1,4 +1,6 @@
-from swarmauri_tool_jupyterfromdict.JupyterFromDictTool import JupyterFromDictTool
+from swarmauri_tool_jupyterfromdict.JupyterFromDictTool import (
+    JupyterFromDictTool,
+)
 
 
 __all__ = ["JupyterFromDictTool"]

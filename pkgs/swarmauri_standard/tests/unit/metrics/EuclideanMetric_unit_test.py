@@ -264,7 +264,11 @@ def test_check_non_negativity(euclidean_metric, x, y):
     "x, y, expected",
     [
         ([1, 2, 3], [1, 2, 3], True),  # Same points -> distance should be 0
-        ([1, 2, 3], [4, 5, 6], True),  # Different points -> distance should be > 0
+        (
+            [1, 2, 3],
+            [4, 5, 6],
+            True,
+        ),  # Different points -> distance should be > 0
         ([0, 0, 0], [0, 0, 0], True),  # Same points at origin
     ],
 )

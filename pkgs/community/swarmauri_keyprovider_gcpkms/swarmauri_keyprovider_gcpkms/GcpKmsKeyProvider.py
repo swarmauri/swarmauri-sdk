@@ -115,7 +115,9 @@ class GcpKmsKeyProvider(KeyProviderBase):
     _creds = PrivateAttr()
     _ga_req = PrivateAttr()
     _lock: threading.RLock = PrivateAttr(default_factory=threading.RLock)
-    _pub_cache: Dict[str, Tuple[bytes, str]] = PrivateAttr(default_factory=dict)
+    _pub_cache: Dict[str, Tuple[bytes, str]] = PrivateAttr(
+        default_factory=dict
+    )
     _pub_cache_at: Dict[str, float] = PrivateAttr(default_factory=dict)
     _pub_ttl: float = PrivateAttr(default=300.0)
 
@@ -194,19 +196,27 @@ class GcpKmsKeyProvider(KeyProviderBase):
             "Configure rotation via Cloud KMS CryptoKey rotation config or create new versions"
         )
 
-    async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
+    async def destroy_key(
+        self, kid: str, version: Optional[int] = None
+    ) -> bool:
         if version is None:
             raise ValueError("GCP KMS requires a specific version to destroy")
         name = self._version_name(kid, version)
         token = self._token()
         url = f"{API_ROOT}/{name}:destroy"
-        r = requests.post(url, headers=self._hdr(token), json={}, timeout=self._timeout)
+        r = requests.post(
+            url, headers=self._hdr(token), json={}, timeout=self._timeout
+        )
         if r.status_code != 200:
             raise RuntimeError(f"destroy_key failed: {r.status_code} {r.text}")
         return True
 
     async def get_key(
-        self, kid: str, version: Optional[int] = None, *, include_secret: bool = False
+        self,
+        kid: str,
+        version: Optional[int] = None,
+        *,
+        include_secret: bool = False,
     ) -> KeyRef:
         vname, algo = self._effective_version_and_algo(kid, version)
         public_pem = self._maybe_fetch_public_pem(vname, algo)
@@ -245,7 +255,9 @@ class GcpKmsKeyProvider(KeyProviderBase):
         url = f"{API_ROOT}/{name}/cryptoKeyVersions?pageSize=1000"
         r = requests.get(url, headers=self._hdr(token), timeout=self._timeout)
         if r.status_code != 200:
-            raise RuntimeError(f"list_versions failed: {r.status_code} {r.text}")
+            raise RuntimeError(
+                f"list_versions failed: {r.status_code} {r.text}"
+            )
         obj = r.json()
         vers = []
         for v in obj.get("cryptoKeyVersions", []):
@@ -253,7 +265,9 @@ class GcpKmsKeyProvider(KeyProviderBase):
                 vers.append(int(v["name"].split("/")[-1]))
         return tuple(sorted(vers))
 
-    async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
+    async def get_public_jwk(
+        self, kid: str, version: Optional[int] = None
+    ) -> dict:
         ref = await self.get_key(kid, version)
         if not ref.public:
             raise RuntimeError("no public key material available")
@@ -262,16 +276,22 @@ class GcpKmsKeyProvider(KeyProviderBase):
     async def jwks(self, *, prefix_kids: Optional[str] = None) -> dict:
         token = self._token()
         list_url = f"{API_ROOT}/projects/{self._project}/locations/{self._location}/keyRings/{self._ring}/cryptoKeys?pageSize=1000"
-        r = requests.get(list_url, headers=self._hdr(token), timeout=self._timeout)
+        r = requests.get(
+            list_url, headers=self._hdr(token), timeout=self._timeout
+        )
         if r.status_code != 200:
-            raise RuntimeError(f"jwks list keys failed: {r.status_code} {r.text}")
+            raise RuntimeError(
+                f"jwks list keys failed: {r.status_code} {r.text}"
+            )
         keys_out = []
         for ck in r.json().get("cryptoKeys", []):
             kid = ck["name"].split("/")[-1]
             if prefix_kids and not kid.startswith(prefix_kids):
                 continue
             v_url = f"{API_ROOT}/{ck['name']}/cryptoKeyVersions?pageSize=1000"
-            rv = requests.get(v_url, headers=self._hdr(token), timeout=self._timeout)
+            rv = requests.get(
+                v_url, headers=self._hdr(token), timeout=self._timeout
+            )
             if rv.status_code != 200:
                 continue
             for v in rv.json().get("cryptoKeyVersions", []):
@@ -297,7 +317,9 @@ class GcpKmsKeyProvider(KeyProviderBase):
                         )
                     elif _is_ec_sign_purpose(algo):
                         jwk["alg"] = (
-                            JWAAlg.ES256.value if "P256" in algo else JWAAlg.ES384.value
+                            JWAAlg.ES256.value
+                            if "P256" in algo
+                            else JWAAlg.ES384.value
                         )
                     elif _is_rsa_decrypt_purpose(algo):
                         jwk["alg"] = JWAAlg.RSA_OAEP_256.value
@@ -351,7 +373,9 @@ class GcpKmsKeyProvider(KeyProviderBase):
     ) -> bytes:
         vname, algo = self._effective_version_and_algo(kid, version)
         if not _is_rsa_decrypt_purpose(algo):
-            raise ValueError(f"wrap_key requires RSA_DECRYPT_* algorithm, got {algo}")
+            raise ValueError(
+                f"wrap_key requires RSA_DECRYPT_* algorithm, got {algo}"
+            )
         pem = self._maybe_fetch_public_pem(vname, algo)
         if not pem:
             raise RuntimeError("No public key available for wrap_key")
@@ -374,7 +398,9 @@ class GcpKmsKeyProvider(KeyProviderBase):
     ) -> bytes:
         vname, algo = self._effective_version_and_algo(kid, version)
         if not _is_rsa_decrypt_purpose(algo):
-            raise ValueError(f"unwrap_key requires RSA_DECRYPT_* algorithm, got {algo}")
+            raise ValueError(
+                f"unwrap_key requires RSA_DECRYPT_* algorithm, got {algo}"
+            )
         token = self._token()
         url = f"{API_ROOT}/{vname}:asymmetricDecrypt"
         body = {"ciphertext": _b64e(wrapped)}
@@ -470,7 +496,9 @@ class GcpKmsKeyProvider(KeyProviderBase):
     async def random_bytes(self, n: int) -> bytes:
         return secrets.token_bytes(n)
 
-    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+    async def hkdf(
+        self, ikm: bytes, *, salt: bytes, info: bytes, length: int
+    ) -> bytes:
         return HKDF(
             algorithm=hashes.SHA256(), length=length, salt=salt, info=info
         ).derive(ikm)
@@ -501,17 +529,19 @@ class GcpKmsKeyProvider(KeyProviderBase):
         token = self._token()
         if version is None:
             ck_url = f"{API_ROOT}/{self._key_name(kid)}"
-            r = requests.get(ck_url, headers=self._hdr(token), timeout=self._timeout)
+            r = requests.get(
+                ck_url, headers=self._hdr(token), timeout=self._timeout
+            )
             if r.status_code != 200:
-                raise RuntimeError(f"get CryptoKey failed: {r.status_code} {r.text}")
+                raise RuntimeError(
+                    f"get CryptoKey failed: {r.status_code} {r.text}"
+                )
             obj = r.json()
             primary = obj.get("primary", {}).get("name")
             if primary:
                 vname = primary
             else:
-                lv_url = (
-                    f"{API_ROOT}/{self._key_name(kid)}/cryptoKeyVersions?pageSize=1000"
-                )
+                lv_url = f"{API_ROOT}/{self._key_name(kid)}/cryptoKeyVersions?pageSize=1000"
                 rv = requests.get(
                     lv_url, headers=self._hdr(token), timeout=self._timeout
                 )
@@ -536,9 +566,13 @@ class GcpKmsKeyProvider(KeyProviderBase):
             vname = self._version_name(kid, version)
 
         v_url = f"{API_ROOT}/{vname}"
-        rv = requests.get(v_url, headers=self._hdr(token), timeout=self._timeout)
+        rv = requests.get(
+            v_url, headers=self._hdr(token), timeout=self._timeout
+        )
         if rv.status_code != 200:
-            raise RuntimeError(f"get version failed: {rv.status_code} {rv.text}")
+            raise RuntimeError(
+                f"get version failed: {rv.status_code} {rv.text}"
+            )
         algo = rv.json().get("algorithm", "")
         return vname, algo
 
@@ -553,13 +587,18 @@ class GcpKmsKeyProvider(KeyProviderBase):
             return None
         with self._lock:
             ts = self._pub_cache_at.get(version_name, 0.0)
-            if version_name in self._pub_cache and (_now() - ts) < self._pub_ttl:
+            if (
+                version_name in self._pub_cache
+                and (_now() - ts) < self._pub_ttl
+            ):
                 return self._pub_cache[version_name][0]
         token = self._token()
         url = f"{API_ROOT}/{version_name}/publicKey"
         r = requests.get(url, headers=self._hdr(token), timeout=self._timeout)
         if r.status_code != 200:
-            raise RuntimeError(f"getPublicKey failed: {r.status_code} {r.text}")
+            raise RuntimeError(
+                f"getPublicKey failed: {r.status_code} {r.text}"
+            )
         pem = r.json().get("pem", "").encode("utf-8")
         with self._lock:
             self._pub_cache[version_name] = (pem, algorithm)

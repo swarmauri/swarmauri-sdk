@@ -58,7 +58,9 @@ class SobolevH1InnerProduct(InnerProductBase):
         )
 
     def compute(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> float:
         """
         Compute the H1 Sobolev inner product between two objects.
@@ -83,7 +85,9 @@ class SobolevH1InnerProduct(InnerProductBase):
         TypeError
             If the inputs are not of compatible types or don't provide derivative information
         """
-        logger.debug(f"Computing H1 inner product between {type(a)} and {type(b)}")
+        logger.debug(
+            f"Computing H1 inner product between {type(a)} and {type(b)}"
+        )
 
         # Handle different input types
         if isinstance(a, Callable) and isinstance(b, Callable):
@@ -94,14 +98,16 @@ class SobolevH1InnerProduct(InnerProductBase):
             # Use the concrete Vector class
             return self._compute_for_vectors(a, b)
         else:
-            error_msg = (
-                f"Cannot compute H1 inner product for types {type(a)} and {type(b)}"
-            )
+            error_msg = f"Cannot compute H1 inner product for types {type(a)} and {type(b)}"
             logger.error(error_msg)
             raise TypeError(error_msg)
 
     def _compute_for_functions(
-        self, f: Callable, g: Callable, domain: tuple = (0, 1), num_points: int = 1000
+        self,
+        f: Callable,
+        g: Callable,
+        domain: tuple = (0, 1),
+        num_points: int = 1000,
     ) -> float:
         """
         Compute H1 inner product for two functions using numerical integration.
@@ -175,7 +181,9 @@ class SobolevH1InnerProduct(InnerProductBase):
             If the arrays have incompatible shapes
         """
         if a.shape != b.shape:
-            error_msg = f"Arrays must have the same shape, got {a.shape} and {b.shape}"
+            error_msg = (
+                f"Arrays must have the same shape, got {a.shape} and {b.shape}"
+            )
             logger.error(error_msg)
             raise ValueError(error_msg)
 
@@ -252,7 +260,9 @@ class SobolevH1InnerProduct(InnerProductBase):
         l2_part = np.sum(a_values * b_values) / len(a_values)
 
         # Compute derivative part
-        derivative_part = np.sum(a_derivative * b_derivative) / len(a_derivative)
+        derivative_part = np.sum(a_derivative * b_derivative) / len(
+            a_derivative
+        )
 
         # Combine with weights
         result = self.alpha * l2_part + self.beta * derivative_part
@@ -263,7 +273,9 @@ class SobolevH1InnerProduct(InnerProductBase):
         return result
 
     def check_conjugate_symmetry(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> bool:
         """
         Check if the H1 inner product satisfies the conjugate symmetry property.
@@ -280,7 +292,9 @@ class SobolevH1InnerProduct(InnerProductBase):
         bool
             True if conjugate symmetry holds, False otherwise
         """
-        logger.debug(f"Checking conjugate symmetry for {type(a)} and {type(b)}")
+        logger.debug(
+            f"Checking conjugate symmetry for {type(a)} and {type(b)}"
+        )
 
         # Compute <a, b> and <b, a>
         inner_ab = self.compute(a, b)
@@ -377,9 +391,7 @@ class SobolevH1InnerProduct(InnerProductBase):
             linear_combo = CombinedVector()
             left_side = self.compute(linear_combo, b)
         else:
-            error_msg = (
-                f"Cannot create linear combination of types {type(a1)} and {type(a2)}"
-            )
+            error_msg = f"Cannot create linear combination of types {type(a1)} and {type(a2)}"
             logger.error(error_msg)
             raise TypeError(error_msg)
 
@@ -433,7 +445,8 @@ class SobolevH1InnerProduct(InnerProductBase):
             a_values = a.get_values()
             a_derivatives = a.get_derivatives()
             if np.isclose(inner_aa, 0) and (
-                not np.allclose(a_values, 0) or not np.allclose(a_derivatives, 0)
+                not np.allclose(a_values, 0)
+                or not np.allclose(a_derivatives, 0)
             ):
                 is_zero_for_zero_only = False
 

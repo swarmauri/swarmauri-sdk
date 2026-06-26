@@ -57,7 +57,9 @@ def test_parser():
         mock_open.assert_called_once_with(file_path)
 
         # Assertions
-        assert len(documents) == 1, "The parser should return a list with one document."
+        assert len(documents) == 1, (
+            "The parser should return a list with one document."
+        )
         assert (
             documents[0].content
             == "This is the text from page 1.\nThis is the text from page 2.\n"

@@ -52,7 +52,10 @@ def test_ubc_type(openai_model):
 @pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(openai_model):
-    assert openai_model.id == LLM.model_validate_json(openai_model.model_dump_json()).id
+    assert (
+        openai_model.id
+        == LLM.model_validate_json(openai_model.model_dump_json()).id
+    )
 
 
 @pytest.mark.timeout(5)
@@ -97,7 +100,9 @@ def test_stream(openai_model, model_name):
     full_audio_byte = b"".join(collected_chunks)
     assert len(full_audio_byte) > 0
 
-    assert isinstance(full_audio_byte, bytes), f"the type is {type(full_audio_byte)}"
+    assert isinstance(full_audio_byte, bytes), (
+        f"the type is {type(full_audio_byte)}"
+    )
     # audio = AudioSegment.from_file(io.BytesIO(full_audio_byte), format="mp3")
     # play(audio)
 
@@ -111,7 +116,9 @@ async def test_apredict(openai_model, model_name):
 
     text = "Hello, this is a test of streaming text-to-speech output."
 
-    audio_file_path = await openai_model.apredict(text=text, audio_path=file_path)
+    audio_file_path = await openai_model.apredict(
+        text=text, audio_path=file_path
+    )
 
     logging.info(audio_file_path)
 
@@ -135,7 +142,9 @@ async def test_astream(openai_model, model_name):
     full_audio_byte = b"".join(collected_chunks)
     assert len(full_audio_byte) > 0
 
-    assert isinstance(full_audio_byte, bytes), f"the type is {type(full_audio_byte)}"
+    assert isinstance(full_audio_byte, bytes), (
+        f"the type is {type(full_audio_byte)}"
+    )
     # audio = AudioSegment.from_file(io.BytesIO(full_audio_byte), format="mp3")
     # play(audio)
 

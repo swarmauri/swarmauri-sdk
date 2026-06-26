@@ -33,7 +33,9 @@ def tool(func):
         if origin is Annotated:
             input_type = "Annotated"
         else:
-            input_type = getattr(annotated_type, "__name__", str(annotated_type))
+            input_type = getattr(
+                annotated_type, "__name__", str(annotated_type)
+            )
 
         # Derive a required flag by checking if the parameter has a default
         required = param.default == inspect.Parameter.empty
@@ -52,7 +54,9 @@ def tool(func):
     @ComponentBase.register_type(ToolBase, func_name)
     class FunctionTool(ToolBase):
         version: str = "1.0.0"
-        parameters: List[Parameter] = Field(default_factory=lambda: parameters_list)
+        parameters: List[Parameter] = Field(
+            default_factory=lambda: parameters_list
+        )
         name: str = func_name
         description: str = docstring
         type: str = func_name

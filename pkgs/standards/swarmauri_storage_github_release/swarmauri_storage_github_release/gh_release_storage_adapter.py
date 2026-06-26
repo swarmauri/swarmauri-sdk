@@ -36,7 +36,9 @@ class GithubReleaseStorageAdapter(StorageAdapterBase):
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
-        token_val = token.get_secret_value() if isinstance(token, SecretStr) else token
+        token_val = (
+            token.get_secret_value() if isinstance(token, SecretStr) else token
+        )
         self._client = Github(token_val)
         self._repo = self._client.get_organization(org).get_repo(repo)
         self._tag = tag
@@ -117,7 +119,9 @@ class GithubReleaseStorageAdapter(StorageAdapterBase):
                 buf = io.BytesIO(raw)
                 buf.seek(0)
                 return buf
-        raise FileNotFoundError(f"Asset '{key}' not found in release '{self._tag}'")
+        raise FileNotFoundError(
+            f"Asset '{key}' not found in release '{self._tag}'"
+        )
 
     # --------------------------------------------------------------- convenience
     def upload_dir(self, src: str | os.PathLike, *, prefix: str = "") -> None:
@@ -137,7 +141,9 @@ class GithubReleaseStorageAdapter(StorageAdapterBase):
             name = asset.name
             if name.startswith(full.rstrip("/")):
                 key = name
-                if self._prefix and key.startswith(self._prefix.rstrip("/") + "/"):
+                if self._prefix and key.startswith(
+                    self._prefix.rstrip("/") + "/"
+                ):
                     key = key[len(self._prefix.rstrip("/")) + 1 :]
                 yield key
 

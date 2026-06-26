@@ -62,7 +62,9 @@ class HammingMetric(MetricBase):
 
         # Check if sequences have the same length
         if len(x) != len(y):
-            raise ValueError(f"Sequences must have equal length: {len(x)} != {len(y)}")
+            raise ValueError(
+                f"Sequences must have equal length: {len(x)} != {len(y)}"
+            )
 
         # Count positions where elements differ
         distance = sum(xi != yi for xi, yi in zip(x, y))
@@ -128,22 +130,30 @@ class HammingMetric(MetricBase):
             # Check if x and y are collections of sequences
             if isinstance(x, Sequence) and isinstance(y, Sequence):
                 # If both are single sequences
-                if not isinstance(x[0], Sequence) and not isinstance(y[0], Sequence):
+                if not isinstance(x[0], Sequence) and not isinstance(
+                    y[0], Sequence
+                ):
                     return [self.distance(x, y)]
 
                 # If x is a collection and y is a single sequence
-                elif isinstance(x[0], Sequence) and not isinstance(y[0], Sequence):
+                elif isinstance(x[0], Sequence) and not isinstance(
+                    y[0], Sequence
+                ):
                     return [self.distance(xi, y) for xi in x]
 
                 # If x is a single sequence and y is a collection
-                elif not isinstance(x[0], Sequence) and isinstance(y[0], Sequence):
+                elif not isinstance(x[0], Sequence) and isinstance(
+                    y[0], Sequence
+                ):
                     return [self.distance(x, yi) for yi in y]
 
                 # If both are collections
                 else:
                     return [[self.distance(xi, yi) for yi in y] for xi in x]
         except (TypeError, IndexError):
-            raise TypeError("Inputs must be collections of sequences or sequences")
+            raise TypeError(
+                "Inputs must be collections of sequences or sequences"
+            )
 
         raise TypeError("Unsupported input types")
 
@@ -170,7 +180,9 @@ class HammingMetric(MetricBase):
         # Hamming distance is always non-negative as it counts differences
         return True
 
-    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
+    def check_identity_of_indiscernibles(
+        self, x: MetricInput, y: MetricInput
+    ) -> bool:
         """
         Check if the Hamming metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -187,7 +199,9 @@ class HammingMetric(MetricBase):
         bool
             True if the axiom is satisfied, False otherwise
         """
-        logger.debug("Checking identity of indiscernibles axiom for Hamming distance")
+        logger.debug(
+            "Checking identity of indiscernibles axiom for Hamming distance"
+        )
 
         # Calculate distance
         dist = self.distance(x, y)

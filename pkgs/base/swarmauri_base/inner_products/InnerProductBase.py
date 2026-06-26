@@ -35,7 +35,9 @@ class InnerProductBase(IInnerProduct, ComponentBase):
     type: Literal["InnerProductBase"] = "InnerProductBase"
 
     def compute(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> float:
         """
         Compute the inner product between two objects.
@@ -60,10 +62,14 @@ class InnerProductBase(IInnerProduct, ComponentBase):
         logger.debug(
             f"Attempting to compute inner product between {type(a)} and {type(b)}"
         )
-        raise NotImplementedError("Method 'compute' must be implemented by subclasses")
+        raise NotImplementedError(
+            "Method 'compute' must be implemented by subclasses"
+        )
 
     def check_conjugate_symmetry(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> bool:
         """
         Check if the inner product satisfies the conjugate symmetry property:

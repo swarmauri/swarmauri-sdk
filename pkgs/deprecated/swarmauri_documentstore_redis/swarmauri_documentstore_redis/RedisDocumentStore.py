@@ -20,7 +20,10 @@ class RedisDocumentStore(DocumentStoreBase):
         if self._redis_client is None:
             print("here")
             self._redis_client = redis.Redis(
-                host=self._host, password=self._password, port=self._port, db=self._db
+                host=self._host,
+                password=self._password,
+                port=self._port,
+                db=self._db,
             )
             print("there")
         return self._redis_client
@@ -61,7 +64,9 @@ class RedisDocumentStore(DocumentStoreBase):
     def __getstate__(self):
         """Return the object state for serialization, excluding the Redis client."""
         state = self.__dict__.copy()
-        state["_redis_client"] = None  # Exclude Redis client from serialization
+        state["_redis_client"] = (
+            None  # Exclude Redis client from serialization
+        )
         return state
 
     def __setstate__(self, state):

@@ -14,7 +14,9 @@ class IVectorStoreComparator(ABC):
         """Return the preferred ordering for scores."""
 
     @abstractmethod
-    def score(self, query: ComparableValue, candidate: ComparableValue) -> float:
+    def score(
+        self, query: ComparableValue, candidate: ComparableValue
+    ) -> float:
         """Compute a single retrieval score."""
 
     @abstractmethod

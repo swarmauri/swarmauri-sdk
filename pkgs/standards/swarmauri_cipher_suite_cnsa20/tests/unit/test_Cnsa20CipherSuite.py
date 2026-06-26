@@ -26,7 +26,9 @@ def test_initialization(cipher_suite: Cnsa20CipherSuite) -> None:
 
 @pytest.mark.unit
 def test_serialization(cipher_suite: Cnsa20CipherSuite) -> None:
-    restored = Cnsa20CipherSuite.model_validate_json(cipher_suite.model_dump_json())
+    restored = Cnsa20CipherSuite.model_validate_json(
+        cipher_suite.model_dump_json()
+    )
     assert restored.id == cipher_suite.id
 
 
@@ -105,7 +107,9 @@ def test_normalize_with_aead_defaults(cipher_suite: Cnsa20CipherSuite) -> None:
     assert descriptor["alg"] == "A256GCM"
     assert descriptor["params"]["tagBits"] == 128
     assert descriptor["params"]["nonceLen"] == 12
-    assert descriptor["constraints"] == {"aead": {"tagBits": 128, "nonceLen": 12}}
+    assert descriptor["constraints"] == {
+        "aead": {"tagBits": 128, "nonceLen": 12}
+    }
     assert descriptor["dialect"] == "jwa"
 
 
@@ -127,7 +131,9 @@ def test_normalize_classic_sign_preserves_params(
 
 
 @pytest.mark.unit
-def test_normalize_post_quantum_sign_defaults(cipher_suite: Cnsa20CipherSuite) -> None:
+def test_normalize_post_quantum_sign_defaults(
+    cipher_suite: Cnsa20CipherSuite,
+) -> None:
     descriptor = cipher_suite.normalize(op="sign")
 
     assert descriptor["alg"] == "ML-DSA-65"
@@ -153,6 +159,8 @@ def test_normalize_wrap_defaults(cipher_suite: Cnsa20CipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_rejects_unsupported_alg(cipher_suite: Cnsa20CipherSuite) -> None:
+def test_normalize_rejects_unsupported_alg(
+    cipher_suite: Cnsa20CipherSuite,
+) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="sign", alg="ES512")

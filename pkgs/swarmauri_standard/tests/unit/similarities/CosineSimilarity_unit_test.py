@@ -222,7 +222,10 @@ def test_serialization_deserialization():
     # Verify functionality is preserved
     x = [1, 2, 3]
     y = [4, 5, 6]
-    assert abs(cosine_sim.similarity(x, y) - deserialized.similarity(x, y)) < 1e-10
+    assert (
+        abs(cosine_sim.similarity(x, y) - deserialized.similarity(x, y))
+        < 1e-10
+    )
 
 
 @pytest.mark.unit

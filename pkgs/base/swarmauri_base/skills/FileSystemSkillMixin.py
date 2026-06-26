@@ -21,7 +21,9 @@ class FileSystemSkillMixin(BaseModel):
 
         skill_md = root / "SKILL.md"
         if not skill_md.is_file():
-            raise FileNotFoundError(f"Skill package requires SKILL.md: {skill_md}")
+            raise FileNotFoundError(
+                f"Skill package requires SKILL.md: {skill_md}"
+            )
 
         manifest = cls._read_manifest(root / "skill.yaml")
         if not manifest:
@@ -57,13 +59,17 @@ class FileSystemSkillMixin(BaseModel):
         return parsed
 
     @classmethod
-    def _add_discovered_resources(cls, root: Path, data: Dict[str, Any]) -> None:
+    def _add_discovered_resources(
+        cls, root: Path, data: Dict[str, Any]
+    ) -> None:
         for field_name in cls._RESOURCE_FIELDS:
             current = list(data.get(field_name) or [])
             seen = set(current)
             folder = root / field_name
             if folder.is_dir():
-                for child in sorted(p for p in folder.rglob("*") if p.is_file()):
+                for child in sorted(
+                    p for p in folder.rglob("*") if p.is_file()
+                ):
                     rel = child.relative_to(root).as_posix()
                     if child.suffix.lower() not in cls._SUPPORTED_EXTENSIONS:
                         raise ValueError(

@@ -133,11 +133,15 @@ def test_evaluate_file(evaluator_pool, mock_evaluator):
     file_path = "test_file.py"
     file_content = "def test_function():\n    pass"
 
-    with patch.object(evaluator_pool, "_should_evaluate_file", return_value=True):
+    with patch.object(
+        evaluator_pool, "_should_evaluate_file", return_value=True
+    ):
         score = evaluator_pool._evaluate_file(file_path, file_content)
 
         assert score == 0.75
-        mock_evaluator.evaluate_file.assert_called_once_with(file_path, file_content)
+        mock_evaluator.evaluate_file.assert_called_once_with(
+            file_path, file_content
+        )
 
 
 @pytest.mark.unit
@@ -146,7 +150,9 @@ def test_evaluate_file_skipped(evaluator_pool, mock_evaluator):
     file_path = "test_file.py"
     file_content = "def test_function():\n    pass"
 
-    with patch.object(evaluator_pool, "_should_evaluate_file", return_value=False):
+    with patch.object(
+        evaluator_pool, "_should_evaluate_file", return_value=False
+    ):
         score = evaluator_pool._evaluate_file(file_path, file_content)
 
         assert score == 0.0
@@ -159,13 +165,17 @@ def test_evaluate_file_exception(evaluator_pool, mock_evaluator):
     file_path = "test_file.py"
     file_content = "def test_function():\n    pass"
 
-    with patch.object(evaluator_pool, "_should_evaluate_file", return_value=True):
+    with patch.object(
+        evaluator_pool, "_should_evaluate_file", return_value=True
+    ):
         mock_evaluator.evaluate_file.side_effect = Exception("Test exception")
 
         score = evaluator_pool._evaluate_file(file_path, file_content)
 
         assert score == 0.0
-        mock_evaluator.evaluate_file.assert_called_once_with(file_path, file_content)
+        mock_evaluator.evaluate_file.assert_called_once_with(
+            file_path, file_content
+        )
 
 
 @pytest.mark.unit
@@ -220,7 +230,10 @@ def test_configure(evaluator_pool):
     config = {"weights": {"MockEvaluator": 2.0, "OtherEvaluator": 0.5}}
     evaluator_pool.configure(config)
 
-    assert evaluator_pool.weights == {"MockEvaluator": 2.0, "OtherEvaluator": 0.5}
+    assert evaluator_pool.weights == {
+        "MockEvaluator": 2.0,
+        "OtherEvaluator": 0.5,
+    }
 
 
 @pytest.mark.unit
@@ -281,7 +294,9 @@ def test_auto_register_evaluators(monkeypatch):
 
     pool = pkg.AccessibilityEvaluatorPool()
 
-    expected = {name for name in pkg.__all__ if name != "AccessibilityEvaluatorPool"}
+    expected = {
+        name for name in pkg.__all__ if name != "AccessibilityEvaluatorPool"
+    }
     evaluator_names = {e.__class__.__name__ for e in pool.evaluators}
 
     assert evaluator_names == expected

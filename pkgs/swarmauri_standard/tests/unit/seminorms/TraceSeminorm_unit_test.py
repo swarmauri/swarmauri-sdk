@@ -35,7 +35,8 @@ class MockVector(IVector):
 
     def dot(self, other: Any) -> float:
         return np.dot(
-            self._data, other.to_numpy() if hasattr(other, "to_numpy") else other
+            self._data,
+            other.to_numpy() if hasattr(other, "to_numpy") else other,
         )
 
 

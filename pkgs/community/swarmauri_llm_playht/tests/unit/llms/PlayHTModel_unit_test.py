@@ -52,7 +52,10 @@ def test_ubc_type(playht_model):
 @pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(playht_model):
-    assert playht_model.id == LLM.model_validate_json(playht_model.model_dump_json()).id
+    assert (
+        playht_model.id
+        == LLM.model_validate_json(playht_model.model_dump_json()).id
+    )
 
 
 @pytest.mark.timeout(5)
@@ -86,7 +89,9 @@ async def test_astream(playht_model, model_name):
 
     text = "Hello, My name is Michael, Am a swarmauri_standard Engineer"
 
-    audio_file_path = await playht_model.astream(text=text, audio_path=file_path)
+    audio_file_path = await playht_model.astream(
+        text=text, audio_path=file_path
+    )
 
     logging.info(audio_file_path)
 

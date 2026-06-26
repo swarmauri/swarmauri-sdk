@@ -11,7 +11,9 @@ from swarmauri_core.retrievers.IRetriever import IRetriever
 from swarmauri.documents.concrete.Document import Document
 from swarmauri_standard.similarities.CosineSimilarity import CosineSimilarity
 from swarmauri.vectors.concrete.SimpleVector import SimpleVector
-from swarmauri.vectorizers.concrete.AmpligraphVectorizer import AmpligraphVectorizer
+from swarmauri.vectorizers.concrete.AmpligraphVectorizer import (
+    AmpligraphVectorizer,
+)
 
 
 class TriplesDocumentStore(IDocumentStore, IRetriever):
@@ -39,7 +41,9 @@ class TriplesDocumentStore(IDocumentStore, IRetriever):
         Trains a model based on triples in the graph.
         """
         # Extract triples for embedding model
-        triples = np.array([[str(s), str(p), str(o)] for s, p, o in self.graph])
+        triples = np.array(
+            [[str(s), str(p), str(o)] for s, p, o in self.graph]
+        )
         # Split data
         train, test = train_test_split_no_unseen(triples, test_size=0.1)
         self.model = ComplEx(
@@ -112,11 +116,13 @@ class TriplesDocumentStore(IDocumentStore, IRetriever):
         """
         if not self.model:
             self._train_model()
-        query_vector = self.vectorizer.infer_vector(model=self.model, samples=[query])[
-            0
-        ]
+        query_vector = self.vectorizer.infer_vector(
+            model=self.model, samples=[query]
+        )[0]
         document_vectors = [
-            self.vectorizer.infer_vector(model=self.model, samples=[doc.content])[0]
+            self.vectorizer.infer_vector(
+                model=self.model, samples=[doc.content]
+            )[0]
             for doc in self.documents
         ]
         similarities = self.similarity.similarities(
@@ -124,6 +130,8 @@ class TriplesDocumentStore(IDocumentStore, IRetriever):
             [SimpleVector(vector) for vector in document_vectors],
         )
         top_k_indices = sorted(
-            range(len(similarities)), key=lambda i: similarities[i], reverse=True
+            range(len(similarities)),
+            key=lambda i: similarities[i],
+            reverse=True,
         )[:top_k]
         return [self.documents[i] for i in top_k_indices]

@@ -7,7 +7,9 @@ errors appropriately.
 """
 
 from nbformat import NotebookNode
-from swarmauri_tool_jupyterfromdict.JupyterFromDictTool import JupyterFromDictTool
+from swarmauri_tool_jupyterfromdict.JupyterFromDictTool import (
+    JupyterFromDictTool,
+)
 from unittest.mock import patch
 
 
@@ -27,7 +29,9 @@ def test_class_attributes() -> None:
     assert tool.type == "JupyterFromDictTool", (
         "Tool type should match the expected literal string."
     )
-    assert len(tool.parameters) == 1, "Expected exactly one parameter in the tool."
+    assert len(tool.parameters) == 1, (
+        "Expected exactly one parameter in the tool."
+    )
     assert tool.parameters[0].name == "notebook_dict", (
         "Parameter name should be 'notebook_dict'."
     )
@@ -47,7 +51,9 @@ def test_call_with_valid_notebook_dict() -> None:
 
     result = tool(valid_notebook_dict)
 
-    assert "notebook_node" in result, "Result should contain a 'notebook_node' key."
+    assert "notebook_node" in result, (
+        "Result should contain a 'notebook_node' key."
+    )
     assert isinstance(result["notebook_node"], NotebookNode), (
         "Result's 'notebook_node' should be an instance of nbformat.NotebookNode."
     )

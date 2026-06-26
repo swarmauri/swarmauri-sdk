@@ -49,10 +49,16 @@ class LevenshteinMetric(MetricBase):
             If inputs are not strings
         """
         if not isinstance(x, str) or not isinstance(y, str):
-            logger.error(f"Inputs must be strings, got {type(x)} and {type(y)}")
-            raise TypeError(f"Inputs must be strings, got {type(x)} and {type(y)}")
+            logger.error(
+                f"Inputs must be strings, got {type(x)} and {type(y)}"
+            )
+            raise TypeError(
+                f"Inputs must be strings, got {type(x)} and {type(y)}"
+            )
 
-        logger.debug(f"Calculating Levenshtein distance between '{x}' and '{y}'")
+        logger.debug(
+            f"Calculating Levenshtein distance between '{x}' and '{y}'"
+        )
 
         # If either string is empty, the distance is the length of the other string
         if len(x) == 0:
@@ -184,7 +190,9 @@ class LevenshteinMetric(MetricBase):
         # which cannot be negative
         return True
 
-    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
+    def check_identity_of_indiscernibles(
+        self, x: MetricInput, y: MetricInput
+    ) -> bool:
         """
         Check if the Levenshtein metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -201,7 +209,9 @@ class LevenshteinMetric(MetricBase):
         bool
             True if d(x,y) = 0 iff x = y, False otherwise
         """
-        logger.debug(f"Checking identity of indiscernibles axiom for '{x}' and '{y}'")
+        logger.debug(
+            f"Checking identity of indiscernibles axiom for '{x}' and '{y}'"
+        )
 
         # The distance is 0 if and only if the strings are identical
         return (self.distance(x, y) == 0) == (x == y)
@@ -251,7 +261,9 @@ class LevenshteinMetric(MetricBase):
         bool
             True if d(x,z) ≤ d(x,y) + d(y,z), False otherwise
         """
-        logger.debug(f"Checking triangle inequality axiom for '{x}', '{y}', and '{z}'")
+        logger.debug(
+            f"Checking triangle inequality axiom for '{x}', '{y}', and '{z}'"
+        )
 
         # Calculate the three distances
         d_xy = self.distance(x, y)

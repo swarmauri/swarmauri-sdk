@@ -97,7 +97,9 @@ def test_upload_mmap_and_open_mmap(adapter, tmp_path):
     path.write_bytes(b"mmap-content")
 
     with path.open("r+b") as file_handle:
-        with mmap.mmap(file_handle.fileno(), 0, access=mmap.ACCESS_READ) as source:
+        with mmap.mmap(
+            file_handle.fileno(), 0, access=mmap.ACCESS_READ
+        ) as source:
             uri = adapter.upload_mmap("mmap.bin", source)
 
     assert uri.endswith("mmap.bin")

@@ -17,14 +17,18 @@ class _StubSigner:
     def __init__(self, *args, **kwargs) -> None:
         self.embed_calls: list[tuple[bytes, str, str | None]] = []
         self.remove_calls: list[Path] = []
-        self.sign_calls: list[tuple[str, object, bool, str | None, dict | None]] = []
+        self.sign_calls: list[
+            tuple[str, object, bool, str | None, dict | None]
+        ] = []
         self.read_responses: dict[Path, str | None] = {}
         _StubSigner.instances.append(self)
 
     def embed_bytes(
         self, data: bytes, xmp_xml: str, *, path: Path | None = None
     ) -> bytes:
-        self.embed_calls.append((data, xmp_xml, None if path is None else str(path)))
+        self.embed_calls.append(
+            (data, xmp_xml, None if path is None else str(path))
+        )
         return b"embedded"
 
     def read_xmp_file(self, path: Path) -> str | None:

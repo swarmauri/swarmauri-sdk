@@ -30,14 +30,18 @@ def _resolve_key_argument(args: argparse.Namespace) -> Any:
         if value is not None
     ]
     if len(provided) != 1:
-        raise SystemExit("Provide exactly one of --key-ref, --key-json, or --key-file.")
+        raise SystemExit(
+            "Provide exactly one of --key-ref, --key-json, or --key-file."
+        )
     if args.key_ref:
         return args.key_ref
     if args.key_json:
         try:
             return json.loads(args.key_json)
         except json.JSONDecodeError as exc:  # pragma: no cover - defensive
-            raise SystemExit(f"Invalid JSON passed to --key-json: {exc}") from exc
+            raise SystemExit(
+                f"Invalid JSON passed to --key-json: {exc}"
+            ) from exc
     if args.key_file:
         return json.loads(Path(args.key_file).read_text(encoding="utf-8"))
     raise SystemExit("A key reference or JSON description must be supplied.")
@@ -120,7 +124,9 @@ def _command_sign(args: argparse.Namespace) -> int:
         for token in args.option:
             name, _, value = token.partition("=")
             if not name:
-                raise SystemExit("Signer options must use the form name=value.")
+                raise SystemExit(
+                    "Signer options must use the form name=value."
+                )
             opts[name] = value
     signatures = asyncio.run(
         _async_sign(
@@ -180,7 +186,9 @@ def _command_embed_sign(args: argparse.Namespace) -> int:
         for token in args.option:
             name, _, value = token.partition("=")
             if not name:
-                raise SystemExit("Signer options must use the form name=value.")
+                raise SystemExit(
+                    "Signer options must use the form name=value."
+                )
             opts[name] = value
     output_path = Path(args.output) if args.output else None
     signatures = asyncio.run(
@@ -206,7 +214,9 @@ def _command_embed_sign(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Embed XMP metadata and sign media.")
+    parser = argparse.ArgumentParser(
+        description="Embed XMP metadata and sign media."
+    )
     parser.add_argument(
         "--key-provider",
         dest="key_provider",
@@ -217,11 +227,17 @@ def build_parser() -> argparse.ArgumentParser:
     embed_parser = subparsers.add_parser("embed", help="Embed XMP into a file")
     embed_parser.add_argument("input", help="Path to the media file")
     embed_parser.add_argument("--xmp", help="Inline XMP XML payload")
-    embed_parser.add_argument("--xmp-file", help="Read the XMP payload from a file")
-    embed_parser.add_argument("--output", help="Write the embedded media to this path")
+    embed_parser.add_argument(
+        "--xmp-file", help="Read the XMP payload from a file"
+    )
+    embed_parser.add_argument(
+        "--output", help="Write the embedded media to this path"
+    )
     embed_parser.set_defaults(func=_command_embed)
 
-    read_parser = subparsers.add_parser("read", help="Read XMP metadata from a file")
+    read_parser = subparsers.add_parser(
+        "read", help="Read XMP metadata from a file"
+    )
     read_parser.add_argument("input", help="Path to the media file")
     read_parser.set_defaults(func=_command_read)
 
@@ -229,13 +245,21 @@ def build_parser() -> argparse.ArgumentParser:
         "remove", help="Strip XMP metadata from a file"
     )
     remove_parser.add_argument("input", help="Path to the media file")
-    remove_parser.add_argument("--output", help="Write the stripped media to this path")
+    remove_parser.add_argument(
+        "--output", help="Write the stripped media to this path"
+    )
     remove_parser.set_defaults(func=_command_remove)
 
-    sign_parser = subparsers.add_parser("sign", help="Generate signatures for a file")
+    sign_parser = subparsers.add_parser(
+        "sign", help="Generate signatures for a file"
+    )
     sign_parser.add_argument("input", help="Path to the media file")
-    sign_parser.add_argument("--format", required=True, help="MediaSigner format name")
-    sign_parser.add_argument("--key-ref", dest="key_ref", help="Key reference string")
+    sign_parser.add_argument(
+        "--format", required=True, help="MediaSigner format name"
+    )
+    sign_parser.add_argument(
+        "--key-ref", dest="key_ref", help="Key reference string"
+    )
     sign_parser.add_argument(
         "--key-json",
         dest="key_json",
@@ -291,7 +315,9 @@ def build_parser() -> argparse.ArgumentParser:
         action="append",
         help="Additional signer option in the form name=value",
     )
-    embed_sign_parser.add_argument("--alg", help="Explicit algorithm identifier")
+    embed_sign_parser.add_argument(
+        "--alg", help="Explicit algorithm identifier"
+    )
     embed_sign_parser.add_argument(
         "--detached",
         action="store_true",

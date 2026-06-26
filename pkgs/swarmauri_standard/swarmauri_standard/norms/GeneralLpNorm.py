@@ -39,7 +39,9 @@ class GeneralLpNorm(NormBase):
     """
 
     type: Literal["GeneralLpNorm"] = "GeneralLpNorm"
-    p: float = Field(..., description="Parameter p for the Lp norm (must be > 1)")
+    p: float = Field(
+        ..., description="Parameter p for the Lp norm (must be > 1)"
+    )
     resource: Optional[str] = Field(default=ResourceTypes.NORM.value)
 
     @validator("p")
@@ -69,7 +71,10 @@ class GeneralLpNorm(NormBase):
         return v
 
     def _convert_to_array(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> np.ndarray:
         """
         Convert the input to a numpy array for computation.
@@ -107,7 +112,10 @@ class GeneralLpNorm(NormBase):
             raise TypeError(f"Unsupported input type: {type(x)}")
 
     def compute(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> float:
         """
         Compute the Lp norm of the input.
@@ -143,7 +151,10 @@ class GeneralLpNorm(NormBase):
             raise
 
     def check_non_negativity(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the Lp norm satisfies the non-negativity property.
@@ -170,7 +181,10 @@ class GeneralLpNorm(NormBase):
             return False
 
     def check_definiteness(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the Lp norm satisfies the definiteness property.
@@ -195,7 +209,9 @@ class GeneralLpNorm(NormBase):
             is_zero = np.allclose(x_array, 0)
             norm_is_zero = np.isclose(norm_value, 0)
 
-            result = (is_zero and norm_is_zero) or (not is_zero and not norm_is_zero)
+            result = (is_zero and norm_is_zero) or (
+                not is_zero and not norm_is_zero
+            )
             logger.debug(f"Definiteness check result: {result}")
             return result
         except Exception as e:
@@ -204,8 +220,12 @@ class GeneralLpNorm(NormBase):
 
     def check_triangle_inequality(
         self,
-        x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
-        y: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
+        y: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the Lp norm satisfies the triangle inequality.
@@ -259,7 +279,9 @@ class GeneralLpNorm(NormBase):
 
     def check_absolute_homogeneity(
         self,
-        x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
         scalar: float,
     ) -> bool:
         """
@@ -292,7 +314,9 @@ class GeneralLpNorm(NormBase):
 
             # Compute norm of scaled x
             scaled_array = scalar * x_array
-            norm_scaled = np.sum(np.abs(scaled_array) ** self.p) ** (1 / self.p)
+            norm_scaled = np.sum(np.abs(scaled_array) ** self.p) ** (
+                1 / self.p
+            )
 
             # Check absolute homogeneity
             expected = abs(scalar) * norm_x

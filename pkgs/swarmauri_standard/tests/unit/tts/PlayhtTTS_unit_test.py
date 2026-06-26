@@ -89,7 +89,9 @@ async def test_apredict(playht_tts_model, model_name):
 
     text = "Hello, My name is Michael, Am a swarmauri_standard Engineer"
 
-    audio_file_path = await playht_tts_model.apredict(text=text, audio_path=file_path)
+    audio_file_path = await playht_tts_model.apredict(
+        text=text, audio_path=file_path
+    )
 
     logging.info(audio_file_path)
 
@@ -151,7 +153,9 @@ def test_create_cloned_voice_with_url(playht_tts_model):
     sample_file_url = "https://drive.google.com/file/d/1JUzRWEu0iDl9gVKthOg2z3ENkx_dya5y/view?usp=sharing"
     voice_name = "mikel-voice"
 
-    response = playht_tts_model.clone_voice_from_url(sample_file_url, voice_name)
+    response = playht_tts_model.clone_voice_from_url(
+        sample_file_url, voice_name
+    )
 
     assert response is not None
     assert "id" in response or "error" not in response

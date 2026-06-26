@@ -24,7 +24,9 @@ class _FakeClient:
         class Pub:
             def __init__(self, pem):
                 self.pem = pem
-                self.algorithm = type("Alg", (), {"name": "RSA_SIGN_PKCS1_2048_SHA256"})
+                self.algorithm = type(
+                    "Alg", (), {"name": "RSA_SIGN_PKCS1_2048_SHA256"}
+                )
 
         return Pub(self._pem)
 
@@ -34,8 +36,12 @@ def service_keyref(monkeypatch):
     priv = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     client = _FakeClient(priv)
     svc = GcpKmsCertService()
-    monkeypatch.setattr(GcpKmsCertService, "_client_or_new", lambda self: client)
-    monkeypatch.setattr(mod, "_make_kms_private_key", lambda client, version: priv)
+    monkeypatch.setattr(
+        GcpKmsCertService, "_client_or_new", lambda self: client
+    )
+    monkeypatch.setattr(
+        mod, "_make_kms_private_key", lambda client, version: priv
+    )
     keyref = KeyRef(
         kid="projects/test/cryptoKeyVersions/1",
         version="1",

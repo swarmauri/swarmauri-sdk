@@ -11,7 +11,9 @@ def test_parser_resource():
     Test to ensure the parser's resource attribute is correctly set.
     """
     parser = Parser()
-    assert parser.resource == "Parser", "The resource attribute should be 'Parser'."
+    assert parser.resource == "Parser", (
+        "The resource attribute should be 'Parser'."
+    )
 
 
 @pytest.mark.unit
@@ -20,7 +22,9 @@ def test_parser_type():
     Test to ensure the parser's type attribute is correctly set.
     """
     parser = Parser()
-    assert parser.type == "PyPDF2Parser", "The type attribute should be 'PyPDF2Parser'."
+    assert parser.type == "PyPDF2Parser", (
+        "The type attribute should be 'PyPDF2Parser'."
+    )
 
 
 @pytest.mark.unit
@@ -60,7 +64,9 @@ def test_parser_success_file_path():
             # Assertions
             mock_file.assert_called_once_with(file_path, "rb")
             mock_pdf_reader.assert_called_once()
-            assert len(documents) == 1, "Parser should return a list with one document."
+            assert len(documents) == 1, (
+                "Parser should return a list with one document."
+            )
             assert isinstance(documents[0], IDocument), (
                 "Returned object should be an instance of IDocument."
             )
@@ -95,7 +101,9 @@ def test_parser_success_bytes():
 
         # Assertions
         mock_pdf_reader.assert_called_once()
-        assert len(documents) == 1, "Parser should return a list with one document."
+        assert len(documents) == 1, (
+            "Parser should return a list with one document."
+        )
         assert isinstance(documents[0], IDocument), (
             "Returned object should be an instance of IDocument."
         )
@@ -121,9 +129,9 @@ def test_parser_invalid_source():
     with pytest.raises(TypeError) as exc_info:
         parser.parse(invalid_source)
 
-    assert "Source must be of type str (file path) or bytes." in str(exc_info.value), (
-        "TypeError not raised as expected."
-    )
+    assert "Source must be of type str (file path) or bytes." in str(
+        exc_info.value
+    ), "TypeError not raised as expected."
 
 
 @pytest.mark.unit

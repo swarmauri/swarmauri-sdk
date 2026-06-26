@@ -54,7 +54,9 @@ def test_batch(lepton_ai_imggen_model):
         "A tropical beach at sunset",
         "A steaming cup of coffee on a wooden table",
     ]
-    result_image_bytes_list = lepton_ai_imggen_model.batch_generate(prompts=prompts)
+    result_image_bytes_list = lepton_ai_imggen_model.batch_generate(
+        prompts=prompts
+    )
     assert len(result_image_bytes_list) == len(prompts)
     for image_bytes in result_image_bytes_list:
         assert isinstance(image_bytes, bytes)

@@ -2,7 +2,9 @@ import httpx
 from PIL import Image
 from io import BytesIO
 from unittest.mock import patch
-from swarmauri_standard.utils.img_url_to_in_memory_img import img_url_to_in_memory_img
+from swarmauri_standard.utils.img_url_to_in_memory_img import (
+    img_url_to_in_memory_img,
+)
 
 
 def test_img_url_to_in_memory_img():
@@ -21,7 +23,9 @@ def test_img_url_to_in_memory_img():
         mock_get.return_value = mock_response
 
         # Call the function with a dummy URL
-        result_image = img_url_to_in_memory_img("http://example.com/fake-image-url")
+        result_image = img_url_to_in_memory_img(
+            "http://example.com/fake-image-url"
+        )
 
         # Assert the result is a valid PIL Image object
         assert isinstance(result_image, Image.Image), (
@@ -29,7 +33,9 @@ def test_img_url_to_in_memory_img():
         )
 
         # Assert the dimensions of the image are correct
-        assert result_image.size == (10, 10), "The image has incorrect dimensions."
+        assert result_image.size == (10, 10), (
+            "The image has incorrect dimensions."
+        )
 
         # Assert the image mode is correct (RGB)
         assert result_image.mode == "RGB", "The image mode is not RGB."

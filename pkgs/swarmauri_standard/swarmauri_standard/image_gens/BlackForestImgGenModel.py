@@ -41,7 +41,9 @@ class BlackForestImgGenModel(ImageGenBase):
             "Content-Type": "application/json",
             "X-Key": self.api_key.get_secret_value(),
         }
-        self._client = httpx.Client(headers=self._headers, timeout=self.timeout)
+        self._client = httpx.Client(
+            headers=self._headers, timeout=self.timeout
+        )
 
     async def _get_async_client(self) -> httpx.AsyncClient:
         """Gets or creates an async client instance."""
@@ -161,9 +163,13 @@ class BlackForestImgGenModel(ImageGenBase):
                 raise Exception(f"Task failed with status: {result['status']}")
             time.sleep(check_interval)
 
-        raise TimeoutError(f"Image generation timed out after {max_wait_time} seconds")
+        raise TimeoutError(
+            f"Image generation timed out after {max_wait_time} seconds"
+        )
 
-    async def agenerate_image(self, prompt: str, **kwargs: Dict[str, Any]) -> Dict:
+    async def agenerate_image(
+        self, prompt: str, **kwargs: Dict[str, Any]
+    ) -> Dict:
         """
         Asynchronously generates an image based on the prompt and waits for the result.
 
@@ -212,7 +218,9 @@ class BlackForestImgGenModel(ImageGenBase):
                     "Request Moderated",
                     "Content Moderated",
                 ]:
-                    raise Exception(f"Task failed with status: {result['status']}")
+                    raise Exception(
+                        f"Task failed with status: {result['status']}"
+                    )
                 await asyncio.sleep(check_interval)
 
             raise TimeoutError(
@@ -234,10 +242,15 @@ class BlackForestImgGenModel(ImageGenBase):
         Returns:
             List[Dict]: List of result dictionaries
         """
-        return [self.generate_image(prompt=prompt, **kwargs) for prompt in prompts]
+        return [
+            self.generate_image(prompt=prompt, **kwargs) for prompt in prompts
+        ]
 
     async def abatch_generate(
-        self, prompts: List[str], max_concurrent: int = 5, **kwargs: Dict[str, Any]
+        self,
+        prompts: List[str],
+        max_concurrent: int = 5,
+        **kwargs: Dict[str, Any],
     ) -> List[Dict]:
         """
         Asynchronously generates images for a batch of prompts.

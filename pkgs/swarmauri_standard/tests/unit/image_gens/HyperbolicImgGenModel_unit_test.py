@@ -1,6 +1,8 @@
 import pytest
 import os
-from swarmauri_standard.image_gens.HyperbolicImgGenModel import HyperbolicImgGenModel
+from swarmauri_standard.image_gens.HyperbolicImgGenModel import (
+    HyperbolicImgGenModel,
+)
 from dotenv import load_dotenv
 
 from swarmauri_standard.utils.timeout_wrapper import timeout
@@ -51,7 +53,10 @@ def test_serialization(hyperbolic_imggen_model):
 @timeout(5)
 @pytest.mark.unit
 def test_default_name(hyperbolic_imggen_model):
-    assert hyperbolic_imggen_model.name == hyperbolic_imggen_model.allowed_models[0]
+    assert (
+        hyperbolic_imggen_model.name
+        == hyperbolic_imggen_model.allowed_models[0]
+    )
 
 
 @timeout(5)
@@ -93,7 +98,9 @@ def test_batch(hyperbolic_imggen_model):
         "A tropical beach at sunset",
     ]
 
-    result_base64_images = hyperbolic_imggen_model.batch_generate(prompts=prompts)
+    result_base64_images = hyperbolic_imggen_model.batch_generate(
+        prompts=prompts
+    )
 
     assert len(result_base64_images) == len(prompts)
     for image_base64 in result_base64_images:

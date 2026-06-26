@@ -12,7 +12,9 @@ from swarmauri_certs_azure.certs.AzureKeyVaultCertService import _pem_cert
 
 def _make_der_cert() -> bytes:
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    subject = issuer = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "example")])
+    subject = issuer = x509.Name(
+        [x509.NameAttribute(NameOID.COMMON_NAME, "example")]
+    )
     cert = (
         x509.CertificateBuilder()
         .subject_name(subject)

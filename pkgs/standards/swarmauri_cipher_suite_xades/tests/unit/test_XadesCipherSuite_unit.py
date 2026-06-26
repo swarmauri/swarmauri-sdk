@@ -26,7 +26,9 @@ def test_initialization(cipher_suite: XadesCipherSuite) -> None:
 
 @pytest.mark.unit
 def test_serialization(cipher_suite: XadesCipherSuite) -> None:
-    restored = XadesCipherSuite.model_validate_json(cipher_suite.model_dump_json())
+    restored = XadesCipherSuite.model_validate_json(
+        cipher_suite.model_dump_json()
+    )
     assert restored.id == cipher_suite.id
 
 
@@ -106,6 +108,8 @@ def test_normalize_defaults(cipher_suite: XadesCipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_rejects_unsupported_alg(cipher_suite: XadesCipherSuite) -> None:
+def test_normalize_rejects_unsupported_alg(
+    cipher_suite: XadesCipherSuite,
+) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="sign", alg="RSA-PSS-SHA512")

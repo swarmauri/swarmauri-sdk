@@ -60,7 +60,9 @@ class InMemoryKeyProvider(KeyProviderBase):
             ),
             uses=tuple(spec.uses),
             export_policy=spec.export_policy,
-            material=(material if spec.export_policy != ExportPolicy.NONE else None),
+            material=(
+                material if spec.export_policy != ExportPolicy.NONE else None
+            ),
             tags={"label": spec.label or "", **(spec.tags or {})},
         )
         self._store.setdefault(kid, {})[version] = ref
@@ -92,7 +94,9 @@ class InMemoryKeyProvider(KeyProviderBase):
             ),
             uses=tuple(spec.uses),
             export_policy=spec.export_policy,
-            material=(material if spec.export_policy != ExportPolicy.NONE else None),
+            material=(
+                material if spec.export_policy != ExportPolicy.NONE else None
+            ),
             public=public,
             tags={"label": spec.label or "", **(spec.tags or {})},
         )
@@ -122,7 +126,9 @@ class InMemoryKeyProvider(KeyProviderBase):
             type=base.type,
             uses=base.uses,
             export_policy=base.export_policy,
-            material=(material if base.export_policy != ExportPolicy.NONE else None),
+            material=(
+                material if base.export_policy != ExportPolicy.NONE else None
+            ),
             public=base.public,
             tags=base.tags,
             uri=base.uri,
@@ -130,7 +136,9 @@ class InMemoryKeyProvider(KeyProviderBase):
         bucket[version] = ref
         return ref
 
-    async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
+    async def destroy_key(
+        self, kid: str, version: Optional[int] = None
+    ) -> bool:
         """Destroy key versions.
 
         kid (str): Key identifier.
@@ -178,7 +186,9 @@ class InMemoryKeyProvider(KeyProviderBase):
             raise KeyError(f"Unknown kid: {kid}")
         return tuple(sorted(bucket.keys()))
 
-    async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
+    async def get_public_jwk(
+        self, kid: str, version: Optional[int] = None
+    ) -> dict:
         """Export a public key in JWK format.
 
         kid (str): Key identifier.
@@ -203,7 +213,9 @@ class InMemoryKeyProvider(KeyProviderBase):
         """
         return secrets.token_bytes(n)
 
-    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+    async def hkdf(
+        self, ikm: bytes, *, salt: bytes, info: bytes, length: int
+    ) -> bytes:
         """Derive key material using HKDF-SHA256.
 
         ikm (bytes): Input keying material.
@@ -217,7 +229,9 @@ class InMemoryKeyProvider(KeyProviderBase):
         okm = b""
         counter = 1
         while len(okm) < length:
-            t = hmac.new(prk, t + info + bytes([counter]), hashlib.sha256).digest()
+            t = hmac.new(
+                prk, t + info + bytes([counter]), hashlib.sha256
+            ).digest()
             okm += t
             counter += 1
         return okm[:length]

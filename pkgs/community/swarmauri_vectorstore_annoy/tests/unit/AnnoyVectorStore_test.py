@@ -31,7 +31,9 @@ def test_ubc_type(vector_store):
 def test_serialization(vector_store):
     assert (
         vector_store.id
-        == AnnoyVectorStore.model_validate_json(vector_store.model_dump_json()).id
+        == AnnoyVectorStore.model_validate_json(
+            vector_store.model_dump_json()
+        ).id
     )
 
 

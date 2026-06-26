@@ -55,11 +55,17 @@ class ManhattanDistance(DistanceBase):
             "ManhattanDistance does not directly provide a similarity metric."
         )
 
-    def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
-        distances = [self.distance(vector_a, vector_b) for vector_b in vectors_b]
+    def distances(
+        self, vector_a: Vector, vectors_b: List[Vector]
+    ) -> List[float]:
+        distances = [
+            self.distance(vector_a, vector_b) for vector_b in vectors_b
+        ]
         return distances
 
-    def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
+    def similarities(
+        self, vector_a: Vector, vectors_b: List[Vector]
+    ) -> List[float]:
         raise NotImplementedError(
             "ManhattanDistance does not directly provide a similarity metric."
         )

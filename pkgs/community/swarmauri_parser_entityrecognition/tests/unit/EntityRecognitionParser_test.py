@@ -51,7 +51,9 @@ def test_parse(parser):
 
     for entity, expected_type in expected_entities.items():
         matches = [
-            i for i, text in enumerate(entity_texts) if entity in text or text in entity
+            i
+            for i, text in enumerate(entity_texts)
+            if entity in text or text in entity
         ]
 
         if matches:

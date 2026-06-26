@@ -30,7 +30,9 @@ class FrobeniusRealInnerProduct(InnerProductBase):
 
     type: Literal["FrobeniusRealInnerProduct"] = "FrobeniusRealInnerProduct"
 
-    def compute(self, a: Union[NDArray, Matrix], b: Union[NDArray, Matrix]) -> float:
+    def compute(
+        self, a: Union[NDArray, Matrix], b: Union[NDArray, Matrix]
+    ) -> float:
         """
         Compute the Frobenius inner product between two real matrices.
 
@@ -62,10 +64,14 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         )
 
         if a.shape != b.shape:
-            raise ValueError(f"Matrix shapes must match: {a.shape} != {b.shape}")
+            raise ValueError(
+                f"Matrix shapes must match: {a.shape} != {b.shape}"
+            )
 
         if np.iscomplexobj(a) or np.iscomplexobj(b):
-            raise ValueError("This implementation only supports real-valued matrices")
+            raise ValueError(
+                "This implementation only supports real-valued matrices"
+            )
 
         # Compute the Frobenius inner product
         # For real matrices, this is equivalent to np.sum(a * b) or np.trace(a.T @ b)

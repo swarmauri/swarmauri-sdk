@@ -34,9 +34,7 @@ class ScannVectorStore(IVectorStore, ISimilarityQuery):
         self.num_leaves_to_search = num_leaves_to_search
         self.reordering_num_neighbors = reordering_num_neighbors
 
-        self.searcher = (
-            None  # Placeholder for the ScaNN searcher initialized during building
-        )
+        self.searcher = None  # Placeholder for the ScaNN searcher initialized during building
         self.dataset_vectors = []
         self.id_to_metadata = {}
 

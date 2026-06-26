@@ -14,7 +14,11 @@ def decorate_instance(instance, decorator_fn):
     for attr_name in dir(instance):
         attr = getattr(instance, attr_name)
         if isinstance(attr, types.MethodType):
-            setattr(instance, attr_name, decorator_fn(attr.__func__).__get__(instance))
+            setattr(
+                instance,
+                attr_name,
+                decorator_fn(attr.__func__).__get__(instance),
+            )
 
 
 def decorate_instance_method(instance, method_name, decorator_fn):
@@ -26,5 +30,7 @@ def decorate_instance_method(instance, method_name, decorator_fn):
 
     # Rebind the decorated method to the instance
     setattr(
-        instance, method_name, decorated_method.__get__(instance, instance.__class__)
+        instance,
+        method_name,
+        decorated_method.__get__(instance, instance.__class__),
     )

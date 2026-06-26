@@ -12,7 +12,9 @@ class ContainerNewSessionTool(ToolBase):
 
     version: str = "1.0.0"
     name: str = "ContainerNewSessionTool"
-    description: str = "Start a new Docker or Kubernetes container running a shell."
+    description: str = (
+        "Start a new Docker or Kubernetes container running a shell."
+    )
     type: Literal["ContainerNewSessionTool"] = "ContainerNewSessionTool"
 
     driver: Literal["docker", "kubernetes"] = "docker"
@@ -20,7 +22,9 @@ class ContainerNewSessionTool(ToolBase):
     container_name: str | None = Field(
         default=None, description="Name for the container or pod"
     )
-    image: str | None = Field(default=None, description="Container image to launch")
+    image: str | None = Field(
+        default=None, description="Container image to launch"
+    )
 
     parameters: List[Parameter] = Field(
         default_factory=lambda: [

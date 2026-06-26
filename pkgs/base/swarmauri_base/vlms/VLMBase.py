@@ -9,7 +9,9 @@ from swarmauri_core.vlms.IPredictVision import IPredictVision
 @ComponentBase.register_model()
 class VLMBase(IPredictVision, ComponentBase):
     allowed_models: List[str] = []
-    resource: Optional[str] = Field(default=ResourceTypes.VLM.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.VLM.value, frozen=True
+    )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["VLMBase"] = "VLMBase"
 
@@ -43,16 +45,22 @@ class VLMBase(IPredictVision, ComponentBase):
             ValueError: If the model is not in the allowed models list.
         """
         if model not in self.allowed_models:
-            raise ValueError(f"Model '{model}' is not in the allowed models list.")
+            raise ValueError(
+                f"Model '{model}' is not in the allowed models list."
+            )
         self.allowed_models.remove(model)
 
     @abstractmethod
     def predict_vision(self, *args, **kwargs):
-        raise NotImplementedError("predict_vision() not implemented in subclass yet.")
+        raise NotImplementedError(
+            "predict_vision() not implemented in subclass yet."
+        )
 
     @abstractmethod
     async def apredict_vision(self, *args, **kwargs):
-        raise NotImplementedError("apredict_vision() not implemented in subclass yet.")
+        raise NotImplementedError(
+            "apredict_vision() not implemented in subclass yet."
+        )
 
     @abstractmethod
     def batch(self, *args, **kwargs):

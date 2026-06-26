@@ -30,7 +30,9 @@ class YubiKeyCipherSuite(CipherSuiteBase):
             "unwrap": _WRAP,
         }
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         return {"sign": "ES256", "wrap": "RSA-OAEP-256"}.get(op, "ES256")
 
     def policy(self) -> Mapping[str, object]:
@@ -85,17 +87,23 @@ class YubiKeyCipherSuite(CipherSuiteBase):
         allowed = set(self.supports().get(op, ()))
         chosen_alg = alg or self.default_alg(op, for_key=key)
         if chosen_alg not in allowed:
-            raise ValueError(f"{chosen_alg=} not supported for {op=} in YubiKey suite")
+            raise ValueError(
+                f"{chosen_alg=} not supported for {op=} in YubiKey suite"
+            )
 
         normalized_params = dict(params or {})
         if chosen_alg.startswith("PS"):
             if "saltLen" not in normalized_params:
-                normalized_params["saltLen"] = {"PS256": 32, "PS384": 48, "PS512": 64}[
-                    chosen_alg
-                ]
+                normalized_params["saltLen"] = {
+                    "PS256": 32,
+                    "PS384": 48,
+                    "PS512": 64,
+                }[chosen_alg]
             normalized_params.setdefault(
                 "mgf1Hash",
-                {"PS256": "SHA256", "PS384": "SHA384", "PS512": "SHA512"}[chosen_alg],
+                {"PS256": "SHA256", "PS384": "SHA384", "PS512": "SHA512"}[
+                    chosen_alg
+                ],
             )
         if chosen_alg in ("ES256", "ES384"):
             normalized_params.setdefault(

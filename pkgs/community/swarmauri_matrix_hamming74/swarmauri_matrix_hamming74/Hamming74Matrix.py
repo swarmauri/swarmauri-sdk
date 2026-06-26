@@ -106,10 +106,14 @@ class Hamming74Matrix(MatrixBase):
     def __mul__(self, other: BinaryLike) -> "Hamming74Matrix":
         return Hamming74Matrix((self._data * self._coerce(other)) % 2)
 
-    def __matmul__(self, other: Union[BinaryLike, np.ndarray]) -> "Hamming74Matrix":
+    def __matmul__(
+        self, other: Union[BinaryLike, np.ndarray]
+    ) -> "Hamming74Matrix":
         matrix = self._coerce(other)
         if self.shape[1] != matrix.shape[0]:
-            raise ValueError("Matrix dimensions do not align for multiplication")
+            raise ValueError(
+                "Matrix dimensions do not align for multiplication"
+            )
         return Hamming74Matrix(np.mod(self._data @ matrix, 2))
 
     def __truediv__(self, other: BinaryLike) -> "Hamming74Matrix":
@@ -130,7 +134,9 @@ class Hamming74Matrix(MatrixBase):
     def transpose(self) -> "Hamming74Matrix":
         return Hamming74Matrix(self._data.T)
 
-    def __array__(self) -> np.ndarray:  # pragma: no cover - numpy protocol helper
+    def __array__(
+        self,
+    ) -> np.ndarray:  # pragma: no cover - numpy protocol helper
         return np.array(self._data, copy=True)
 
     # ------------------------------------------------------------------
@@ -151,7 +157,9 @@ class Hamming74Matrix(MatrixBase):
     def encode(self, message: Sequence[int]) -> List[int]:
         bits = np.mod(np.array(message, dtype=int), 2)
         if bits.size != 4:
-            raise ValueError("Hamming (7,4) encoding expects exactly 4 message bits")
+            raise ValueError(
+                "Hamming (7,4) encoding expects exactly 4 message bits"
+            )
         codeword = np.mod(bits @ self._data, 2)
         return codeword.astype(int).tolist()
 
@@ -175,7 +183,8 @@ class Hamming74Matrix(MatrixBase):
             raise ValueError("Nearest codeword search expects 7-bit inputs")
         codebook = self.codewords()
         distances = [
-            self._metric.distance(candidate.tolist(), codeword) for codeword in codebook
+            self._metric.distance(candidate.tolist(), codeword)
+            for codeword in codebook
         ]
         index = int(np.argmin(distances))
         return codebook[index]

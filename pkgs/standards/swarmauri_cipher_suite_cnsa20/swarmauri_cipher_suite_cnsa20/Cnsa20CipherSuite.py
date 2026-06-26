@@ -54,7 +54,9 @@ class Cnsa20CipherSuite(CipherSuiteBase):
             "unwrap": _KEM,
         }
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         defaults = {
             "sign": "ML-DSA-65",
             "encrypt": "A256GCM",
@@ -142,10 +144,14 @@ class Cnsa20CipherSuite(CipherSuiteBase):
             )
         if chosen in _PQC_SIGN:
             level = _ML_DSA_LEVEL.get(chosen) or _SLH_DSA_LEVEL.get(chosen)
-            constraints.update({"nistLevel": level, "category": "post-quantum"})
+            constraints.update(
+                {"nistLevel": level, "category": "post-quantum"}
+            )
         if chosen in _KEM:
             level = _ML_KEM_LEVEL[chosen]
-            constraints.update({"nistLevel": level, "category": "post-quantum"})
+            constraints.update(
+                {"nistLevel": level, "category": "post-quantum"}
+            )
 
         mapped: dict[str, object] = {"provider": chosen}
         chosen_dialect = dialect

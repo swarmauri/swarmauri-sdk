@@ -106,7 +106,9 @@ class RateLimitMiddleware(MiddlewareBase, ComponentBase):
 
         # Check if the rate limit has been exceeded
         if self._ip_limits[client_identifier]["count"] > self.rate_limit:
-            logger.warning(f"Rate limit exceeded for client {client_identifier}")
+            logger.warning(
+                f"Rate limit exceeded for client {client_identifier}"
+            )
             return Response(status_code=429, content="Rate limit exceeded")
 
         # Proceed with the request chain
@@ -131,7 +133,9 @@ class RateLimitMiddleware(MiddlewareBase, ComponentBase):
         if self.use_token:
             token = request.headers.get(self.token_header)
             if not token:
-                raise ValueError(f"Token not found in header {self.token_header}")
+                raise ValueError(
+                    f"Token not found in header {self.token_header}"
+                )
             return token
         else:
             # Get client IP, handling proxy cases

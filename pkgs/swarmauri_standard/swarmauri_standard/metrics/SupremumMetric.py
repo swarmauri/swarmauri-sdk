@@ -94,14 +94,18 @@ class SupremumMetric(MetricBase):
                 try:
                     return abs(x - y)
                 except TypeError:
-                    raise TypeError(f"Unsupported input types: {type(x)} and {type(y)}")
+                    raise TypeError(
+                        f"Unsupported input types: {type(x)} and {type(y)}"
+                    )
 
         except Exception as e:
             logger.error(f"Error calculating supremum distance: {str(e)}")
             raise
 
     def _calculate_supremum(
-        self, x: Union[List, Tuple, np.ndarray], y: Union[List, Tuple, np.ndarray]
+        self,
+        x: Union[List, Tuple, np.ndarray],
+        y: Union[List, Tuple, np.ndarray],
     ) -> float:
         """
         Helper method to calculate the supremum distance between two sequences.
@@ -191,11 +195,15 @@ class SupremumMetric(MetricBase):
                         )
                     return [self.distance(xi, yi) for xi, yi in zip(x, y)]
             # Case 2: x is a single point, y is a collection
-            elif not isinstance(x, (list, tuple)) and isinstance(y, (list, tuple)):
+            elif not isinstance(x, (list, tuple)) and isinstance(
+                y, (list, tuple)
+            ):
                 return [self.distance(x, yi) for yi in y]
 
             # Case 3: x is a collection, y is a single point
-            elif isinstance(x, (list, tuple)) and not isinstance(y, (list, tuple)):
+            elif isinstance(x, (list, tuple)) and not isinstance(
+                y, (list, tuple)
+            ):
                 return [self.distance(xi, y) for xi in x]
 
             # Case 4: Both are matrices or vectors with special methods
@@ -214,7 +222,9 @@ class SupremumMetric(MetricBase):
                         row = []
                         for j in range(y.shape[0]):
                             if hasattr(x, "get_row") and hasattr(y, "get_row"):
-                                row.append(self.distance(x.get_row(i), y.get_row(j)))
+                                row.append(
+                                    self.distance(x.get_row(i), y.get_row(j))
+                                )
                             else:
                                 raise TypeError(
                                     "Objects have shape but no get_row method"
@@ -260,7 +270,9 @@ class SupremumMetric(MetricBase):
             logger.error(f"Error checking non-negativity: {str(e)}")
             return False
 
-    def check_identity_of_indiscernibles(self, x: MetricInput, y: MetricInput) -> bool:
+    def check_identity_of_indiscernibles(
+        self, x: MetricInput, y: MetricInput
+    ) -> bool:
         """
         Check if the metric satisfies the identity of indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
@@ -277,7 +289,9 @@ class SupremumMetric(MetricBase):
         bool
             True if the axiom is satisfied, False otherwise
         """
-        logger.debug("Checking identity of indiscernibles axiom for supremum metric")
+        logger.debug(
+            "Checking identity of indiscernibles axiom for supremum metric"
+        )
 
         try:
             # Calculate the distance
@@ -301,7 +315,9 @@ class SupremumMetric(MetricBase):
             # Distance is 0 iff the points are equal
             return (dist == 0) == equal
         except Exception as e:
-            logger.error(f"Error checking identity of indiscernibles: {str(e)}")
+            logger.error(
+                f"Error checking identity of indiscernibles: {str(e)}"
+            )
             return False
 
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:

@@ -53,12 +53,16 @@ class DeepSeekModel(LLMBase):
         super().__init__(**data)
 
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
@@ -77,7 +81,8 @@ class DeepSeekModel(LLMBase):
         """
         message_properties = ["content", "role"]
         formatted_messages = [
-            message.model_dump(include=message_properties) for message in messages
+            message.model_dump(include=message_properties)
+            for message in messages
         ]
         return formatted_messages
 
@@ -163,7 +168,9 @@ class DeepSeekModel(LLMBase):
             "stop": stop,
             "top_p": top_p,
         }
-        response = await self._async_client.post("/chat/completions", json=payload)
+        response = await self._async_client.post(
+            "/chat/completions", json=payload
+        )
         response.raise_for_status()
         message_content = response.json()["choices"][0]["message"]["content"]
         conversation.add_message(AgentMessage(content=message_content))
@@ -208,7 +215,9 @@ class DeepSeekModel(LLMBase):
             "top_p": top_p,
             "stream": True,
         }
-        with self._client.stream("POST", "/chat/completions", json=payload) as response:
+        with self._client.stream(
+            "POST", "/chat/completions", json=payload
+        ) as response:
             response.raise_for_status()
             collected_content = []
             for line in response.iter_lines():

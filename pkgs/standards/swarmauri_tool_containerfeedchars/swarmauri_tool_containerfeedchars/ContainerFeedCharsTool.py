@@ -12,7 +12,9 @@ class ContainerFeedCharsTool(ToolBase):
 
     version: str = "1.0.0"
     name: str = "ContainerFeedCharsTool"
-    description: str = "Run a shell command inside a Docker or Kubernetes container."
+    description: str = (
+        "Run a shell command inside a Docker or Kubernetes container."
+    )
     type: Literal["ContainerFeedCharsTool"] = "ContainerFeedCharsTool"
 
     driver: Literal["docker", "kubernetes"] = "docker"
@@ -38,7 +40,9 @@ class ContainerFeedCharsTool(ToolBase):
         ]
     )
 
-    def __call__(self, command: str, container_name: str | None = None) -> dict:
+    def __call__(
+        self, command: str, container_name: str | None = None
+    ) -> dict:
         name = container_name or self.container_name
         if name is None:
             raise ValueError("container_name must be provided")

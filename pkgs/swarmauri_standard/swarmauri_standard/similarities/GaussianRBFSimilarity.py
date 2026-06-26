@@ -48,7 +48,9 @@ class GaussianRBFSimilarity(SimilarityBase):
             If gamma is not positive
         """
         if gamma <= 0:
-            logger.error(f"Invalid gamma value: {gamma}. Gamma must be positive.")
+            logger.error(
+                f"Invalid gamma value: {gamma}. Gamma must be positive."
+            )
             raise ValueError("Gamma must be positive")
 
         super().__init__(**kwargs, gamma=gamma)

@@ -27,7 +27,10 @@ def generate_key() -> PGPKey:
 @pytest.fixture
 def pgp_keys():
     key = generate_key()
-    return {"kind": "pgpy_pub", "pub": key.pubkey}, {"kind": "pgpy_priv", "priv": key}
+    return {"kind": "pgpy_pub", "pub": key.pubkey}, {
+        "kind": "pgpy_priv",
+        "priv": key,
+    }
 
 
 @pytest.fixture
@@ -44,7 +47,8 @@ def test_resource_and_type(crypto):
 @pytest.mark.unit
 def test_serialization(crypto):
     assert (
-        crypto.id == PGPSealMreCrypto.model_validate_json(crypto.model_dump_json()).id
+        crypto.id
+        == PGPSealMreCrypto.model_validate_json(crypto.model_dump_json()).id
     )
 
 

@@ -20,7 +20,9 @@ def mock_gmail_service():
     mock_service.users().messages.return_value = mock_messages
     mock_list = MagicMock()
     mock_messages.list.return_value = mock_list
-    mock_list.execute.return_value = {"messages": [{"id": "msg1"}, {"id": "msg2"}]}
+    mock_list.execute.return_value = {
+        "messages": [{"id": "msg1"}, {"id": "msg2"}]
+    }
     mock_get = MagicMock()
     mock_messages.get.return_value = mock_get
     mock_get.execute.return_value = {
@@ -52,7 +54,8 @@ def test_serialization(tool):
     assert tool_dict["description"] == "Read emails from a Gmail account."
     assert len(tool_dict["parameters"]) == 2
     assert all(
-        param["name"] in ["query", "max_results"] for param in tool_dict["parameters"]
+        param["name"] in ["query", "max_results"]
+        for param in tool_dict["parameters"]
     )
 
 
@@ -62,7 +65,9 @@ def test_serialization(tool):
 def test_authenticate(mock_build, mock_credentials, tool):
     mock_credentials_instance = MagicMock()
     mock_credentials.return_value = mock_credentials_instance
-    mock_credentials_instance.with_subject.return_value = mock_credentials_instance
+    mock_credentials_instance.with_subject.return_value = (
+        mock_credentials_instance
+    )
     mock_service = MagicMock()
     mock_build.return_value = mock_service
 
@@ -70,8 +75,12 @@ def test_authenticate(mock_build, mock_credentials, tool):
 
     tool.authenticate()
 
-    mock_credentials.assert_called_once_with(tool.credentials_path, scopes=tool.SCOPES)
-    mock_credentials_instance.with_subject.assert_called_once_with(tool.sender_email)
+    mock_credentials.assert_called_once_with(
+        tool.credentials_path, scopes=tool.SCOPES
+    )
+    mock_credentials_instance.with_subject.assert_called_once_with(
+        tool.sender_email
+    )
 
     assert tool.service is not None
 

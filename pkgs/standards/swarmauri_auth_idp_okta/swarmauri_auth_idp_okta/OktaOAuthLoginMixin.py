@@ -63,7 +63,9 @@ class OktaOAuthLoginMixin:
         )
         return {"url": url, "state": state, "verifier": verifier}
 
-    async def _exchange_tokens(self, code: str, state: str) -> Mapping[str, Any]:
+    async def _exchange_tokens(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         payload = verify_state(self._state_secret_value(), state)
         metadata = await self._metadata()
         form = {

@@ -15,7 +15,9 @@ def test_resource_type_serialization(monkeypatch):
     assert filt.resource == "StorageAdapter"
     assert filt.type == "GithubReleaseFilter"
     data = filt.model_dump()
-    restored = GithubReleaseFilter(token="", org="org", repo="repo", tag="tag", **data)
+    restored = GithubReleaseFilter(
+        token="", org="org", repo="repo", tag="tag", **data
+    )
     assert restored.type == filt.type
 
 

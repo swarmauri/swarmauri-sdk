@@ -5,7 +5,10 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
 from swarmauri_signing_dpop import DpopSigner
-from swarmauri_signing_dpop.DpopSigner import _ath_from_access_token, _b64url_dec
+from swarmauri_signing_dpop.DpopSigner import (
+    _ath_from_access_token,
+    _b64url_dec,
+)
 from swarmauri_signing_jws import JwsSignerVerifier
 
 

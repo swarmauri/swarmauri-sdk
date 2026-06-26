@@ -199,7 +199,9 @@ def test_compute_score_with_valid_text(evaluator, mock_program):
         mock_program: Mock Program object
     """
     # Sample text with known characteristics
-    test_text = "This is a simple sentence. It has two sentences with simple words."
+    test_text = (
+        "This is a simple sentence. It has two sentences with simple words."
+    )
     mock_program.get_source_files.return_value = {"main.txt": test_text}
 
     score, metadata = evaluator._compute_score(mock_program)
@@ -286,11 +288,17 @@ def test_formula_calculation(evaluator, mock_program):
 
     # Verify formula components
     assert (
-        abs(metadata["formula_calculation"]["term1"] - (0.39 * words_per_sentence))
+        abs(
+            metadata["formula_calculation"]["term1"]
+            - (0.39 * words_per_sentence)
+        )
         < 0.001
     )
     assert (
-        abs(metadata["formula_calculation"]["term2"] - (11.8 * syllables_per_word))
+        abs(
+            metadata["formula_calculation"]["term2"]
+            - (11.8 * syllables_per_word)
+        )
         < 0.001
     )
     assert metadata["formula_calculation"]["constant"] == -15.59

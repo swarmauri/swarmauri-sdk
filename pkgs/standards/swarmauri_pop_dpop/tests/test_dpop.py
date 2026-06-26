@@ -32,7 +32,11 @@ def ec_keypair() -> tuple[ec.EllipticCurvePrivateKey, Mapping[str, str], str]:
     public_numbers = private_key.public_key().public_numbers()
 
     def _encode(value: int) -> str:
-        return base64.urlsafe_b64encode(value.to_bytes(32, "big")).rstrip(b"=").decode()
+        return (
+            base64.urlsafe_b64encode(value.to_bytes(32, "big"))
+            .rstrip(b"=")
+            .decode()
+        )
 
     jwk = {
         "kty": "EC",
@@ -66,7 +70,9 @@ class AlwaysSeenReplay:
     def mark(
         self, scope: str, key: str, ttl_s: int
     ) -> None:  # pragma: no cover - never called
-        raise AssertionError("mark should not be called when replay is detected")
+        raise AssertionError(
+            "mark should not be called when replay is detected"
+        )
 
 
 class TrackingResolver:
@@ -96,17 +102,25 @@ class NullResolver:
     def by_kid(self, kid: bytes) -> None:  # pragma: no cover - trivial helper
         return None
 
-    def by_thumb(self, bind: CnfBinding) -> None:  # pragma: no cover - trivial helper
+    def by_thumb(
+        self, bind: CnfBinding
+    ) -> None:  # pragma: no cover - trivial helper
         return None
 
 
-def _make_header(payload: Mapping[str, object], header: Mapping[str, object]) -> str:
-    header_segment = base64.urlsafe_b64encode(json.dumps(header).encode()).rstrip(b"=")
-    payload_segment = base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(
-        b"="
-    )
+def _make_header(
+    payload: Mapping[str, object], header: Mapping[str, object]
+) -> str:
+    header_segment = base64.urlsafe_b64encode(
+        json.dumps(header).encode()
+    ).rstrip(b"=")
+    payload_segment = base64.urlsafe_b64encode(
+        json.dumps(payload).encode()
+    ).rstrip(b"=")
     signature_segment = base64.urlsafe_b64encode(b"signature").rstrip(b"=")
-    return b".".join([header_segment, payload_segment, signature_segment]).decode()
+    return b".".join(
+        [header_segment, payload_segment, signature_segment]
+    ).decode()
 
 
 def test_compute_jwk_thumbprint_ec() -> None:
@@ -116,7 +130,10 @@ def test_compute_jwk_thumbprint_ec() -> None:
         "x": "f83OJ3D2xF4gWDhZ5teLoI0lp4rWu-9sYji0m7Rk6nM",
         "y": "x_FEzRu9BX9iN6tZp_mJZbWNoXDp8G26iRwViT8-n6M",
     }
-    assert _compute_jwk_thumbprint(jwk) == "D5Iw3MSqY7qCbFQ5gz8JBvxCXkoeLgqbOmgrhXmh9IM"
+    assert (
+        _compute_jwk_thumbprint(jwk)
+        == "D5Iw3MSqY7qCbFQ5gz8JBvxCXkoeLgqbOmgrhXmh9IM"
+    )
 
 
 def test_compute_jwk_thumbprint_rsa() -> None:
@@ -125,7 +142,10 @@ def test_compute_jwk_thumbprint_rsa() -> None:
         "n": "0vx7agoebGcQSuuPiLJXZptN9nndrXx9jHvdSkZLtueS4omK0VJW6LQn9Q0QgVH8bR_i_zXNXtKgzYV3P6gPl0Q8BCmG5Fi7o3M4ZaChkCGbdF9ersCzXZBfPzlfDsGTi0a5cc0qpAoky6fhiUikens27ayk_iVIbIAXo1Zb1tcHTfbvUodSnb6P0FoYgqD9BfbK3Wlt8X9-7w3LDwW9ki2TkuuzMdGzRNuESyZ3hFbaM4XapCszgmF0wBp-JT5tAM-QsS1d73ZB_pY0V9jvZA67TUrROoUzHB25m_nZg6aj_SA1w4v7w2gw2NXK9enEDJjT2XlHz-3WlEBeIqoQ",
         "e": "AQAB",
     }
-    assert _compute_jwk_thumbprint(jwk) == "3yUYYCjJKZBMVIkUnqaePoyUT4Oz-Hj6cBnqcGZNKAw"
+    assert (
+        _compute_jwk_thumbprint(jwk)
+        == "3yUYYCjJKZBMVIkUnqaePoyUT4Oz-Hj6cBnqcGZNKAw"
+    )
 
 
 def test_compute_jwk_thumbprint_okp() -> None:
@@ -134,7 +154,10 @@ def test_compute_jwk_thumbprint_okp() -> None:
         "crv": "Ed25519",
         "x": "11qYAYLefZ8kbZBv41G7AKOrO5NsuU_LYyJCU4s0x8",
     }
-    assert _compute_jwk_thumbprint(jwk) == "aapki20nwBGeEcGsXupl2hmbEdHnu4gmfC5eqVpw3Ik"
+    assert (
+        _compute_jwk_thumbprint(jwk)
+        == "aapki20nwBGeEcGsXupl2hmbEdHnu4gmfC5eqVpw3Ik"
+    )
 
 
 def test_compute_jwk_thumbprint_missing_kty() -> None:
@@ -157,7 +180,9 @@ def test_resolve_kid_str_to_bytes() -> None:
 
 def test_signer_cnf_binding_uses_jwk_thumbprint(ec_keypair) -> None:
     private_key, jwk, thumbprint = ec_keypair
-    signer = DPoPSigner(private_key=private_key, public_jwk=jwk, algorithm="ES256")
+    signer = DPoPSigner(
+        private_key=private_key, public_jwk=jwk, algorithm="ES256"
+    )
     binding = signer.cnf_binding()
     assert binding.bind_type is BindType.JKT
     assert binding.value_b64u == thumbprint
@@ -165,7 +190,9 @@ def test_signer_cnf_binding_uses_jwk_thumbprint(ec_keypair) -> None:
 
 def test_signer_includes_public_jwk_in_header(monkeypatch, ec_keypair) -> None:
     private_key, jwk, _ = ec_keypair
-    signer = DPoPSigner(private_key=private_key, public_jwk=jwk, algorithm="ES256")
+    signer = DPoPSigner(
+        private_key=private_key, public_jwk=jwk, algorithm="ES256"
+    )
     monkeypatch.setattr(DPoPSigner, "_now", lambda self: 1700000000)
     token = signer.sign_request("GET", "https://example.com")
     header = jwt.get_unverified_header(token)
@@ -177,7 +204,9 @@ def test_signer_includes_kid_header_when_bytes_supplied(
     monkeypatch, ec_keypair
 ) -> None:
     private_key, jwk, _ = ec_keypair
-    signer = DPoPSigner(private_key=private_key, public_jwk=jwk, algorithm="ES256")
+    signer = DPoPSigner(
+        private_key=private_key, public_jwk=jwk, algorithm="ES256"
+    )
     monkeypatch.setattr(DPoPSigner, "_now", lambda self: 1700000000)
     token = signer.sign_request(
         "POST",
@@ -191,7 +220,9 @@ def test_signer_includes_kid_header_when_bytes_supplied(
 
 def test_signer_merges_extra_claims(monkeypatch, ec_keypair) -> None:
     private_key, jwk, _ = ec_keypair
-    signer = DPoPSigner(private_key=private_key, public_jwk=jwk, algorithm="ES256")
+    signer = DPoPSigner(
+        private_key=private_key, public_jwk=jwk, algorithm="ES256"
+    )
     fixed_time = 1700000000
     monkeypatch.setattr(DPoPSigner, "_now", lambda self: fixed_time)
     token = signer.sign_request(
@@ -221,7 +252,9 @@ async def test_verifier_accepts_valid_proof_with_embedded_jwk(
     monkeypatch, ec_keypair
 ) -> None:
     private_key, jwk, thumbprint = ec_keypair
-    signer = DPoPSigner(private_key=private_key, public_jwk=jwk, algorithm="ES256")
+    signer = DPoPSigner(
+        private_key=private_key, public_jwk=jwk, algorithm="ES256"
+    )
     fixed_time = 1700000000
     monkeypatch.setattr(DPoPSigner, "_now", lambda self: fixed_time)
     monkeypatch.setattr(DPoPVerifier, "_now", lambda self: fixed_time)
@@ -252,16 +285,24 @@ async def test_verifier_accepts_valid_proof_with_embedded_jwk(
         extras=extras,
     )
 
-    assert replay.seen_calls == [("dpop:https://example.com/resource", "proof-jti")]
+    assert replay.seen_calls == [
+        ("dpop:https://example.com/resource", "proof-jti")
+    ]
     assert replay.mark_calls == [
-        ("dpop:https://example.com/resource", "proof-jti", context.policy.max_skew_s)
+        (
+            "dpop:https://example.com/resource",
+            "proof-jti",
+            context.policy.max_skew_s,
+        )
     ]
 
 
 @pytest.mark.asyncio
 async def test_verifier_detects_replay(monkeypatch, ec_keypair) -> None:
     private_key, jwk, thumbprint = ec_keypair
-    signer = DPoPSigner(private_key=private_key, public_jwk=jwk, algorithm="ES256")
+    signer = DPoPSigner(
+        private_key=private_key, public_jwk=jwk, algorithm="ES256"
+    )
     fixed_time = 1700000000
     monkeypatch.setattr(DPoPSigner, "_now", lambda self: fixed_time)
     monkeypatch.setattr(DPoPVerifier, "_now", lambda self: fixed_time)
@@ -283,9 +324,13 @@ async def test_verifier_detects_replay(monkeypatch, ec_keypair) -> None:
 
 
 @pytest.mark.asyncio
-async def test_verifier_rejects_thumbprint_mismatch(monkeypatch, ec_keypair) -> None:
+async def test_verifier_rejects_thumbprint_mismatch(
+    monkeypatch, ec_keypair
+) -> None:
     private_key, jwk, _ = ec_keypair
-    signer = DPoPSigner(private_key=private_key, public_jwk=jwk, algorithm="ES256")
+    signer = DPoPSigner(
+        private_key=private_key, public_jwk=jwk, algorithm="ES256"
+    )
     fixed_time = 1700000000
     monkeypatch.setattr(DPoPSigner, "_now", lambda self: fixed_time)
     monkeypatch.setattr(DPoPVerifier, "_now", lambda self: fixed_time)
@@ -343,7 +388,9 @@ async def test_verifier_requires_key_resolver_when_header_omits_jwk(
 
 
 @pytest.mark.asyncio
-async def test_verifier_uses_kid_to_resolve_key(monkeypatch, ec_keypair) -> None:
+async def test_verifier_uses_kid_to_resolve_key(
+    monkeypatch, ec_keypair
+) -> None:
     private_key, jwk, thumbprint = ec_keypair
     fixed_time = 1700000000
     monkeypatch.setattr(DPoPVerifier, "_now", lambda self: fixed_time)
@@ -403,7 +450,9 @@ async def test_verifier_falls_back_to_thumbprint_resolution(
         headers={"typ": "dpop+jwt"},
     )
 
-    resolver = TrackingResolver(private_key.public_key(), thumbprint=thumbprint)
+    resolver = TrackingResolver(
+        private_key.public_key(), thumbprint=thumbprint
+    )
     verifier = DPoPVerifier()
     context = RequestContext(
         method="GET", htu="https://example.com", policy=VerifyPolicy()
@@ -423,7 +472,9 @@ async def test_verifier_falls_back_to_thumbprint_resolution(
 
 
 @pytest.mark.asyncio
-async def test_verifier_rejects_when_key_unavailable(monkeypatch, ec_keypair) -> None:
+async def test_verifier_rejects_when_key_unavailable(
+    monkeypatch, ec_keypair
+) -> None:
     private_key, jwk, thumbprint = ec_keypair
     fixed_time = 1700000000
     monkeypatch.setattr(DPoPVerifier, "_now", lambda self: fixed_time)
@@ -458,9 +509,13 @@ async def test_verifier_rejects_when_key_unavailable(monkeypatch, ec_keypair) ->
 
 
 @pytest.mark.asyncio
-async def test_verifier_rejects_on_signature_failure(monkeypatch, ec_keypair) -> None:
+async def test_verifier_rejects_on_signature_failure(
+    monkeypatch, ec_keypair
+) -> None:
     private_key, jwk, thumbprint = ec_keypair
-    signer = DPoPSigner(private_key=private_key, public_jwk=jwk, algorithm="ES256")
+    signer = DPoPSigner(
+        private_key=private_key, public_jwk=jwk, algorithm="ES256"
+    )
     fixed_time = 1700000000
     monkeypatch.setattr(DPoPSigner, "_now", lambda self: fixed_time)
     monkeypatch.setattr(DPoPVerifier, "_now", lambda self: fixed_time)
@@ -471,7 +526,9 @@ async def test_verifier_rejects_on_signature_failure(monkeypatch, ec_keypair) ->
         method="GET", htu="https://example.com", policy=VerifyPolicy()
     )
 
-    with pytest.raises(PoPVerificationError, match="signature verification failed"):
+    with pytest.raises(
+        PoPVerificationError, match="signature verification failed"
+    ):
         await verifier._verify_core(
             tampered,
             context,
@@ -483,9 +540,13 @@ async def test_verifier_rejects_on_signature_failure(monkeypatch, ec_keypair) ->
 
 
 @pytest.mark.asyncio
-async def test_verifier_rejects_on_htm_htu_mismatch(monkeypatch, ec_keypair) -> None:
+async def test_verifier_rejects_on_htm_htu_mismatch(
+    monkeypatch, ec_keypair
+) -> None:
     private_key, jwk, thumbprint = ec_keypair
-    signer = DPoPSigner(private_key=private_key, public_jwk=jwk, algorithm="ES256")
+    signer = DPoPSigner(
+        private_key=private_key, public_jwk=jwk, algorithm="ES256"
+    )
     fixed_time = 1700000000
     monkeypatch.setattr(DPoPSigner, "_now", lambda self: fixed_time)
     monkeypatch.setattr(DPoPVerifier, "_now", lambda self: fixed_time)
@@ -507,7 +568,9 @@ async def test_verifier_rejects_on_htm_htu_mismatch(monkeypatch, ec_keypair) -> 
 
 
 @pytest.mark.asyncio
-async def test_verifier_rejects_on_invalid_iat(monkeypatch, ec_keypair) -> None:
+async def test_verifier_rejects_on_invalid_iat(
+    monkeypatch, ec_keypair
+) -> None:
     private_key, jwk, thumbprint = ec_keypair
     fixed_time = 1700000000
     monkeypatch.setattr(DPoPVerifier, "_now", lambda self: fixed_time)
@@ -541,7 +604,9 @@ async def test_verifier_rejects_on_invalid_iat(monkeypatch, ec_keypair) -> None:
 
 
 @pytest.mark.asyncio
-async def test_verifier_rejects_when_jti_missing(monkeypatch, ec_keypair) -> None:
+async def test_verifier_rejects_when_jti_missing(
+    monkeypatch, ec_keypair
+) -> None:
     private_key, jwk, thumbprint = ec_keypair
     fixed_time = 1700000000
     monkeypatch.setattr(DPoPVerifier, "_now", lambda self: fixed_time)
@@ -574,9 +639,13 @@ async def test_verifier_rejects_when_jti_missing(monkeypatch, ec_keypair) -> Non
 
 
 @pytest.mark.asyncio
-async def test_verifier_rejects_on_nonce_mismatch(monkeypatch, ec_keypair) -> None:
+async def test_verifier_rejects_on_nonce_mismatch(
+    monkeypatch, ec_keypair
+) -> None:
     private_key, jwk, thumbprint = ec_keypair
-    signer = DPoPSigner(private_key=private_key, public_jwk=jwk, algorithm="ES256")
+    signer = DPoPSigner(
+        private_key=private_key, public_jwk=jwk, algorithm="ES256"
+    )
     fixed_time = 1700000000
     monkeypatch.setattr(DPoPSigner, "_now", lambda self: fixed_time)
     monkeypatch.setattr(DPoPVerifier, "_now", lambda self: fixed_time)
@@ -607,14 +676,18 @@ async def test_verifier_requires_ath_claim_when_policy_demands(
     monkeypatch, ec_keypair
 ) -> None:
     private_key, jwk, thumbprint = ec_keypair
-    signer = DPoPSigner(private_key=private_key, public_jwk=jwk, algorithm="ES256")
+    signer = DPoPSigner(
+        private_key=private_key, public_jwk=jwk, algorithm="ES256"
+    )
     fixed_time = 1700000000
     monkeypatch.setattr(DPoPSigner, "_now", lambda self: fixed_time)
     monkeypatch.setattr(DPoPVerifier, "_now", lambda self: fixed_time)
     token = signer.sign_request("GET", "https://example.com", jti="ath")
     verifier = DPoPVerifier()
     policy = VerifyPolicy(require_ath=True)
-    context = RequestContext(method="GET", htu="https://example.com", policy=policy)
+    context = RequestContext(
+        method="GET", htu="https://example.com", policy=policy
+    )
 
     with pytest.raises(
         PoPVerificationError, match="Access-token hash \(ath\) required"
@@ -634,7 +707,9 @@ async def test_verifier_rejects_when_optional_ath_mismatches(
     monkeypatch, ec_keypair
 ) -> None:
     private_key, jwk, thumbprint = ec_keypair
-    signer = DPoPSigner(private_key=private_key, public_jwk=jwk, algorithm="ES256")
+    signer = DPoPSigner(
+        private_key=private_key, public_jwk=jwk, algorithm="ES256"
+    )
     fixed_time = 1700000000
     monkeypatch.setattr(DPoPSigner, "_now", lambda self: fixed_time)
     monkeypatch.setattr(DPoPVerifier, "_now", lambda self: fixed_time)
@@ -681,7 +756,9 @@ async def test_verifier_rejects_unparsable_header(ec_keypair) -> None:
 
 
 @pytest.mark.asyncio
-async def test_verifier_rejects_when_alg_missing(monkeypatch, ec_keypair) -> None:
+async def test_verifier_rejects_when_alg_missing(
+    monkeypatch, ec_keypair
+) -> None:
     _, jwk, thumbprint = ec_keypair
     fixed_time = 1700000000
     monkeypatch.setattr(DPoPVerifier, "_now", lambda self: fixed_time)

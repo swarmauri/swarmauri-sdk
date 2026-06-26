@@ -53,5 +53,7 @@ class IDistanceSimilarity(ABC):
         pass
 
     @abstractmethod
-    def similarities(self, vector_a: IVector, vectors_b: List[IVector]) -> float:
+    def similarities(
+        self, vector_a: IVector, vectors_b: List[IVector]
+    ) -> float:
         pass

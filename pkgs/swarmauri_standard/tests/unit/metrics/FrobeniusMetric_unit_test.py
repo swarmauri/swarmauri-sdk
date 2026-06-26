@@ -137,10 +137,18 @@ def test_distances_between_collections(frobenius_metric, sample_matrices):
     assert len(distances[0]) == len(matrices_y)
 
     # Verify specific distances
-    assert np.isclose(distances[0][0], frobenius_metric.distance(matrix_a, matrix_b))
-    assert np.isclose(distances[0][1], frobenius_metric.distance(matrix_a, matrix_c))
-    assert np.isclose(distances[1][0], frobenius_metric.distance(matrix_b, matrix_b))
-    assert np.isclose(distances[1][1], frobenius_metric.distance(matrix_b, matrix_c))
+    assert np.isclose(
+        distances[0][0], frobenius_metric.distance(matrix_a, matrix_b)
+    )
+    assert np.isclose(
+        distances[0][1], frobenius_metric.distance(matrix_a, matrix_c)
+    )
+    assert np.isclose(
+        distances[1][0], frobenius_metric.distance(matrix_b, matrix_b)
+    )
+    assert np.isclose(
+        distances[1][1], frobenius_metric.distance(matrix_b, matrix_c)
+    )
 
 
 @pytest.mark.unit
@@ -158,8 +166,14 @@ def test_distances_invalid_input(frobenius_metric, sample_matrices):
 @pytest.mark.parametrize(
     "matrix_pair",
     [
-        (np.array([[1.0, 0.0], [0.0, 1.0]]), np.array([[2.0, 1.0], [1.0, 3.0]])),
-        (np.array([[-1.0, 2.0], [3.0, -4.0]]), np.array([[0.0, 0.0], [0.0, 0.0]])),
+        (
+            np.array([[1.0, 0.0], [0.0, 1.0]]),
+            np.array([[2.0, 1.0], [1.0, 3.0]]),
+        ),
+        (
+            np.array([[-1.0, 2.0], [3.0, -4.0]]),
+            np.array([[0.0, 0.0], [0.0, 0.0]]),
+        ),
     ],
 )
 def test_non_negativity(frobenius_metric, matrix_pair):
@@ -174,10 +188,16 @@ def test_identity_of_indiscernibles(frobenius_metric, sample_matrices):
     matrix_a, matrix_b, _, _ = sample_matrices
 
     # Same matrices should have zero distance
-    assert frobenius_metric.check_identity_of_indiscernibles(matrix_a, matrix_a) is True
+    assert (
+        frobenius_metric.check_identity_of_indiscernibles(matrix_a, matrix_a)
+        is True
+    )
 
     # Different matrices should have non-zero distance
-    assert frobenius_metric.check_identity_of_indiscernibles(matrix_a, matrix_b) is True
+    assert (
+        frobenius_metric.check_identity_of_indiscernibles(matrix_a, matrix_b)
+        is True
+    )
 
 
 @pytest.mark.unit
@@ -195,7 +215,10 @@ def test_triangle_inequality(frobenius_metric, sample_matrices):
     matrix_a, matrix_b, matrix_c, _ = sample_matrices
 
     assert (
-        frobenius_metric.check_triangle_inequality(matrix_a, matrix_b, matrix_c) is True
+        frobenius_metric.check_triangle_inequality(
+            matrix_a, matrix_b, matrix_c
+        )
+        is True
     )
 
 
@@ -225,5 +248,6 @@ def test_distance_with_zero_matrices(frobenius_metric):
     non_zero_matrix = np.array([[1.0, 2.0], [3.0, 4.0]])
     expected_distance = np.sqrt(30.0)  # sqrt(1^2 + 2^2 + 3^2 + 4^2)
     assert np.isclose(
-        frobenius_metric.distance(zero_matrix, non_zero_matrix), expected_distance
+        frobenius_metric.distance(zero_matrix, non_zero_matrix),
+        expected_distance,
     )

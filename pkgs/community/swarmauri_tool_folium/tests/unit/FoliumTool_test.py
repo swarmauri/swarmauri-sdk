@@ -56,7 +56,9 @@ def test_call(map_center, markers):
             result = tool(map_center, markers)
 
             # Assert that the result is a dictionary
-            assert isinstance(result, dict), "The result should be a dictionary."
+            assert isinstance(result, dict), (
+                "The result should be a dictionary."
+            )
 
             # Expected keys in the result
             expected_keys = {"image_b64"}
@@ -75,13 +77,17 @@ def test_call(map_center, markers):
             try:
                 base64.b64decode(result["image_b64"])
             except Exception:
-                pytest.fail("The 'image_b64' value should be a valid base64 string.")
+                pytest.fail(
+                    "The 'image_b64' value should be a valid base64 string."
+                )
 
             # Assert that the map was created with the correct center and zoom
             MockMap.assert_called_once_with(location=map_center, zoom_start=13)
 
             # Assert that the map was saved to a BytesIO object
-            assert mock_map_instance.save.called, "The map should have been saved."
+            assert mock_map_instance.save.called, (
+                "The map should have been saved."
+            )
             mock_map_instance.save.assert_called_once_with(
                 mock_bytes_io, close_file=False
             )

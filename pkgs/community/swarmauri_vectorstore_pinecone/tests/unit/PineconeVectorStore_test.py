@@ -15,7 +15,9 @@ API_KEY = os.getenv("PINECONE_API_KEY")
 @pytest.fixture
 def vector_store():
     if not API_KEY:
-        pytest.skip("Skipping due to environment variable 'PINECONE_API_KEY' not set")
+        pytest.skip(
+            "Skipping due to environment variable 'PINECONE_API_KEY' not set"
+        )
     vs = PineconeVectorStore(
         api_key=API_KEY,
         collection_name="example",
@@ -40,7 +42,9 @@ def test_ubc_type(vector_store):
 def test_serialization(vector_store):
     assert (
         vector_store.id
-        == PineconeVectorStore.model_validate_json(vector_store.model_dump_json()).id
+        == PineconeVectorStore.model_validate_json(
+            vector_store.model_dump_json()
+        ).id
     )
 
 

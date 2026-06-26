@@ -57,7 +57,9 @@ def _serialize_keypair(priv, spec: KeySpec) -> tuple[bytes, Optional[bytes]]:
         spec.public_format,
         serialization.PublicFormat.SubjectPublicKeyInfo,
     )
-    public = priv.public_key().public_bytes(encoding=encoding, format=public_format)
+    public = priv.public_key().public_bytes(
+        encoding=encoding, format=public_format
+    )
 
     material: Optional[bytes] = None
     if spec.export_policy != ExportPolicy.PUBLIC_ONLY:
@@ -203,9 +205,14 @@ class FileKeyProvider(KeyProviderBase):
                     sk = ed25519.Ed25519PrivateKey.generate()
                 elif spec.alg == KeyAlg.X25519:
                     sk = x25519.X25519PrivateKey.generate()
-                elif spec.alg in (KeyAlg.RSA_OAEP_SHA256, KeyAlg.RSA_PSS_SHA256):
+                elif spec.alg in (
+                    KeyAlg.RSA_OAEP_SHA256,
+                    KeyAlg.RSA_PSS_SHA256,
+                ):
                     bits = spec.size_bits or 3072
-                    sk = rsa.generate_private_key(public_exponent=65537, key_size=bits)
+                    sk = rsa.generate_private_key(
+                        public_exponent=65537, key_size=bits
+                    )
                 elif spec.alg == KeyAlg.ECDSA_P256_SHA256:
                     sk = ec.generate_private_key(ec.SECP256R1())
                 else:
@@ -234,7 +241,11 @@ class FileKeyProvider(KeyProviderBase):
                 export_policy=spec.export_policy,
                 public=public,
                 material=material,
-                tags={"label": spec.label, "alg": spec.alg.value, **(spec.tags or {})},
+                tags={
+                    "label": spec.label,
+                    "alg": spec.alg.value,
+                    **(spec.tags or {}),
+                },
                 fingerprint=self._fingerprint(
                     public=public, material=material, kid=kid
                 ),
@@ -270,7 +281,9 @@ class FileKeyProvider(KeyProviderBase):
                     pub_out = public
                 else:
                     try:
-                        sk = serialization.load_pem_private_key(material, password=None)
+                        sk = serialization.load_pem_private_key(
+                            material, password=None
+                        )
                         pub_out = sk.public_key().public_bytes(
                             serialization.Encoding.PEM,
                             serialization.PublicFormat.SubjectPublicKeyInfo,
@@ -351,7 +364,9 @@ class FileKeyProvider(KeyProviderBase):
                     sk = x25519.X25519PrivateKey.generate()
                 elif alg in (KeyAlg.RSA_OAEP_SHA256, KeyAlg.RSA_PSS_SHA256):
                     bits = int(ov.get("size_bits") or 3072)
-                    sk = rsa.generate_private_key(public_exponent=65537, key_size=bits)
+                    sk = rsa.generate_private_key(
+                        public_exponent=65537, key_size=bits
+                    )
                 elif alg == KeyAlg.ECDSA_P256_SHA256:
                     sk = ec.generate_private_key(ec.SECP256R1())
                 else:
@@ -392,7 +407,9 @@ class FileKeyProvider(KeyProviderBase):
                 ),
             )
 
-    async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
+    async def destroy_key(
+        self, kid: str, version: Optional[int] = None
+    ) -> bool:
         with self._lock:
             kdir = self._key_dir(kid)
             if not kdir.exists():
@@ -416,7 +433,11 @@ class FileKeyProvider(KeyProviderBase):
             return True
 
     async def get_key(
-        self, kid: str, version: Optional[int] = None, *, include_secret: bool = False
+        self,
+        kid: str,
+        version: Optional[int] = None,
+        *,
+        include_secret: bool = False,
     ) -> KeyRef:
         with self._lock:
             meta = self._read_meta(kid)
@@ -446,7 +467,9 @@ class FileKeyProvider(KeyProviderBase):
                     try:
                         obj = json.loads(pem_priv.read_text())
                         if obj.get("kty") == "oct" and obj.get("k"):
-                            material = base64.urlsafe_b64decode(obj["k"] + "==")
+                            material = base64.urlsafe_b64decode(
+                                obj["k"] + "=="
+                            )
                         else:
                             material = pem_priv.read_bytes()
                     except json.JSONDecodeError:
@@ -487,7 +510,9 @@ class FileKeyProvider(KeyProviderBase):
             vs.sort()
             return tuple(vs)
 
-    async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
+    async def get_public_jwk(
+        self, kid: str, version: Optional[int] = None
+    ) -> dict:
         ref = await self.get_key(kid, version, include_secret=False)
         alg = KeyAlg(ref.tags["alg"])
 
@@ -502,7 +527,9 @@ class FileKeyProvider(KeyProviderBase):
             vdir = self._ver_dir(ref.kid, ref.version)
             pem_pub = vdir / "public.pem"
             if not pem_pub.exists():
-                raise RuntimeError("Public material unavailable for asymmetric key")
+                raise RuntimeError(
+                    "Public material unavailable for asymmetric key"
+                )
             pub_bytes = pem_pub.read_bytes()
         else:
             pub_bytes = ref.public
@@ -576,7 +603,9 @@ class FileKeyProvider(KeyProviderBase):
     async def random_bytes(self, n: int) -> bytes:
         return secrets.token_bytes(n)
 
-    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+    async def hkdf(
+        self, ikm: bytes, *, salt: bytes, info: bytes, length: int
+    ) -> bytes:
         return HKDF(
             algorithm=hashes.SHA256(), length=length, salt=salt, info=info
         ).derive(ikm)

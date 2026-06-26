@@ -47,7 +47,12 @@ def test_serialization():
             1,
             ["<span>Some span content</span>"],
         ),
-        ("<div><h1>Header</h1><p>Paragraph</p></div>", "h1", 1, ["<h1>Header</h1>"]),
+        (
+            "<div><h1>Header</h1><p>Paragraph</p></div>",
+            "h1",
+            1,
+            ["<h1>Header</h1>"],
+        ),
         ("<div>No matching tags here</div>", "a", 0, []),
     ],
 )

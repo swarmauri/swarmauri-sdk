@@ -122,7 +122,9 @@ def test_stream(mistral_tool_model, toolkit, conversation, model_name):
     mistral_tool_model.name = model_name
 
     collected_tokens = []
-    for token in mistral_tool_model.stream(conversation=conversation, toolkit=toolkit):
+    for token in mistral_tool_model.stream(
+        conversation=conversation, toolkit=toolkit
+    ):
         assert isinstance(token, str)
         collected_tokens.append(token)
 
@@ -143,7 +145,9 @@ def test_batch(mistral_tool_model, toolkit, model_name):
         conv.add_message(HumanMessage(content=prompt))
         conversations.append(conv)
 
-    results = mistral_tool_model.batch(conversations=conversations, toolkit=toolkit)
+    results = mistral_tool_model.batch(
+        conversations=conversations, toolkit=toolkit
+    )
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)

@@ -57,12 +57,16 @@ def _keyref_to_private(key: KeyRef) -> Ed25519PrivateKey:
     _ensure_crypto()
     if isinstance(key, dict):
         kind = key.get("kind")
-        if kind == "cryptography_obj" and isinstance(key.get("obj"), Ed25519PrivateKey):
+        if kind == "cryptography_obj" and isinstance(
+            key.get("obj"), Ed25519PrivateKey
+        ):
             return key["obj"]  # type: ignore[return-value]
         if kind == "raw_ed25519_sk":
             data = key.get("bytes")
             if not isinstance(data, (bytes, bytearray)):
-                raise TypeError("raw_ed25519_sk expects 'bytes' field with key seed.")
+                raise TypeError(
+                    "raw_ed25519_sk expects 'bytes' field with key seed."
+                )
             if len(data) == 32:
                 return Ed25519PrivateKey.from_private_bytes(bytes(data))
             if len(data) == 64:
@@ -79,7 +83,8 @@ def _keyref_to_public_from_private(sk: Ed25519PrivateKey) -> Ed25519PublicKey:
 
 def _keyid_from_public(pk: Ed25519PublicKey) -> str:
     raw = pk.public_bytes(
-        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PublicFormat.Raw,
     )
     return hashlib.sha256(raw).hexdigest()
 
@@ -164,7 +169,9 @@ class Ed25519EnvelopeSigner(SigningBase):
                 if _CRYPTOGRAPHY_OK and isinstance(item, Ed25519PublicKey):
                     pubs.append(item)
                 elif isinstance(item, (bytes, bytearray)) and len(item) == 32:
-                    pubs.append(Ed25519PublicKey.from_public_bytes(bytes(item)))
+                    pubs.append(
+                        Ed25519PublicKey.from_public_bytes(bytes(item))
+                    )
                 elif (
                     isinstance(item, dict)
                     and item.get("kind") == "cryptography_obj"
@@ -172,7 +179,9 @@ class Ed25519EnvelopeSigner(SigningBase):
                 ):
                     pubs.append(item["obj"])
                 else:
-                    raise TypeError("Unsupported public key entry in opts['pubkeys'].")
+                    raise TypeError(
+                        "Unsupported public key entry in opts['pubkeys']."
+                    )
 
         for sig in signatures:
             if sig.get("alg") != "Ed25519":
@@ -203,7 +212,9 @@ class Ed25519EnvelopeSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            digest, signatures, require=require, opts=opts
+        )
 
     # ------------------------------------------------------------------
     async def canonicalize_envelope(
@@ -243,4 +254,6 @@ class Ed25519EnvelopeSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         payload = await self.canonicalize_envelope(env, canon=canon, opts=opts)
-        return await self.verify_bytes(payload, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            payload, signatures, require=require, opts=opts
+        )

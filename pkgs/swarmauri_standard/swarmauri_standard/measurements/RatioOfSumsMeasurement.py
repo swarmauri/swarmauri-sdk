@@ -17,7 +17,9 @@ class RatioOfSumsMeasurement(MeasurementBase, MeasurementCalculateMixin):
     unit: str = "percentage"
     type: Literal["RatioOfSumsMeasurement"] = "RatioOfSumsMeasurement"
 
-    def calculate(self, data: pd.DataFrame, column_a: str, column_b: str) -> float:
+    def calculate(
+        self, data: pd.DataFrame, column_a: str, column_b: str
+    ) -> float:
         """
         Calculate the ratio of the sum of two columns in a DataFrame.
 

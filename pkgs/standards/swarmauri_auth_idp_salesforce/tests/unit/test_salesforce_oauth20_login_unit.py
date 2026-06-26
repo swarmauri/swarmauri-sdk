@@ -46,7 +46,9 @@ def test_serialization(login: SalesforceOAuth20Login) -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_auth_url_contains_salesforce(login: SalesforceOAuth20Login) -> None:
+async def test_auth_url_contains_salesforce(
+    login: SalesforceOAuth20Login,
+) -> None:
     payload = await login.auth_url()
     assert payload["url"].startswith(
         "https://login.salesforce.com/services/oauth2/authorize?"

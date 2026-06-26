@@ -12,8 +12,12 @@ def test_readme_example_executes() -> None:
     contents = readme.read_text(encoding="utf-8")
     try:
         _, remainder = contents.split("```python", 1)
-    except ValueError as exc:  # pragma: no cover - protects against README drift
-        raise AssertionError("README is missing a Python example block") from exc
+    except (
+        ValueError
+    ) as exc:  # pragma: no cover - protects against README drift
+        raise AssertionError(
+            "README is missing a Python example block"
+        ) from exc
     code_block, _ = remainder.split("```", 1)
     code = textwrap.dedent(code_block).strip()
 

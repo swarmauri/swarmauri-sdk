@@ -5,7 +5,16 @@ from __future__ import annotations
 import base64
 import datetime as dt
 import json
-from typing import Any, Dict, Iterable, Literal, Mapping, Optional, Sequence, Tuple
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Literal,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
 try:  # pragma: no cover - import guard
     import httpx
@@ -53,7 +62,10 @@ def _ts_epoch(ts: Optional[int]) -> Optional[str]:
     if ts is None:
         return None
     return (
-        dt.datetime.utcfromtimestamp(int(ts)).replace(microsecond=0).isoformat() + "Z"
+        dt.datetime.utcfromtimestamp(int(ts))
+        .replace(microsecond=0)
+        .isoformat()
+        + "Z"
     )
 
 
@@ -104,7 +116,9 @@ def _ext_key_usage_to_oids(eku: x509.ExtendedKeyUsage) -> Sequence[str]:
 class CfsslCertService(CertServiceBase):
     """Cloudflare CFSSL-backed X.509 signer and validator."""
 
-    resource: Optional[str] = Field(default=ResourceTypes.CRYPTO.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.CRYPTO.value, frozen=True
+    )
     type: Literal["CfsslCertService"] = "CfsslCertService"
 
     def __init__(
@@ -155,7 +169,9 @@ class CfsslCertService(CertServiceBase):
             await self._client.aclose()
             self._client = None
 
-    async def _post(self, path: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
+    async def _post(
+        self, path: str, payload: Mapping[str, Any]
+    ) -> Dict[str, Any]:
         cli = await self._client_get()
         r = await cli.post(path, json=payload)
         r.raise_for_status()
@@ -175,12 +191,20 @@ class CfsslCertService(CertServiceBase):
                 )
             elif data.get("messages"):
                 msg = "; ".join(map(str, data["messages"]))
-            raise RuntimeError(f"CFSSL error on {path}: {msg or 'unknown error'}")
+            raise RuntimeError(
+                f"CFSSL error on {path}: {msg or 'unknown error'}"
+            )
         return data
 
     def supports(self) -> Mapping[str, Iterable[str]]:  # type: ignore[override]
         return {
-            "key_algs": ("RSA-2048", "RSA-3072", "EC-P256", "EC-P384", "Ed25519"),
+            "key_algs": (
+                "RSA-2048",
+                "RSA-3072",
+                "EC-P256",
+                "EC-P384",
+                "Ed25519",
+            ),
             "sig_algs": ("RSA-PSS-SHA256", "ECDSA-P256-SHA256", "Ed25519"),
             "features": ("sign_from_csr", "verify", "parse", "bundle"),
             "profiles": ("server", "client", "code_signing"),
@@ -237,21 +261,33 @@ class CfsslCertService(CertServiceBase):
         csr_pem = (
             csr
             if csr.strip().startswith(b"-----BEGIN")
-            else x509.load_der_x509_csr(csr).public_bytes(serialization.Encoding.PEM)
+            else x509.load_der_x509_csr(csr).public_bytes(
+                serialization.Encoding.PEM
+            )
         )
 
         profile = (
             (opts or {}).get("profile")
             or self._profile
-            or (ca_key.tags.get("profile") if getattr(ca_key, "tags", None) else None)
+            or (
+                ca_key.tags.get("profile")
+                if getattr(ca_key, "tags", None)
+                else None
+            )
         )
         label = (
             (opts or {}).get("label")
             or self._label
-            or (ca_key.tags.get("label") if getattr(ca_key, "tags", None) else None)
+            or (
+                ca_key.tags.get("label")
+                if getattr(ca_key, "tags", None)
+                else None
+            )
         )
 
-        payload: Dict[str, Any] = {"certificate_request": csr_pem.decode("utf-8")}
+        payload: Dict[str, Any] = {
+            "certificate_request": csr_pem.decode("utf-8")
+        }
         if profile:
             payload["profile"] = str(profile)
         if label:
@@ -296,7 +332,11 @@ class CfsslCertService(CertServiceBase):
         use_bundle = (opts or {}).get("use_bundle", self._use_bundle)
         flavor = (opts or {}).get("flavor", "optimal")
 
-        cert_pem = cert if cert.strip().startswith(b"-----BEGIN") else _der_to_pem(cert)
+        cert_pem = (
+            cert
+            if cert.strip().startswith(b"-----BEGIN")
+            else _der_to_pem(cert)
+        )
 
         chain_len = 1
         bundle_ok = False
@@ -309,12 +349,16 @@ class CfsslCertService(CertServiceBase):
             }
             if trust_roots:
                 payload["roots"] = "\n".join(
-                    (c if isinstance(c, bytes) else c.encode("utf-8")).decode("utf-8")
+                    (c if isinstance(c, bytes) else c.encode("utf-8")).decode(
+                        "utf-8"
+                    )
                     for c in trust_roots
                 )
             if intermediates:
                 payload["intermediates"] = "\n".join(
-                    (c if isinstance(c, bytes) else c.encode("utf-8")).decode("utf-8")
+                    (c if isinstance(c, bytes) else c.encode("utf-8")).decode(
+                        "utf-8"
+                    )
                     for c in intermediates
                 )
 
@@ -331,7 +375,9 @@ class CfsslCertService(CertServiceBase):
 
         x = x509.load_pem_x509_certificate(cert_pem)
         now_epoch = int(
-            dt.datetime.utcnow().timestamp() if check_time is None else check_time
+            dt.datetime.utcnow().timestamp()
+            if check_time is None
+            else check_time
         )
         nbf = int(x.not_valid_before_utc.timestamp())
         naf = int(x.not_valid_after_utc.timestamp())
@@ -339,7 +385,9 @@ class CfsslCertService(CertServiceBase):
 
         bc = None
         try:
-            bc = x.extensions.get_extension_for_class(x509.BasicConstraints).value
+            bc = x.extensions.get_extension_for_class(
+                x509.BasicConstraints
+            ).value
         except Exception:
             pass
         is_ca = bool(bc.ca) if bc else False
@@ -365,7 +413,11 @@ class CfsslCertService(CertServiceBase):
         include_extensions: bool = True,
         opts: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        pem = cert if cert.strip().startswith(b"-----BEGIN") else _der_to_pem(cert)
+        pem = (
+            cert
+            if cert.strip().startswith(b"-----BEGIN")
+            else _der_to_pem(cert)
+        )
         c = x509.load_pem_x509_certificate(pem)
 
         info: Dict[str, Any] = {
@@ -379,8 +431,13 @@ class CfsslCertService(CertServiceBase):
 
         if include_extensions:
             try:
-                bc = c.extensions.get_extension_for_class(x509.BasicConstraints).value
-                info["basic_constraints"] = {"ca": bc.ca, "path_len": bc.path_length}
+                bc = c.extensions.get_extension_for_class(
+                    x509.BasicConstraints
+                ).value
+                info["basic_constraints"] = {
+                    "ca": bc.ca,
+                    "path_len": bc.path_length,
+                }
             except Exception:
                 pass
 
@@ -388,14 +445,22 @@ class CfsslCertService(CertServiceBase):
                 san = c.extensions.get_extension_for_class(
                     x509.SubjectAlternativeName
                 ).value
-                dns = [str(x.value) for x in san.get_values_for_type(x509.DNSName)]
-                ips = [str(x.value) for x in san.get_values_for_type(x509.IPAddress)]
+                dns = [
+                    str(x.value) for x in san.get_values_for_type(x509.DNSName)
+                ]
+                ips = [
+                    str(x.value)
+                    for x in san.get_values_for_type(x509.IPAddress)
+                ]
                 uris = [
                     str(x.value)
-                    for x in san.get_values_for_type(x509.UniformResourceIdentifier)
+                    for x in san.get_values_for_type(
+                        x509.UniformResourceIdentifier
+                    )
                 ]
                 emails = [
-                    str(x.value) for x in san.get_values_for_type(x509.RFC822Name)
+                    str(x.value)
+                    for x in san.get_values_for_type(x509.RFC822Name)
                 ]
                 info["san"] = {
                     "dns": dns or None,
@@ -423,7 +488,9 @@ class CfsslCertService(CertServiceBase):
                 pass
 
             try:
-                eku = c.extensions.get_extension_for_class(x509.ExtendedKeyUsage).value
+                eku = c.extensions.get_extension_for_class(
+                    x509.ExtendedKeyUsage
+                ).value
                 info["eku"] = list(_ext_key_usage_to_oids(eku))
             except Exception:
                 pass
@@ -432,7 +499,9 @@ class CfsslCertService(CertServiceBase):
                 skid = c.extensions.get_extension_for_class(
                     x509.SubjectKeyIdentifier
                 ).value
-                info["skid"] = base64.b16encode(skid.digest).decode("ascii").lower()
+                info["skid"] = (
+                    base64.b16encode(skid.digest).decode("ascii").lower()
+                )
             except Exception:
                 pass
 
@@ -442,7 +511,9 @@ class CfsslCertService(CertServiceBase):
                 ).value
                 if akid.key_identifier:
                     info["akid"] = (
-                        base64.b16encode(akid.key_identifier).decode("ascii").lower()
+                        base64.b16encode(akid.key_identifier)
+                        .decode("ascii")
+                        .lower()
                     )
             except Exception:
                 pass

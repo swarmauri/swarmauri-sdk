@@ -23,13 +23,16 @@ def get_classes_from_module(module_name: str):
 
         # Create a dictionary with class names and their corresponding class objects
         classes_dict = {
-            class_name: getattr(module, class_name) for class_name in class_names
+            class_name: getattr(module, class_name)
+            for class_name in class_names
         }
 
         return classes_dict
     except ImportError as e:
         print(f"Error importing module {full_module_path}: {e}")
-        raise ModuleNotFoundError(f"Resource '{module_name}' is not registered.")
+        raise ModuleNotFoundError(
+            f"Resource '{module_name}' is not registered."
+        )
     except AttributeError as e:
         print(f"Error accessing class in {full_module_path}: {e}")
         raise e
@@ -56,7 +59,9 @@ def get_class_from_module(module_name: str, class_name: str):
         class_names = getattr(module, "__all__", [])
 
         if not class_names:
-            raise AttributeError(f"No classes found in module {full_module_path}")
+            raise AttributeError(
+                f"No classes found in module {full_module_path}"
+            )
 
         for cls_name in class_names:
             if cls_name == class_name:

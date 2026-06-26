@@ -5,7 +5,11 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Mapping, Optional, Sequence
 
-from .protos import CustomerRefProto, PaymentMethodRefProto, PaymentMethodSpecProto
+from .protos import (
+    CustomerRefProto,
+    PaymentMethodRefProto,
+    PaymentMethodSpecProto,
+)
 
 
 class IPaymentMethods(ABC):
@@ -18,7 +22,9 @@ class IPaymentMethods(ABC):
         """Create a payment method."""
 
     @abstractmethod
-    def detach_payment_method(self, payment_method_id: str) -> Mapping[str, Any]:
+    def detach_payment_method(
+        self, payment_method_id: str
+    ) -> Mapping[str, Any]:
         """Detach a payment method."""
 
     @abstractmethod

@@ -130,13 +130,15 @@ def test_linearity_first_argument(inner_product, complex_matrices):
     beta = -1.3
 
     # Check if <alpha*a + beta*identity, b> = alpha*<a,b> + beta*<identity,b>
-    assert inner_product.check_linearity_first_argument(a, identity, b, alpha, beta)
+    assert inner_product.check_linearity_first_argument(
+        a, identity, b, alpha, beta
+    )
 
     # Manual verification
     left_side = inner_product.compute(alpha * a + beta * identity, b)
-    right_side = alpha * inner_product.compute(a, b) + beta * inner_product.compute(
-        identity, b
-    )
+    right_side = alpha * inner_product.compute(
+        a, b
+    ) + beta * inner_product.compute(identity, b)
 
     assert np.isclose(left_side, right_side)
 
@@ -244,7 +246,8 @@ def test_error_handling(inner_product):
     """Test error handling in the inner product computation."""
     # Test with non-array inputs that can be converted
     result = inner_product.compute(
-        [[1 + 0j, 0 + 0j], [0 + 0j, 1 + 0j]], [[1 + 0j, 0 + 0j], [0 + 0j, 1 + 0j]]
+        [[1 + 0j, 0 + 0j], [0 + 0j, 1 + 0j]],
+        [[1 + 0j, 0 + 0j], [0 + 0j, 1 + 0j]],
     )
     assert np.isclose(result, 2 + 0j)
 
@@ -255,5 +258,6 @@ def test_error_handling(inner_product):
     # Test with incompatible shapes for norm
     with pytest.raises(Exception):
         inner_product.compute(
-            np.array([1 + 0j, 2 + 0j]), np.array([[1 + 0j, 0 + 0j], [0 + 0j, 1 + 0j]])
+            np.array([1 + 0j, 2 + 0j]),
+            np.array([[1 + 0j, 0 + 0j], [0 + 0j, 1 + 0j]]),
         )

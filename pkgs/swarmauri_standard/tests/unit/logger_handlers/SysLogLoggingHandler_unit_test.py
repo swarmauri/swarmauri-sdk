@@ -6,7 +6,9 @@ from logging.handlers import SysLogHandler
 import pytest
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 
-from swarmauri_standard.logger_handlers.SysLogLoggingHandler import SysLogLoggingHandler
+from swarmauri_standard.logger_handlers.SysLogLoggingHandler import (
+    SysLogLoggingHandler,
+)
 
 
 @pytest.fixture
@@ -199,7 +201,10 @@ def test_compile_handler_socket_error():
 
         # Verify error was logged
         mock_log_error.assert_called_once()
-        assert "Failed to connect to syslog server" in mock_log_error.call_args[0][0]
+        assert (
+            "Failed to connect to syslog server"
+            in mock_log_error.call_args[0][0]
+        )
 
         # Verify NullHandler was returned
         mock_null_handler.assert_called_once()
@@ -227,7 +232,9 @@ def test_compile_handler_general_exception():
 
         # Verify error was logged
         mock_log_error.assert_called_once()
-        assert "Error setting up SysLogHandler" in mock_log_error.call_args[0][0]
+        assert (
+            "Error setting up SysLogHandler" in mock_log_error.call_args[0][0]
+        )
 
         # Verify NullHandler was returned
         mock_null_handler.assert_called_once()

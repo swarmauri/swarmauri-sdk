@@ -6,7 +6,9 @@ from typing import Any
 class HierarchicalAttentionModel(IModel):
     def __init__(self, model_name: str):
         self._model_name = model_name
-        self._model = None  # This will hold the TensorFlow model with attention
+        self._model = (
+            None  # This will hold the TensorFlow model with attention
+        )
 
     @property
     def model_name(self) -> str:
@@ -28,8 +30,12 @@ class HierarchicalAttentionModel(IModel):
         units = 128  # Dimensionality of the output space of GRU
 
         # Word-level attention layer
-        word_input = tf.keras.layers.Input(shape=(sentence_length,), dtype="int32")
-        embedded_word = tf.keras.layers.Embedding(vocab_size, embedding_dim)(word_input)
+        word_input = tf.keras.layers.Input(
+            shape=(sentence_length,), dtype="int32"
+        )
+        embedded_word = tf.keras.layers.Embedding(vocab_size, embedding_dim)(
+            word_input
+        )
         word_gru = tf.keras.layers.Bidirectional(
             tf.keras.layers.GRU(units, return_sequences=True)
         )(embedded_word)
@@ -40,7 +46,8 @@ class HierarchicalAttentionModel(IModel):
             [word_gru, word_gru], return_attention_scores=True
         )
         word_encoder_with_attention = tf.keras.Model(
-            inputs=word_input, outputs=[word_attention_output, word_attention_weights]
+            inputs=word_input,
+            outputs=[word_attention_output, word_attention_weights],
         )
 
         # Sentence-level attention layer
@@ -66,11 +73,14 @@ class HierarchicalAttentionModel(IModel):
         )
 
         # Classifier
-        classifier = tf.keras.layers.Dense(1, activation="sigmoid")(doc_representation)
+        classifier = tf.keras.layers.Dense(1, activation="sigmoid")(
+            doc_representation
+        )
 
         # The model
         self._model = tf.keras.Model(
-            inputs=sentence_input, outputs=[classifier, sentence_attention_weights]
+            inputs=sentence_input,
+            outputs=[classifier, sentence_attention_weights],
         )
         self._model.compile(
             optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]

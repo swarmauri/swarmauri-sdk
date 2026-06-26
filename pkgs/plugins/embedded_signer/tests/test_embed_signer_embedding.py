@@ -53,7 +53,9 @@ def _minimal_png() -> bytes:
 
 
 def _minimal_gif() -> bytes:
-    return b"GIF89a" + b"\x01\x00\x01\x00" + b"\x00" + b"\x00" + b"\x00" + b"\x3b"
+    return (
+        b"GIF89a" + b"\x01\x00\x01\x00" + b"\x00" + b"\x00" + b"\x00" + b"\x3b"
+    )
 
 
 def _minimal_jpeg() -> bytes:

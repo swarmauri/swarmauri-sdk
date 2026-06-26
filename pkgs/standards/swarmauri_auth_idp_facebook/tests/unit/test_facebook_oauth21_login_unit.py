@@ -51,10 +51,16 @@ async def test_exchange_uses_id_token_when_present(
 
     async def fake_claims_from_id_token(id_token):
         assert id_token == "id-token"
-        return {"sub": "user-id", "email": "user@example.com", "name": "Example"}
+        return {
+            "sub": "user-id",
+            "email": "user@example.com",
+            "name": "Example",
+        }
 
     monkeypatch.setattr(login, "_exchange_tokens", fake_exchange_tokens)
-    monkeypatch.setattr(login, "_claims_from_id_token", fake_claims_from_id_token)
+    monkeypatch.setattr(
+        login, "_claims_from_id_token", fake_claims_from_id_token
+    )
 
     payload = await login.auth_url()
     result = await login.exchange_and_identity("code", payload["state"])
@@ -78,7 +84,9 @@ async def test_exchange_falls_back_to_profile(
         return {"id": "321", "name": "Fallback User"}
 
     monkeypatch.setattr(login, "_exchange_tokens", fake_exchange_tokens)
-    monkeypatch.setattr(login, "_claims_from_id_token", fake_claims_from_id_token)
+    monkeypatch.setattr(
+        login, "_claims_from_id_token", fake_claims_from_id_token
+    )
     monkeypatch.setattr(login, "_fetch_profile", fake_fetch_profile)
 
     payload = await login.auth_url()

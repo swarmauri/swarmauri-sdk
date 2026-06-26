@@ -25,7 +25,9 @@ def sample_notebook() -> Dict[str, Any]:
                 "cell_type": "code",
                 "execution_count": 1,
                 "metadata": {},
-                "outputs": [{"output_type": "stream", "text": "Hello World\n"}],
+                "outputs": [
+                    {"output_type": "stream", "text": "Hello World\n"}
+                ],
                 "source": ["print('Hello World')"],
             },
             {
@@ -38,7 +40,10 @@ def sample_notebook() -> Dict[str, Any]:
                 "execution_count": 2,
                 "metadata": {},
                 "outputs": [
-                    {"output_type": "execute_result", "data": {"text/plain": "2"}}
+                    {
+                        "output_type": "execute_result",
+                        "data": {"text/plain": "2"},
+                    }
                 ],
                 "source": ["2"],
             },
@@ -87,8 +92,12 @@ def test_clearing_outputs(sample_notebook: Dict[str, Any]) -> None:
         if cell.get("cell_type") == "code"
     ]
     for cell in code_cells:
-        assert cell.get("outputs") == [], "Outputs were not cleared from a code cell."
-        assert cell.get("execution_count") is None, "Execution count was not reset."
+        assert cell.get("outputs") == [], (
+            "Outputs were not cleared from a code cell."
+        )
+        assert cell.get("execution_count") is None, (
+            "Execution count was not reset."
+        )
 
     # Verify that markdown cells remain unchanged.
     markdown_cells = [
@@ -99,9 +108,9 @@ def test_clearing_outputs(sample_notebook: Dict[str, Any]) -> None:
     assert len(markdown_cells) == 1, "Unexpected number of markdown cells."
     original_markdown_cell = sample_notebook["cells"][1]
     updated_markdown_cell = markdown_cells[0]
-    assert updated_markdown_cell["source"] == original_markdown_cell["source"], (
-        "Markdown cell content was unexpectedly modified."
-    )
+    assert (
+        updated_markdown_cell["source"] == original_markdown_cell["source"]
+    ), "Markdown cell content was unexpectedly modified."
 
 
 def test_clearing_with_no_cells() -> None:
@@ -110,12 +119,21 @@ def test_clearing_with_no_cells() -> None:
     The notebook dict should remain structurally the same, minus any alterations to cells.
     """
     tool = JupyterClearOutputTool()
-    empty_notebook = {"cells": [], "metadata": {}, "nbformat": 4, "nbformat_minor": 5}
+    empty_notebook = {
+        "cells": [],
+        "metadata": {},
+        "nbformat": 4,
+        "nbformat_minor": 5,
+    }
     cleaned_notebook = tool(empty_notebook)
 
-    assert "cells" in cleaned_notebook, "Cleaned notebook is missing the 'cells' key."
+    assert "cells" in cleaned_notebook, (
+        "Cleaned notebook is missing the 'cells' key."
+    )
     assert len(cleaned_notebook["cells"]) == 0, "Cells should remain empty."
-    assert cleaned_notebook["metadata"] == {}, "Metadata should remain unchanged."
+    assert cleaned_notebook["metadata"] == {}, (
+        "Metadata should remain unchanged."
+    )
 
 
 def test_clearing_with_only_markdown_cells() -> None:
@@ -144,9 +162,15 @@ def test_clearing_with_only_markdown_cells() -> None:
     cleaned_notebook = tool(markdown_only_notebook)
 
     for cell in cleaned_notebook["cells"]:
-        assert cell["cell_type"] == "markdown", "Cell type should remain markdown."
-        assert "outputs" not in cell, "Markdown cells should not contain any outputs."
-        assert cell["source"] is not None, "Markdown cell content should be preserved."
+        assert cell["cell_type"] == "markdown", (
+            "Cell type should remain markdown."
+        )
+        assert "outputs" not in cell, (
+            "Markdown cells should not contain any outputs."
+        )
+        assert cell["source"] is not None, (
+            "Markdown cell content should be preserved."
+        )
 
 
 def test_parameters_structure() -> None:
@@ -154,12 +178,16 @@ def test_parameters_structure() -> None:
     Ensures that the tool's parameters are properly defined and contain the required fields.
     """
     tool = JupyterClearOutputTool()
-    assert len(tool.parameters) == 1, "There should be exactly one parameter defined."
+    assert len(tool.parameters) == 1, (
+        "There should be exactly one parameter defined."
+    )
     param = tool.parameters[0]
     assert param.name == "notebook_data", (
         "Parameter name does not match expected value."
     )
-    assert param.input_type == "object", "Parameter type does not match expected value."
+    assert param.input_type == "object", (
+        "Parameter type does not match expected value."
+    )
     assert param.required, "Parameter should be required."
     assert "A dictionary that represents" in param.description, (
         "Parameter description is missing or incomplete."

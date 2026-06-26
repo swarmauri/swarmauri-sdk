@@ -5,7 +5,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import FrozenSet
 
-from .enums import AddressScheme, Cast, Feature, IOModel, Protocol, SecurityMode
+from .enums import (
+    AddressScheme,
+    Cast,
+    Feature,
+    IOModel,
+    Protocol,
+    SecurityMode,
+)
 
 
 @dataclass(frozen=True, slots=True)

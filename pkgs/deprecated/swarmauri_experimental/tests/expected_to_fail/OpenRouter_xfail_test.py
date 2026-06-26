@@ -11,7 +11,11 @@ load_dotenv()
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 # List of models expected to fail
-FAILING_MODELS = ["ai21/jamba-1-5-mini", "openai/gpt-4-32k", "ai21/jamba-1-5-large"]
+FAILING_MODELS = [
+    "ai21/jamba-1-5-mini",
+    "openai/gpt-4-32k",
+    "ai21/jamba-1-5-large",
+]
 
 
 @pytest.fixture(params=FAILING_MODELS)

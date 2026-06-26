@@ -19,7 +19,9 @@ class OAuth21LoginBase(IOAuth21Login, ComponentBase):
     async def auth_url(self) -> Mapping[str, str]:
         raise NotImplementedError("auth_url must be implemented by subclasses")
 
-    async def exchange_and_identity(self, code: str, state: str) -> Mapping[str, Any]:
+    async def exchange_and_identity(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         raise NotImplementedError(
             "exchange_and_identity must be implemented by subclasses"
         )

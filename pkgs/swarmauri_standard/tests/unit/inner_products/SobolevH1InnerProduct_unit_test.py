@@ -30,9 +30,13 @@ def custom_weighted_inner_product():
 @pytest.fixture
 def vector_pair():
     """Fixture that returns a pair of vector objects with values and derivatives."""
-    vector1 = Vector(value=[1.0, 2.0, 3.0, 4.0], derivatives=[0.5, 1.0, 1.5, 2.0])
+    vector1 = Vector(
+        value=[1.0, 2.0, 3.0, 4.0], derivatives=[0.5, 1.0, 1.5, 2.0]
+    )
 
-    vector2 = Vector(value=[2.0, 3.0, 4.0, 5.0], derivatives=[1.0, 1.5, 2.0, 2.5])
+    vector2 = Vector(
+        value=[2.0, 3.0, 4.0, 5.0], derivatives=[1.0, 1.5, 2.0, 2.5]
+    )
 
     return vector1, vector2
 
@@ -117,11 +121,15 @@ def test_compute_for_functions(sobolev_h1_inner_product, function_pair):
 
 
 @pytest.mark.unit
-def test_compute_with_different_weights(custom_weighted_inner_product, vector_pair):
+def test_compute_with_different_weights(
+    custom_weighted_inner_product, vector_pair
+):
     """Test that the inner product correctly applies custom weights."""
     vector1, vector2 = vector_pair
 
-    result = custom_weighted_inner_product._compute_for_vectors(vector1, vector2)
+    result = custom_weighted_inner_product._compute_for_vectors(
+        vector1, vector2
+    )
     assert pytest.approx(result, abs=1e-5) == 23.0
 
 
@@ -212,15 +220,21 @@ def test_parameterized_weights(alpha, beta, vector_pair):
 
 
 @pytest.mark.unit
-def test_compute_dispatch(sobolev_h1_inner_product, vector_pair, function_pair):
+def test_compute_dispatch(
+    sobolev_h1_inner_product, vector_pair, function_pair
+):
     """Test that compute correctly dispatches to the appropriate implementation."""
     vector1, vector2 = vector_pair
     f, g = function_pair
 
     # Mock the implementation methods to check they're called
-    sobolev_h1_inner_product._compute_for_vectors = MagicMock(return_value=42.0)
+    sobolev_h1_inner_product._compute_for_vectors = MagicMock(
+        return_value=42.0
+    )
     sobolev_h1_inner_product._compute_for_arrays = MagicMock(return_value=43.0)
-    sobolev_h1_inner_product._compute_for_functions = MagicMock(return_value=44.0)
+    sobolev_h1_inner_product._compute_for_functions = MagicMock(
+        return_value=44.0
+    )
 
     # Test dispatch for vectors
     result = sobolev_h1_inner_product.compute(vector1, vector2)
@@ -241,5 +255,7 @@ def test_compute_dispatch(sobolev_h1_inner_product, vector_pair, function_pair):
     # the compute method would need to determine if the callables return derivatives
     # For the test, we assume it correctly identifies our functions
     result = sobolev_h1_inner_product.compute(f, g)
-    sobolev_h1_inner_product._compute_for_functions.assert_called_once_with(f, g)
+    sobolev_h1_inner_product._compute_for_functions.assert_called_once_with(
+        f, g
+    )
     assert result == 44.0

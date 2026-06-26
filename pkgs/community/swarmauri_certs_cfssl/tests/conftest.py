@@ -27,12 +27,16 @@ def cert_and_csr() -> Tuple[bytes, bytes]:
         .serial_number(x509.random_serial_number())
         .not_valid_before(dt.datetime.utcnow() - dt.timedelta(days=1))
         .not_valid_after(dt.datetime.utcnow() + dt.timedelta(days=1))
-        .add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
         .add_extension(
-            x509.SubjectAlternativeName([x509.DNSName("test.example")]), critical=False
+            x509.BasicConstraints(ca=True, path_length=None), critical=True
         )
         .add_extension(
-            x509.ExtendedKeyUsage([ExtendedKeyUsageOID.SERVER_AUTH]), critical=False
+            x509.SubjectAlternativeName([x509.DNSName("test.example")]),
+            critical=False,
+        )
+        .add_extension(
+            x509.ExtendedKeyUsage([ExtendedKeyUsageOID.SERVER_AUTH]),
+            critical=False,
         )
         .sign(key, hashes.SHA256())
     )

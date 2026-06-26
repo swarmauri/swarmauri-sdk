@@ -3,7 +3,11 @@ from pydantic import Field
 
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.chains.IChainStep import IChainStep
-from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase, ResourceTypes
+from swarmauri_base.ComponentBase import (
+    SubclassUnion,
+    ComponentBase,
+    ResourceTypes,
+)
 
 
 @ComponentBase.register_model()

@@ -105,17 +105,23 @@ def test_compute_with_vector(sobolev_norm, vector_data):
     """Test compute method with vector data."""
     with patch.object(sobolev_norm, "_compute_l2_norm", return_value=7.416):
         result = sobolev_norm.compute(vector_data)
-        assert result == pytest.approx(7.416)  # Only 0th derivative with weight 1.0
+        assert result == pytest.approx(
+            7.416
+        )  # Only 0th derivative with weight 1.0
         sobolev_norm._compute_l2_norm.assert_called_once_with(vector_data)
 
 
 @pytest.mark.unit
 def test_compute_with_function(sobolev_norm, test_function):
     """Test compute method with callable function."""
-    with patch.object(sobolev_norm, "_compute_for_callable", return_value=1.732):
+    with patch.object(
+        sobolev_norm, "_compute_for_callable", return_value=1.732
+    ):
         result = sobolev_norm.compute(test_function)
         assert result == pytest.approx(1.732)
-        sobolev_norm._compute_for_callable.assert_called_once_with(test_function)
+        sobolev_norm._compute_for_callable.assert_called_once_with(
+            test_function
+        )
 
 
 @pytest.mark.unit
@@ -142,7 +148,9 @@ def test_compute_for_callable(sobolev_norm, test_function):
 @pytest.mark.unit
 def test_compute_for_callable_weighted(sobolev_norm_order2, test_function):
     """Test _compute_for_callable method with custom weights."""
-    with patch.object(sobolev_norm_order2, "_evaluate_function_norm") as mock_eval:
+    with patch.object(
+        sobolev_norm_order2, "_evaluate_function_norm"
+    ) as mock_eval:
         # Set up the mock to return different values for function and derivatives
         mock_eval.side_effect = [2.0, 1.0, 0.5]
 
@@ -223,7 +231,9 @@ def test_check_non_negativity(sobolev_norm):
     with patch.object(sobolev_norm, "compute", return_value=-1.0):
         assert sobolev_norm.check_non_negativity([1, 2, 3]) is False
 
-    with patch.object(sobolev_norm, "compute", side_effect=ValueError("Test error")):
+    with patch.object(
+        sobolev_norm, "compute", side_effect=ValueError("Test error")
+    ):
         assert sobolev_norm.check_non_negativity([1, 2, 3]) is False
 
 
@@ -251,7 +261,9 @@ def test_check_definiteness(sobolev_norm):
             assert sobolev_norm.check_definiteness([1, 2, 3]) is False
 
     # Test with error
-    with patch.object(sobolev_norm, "_is_zero", side_effect=ValueError("Test error")):
+    with patch.object(
+        sobolev_norm, "_is_zero", side_effect=ValueError("Test error")
+    ):
         assert sobolev_norm.check_definiteness([1, 2, 3]) is False
 
 
@@ -295,7 +307,9 @@ def test_check_triangle_inequality(sobolev_norm):
         assert sobolev_norm.check_triangle_inequality(x, y) is False
 
     # Test with error
-    with patch.object(sobolev_norm, "compute", side_effect=ValueError("Test error")):
+    with patch.object(
+        sobolev_norm, "compute", side_effect=ValueError("Test error")
+    ):
         assert sobolev_norm.check_triangle_inequality(x, y) is False
 
 
@@ -345,7 +359,9 @@ def test_check_absolute_homogeneity(sobolev_norm):
         assert sobolev_norm.check_absolute_homogeneity(x, scalar) is False
 
     # Test with error
-    with patch.object(sobolev_norm, "compute", side_effect=ValueError("Test error")):
+    with patch.object(
+        sobolev_norm, "compute", side_effect=ValueError("Test error")
+    ):
         assert sobolev_norm.check_absolute_homogeneity(x, scalar) is False
 
 
@@ -409,7 +425,9 @@ def test_serialization(sobolev_norm, sobolev_norm_order2):
         (3, {1: 2.0, 3: 4.0}, {0: 1.0, 1: 2.0, 2: 1.0, 3: 4.0}),
     ],
 )
-def test_initialization_with_different_parameters(order, weights, expected_weights):
+def test_initialization_with_different_parameters(
+    order, weights, expected_weights
+):
     """Test initialization with different parameters."""
     norm = SobolevNorm(order=order, weights=weights)
     assert norm.order == order

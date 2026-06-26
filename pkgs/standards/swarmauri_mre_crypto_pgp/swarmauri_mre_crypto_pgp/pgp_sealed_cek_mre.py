@@ -6,7 +6,16 @@ sealing of the content-encryption key (CEK).
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
 import os
 
@@ -14,7 +23,10 @@ from swarmauri_core.mre_crypto.IMreCrypto import IMreCrypto
 from swarmauri_core.crypto.types import Alg, KeyRef
 
 try:  # type-checking only
-    from swarmauri_core.mre_crypto.types import MultiRecipientEnvelope, RecipientId
+    from swarmauri_core.mre_crypto.types import (
+        MultiRecipientEnvelope,
+        RecipientId,
+    )
 except Exception:  # pragma: no cover - typing fallback
     MultiRecipientEnvelope = Dict[str, Any]  # type: ignore
     RecipientId = str  # type: ignore
@@ -65,9 +77,13 @@ def _load_pgpy_pubkey(rec: KeyRef) -> Tuple[str, "pgpy.PGPKey"]:
         elif kind == "pgpy_pub_armored" and isinstance(rec.get("pub"), str):
             pk, _ = pgpy.PGPKey.from_blob(rec["pub"])
         else:
-            raise TypeError("Unsupported KeyRef for PGP public key encryption.")
+            raise TypeError(
+                "Unsupported KeyRef for PGP public key encryption."
+            )
     else:
-        raise TypeError("Unsupported KeyRef type for PGP public key encryption.")
+        raise TypeError(
+            "Unsupported KeyRef type for PGP public key encryption."
+        )
 
     if getattr(pk, "is_public", True) is False and hasattr(pk, "pubkey"):
         pk = pk.pubkey  # type: ignore[arg-type]
@@ -93,7 +109,9 @@ def _load_pgpy_privkey(
 
     if getattr(k, "is_unlocked", True) is False:
         if passphrase is None:
-            raise RuntimeError("PGP private key is locked. Provide opts['passphrase'].")
+            raise RuntimeError(
+                "PGP private key is locked. Provide opts['passphrase']."
+            )
         k.unlock(passphrase)
     return k
 
@@ -128,7 +146,9 @@ def _aead_decrypt(
 class PGPSealedCekMreCrypto(IMreCrypto):
     """IMreCrypto provider for the ``sealed_cek+aead`` mode using OpenPGP."""
 
-    def supports(self) -> Dict[str, Iterable[str]]:  # pragma: no cover - trivial
+    def supports(
+        self,
+    ) -> Dict[str, Iterable[str]]:  # pragma: no cover - trivial
         return {
             "payload": ("AES-256-GCM",),
             "recipient": ("OpenPGP-SEAL",),
@@ -155,7 +175,9 @@ class PGPSealedCekMreCrypto(IMreCrypto):
             )
         payload_alg = payload_alg or "AES-256-GCM"
         if payload_alg != "AES-256-GCM":
-            raise ValueError("Unsupported payload_alg for PGPSealedCekMreCrypto.")
+            raise ValueError(
+                "Unsupported payload_alg for PGPSealedCekMreCrypto."
+            )
         recipient_alg = recipient_alg or "OpenPGP-SEAL"
         if recipient_alg != "OpenPGP-SEAL":
             raise ValueError(
@@ -221,7 +243,9 @@ class PGPSealedCekMreCrypto(IMreCrypto):
         if opts and "passphrase" in opts:
             passphrase = opts["passphrase"]
         priv = _load_pgpy_privkey(my_identity, passphrase=passphrase)
-        my_rid = str((priv.pubkey if hasattr(priv, "pubkey") else priv).fingerprint)
+        my_rid = str(
+            (priv.pubkey if hasattr(priv, "pubkey") else priv).fingerprint
+        )
 
         header = None
         for ent in env.get("recipients") or []:
@@ -254,7 +278,9 @@ class PGPSealedCekMreCrypto(IMreCrypto):
         raise (
             last_err
             if last_err
-            else RuntimeError("Failed to open envelope with provided identities.")
+            else RuntimeError(
+                "Failed to open envelope with provided identities."
+            )
         )
 
     async def rewrap(
@@ -277,9 +303,9 @@ class PGPSealedCekMreCrypto(IMreCrypto):
         remove_ids = set(remove or [])
         recipients = list(env.get("recipients") or [])
         payload = env.get("payload") or {}
-        rotate_flag = bool((opts or {}).get("rotate_payload_on_revoke")) and bool(
-            remove_ids
-        )
+        rotate_flag = bool(
+            (opts or {}).get("rotate_payload_on_revoke")
+        ) and bool(remove_ids)
 
         cek: Optional[bytes] = None
         need_cek = add or rotate_flag
@@ -300,7 +326,9 @@ class PGPSealedCekMreCrypto(IMreCrypto):
                         priv = _load_pgpy_privkey(ident, passphrase=passphrase)
                         for ent in recipients:
                             try:
-                                sealed = pgpy.PGPMessage.from_blob(bytes(ent["header"]))
+                                sealed = pgpy.PGPMessage.from_blob(
+                                    bytes(ent["header"])
+                                )
                                 with priv:
                                     lit = priv.decrypt(sealed)
                                 cek = bytes(lit.message)
@@ -315,13 +343,19 @@ class PGPSealedCekMreCrypto(IMreCrypto):
                 raise RuntimeError("Unable to recover CEK for rewrap.")
 
         if remove_ids:
-            recipients = [r for r in recipients if r.get("id") not in remove_ids]
+            recipients = [
+                r for r in recipients if r.get("id") not in remove_ids
+            ]
 
         if rotate_flag and cek is not None:
             new_cek = os.urandom(32)
             bound_aad = payload.get("aad")
             pt = _aead_decrypt(
-                cek, payload["nonce"], payload["ct"], payload["tag"], aad=bound_aad
+                cek,
+                payload["nonce"],
+                payload["ct"],
+                payload["tag"],
+                aad=bound_aad,
             )
             nonce, ct, tag = _aead_encrypt(new_cek, pt, aad=bound_aad)
             env["payload"] = {

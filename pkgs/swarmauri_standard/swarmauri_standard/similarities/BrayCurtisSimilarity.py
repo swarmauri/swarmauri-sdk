@@ -235,7 +235,9 @@ class BrayCurtisSimilarity(SimilarityBase):
             return float(dissimilarity_value)
 
         except Exception as e:
-            logger.error(f"Error calculating Bray-Curtis dissimilarity: {str(e)}")
+            logger.error(
+                f"Error calculating Bray-Curtis dissimilarity: {str(e)}"
+            )
             raise
 
     def check_bounded(self) -> bool:

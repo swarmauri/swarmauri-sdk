@@ -66,7 +66,9 @@ class StreamLoggingHandler(HandlerBase):
             A configured StreamHandler instance ready for use.
         """
         # Create a StreamHandler with the specified stream or default to sys.stderr
-        handler = logging.StreamHandler(self.stream if self.stream else sys.stderr)
+        handler = logging.StreamHandler(
+            self.stream if self.stream else sys.stderr
+        )
 
         # Set the log level
         handler.setLevel(self.level)

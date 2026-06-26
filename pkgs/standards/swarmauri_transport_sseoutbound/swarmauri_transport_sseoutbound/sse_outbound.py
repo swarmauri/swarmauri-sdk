@@ -60,7 +60,9 @@ class SSEOutboundTransport(TransportBase, RunnableMixin):
                 with contextlib.suppress(Exception):
                     await writer.wait_closed()
 
-        self._server = await asyncio.start_server(_handler, host, port, ssl=ssl_ctx)
+        self._server = await asyncio.start_server(
+            _handler, host, port, ssl=ssl_ctx
+        )
 
     async def _stop_server(self) -> None:
         if self._server is not None:

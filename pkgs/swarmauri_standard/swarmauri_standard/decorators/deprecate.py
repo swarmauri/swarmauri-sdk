@@ -3,7 +3,11 @@ import functools
 
 
 def _construct_deprecation_message(
-    item_type: str, item_name: str, since: str, removed_in: str, alternative: str = None
+    item_type: str,
+    item_name: str,
+    since: str,
+    removed_in: str,
+    alternative: str = None,
 ) -> str:
     """
     Helper function to construct a deprecation message.

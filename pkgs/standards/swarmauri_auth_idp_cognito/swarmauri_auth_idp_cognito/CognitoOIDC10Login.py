@@ -46,7 +46,9 @@ class CognitoOIDC10Login(CognitoLoginMixin, OIDC10LoginBase):
             "client_secret": self._client_secret_value(),
             "code_verifier": payload["verifier"],
         }
-        token_json = await self._http_post(metadata["token_endpoint"], data=form)
+        token_json = await self._http_post(
+            metadata["token_endpoint"], data=form
+        )
         claims = await self._decode_id_token(
             token_json.get("id_token"),
             jwks_uri=metadata["jwks_uri"],
@@ -55,7 +57,9 @@ class CognitoOIDC10Login(CognitoLoginMixin, OIDC10LoginBase):
         )
         email = claims.get("email")
         name = claims.get("name") or claims.get("given_name") or "Unknown"
-        if (not email or name == "Unknown") and metadata.get("userinfo_endpoint"):
+        if (not email or name == "Unknown") and metadata.get(
+            "userinfo_endpoint"
+        ):
             headers = {
                 "Authorization": f"Bearer {token_json['access_token']}",
                 "Accept": "application/json",

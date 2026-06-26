@@ -22,4 +22,7 @@ def test_initialization():
 @pytest.mark.unit
 def test_serialization():
     provider = Provider(api_key="paypal-key")
-    assert provider.id == Provider.model_validate_json(provider.model_dump_json()).id
+    assert (
+        provider.id
+        == Provider.model_validate_json(provider.model_dump_json()).id
+    )

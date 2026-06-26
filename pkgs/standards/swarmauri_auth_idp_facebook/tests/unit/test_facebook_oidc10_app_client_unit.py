@@ -16,6 +16,8 @@ def test_resource_and_type(client: FacebookOIDC10AppClient) -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_access_token_not_supported(client: FacebookOIDC10AppClient) -> None:
+async def test_access_token_not_supported(
+    client: FacebookOIDC10AppClient,
+) -> None:
     with pytest.raises(NotImplementedError):
         await client.access_token()

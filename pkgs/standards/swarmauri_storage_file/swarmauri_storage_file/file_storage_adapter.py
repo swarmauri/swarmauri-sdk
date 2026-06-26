@@ -20,7 +20,9 @@ from swarmauri_base.storage import StorageAdapterBase
 class FileStorageAdapter(StorageAdapterBase):
     """Write and read artefacts on the local disk."""
 
-    def __init__(self, output_dir: str | os.PathLike, *, prefix: str = "", **kwargs):
+    def __init__(
+        self, output_dir: str | os.PathLike, *, prefix: str = "", **kwargs
+    ):
         super().__init__(**kwargs)
         self._root = Path(output_dir).expanduser().resolve()
         self._root.mkdir(parents=True, exist_ok=True)
@@ -28,7 +30,9 @@ class FileStorageAdapter(StorageAdapterBase):
 
     def _full_key(self, key: str, *, allow_empty: bool = True) -> Path:
         full_key = self.compose_key(self._prefix, key, allow_empty=allow_empty)
-        return self.storage_path_for_key(self._root, full_key, allow_empty=allow_empty)
+        return self.storage_path_for_key(
+            self._root, full_key, allow_empty=allow_empty
+        )
 
     @property
     def root_uri(self) -> str:

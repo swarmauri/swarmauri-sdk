@@ -90,7 +90,9 @@ def test_default_name(groq_tool_model):
 def test_agent_exec(groq_tool_model, toolkit, conversation, model_name):
     groq_tool_model.name = model_name
 
-    agent = ToolAgent(llm=groq_tool_model, conversation=conversation, toolkit=toolkit)
+    agent = ToolAgent(
+        llm=groq_tool_model, conversation=conversation, toolkit=toolkit
+    )
     result = agent.exec("Add 512+671")
     assert type(result) is str
 
@@ -101,7 +103,9 @@ def test_agent_exec(groq_tool_model, toolkit, conversation, model_name):
 def test_predict(groq_tool_model, toolkit, conversation, model_name):
     groq_tool_model.name = model_name
 
-    conversation = groq_tool_model.predict(conversation=conversation, toolkit=toolkit)
+    conversation = groq_tool_model.predict(
+        conversation=conversation, toolkit=toolkit
+    )
     logging.info(conversation.get_last().content)
 
     assert type(conversation.get_last().content) is str
@@ -114,7 +118,9 @@ def test_stream(groq_tool_model, toolkit, conversation, model_name):
     groq_tool_model.name = model_name
 
     collected_tokens = []
-    for token in groq_tool_model.stream(conversation=conversation, toolkit=toolkit):
+    for token in groq_tool_model.stream(
+        conversation=conversation, toolkit=toolkit
+    ):
         logging.info(token)
         assert isinstance(token, str)
         collected_tokens.append(token)
@@ -136,7 +142,9 @@ def test_batch(groq_tool_model, toolkit, model_name):
         conv.add_message(HumanMessage(content=prompt))
         conversations.append(conv)
 
-    results = groq_tool_model.batch(conversations=conversations, toolkit=toolkit)
+    results = groq_tool_model.batch(
+        conversations=conversations, toolkit=toolkit
+    )
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)
@@ -149,7 +157,9 @@ def test_batch(groq_tool_model, toolkit, model_name):
 async def test_apredict(groq_tool_model, toolkit, conversation, model_name):
     groq_tool_model.name = model_name
 
-    result = await groq_tool_model.apredict(conversation=conversation, toolkit=toolkit)
+    result = await groq_tool_model.apredict(
+        conversation=conversation, toolkit=toolkit
+    )
     prediction = result.get_last().content
     assert isinstance(prediction, str)
 
@@ -186,7 +196,9 @@ async def test_abatch(groq_tool_model, toolkit, model_name):
         conv.add_message(HumanMessage(content=prompt))
         conversations.append(conv)
 
-    results = await groq_tool_model.abatch(conversations=conversations, toolkit=toolkit)
+    results = await groq_tool_model.abatch(
+        conversations=conversations, toolkit=toolkit
+    )
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)

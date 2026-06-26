@@ -25,7 +25,9 @@ def sample_notebook_node() -> Any:
         A simple NotebookNode containing one empty cell.
     """
     nb = new_notebook()
-    nb.cells.append({"cell_type": "code", "source": [], "metadata": {}, "outputs": []})
+    nb.cells.append(
+        {"cell_type": "code", "source": [], "metadata": {}, "outputs": []}
+    )
     return nb
 
 
@@ -53,30 +55,40 @@ def test_jupyter_export_latex_tool_init() -> None:
     )
 
 
-def test_conversion_no_custom_template_no_pdf(sample_notebook_node: Any) -> None:
+def test_conversion_no_custom_template_no_pdf(
+    sample_notebook_node: Any,
+) -> None:
     """
     Tests the LaTeX conversion process without a custom template and without PDF generation.
     Ensures that the returned dictionary contains LaTeX content and no errors.
     """
     tool = JupyterExportLatexTool()
     result: Dict[str, Any] = tool(
-        notebook_node=sample_notebook_node, use_custom_template=False, to_pdf=False
+        notebook_node=sample_notebook_node,
+        use_custom_template=False,
+        to_pdf=False,
     )
     assert "error" not in result, (
         f"Error returned unexpectedly: {result.get('error', '')}"
     )
-    assert "latex_content" in result, "Expected 'latex_content' key in the result."
+    assert "latex_content" in result, (
+        "Expected 'latex_content' key in the result."
+    )
     assert result["latex_content"], "LaTeX content should not be empty."
 
 
-def test_conversion_no_custom_template_with_pdf(sample_notebook_node: Any) -> None:
+def test_conversion_no_custom_template_with_pdf(
+    sample_notebook_node: Any,
+) -> None:
     """
     Tests the LaTeX conversion process without a custom template and with PDF generation.
     Ensures that the returned dictionary includes a PDF path.
     """
     tool = JupyterExportLatexTool()
     result: Dict[str, Any] = tool(
-        notebook_node=sample_notebook_node, use_custom_template=False, to_pdf=True
+        notebook_node=sample_notebook_node,
+        use_custom_template=False,
+        to_pdf=True,
     )
     assert "error" not in result, (
         f"Error returned unexpectedly: {result.get('error', '')}"
@@ -88,7 +100,9 @@ def test_conversion_no_custom_template_with_pdf(sample_notebook_node: Any) -> No
     )
 
 
-def test_conversion_with_custom_template(sample_notebook_node: Any, tmp_path) -> None:
+def test_conversion_with_custom_template(
+    sample_notebook_node: Any, tmp_path
+) -> None:
     """
     Tests the LaTeX conversion process with a custom template. Verifies that the tool
     accepts a template path and processes the notebook without raising an error.
@@ -128,7 +142,9 @@ def test_conversion_error_handling() -> None:
         template_path=None,
         to_pdf=False,
     )
-    assert "error" in result, "Expected an error message for invalid notebook input."
+    assert "error" in result, (
+        "Expected an error message for invalid notebook input."
+    )
     assert "latex_content" not in result, (
         "There should be no 'latex_content' for invalid input."
     )

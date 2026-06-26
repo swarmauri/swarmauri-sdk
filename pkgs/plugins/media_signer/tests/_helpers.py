@@ -183,7 +183,9 @@ def digest(payload: bytes) -> bytes:
     return hashlib.sha256(payload).digest()
 
 
-def async_chunks(data: bytes, *, size: int = 5) -> Callable[[], AsyncIterator[bytes]]:
+def async_chunks(
+    data: bytes, *, size: int = 5
+) -> Callable[[], AsyncIterator[bytes]]:
     async def _iterator() -> AsyncIterator[bytes]:
         for idx in range(0, len(data), size):
             await asyncio.sleep(0)
@@ -241,5 +243,7 @@ def openpgp_private_entry(key_ref: KeyRef) -> dict[str, object]:
 
 def openpgp_verify_opts(key_ref: KeyRef) -> dict[str, object]:
     return {
-        "pubkeys": [{"kind": "pgpy-key", "data": _require_material(key_ref.public)}]
+        "pubkeys": [
+            {"kind": "pgpy-key", "data": _require_material(key_ref.public)}
+        ]
     }

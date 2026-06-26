@@ -3,7 +3,9 @@ import logging
 import numpy as np
 import pytest
 
-from swarmauri_standard.similarities.TanimotoSimilarity import TanimotoSimilarity
+from swarmauri_standard.similarities.TanimotoSimilarity import (
+    TanimotoSimilarity,
+)
 
 # Configure logging for tests
 logging.basicConfig(level=logging.INFO)
@@ -69,14 +71,16 @@ class TestValidation:
         x = [0, 0, 0]
         y = [1, 2, 3]
         with pytest.raises(
-            ValueError, match="Tanimoto similarity is not defined for zero vectors"
+            ValueError,
+            match="Tanimoto similarity is not defined for zero vectors",
         ):
             tanimoto_similarity._validate_input(x, y)
 
         x = [1, 2, 3]
         y = [0, 0, 0]
         with pytest.raises(
-            ValueError, match="Tanimoto similarity is not defined for zero vectors"
+            ValueError,
+            match="Tanimoto similarity is not defined for zero vectors",
         ):
             tanimoto_similarity._validate_input(x, y)
 
@@ -108,7 +112,9 @@ class TestSimilarity:
     def test_similarity_error_handling(self, tanimoto_similarity):
         """Test error handling in similarity calculation."""
         with pytest.raises(ValueError):
-            tanimoto_similarity.similarity([1, 2], [1, 2, 3])  # Different dimensions
+            tanimoto_similarity.similarity(
+                [1, 2], [1, 2, 3]
+            )  # Different dimensions
 
         with pytest.raises(ValueError):
             tanimoto_similarity.similarity([0, 0, 0], [1, 2, 3])  # Zero vector
@@ -168,7 +174,9 @@ class TestDissimilarity:
             ([1, 1, 0], [1, 1, 1], 1 / 3),  # Partial overlap
         ],
     )
-    def test_dissimilarity_calculation(self, tanimoto_similarity, x, y, expected):
+    def test_dissimilarity_calculation(
+        self, tanimoto_similarity, x, y, expected
+    ):
         """Test dissimilarity calculation with various inputs."""
         result = tanimoto_similarity.dissimilarity(x, y)
         assert abs(result - expected) < 1e-10
@@ -183,7 +191,9 @@ class TestProperties:
         """Test that TanimotoSimilarity is bounded."""
         assert tanimoto_similarity.check_bounded() is True
 
-    @pytest.mark.parametrize("x", [[1, 2, 3], [0.5, 0.5, 0.5], [10, 20, 30, 40]])
+    @pytest.mark.parametrize(
+        "x", [[1, 2, 3], [0.5, 0.5, 0.5], [10, 20, 30, 40]]
+    )
     def test_reflexivity(self, tanimoto_similarity, x):
         """Test that TanimotoSimilarity is reflexive."""
         assert tanimoto_similarity.check_reflexivity(x)

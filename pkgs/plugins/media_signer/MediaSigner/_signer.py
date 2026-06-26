@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
-from typing import AsyncIterable, Iterable, Mapping, MutableMapping, Optional, Sequence
+from typing import (
+    AsyncIterable,
+    Iterable,
+    Mapping,
+    MutableMapping,
+    Optional,
+    Sequence,
+)
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.signing.SigningBase import SigningBase
@@ -88,7 +95,9 @@ class MediaSigner(ComponentBase):
         alg: Optional[Alg] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        return await self._resolve(fmt).sign_bytes(key, payload, alg=alg, opts=opts)
+        return await self._resolve(fmt).sign_bytes(
+            key, payload, alg=alg, opts=opts
+        )
 
     async def sign_digest(
         self,
@@ -99,7 +108,9 @@ class MediaSigner(ComponentBase):
         alg: Optional[Alg] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        return await self._resolve(fmt).sign_digest(key, digest, alg=alg, opts=opts)
+        return await self._resolve(fmt).sign_digest(
+            key, digest, alg=alg, opts=opts
+        )
 
     async def verify_bytes(
         self,
@@ -162,7 +173,9 @@ class MediaSigner(ComponentBase):
         alg: Optional[Alg] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        return await self._resolve(fmt).sign_stream(key, payload, alg=alg, opts=opts)
+        return await self._resolve(fmt).sign_stream(
+            key, payload, alg=alg, opts=opts
+        )
 
     async def verify_envelope(
         self,

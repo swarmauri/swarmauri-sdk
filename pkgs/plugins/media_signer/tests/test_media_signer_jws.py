@@ -27,7 +27,9 @@ async def test_media_signer_jws_attached_bytes(jws_context):
     )
 
     assert signatures and signatures[0].mode == "attached"
-    assert await signer.verify_bytes(JWS_FORMAT, payload, signatures, opts=verify_opts)
+    assert await signer.verify_bytes(
+        JWS_FORMAT, payload, signatures, opts=verify_opts
+    )
 
 
 @pytest.mark.asyncio
@@ -41,7 +43,9 @@ async def test_media_signer_jws_digest_round_trip(jws_context):
     )
 
     assert signatures and signatures[0].meta.get("payload_kind") == "digest"
-    assert await signer.verify_digest(JWS_FORMAT, sha, signatures, opts=verify_opts)
+    assert await signer.verify_digest(
+        JWS_FORMAT, sha, signatures, opts=verify_opts
+    )
 
 
 @pytest.mark.asyncio

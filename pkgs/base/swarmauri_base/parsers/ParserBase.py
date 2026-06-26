@@ -20,7 +20,9 @@ class ParserBase(IParser, ComponentBase):
     methods with parsing logic suited to their specific needs.
     """
 
-    resource: Optional[str] = Field(default=ResourceTypes.PARSER.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.PARSER.value, frozen=True
+    )
     type: Literal["ParserBase"] = "ParserBase"
 
     @abstractmethod

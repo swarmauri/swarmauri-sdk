@@ -1,4 +1,6 @@
-from .AutomatedReadabilityIndexEvaluator import AutomatedReadabilityIndexEvaluator
+from .AutomatedReadabilityIndexEvaluator import (
+    AutomatedReadabilityIndexEvaluator,
+)
 from .ColemanLiauIndexEvaluator import ColemanLiauIndexEvaluator
 from .FleschKincaidGradeEvaluator import FleschKincaidGradeEvaluator
 from .FleschReadingEaseEvaluator import FleschReadingEaseEvaluator

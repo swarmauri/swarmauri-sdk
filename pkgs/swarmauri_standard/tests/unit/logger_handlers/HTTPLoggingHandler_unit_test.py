@@ -4,7 +4,9 @@ import unittest.mock as mock
 import pytest
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 
-from swarmauri_standard.logger_handlers.HTTPLoggingHandler import HTTPLoggingHandler
+from swarmauri_standard.logger_handlers.HTTPLoggingHandler import (
+    HTTPLoggingHandler,
+)
 
 
 @pytest.fixture
@@ -83,7 +85,10 @@ def test_init_with_custom_values():
     assert handler.url == "/custom"
     assert handler.method == "GET"
     assert handler.timeout == 10.0
-    assert handler.credentials == {"username": "testuser", "password": "testpass"}
+    assert handler.credentials == {
+        "username": "testuser",
+        "password": "testpass",
+    }
     assert handler.level == logging.DEBUG
     assert handler.formatter == "%(levelname)s: %(message)s"
 
@@ -145,12 +150,17 @@ def test_compile_handler_with_formatter_object(
     mock_formatter.compile_formatter.assert_called_once()
 
     # Verify the formatter was set to the result of compile_formatter
-    assert compiled_handler.formatter == mock_formatter.compile_formatter.return_value
+    assert (
+        compiled_handler.formatter
+        == mock_formatter.compile_formatter.return_value
+    )
 
 
 @pytest.mark.unit
 @mock.patch("http.client.HTTPConnection")
-def test_custom_http_handler_emit_post(mock_http_connection, basic_http_handler):
+def test_custom_http_handler_emit_post(
+    mock_http_connection, basic_http_handler
+):
     """Tests the emit method of the custom HTTP handler with POST method."""
     # Setup mock connection and response
     mock_conn_instance = mock_http_connection.return_value
@@ -187,7 +197,10 @@ def test_custom_http_handler_emit_post(mock_http_connection, basic_http_handler)
     assert "message=" in args[2]
 
     # Verify Content-type header is set for POST
-    assert kwargs["headers"]["Content-type"] == "application/x-www-form-urlencoded"
+    assert (
+        kwargs["headers"]["Content-type"]
+        == "application/x-www-form-urlencoded"
+    )
 
     # Verify the connection was closed
     mock_conn_instance.close.assert_called_once()
@@ -195,7 +208,9 @@ def test_custom_http_handler_emit_post(mock_http_connection, basic_http_handler)
 
 @pytest.mark.unit
 @mock.patch("http.client.HTTPConnection")
-def test_custom_http_handler_emit_get(mock_http_connection, advanced_http_handler):
+def test_custom_http_handler_emit_get(
+    mock_http_connection, advanced_http_handler
+):
     """Tests the emit method of the custom HTTP handler with GET method."""
     # Setup mock connection and response
     mock_conn_instance = mock_http_connection.return_value
@@ -247,7 +262,9 @@ def test_custom_http_handler_emit_error_handling(
     mock_conn_instance.request.side_effect = Exception("Test error")
 
     # Patch handleError method to track calls
-    with mock.patch.object(logging.Handler, "handleError") as mock_handle_error:
+    with mock.patch.object(
+        logging.Handler, "handleError"
+    ) as mock_handle_error:
         # Compile the handler and create a log record
         handler = basic_http_handler.compile_handler()
         record = logging.LogRecord(

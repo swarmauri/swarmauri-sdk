@@ -1,5 +1,7 @@
 import pytest
-from swarmauri_standard.parsers.HTMLTagStripParser import HTMLTagStripParser as Parser
+from swarmauri_standard.parsers.HTMLTagStripParser import (
+    HTMLTagStripParser as Parser,
+)
 
 
 @pytest.mark.unit

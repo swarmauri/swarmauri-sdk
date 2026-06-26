@@ -28,9 +28,13 @@ async def test_quic_transport_unicast_and_multiplex_round_trip() -> None:
 
             handle = await client.open_channel()
             await client.send_on(handle, b"stream")
-            stream_data = await asyncio.wait_for(server.recv_on(handle, timeout=1), 1)
+            stream_data = await asyncio.wait_for(
+                server.recv_on(handle, timeout=1), 1
+            )
             assert stream_data == b"stream"
 
             await server.send_on(handle, b"reply")
-            reply = await asyncio.wait_for(client.recv_on(handle, timeout=1), 1)
+            reply = await asyncio.wait_for(
+                client.recv_on(handle, timeout=1), 1
+            )
             assert reply == b"reply"

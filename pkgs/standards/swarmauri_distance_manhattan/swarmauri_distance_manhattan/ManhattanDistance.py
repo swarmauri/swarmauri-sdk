@@ -1,6 +1,8 @@
 import warnings
 
-from swarmauri_standard.distances.ManhattanDistance import ManhattanDistance as _StandardManhattanDistance
+from swarmauri_standard.distances.ManhattanDistance import (
+    ManhattanDistance as _StandardManhattanDistance,
+)
 
 
 class ManhattanDistance(_StandardManhattanDistance):

@@ -58,17 +58,23 @@ class AI21StudioModel(LLMBase):
         """
         super().__init__(**data)
         self._client = httpx.Client(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
 
-    def _format_messages(self, messages: List[Type["MessageBase"]]) -> List[dict]:
+    def _format_messages(
+        self, messages: List[Type["MessageBase"]]
+    ) -> List[dict]:
         """
         Formats messages for API request payload.
 
@@ -79,7 +85,8 @@ class AI21StudioModel(LLMBase):
             List[dict]: Formatted list of message dictionaries.
         """
         return [
-            {"content": message.content, "role": message.role} for message in messages
+            {"content": message.content, "role": message.role}
+            for message in messages
         ]
 
     def _prepare_usage_data(
@@ -154,7 +161,9 @@ class AI21StudioModel(LLMBase):
         # Prepare usage data if tracking is enabled
         if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
         return conversation
@@ -196,7 +205,9 @@ class AI21StudioModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            response = await self._async_client.post(self._BASE_URL, json=payload)
+            response = await self._async_client.post(
+                self._BASE_URL, json=payload
+            )
             response.raise_for_status()
 
         response_data = response.json()
@@ -206,7 +217,9 @@ class AI21StudioModel(LLMBase):
         # Prepare usage data if tracking is enabled
         if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
         return conversation
@@ -276,7 +289,9 @@ class AI21StudioModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -316,7 +331,9 @@ class AI21StudioModel(LLMBase):
         }
 
         with DurationManager() as prompt_timer:
-            response = await self._async_client.post(self._BASE_URL, json=payload)
+            response = await self._async_client.post(
+                self._BASE_URL, json=payload
+            )
             response.raise_for_status()
 
         usage_data = {}
@@ -345,7 +362,9 @@ class AI21StudioModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 

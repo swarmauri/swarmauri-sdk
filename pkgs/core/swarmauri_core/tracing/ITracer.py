@@ -35,7 +35,9 @@ class ITracer(ABC):
         pass
 
     @abstractmethod
-    def annotate_trace(self, trace_context: ITraceContext, key: str, value: Any):
+    def annotate_trace(
+        self, trace_context: ITraceContext, key: str, value: Any
+    ):
         """
         Adds an annotation to an existing trace, enriching it with more detailed information.
 

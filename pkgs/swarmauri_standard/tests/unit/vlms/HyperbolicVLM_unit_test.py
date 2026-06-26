@@ -52,7 +52,10 @@ def test_serialization(hyperbolic_vision_model):
 @pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_default_model_name(hyperbolic_vision_model):
-    assert hyperbolic_vision_model.name == hyperbolic_vision_model.allowed_models[0]
+    assert (
+        hyperbolic_vision_model.name
+        == hyperbolic_vision_model.allowed_models[0]
+    )
 
 
 def create_test_conversation(image_url, prompt):

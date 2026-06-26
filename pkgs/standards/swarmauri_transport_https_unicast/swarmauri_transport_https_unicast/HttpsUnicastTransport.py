@@ -80,13 +80,19 @@ class HttpsUnicastTransport(TransportBase):
     verify: bool | str | ssl.SSLContext = True
     timeout: float = 10.0
     trust_env: bool = False
-    security_policy: HttpsSecurityPolicy = Field(default_factory=HttpsSecurityPolicy)
+    security_policy: HttpsSecurityPolicy = Field(
+        default_factory=HttpsSecurityPolicy
+    )
     require_response_jws: bool = False
-    httpx_transport: httpx.AsyncBaseTransport | None = Field(default=None, exclude=True)
+    httpx_transport: httpx.AsyncBaseTransport | None = Field(
+        default=None, exclude=True
+    )
 
     _client: httpx.AsyncClient | None = PrivateAttr(default=None)
     _jws: JwsSignerVerifier = PrivateAttr(default_factory=JwsSignerVerifier)
-    _cipher_suite: Tls13CipherSuite = PrivateAttr(default_factory=Tls13CipherSuite)
+    _cipher_suite: Tls13CipherSuite = PrivateAttr(
+        default_factory=Tls13CipherSuite
+    )
     _last_evidence: HttpsTransportEvidence = PrivateAttr(
         default_factory=HttpsTransportEvidence
     )
@@ -131,7 +137,10 @@ class HttpsUnicastTransport(TransportBase):
         )
 
     async def verify_certificate(
-        self, cert_pem: bytes | str, *, trust_roots: list[bytes | str] | None = None
+        self,
+        cert_pem: bytes | str,
+        *,
+        trust_roots: list[bytes | str] | None = None,
     ) -> dict[str, Any]:
         result = await X509VerifyService().verify_cert(
             cert_pem, trust_roots=trust_roots
@@ -156,7 +165,9 @@ class HttpsUnicastTransport(TransportBase):
         policy = self.security_policy
         prepared = dict(headers or {})
 
-        token = bearer_token if bearer_token is not None else policy.bearer_token
+        token = (
+            bearer_token if bearer_token is not None else policy.bearer_token
+        )
         if token:
             prepared.setdefault("Authorization", f"Bearer {token}")
 
@@ -166,10 +177,14 @@ class HttpsUnicastTransport(TransportBase):
             else policy.http_signature_secret
         )
         if secret is not None:
-            prepared[policy.http_signature_header] = http_signature(secret, body)
+            prepared[policy.http_signature_header] = http_signature(
+                secret, body
+            )
 
         jws_key = (
-            request_jws_key if request_jws_key is not None else policy.request_jws_key
+            request_jws_key
+            if request_jws_key is not None
+            else policy.request_jws_key
         )
         if jws_key is not None:
             prepared[policy.request_jws_header] = await self._jws.sign_compact(
@@ -228,16 +243,24 @@ class HttpsUnicastTransport(TransportBase):
         client = self._client
 
         if client is None:
-            async with httpx.AsyncClient(**self._client_kwargs({})) as one_shot:
+            async with httpx.AsyncClient(
+                **self._client_kwargs({})
+            ) as one_shot:
                 response = await one_shot.request(
-                    method, path, headers=request_headers, content=body, **kwargs
+                    method,
+                    path,
+                    headers=request_headers,
+                    content=body,
+                    **kwargs,
                 )
         else:
             response = await client.request(
                 method, path, headers=request_headers, content=body, **kwargs
             )
 
-        response_jws = response.headers.get(self.security_policy.response_jws_header)
+        response_jws = response.headers.get(
+            self.security_policy.response_jws_header
+        )
         if response_jws:
             await self.verify_body_jws(response_jws, response.content)
             response_jws_verified = True

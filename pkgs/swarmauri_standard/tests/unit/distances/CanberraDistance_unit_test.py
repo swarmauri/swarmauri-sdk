@@ -15,5 +15,6 @@ def test_compatibility_serialization():
 @pytest.mark.unit
 def test_compatibility_distance():
     assert (
-        CanberraDistance().distance(Vector(value=[1, 2]), Vector(value=[1, 2])) == 0.0
+        CanberraDistance().distance(Vector(value=[1, 2]), Vector(value=[1, 2]))
+        == 0.0
     )

@@ -21,7 +21,9 @@ class ColemanLiauIndexTool(ToolBase):
     version: str = "0.1.dev1"
     name: str = "ColemanLiauIndexTool"
     type: Literal["ColemanLiauIndexTool"] = "ColemanLiauIndexTool"
-    description: str = "Calculates the Coleman-Liau Index (CLI) for a given text."
+    description: str = (
+        "Calculates the Coleman-Liau Index (CLI) for a given text."
+    )
     parameters: List[Parameter] = [
         Parameter(
             name="input_text",
@@ -77,7 +79,9 @@ class ColemanLiauIndexTool(ToolBase):
         """
         sentence_endings = re.compile(r"[.!?]")
         sentences = sentence_endings.split(text)
-        return len([s for s in sentences if s.strip()])  # Count non-empty sentences
+        return len(
+            [s for s in sentences if s.strip()]
+        )  # Count non-empty sentences
 
     def count_words(self, text: str) -> int:
         """
@@ -102,7 +106,9 @@ class ColemanLiauIndexTool(ToolBase):
         Returns:
             int: The number of characters in the text.
         """
-        return len(re.findall(r"[A-Za-z]", text))  # Count characters excluding spaces
+        return len(
+            re.findall(r"[A-Za-z]", text)
+        )  # Count characters excluding spaces
 
     def validate_input(self, data: Dict[str, Any]) -> bool:
         """

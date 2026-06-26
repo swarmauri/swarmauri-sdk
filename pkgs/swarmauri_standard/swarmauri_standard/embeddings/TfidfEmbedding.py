@@ -46,14 +46,18 @@ class TfidfEmbedding(EmbeddingBase):
             # Simple tokenization: lowercasing and splitting on whitespace.
             tokens = doc.lower().split()
             tokenized_docs.append(tokens)
-            for token in set(tokens):  # use set() to count each token once per doc
+            for token in set(
+                tokens
+            ):  # use set() to count each token once per doc
                 df[token] += 1
 
         # Build a sorted vocabulary for consistent vector ordering.
         self._features = sorted(list(df.keys()))
 
         # Compute idf for each term using the formula: log(N / df)
-        self._idf = {token: math.log(N / df[token]) for token in self._features}
+        self._idf = {
+            token: math.log(N / df[token]) for token in self._features
+        }
 
         # Now compute the TF-IDF vector for each document.
         self._fit_matrix = []

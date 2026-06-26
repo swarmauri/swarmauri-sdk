@@ -23,7 +23,12 @@ except Exception:  # pragma: no cover
 try:  # pragma: no cover - runtime guards
     from cryptography import x509
     from cryptography.hazmat.primitives import hashes, serialization
-    from cryptography.hazmat.primitives.asymmetric import ec, ed25519, padding, rsa
+    from cryptography.hazmat.primitives.asymmetric import (
+        ec,
+        ed25519,
+        padding,
+        rsa,
+    )
 
     _CRYPTO_OK = True
 except Exception:  # pragma: no cover
@@ -32,7 +37,9 @@ except Exception:  # pragma: no cover
 
 def _ensure_deps() -> None:
     if not _LXML_OK:
-        raise RuntimeError("XMLDSigner requires 'lxml'. Install with: pip install lxml")
+        raise RuntimeError(
+            "XMLDSigner requires 'lxml'. Install with: pip install lxml"
+        )
     if not _CRYPTO_OK:
         raise RuntimeError(
             "XMLDSigner requires 'cryptography'. Install with: pip install cryptography"
@@ -51,7 +58,10 @@ async def _stream_to_bytes(stream: StreamLike) -> bytes:
 
 
 def _canon_xml(
-    data: Any, *, canon: str = "c14n", inclusive_ns: Optional[Sequence[str]] = None
+    data: Any,
+    *,
+    canon: str = "c14n",
+    inclusive_ns: Optional[Sequence[str]] = None,
 ) -> bytes:
     _ensure_deps()
     if isinstance(data, (bytes, bytearray)):
@@ -109,21 +119,31 @@ def _load_private_key(key_ref: KeyRef):
     if isinstance(key_ref, Mapping):
         kind = key_ref.get("kind")
         password = key_ref.get("password")
-        password_bytes = None if password is None else str(password).encode("utf-8")
+        password_bytes = (
+            None if password is None else str(password).encode("utf-8")
+        )
         if kind == "pem":
             pem = _load_pem(key_ref.get("private_key"))
-            return serialization.load_pem_private_key(pem, password=password_bytes)
+            return serialization.load_pem_private_key(
+                pem, password=password_bytes
+            )
         if kind == "pkcs12":
             data = _load_pem(key_ref.get("data"))
             from cryptography.hazmat.primitives.serialization.pkcs12 import (
                 load_key_and_certificates,
             )
 
-            private_key, cert, extras = load_key_and_certificates(data, password_bytes)
+            private_key, cert, extras = load_key_and_certificates(
+                data, password_bytes
+            )
             if private_key is None:
-                raise RuntimeError("PKCS#12 bundle did not include a private key")
+                raise RuntimeError(
+                    "PKCS#12 bundle did not include a private key"
+                )
             return private_key
-    raise TypeError("XMLDSigner key_ref must describe 'pem' or 'pkcs12' material")
+    raise TypeError(
+        "XMLDSigner key_ref must describe 'pem' or 'pkcs12' material"
+    )
 
 
 def _load_certificate(key_ref: KeyRef) -> Optional[x509.Certificate]:
@@ -172,7 +192,11 @@ def _load_public_keys(entries: Optional[Iterable[Any]]) -> list[Any]:
     for entry in entries or []:
         if isinstance(
             entry,
-            (rsa.RSAPublicKey, ec.EllipticCurvePublicKey, ed25519.Ed25519PublicKey),
+            (
+                rsa.RSAPublicKey,
+                ec.EllipticCurvePublicKey,
+                ed25519.Ed25519PublicKey,
+            ),
         ):
             keys.append(entry)
             continue
@@ -233,12 +257,19 @@ class XMLDSigner(SigningBase):
         self._key_provider = provider
 
     # ------------------------------------------------------------------
-    def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
+    def supports(
+        self, key_ref: Optional[str] = None
+    ) -> Mapping[str, Iterable[str]]:
         base = {
             "signs": ("bytes", "digest", "envelope", "stream"),
             "verifies": ("bytes", "digest", "envelope", "stream"),
             "envelopes": ("xml", "structured-json"),
-            "algs": ("RSA-PSS-SHA256", "RSA-PKCS1-SHA256", "ECDSA-SHA256", "Ed25519"),
+            "algs": (
+                "RSA-PSS-SHA256",
+                "RSA-PKCS1-SHA256",
+                "ECDSA-SHA256",
+                "Ed25519",
+            ),
             "canons": ("c14n", "c14n11", "exc-c14n"),
             "features": ("detached", "xml-dsig"),
             "status": ("beta",),
@@ -302,7 +333,9 @@ class XMLDSigner(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        canonical = await self.canonicalize_envelope(env, canon=canon, opts=opts)
+        canonical = await self.canonicalize_envelope(
+            env, canon=canon, opts=opts
+        )
         return await self._sign_payload(
             key,
             canonical,
@@ -356,7 +389,9 @@ class XMLDSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         data = await _stream_to_bytes(payload)
-        return await self.verify_bytes(data, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            data, signatures, require=require, opts=opts
+        )
 
     async def verify_envelope(
         self,
@@ -367,7 +402,9 @@ class XMLDSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        canonical = await self.canonicalize_envelope(env, canon=canon, opts=opts)
+        canonical = await self.canonicalize_envelope(
+            env, canon=canon, opts=opts
+        )
         return await self._verify_payload(
             canonical,
             signatures,
@@ -448,14 +485,20 @@ class XMLDSigner(SigningBase):
         accepted = 0
         for sig in signatures:
             meta = sig.meta if isinstance(sig, Signature) else sig.get("meta")
-            kind = meta.get("payload_kind") if isinstance(meta, Mapping) else None
+            kind = (
+                meta.get("payload_kind") if isinstance(meta, Mapping) else None
+            )
             if kind not in (None, payload_kind):
                 continue
-            canon_token = meta.get("canon") if isinstance(meta, Mapping) else canon
+            canon_token = (
+                meta.get("canon") if isinstance(meta, Mapping) else canon
+            )
             if payload_kind == "envelope" and canon_token != canon:
                 continue
             artifact = (
-                sig.artifact if isinstance(sig, Signature) else sig.get("artifact")
+                sig.artifact
+                if isinstance(sig, Signature)
+                else sig.get("artifact")
             )
             if isinstance(artifact, str):
                 signature_bytes = artifact.encode("latin1")
@@ -463,7 +506,9 @@ class XMLDSigner(SigningBase):
                 signature_bytes = bytes(artifact)
             else:
                 continue
-            alg_name = sig.alg if isinstance(sig, Signature) else sig.get("alg")
+            alg_name = (
+                sig.alg if isinstance(sig, Signature) else sig.get("alg")
+            )
             for key in keys:
                 try:
                     if isinstance(key, rsa.RSAPublicKey):
@@ -473,11 +518,15 @@ class XMLDSigner(SigningBase):
                         )
                         if alg_name and "PKCS1" in str(alg_name).upper():
                             mode = padding.PKCS1v15()
-                        key.verify(signature_bytes, payload, mode, hashes.SHA256())
+                        key.verify(
+                            signature_bytes, payload, mode, hashes.SHA256()
+                        )
                         accepted += 1
                         break
                     if isinstance(key, ec.EllipticCurvePublicKey):
-                        key.verify(signature_bytes, payload, ec.ECDSA(hashes.SHA256()))
+                        key.verify(
+                            signature_bytes, payload, ec.ECDSA(hashes.SHA256())
+                        )
                         accepted += 1
                         break
                     if isinstance(key, ed25519.Ed25519PublicKey):

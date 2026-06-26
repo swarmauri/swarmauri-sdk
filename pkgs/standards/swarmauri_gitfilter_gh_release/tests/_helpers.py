@@ -61,8 +61,12 @@ class DummyRequester:
     def __init__(self, release: DummyRelease) -> None:
         self._release = release
 
-    def requestBytes(self, _method: str, url: str, headers: dict | None = None):  # noqa: N802 - PyGithub API
-        asset = next(asset for asset in self._release.get_assets() if asset.url == url)
+    def requestBytes(
+        self, _method: str, url: str, headers: dict | None = None
+    ):  # noqa: N802 - PyGithub API
+        asset = next(
+            asset for asset in self._release.get_assets() if asset.url == url
+        )
         return None, asset._data
 
 

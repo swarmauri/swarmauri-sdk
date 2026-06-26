@@ -20,7 +20,9 @@ class DistinctivenessMeasurement(MeasurementBase):
     type: Literal["DistinctivenessMeasurement"] = "DistinctivenessMeasurement"
     unit: str = "%"  # Percentage as the unit of measurement
 
-    def calculate_distinctiveness(self, data: Union[pd.DataFrame, List, Dict]) -> float:
+    def calculate_distinctiveness(
+        self, data: Union[pd.DataFrame, List, Dict]
+    ) -> float:
         """
         Calculates the distinctiveness score for different data types.
 
@@ -36,7 +38,9 @@ class DistinctivenessMeasurement(MeasurementBase):
             if non_null_values == 0:
                 return 0.0
             # Count unique values across all columns, excluding null values
-            unique_values = sum(data[col].dropna().nunique() for col in data.columns)
+            unique_values = sum(
+                data[col].dropna().nunique() for col in data.columns
+            )
             return (unique_values / non_null_values) * 100
 
         elif isinstance(data, list):
@@ -61,7 +65,9 @@ class DistinctivenessMeasurement(MeasurementBase):
             )
 
     def call(
-        self, data: Union[pd.DataFrame, List, Dict], kwargs: Dict[str, Any] = None
+        self,
+        data: Union[pd.DataFrame, List, Dict],
+        kwargs: Dict[str, Any] = None,
     ) -> float:
         """
         Calculates and returns the distinctiveness score for the provided data.

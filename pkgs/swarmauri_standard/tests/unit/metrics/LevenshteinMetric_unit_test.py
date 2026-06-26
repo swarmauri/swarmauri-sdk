@@ -173,7 +173,9 @@ def test_non_negativity_axiom(levenshtein_metric, str1, str2):
 )
 def test_identity_of_indiscernibles_axiom(levenshtein_metric, str1, str2):
     """Test that the identity of indiscernibles axiom holds for Levenshtein distance."""
-    assert levenshtein_metric.check_identity_of_indiscernibles(str1, str2) is True
+    assert (
+        levenshtein_metric.check_identity_of_indiscernibles(str1, str2) is True
+    )
     assert (levenshtein_metric.distance(str1, str2) == 0) == (str1 == str2)
 
 
@@ -190,9 +192,9 @@ def test_identity_of_indiscernibles_axiom(levenshtein_metric, str1, str2):
 def test_symmetry_axiom(levenshtein_metric, str1, str2):
     """Test that the symmetry axiom holds for Levenshtein distance."""
     assert levenshtein_metric.check_symmetry(str1, str2) is True
-    assert levenshtein_metric.distance(str1, str2) == levenshtein_metric.distance(
-        str2, str1
-    )
+    assert levenshtein_metric.distance(
+        str1, str2
+    ) == levenshtein_metric.distance(str2, str1)
 
 
 @pytest.mark.unit
@@ -207,7 +209,9 @@ def test_symmetry_axiom(levenshtein_metric, str1, str2):
 )
 def test_triangle_inequality_axiom(levenshtein_metric, str1, str2, str3):
     """Test that the triangle inequality axiom holds for Levenshtein distance."""
-    assert levenshtein_metric.check_triangle_inequality(str1, str2, str3) is True
+    assert (
+        levenshtein_metric.check_triangle_inequality(str1, str2, str3) is True
+    )
 
     d_xy = levenshtein_metric.distance(str1, str2)
     d_yz = levenshtein_metric.distance(str2, str3)

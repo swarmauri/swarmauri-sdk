@@ -86,12 +86,16 @@ class PaystackBillingProvider(
     ) -> ProductRef:
         self._ensure()
         payload = (
-            product_spec.payload if isinstance(product_spec.payload, Mapping) else {}
+            product_spec.payload
+            if isinstance(product_spec.payload, Mapping)
+            else {}
         )
         resp = self._product.create(
             name=product_spec.name,
             description=product_spec.description or "",
-            price=int(payload.get("price") or payload.get("unit_amount_minor") or 0),
+            price=int(
+                payload.get("price") or payload.get("unit_amount_minor") or 0
+            ),
             currency=str(payload.get("currency") or "NGN").upper(),
             unlimited=bool(payload.get("unlimited", True)),
             quantity=payload.get("quantity"),
@@ -213,7 +217,9 @@ class PaystackBillingProvider(
     ) -> Mapping[str, Any]:
         self._ensure()
         if not spec.items:
-            raise ValueError("Paystack subscription creation requires a plan code")
+            raise ValueError(
+                "Paystack subscription creation requires a plan code"
+            )
         metadata = dict(spec.metadata or {})
         authorization = metadata.get("authorization")
         sub = self._sub.create(
@@ -322,9 +328,13 @@ class PaystackBillingProvider(
         self, spec: SplitSpec, *, idempotency_key: str
     ) -> Mapping[str, Any]:
         self._ensure()
-        entries = [{"subaccount": e.account, "share": e.share} for e in spec.entries]
+        entries = [
+            {"subaccount": e.account, "share": e.share} for e in spec.entries
+        ]
         if not entries:
-            raise ValueError("Paystack split creation requires at least one subaccount")
+            raise ValueError(
+                "Paystack split creation requires at least one subaccount"
+            )
         sp = self._split.create(
             name=spec.name,
             type=spec.type or "percentage",
@@ -377,7 +387,9 @@ class PaystackBillingProvider(
         res = self._refund.create(
             transaction=payment.id,
             amount=req.amount_minor,
-            currency=(payment.currency or metadata.get("currency") or "NGN").upper(),
+            currency=(
+                payment.currency or metadata.get("currency") or "NGN"
+            ).upper(),
             customer_note=req.reason,
             merchant_note=metadata.get("merchant_note", req.reason),
         )
@@ -411,11 +423,15 @@ class PaystackBillingProvider(
         import hmac
 
         signature = headers.get("X-Paystack-Signature", "")
-        digest = hmac.new(secret.encode(), raw_body, hashlib.sha512).hexdigest()
+        digest = hmac.new(
+            secret.encode(), raw_body, hashlib.sha512
+        ).hexdigest()
         result = hmac.compare_digest(digest, signature)
         return result
 
-    def _list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
+    def _list_disputes(
+        self, *, limit: int = 50
+    ) -> Sequence[Mapping[str, Any]]:
         from paystackapi.dispute import Dispute
 
         res = Dispute.list()

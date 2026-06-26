@@ -2,7 +2,16 @@ import asyncio
 import json
 import logging
 import warnings
-from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Type
+from typing import (
+    Any,
+    AsyncIterator,
+    Dict,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Type,
+)
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -60,7 +69,9 @@ class GeminiToolModel(LLMBase):
 
     timeout: float = 600.0
 
-    _headers: Dict[str, str] = PrivateAttr(default={"Content-Type": "application/json"})
+    _headers: Dict[str, str] = PrivateAttr(
+        default={"Content-Type": "application/json"}
+    )
 
     _safety_settings: List[Dict[str, str]] = PrivateAttr(
         [
@@ -105,7 +116,9 @@ class GeminiToolModel(LLMBase):
         Returns:
             Dict[str, List[Dict[str, Any]]]: Dictionary with function declarations for Gemini.
         """
-        response = [GeminiSchemaConverter().convert(tools[tool]) for tool in tools]
+        response = [
+            GeminiSchemaConverter().convert(tools[tool]) for tool in tools
+        ]
         return {"function_declarations": response}
 
     def _format_messages(
@@ -191,7 +204,9 @@ class GeminiToolModel(LLMBase):
         )
         return messages
 
-    def _get_system_context(self, messages: List[Type[MessageBase]]) -> Optional[str]:
+    def _get_system_context(
+        self, messages: List[Type[MessageBase]]
+    ) -> Optional[str]:
         """
         Extracts system context message from message history.
 
@@ -268,7 +283,9 @@ class GeminiToolModel(LLMBase):
 
         tool_calls = tool_response["candidates"][0]["content"]["parts"]
 
-        messages = self._process_tool_calls(tool_calls, toolkit, formatted_messages)
+        messages = self._process_tool_calls(
+            tool_calls, toolkit, formatted_messages
+        )
 
         payload["contents"] = messages
         payload.pop("tools", None)
@@ -286,7 +303,9 @@ class GeminiToolModel(LLMBase):
         logging.info(f"agent_response: {agent_response}")
         conversation.add_message(
             AgentMessage(
-                content=agent_response["candidates"][0]["content"]["parts"][0]["text"]
+                content=agent_response["candidates"][0]["content"]["parts"][0][
+                    "text"
+                ]
             )
         )
 
@@ -354,7 +373,9 @@ class GeminiToolModel(LLMBase):
 
         tool_calls = tool_response["candidates"][0]["content"]["parts"]
 
-        messages = self._process_tool_calls(tool_calls, toolkit, formatted_messages)
+        messages = self._process_tool_calls(
+            tool_calls, toolkit, formatted_messages
+        )
 
         payload["contents"] = messages
         payload.pop("tools", None)
@@ -372,7 +393,9 @@ class GeminiToolModel(LLMBase):
         logging.info(f"agent_response: {agent_response}")
         conversation.add_message(
             AgentMessage(
-                content=agent_response["candidates"][0]["content"]["parts"][0]["text"]
+                content=agent_response["candidates"][0]["content"]["parts"][0][
+                    "text"
+                ]
             )
         )
 
@@ -440,7 +463,9 @@ class GeminiToolModel(LLMBase):
 
         tool_calls = tool_response["candidates"][0]["content"]["parts"]
 
-        messages = self._process_tool_calls(tool_calls, toolkit, formatted_messages)
+        messages = self._process_tool_calls(
+            tool_calls, toolkit, formatted_messages
+        )
 
         payload["contents"] = messages
         payload.pop("tools", None)
@@ -459,7 +484,9 @@ class GeminiToolModel(LLMBase):
             json_str = line.replace("data: ", "")
             if json_str:
                 response_data = json.loads(json_str)
-                chunk = response_data["candidates"][0]["content"]["parts"][0]["text"]
+                chunk = response_data["candidates"][0]["content"]["parts"][0][
+                    "text"
+                ]
                 full_response += chunk
                 yield chunk
 
@@ -526,7 +553,9 @@ class GeminiToolModel(LLMBase):
 
         tool_calls = tool_response["candidates"][0]["content"]["parts"]
 
-        messages = self._process_tool_calls(tool_calls, toolkit, formatted_messages)
+        messages = self._process_tool_calls(
+            tool_calls, toolkit, formatted_messages
+        )
 
         payload["contents"] = messages
         payload.pop("tools", None)
@@ -545,7 +574,9 @@ class GeminiToolModel(LLMBase):
             json_str = line.replace("data: ", "")
             if json_str:
                 response_data = json.loads(json_str)
-                chunk = response_data["candidates"][0]["content"]["parts"][0]["text"]
+                chunk = response_data["candidates"][0]["content"]["parts"][0][
+                    "text"
+                ]
                 full_response += chunk
                 yield chunk
 

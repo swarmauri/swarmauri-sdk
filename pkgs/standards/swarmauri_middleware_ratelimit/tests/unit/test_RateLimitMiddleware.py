@@ -1,6 +1,8 @@
 import pytest
 from fastapi import Response
-from swarmauri_middleware_ratelimit.RateLimitMiddleware import RateLimitMiddleware
+from swarmauri_middleware_ratelimit.RateLimitMiddleware import (
+    RateLimitMiddleware,
+)
 
 
 @pytest.mark.unit
@@ -10,7 +12,9 @@ class TestRateLimitMiddleware:
     @pytest.fixture
     def middleware(self):
         """Fixture providing a RateLimitMiddleware instance."""
-        return RateLimitMiddleware(rate_limit=100, time_window=60, use_token=False)
+        return RateLimitMiddleware(
+            rate_limit=100, time_window=60, use_token=False
+        )
 
     def test_ubc_type(self, middleware):
         """Test that the middleware is of the correct type."""
@@ -23,7 +27,10 @@ class TestRateLimitMiddleware:
     def test_serialization(self, middleware):
         """"""
         serialized = middleware.model_dump_json()
-        assert RateLimitMiddleware.model_validate_json(serialized).id == middleware.id
+        assert (
+            RateLimitMiddleware.model_validate_json(serialized).id
+            == middleware.id
+        )
 
     def test_init(self, middleware):
         """Test that the middleware initializes with correct attributes."""
@@ -48,7 +55,9 @@ class TestRateLimitMiddleware:
             "Request",
             (),
             {
-                "headers": {token_header: expected_identifier} if use_token else {},
+                "headers": {token_header: expected_identifier}
+                if use_token
+                else {},
                 "client": type("Client", (), {"host": expected_identifier}),
             },
         )()
@@ -64,7 +73,9 @@ class TestRateLimitMiddleware:
         """Test that request is processed normally when rate limit is not exceeded."""
         # Mock request object
         request = type(
-            "Request", (), {"client": type("Client", (), {"host": "192.168.1.1"})}
+            "Request",
+            (),
+            {"client": type("Client", (), {"host": "192.168.1.1"})},
         )()
 
         # Mock call_next
@@ -83,7 +94,9 @@ class TestRateLimitMiddleware:
         """Test that 429 response is returned when rate limit is exceeded."""
         # Mock request object
         request = type(
-            "Request", (), {"client": type("Client", (), {"host": "192.168.1.1"})}
+            "Request",
+            (),
+            {"client": type("Client", (), {"host": "192.168.1.1"})},
         )()
 
         # Mock call_next

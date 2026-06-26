@@ -56,7 +56,11 @@ def llm_config(request):
         api_key=api_key,
         BASE_URL=base_url,
         name=default_model,
-        allowed_models=["gpt-3.5-turbo", "llama3-8b-8192", "claude-3-haiku-20240307"],
+        allowed_models=[
+            "gpt-3.5-turbo",
+            "llama3-8b-8192",
+            "claude-3-haiku-20240307",
+        ],
     )
 
     return {
@@ -213,7 +217,9 @@ async def test_apredict(llm_config, conversation):
     prediction = result.get_last().content
 
     assert isinstance(prediction, str)
-    assert "Paris" in prediction, f"Expected 'Paris' in async response from {provider}"
+    assert "Paris" in prediction, (
+        f"Expected 'Paris' in async response from {provider}"
+    )
     logging.info(f"Provider {provider} async response: {prediction}")
 
 
@@ -234,7 +240,9 @@ async def test_astream(llm_config, conversation):
 
     full_response = "".join(collected_tokens)
     assert len(full_response) > 0, f"Got empty async stream from {provider}"
-    assert "Paris" in full_response, f"Expected 'Paris' in async stream from {provider}"
+    assert "Paris" in full_response, (
+        f"Expected 'Paris' in async stream from {provider}"
+    )
 
 
 @timeout(20)
@@ -306,7 +314,9 @@ def test_json_response_format(llm_config):
 
     # Skip this test for providers that don't support JSON response format
     if provider == "Anthropic":
-        pytest.skip("Anthropic doesn't support JSON response format in the same way")
+        pytest.skip(
+            "Anthropic doesn't support JSON response format in the same way"
+        )
 
     conv = Conversation()
     conv.add_message(

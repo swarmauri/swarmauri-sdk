@@ -122,7 +122,9 @@ class GeminiEmbedding(EmbeddingBase):
             except httpx.HTTPError as e:
                 raise ValueError(f"Error calling Gemini AI API: {str(e)}")
             except (KeyError, ValueError) as e:
-                raise ValueError(f"Error processing Gemini AI API response: {str(e)}")
+                raise ValueError(
+                    f"Error processing Gemini AI API response: {str(e)}"
+                )
 
         return embeddings
 
@@ -139,13 +141,19 @@ class GeminiEmbedding(EmbeddingBase):
         return self.infer_vector(data)
 
     def save_model(self, path: str):
-        raise NotImplementedError("save_model is not applicable for Gemini embeddings")
+        raise NotImplementedError(
+            "save_model is not applicable for Gemini embeddings"
+        )
 
     def load_model(self, path: str):
-        raise NotImplementedError("load_model is not applicable for Gemini embeddings")
+        raise NotImplementedError(
+            "load_model is not applicable for Gemini embeddings"
+        )
 
     def fit(self, documents: List[str], labels=None):
-        raise NotImplementedError("fit is not applicable for Gemini embeddings")
+        raise NotImplementedError(
+            "fit is not applicable for Gemini embeddings"
+        )
 
     def fit_transform(self, documents: List[str], **kwargs):
         raise NotImplementedError(

@@ -216,7 +216,10 @@ def test_check_triangle_inequality(x_axis_projection, sample_points):
                 p1 = sample_points[i]
                 p2 = sample_points[j]
                 p3 = sample_points[k]
-                assert x_axis_projection.check_triangle_inequality(p1, p2, p3) is True
+                assert (
+                    x_axis_projection.check_triangle_inequality(p1, p2, p3)
+                    is True
+                )
 
 
 @pytest.mark.unit
@@ -251,9 +254,9 @@ def test_pseudometric_properties(x_axis_projection):
     # Property 2: d(x,y) = d(y,x) for all x,y
     for i, p1 in enumerate(points):
         for j, p2 in enumerate(points):
-            assert x_axis_projection.distance(p1, p2) == x_axis_projection.distance(
-                p2, p1
-            )
+            assert x_axis_projection.distance(
+                p1, p2
+            ) == x_axis_projection.distance(p2, p1)
 
     # Property 3: d(x,z) ≤ d(x,y) + d(y,z) for all x,y,z
     for p1 in points:

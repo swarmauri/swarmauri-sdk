@@ -13,7 +13,9 @@ class Factory(FactoryBase):
     type: Literal["Factory"] = "Factory"
     _resource_registry: Dict[str, Dict[str, Callable]] = {}
 
-    def register(self, resource: str, type: str, resource_class: Callable) -> None:
+    def register(
+        self, resource: str, type: str, resource_class: Callable
+    ) -> None:
         """
         Register a resource class under a specific resource.
         """
@@ -23,17 +25,23 @@ class Factory(FactoryBase):
             )
 
         if resource not in self._resource_registry:
-            self._resource_registry[resource] = get_classes_from_module(resource)
+            self._resource_registry[resource] = get_classes_from_module(
+                resource
+            )
 
         if type not in self._resource_registry[resource]:
             self._resource_registry[resource][type] = resource_class
 
-    def create(self, resource: str, type: str, *args: Any, **kwargs: Any) -> Any:
+    def create(
+        self, resource: str, type: str, *args: Any, **kwargs: Any
+    ) -> Any:
         """
         Create an instance of the class associated with the given resource and type.
         """
         if resource not in self._resource_registry:
-            self._resource_registry[resource] = get_classes_from_module(resource)
+            self._resource_registry[resource] = get_classes_from_module(
+                resource
+            )
 
         if type not in self._resource_registry[resource]:
             raise ValueError(

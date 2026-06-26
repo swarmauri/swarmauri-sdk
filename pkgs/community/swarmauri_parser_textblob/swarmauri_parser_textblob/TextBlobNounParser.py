@@ -28,7 +28,9 @@ class TextBlobNounParser(ParserBase):
             nltk.download("punkt_tab")
             super().__init__(**kwargs)
         except Exception as e:
-            raise RuntimeError(f"Failed to initialize NLTK resources: {str(e)}")
+            raise RuntimeError(
+                f"Failed to initialize NLTK resources: {str(e)}"
+            )
 
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
@@ -53,7 +55,9 @@ class TextBlobNounParser(ParserBase):
             noun_phrases = list(blob.noun_phrases)
 
             # Create document with extracted information
-            document = Document(content=data, metadata={"noun_phrases": noun_phrases})
+            document = Document(
+                content=data, metadata={"noun_phrases": noun_phrases}
+            )
 
             return [document]
         except Exception as e:

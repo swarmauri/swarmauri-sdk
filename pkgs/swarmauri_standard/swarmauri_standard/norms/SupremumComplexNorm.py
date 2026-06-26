@@ -34,7 +34,10 @@ class SupremumComplexNorm(NormBase):
     type: Literal["SupremumComplexNorm"] = "SupremumComplexNorm"
 
     def compute(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> complex:
         """
         Compute the supremum norm of the input.
@@ -71,7 +74,8 @@ class SupremumComplexNorm(NormBase):
 
                 # Convert all values to complex and compute absolute values
                 complex_values = [
-                    complex(val) if not isinstance(val, complex) else val for val in x
+                    complex(val) if not isinstance(val, complex) else val
+                    for val in x
                 ]
                 abs_values = [abs(val) for val in complex_values]
                 max_abs = max(abs_values)
@@ -113,10 +117,15 @@ class SupremumComplexNorm(NormBase):
 
         except Exception as e:
             logger.error(f"Error computing supremum complex norm: {str(e)}")
-            raise ValueError(f"Failed to compute supremum complex norm: {str(e)}")
+            raise ValueError(
+                f"Failed to compute supremum complex norm: {str(e)}"
+            )
 
     def check_non_negativity(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the norm satisfies the non-negativity property.
@@ -143,7 +152,10 @@ class SupremumComplexNorm(NormBase):
             return False
 
     def check_definiteness(
-        self, x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        self,
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the input is the zero vector.
@@ -190,8 +202,12 @@ class SupremumComplexNorm(NormBase):
 
     def check_triangle_inequality(
         self,
-        x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
-        y: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
+        y: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
     ) -> bool:
         """
         Check if the norm satisfies the triangle inequality.
@@ -218,7 +234,9 @@ class SupremumComplexNorm(NormBase):
                 and len(x) == len(y)
             ):
                 # For sequence types of the same length
-                x_plus_y = [complex(x[i]) + complex(y[i]) for i in range(len(x))]
+                x_plus_y = [
+                    complex(x[i]) + complex(y[i]) for i in range(len(x))
+                ]
             elif (
                 isinstance(x, np.ndarray)
                 and isinstance(y, np.ndarray)
@@ -266,7 +284,9 @@ class SupremumComplexNorm(NormBase):
 
     def check_absolute_homogeneity(
         self,
-        x: Union[VectorType, MatrixType, SequenceType, StringType, CallableType],
+        x: Union[
+            VectorType, MatrixType, SequenceType, StringType, CallableType
+        ],
         scalar: complex,
     ) -> bool:
         """
@@ -300,7 +320,9 @@ class SupremumComplexNorm(NormBase):
             elif hasattr(x, "to_array"):
                 # For vector or matrix types with to_array method
                 x_array = x.to_array()
-                scalar_times_x = [scalar_complex * complex(val) for val in x_array]
+                scalar_times_x = [
+                    scalar_complex * complex(val) for val in x_array
+                ]
             elif callable(x):
                 # For callable types, create a new callable that is the scaled function
                 def scaled_function(t):

@@ -26,7 +26,9 @@ def test_initialization(cipher_suite: JwaCipherSuite) -> None:
 
 @pytest.mark.unit
 def test_serialization(cipher_suite: JwaCipherSuite) -> None:
-    restored = JwaCipherSuite.model_validate_json(cipher_suite.model_dump_json())
+    restored = JwaCipherSuite.model_validate_json(
+        cipher_suite.model_dump_json()
+    )
     assert restored.id == cipher_suite.id
 
 
@@ -40,8 +42,24 @@ def test_suite_identifier(cipher_suite: JwaCipherSuite) -> None:
 def test_supports_expected_algorithms(cipher_suite: JwaCipherSuite) -> None:
     supports = cipher_suite.supports()
     assert supports == {
-        "sign": ("EdDSA", "PS256", "PS384", "PS512", "ES256", "ES384", "ES512"),
-        "verify": ("EdDSA", "PS256", "PS384", "PS512", "ES256", "ES384", "ES512"),
+        "sign": (
+            "EdDSA",
+            "PS256",
+            "PS384",
+            "PS512",
+            "ES256",
+            "ES384",
+            "ES512",
+        ),
+        "verify": (
+            "EdDSA",
+            "PS256",
+            "PS384",
+            "PS512",
+            "ES256",
+            "ES384",
+            "ES512",
+        ),
         "encrypt": ("A128GCM", "A192GCM", "A256GCM"),
         "decrypt": ("A128GCM", "A192GCM", "A256GCM"),
         "wrap": ("RSA-OAEP", "RSA-OAEP-256", "A256KW"),
@@ -73,7 +91,9 @@ def test_features_descriptor(cipher_suite: JwaCipherSuite) -> None:
 
     assert features["suite"] == "jwa"
     assert features["version"] == 1
-    assert features["constraints"] == {"aead": {"tagBits": 128, "nonceLen": 12}}
+    assert features["constraints"] == {
+        "aead": {"tagBits": 128, "nonceLen": 12}
+    }
 
     expected_jwa = sorted(
         {
@@ -115,7 +135,11 @@ def test_normalize_mapping_with_cose_id(cipher_suite: JwaCipherSuite) -> None:
     assert descriptor["op"] == "sign"
     assert descriptor["alg"] == "ES256"
     assert descriptor["dialect"] == "jwa"
-    assert descriptor["mapped"] == {"jwa": "ES256", "cose": -7, "provider": "ES256"}
+    assert descriptor["mapped"] == {
+        "jwa": "ES256",
+        "cose": -7,
+        "provider": "ES256",
+    }
     assert descriptor["constraints"] == {"minKeyBits": 0}
     assert descriptor["policy"] == {}
 
@@ -130,13 +154,17 @@ def test_normalize_applies_aead_defaults(cipher_suite: JwaCipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_derives_rsapss_saltbits(cipher_suite: JwaCipherSuite) -> None:
+def test_normalize_derives_rsapss_saltbits(
+    cipher_suite: JwaCipherSuite,
+) -> None:
     descriptor = cipher_suite.normalize(op="sign", alg="PS512")
 
     assert descriptor["params"]["saltBits"] == 512
 
 
 @pytest.mark.unit
-def test_normalize_rejects_unsupported_alg(cipher_suite: JwaCipherSuite) -> None:
+def test_normalize_rejects_unsupported_alg(
+    cipher_suite: JwaCipherSuite,
+) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="sign", alg="HS256")

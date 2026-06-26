@@ -74,7 +74,9 @@ def test_issue_basic():
     cert = x509.load_pem_x509_certificate(cert_bytes)
     assert cert.subject == cert.issuer
     assert (
-        cert.subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value
+        cert.subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[
+            0
+        ].value
         == "localhost"
     )
 
@@ -89,10 +91,16 @@ def test_tls_server_supports_ip_subject_alt_names() -> None:
     ).issue(keyref)
 
     cert = x509.load_pem_x509_certificate(cert_bytes)
-    san = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName).value
+    san = cert.extensions.get_extension_for_class(
+        x509.SubjectAlternativeName
+    ).value
 
-    assert ipaddress.ip_address("127.0.0.1") in san.get_values_for_type(x509.IPAddress)
-    assert ipaddress.ip_address("::1") in san.get_values_for_type(x509.IPAddress)
+    assert ipaddress.ip_address("127.0.0.1") in san.get_values_for_type(
+        x509.IPAddress
+    )
+    assert ipaddress.ip_address("::1") in san.get_values_for_type(
+        x509.IPAddress
+    )
 
 
 @pytest.mark.unit
@@ -117,7 +125,9 @@ def test_issue_supports_ip_name_constraints() -> None:
     ).issue(keyref)
 
     cert = x509.load_pem_x509_certificate(cert_bytes)
-    constraints = cert.extensions.get_extension_for_class(x509.NameConstraints).value
+    constraints = cert.extensions.get_extension_for_class(
+        x509.NameConstraints
+    ).value
 
     assert [name.value for name in constraints.permitted_subtrees] == [
         ipaddress.ip_network("10.0.0.0/24")

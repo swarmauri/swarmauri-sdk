@@ -60,7 +60,9 @@ def test_json_log_formatter_format_basic():
     record.levelname = "INFO"
     record.name = "test_logger"
     record.getMessage.return_value = "Test message"
-    record.created = datetime.datetime.now(tz=datetime.timezone.utc).timestamp()
+    record.created = datetime.datetime.now(
+        tz=datetime.timezone.utc
+    ).timestamp()
     record.exc_info = None
 
     # Format the record
@@ -87,7 +89,9 @@ def test_json_log_formatter_without_timestamp():
     record.levelname = "INFO"
     record.name = "test_logger"
     record.getMessage.return_value = "Test message"
-    record.created = datetime.datetime.now(tz=datetime.timezone.utc).timestamp()
+    record.created = datetime.datetime.now(
+        tz=datetime.timezone.utc
+    ).timestamp()
     record.exc_info = None
 
     # Format the record
@@ -111,11 +115,15 @@ def test_json_log_formatter_with_exception():
     record.levelname = "ERROR"
     record.name = "test_logger"
     record.getMessage.return_value = "Test error message"
-    record.created = datetime.datetime.now(tz=datetime.timezone.utc).timestamp()
+    record.created = datetime.datetime.now(
+        tz=datetime.timezone.utc
+    ).timestamp()
 
     # Mock the exception info and formatter method
     record.exc_info = (ValueError, ValueError("Test exception"), None)
-    formatter.formatException = MagicMock(return_value="Traceback: Test exception")
+    formatter.formatException = MagicMock(
+        return_value="Traceback: Test exception"
+    )
 
     # Format the record
     result = formatter.format(record)
@@ -139,7 +147,9 @@ def test_json_log_formatter_without_exception():
     record.levelname = "ERROR"
     record.name = "test_logger"
     record.getMessage.return_value = "Test error message"
-    record.created = datetime.datetime.now(tz=datetime.timezone.utc).timestamp()
+    record.created = datetime.datetime.now(
+        tz=datetime.timezone.utc
+    ).timestamp()
 
     # Mock the exception info
     record.exc_info = (ValueError, ValueError("Test exception"), None)
@@ -165,7 +175,9 @@ def test_json_log_formatter_with_custom_fields():
     record.levelname = "INFO"
     record.name = "test_logger"
     record.getMessage.return_value = "Test message"
-    record.created = datetime.datetime.now(tz=datetime.timezone.utc).timestamp()
+    record.created = datetime.datetime.now(
+        tz=datetime.timezone.utc
+    ).timestamp()
     record.exc_info = None
 
     # Add custom fields
@@ -203,7 +215,9 @@ def test_json_log_formatter_with_non_serializable_fields():
     record.levelname = "INFO"
     record.name = "test_logger"
     record.getMessage.return_value = "Test message"
-    record.created = datetime.datetime.now(tz=datetime.timezone.utc).timestamp()
+    record.created = datetime.datetime.now(
+        tz=datetime.timezone.utc
+    ).timestamp()
     record.exc_info = None
 
     # Add non-serializable field
@@ -236,7 +250,10 @@ def test_json_log_formatter_serialization_failure():
     # Mock json.dumps to raise an exception
     with patch(
         "json.dumps",
-        side_effect=[TypeError("Test serialization error"), '{"fallback": "message"}'],
+        side_effect=[
+            TypeError("Test serialization error"),
+            '{"fallback": "message"}',
+        ],
     ):
         result = formatter.format(record)
 
@@ -247,7 +264,8 @@ def test_json_log_formatter_serialization_failure():
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
-    "date_format", ["%Y-%m-%d %H:%M:%S", "%d/%m/%Y %H:%M:%S", "%m/%d/%Y %I:%M:%S %p"]
+    "date_format",
+    ["%Y-%m-%d %H:%M:%S", "%d/%m/%Y %H:%M:%S", "%m/%d/%Y %I:%M:%S %p"],
 )
 def test_json_log_formatter_with_different_date_formats(date_format):
     """Test that _JSONLogFormatter respects different date formats."""

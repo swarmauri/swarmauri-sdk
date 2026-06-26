@@ -1,7 +1,9 @@
 from typing import Any, Dict, Literal
 
 from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
-from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_base.schema_converters.SchemaConverterBase import (
+    SchemaConverterBase,
+)
 from swarmauri_base.tools.ToolBase import ToolBase
 
 

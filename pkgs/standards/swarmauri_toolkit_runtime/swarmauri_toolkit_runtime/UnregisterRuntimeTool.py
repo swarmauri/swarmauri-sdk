@@ -33,7 +33,9 @@ class UnregisterRuntimeTool(ToolBase):
         if self.toolkit is None:
             raise ValueError("toolkit is not configured")
         if tool_name in self.protected_tool_names:
-            raise ValueError(f"Tool '{tool_name}' is reserved by RuntimeToolkit")
+            raise ValueError(
+                f"Tool '{tool_name}' is reserved by RuntimeToolkit"
+            )
 
         self.toolkit.remove_tool(tool_name)
         return {

@@ -165,7 +165,9 @@ class IIndex(ABC):
     # --------------------- DISTANCE FUNCTION MANAGEMENT ---------------------
 
     @abstractmethod
-    def set_distance_function(self, distance_fn: Callable[[Any, Any], float]) -> None:
+    def set_distance_function(
+        self, distance_fn: Callable[[Any, Any], float]
+    ) -> None:
         """
         Update the distance/similarity metric used by the index.
         Not all index structures can adapt to a new distance function

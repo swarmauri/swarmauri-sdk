@@ -1,5 +1,7 @@
 import pytest
-from swarmauri_standard.tools.ColemanLiauIndexTool import ColemanLiauIndexTool as Tool
+from swarmauri_standard.tools.ColemanLiauIndexTool import (
+    ColemanLiauIndexTool as Tool,
+)
 
 
 @pytest.mark.unit
@@ -56,12 +58,16 @@ def test_call(input_text, expected_cli_score):
 
     L = (num_characters / num_words) * 100 if num_words else 0
     S = (num_sentences / num_words) * 100 if num_words else 0
-    expected_cli_score_calculated = 0.0588 * L - 0.296 * S - 15.8 if text else 0.0
+    expected_cli_score_calculated = (
+        0.0588 * L - 0.296 * S - 15.8 if text else 0.0
+    )
 
     expected_keys = {"coleman_liau_index"}
 
     result = tool(input_data)
-    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert isinstance(result, dict), (
+        f"Expected dict, but got {type(result).__name__}"
+    )
     assert expected_keys.issubset(result.keys()), (
         f"Expected keys {expected_keys} but got {result.keys()}"
     )

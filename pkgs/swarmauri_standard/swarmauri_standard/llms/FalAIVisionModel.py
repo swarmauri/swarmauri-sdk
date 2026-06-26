@@ -63,7 +63,9 @@ class FalAIVisionModel(LLMBase):
         "fal-ai/moondream-next",
         "fal-ai/moondream-next/batch",
     ]
-    api_key: SecretStr = Field(default_factory=lambda: os.environ.get("FAL_KEY"))
+    api_key: SecretStr = Field(
+        default_factory=lambda: os.environ.get("FAL_KEY")
+    )
     name: str = Field(default="fal-ai/got-ocr/v2")
 
     timeout: float = 600.0
@@ -112,7 +114,9 @@ class FalAIVisionModel(LLMBase):
         return response_data  # For immediate responses
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    async def _async_send_request(self, image_url: str, prompt: str, **kwargs) -> Dict:
+    async def _async_send_request(
+        self, image_url: str, prompt: str, **kwargs
+    ) -> Dict:
         """
         Send an asynchronous request to the vision model API for image processing.
 
@@ -126,13 +130,17 @@ class FalAIVisionModel(LLMBase):
         """
         url = f"{self._BASE_URL}/{self.name}"
         payload = {"image_url": image_url, "prompt": prompt, **kwargs}
-        async with httpx.AsyncClient(headers=self._headers, timeout=30) as client:
+        async with httpx.AsyncClient(
+            headers=self._headers, timeout=30
+        ) as client:
             response = await client.post(url, json=payload)
             response.raise_for_status()
             response_data = response.json()
         # Handle both immediate completion and queued scenarios
         if "request_id" in response_data:
-            return await self._async_wait_for_completion(response_data["request_id"])
+            return await self._async_wait_for_completion(
+                response_data["request_id"]
+            )
         return response_data  # For immediate responses
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -163,7 +171,9 @@ class FalAIVisionModel(LLMBase):
             Dict: The status response.
         """
         url = f"{self._BASE_URL}/{self.name}/requests/{request_id}/status"
-        async with httpx.AsyncClient(headers=self._headers, timeout=30) as client:
+        async with httpx.AsyncClient(
+            headers=self._headers, timeout=30
+        ) as client:
             response = await client.get(url)
             response.raise_for_status()
             return response.json()
@@ -193,7 +203,9 @@ class FalAIVisionModel(LLMBase):
                 async with httpx.AsyncClient(
                     headers=self._headers, timeout=30
                 ) as client:
-                    response = await client.get(status_data.get("response_url"))
+                    response = await client.get(
+                        status_data.get("response_url")
+                    )
                     response.raise_for_status()
                     return response.json()
             elif status_data.get("status") in ["IN_QUEUE", "IN_PROGRESS"]:
@@ -232,10 +244,14 @@ class FalAIVisionModel(LLMBase):
         Returns:
             str: The answer or result of the image processing.
         """
-        response_data = await self._async_send_request(image_url, prompt, **kwargs)
+        response_data = await self._async_send_request(
+            image_url, prompt, **kwargs
+        )
         return response_data.get("output", "")
 
-    def batch(self, image_urls: List[str], prompts: List[str], **kwargs) -> List[str]:
+    def batch(
+        self, image_urls: List[str], prompts: List[str], **kwargs
+    ) -> List[str]:
         """
         Process a batch of images and answer questions for each image synchronously.
 
@@ -285,7 +301,9 @@ class FalAIVisionModel(LLMBase):
         Returns:
             Any: _description_
         """
-        raise NotImplementedError("Stream is not supported for FalAIVisionModel")
+        raise NotImplementedError(
+            "Stream is not supported for FalAIVisionModel"
+        )
 
     async def astream(self, image_url: str, prompt: str, **kwargs) -> Any:
         """_summary_

@@ -34,7 +34,9 @@ async def test_sign_and_verify_bytes():
     payload = b"hello"
 
     sigs = await signer.sign_bytes(key_ref, payload)
-    assert await signer.verify_bytes(payload, sigs, opts={"pubkeys": [key.pubkey]})
+    assert await signer.verify_bytes(
+        payload, sigs, opts={"pubkeys": [key.pubkey]}
+    )
 
 
 @pytest.mark.asyncio

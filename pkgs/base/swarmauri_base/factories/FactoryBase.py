@@ -11,7 +11,9 @@ class FactoryBase(IFactory, ComponentBase):
     Base factory class for registering and creating instances.
     """
 
-    resource: Optional[str] = Field(default=ResourceTypes.FACTORY.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.FACTORY.value, frozen=True
+    )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["FactoryBase"] = "FactoryBase"
 

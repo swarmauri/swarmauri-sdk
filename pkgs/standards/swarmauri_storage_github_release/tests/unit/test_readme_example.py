@@ -49,10 +49,14 @@ def test_usage_example_executes(monkeypatch: pytest.MonkeyPatch) -> None:
     class DummyAsset:
         """Simple asset representation that cooperates with the adapter."""
 
-        def __init__(self, release: DummyRelease, name: str, data: bytes) -> None:  # type: ignore[name-defined]
+        def __init__(
+            self, release: DummyRelease, name: str, data: bytes
+        ) -> None:  # type: ignore[name-defined]
             self._release = release
             self.name = name
-            self.url = f"https://example.invalid/{release.repo.full_name}/{name}"
+            self.url = (
+                f"https://example.invalid/{release.repo.full_name}/{name}"
+            )
             requester.asset_payloads[self.url] = data
 
         def delete_asset(self) -> None:

@@ -89,5 +89,6 @@ def test_verify_and_parse_do_not_emit_naive_datetime_warnings() -> None:
     assert verification["valid"] is True
     assert parsed["subject"] == "CN=unit.test"
     assert not any(
-        issubclass(item.category, CryptographyDeprecationWarning) for item in caught
+        issubclass(item.category, CryptographyDeprecationWarning)
+        for item in caught
     )

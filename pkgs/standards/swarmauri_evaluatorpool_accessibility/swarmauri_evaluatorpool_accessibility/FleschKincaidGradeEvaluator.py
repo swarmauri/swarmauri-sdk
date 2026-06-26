@@ -23,7 +23,9 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
         type: The type identifier for this evaluator
     """
 
-    type: Literal["FleschKincaidGradeEvaluator"] = "FleschKincaidGradeEvaluator"
+    type: Literal["FleschKincaidGradeEvaluator"] = (
+        "FleschKincaidGradeEvaluator"
+    )
 
     # ------------------------------------------------------------------
     # public API
@@ -91,7 +93,9 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
         avg_syllables_per_word = syllables / words
 
         # Apply the FKGL formula: 0.39*(words/sentences) + 11.8*(syllables/words) - 15.59
-        fkgl_score = 0.39 * avg_sentence_length + 11.8 * avg_syllables_per_word - 15.59
+        fkgl_score = (
+            0.39 * avg_sentence_length + 11.8 * avg_syllables_per_word - 15.59
+        )
 
         # Ensure the score is not negative (which would be meaningless for grade levels)
         fkgl_score = float(max(0, fkgl_score))
@@ -128,7 +132,9 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
         try:
             source_files = program.get_source_files()
             if isinstance(source_files, dict):
-                return " ".join(self._stringify_value(v) for v in source_files.values())
+                return " ".join(
+                    self._stringify_value(v) for v in source_files.values()
+                )
         except Exception as exc:
             if self.logger:
                 self.logger.debug(f"Failed to obtain program text: {exc}")
@@ -267,11 +273,15 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
 
         # Silent 'e' at the end of words
         if word.endswith("e") and len(word) > 2 and word[-2] not in vowels:
-            count = max(1, count - 1)  # Reduce count but ensure at least 1 syllable
+            count = max(
+                1, count - 1
+            )  # Reduce count but ensure at least 1 syllable
 
         # Words ending in 'le' where the 'l' follows a consonant
         if len(word) > 2 and word.endswith("le") and word[-3] not in vowels:
-            count = max(1, count)  # Ensure proper counting for words like "simple"
+            count = max(
+                1, count
+            )  # Ensure proper counting for words like "simple"
 
         # Words ending in 'ed' often have a silent 'e'
         if word.endswith("ed") and len(word) > 2 and word[-3] not in vowels:

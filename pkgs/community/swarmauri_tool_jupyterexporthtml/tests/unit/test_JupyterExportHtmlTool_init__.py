@@ -33,5 +33,7 @@ class TestPackageInit:
         This test verifies that the __version__ attribute is correctly
         imported and is a non-empty string.
         """
-        assert isinstance(__version__, str), "Package __version__ should be a string."
+        assert isinstance(__version__, str), (
+            "Package __version__ should be a string."
+        )
         assert __version__, "Package __version__ should not be empty."

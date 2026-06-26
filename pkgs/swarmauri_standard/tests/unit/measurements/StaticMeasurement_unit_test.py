@@ -7,7 +7,10 @@ from swarmauri_standard.measurements.StaticMeasurement import (
 @pytest.mark.unit
 def test_ubc_resource():
     def test():
-        assert Measurement(unit="jar of honey", value=10).resource == "Measurement"
+        assert (
+            Measurement(unit="jar of honey", value=10).resource
+            == "Measurement"
+        )
 
     test()
 
@@ -39,6 +42,8 @@ def test_measurement_value():
 @pytest.mark.unit
 def test_measurement_unit():
     def test():
-        assert Measurement(unit="jar of honey", value=10).unit == "jar of honey"
+        assert (
+            Measurement(unit="jar of honey", value=10).unit == "jar of honey"
+        )
 
     test()

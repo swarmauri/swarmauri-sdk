@@ -45,7 +45,9 @@ def test_install_packages_warn_continues(monkeypatch, tmp_path, capsys):
 
     monkeypatch.setattr("zdx.cli.subprocess.run", fake_run)
 
-    failed = install_manifest_packages(str(manifest), failure_mode=FailureMode.WARN)
+    failed = install_manifest_packages(
+        str(manifest), failure_mode=FailureMode.WARN
+    )
 
     assert len(calls) == 2
     assert failed == {"pkg_one"}
@@ -59,7 +61,8 @@ def test_install_packages_fail_raises(monkeypatch, tmp_path):
     (pkg_dir / "pyproject.toml").write_text("")
 
     manifest = _write_manifest(
-        tmp_path, [{"name": "One", "search_path": str(pkg_dir), "package": "pkg_fail"}]
+        tmp_path,
+        [{"name": "One", "search_path": str(pkg_dir), "package": "pkg_fail"}],
     )
 
     def always_fail(cmd, cwd=None, check=False):
@@ -108,7 +111,9 @@ members = ["pkg_one"]
 
     monkeypatch.setattr("zdx.cli.subprocess.run", fake_run)
 
-    failed = install_manifest_packages(str(manifest), failure_mode=FailureMode.FAIL)
+    failed = install_manifest_packages(
+        str(manifest), failure_mode=FailureMode.FAIL
+    )
 
     assert len(calls) == 1
     assert calls[0][:3] == ["uv", "pip", "install"]
@@ -158,7 +163,9 @@ members = ["pkg_one"]
 
     monkeypatch.setattr("zdx.cli.subprocess.run", fake_run)
 
-    failed = install_manifest_packages(str(manifest), failure_mode=FailureMode.WARN)
+    failed = install_manifest_packages(
+        str(manifest), failure_mode=FailureMode.WARN
+    )
 
     assert len(calls) == 2
     assert calls[0][:3] == ["uv", "pip", "install"]
@@ -199,7 +206,9 @@ def test_run_gen_api_ignore_suppresses_warning(monkeypatch, capsys):
     assert "WARNING" not in output
 
 
-def test_run_gen_readmes_warn_reports_but_continues(monkeypatch, tmp_path, capsys):
+def test_run_gen_readmes_warn_reports_but_continues(
+    monkeypatch, tmp_path, capsys
+):
     def fake_run(cmd, cwd=None, check=False):
         assert cwd == str(tmp_path)
         return subprocess.CompletedProcess(cmd, 1)
@@ -222,7 +231,9 @@ def test_run_gen_readmes_fail_raises(monkeypatch, tmp_path):
         run_gen_readmes(docs_dir=str(tmp_path), failure_mode=FailureMode.FAIL)
 
 
-def test_run_mkdocs_build_warn_reports_but_continues(monkeypatch, tmp_path, capsys):
+def test_run_mkdocs_build_warn_reports_but_continues(
+    monkeypatch, tmp_path, capsys
+):
     def fake_run(cmd, cwd=None, check=False):
         assert cwd == str(tmp_path)
         return subprocess.CompletedProcess(cmd, 1)
@@ -245,7 +256,9 @@ def test_run_mkdocs_build_fail_raises(monkeypatch, tmp_path):
         run_mkdocs_build(docs_dir=str(tmp_path), failure_mode=FailureMode.FAIL)
 
 
-def test_run_mkdocs_serve_warn_reports_but_continues(monkeypatch, tmp_path, capsys):
+def test_run_mkdocs_serve_warn_reports_but_continues(
+    monkeypatch, tmp_path, capsys
+):
     def fake_run(cmd, cwd=None, check=False):
         assert cwd == str(tmp_path)
         return subprocess.CompletedProcess(cmd, 1)
@@ -304,4 +317,6 @@ def test_prune_failed_package_docs_removes_directories_and_nav(tmp_path):
     assert not api_dir.exists()
     updated = yaml.safe_load(mkdocs_path.read_text())
     api_nav = updated["nav"][0]["API Documentation"]
-    assert all("Base" not in entry for entry in api_nav if isinstance(entry, dict))
+    assert all(
+        "Base" not in entry for entry in api_nav if isinstance(entry, dict)
+    )

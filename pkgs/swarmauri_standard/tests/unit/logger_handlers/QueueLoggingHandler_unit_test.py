@@ -6,7 +6,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 
-from swarmauri_standard.logger_handlers.QueueLoggingHandler import QueueLoggingHandler
+from swarmauri_standard.logger_handlers.QueueLoggingHandler import (
+    QueueLoggingHandler,
+)
 
 
 @pytest.fixture
@@ -107,7 +109,9 @@ def test_compile_handler_formatter_object():
     """
     mock_formatter = MagicMock(spec=FormatterBase)
     mock_formatter.type = "FormatterBase"
-    mock_formatter.model_dump = MagicMock(return_value={"type": "FormatterBase"})
+    mock_formatter.model_dump = MagicMock(
+        return_value={"type": "FormatterBase"}
+    )
     mock_formatter.compile_formatter.return_value = logging.Formatter(
         "%(levelname)s: %(message)s"
     )

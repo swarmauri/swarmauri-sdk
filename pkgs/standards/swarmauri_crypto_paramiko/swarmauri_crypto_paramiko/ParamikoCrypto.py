@@ -140,7 +140,9 @@ class ParamikoCrypto(CryptoBase):
                 "KeyRef.material must contain symmetric key bytes for AEAD"
             )
         if len(key.material) not in (16, 24, 32):
-            raise ValueError("KeyRef.material must be 16/24/32 bytes for AES-GCM")
+            raise ValueError(
+                "KeyRef.material must be 16/24/32 bytes for AES-GCM"
+            )
 
         nonce = nonce or secrets.token_bytes(12)
         aead = AESGCM(key.material)
@@ -221,7 +223,9 @@ class ParamikoCrypto(CryptoBase):
         if alg != _SEAL_ALG:
             raise UnsupportedAlgorithm(f"Unsupported seal alg: {alg}")
         if recipient.public is None:
-            raise ValueError("KeyRef.public must contain OpenSSH RSA public key bytes")
+            raise ValueError(
+                "KeyRef.public must contain OpenSSH RSA public key bytes"
+            )
 
         rsa_pub = self._load_rsa_pub_ssh(recipient.public)
         self._seal_size_check(rsa_pub, len(pt))
@@ -469,7 +473,9 @@ class ParamikoCrypto(CryptoBase):
                 "KeyRef.material must contain symmetric key bytes for AES-GCM wrap"
             )
         if len(kek.material) not in (16, 24, 32):
-            raise ValueError("KeyRef.material must be 16/24/32 bytes for AES-GCM")
+            raise ValueError(
+                "KeyRef.material must be 16/24/32 bytes for AES-GCM"
+            )
         if dek is None:
             dek = secrets.token_bytes(32)
         nonce = nonce or secrets.token_bytes(12)
@@ -528,7 +534,9 @@ class ParamikoCrypto(CryptoBase):
 
         alg = self._normalize_aead_alg(wrapped.wrap_alg)
         if alg != _AEAD_DEFAULT:
-            raise UnsupportedAlgorithm(f"Unsupported wrap_alg: {wrapped.wrap_alg}")
+            raise UnsupportedAlgorithm(
+                f"Unsupported wrap_alg: {wrapped.wrap_alg}"
+            )
         if kek.material is None:
             raise ValueError(
                 "KeyRef.material must contain symmetric key bytes for AES-GCM unwrap"

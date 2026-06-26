@@ -77,7 +77,10 @@ class JupyterDisplayHtmlTool(ToolBase):
             display(HTML(html_content))
 
             logger.info("HTML content displayed successfully.")
-            return {"status": "success", "message": "HTML displayed successfully."}
+            return {
+                "status": "success",
+                "message": "HTML displayed successfully.",
+            }
         except Exception as e:
             error_msg = f"An error occurred while displaying HTML: {str(e)}"
             logger.error(error_msg)

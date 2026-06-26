@@ -30,7 +30,9 @@ class Neo4jVectorStore(
     def __init__(self, **data):
         super().__init__(**data)
 
-        self._driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))
+        self._driver = GraphDatabase.driver(
+            self.uri, auth=(self.user, self.password)
+        )
         self._initialize_schema()
 
     def _initialize_schema(self):
@@ -197,7 +199,9 @@ class Neo4jVectorStore(
                 ORDER BY distance ASC
                 LIMIT $top_k
             """
-            results = session.run(cypher_query, input_text=input_text, top_k=top_k)
+            results = session.run(
+                cypher_query, input_text=input_text, top_k=top_k
+            )
 
             documents = []
             for record in results:

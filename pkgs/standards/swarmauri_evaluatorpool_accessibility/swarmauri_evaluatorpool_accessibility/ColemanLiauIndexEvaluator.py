@@ -34,7 +34,9 @@ class ColemanLiauIndexEvaluator(EvaluatorBase, ComponentBase):
     # ──────────────────────────────────────────────────────────────────────
     # Core scoring logic
     # ──────────────────────────────────────────────────────────────────────
-    def _compute_score(self, program: Program, **__) -> Tuple[float, Dict[str, Any]]:
+    def _compute_score(
+        self, program: Program, **__
+    ) -> Tuple[float, Dict[str, Any]]:
         text = self._get_text_from_program(program)
 
         if not text.strip():
@@ -110,14 +112,18 @@ class ColemanLiauIndexEvaluator(EvaluatorBase, ComponentBase):
             if isinstance(val, str):
                 return val
             if isinstance(val, dict):
-                joined = "\n".join(v for v in val.values() if isinstance(v, str))
+                joined = "\n".join(
+                    v for v in val.values() if isinstance(v, str)
+                )
                 if joined.strip():
                     return joined
 
         if hasattr(program, "get_source_files"):
             files = program.get_source_files()
             if isinstance(files, dict):
-                joined = "\n".join(v for v in files.values() if isinstance(v, str))
+                joined = "\n".join(
+                    v for v in files.values() if isinstance(v, str)
+                )
                 if joined.strip():
                     return joined
 

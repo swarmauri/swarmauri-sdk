@@ -43,7 +43,9 @@ class IEvaluatorPool(ABC):
         pass
 
     @abstractmethod
-    def add_evaluator(self, evaluator: IEvaluate, name: Optional[str] = None) -> str:
+    def add_evaluator(
+        self, evaluator: IEvaluate, name: Optional[str] = None
+    ) -> str:
         """
         Add an evaluator to the pool.
 
@@ -74,7 +76,9 @@ class IEvaluatorPool(ABC):
         pass
 
     @abstractmethod
-    def evaluate(self, programs: Sequence[IProgram], **kwargs) -> Sequence[IEvalResult]:
+    def evaluate(
+        self, programs: Sequence[IProgram], **kwargs
+    ) -> Sequence[IEvalResult]:
         """
         Evaluate all programs with all registered evaluators.
 

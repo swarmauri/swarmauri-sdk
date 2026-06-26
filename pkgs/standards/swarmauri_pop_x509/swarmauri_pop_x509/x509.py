@@ -39,14 +39,20 @@ class X509PoPVerifier(PopVerifierBase):
         keys,
         extras: Mapping[str, object],
     ) -> None:
-        self._enforce_bind_type(cnf, context.policy, expected=BindType.X5T_S256)
+        self._enforce_bind_type(
+            cnf, context.policy, expected=BindType.X5T_S256
+        )
 
         cert_bytes = extras.get("peer_cert_der")
         if cert_bytes is None:
-            raise PoPParseError("peer_cert_der extra is required for X.509 PoP")
+            raise PoPParseError(
+                "peer_cert_der extra is required for X.509 PoP"
+            )
         if not isinstance(cert_bytes, (bytes, bytearray)):
             raise PoPParseError("peer_cert_der must be bytes")
 
         thumb = sha256_b64u(bytes(cert_bytes))
         if thumb != cnf.value_b64u:
-            raise PoPBindingError("mTLS certificate thumbprint does not match cnf")
+            raise PoPBindingError(
+                "mTLS certificate thumbprint does not match cnf"
+            )

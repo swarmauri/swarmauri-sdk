@@ -123,7 +123,9 @@ class TriangleCosineSimilarity(SimilarityBase):
             return similarity
 
         except Exception as e:
-            logger.error(f"Error calculating triangle cosine similarity: {str(e)}")
+            logger.error(
+                f"Error calculating triangle cosine similarity: {str(e)}"
+            )
             raise
 
     def similarities(
@@ -223,7 +225,9 @@ class TriangleCosineSimilarity(SimilarityBase):
             # Simply use 1 - similarity since our measure is bounded [0, 1]
             return 1.0 - self.similarity(x, y)
         except Exception as e:
-            logger.error(f"Error calculating triangle cosine dissimilarity: {str(e)}")
+            logger.error(
+                f"Error calculating triangle cosine dissimilarity: {str(e)}"
+            )
             raise
 
     def check_bounded(self) -> bool:

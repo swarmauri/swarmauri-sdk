@@ -13,7 +13,9 @@ class GithubStorageAdapter(StorageAdapterBase):
         super().__init__(**kwargs)
         self.kwargs = kwargs
 
-    def upload(self, key: str, data: BinaryIO) -> str:  # pragma: no cover - stub
+    def upload(
+        self, key: str, data: BinaryIO
+    ) -> str:  # pragma: no cover - stub
         return f"github://{key}"
 
     def download(self, key: str) -> BinaryIO:  # pragma: no cover - stub
@@ -29,10 +31,14 @@ class GithubStorageAdapter(StorageAdapterBase):
     ) -> None:  # pragma: no cover - stub
         raise NotImplementedError("download_dir() not implemented")
 
-    async def remove_object(self, object_key: str) -> None:  # pragma: no cover - stub
+    async def remove_object(
+        self, object_key: str
+    ) -> None:  # pragma: no cover - stub
         del object_key
         return
 
     @classmethod
-    def from_uri(cls, uri: str) -> "GithubStorageAdapter":  # pragma: no cover - stub
+    def from_uri(
+        cls, uri: str
+    ) -> "GithubStorageAdapter":  # pragma: no cover - stub
         return cls()

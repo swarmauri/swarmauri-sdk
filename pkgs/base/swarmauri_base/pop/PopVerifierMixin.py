@@ -81,7 +81,9 @@ class PopVerifierMixin(IPopVerifier, BaseModel):
     ) -> None:
         extras = extras or {}
         header_value = self._extract_proof(req)
-        htm, htu = canon_htm_htu(req.method, req.url, include_query=policy.htu_exact)
+        htm, htu = canon_htm_htu(
+            req.method, req.url, include_query=policy.htu_exact
+        )
         context = RequestContext(method=htm, htu=htu, policy=policy)
         await self._verify_core(
             header_value,
@@ -156,7 +158,9 @@ class PopVerifierMixin(IPopVerifier, BaseModel):
     ) -> None:
         if policy.require_ath:
             if not ath_claim:
-                raise PoPVerificationError("Access-token hash (ath) required by policy")
+                raise PoPVerificationError(
+                    "Access-token hash (ath) required by policy"
+                )
             access_token = extras.get("access_token")
             if access_token is None:
                 raise PoPVerificationError(
@@ -191,7 +195,9 @@ class PopVerifierMixin(IPopVerifier, BaseModel):
 class PopVerifierBase(PopVerifierMixin, ComponentBase):
     """Component base for PoP verifiers."""
 
-    resource: Optional[str] = Field(default=ResourceTypes.CRYPTO.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.CRYPTO.value, frozen=True
+    )
     type: str = "PopVerifierBase"
 
 

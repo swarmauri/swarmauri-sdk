@@ -63,7 +63,9 @@ class JupyterExecuteCellTool(ToolBase):
         ]
     )
     name: str = "JupyterExecuteCellTool"
-    description: str = "Executes code cells within a Jupyter kernel environment."
+    description: str = (
+        "Executes code cells within a Jupyter kernel environment."
+    )
     type: Literal["JupyterExecuteCellTool"] = "JupyterExecuteCellTool"
 
     @staticmethod
@@ -75,7 +77,9 @@ class JupyterExecuteCellTool(ToolBase):
 
         return get_ipython()
 
-    def __call__(self, code: str, timeout: Optional[int] = 30) -> Dict[str, str]:
+    def __call__(
+        self, code: str, timeout: Optional[int] = 30
+    ) -> Dict[str, str]:
         """
         Executes the provided code cell in a Jupyter kernel with a specified timeout.
 
@@ -128,12 +132,17 @@ class JupyterExecuteCellTool(ToolBase):
             stderr_buffer = io.StringIO()
 
             try:
-                with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
+                with (
+                    redirect_stdout(stdout_buffer),
+                    redirect_stderr(stderr_buffer),
+                ):
                     # Execute the cell in IPython with store_history=True so that it behaves
                     # like a normal code cell in a notebook environment.
                     ip.run_cell(cell_code, store_history=True)
             except Exception as exc:
-                logger.error("An exception occurred while executing the cell: %s", exc)
+                logger.error(
+                    "An exception occurred while executing the cell: %s", exc
+                )
                 stderr_value = stderr_buffer.getvalue()
                 if not stderr_value:
                     stderr_value = str(exc)
@@ -157,7 +166,9 @@ class JupyterExecuteCellTool(ToolBase):
                 logger.info("Cell executed successfully.")
                 return result
             except concurrent.futures.TimeoutError:
-                logger.error("Cell execution exceeded timeout of %s seconds.", timeout)
+                logger.error(
+                    "Cell execution exceeded timeout of %s seconds.", timeout
+                )
                 return {
                     "stdout": "",
                     "stderr": "",
@@ -171,7 +182,9 @@ class JupyterExecuteCellTool(ToolBase):
                     "error": f"An unexpected error occurred: {str(exc)}",
                 }
 
-    def execute_cell(self, code: str, timeout: Optional[int] = 30) -> Dict[str, str]:
+    def execute_cell(
+        self, code: str, timeout: Optional[int] = 30
+    ) -> Dict[str, str]:
         """
         Executes the provided code cell using the tool's execution logic.
 

@@ -24,6 +24,8 @@ async def test_encrypt_decrypt_roundtrip():
         {"kind": "keyring_client", "client": DummyKeyring("a")},
         {"kind": "keyring_client", "client": DummyKeyring("b")},
     ]
-    env = await crypto.encrypt_for_many(keyrings, b"secret", opts={"quorum_k": 2})
+    env = await crypto.encrypt_for_many(
+        keyrings, b"secret", opts={"quorum_k": 2}
+    )
     pt = await crypto.open_for_many(keyrings, env)
     assert pt == b"secret"

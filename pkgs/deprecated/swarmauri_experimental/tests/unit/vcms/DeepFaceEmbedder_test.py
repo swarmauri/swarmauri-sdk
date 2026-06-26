@@ -15,7 +15,10 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
     dfe = DeepFaceEmbedder()
-    assert dfe.id == DeepFaceEmbedder.model_validate_json(dfe.model_dump_json()).id
+    assert (
+        dfe.id
+        == DeepFaceEmbedder.model_validate_json(dfe.model_dump_json()).id
+    )
 
 
 @pytest.mark.unit

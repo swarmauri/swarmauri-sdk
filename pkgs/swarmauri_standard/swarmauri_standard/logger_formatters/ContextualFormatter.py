@@ -76,7 +76,10 @@ class ContextualFormatter(FormatterBase):
         Args:
             key: The name of the context key to add
         """
-        if key not in self.context_keys and key not in self.custom_context_keys:
+        if (
+            key not in self.context_keys
+            and key not in self.custom_context_keys
+        ):
             self.custom_context_keys.append(key)
 
 

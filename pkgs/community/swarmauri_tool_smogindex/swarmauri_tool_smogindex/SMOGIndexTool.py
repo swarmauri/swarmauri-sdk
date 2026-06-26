@@ -58,7 +58,9 @@ class SMOGIndexTool(ToolBase):
         if sentences == 0:
             return 0.0  # Avoid division by zero
 
-        smog_index = 1.0430 * math.sqrt(polysyllables * (30 / sentences)) + 3.1291
+        smog_index = (
+            1.0430 * math.sqrt(polysyllables * (30 / sentences)) + 3.1291
+        )
         return round(smog_index, 1)
 
     def count_sentences(self, text: str) -> int:

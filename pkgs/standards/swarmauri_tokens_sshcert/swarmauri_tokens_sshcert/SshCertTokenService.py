@@ -43,7 +43,9 @@ _SSH_CERT_PREFIXES = (
 
 _FINGERPRINT_RE = re.compile(r"SHA256:([A-Za-z0-9+/=]+)")
 _SIGNED_BY_RE = re.compile(r"Signed by .* \(SHA256:([A-Za-z0-9+/=]+)\)")
-_VALID_AFTER_RE = re.compile(r"Valid:\s+from\s+([0-9-:TZ ]+)\s+to\s+([0-9-:TZ ]+)")
+_VALID_AFTER_RE = re.compile(
+    r"Valid:\s+from\s+([0-9-:TZ ]+)\s+to\s+([0-9-:TZ ]+)"
+)
 _PRINCIPALS_RE = re.compile(r"Principals:\s+(.+)")
 _KEY_ID_RE = re.compile(r"Key ID:\s+(.+)")
 _SERIAL_RE = re.compile(r"Serial:\s+(\d+)")
@@ -59,10 +61,14 @@ def _require_ssh_keygen() -> None:
             check=False,
         )
     except FileNotFoundError:  # pragma: no cover
-        raise RuntimeError("ssh-keygen not found on PATH; install OpenSSH client tools")
+        raise RuntimeError(
+            "ssh-keygen not found on PATH; install OpenSSH client tools"
+        )
 
 
-def _write_temp(data: Union[str, bytes], *, mode: int = 0o600, suffix: str = "") -> str:
+def _write_temp(
+    data: Union[str, bytes], *, mode: int = 0o600, suffix: str = ""
+) -> str:
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
     try:
         if isinstance(data, str):
@@ -93,10 +99,14 @@ def _fp_of_public(pub_text: str) -> str:
         pub.flush()
         pub_path = pub.name
     try:
-        out = subprocess.check_output(["ssh-keygen", "-lf", pub_path], text=True)
+        out = subprocess.check_output(
+            ["ssh-keygen", "-lf", pub_path], text=True
+        )
         m = _FINGERPRINT_RE.search(out)
         if not m:
-            raise RuntimeError("Failed to parse fingerprint from ssh-keygen -lf output")
+            raise RuntimeError(
+                "Failed to parse fingerprint from ssh-keygen -lf output"
+            )
         return m.group(1)
     finally:
         _del(pub_path)
@@ -219,9 +229,13 @@ class SshCertTokenService(TokenServiceBase):
         scope: Optional[str] = None,
     ) -> str:
         _require_ssh_keygen()
-        subj_pub: str = claims.get("subject_pub") or claims.get("subject_public")
+        subj_pub: str = claims.get("subject_pub") or claims.get(
+            "subject_public"
+        )
         if not isinstance(subj_pub, str) or not subj_pub.strip():
-            raise ValueError("claims['subject_pub'] (OpenSSH public key) is required")
+            raise ValueError(
+                "claims['subject_pub'] (OpenSSH public key) is required"
+            )
         if not subj_pub.strip().endswith("\n"):
             subj_pub = subj_pub.strip() + "\n"
 
@@ -238,9 +252,13 @@ class SshCertTokenService(TokenServiceBase):
         if params.cert_type not in ("user", "host"):
             raise ValueError("claims['cert_type'] must be 'user' or 'host'")
         if not params.principals:
-            raise ValueError("claims['principals'] is required and must be non-empty")
+            raise ValueError(
+                "claims['principals'] is required and must be non-empty"
+            )
 
-        ca_ref = await self._kp.get_key(self._ca_kid, self._ca_ver, include_secret=True)
+        ca_ref = await self._kp.get_key(
+            self._ca_kid, self._ca_ver, include_secret=True
+        )
         if not ca_ref.material:
             raise RuntimeError(
                 "CA private key material is not exportable under current policy"
@@ -254,7 +272,9 @@ class SshCertTokenService(TokenServiceBase):
             else subj_pub_path + "-cert.pub"
         )
 
-        v_spec = _format_validity_v_spec(params.valid_after, params.valid_before)
+        v_spec = _format_validity_v_spec(
+            params.valid_after, params.valid_before
+        )
         if not (params.valid_after and params.valid_before) and lifetime_s:
             if lifetime_s % 60 == 0:
                 v_spec = f"+{int(lifetime_s / 60)}m"
@@ -270,7 +290,11 @@ class SshCertTokenService(TokenServiceBase):
             "-V",
             v_spec,
             "-z",
-            str(params.serial if params.serial is not None else int(time.time())),
+            str(
+                params.serial
+                if params.serial is not None
+                else int(time.time())
+            ),
         ]
 
         if params.cert_type == "user":
@@ -296,7 +320,9 @@ class SshCertTokenService(TokenServiceBase):
             subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True)
             cert_line = _read_file(cert_out_path).decode("utf-8").strip()
             if not any(cert_line.startswith(p) for p in _SSH_CERT_PREFIXES):
-                raise RuntimeError("Unexpected certificate format from ssh-keygen")
+                raise RuntimeError(
+                    "Unexpected certificate format from ssh-keygen"
+                )
             return cert_line
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"ssh-keygen failed: {e.output.strip()}") from e
@@ -337,7 +363,9 @@ class SshCertTokenService(TokenServiceBase):
 
         try:
             out = subprocess.check_output(
-                ["ssh-keygen", "-Lf", cert_path], text=True, stderr=subprocess.STDOUT
+                ["ssh-keygen", "-Lf", cert_path],
+                text=True,
+                stderr=subprocess.STDOUT,
             )
         except subprocess.CalledProcessError as e:
             _del(cert_path)

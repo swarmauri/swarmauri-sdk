@@ -44,10 +44,13 @@ class TestExceptionHandlingMiddleware:
         return async_mock
 
     @pytest.mark.parametrize(
-        "test_case", [(200, "Success response"), (500, "Internal Server Error")]
+        "test_case",
+        [(200, "Success response"), (500, "Internal Server Error")],
     )
     @pytest.mark.asyncio  # Add asyncio marker
-    async def test_dispatch(self, mock_request, mock_call_next, test_case, middleware):
+    async def test_dispatch(
+        self, mock_request, mock_call_next, test_case, middleware
+    ):
         """Test the dispatch method under different scenarios."""
         # Setup mock_call_next to return a response
         mock_response = Response()
@@ -93,7 +96,9 @@ class TestExceptionHandlingMiddleware:
     async def test_call_method(self, mock_request, mocker):
         """Test the __call__ method."""
         mock_dispatch = mocker.patch.object(
-            ExceptionHandlingMiddleware, "dispatch", new_callable=mocker.AsyncMock
+            ExceptionHandlingMiddleware,
+            "dispatch",
+            new_callable=mocker.AsyncMock,
         )
 
         middleware = ExceptionHandlingMiddleware()

@@ -109,7 +109,8 @@ def test_union_factory_with_annotation_extenders():
     custom_metadata2 = CustomMetadata("extra2")
 
     factory = UnionFactory(
-        get_types_by_class, annotation_extenders=[custom_metadata1, custom_metadata2]
+        get_types_by_class,
+        annotation_extenders=[custom_metadata1, custom_metadata2],
     )
     result = factory[A]
 
@@ -138,7 +139,9 @@ def test_add_metadata_to_bare_type():
 def test_add_metadata_to_annotated_type():
     """Test _add_metadata method with an already Annotated type"""
     factory = UnionFactory(get_types_by_class)
-    base_type = Annotated[str, CustomMetadata("first"), CustomMetadata("second")]
+    base_type = Annotated[
+        str, CustomMetadata("first"), CustomMetadata("second")
+    ]
     new_metadata = CustomMetadata("third")
 
     # Add another metadata to existing Annotated type

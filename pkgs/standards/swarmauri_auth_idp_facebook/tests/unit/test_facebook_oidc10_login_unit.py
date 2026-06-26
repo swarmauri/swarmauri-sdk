@@ -79,7 +79,11 @@ async def test_exchange_returns_claims(
 
     def fake_decode_id_token(id_token: str, *, jwks, issuer):
         assert id_token == "encoded"
-        return {"sub": "user-id", "email": "user@example.com", "name": "Example"}
+        return {
+            "sub": "user-id",
+            "email": "user@example.com",
+            "name": "Example",
+        }
 
     monkeypatch.setattr(login, "_metadata", fake_metadata)
     monkeypatch.setattr(login, "_token_request", fake_token_request)

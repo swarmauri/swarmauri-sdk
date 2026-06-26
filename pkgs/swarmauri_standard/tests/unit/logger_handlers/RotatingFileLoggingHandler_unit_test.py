@@ -93,7 +93,9 @@ def test_compile_handler_creates_directory(temp_log_file):
     assert os.path.exists(log_dir)
 
     # Clean up
-    shutil.rmtree(log_dir)  # Use rmtree instead of rmdir in case files were created
+    shutil.rmtree(
+        log_dir
+    )  # Use rmtree instead of rmdir in case files were created
 
 
 @pytest.mark.unit
@@ -135,7 +137,9 @@ def test_compile_handler_with_formatter_object():
     # Create a mock formatter
     mock_formatter = MagicMock(spec=FormatterBase)
     mock_formatter.type = "FormatterBase"  # Must be exactly "FormatterBase"
-    mock_formatter.model_dump = MagicMock(return_value={"type": "FormatterBase"})
+    mock_formatter.model_dump = MagicMock(
+        return_value={"type": "FormatterBase"}
+    )
     mock_formatter.compile_formatter.return_value = logging.Formatter(
         "%(levelname)s: %(message)s"
     )
@@ -145,15 +149,22 @@ def test_compile_handler_with_formatter_object():
 
     # Verify the formatter was called and set correctly
     mock_formatter.compile_formatter.assert_called_once()
-    assert compiled_handler.formatter == mock_formatter.compile_formatter.return_value
+    assert (
+        compiled_handler.formatter
+        == mock_formatter.compile_formatter.return_value
+    )
 
 
 @pytest.mark.unit
-def test_compile_handler_uses_default_formatter_when_none_specified(temp_log_file):
+def test_compile_handler_uses_default_formatter_when_none_specified(
+    temp_log_file,
+):
     """
     Tests that compile_handler sets a default formatter when none is specified.
     """
-    handler = RotatingFileLoggingHandler(filename=temp_log_file, formatter=None)
+    handler = RotatingFileLoggingHandler(
+        filename=temp_log_file, formatter=None
+    )
     compiled_handler = handler.compile_handler()
 
     assert isinstance(compiled_handler.formatter, logging.Formatter)
@@ -177,7 +188,9 @@ def test_serialization():
     json_data = original_handler.model_dump_json()
 
     # Deserialize from JSON
-    deserialized_handler = RotatingFileLoggingHandler.model_validate_json(json_data)
+    deserialized_handler = RotatingFileLoggingHandler.model_validate_json(
+        json_data
+    )
 
     # Check that the deserialized handler has the same attributes
     assert deserialized_handler.level == original_handler.level
@@ -190,7 +203,9 @@ def test_serialization():
 @patch(
     "swarmauri_standard.logger_handlers.RotatingFileLoggingHandler.RotatingFileHandler"
 )
-def test_handler_initialization_parameters(mock_rotating_handler, temp_log_file):
+def test_handler_initialization_parameters(
+    mock_rotating_handler, temp_log_file
+):
     """
     Tests that the correct parameters are passed to RotatingFileHandler.
     """

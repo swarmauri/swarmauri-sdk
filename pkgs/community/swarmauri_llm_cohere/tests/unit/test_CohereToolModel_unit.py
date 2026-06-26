@@ -88,7 +88,9 @@ def test_default_name(cohere_tool_model):
 def test_agent_exec(cohere_tool_model, toolkit, conversation, model_name):
     cohere_tool_model.name = model_name
 
-    agent = ToolAgent(llm=cohere_tool_model, conversation=conversation, toolkit=toolkit)
+    agent = ToolAgent(
+        llm=cohere_tool_model, conversation=conversation, toolkit=toolkit
+    )
     result = agent.exec("Add 512+671")
     assert isinstance(result, str)
 
@@ -99,7 +101,9 @@ def test_agent_exec(cohere_tool_model, toolkit, conversation, model_name):
 def test_predict(cohere_tool_model, toolkit, conversation, model_name):
     cohere_tool_model.name = model_name
 
-    conversation = cohere_tool_model.predict(conversation=conversation, toolkit=toolkit)
+    conversation = cohere_tool_model.predict(
+        conversation=conversation, toolkit=toolkit
+    )
     logging.info(conversation.get_last().content)
 
     assert type(conversation.get_last().content) is str
@@ -112,7 +116,9 @@ def test_stream(cohere_tool_model, toolkit, conversation, model_name):
     cohere_tool_model.name = model_name
 
     collected_tokens = []
-    for token in cohere_tool_model.stream(conversation=conversation, toolkit=toolkit):
+    for token in cohere_tool_model.stream(
+        conversation=conversation, toolkit=toolkit
+    ):
         assert isinstance(token, str)
         collected_tokens.append(token)
 
@@ -130,10 +136,14 @@ def test_batch(cohere_tool_model, toolkit, model_name):
     conversations = []
     for prompt in ["20+20", "100+50", "500+500"]:
         conv = Conversation()
-        conv.add_message(HumanMessage(content=[{"type": "text", "text": prompt}]))
+        conv.add_message(
+            HumanMessage(content=[{"type": "text", "text": prompt}])
+        )
         conversations.append(conv)
 
-    results = cohere_tool_model.batch(conversations=conversations, toolkit=toolkit)
+    results = cohere_tool_model.batch(
+        conversations=conversations, toolkit=toolkit
+    )
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)

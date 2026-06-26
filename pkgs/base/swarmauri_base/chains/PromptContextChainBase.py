@@ -9,12 +9,20 @@ from swarmauri_base.chains.ChainContextBase import ChainContextBase
 from swarmauri_base.prompts.PromptMatrixBaseBase import PromptMatrixBase
 from swarmauri_base.agents.AgentBase import AgentBase
 
-from swarmauri_core.chains.IChainDependencyResolver import IChainDependencyResolver
-from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase, ResourceTypes
+from swarmauri_core.chains.IChainDependencyResolver import (
+    IChainDependencyResolver,
+)
+from swarmauri_base.ComponentBase import (
+    SubclassUnion,
+    ComponentBase,
+    ResourceTypes,
+)
 
 
 @ComponentBase.register_model()
-class PromptContextChainBase(IChainDependencyResolver, ChainContextBase, ComponentBase):
+class PromptContextChainBase(
+    IChainDependencyResolver, ChainContextBase, ComponentBase
+):
     prompt_matrix: PromptMatrixBase
     agents: List[SubclassUnion[AgentBase]] = Field(default_factory=list)
     context: Dict[str, Any] = Field(default_factory=dict)
@@ -87,7 +95,9 @@ class PromptContextChainBase(IChainDependencyResolver, ChainContextBase, Compone
         # get the unformatted version
         unformatted_system_context = agent.system_context
         # use the formatted version
-        agent.system_context = agent.system_context.content.format(**self.context)
+        agent.system_context = agent.system_context.content.format(
+            **self.context
+        )
         response = agent.exec(formatted_prompt, model_kwargs=self.model_kwargs)
         # reset back to the unformatted version
         agent.system_context = unformatted_system_context
@@ -116,7 +126,9 @@ class PromptContextChainBase(IChainDependencyResolver, ChainContextBase, Compone
         # This regex looks for the pattern '_Step_' followed by one or more digits.
         match = re.search(r"_Step_(\d+)_", ref)
         if match:
-            return int(match.group(1))  # Convert the extracted digits to an integer
+            return int(
+                match.group(1)
+            )  # Convert the extracted digits to an integer
         else:
             return None  # If no match is found, return None
 

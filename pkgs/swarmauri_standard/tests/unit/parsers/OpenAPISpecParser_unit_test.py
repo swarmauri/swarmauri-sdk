@@ -1,5 +1,7 @@
 import pytest
-from swarmauri_standard.parsers.OpenAPISpecParser import OpenAPISpecParser as Parser
+from swarmauri_standard.parsers.OpenAPISpecParser import (
+    OpenAPISpecParser as Parser,
+)
 
 
 @pytest.mark.unit

@@ -29,7 +29,9 @@ class PersistentChromaDBVectorStore(
     VectorStorePersistentMixin,
     VectorStoreBase,
 ):
-    type: Literal["PersistentChromaDBVectorStore"] = "PersistentChromaDBVectorStore"
+    type: Literal["PersistentChromaDBVectorStore"] = (
+        "PersistentChromaDBVectorStore"
+    )
 
     def __init__(self, **kwargs):
         """
@@ -80,7 +82,9 @@ class PersistentChromaDBVectorStore(
         if not document.embedding:
             self._embedder.fit([document.content])  # Fit only once
             embedding = (
-                self._embedder.transform([document.content])[0].to_numpy().tolist()
+                self._embedder.transform([document.content])[0]
+                .to_numpy()
+                .tolist()
             )
         else:
             embedding = document.embedding
@@ -105,10 +109,15 @@ class PersistentChromaDBVectorStore(
         metadatas = [doc.metadata for doc in documents]
         if metadatas[0]:
             self.collection.add(
-                ids=ids, documents=texts, embeddings=embeddings, metadatas=metadatas
+                ids=ids,
+                documents=texts,
+                embeddings=embeddings,
+                metadatas=metadatas,
             )
         else:
-            self.collection.add(ids=ids, documents=texts, embeddings=embeddings)
+            self.collection.add(
+                ids=ids, documents=texts, embeddings=embeddings
+            )
 
     def get_document(self, doc_id: str) -> Union[Document, None]:
         results = self.collection.get(ids=[doc_id])
@@ -143,7 +152,9 @@ class PersistentChromaDBVectorStore(
         # Precompute the embedding outside the update process
         if not updated_document.embedding:
             # Transform without refitting to avoid vocabulary issues
-            document_vector = self._embedder.transform([updated_document.content])[0]
+            document_vector = self._embedder.transform(
+                [updated_document.content]
+            )[0]
         else:
             document_vector = updated_document.embedding
 
@@ -175,7 +186,9 @@ class PersistentChromaDBVectorStore(
                 id=results["ids"][0][idx],
                 content=results["documents"][0][idx],
                 metadata=(
-                    results["metadatas"][0][idx] if results["metadatas"][0][idx] else {}
+                    results["metadatas"][0][idx]
+                    if results["metadatas"][0][idx]
+                    else {}
                 ),
             )
             for idx in range(len(results["ids"][0]))

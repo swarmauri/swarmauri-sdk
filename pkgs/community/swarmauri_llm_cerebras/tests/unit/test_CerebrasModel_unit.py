@@ -106,7 +106,9 @@ def test_stream(cerebras_model, model_name):
     model = cerebras_model
     model.name = model_name
     conversation = Conversation()
-    conversation.add_message(HumanMessage(content="Write a short story about a cat."))
+    conversation.add_message(
+        HumanMessage(content="Write a short story about a cat.")
+    )
 
     collected_tokens = []
     for token in model.stream(conversation=conversation):
@@ -161,7 +163,9 @@ async def test_astream(cerebras_model, model_name):
     model = cerebras_model
     model.name = model_name
     conversation = Conversation()
-    conversation.add_message(HumanMessage(content="Write a short story about a dog."))
+    conversation.add_message(
+        HumanMessage(content="Write a short story about a dog.")
+    )
 
     collected_tokens = []
     async for token in model.astream(conversation=conversation):

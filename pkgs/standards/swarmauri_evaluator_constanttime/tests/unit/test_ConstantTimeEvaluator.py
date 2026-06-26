@@ -30,7 +30,9 @@ def test_serialization() -> None:
     evaluator = ConstantTimeEvaluator()
     assert (
         evaluator.id
-        == ConstantTimeEvaluator.model_validate_json(evaluator.model_dump_json()).id
+        == ConstantTimeEvaluator.model_validate_json(
+            evaluator.model_dump_json()
+        ).id
     )
 
 

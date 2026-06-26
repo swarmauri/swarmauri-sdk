@@ -47,7 +47,9 @@ def test_default_attributes() -> None:
     "swarmauri_tool_jupyterexecutenotebook.JupyterExecuteNotebookTool.NotebookClient"
 )
 def test_call_executes_notebook(
-    mock_notebook_client: MagicMock, mock_nbformat_read: MagicMock, mock_file: MagicMock
+    mock_notebook_client: MagicMock,
+    mock_nbformat_read: MagicMock,
+    mock_file: MagicMock,
 ) -> None:
     """
     Test that calling the tool with valid arguments executes the notebook
@@ -74,7 +76,9 @@ def test_call_executes_notebook(
 @patch("nbformat.read")
 @patch("nbclient.NotebookClient")
 def test_call_cell_execution_error(
-    mock_notebook_client: MagicMock, mock_nbformat_read: MagicMock, mock_file: MagicMock
+    mock_notebook_client: MagicMock,
+    mock_nbformat_read: MagicMock,
+    mock_file: MagicMock,
 ) -> None:
     """
     Test that a CellExecutionError raised during notebook execution is logged
@@ -102,7 +106,9 @@ def test_call_cell_execution_error(
 @patch("nbformat.read")
 @patch("nbclient.NotebookClient")
 def test_call_unexpected_exception(
-    mock_notebook_client: MagicMock, mock_nbformat_read: MagicMock, mock_file: MagicMock
+    mock_notebook_client: MagicMock,
+    mock_nbformat_read: MagicMock,
+    mock_file: MagicMock,
 ) -> None:
     """
     Test that an unexpected exception during notebook execution is logged

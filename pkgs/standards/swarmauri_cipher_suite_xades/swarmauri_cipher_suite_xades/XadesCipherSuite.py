@@ -30,7 +30,9 @@ class XadesCipherSuite(CipherSuiteBase):
     def supports(self) -> Mapping[CipherOp, Iterable[Alg]]:
         return {"sign": _SIG, "verify": _SIG}
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         return "RSA-PSS-SHA256"
 
     def features(self) -> Features:
@@ -39,7 +41,9 @@ class XadesCipherSuite(CipherSuiteBase):
             "version": 1,
             "dialects": {"xmlsig": list(_SIG)},
             "constraints": {"canonicalization": list(_C14N)},
-            "ops": {"sign": {"default": "RSA-PSS-SHA256", "allowed": list(_SIG)}},
+            "ops": {
+                "sign": {"default": "RSA-PSS-SHA256", "allowed": list(_SIG)}
+            },
             "compliance": {"fips": False},
         }
 

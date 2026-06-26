@@ -12,7 +12,9 @@ class MinimalCertService(CertServiceBase):
     async def create_csr(self, key: KeyRef, subject: SubjectSpec, **kw):
         return b"csr"
 
-    async def create_self_signed(self, key: KeyRef, subject: SubjectSpec, **kw):
+    async def create_self_signed(
+        self, key: KeyRef, subject: SubjectSpec, **kw
+    ):
         return b"cert"
 
     async def sign_cert(self, csr, ca_key, **kw):

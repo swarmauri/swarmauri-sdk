@@ -106,7 +106,8 @@ def test_preamble_system_context(openai_reason_model):
 
     model.name = "o1-mini"
     with pytest.raises(
-        ValueError, match="System messages are not allowed for models other than 'o1'."
+        ValueError,
+        match="System messages are not allowed for models other than 'o1'.",
     ):
         model.predict(conversation=conversation)
         prediction = conversation.get_last().content

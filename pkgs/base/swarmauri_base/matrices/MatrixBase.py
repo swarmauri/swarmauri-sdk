@@ -51,7 +51,9 @@ class MatrixBase(IMatrix, ComponentBase):
         )
 
     def __setitem__(
-        self, key: Index, value: Union["IMatrix", IVector, T, Sequence[Sequence[T]]]
+        self,
+        key: Index,
+        value: Union["IMatrix", IVector, T, Sequence[Sequence[T]]],
     ) -> None:
         """
         Set an element, row, column, or submatrix using indexing/slicing.
@@ -110,7 +112,9 @@ class MatrixBase(IMatrix, ComponentBase):
         NotImplementedError
             This method must be implemented by subclasses
         """
-        raise NotImplementedError("reshape must be implemented by a concrete subclass")
+        raise NotImplementedError(
+            "reshape must be implemented by a concrete subclass"
+        )
 
     @property
     def dtype(self) -> type:
@@ -145,7 +149,9 @@ class MatrixBase(IMatrix, ComponentBase):
         NotImplementedError
             This method must be implemented by subclasses
         """
-        raise NotImplementedError("tolist must be implemented by a concrete subclass")
+        raise NotImplementedError(
+            "tolist must be implemented by a concrete subclass"
+        )
 
     def row(self, index: int) -> IVector:
         """
@@ -166,7 +172,9 @@ class MatrixBase(IMatrix, ComponentBase):
         NotImplementedError
             This method must be implemented by subclasses
         """
-        raise NotImplementedError("row must be implemented by a concrete subclass")
+        raise NotImplementedError(
+            "row must be implemented by a concrete subclass"
+        )
 
     def column(self, index: int) -> IVector:
         """
@@ -187,7 +195,9 @@ class MatrixBase(IMatrix, ComponentBase):
         NotImplementedError
             This method must be implemented by subclasses
         """
-        raise NotImplementedError("column must be implemented by a concrete subclass")
+        raise NotImplementedError(
+            "column must be implemented by a concrete subclass"
+        )
 
     def __add__(self, other: Union["IMatrix", T]) -> "IMatrix":
         """
@@ -208,7 +218,9 @@ class MatrixBase(IMatrix, ComponentBase):
         NotImplementedError
             This method must be implemented by subclasses
         """
-        raise NotImplementedError("__add__ must be implemented by a concrete subclass")
+        raise NotImplementedError(
+            "__add__ must be implemented by a concrete subclass"
+        )
 
     def __sub__(self, other: Union["IMatrix", T]) -> "IMatrix":
         """
@@ -229,7 +241,9 @@ class MatrixBase(IMatrix, ComponentBase):
         NotImplementedError
             This method must be implemented by subclasses
         """
-        raise NotImplementedError("__sub__ must be implemented by a concrete subclass")
+        raise NotImplementedError(
+            "__sub__ must be implemented by a concrete subclass"
+        )
 
     def __mul__(self, other: Union["IMatrix", T]) -> "IMatrix":
         """
@@ -250,7 +264,9 @@ class MatrixBase(IMatrix, ComponentBase):
         NotImplementedError
             This method must be implemented by subclasses
         """
-        raise NotImplementedError("__mul__ must be implemented by a concrete subclass")
+        raise NotImplementedError(
+            "__mul__ must be implemented by a concrete subclass"
+        )
 
     def __matmul__(self, other: "IMatrix") -> "IMatrix":
         """
@@ -312,7 +328,9 @@ class MatrixBase(IMatrix, ComponentBase):
         NotImplementedError
             This method must be implemented by subclasses
         """
-        raise NotImplementedError("__neg__ must be implemented by a concrete subclass")
+        raise NotImplementedError(
+            "__neg__ must be implemented by a concrete subclass"
+        )
 
     def __eq__(self, other: object) -> bool:
         """
@@ -333,7 +351,9 @@ class MatrixBase(IMatrix, ComponentBase):
         NotImplementedError
             This method must be implemented by subclasses
         """
-        raise NotImplementedError("__eq__ must be implemented by a concrete subclass")
+        raise NotImplementedError(
+            "__eq__ must be implemented by a concrete subclass"
+        )
 
     def __iter__(self) -> Iterator[IVector]:
         """
@@ -349,7 +369,9 @@ class MatrixBase(IMatrix, ComponentBase):
         NotImplementedError
             This method must be implemented by subclasses
         """
-        raise NotImplementedError("__iter__ must be implemented by a concrete subclass")
+        raise NotImplementedError(
+            "__iter__ must be implemented by a concrete subclass"
+        )
 
     def transpose(self) -> "IMatrix":
         """

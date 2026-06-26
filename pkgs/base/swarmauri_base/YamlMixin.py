@@ -22,7 +22,9 @@ class YamlMixin(BaseModel):
         except ValidationError as e:
             raise ValueError(f"Validation failed: {e}")
 
-    def model_dump_yaml(self, fields_to_exclude=None, api_key_placeholder=None):
+    def model_dump_yaml(
+        self, fields_to_exclude=None, api_key_placeholder=None
+    ):
         """Return a YAML representation of the model."""
         if fields_to_exclude is None:
             fields_to_exclude = []
@@ -44,7 +46,9 @@ class YamlMixin(BaseModel):
                     if key not in fields_to_exclude
                 }
             elif isinstance(data, list):
-                return [process_fields(item, fields_to_exclude) for item in data]
+                return [
+                    process_fields(item, fields_to_exclude) for item in data
+                ]
             else:
                 return data
 

@@ -31,7 +31,11 @@ class OktaOIDCLoginMixin(OktaOAuthLoginMixin):
             response.raise_for_status()
             jwks = response.json()
         key_entry = next(
-            (entry for entry in jwks.get("keys", []) if entry.get("kid") == kid),
+            (
+                entry
+                for entry in jwks.get("keys", [])
+                if entry.get("kid") == kid
+            ),
             None,
         )
         if not key_entry:

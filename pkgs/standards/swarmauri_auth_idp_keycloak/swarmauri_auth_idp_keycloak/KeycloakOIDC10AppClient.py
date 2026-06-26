@@ -47,7 +47,10 @@ class KeycloakOIDC10AppClient(OIDC10AppClientBase):
             response.raise_for_status()
             payload: Mapping[str, Any] = response.json()
         if self.discovery_cache_ttl_seconds > 0:
-            self._discovery_cache = (payload, now + self.discovery_cache_ttl_seconds)
+            self._discovery_cache = (
+                payload,
+                now + self.discovery_cache_ttl_seconds,
+            )
         return payload
 
     async def _fetch_token(self, scope: Optional[str]) -> Tuple[str, float]:

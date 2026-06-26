@@ -90,7 +90,10 @@ class Program(ProgramBase):
                 if key not in other_content:
                     content_diff[key] = {"old": value, "new": None}
                 elif other_content[key] != value:
-                    content_diff[key] = {"old": value, "new": other_content[key]}
+                    content_diff[key] = {
+                        "old": value,
+                        "new": other_content[key],
+                    }
 
             # Find added keys
             for key, value in other_content.items():
@@ -166,10 +169,15 @@ class Program(ProgramBase):
         Returns:
             True if the program is valid, False otherwise
         """
-        logger.info(f"Validating {self._program_type} program with ID {self.id}")
+        logger.info(
+            f"Validating {self._program_type} program with ID {self.id}"
+        )
 
         # Check for required metadata
-        if "program_id" not in self.metadata or self.metadata["program_id"] != self.id:
+        if (
+            "program_id" not in self.metadata
+            or self.metadata["program_id"] != self.id
+        ):
             logger.error("Program ID mismatch or missing in metadata")
             return False
 

@@ -9,7 +9,9 @@ class IVectorProduct(ABC):
     """
 
     @abstractmethod
-    def dot_product(self, vector_a: List[float], vector_b: List[float]) -> float:
+    def dot_product(
+        self, vector_a: List[float], vector_b: List[float]
+    ) -> float:
         """
         Calculate the dot product of two vectors.
 
@@ -40,7 +42,10 @@ class IVectorProduct(ABC):
 
     @abstractmethod
     def vector_triple_product(
-        self, vector_a: List[float], vector_b: List[float], vector_c: List[float]
+        self,
+        vector_a: List[float],
+        vector_b: List[float],
+        vector_c: List[float],
     ) -> List[float]:
         """
         Calculate the vector triple product of three vectors.
@@ -57,7 +62,10 @@ class IVectorProduct(ABC):
 
     @abstractmethod
     def scalar_triple_product(
-        self, vector_a: List[float], vector_b: List[float], vector_c: List[float]
+        self,
+        vector_a: List[float],
+        vector_b: List[float],
+        vector_c: List[float],
     ) -> float:
         """
         Calculate the scalar triple product of three vectors.

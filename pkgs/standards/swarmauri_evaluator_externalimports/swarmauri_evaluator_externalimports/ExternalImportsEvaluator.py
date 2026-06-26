@@ -48,7 +48,8 @@ class ExternalImportsEvaluator(EvaluatorBase):
         """
         # Get all standard library modules
         self.standard_modules = {
-            module.name for module in pkgutil.iter_modules(sys.stdlib_module_names)
+            module.name
+            for module in pkgutil.iter_modules(sys.stdlib_module_names)
         }
 
         # Add built-in modules
@@ -153,7 +154,9 @@ class ExternalImportsEvaluator(EvaluatorBase):
                                     "module": name.name,
                                     "alias": name.asname,
                                     "line": node.lineno,
-                                    "is_standard": self._is_standard_module(name.name),
+                                    "is_standard": self._is_standard_module(
+                                        name.name
+                                    ),
                                     "type": "import",
                                 }
                             )
@@ -171,7 +174,9 @@ class ExternalImportsEvaluator(EvaluatorBase):
                                     "name": name.name,
                                     "alias": name.asname,
                                     "line": node.lineno,
-                                    "is_standard": self._is_standard_module(module),
+                                    "is_standard": self._is_standard_module(
+                                        module
+                                    ),
                                     "type": "importfrom",
                                 }
                             )
@@ -211,7 +216,9 @@ class ExternalImportsEvaluator(EvaluatorBase):
                 if file.endswith(".py"):
                     python_files.append(os.path.join(root, file))
 
-        logger.info(f"Analyzing {len(python_files)} Python files for external imports")
+        logger.info(
+            f"Analyzing {len(python_files)} Python files for external imports"
+        )
 
         # Extract imports from all files
         all_imports = []
@@ -243,7 +250,9 @@ class ExternalImportsEvaluator(EvaluatorBase):
             elif imp["type"] == "importfrom":
                 # Extract the base module name for "from" statements
                 module_name = (
-                    imp["parent_module"].split(".")[0] if imp["parent_module"] else ""
+                    imp["parent_module"].split(".")[0]
+                    if imp["parent_module"]
+                    else ""
                 )
                 if module_name:
                     unique_external_modules.add(module_name)

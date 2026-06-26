@@ -89,7 +89,9 @@ def _keyref_to_ec_private(key: KeyRef) -> ec.EllipticCurvePrivateKey:
             if isinstance(data, str):
                 data = data.encode("utf-8")
             if not isinstance(data, (bytes, bytearray)):
-                raise TypeError("KeyRef 'pem' expects 'priv' or 'data' bytes/str.")
+                raise TypeError(
+                    "KeyRef 'pem' expects 'priv' or 'data' bytes/str."
+                )
             password = key.get("password")
             if isinstance(password, str):
                 password = password.encode("utf-8")
@@ -99,7 +101,8 @@ def _keyref_to_ec_private(key: KeyRef) -> ec.EllipticCurvePrivateKey:
 
 def _public_key_id_ec(pk: ec.EllipticCurvePublicKey) -> str:
     spki = pk.public_bytes(
-        serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo
+        serialization.Encoding.DER,
+        serialization.PublicFormat.SubjectPublicKeyInfo,
     )
     return hashlib.sha256(spki).hexdigest()
 
@@ -212,7 +215,9 @@ class EcdsaEnvelopeSigner(SigningBase):
             )
         sig_der = sk.sign(payload, ec.ECDSA(h))
         kid = _public_key_id_ec(sk.public_key())
-        return [_Sig({"alg": token, "kid": kid, "sig": sig_der, "sigfmt": "DER"})]
+        return [
+            _Sig({"alg": token, "kid": kid, "sig": sig_der, "sigfmt": "DER"})
+        ]
 
     async def verify_bytes(
         self,
@@ -284,7 +289,9 @@ class EcdsaEnvelopeSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            digest, signatures, require=require, opts=opts
+        )
 
     async def canonicalize_envelope(
         self,
@@ -321,7 +328,9 @@ class EcdsaEnvelopeSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         payload = await self.canonicalize_envelope(env, canon=canon, opts=opts)
-        return await self.verify_bytes(payload, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            payload, signatures, require=require, opts=opts
+        )
 
 
 def _raw_lengths_for_curve(curve: ec.EllipticCurve) -> set[int]:

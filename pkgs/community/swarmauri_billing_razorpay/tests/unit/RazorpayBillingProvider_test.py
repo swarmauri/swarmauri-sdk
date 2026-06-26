@@ -41,4 +41,7 @@ def test_serialization():
         key_id="rzp_key",
         key_secret="rzp_secret",
     )
-    assert provider.id == Provider.model_validate_json(provider.model_dump_json()).id
+    assert (
+        provider.id
+        == Provider.model_validate_json(provider.model_dump_json()).id
+    )

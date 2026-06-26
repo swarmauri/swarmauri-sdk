@@ -6,7 +6,9 @@ from swarmauri_toolkit_runtime.InspectRuntimeTool import InspectRuntimeTool
 from swarmauri_toolkit_runtime.ListRuntimeTools import ListRuntimeTools
 from swarmauri_toolkit_runtime.RegisterRuntimeTool import RegisterRuntimeTool
 from swarmauri_toolkit_runtime.ReplaceRuntimeTool import ReplaceRuntimeTool
-from swarmauri_toolkit_runtime.UnregisterRuntimeTool import UnregisterRuntimeTool
+from swarmauri_toolkit_runtime.UnregisterRuntimeTool import (
+    UnregisterRuntimeTool,
+)
 from swarmauri_toolkit_runtime._dynamic_runtime_tool import DynamicRuntimeTool
 from swarmauri_toolkit_runtime._tool_factory import build_tool_from_spec
 
@@ -70,7 +72,9 @@ def test_runtime_add_get_update_remove_runtime_tool(addition_tool_spec):
     assert create_result["tool"]["__call__"] == '{"sum": str(x + y)}'
     assert "runtime_kind" not in create_result["tool"]
 
-    get_result = toolkit.get_tool_by_name("InspectRuntimeTool")("RuntimeAdditionTool")
+    get_result = toolkit.get_tool_by_name("InspectRuntimeTool")(
+        "RuntimeAdditionTool"
+    )
     assert get_result["tool"]["name"] == "RuntimeAdditionTool"
     assert get_result["tool_type"] == "RuntimeAdditionTool"
     assert get_result["tool"]["__call__"] == '{"sum": str(x + y)}'
@@ -112,7 +116,9 @@ def test_runtime_add_get_update_remove_runtime_tool(addition_tool_spec):
         },
     )
     assert update_result["status"] == "updated"
-    assert toolkit.get_tool_by_name("RuntimeAdditionToolV2")(4, 7) == {"sum": "12"}
+    assert toolkit.get_tool_by_name("RuntimeAdditionToolV2")(4, 7) == {
+        "sum": "12"
+    }
 
     delete_result = toolkit.get_tool_by_name("UnregisterRuntimeTool")(
         "RuntimeAdditionToolV2"
@@ -127,7 +133,9 @@ def test_runtime_rejects_reserved_tool_mutation(addition_tool_spec):
     toolkit = RuntimeToolkit()
 
     with pytest.raises(ValueError, match="reserved"):
-        toolkit.get_tool_by_name("UnregisterRuntimeTool")("RegisterRuntimeTool")
+        toolkit.get_tool_by_name("UnregisterRuntimeTool")(
+            "RegisterRuntimeTool"
+        )
 
     with pytest.raises(ValueError, match="reserved"):
         toolkit.get_tool_by_name("RegisterRuntimeTool")(
@@ -168,7 +176,9 @@ def test_runtime_rejects_registration_without_call_source(addition_tool_spec):
 def test_runtime_rejects_unsafe_call_source(addition_tool_spec):
     toolkit = RuntimeToolkit()
 
-    with pytest.raises(ValueError, match="unsafe syntax|approved builtins|disallowed"):
+    with pytest.raises(
+        ValueError, match="unsafe syntax|approved builtins|disallowed"
+    ):
         toolkit.get_tool_by_name("RegisterRuntimeTool")(
             {
                 **addition_tool_spec,
@@ -222,12 +232,16 @@ def test_runtime_returns_safe_error_for_runtime_failure(addition_tool_spec):
 
 
 @pytest.mark.unit
-def test_runtime_returns_safe_error_for_base_exception(monkeypatch, addition_tool_spec):
+def test_runtime_returns_safe_error_for_base_exception(
+    monkeypatch, addition_tool_spec
+):
     def crash():
         raise SystemExit("blocked exit")
 
     monkeypatch.setitem(
-        DynamicRuntimeTool.__call__.__globals__["SAFE_BUILTINS"], "crash", crash
+        DynamicRuntimeTool.__call__.__globals__["SAFE_BUILTINS"],
+        "crash",
+        crash,
     )
 
     toolkit = RuntimeToolkit()
@@ -330,8 +344,13 @@ def test_list_runtime_tools_serializes_registered_tool(addition_tool_spec):
     result = toolkit.get_tool_by_name("ListRuntimeTools")()
 
     assert "RuntimeAdditionTool" in result["tool_names"]
-    assert result["tools"]["RuntimeAdditionTool"]["type"] == "RuntimeAdditionTool"
-    assert result["tools"]["RuntimeAdditionTool"]["__call__"] == '{"sum": str(x + y)}'
+    assert (
+        result["tools"]["RuntimeAdditionTool"]["type"] == "RuntimeAdditionTool"
+    )
+    assert (
+        result["tools"]["RuntimeAdditionTool"]["__call__"]
+        == '{"sum": str(x + y)}'
+    )
     assert "runtime_kind" not in result["tools"]["RuntimeAdditionTool"]
 
 
@@ -352,7 +371,9 @@ def test_replace_runtime_tool_rejects_missing_tool(addition_tool_spec):
 
 
 @pytest.mark.unit
-def test_replace_runtime_tool_rejects_reserved_replacement_name(addition_tool_spec):
+def test_replace_runtime_tool_rejects_reserved_replacement_name(
+    addition_tool_spec,
+):
     toolkit = RuntimeToolkit()
     register_addition_tool(toolkit, addition_tool_spec)
 

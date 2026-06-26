@@ -39,7 +39,8 @@ def test_ubc_type(tool_agent):
 @pytest.mark.unit
 def test_serialization(tool_agent):
     assert (
-        tool_agent.id == ToolAgent.model_validate_json(tool_agent.model_dump_json()).id
+        tool_agent.id
+        == ToolAgent.model_validate_json(tool_agent.model_dump_json()).id
     )
 
 

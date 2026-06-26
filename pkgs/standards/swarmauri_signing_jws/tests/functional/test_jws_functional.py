@@ -39,7 +39,11 @@ async def _run() -> bool:
         require_any=[JWAAlg.HS256, JWAAlg.HS512],
         min_signers=2,
     )
-    return accepted == 2 and out_payload == b'{"msg":"func"}' and bad_accepted == 0
+    return (
+        accepted == 2
+        and out_payload == b'{"msg":"func"}'
+        and bad_accepted == 0
+    )
 
 
 def test_jws_general_functional() -> None:

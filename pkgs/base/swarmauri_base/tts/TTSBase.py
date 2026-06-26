@@ -9,7 +9,9 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 @ComponentBase.register_model()
 class TTSBase(IPredict, ComponentBase):
     allowed_models: List[str] = []
-    resource: Optional[str] = Field(default=ResourceTypes.TTS.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.TTS.value, frozen=True
+    )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["TTSBase"] = "TTSBase"
 
@@ -43,7 +45,9 @@ class TTSBase(IPredict, ComponentBase):
             ValueError: If the model is not in the allowed models list.
         """
         if model not in self.allowed_models:
-            raise ValueError(f"Model '{model}' is not in the allowed models list.")
+            raise ValueError(
+                f"Model '{model}' is not in the allowed models list."
+            )
         self.allowed_models.remove(model)
 
     @abstractmethod
@@ -52,7 +56,9 @@ class TTSBase(IPredict, ComponentBase):
 
     @abstractmethod
     async def apredict(self, *args, **kwargs):
-        raise NotImplementedError("apredict() not implemented in subclass yet.")
+        raise NotImplementedError(
+            "apredict() not implemented in subclass yet."
+        )
 
     @abstractmethod
     def stream(self, *args, **kwargs):

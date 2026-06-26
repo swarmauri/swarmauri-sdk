@@ -6,7 +6,8 @@ import pytest
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,9 @@ def test_version_attribute():
         "Package __version__ is not a string"
     )
 
-    logger.info(f"Package version: {swarmauri_evaluator_subprocess.__version__}")
+    logger.info(
+        f"Package version: {swarmauri_evaluator_subprocess.__version__}"
+    )
 
 
 @pytest.mark.i9n
@@ -65,7 +68,9 @@ def test_subprocess_evaluator_import():
     """
     try:
         # Test direct import from package
-        from swarmauri_evaluator_subprocess import SubprocessEvaluator as evaluator
+        from swarmauri_evaluator_subprocess import (
+            SubprocessEvaluator as evaluator,
+        )
 
         logger.info(
             f"Successfully imported SubprocessEvaluator from package - {evaluator}"

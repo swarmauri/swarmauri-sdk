@@ -118,7 +118,9 @@ class HTTPLoggingHandler(HandlerBase):
                             headers=headers,
                         )
                     else:  # POST
-                        headers["Content-type"] = "application/x-www-form-urlencoded"
+                        headers["Content-type"] = (
+                            "application/x-www-form-urlencoded"
+                        )
                         connection.request(
                             "POST",
                             self.url,

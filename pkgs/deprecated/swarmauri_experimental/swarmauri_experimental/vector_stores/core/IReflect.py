@@ -8,7 +8,9 @@ class IReflect(ABC):
     """
 
     @abstractmethod
-    def reflect_vector(self, vector: List[float], normal: List[float]) -> List[float]:
+    def reflect_vector(
+        self, vector: List[float], normal: List[float]
+    ) -> List[float]:
         """
         Reflects a vector across a plane or axis defined by a normal vector.
 

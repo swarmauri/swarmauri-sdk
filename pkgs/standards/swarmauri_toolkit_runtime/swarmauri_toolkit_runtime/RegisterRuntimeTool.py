@@ -14,9 +14,7 @@ from ._tool_factory import build_tool_from_spec
 class RegisterRuntimeTool(ToolBase):
     version: str = "0.1.0"
     name: str = "RegisterRuntimeTool"
-    description: str = (
-        "Create a tool from a serialized tool spec and add it to the active toolkit."
-    )
+    description: str = "Create a tool from a serialized tool spec and add it to the active toolkit."
     type: Literal["RegisterRuntimeTool"] = "RegisterRuntimeTool"
     toolkit: ToolkitBase | None = Field(default=None, exclude=True, repr=False)
     protected_tool_names: set[str] = Field(
@@ -33,15 +31,21 @@ class RegisterRuntimeTool(ToolBase):
         ]
     )
 
-    def __call__(self, tool_spec: Mapping[str, Any] | ToolBase) -> Dict[str, Any]:
+    def __call__(
+        self, tool_spec: Mapping[str, Any] | ToolBase
+    ) -> Dict[str, Any]:
         if self.toolkit is None:
             raise ValueError("toolkit is not configured")
 
         tool = build_tool_from_spec(tool_spec)
         if tool.name in self.protected_tool_names:
-            raise ValueError(f"Tool '{tool.name}' is reserved by RuntimeToolkit")
+            raise ValueError(
+                f"Tool '{tool.name}' is reserved by RuntimeToolkit"
+            )
         if tool.name in self.toolkit.tools:
-            raise ValueError(f"Tool '{tool.name}' already exists in the toolkit")
+            raise ValueError(
+                f"Tool '{tool.name}' already exists in the toolkit"
+            )
 
         self.toolkit.add_tool(tool)
         return {

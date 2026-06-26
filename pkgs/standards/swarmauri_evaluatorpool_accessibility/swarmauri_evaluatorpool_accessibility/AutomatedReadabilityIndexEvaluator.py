@@ -12,7 +12,9 @@ from swarmauri_base.evaluators.EvaluatorBase import EvaluatorBase
 from swarmauri_standard.programs.Program import Program
 
 
-@ComponentBase.register_type(EvaluatorBase, "AutomatedReadabilityIndexEvaluator")
+@ComponentBase.register_type(
+    EvaluatorBase, "AutomatedReadabilityIndexEvaluator"
+)
 class AutomatedReadabilityIndexEvaluator(EvaluatorBase, ComponentBase):
     """
     Computes the Automated Readability Index (ARI) for a Program’s textual sources.
@@ -29,7 +31,9 @@ class AutomatedReadabilityIndexEvaluator(EvaluatorBase, ComponentBase):
     # ────────────────────────────────────────────────────────────────────
     # public IEvaluate API
     # ────────────────────────────────────────────────────────────────────
-    def evaluate(self, program: Program, **kwargs) -> Dict[str, Any]:  # IEvaluate
+    def evaluate(
+        self, program: Program, **kwargs
+    ) -> Dict[str, Any]:  # IEvaluate
         score, meta = self._compute_score(program, **kwargs)
         return {"score": score, "metadata": meta}
 
@@ -47,7 +51,12 @@ class AutomatedReadabilityIndexEvaluator(EvaluatorBase, ComponentBase):
         text = self._extract_text_from_program(program)
 
         if not text.strip():
-            return 0.0, {"error": "no_text", "chars": 0, "words": 0, "sentences": 0}
+            return 0.0, {
+                "error": "no_text",
+                "chars": 0,
+                "words": 0,
+                "sentences": 0,
+            }
 
         chars = len(text)
         words_list = self._count_words(text)
@@ -87,9 +96,13 @@ class AutomatedReadabilityIndexEvaluator(EvaluatorBase, ComponentBase):
                         raw = f.read()
                     if ext in (".md", ".markdown"):
                         html = markdown.markdown(raw)
-                        segments.append(BeautifulSoup(html, "html.parser").get_text())
+                        segments.append(
+                            BeautifulSoup(html, "html.parser").get_text()
+                        )
                     elif ext in (".html", ".htm"):
-                        segments.append(BeautifulSoup(raw, "html.parser").get_text())
+                        segments.append(
+                            BeautifulSoup(raw, "html.parser").get_text()
+                        )
                     else:
                         segments.append(raw)
                 except Exception as exc:
@@ -110,9 +123,13 @@ class AutomatedReadabilityIndexEvaluator(EvaluatorBase, ComponentBase):
             try:
                 if ext in (".md", ".markdown"):
                     html = markdown.markdown(data)
-                    segments.append(BeautifulSoup(html, "html.parser").get_text())
+                    segments.append(
+                        BeautifulSoup(html, "html.parser").get_text()
+                    )
                 elif ext in (".html", ".htm"):
-                    segments.append(BeautifulSoup(data, "html.parser").get_text())
+                    segments.append(
+                        BeautifulSoup(data, "html.parser").get_text()
+                    )
                 else:
                     segments.append(data)
             except Exception as exc:

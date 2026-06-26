@@ -292,7 +292,9 @@ def _load_workspace_members(spec: WorkspaceSpec) -> list[Path]:
 
     workspace_cfg = data.get("tool", {}).get("uv", {}).get("workspace", {})
     members = (
-        workspace_cfg.get("members", []) if isinstance(workspace_cfg, dict) else []
+        workspace_cfg.get("members", [])
+        if isinstance(workspace_cfg, dict)
+        else []
     )
 
     resolved: list[Path] = []
@@ -350,7 +352,9 @@ def install_manifest_packages(
 
         if desired_members:
             cmd = ["uv", "pip", "install"]
-            if not (os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix):
+            if not (
+                os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix
+            ):
                 cmd.append("--system")
             for member in desired_members:
                 cmd.extend(["--editable", str(member)])
@@ -360,7 +364,9 @@ def install_manifest_packages(
                 description="uv pip install (workspace members)",
             )
             if workspace_result.returncode == 0:
-                installed_members = {member.resolve() for member in desired_members}
+                installed_members = {
+                    member.resolve() for member in desired_members
+                }
         else:
             cmd = [
                 "uv",
@@ -369,7 +375,9 @@ def install_manifest_packages(
                 "--directory",
                 str(workspace_spec.root),
             ]
-            if not (os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix):
+            if not (
+                os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix
+            ):
                 cmd.append("--system")
             cmd.append(".")
             workspace_result = _run_command(
@@ -394,7 +402,8 @@ def install_manifest_packages(
         if not pkg_path.is_dir():
             return
         if not (
-            (pkg_path / "pyproject.toml").is_file() or (pkg_path / "setup.py").is_file()
+            (pkg_path / "pyproject.toml").is_file()
+            or (pkg_path / "setup.py").is_file()
         ):
             print(f"Skipping {pkg_path}: no pyproject.toml or setup.py found")
             return
@@ -406,7 +415,9 @@ def install_manifest_packages(
             "--directory",
             str(pkg_path),
         ]
-        if not (os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix):
+        if not (
+            os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix
+        ):
             cmd.append("--system")
         cmd.append(".")
         result = _run_command(
@@ -523,7 +534,9 @@ def main() -> None:
 
     def generate_cmd(args: argparse.Namespace) -> None:
         failure_mode = FailureMode.from_value(args.on_error)
-        failed = install_manifest_packages(args.manifest, failure_mode=failure_mode)
+        failed = install_manifest_packages(
+            args.manifest, failure_mode=failure_mode
+        )
         if failed:
             print(
                 "WARNING: Skipping API generation for packages that failed to "
@@ -547,7 +560,9 @@ def main() -> None:
 
     gen.set_defaults(func=generate_cmd)
 
-    readmes = sub.add_parser("readmes", help="Generate documentation from README files")
+    readmes = sub.add_parser(
+        "readmes", help="Generate documentation from README files"
+    )
     readmes.add_argument("--docs-dir", default=".")
     _add_failure_mode_argument(readmes)
 
@@ -575,7 +590,9 @@ def main() -> None:
 
     def serve_cmd(args: argparse.Namespace) -> None:
         failure_mode = FailureMode.from_value(args.on_error)
-        failed = install_manifest_packages(args.manifest, failure_mode=failure_mode)
+        failed = install_manifest_packages(
+            args.manifest, failure_mode=failure_mode
+        )
         if failed:
             print(
                 "WARNING: Skipping API generation for packages that failed to "

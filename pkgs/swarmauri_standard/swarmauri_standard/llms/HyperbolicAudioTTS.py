@@ -94,7 +94,9 @@ class HyperbolicAudioTTS(LLMBase):
         payload = self._prepare_payload(text)
 
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(self._BASE_URL, headers=self._headers, json=payload)
+            response = client.post(
+                self._BASE_URL, headers=self._headers, json=payload
+            )
             response.raise_for_status()
 
             # Decode base64 audio
@@ -152,7 +154,8 @@ class HyperbolicAudioTTS(LLMBase):
                 return await self.apredict(text=text, audio_path=path)
 
         tasks = [
-            process_conversation(text, path) for text, path in text_path_dict.items()
+            process_conversation(text, path)
+            for text, path in text_path_dict.items()
         ]
         return await asyncio.gather(*tasks)
 
@@ -164,7 +167,9 @@ class HyperbolicAudioTTS(LLMBase):
         """
         Stream the text-to-speech output.
         """
-        raise NotImplementedError("Stream method is not implemented for HyperbolicTTS")
+        raise NotImplementedError(
+            "Stream method is not implemented for HyperbolicTTS"
+        )
 
     async def astream(
         self,
@@ -174,4 +179,6 @@ class HyperbolicAudioTTS(LLMBase):
         """
         Asynchronously stream the text-to-speech output.
         """
-        raise NotImplementedError("AStream method is not implemented for HyperbolicTTS")
+        raise NotImplementedError(
+            "AStream method is not implemented for HyperbolicTTS"
+        )

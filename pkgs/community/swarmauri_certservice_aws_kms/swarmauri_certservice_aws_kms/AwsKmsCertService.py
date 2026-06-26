@@ -51,7 +51,9 @@ def _now_utc() -> dt.datetime:
     return dt.datetime.now(dt.timezone.utc)
 
 
-def _to_utc(ts: Optional[int], *, default: Optional[int] = None) -> dt.datetime:
+def _to_utc(
+    ts: Optional[int], *, default: Optional[int] = None
+) -> dt.datetime:
     if ts is None:
         ts = default if default is not None else int(_now_utc().timestamp())
     return dt.datetime.fromtimestamp(int(ts), tz=dt.timezone.utc)
@@ -113,7 +115,9 @@ def _cryptography_name_from_spec(spec: SubjectSpec) -> cx509.Name:
     return cx509.Name(attrs)
 
 
-def _spki_from_csr(csr: cx509.CertificateSigningRequest) -> ax509.PublicKeyInfo:
+def _spki_from_csr(
+    csr: cx509.CertificateSigningRequest,
+) -> ax509.PublicKeyInfo:
     spki_der = csr.public_key().public_bytes(
         Encoding.DER, PublicFormat.SubjectPublicKeyInfo
     )
@@ -124,7 +128,9 @@ def _skid_from_pub(pub: Union[cx509.PublicKey, ax509.PublicKeyInfo]) -> bytes:
     if isinstance(pub, ax509.PublicKeyInfo):
         pk_bytes = pub["public_key"].native
     else:
-        spki_der = pub.public_bytes(Encoding.DER, PublicFormat.SubjectPublicKeyInfo)
+        spki_der = pub.public_bytes(
+            Encoding.DER, PublicFormat.SubjectPublicKeyInfo
+        )
         spki = ax509.PublicKeyInfo.load(spki_der)
         pk_bytes = spki["public_key"].native
     return hashlib.sha1(bytes(pk_bytes)).digest()
@@ -137,7 +143,9 @@ def _akid_from_issuer_pub(
 
 
 class _SigAlg:
-    def __init__(self, tbs_alg: a_algos.AlgorithmIdentifier, kms_alg: str) -> None:
+    def __init__(
+        self, tbs_alg: a_algos.AlgorithmIdentifier, kms_alg: str
+    ) -> None:
         self.tbs_alg = tbs_alg
         self.kms_alg = kms_alg
 
@@ -149,7 +157,9 @@ def _rsa_pss_sha256_alg() -> _SigAlg:
             "mask_gen_algorithm": a_algos.MaskGenAlgorithm(
                 {
                     "algorithm": "mgf1",
-                    "parameters": a_algos.DigestAlgorithm({"algorithm": "sha256"}),
+                    "parameters": a_algos.DigestAlgorithm(
+                        {"algorithm": "sha256"}
+                    ),
                 }
             ),
             "salt_length": 32,
@@ -196,7 +206,10 @@ def _normalize_bytes_maybe_pem(data: bytes) -> Tuple[bytes, str]:
     t = data.strip()
     if t.startswith(b"-----BEGIN "):
         header = t.splitlines()[0].decode()
-        if "CERTIFICATE REQUEST" in header or "NEW CERTIFICATE REQUEST" in header:
+        if (
+            "CERTIFICATE REQUEST" in header
+            or "NEW CERTIFICATE REQUEST" in header
+        ):
             kind = "CERTIFICATE REQUEST"
         elif "CERTIFICATE" in header:
             kind = "CERTIFICATE"
@@ -232,7 +245,9 @@ def _cx509_name_to_ax509_name(name: cx509.Name) -> ax509.Name:
     return ax509.Name.load(name.public_bytes(Encoding.DER))
 
 
-def _mk_validity(not_before: dt.datetime, not_after: dt.datetime) -> ax509.Validity:
+def _mk_validity(
+    not_before: dt.datetime, not_after: dt.datetime
+) -> ax509.Validity:
     return ax509.Validity(
         {
             "not_before": ax509.Time({"utc_time": not_before}),
@@ -247,14 +262,18 @@ def _rand_serial_160() -> int:
     return int.from_bytes(bytes(b), "big")
 
 
-def _aws_kms_pubkey_info(kms_client, key_id: str) -> Tuple[ax509.PublicKeyInfo, str]:
+def _aws_kms_pubkey_info(
+    kms_client, key_id: str
+) -> Tuple[ax509.PublicKeyInfo, str]:
     resp = kms_client.get_public_key(KeyId=key_id)
     spki = ax509.PublicKeyInfo.load(resp["PublicKey"])
     key_spec: str = resp.get("KeySpec", "")
     return spki, key_spec
 
 
-def _csr_copy_extensions(csr: cx509.CertificateSigningRequest) -> list[ax509.Extension]:
+def _csr_copy_extensions(
+    csr: cx509.CertificateSigningRequest,
+) -> list[ax509.Extension]:
     exts: list[ax509.Extension] = []
     for ext in csr.extensions:
         exts.append(
@@ -294,7 +313,9 @@ def _combine_extensions(
             {
                 "extn_id": "authority_key_identifier",
                 "critical": False,
-                "extn_value": ax509.AuthorityKeyIdentifier({"key_identifier": akid}),
+                "extn_value": ax509.AuthorityKeyIdentifier(
+                    {"key_identifier": akid}
+                ),
             }
         )
     return ax509.Extensions(list(by_oid.values()))
@@ -320,7 +341,9 @@ def _build_tbs_from_csr(
     tbs = ax509.TbsCertificate(
         {
             "version": "v3",
-            "serial_number": serial if serial is not None else _rand_serial_160(),
+            "serial_number": serial
+            if serial is not None
+            else _rand_serial_160(),
             "signature": sig_alg.tbs_alg,
             "issuer": issuer_name,
             "validity": _mk_validity(not_before, not_after),
@@ -346,7 +369,10 @@ def _assemble_cert(
 
 def _kms_sign(kms, key_id: str, alg: _SigAlg, tbs_der: bytes) -> bytes:
     resp = kms.sign(
-        KeyId=key_id, Message=tbs_der, MessageType="RAW", SigningAlgorithm=alg.kms_alg
+        KeyId=key_id,
+        Message=tbs_der,
+        MessageType="RAW",
+        SigningAlgorithm=alg.kms_alg,
     )
     return resp["Signature"]
 
@@ -365,7 +391,9 @@ def _extract_kms_key_id_from_keyref(ca_key: KeyRef) -> str:
 
 @ComponentBase.register_type(CertServiceBase, "AwsKmsCertService")
 class AwsKmsCertService(CertServiceBase):
-    resource: Optional[str] = Field(default=ResourceTypes.CRYPTO.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.CRYPTO.value, frozen=True
+    )
     type: Literal["AwsKmsCertService"] = "AwsKmsCertService"
 
     def __init__(
@@ -395,7 +423,13 @@ class AwsKmsCertService(CertServiceBase):
 
     def supports(self) -> Mapping[str, Iterable[str]]:
         return {
-            "key_algs": ("RSA-2048", "RSA-3072", "RSA-4096", "EC-P256", "EC-P384"),
+            "key_algs": (
+                "RSA-2048",
+                "RSA-3072",
+                "RSA-4096",
+                "EC-P256",
+                "EC-P384",
+            ),
             "sig_algs": ("RSA-PSS-SHA256", "RSA-SHA256", "ECDSA-P256-SHA256"),
             "features": (
                 "sign_from_csr",
@@ -435,7 +469,9 @@ class AwsKmsCertService(CertServiceBase):
             for d in san.get("dns") or []:
                 san_list.append(cx509.DNSName(d))
             for ip in san.get("ip") or []:
-                san_list.append(cx509.IPAddress(cx509.ipaddress.ip_address(ip)))
+                san_list.append(
+                    cx509.IPAddress(cx509.ipaddress.ip_address(ip))
+                )
             for uri in san.get("uri") or []:
                 san_list.append(cx509.UniformResourceIdentifier(uri))
             for em in san.get("email") or []:
@@ -475,13 +511,16 @@ class AwsKmsCertService(CertServiceBase):
 
         nbf = _to_utc(not_before, default=int(_now_utc().timestamp() - 300))
         naf = _to_utc(
-            not_after, default=int((_now_utc() + dt.timedelta(days=365)).timestamp())
+            not_after,
+            default=int((_now_utc() + dt.timedelta(days=365)).timestamp()),
         )
 
         tbs = ax509.TbsCertificate(
             {
                 "version": "v3",
-                "serial_number": serial if serial is not None else _rand_serial_160(),
+                "serial_number": serial
+                if serial is not None
+                else _rand_serial_160(),
                 "signature": sig.tbs_alg,
                 "issuer": issuer_name_ax,
                 "validity": _mk_validity(nbf, naf),
@@ -561,7 +600,8 @@ class AwsKmsCertService(CertServiceBase):
 
         nbf = _to_utc(not_before, default=int(_now_utc().timestamp() - 300))
         naf = _to_utc(
-            not_after, default=int((_now_utc() + dt.timedelta(days=365)).timestamp())
+            not_after,
+            default=int((_now_utc() + dt.timedelta(days=365)).timestamp()),
         )
 
         tbs, _ = _build_tbs_from_csr(
@@ -622,10 +662,14 @@ class AwsKmsCertService(CertServiceBase):
             sa = c.signature_algorithm_oid
             if sa._name in ("sha256_rsa", "sha384_rsa", "sha512_rsa"):
                 pub.verify(
-                    c.signature, tbs, padding.PKCS1v15(), c.signature_hash_algorithm
+                    c.signature,
+                    tbs,
+                    padding.PKCS1v15(),
+                    c.signature_hash_algorithm,
                 )
             elif (
-                sa.dotted_string == cx509.SignatureAlgorithmOID.RSASSA_PSS.dotted_string
+                sa.dotted_string
+                == cx509.SignatureAlgorithmOID.RSASSA_PSS.dotted_string
             ):
                 pub.verify(
                     c.signature,
@@ -641,13 +685,20 @@ class AwsKmsCertService(CertServiceBase):
                 "ecdsa_with_sha384",
                 "ecdsa_with_sha512",
             ):
-                pub.verify(c.signature, tbs, ec.ECDSA(c.signature_hash_algorithm))
+                pub.verify(
+                    c.signature, tbs, ec.ECDSA(c.signature_hash_algorithm)
+                )
             else:
                 raise ValueError(
                     f"Unsupported signature algorithm for verify: {sa._name}"
                 )
-        except Exception as e:  # pragma: no cover - errors tested via failure cases
-            return {"valid": False, "reason": f"signature:{e.__class__.__name__}"}
+        except (
+            Exception
+        ) as e:  # pragma: no cover - errors tested via failure cases
+            return {
+                "valid": False,
+                "reason": f"signature:{e.__class__.__name__}",
+            }
 
         return {
             "valid": True,
@@ -680,7 +731,9 @@ class AwsKmsCertService(CertServiceBase):
         }
         if include_extensions:
             try:
-                bc = c.extensions.get_extension_for_class(cx509.BasicConstraints).value
+                bc = c.extensions.get_extension_for_class(
+                    cx509.BasicConstraints
+                ).value
                 out["is_ca"] = bool(bc.ca)
                 if bc.path_length is not None:
                     out["path_len"] = bc.path_length
@@ -691,9 +744,12 @@ class AwsKmsCertService(CertServiceBase):
                     cx509.SubjectAlternativeName
                 ).value
                 out["san"] = {
-                    "dns": [n.value for n in san.get_values_for_type(cx509.DNSName)],
+                    "dns": [
+                        n.value for n in san.get_values_for_type(cx509.DNSName)
+                    ],
                     "ip": [
-                        str(n.value) for n in san.get_values_for_type(cx509.IPAddress)
+                        str(n.value)
+                        for n in san.get_values_for_type(cx509.IPAddress)
                     ],
                     "uri": [
                         n.value
@@ -702,7 +758,8 @@ class AwsKmsCertService(CertServiceBase):
                         )
                     ],
                     "email": [
-                        n.value for n in san.get_values_for_type(cx509.RFC822Name)
+                        n.value
+                        for n in san.get_values_for_type(cx509.RFC822Name)
                     ],
                 }
             except Exception:
@@ -723,7 +780,9 @@ class AwsKmsCertService(CertServiceBase):
             except Exception:
                 pass
             try:
-                eku = c.extensions.get_extension_for_class(cx509.ExtendedKeyUsage).value
+                eku = c.extensions.get_extension_for_class(
+                    cx509.ExtendedKeyUsage
+                ).value
                 out["eku"] = [oid.dotted_string for oid in eku]
             except Exception:
                 pass

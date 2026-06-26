@@ -17,13 +17,17 @@ def test_readme_example_executes() -> None:
         re.DOTALL,
     )
     match = pattern.search(readme_text)
-    assert match, "Could not locate the CompositeTokenService example in README.md"
+    assert match, (
+        "Could not locate the CompositeTokenService example in README.md"
+    )
 
     code = match.group("code")
     namespace: Dict[str, Any] = {}
     exec(code, namespace)
 
-    assert "example_result" in namespace, "Example did not populate 'example_result'"
+    assert "example_result" in namespace, (
+        "Example did not populate 'example_result'"
+    )
     result = namespace["example_result"]
 
     assert result["jwt_token"] == "JWTTokenService:HS256:alice"

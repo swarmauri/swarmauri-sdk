@@ -85,7 +85,9 @@ def test_agent_exec(gemini_tool_model, toolkit, model_name):
     conversation = Conversation()
 
     # Use geminitool_model from the fixture
-    agent = ToolAgent(llm=gemini_tool_model, conversation=conversation, toolkit=toolkit)
+    agent = ToolAgent(
+        llm=gemini_tool_model, conversation=conversation, toolkit=toolkit
+    )
     result = agent.exec("Add 512+671")
     assert isinstance(result, str)
 
@@ -96,7 +98,9 @@ def test_agent_exec(gemini_tool_model, toolkit, model_name):
 def test_predict(gemini_tool_model, toolkit, conversation, model_name):
     gemini_tool_model.name = model_name
 
-    conversation = gemini_tool_model.predict(conversation=conversation, toolkit=toolkit)
+    conversation = gemini_tool_model.predict(
+        conversation=conversation, toolkit=toolkit
+    )
 
     assert type(conversation.get_last().content) is str
 
@@ -108,7 +112,9 @@ def test_stream(gemini_tool_model, toolkit, conversation, model_name):
     gemini_tool_model.name = model_name
 
     collected_tokens = []
-    for token in gemini_tool_model.stream(conversation=conversation, toolkit=toolkit):
+    for token in gemini_tool_model.stream(
+        conversation=conversation, toolkit=toolkit
+    ):
         assert isinstance(token, str)
         collected_tokens.append(token)
 
@@ -129,7 +135,9 @@ def test_batch(gemini_tool_model, toolkit, model_name):
         conv.add_message(HumanMessage(content=prompt))
         conversations.append(conv)
 
-    results = gemini_tool_model.batch(conversations=conversations, toolkit=toolkit)
+    results = gemini_tool_model.batch(
+        conversations=conversations, toolkit=toolkit
+    )
     assert len(results) == len(conversations)
     for result in results:
         assert isinstance(result.get_last().content, str)

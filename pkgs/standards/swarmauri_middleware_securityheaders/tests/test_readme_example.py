@@ -28,7 +28,9 @@ def test_readme_usage_example_executes() -> None:
     exec(match.group("code"), namespace)
 
     app = namespace.get("app")
-    assert isinstance(app, FastAPI), "README example did not define a FastAPI app"
+    assert isinstance(app, FastAPI), (
+        "README example did not define a FastAPI app"
+    )
 
     client = TestClient(app)
     response = client.get("/")
@@ -41,7 +43,9 @@ def test_readme_usage_example_executes() -> None:
     def _dummy_app(*args: Any, **kwargs: Any) -> Response:
         return control_response
 
-    SecurityHeadersMiddleware(_dummy_app)._add_security_headers(control_response)
+    SecurityHeadersMiddleware(_dummy_app)._add_security_headers(
+        control_response
+    )
 
     expected_headers = {
         header: value

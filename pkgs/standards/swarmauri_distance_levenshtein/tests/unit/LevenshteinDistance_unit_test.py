@@ -2,7 +2,9 @@ import warnings
 
 import pytest
 
-from swarmauri_distance_levenshtein.LevenshteinDistance import LevenshteinDistance
+from swarmauri_distance_levenshtein.LevenshteinDistance import (
+    LevenshteinDistance,
+)
 
 
 @pytest.mark.unit

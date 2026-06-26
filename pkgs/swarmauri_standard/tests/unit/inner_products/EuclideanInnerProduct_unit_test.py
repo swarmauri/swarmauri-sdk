@@ -176,10 +176,18 @@ def test_conjugate_symmetry(euclidean_inner_product, a, b):
         ([1, 2, 3], [4, 5, 6], [7, 8, 9], 2, 3),
         ([0, 0, 0], [1, 1, 1], [2, 2, 2], 1, 1),
         ([-1, -2, -3], [4, 5, 6], [7, 8, 9], -1, 2),
-        (np.array([1.5, 2.5]), np.array([3.5, 4.5]), np.array([5.5, 6.5]), 0.5, 1.5),
+        (
+            np.array([1.5, 2.5]),
+            np.array([3.5, 4.5]),
+            np.array([5.5, 6.5]),
+            0.5,
+            1.5,
+        ),
     ],
 )
-def test_linearity_first_argument(euclidean_inner_product, a1, a2, b, alpha, beta):
+def test_linearity_first_argument(
+    euclidean_inner_product, a1, a2, b, alpha, beta
+):
     """
     Test that the inner product satisfies linearity in the first argument.
 

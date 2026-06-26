@@ -7,7 +7,12 @@ from typing import Mapping, Optional, Sequence
 
 from pydantic import Field
 
-from swarmauri_core.signing.ISigning import ISigning, Canon, Envelope, ByteStream
+from swarmauri_core.signing.ISigning import (
+    ISigning,
+    Canon,
+    Envelope,
+    ByteStream,
+)
 from swarmauri_core.signing.types import Signature
 from swarmauri_core.crypto.types import Alg, KeyRef
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
@@ -35,14 +40,18 @@ async def _stream_to_bytes(stream: ByteStream) -> bytes:
             chunks.extend(chunk)
         return bytes(chunks)
 
-    raise TypeError("Unsupported stream type; expected bytes or iterable of bytes")
+    raise TypeError(
+        "Unsupported stream type; expected bytes or iterable of bytes"
+    )
 
 
 @ComponentBase.register_model()
 class SigningBase(ISigning, ComponentBase):
     """Default NotImplemented implementations for :class:`ISigning`."""
 
-    resource: Optional[str] = Field(default=ResourceTypes.CRYPTO.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.CRYPTO.value, frozen=True
+    )
     type: str = "SigningBase"
 
     # ------------------------------------------------------------------
@@ -58,7 +67,9 @@ class SigningBase(ISigning, ComponentBase):
         alg: Optional[Alg] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        raise NotImplementedError("sign_bytes() must be implemented by subclass")
+        raise NotImplementedError(
+            "sign_bytes() must be implemented by subclass"
+        )
 
     # ------------------------------------------------------------------
     async def sign_digest(
@@ -87,7 +98,9 @@ class SigningBase(ISigning, ComponentBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        raise NotImplementedError("verify_bytes() must be implemented by subclass")
+        raise NotImplementedError(
+            "verify_bytes() must be implemented by subclass"
+        )
 
     # ------------------------------------------------------------------
     async def verify_digest(
@@ -134,7 +147,9 @@ class SigningBase(ISigning, ComponentBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         data = await _stream_to_bytes(payload)
-        return await self.verify_bytes(data, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            data, signatures, require=require, opts=opts
+        )
 
     # ------------------------------------------------------------------
     async def canonicalize_envelope(
@@ -158,7 +173,9 @@ class SigningBase(ISigning, ComponentBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        raise NotImplementedError("sign_envelope() must be implemented by subclass")
+        raise NotImplementedError(
+            "sign_envelope() must be implemented by subclass"
+        )
 
     # ------------------------------------------------------------------
     async def verify_envelope(
@@ -170,4 +187,6 @@ class SigningBase(ISigning, ComponentBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        raise NotImplementedError("verify_envelope() must be implemented by subclass")
+        raise NotImplementedError(
+            "verify_envelope() must be implemented by subclass"
+        )

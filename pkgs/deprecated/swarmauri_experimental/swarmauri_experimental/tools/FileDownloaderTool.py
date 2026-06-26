@@ -36,4 +36,6 @@ class FileDownloaderTool(ToolBase):
             response.raise_for_status()  # Raises an HTTPError if the request resulted in an error
             return {"file_content": response.content}
         except requests.RequestException as e:
-            raise RuntimeError(f"Failed to download file from '{url}'. Error: {e}")
+            raise RuntimeError(
+                f"Failed to download file from '{url}'. Error: {e}"
+            )

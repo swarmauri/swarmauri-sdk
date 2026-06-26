@@ -16,7 +16,10 @@ def test_ubc_type():
 @pytest.mark.unit
 def test_serialization():
     document = Document(content="test")
-    assert document.id == Document.model_validate_json(document.model_dump_json()).id
+    assert (
+        document.id
+        == Document.model_validate_json(document.model_dump_json()).id
+    )
 
 
 @pytest.mark.unit

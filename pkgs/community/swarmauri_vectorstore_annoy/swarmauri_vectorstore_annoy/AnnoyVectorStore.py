@@ -4,7 +4,9 @@ from typing import List, Literal, Optional, Union
 import numpy as np
 from annoy import AnnoyIndex
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
-from swarmauri_base.vector_stores.VectorStoreCloudMixin import VectorStoreCloudMixin
+from swarmauri_base.vector_stores.VectorStoreCloudMixin import (
+    VectorStoreCloudMixin,
+)
 from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
 )
@@ -107,12 +109,16 @@ class AnnoyVectorStore(
         """
         if not document.embedding:
             self._embedder.fit([document.content])
-            embedding = self._embedder.transform([document.content])[0].to_numpy()
+            embedding = self._embedder.transform([document.content])[
+                0
+            ].to_numpy()
         else:
             embedding = np.array(document.embedding)
         return embedding
 
-    def add_document(self, document: Document, namespace: Optional[str] = "") -> None:
+    def add_document(
+        self, document: Document, namespace: Optional[str] = ""
+    ) -> None:
         """
         Add a single document to the Annoy index.
         Note: In Annoy, the index needs to be rebuilt after adding documents.
@@ -130,7 +136,9 @@ class AnnoyVectorStore(
             self._index_to_id[index] = document.id
             self._current_index += 1
         except Exception as e:
-            raise RuntimeError(f"Failed to add document {document.id}: {str(e)}")
+            raise RuntimeError(
+                f"Failed to add document {document.id}: {str(e)}"
+            )
 
     def add_documents(
         self,
@@ -170,7 +178,9 @@ class AnnoyVectorStore(
         """
         return self._documents.get(id)
 
-    def get_all_documents(self, namespace: Optional[str] = "") -> List[Document]:
+    def get_all_documents(
+        self, namespace: Optional[str] = ""
+    ) -> List[Document]:
         """
         Retrieve all documents.
 

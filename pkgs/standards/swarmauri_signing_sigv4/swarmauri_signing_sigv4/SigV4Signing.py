@@ -18,7 +18,9 @@ from swarmauri_core.signing.types import Signature
 class SigV4Signing(SigningBase):
     """AWS Signature Version 4 (SigV4) signer/verifier."""
 
-    resource: Optional[str] = Field(default=ResourceTypes.CRYPTO.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.CRYPTO.value, frozen=True
+    )
     type: str = "SigV4Signing"
 
     # ---------- capabilities ----------
@@ -42,18 +44,24 @@ class SigV4Signing(SigningBase):
                     return getattr(data, name)
             return None
 
-        akid = get_first(key, "access_key", "akid", "accessKeyId", "AccessKeyId")
+        akid = get_first(
+            key, "access_key", "akid", "accessKeyId", "AccessKeyId"
+        )
         secret = get_first(
             key, "secret_key", "sk", "secretAccessKey", "SecretAccessKey"
         )
         token = get_first(key, "session_token", "token", "SessionToken")
         if not akid or not secret:
-            raise ValueError("KeyRef must contain access key id and secret key")
+            raise ValueError(
+                "KeyRef must contain access key id and secret key"
+            )
         return akid, secret, token
 
     @staticmethod
     def _hmac(key_bytes: bytes, msg: str) -> bytes:
-        return hmac.new(key_bytes, msg.encode("utf-8"), hashlib.sha256).digest()
+        return hmac.new(
+            key_bytes, msg.encode("utf-8"), hashlib.sha256
+        ).digest()
 
     @staticmethod
     def _sha256_hex(data: bytes) -> str:
@@ -98,23 +106,42 @@ class SigV4Signing(SigningBase):
         return "".join(canonical_lines), ";".join(signed)
 
     @classmethod
-    def _string_to_sign(cls, amz_date: str, scope: str, canonical_request: str) -> str:
-        request_hash = hashlib.sha256(canonical_request.encode("utf-8")).hexdigest()
-        return "AWS4-HMAC-SHA256\n" + amz_date + "\n" + scope + "\n" + request_hash
+    def _string_to_sign(
+        cls, amz_date: str, scope: str, canonical_request: str
+    ) -> str:
+        request_hash = hashlib.sha256(
+            canonical_request.encode("utf-8")
+        ).hexdigest()
+        return (
+            "AWS4-HMAC-SHA256\n"
+            + amz_date
+            + "\n"
+            + scope
+            + "\n"
+            + request_hash
+        )
 
     @classmethod
     def _derive_signing_key(
         cls, secret_key: str, date: str, region: str, service: str
     ) -> bytes:
         k_date = hmac.new(
-            ("AWS4" + secret_key).encode("utf-8"), date.encode("utf-8"), hashlib.sha256
+            ("AWS4" + secret_key).encode("utf-8"),
+            date.encode("utf-8"),
+            hashlib.sha256,
         ).digest()
-        k_region = hmac.new(k_date, region.encode("utf-8"), hashlib.sha256).digest()
-        k_service = hmac.new(k_region, service.encode("utf-8"), hashlib.sha256).digest()
+        k_region = hmac.new(
+            k_date, region.encode("utf-8"), hashlib.sha256
+        ).digest()
+        k_service = hmac.new(
+            k_region, service.encode("utf-8"), hashlib.sha256
+        ).digest()
         return hmac.new(k_service, b"aws4_request", hashlib.sha256).digest()
 
     @classmethod
-    def _ensure_scope(cls, scope: Mapping[str, str]) -> Tuple[str, str, str, str]:
+    def _ensure_scope(
+        cls, scope: Mapping[str, str]
+    ) -> Tuple[str, str, str, str]:
         date = scope.get("date") or ""
         region = scope.get("region") or ""
         service = scope.get("service") or ""
@@ -174,10 +201,16 @@ class SigV4Signing(SigningBase):
             amz_date = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
 
         date, region, service, scope = self._ensure_scope(env["scope"])
-        canonical_request = (await self.canonicalize_envelope(env)).decode("utf-8")
+        canonical_request = (await self.canonicalize_envelope(env)).decode(
+            "utf-8"
+        )
 
-        string_to_sign = self._string_to_sign(amz_date, scope, canonical_request)
-        signing_key = self._derive_signing_key(secret_key, date, region, service)
+        string_to_sign = self._string_to_sign(
+            amz_date, scope, canonical_request
+        )
+        signing_key = self._derive_signing_key(
+            secret_key, date, region, service
+        )
         signature_hex = hmac.new(
             signing_key, string_to_sign.encode("utf-8"), hashlib.sha256
         ).hexdigest()
@@ -231,7 +264,9 @@ class SigV4Signing(SigningBase):
         if not secret:
             return False
 
-        canonical_request = (await self.canonicalize_envelope(env)).decode("utf-8")
+        canonical_request = (await self.canonicalize_envelope(env)).decode(
+            "utf-8"
+        )
         string_to_sign = self._string_to_sign(
             str(amz_date), scope_str, canonical_request
         )
@@ -239,7 +274,9 @@ class SigV4Signing(SigningBase):
         calculated = hmac.new(
             signing_key, string_to_sign.encode("utf-8"), hashlib.sha256
         ).hexdigest()
-        return hmac.compare_digest(calculated, str(signature.get("signature", "")))
+        return hmac.compare_digest(
+            calculated, str(signature.get("signature", ""))
+        )
 
     # ---------- payload-only (bytes) ----------
     async def sign_bytes(
@@ -261,8 +298,12 @@ class SigV4Signing(SigningBase):
         if not (date and region and service):
             raise ValueError("opts must include {date, region, service}")
 
-        signing_key = self._derive_signing_key(secret_key, date, region, service)
-        signature_hex = hmac.new(signing_key, payload, hashlib.sha256).hexdigest()
+        signing_key = self._derive_signing_key(
+            secret_key, date, region, service
+        )
+        signature_hex = hmac.new(
+            signing_key, payload, hashlib.sha256
+        ).hexdigest()
         signature: Signature = {
             "alg": "AWS4-HMAC-SHA256",
             "kid": akid,
@@ -307,4 +348,6 @@ class SigV4Signing(SigningBase):
 
         signing_key = self._derive_signing_key(secret, date, region, service)
         calculated = hmac.new(signing_key, payload, hashlib.sha256).hexdigest()
-        return hmac.compare_digest(calculated, str(signature.get("signature", "")))
+        return hmac.compare_digest(
+            calculated, str(signature.get("signature", ""))
+        )

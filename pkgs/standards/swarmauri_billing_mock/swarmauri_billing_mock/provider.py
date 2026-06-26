@@ -148,7 +148,9 @@ class MockBillingProvider(
         }
         return result
 
-    def _create_invoice(self, spec: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+    def _create_invoice(
+        self, spec: Any, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
         result = {
             "invoice_id": f"mock_inv_{uuid4().hex[:6]}",
             "status": "draft",
@@ -184,7 +186,9 @@ class MockBillingProvider(
         }
         return result
 
-    def _create_split(self, spec: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+    def _create_split(
+        self, spec: Any, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
         result = {"split": self._stub("split"), "provider": "mock"}
         return result
 
@@ -209,8 +213,12 @@ class MockBillingProvider(
     ) -> bool:
         return True
 
-    def _list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
-        disputes = [{"id": "mock_dispute_1", "provider": "mock", "status": "won"}]
+    def _list_disputes(
+        self, *, limit: int = 50
+    ) -> Sequence[Mapping[str, Any]]:
+        disputes = [
+            {"id": "mock_dispute_1", "provider": "mock", "status": "won"}
+        ]
         return disputes
 
     def _create_refund(
@@ -223,7 +231,9 @@ class MockBillingProvider(
         result = self._stub("refund_get", refund_id=refund_id)
         return result
 
-    def _create_customer(self, spec: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+    def _create_customer(
+        self, spec: Any, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
         result = {
             "id": f"mock_cus_{uuid4().hex[:6]}",
             "provider": "mock",
@@ -255,7 +265,9 @@ class MockBillingProvider(
         }
         return result
 
-    def _detach_payment_method(self, payment_method_id: str) -> Mapping[str, Any]:
+    def _detach_payment_method(
+        self, payment_method_id: str
+    ) -> Mapping[str, Any]:
         result = self._stub("payment_method_detach")
         return result
 
@@ -275,7 +287,9 @@ class MockBillingProvider(
         ]
         return methods
 
-    def _create_payout(self, req: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+    def _create_payout(
+        self, req: Any, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
         result = self._stub("payout", idempotency_key=idempotency_key)
         return result
 
@@ -287,11 +301,15 @@ class MockBillingProvider(
         }
         return result
 
-    def _create_transfer(self, req: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+    def _create_transfer(
+        self, req: Any, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
         result = self._stub("transfer", idempotency_key=idempotency_key)
         return result
 
-    def _create_report(self, req: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+    def _create_report(
+        self, req: Any, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
         result = self._stub("report", idempotency_key=idempotency_key)
         return result
 
@@ -306,7 +324,9 @@ class MockBillingProvider(
         }
         return result
 
-    def _create_coupon(self, spec: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+    def _create_coupon(
+        self, spec: Any, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
         result = self._stub("coupon", idempotency_key=idempotency_key)
         return result
 

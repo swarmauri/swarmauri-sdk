@@ -14,7 +14,9 @@ def resolve_secret_ref(secret_ref: str) -> str:
         from peagen.plugins import PluginManager  # type: ignore
     except Exception:  # peagen not installed
         if provider and provider != "env":
-            raise RuntimeError("Secret providers require peagen to be installed")
+            raise RuntimeError(
+                "Secret providers require peagen to be installed"
+            )
         value = os.getenv(name)
         if value is None:
             raise KeyError(f"Environment variable {name} not set")

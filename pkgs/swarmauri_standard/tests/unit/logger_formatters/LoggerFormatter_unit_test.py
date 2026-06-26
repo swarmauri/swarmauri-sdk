@@ -1,6 +1,8 @@
 import logging
 import pytest
-from swarmauri_standard.logger_formatters.LoggerFormatter import LoggerFormatter
+from swarmauri_standard.logger_formatters.LoggerFormatter import (
+    LoggerFormatter,
+)
 
 
 @pytest.fixture
@@ -17,7 +19,9 @@ def test_ubc_type(logger_formatter):
 def test_serialization(logger_formatter):
     assert (
         logger_formatter.id
-        == LoggerFormatter.model_validate_json(logger_formatter.model_dump_json()).id
+        == LoggerFormatter.model_validate_json(
+            logger_formatter.model_dump_json()
+        ).id
     )
 
 

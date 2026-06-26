@@ -35,10 +35,16 @@ class GiteaOAuth21AppClient(OAuth21AppClientBase):
         return f"{self.base_url.rstrip('/')}/login/oauth/access_token"
 
     def _client_secret_value(self) -> Optional[str]:
-        return self.client_secret.get_secret_value() if self.client_secret else None
+        return (
+            self.client_secret.get_secret_value()
+            if self.client_secret
+            else None
+        )
 
     @staticmethod
-    def _load_private_key(jwk_payload: Mapping[str, Any], algorithm: str) -> Any:
+    def _load_private_key(
+        jwk_payload: Mapping[str, Any], algorithm: str
+    ) -> Any:
         serialized = json.dumps(jwk_payload)
         if algorithm.upper().startswith("ES"):
             return jwt.algorithms.ECAlgorithm.from_jwk(serialized)
@@ -80,7 +86,9 @@ class GiteaOAuth21AppClient(OAuth21AppClientBase):
         else:
             secret = self._client_secret_value()
             if not secret:
-                raise ValueError("client_secret or private_key_jwk must be provided")
+                raise ValueError(
+                    "client_secret or private_key_jwk must be provided"
+                )
             auth = (self.client_id, secret)
         payload = {**form, **body}
         async with self._http_client_factory() as client:

@@ -9,7 +9,9 @@ from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.DynamicBase import SubclassUnion
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
+from swarmauri_base.schema_converters.SchemaConverterBase import (
+    SchemaConverterBase,
+)
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 
 from swarmauri_base.tools.ToolBase import ToolBase
@@ -128,7 +130,10 @@ class AnthropicToolModel(ToolLLMBase):
         return formatted_messages
 
     def _process_tool_calls(
-        self, tool_calls: List[Any], toolkit: Toolkit, messages: List[Type[MessageBase]]
+        self,
+        tool_calls: List[Any],
+        toolkit: Toolkit,
+        messages: List[Type[MessageBase]],
     ) -> List[Type[MessageBase]]:
         """
         Processes tool calls from Anthropic API response and adds the results to messages.
@@ -207,8 +212,12 @@ class AnthropicToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
-            "tool_choice": tool_choice if toolkit and tool_choice else {"type": "auto"},
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
+            "tool_choice": tool_choice
+            if toolkit and tool_choice
+            else {"type": "auto"},
         }
 
         response = self._client.post("/messages", json=payload)
@@ -217,12 +226,17 @@ class AnthropicToolModel(ToolLLMBase):
 
         # Extract text content if available
         tool_text_response = None
-        if response_data["content"] and response_data["content"][0]["type"] == "text":
+        if (
+            response_data["content"]
+            and response_data["content"][0]["type"] == "text"
+        ):
             tool_text_response = response_data["content"][0]["text"]
             logging.info(f"tool_text_response: {tool_text_response}")
 
         # Process tool calls
-        tool_calls = [c for c in response_data["content"] if c["type"] == "tool_use"]
+        tool_calls = [
+            c for c in response_data["content"] if c["type"] == "tool_use"
+        ]
         messages = formatted_messages.copy()
 
         messages.append(
@@ -250,7 +264,9 @@ class AnthropicToolModel(ToolLLMBase):
 
             logging.info(f"messages: {messages}")
 
-            followup_response = self._client.post("/messages", json=followup_payload)
+            followup_response = self._client.post(
+                "/messages", json=followup_payload
+            )
             logging.info(f"response: {followup_response.json()}")
 
             followup_response.raise_for_status()
@@ -301,8 +317,12 @@ class AnthropicToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
-            "tool_choice": tool_choice if toolkit and tool_choice else {"type": "auto"},
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
+            "tool_choice": tool_choice
+            if toolkit and tool_choice
+            else {"type": "auto"},
         }
 
         response = await self._async_client.post("/messages", json=payload)
@@ -313,12 +333,17 @@ class AnthropicToolModel(ToolLLMBase):
 
         # Extract text content if available
         tool_text_response = None
-        if response_data["content"] and response_data["content"][0]["type"] == "text":
+        if (
+            response_data["content"]
+            and response_data["content"][0]["type"] == "text"
+        ):
             tool_text_response = response_data["content"][0]["text"]
             logging.info(f"tool_text_response: {tool_text_response}")
 
         # Process tool calls
-        tool_calls = [c for c in response_data["content"] if c["type"] == "tool_use"]
+        tool_calls = [
+            c for c in response_data["content"] if c["type"] == "tool_use"
+        ]
         messages = formatted_messages.copy()
         messages.append(
             {
@@ -391,8 +416,12 @@ class AnthropicToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
-            "tool_choice": tool_choice if toolkit and tool_choice else {"type": "auto"},
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
+            "tool_choice": tool_choice
+            if toolkit and tool_choice
+            else {"type": "auto"},
         }
 
         response = self._client.post("/messages", json=tool_payload)
@@ -427,14 +456,18 @@ class AnthropicToolModel(ToolLLMBase):
 
         message_content = ""
 
-        with self._client.stream("POST", "/messages", json=stream_payload) as response:
+        with self._client.stream(
+            "POST", "/messages", json=stream_payload
+        ) as response:
             response.raise_for_status()
 
             for line in response.iter_lines():
                 if not line:
                     continue
 
-                line_text = line.decode("utf-8") if isinstance(line, bytes) else line
+                line_text = (
+                    line.decode("utf-8") if isinstance(line, bytes) else line
+                )
 
                 if not line_text.startswith("data: "):
                     continue
@@ -496,11 +529,17 @@ class AnthropicToolModel(ToolLLMBase):
             "messages": formatted_messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
-            "tool_choice": tool_choice if toolkit and tool_choice else {"type": "auto"},
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
+            "tool_choice": tool_choice
+            if toolkit and tool_choice
+            else {"type": "auto"},
         }
 
-        response = await self._async_client.post("/messages", json=tool_payload)
+        response = await self._async_client.post(
+            "/messages", json=tool_payload
+        )
         response.raise_for_status()
         tool_response_data = response.json()
 
@@ -562,7 +601,9 @@ class AnthropicToolModel(ToolLLMBase):
                                 yield delta_text
 
                 except json.JSONDecodeError as e:
-                    logging.warning(f"Error parsing stream event: {e}\nLine: {line}")
+                    logging.warning(
+                        f"Error parsing stream event: {e}\nLine: {line}"
+                    )
 
         if message_content:
             conversation.add_message(AgentMessage(content=message_content))

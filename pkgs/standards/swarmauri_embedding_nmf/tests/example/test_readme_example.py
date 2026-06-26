@@ -17,7 +17,9 @@ def test_readme_usage_example() -> None:
     vectors = embedder.fit_transform(documents)
 
     assert len(vectors) == len(documents)
-    assert all(len(vector.value) == embedder.n_components for vector in vectors)
+    assert all(
+        len(vector.value) == embedder.n_components for vector in vectors
+    )
     assert embedder.extract_features()
 
     new_vector = embedder.infer_vector("This is a new document")

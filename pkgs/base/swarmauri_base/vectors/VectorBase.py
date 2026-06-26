@@ -10,7 +10,9 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 @ComponentBase.register_model()
 class VectorBase(IVector, ComponentBase):
     value: List[float]
-    resource: Optional[str] = Field(default=ResourceTypes.VECTOR.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.VECTOR.value, frozen=True
+    )
     type: Literal["VectorBase"] = "VectorBase"
     # model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 

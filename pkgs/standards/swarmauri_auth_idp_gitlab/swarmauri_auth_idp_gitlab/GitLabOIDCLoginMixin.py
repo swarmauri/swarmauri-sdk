@@ -63,7 +63,9 @@ class GitLabOIDCLoginMixin:
         )
         return {"url": url, "state": state, "verifier": verifier}
 
-    async def _exchange_tokens(self, code: str, state: str) -> Mapping[str, Any]:
+    async def _exchange_tokens(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         payload = verify_state(self._state_secret_value(), state)
         metadata = await self._metadata()
         form = {
@@ -119,7 +121,11 @@ class GitLabOIDCLoginMixin:
         if not kid:
             raise ValueError("missing kid in id_token header")
         key_entry = next(
-            (entry for entry in jwks.get("keys", []) if entry.get("kid") == kid),
+            (
+                entry
+                for entry in jwks.get("keys", [])
+                if entry.get("kid") == kid
+            ),
             None,
         )
         if not key_entry:

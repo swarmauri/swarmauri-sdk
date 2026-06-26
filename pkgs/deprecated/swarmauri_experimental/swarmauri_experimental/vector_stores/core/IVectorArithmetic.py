@@ -11,7 +11,9 @@ class IVectorArithmetic(ABC):
         pass
 
     @abstractmethod
-    def subtract(self, vector1: List[float], vector2: List[float]) -> List[float]:
+    def subtract(
+        self, vector1: List[float], vector2: List[float]
+    ) -> List[float]:
         """
         Vector subtraction of 'vector1' - 'vector2'.
         """

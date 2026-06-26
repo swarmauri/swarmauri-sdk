@@ -91,17 +91,23 @@ class AcmeCertService(CertServiceBase):
         builder = builder.subject_name(x509.Name(name_attrs))
 
         if san and "dns" in san:
-            san_ext = x509.SubjectAlternativeName([x509.DNSName(d) for d in san["dns"]])
+            san_ext = x509.SubjectAlternativeName(
+                [x509.DNSName(d) for d in san["dns"]]
+            )
             builder = builder.add_extension(san_ext, critical=False)
 
         algorithm = (
             hashes.SHA256()
-            if isinstance(priv, (rsa.RSAPrivateKey, ec.EllipticCurvePrivateKey))
+            if isinstance(
+                priv, (rsa.RSAPrivateKey, ec.EllipticCurvePrivateKey)
+            )
             else None
         )
         csr = builder.sign(priv, algorithm)
         data = csr.public_bytes(
-            serialization.Encoding.DER if output_der else serialization.Encoding.PEM
+            serialization.Encoding.DER
+            if output_der
+            else serialization.Encoding.PEM
         )
         return data
 
@@ -126,8 +132,12 @@ class AcmeCertService(CertServiceBase):
         pem = finalized.fullchain_pem.encode("utf-8")
         return pem if not output_der else finalized.fullchain_der
 
-    async def create_self_signed(self, *a, **kw) -> CertBytes:  # pragma: no cover
-        raise NotImplementedError("Self-signed not supported in AcmeCertService")
+    async def create_self_signed(
+        self, *a, **kw
+    ) -> CertBytes:  # pragma: no cover
+        raise NotImplementedError(
+            "Self-signed not supported in AcmeCertService"
+        )
 
     async def verify_cert(
         self,

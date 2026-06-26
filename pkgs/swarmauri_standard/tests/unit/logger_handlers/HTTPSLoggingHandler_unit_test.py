@@ -27,7 +27,10 @@ def handler_config() -> Dict[str, Any]:
         "port": 443,
         "verify_ssl": True,
         "timeout": 5,
-        "headers": {"Content-Type": "application/json", "X-Api-Key": "test-key"},
+        "headers": {
+            "Content-Type": "application/json",
+            "X-Api-Key": "test-key",
+        },
         "level": logging.INFO,
     }
 
@@ -181,7 +184,11 @@ def test_https_handler_ssl_verification_disabled(mock_create_context):
     mock_context = MagicMock()
     mock_create_context.return_value = mock_context
 
-    handler_config = {"host": "example.com", "url": "/logs", "verify_ssl": False}
+    handler_config = {
+        "host": "example.com",
+        "url": "/logs",
+        "verify_ssl": False,
+    }
 
     handler = HTTPSLoggingHandler(**handler_config).compile_handler()
     handler._create_ssl_context()
@@ -304,7 +311,10 @@ def test_https_handler_emit(mock_https_connection, https_handler):
     assert method == "POST"
     assert url == "/logs"
     assert isinstance(body, bytes)
-    assert headers == {"Content-Type": "application/json", "X-Api-Key": "test-key"}
+    assert headers == {
+        "Content-Type": "application/json",
+        "X-Api-Key": "test-key",
+    }
 
     # Check payload content
     payload = json.loads(body.decode("utf-8"))
@@ -318,7 +328,9 @@ def test_https_handler_emit(mock_https_connection, https_handler):
 @patch(
     "swarmauri_standard.logger_handlers.HTTPSLoggingHandler.http.client.HTTPSConnection"
 )
-@patch("swarmauri_standard.logger_handlers.HTTPSLoggingHandler.logging.getLogger")
+@patch(
+    "swarmauri_standard.logger_handlers.HTTPSLoggingHandler.logging.getLogger"
+)
 def test_https_handler_emit_with_failed_response(
     mock_get_logger, mock_https_connection, https_handler
 ):
@@ -369,7 +381,9 @@ def test_https_handler_emit_with_failed_response(
 @patch(
     "swarmauri_standard.logger_handlers.HTTPSLoggingHandler.http.client.HTTPSConnection"
 )
-@patch("swarmauri_standard.logger_handlers.HTTPSLoggingHandler.logging.getLogger")
+@patch(
+    "swarmauri_standard.logger_handlers.HTTPSLoggingHandler.logging.getLogger"
+)
 def test_https_handler_emit_with_exception(
     mock_get_logger, mock_https_connection, https_handler
 ):
@@ -407,7 +421,9 @@ def test_https_handler_emit_with_exception(
     # Verify error handling
     mock_handle_error.assert_called_once_with(record)
     mock_get_logger.assert_called_with("HTTPSLoggingHandler")
-    mock_logger.error.assert_called_with("Error sending log record: Connection error")
+    mock_logger.error.assert_called_with(
+        "Error sending log record: Connection error"
+    )
 
 
 @pytest.mark.unit

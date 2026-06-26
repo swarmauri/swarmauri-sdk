@@ -52,9 +52,13 @@ async def test_delegates_to_oauth20(monkeypatch: pytest.MonkeyPatch) -> None:
         )
         return {"access_token": "delegated"}
 
-    from swarmauri_auth_idp_salesforce import SalesforceOAuth20AppClient as _SF20
+    from swarmauri_auth_idp_salesforce import (
+        SalesforceOAuth20AppClient as _SF20,
+    )
 
-    monkeypatch.setattr(_SF20, "access_token_payload", fake_access_token_payload)
+    monkeypatch.setattr(
+        _SF20, "access_token_payload", fake_access_token_payload
+    )
 
     client = SalesforceOAuth21AppClient(
         token_endpoint="https://login.salesforce.com/services/oauth2/token",

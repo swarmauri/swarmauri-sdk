@@ -21,7 +21,9 @@ def test_init_module():
 @pytest.mark.i9n
 def test_version_installed(mocker):
     """Test that the version is correctly retrieved when installed."""
-    mock_version = mocker.patch("importlib.metadata.version", return_value="1.2.3")
+    mock_version = mocker.patch(
+        "importlib.metadata.version", return_value="1.2.3"
+    )
 
     # Remove module from cache and reload
     if "swarmauri_middleware_time" in sys.modules:

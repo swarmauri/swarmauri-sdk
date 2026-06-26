@@ -85,7 +85,9 @@ class InterfaceRegistry:
     }
 
     @classmethod
-    def get_interface_for_resource(cls, resource_kind: str) -> Optional[Type[Any]]:
+    def get_interface_for_resource(
+        cls, resource_kind: str
+    ) -> Optional[Type[Any]]:
         """
         Retrieve the interface class for a given resource kind.
 
@@ -94,7 +96,9 @@ class InterfaceRegistry:
         :raises KeyError: If the resource kind is not registered.
         """
         if resource_kind not in cls.INTERFACE_REGISTRY:
-            logger.error(f"No interface registered for resource kind: {resource_kind}")
+            logger.error(
+                f"No interface registered for resource kind: {resource_kind}"
+            )
             raise KeyError(
                 f"No interface registered for resource kind: {resource_kind}"
             )

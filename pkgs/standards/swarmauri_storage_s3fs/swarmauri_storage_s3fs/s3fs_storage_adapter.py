@@ -121,7 +121,9 @@ class S3FSStorageAdapter(StorageAdapterBase):
         normalized_prefix = self.normalize_prefix(prefix)
         for rel_key in self.iter_prefix(prefix):
             target_rel = rel_key
-            if normalized_prefix and rel_key.startswith(f"{normalized_prefix}/"):
+            if normalized_prefix and rel_key.startswith(
+                f"{normalized_prefix}/"
+            ):
                 target_rel = rel_key[len(normalized_prefix) + 1 :]
             if not target_rel:
                 continue
@@ -136,10 +138,14 @@ class S3FSStorageAdapter(StorageAdapterBase):
         if not self._fs.exists(self._bucket):
             self._fs.mkdir(self._bucket)
 
-    async def get_range(self, object_key: str, start: int, length: int) -> bytes:
+    async def get_range(
+        self, object_key: str, start: int, length: int
+    ) -> bytes:
         """Retrieve a byte range using the ``s3fs`` file object."""
         info = self._fs.info(self._full_key(object_key))
-        parsed_start, parsed_end = self._parse_range(start, length, info["size"])
+        parsed_start, parsed_end = self._parse_range(
+            start, length, info["size"]
+        )
         with self._fs.open(self._full_key(object_key), "rb") as handle:
             handle.seek(parsed_start)
             return handle.read(parsed_end - parsed_start)

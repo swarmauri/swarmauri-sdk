@@ -52,7 +52,9 @@ class DummyCrypto(ICrypto):
     ):  # pragma: no cover - unused
         raise NotImplementedError
 
-    async def seal(self, recipient, pt, *, alg=None):  # pragma: no cover - unused
+    async def seal(
+        self, recipient, pt, *, alg=None
+    ):  # pragma: no cover - unused
         raise NotImplementedError
 
     async def unseal(
@@ -60,7 +62,9 @@ class DummyCrypto(ICrypto):
     ):  # pragma: no cover - unused
         raise NotImplementedError
 
-    async def encaps(self, recipient, *, alg=None):  # pragma: no cover - unused
+    async def encaps(
+        self, recipient, *, alg=None
+    ):  # pragma: no cover - unused
         raise NotImplementedError
 
     async def decaps(

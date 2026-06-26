@@ -41,7 +41,9 @@ def mock_formatter() -> FormatterBase:
     formatter.model_dump = MagicMock(
         return_value={"type": "FormatterBase"}
     )  # For Pydantic serialization
-    formatter.compile_formatter.return_value = logging.Formatter("[TEST] %(message)s")
+    formatter.compile_formatter.return_value = logging.Formatter(
+        "[TEST] %(message)s"
+    )
     return formatter
 
 
@@ -269,7 +271,9 @@ def test_model_serialization_deserialization():
     json_data = original.model_dump_json()
 
     # Deserialize from JSON
-    deserialized = TimedRotatingFileLoggingHandler.model_validate_json(json_data)
+    deserialized = TimedRotatingFileLoggingHandler.model_validate_json(
+        json_data
+    )
 
     # Verify properties match
     assert deserialized.filename == original.filename

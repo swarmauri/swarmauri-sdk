@@ -26,7 +26,9 @@ def test_initialization(cipher_suite: CoseCipherSuite) -> None:
 
 @pytest.mark.unit
 def test_serialization(cipher_suite: CoseCipherSuite) -> None:
-    restored = CoseCipherSuite.model_validate_json(cipher_suite.model_dump_json())
+    restored = CoseCipherSuite.model_validate_json(
+        cipher_suite.model_dump_json()
+    )
     assert restored.id == cipher_suite.id
 
 
@@ -42,7 +44,15 @@ def test_supports_expected_algorithms(cipher_suite: CoseCipherSuite) -> None:
 
     assert set(supports.keys()) == {"sign", "verify", "encrypt", "decrypt"}
     assert supports["sign"] == supports["verify"]
-    assert set(supports["sign"]) == {"-8", "-7", "-35", "-36", "-37", "-38", "-39"}
+    assert set(supports["sign"]) == {
+        "-8",
+        "-7",
+        "-35",
+        "-36",
+        "-37",
+        "-38",
+        "-39",
+    }
     assert set(supports["encrypt"]) == {"1", "2", "3"}
     assert supports["encrypt"] == supports["decrypt"]
 
@@ -90,7 +100,9 @@ def test_normalize_with_string_coercion(cipher_suite: CoseCipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_applies_aead_defaults(cipher_suite: CoseCipherSuite) -> None:
+def test_normalize_applies_aead_defaults(
+    cipher_suite: CoseCipherSuite,
+) -> None:
     descriptor = cipher_suite.normalize(op="encrypt", alg=1, params={})
 
     assert descriptor["alg"] == "1"
@@ -110,6 +122,8 @@ def test_normalize_uses_defaults_when_alg_missing(
 
 
 @pytest.mark.unit
-def test_normalize_rejects_unsupported_alg(cipher_suite: CoseCipherSuite) -> None:
+def test_normalize_rejects_unsupported_alg(
+    cipher_suite: CoseCipherSuite,
+) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="sign", alg="999")

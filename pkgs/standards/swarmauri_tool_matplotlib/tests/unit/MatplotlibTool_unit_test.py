@@ -64,12 +64,18 @@ def test_serialization(tool):
     ],
 )
 @pytest.mark.unit
-def test_call(plot_type, x_data, y_data, title, x_label, y_label, save_path, tool):
+def test_call(
+    plot_type, x_data, y_data, title, x_label, y_label, save_path, tool
+):
     expected_keys = {"img_path", "img_base64", "data"}
 
-    result = tool(plot_type, x_data, y_data, title, x_label, y_label, save_path)
+    result = tool(
+        plot_type, x_data, y_data, title, x_label, y_label, save_path
+    )
 
-    assert isinstance(result, dict), f"Expected dict, but got {type(result).__name__}"
+    assert isinstance(result, dict), (
+        f"Expected dict, but got {type(result).__name__}"
+    )
     assert expected_keys.issubset(result.keys()), (
         f"Expected keys {expected_keys} but got {result.keys()}"
     )

@@ -47,7 +47,9 @@ async def test_canonical_request_matches_reference(sigv4_envelope):
 
 
 @pytest.mark.asyncio
-async def test_sign_envelope_produces_expected_signature(sigv4_key, sigv4_envelope):
+async def test_sign_envelope_produces_expected_signature(
+    sigv4_key, sigv4_envelope
+):
     signer = SigV4Signing()
     signatures = await signer.sign_envelope(sigv4_key, sigv4_envelope)
     signature = signatures[0]

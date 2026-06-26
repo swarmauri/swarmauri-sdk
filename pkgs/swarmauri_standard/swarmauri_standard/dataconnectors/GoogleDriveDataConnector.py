@@ -45,7 +45,9 @@ class GoogleDriveDataConnector(DataConnectorBase):
             "scope": "https://www.googleapis.com/auth/drive",
             "access_type": "offline",  # This ensures we get a refresh token
         }
-        return f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"
+        return (
+            f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"
+        )
 
     def _exchange_code_for_tokens(self):
         """Exchange authorization code for access and refresh tokens"""
@@ -102,17 +104,23 @@ class GoogleDriveDataConnector(DataConnectorBase):
 
             # Prompt for authorization code
             while True:
-                authorization_code = input("Enter the authorization code: ").strip()
+                authorization_code = input(
+                    "Enter the authorization code: "
+                ).strip()
 
                 if not authorization_code:
-                    print("Authorization code cannot be empty. Please try again.")
+                    print(
+                        "Authorization code cannot be empty. Please try again."
+                    )
                     continue
 
                 self.authorization_code = authorization_code
 
                 try:
                     self._exchange_code_for_tokens()
-                    logging.info("Successfully authenticated and obtained tokens")
+                    logging.info(
+                        "Successfully authenticated and obtained tokens"
+                    )
                     return
                 except ValueError as e:
                     print(f"Error exchanging authorization code: {e}")
@@ -137,7 +145,9 @@ class GoogleDriveDataConnector(DataConnectorBase):
         try:
             # Prepare request parameters
             query_str = query or ""
-            mime_type = kwargs.get("mime_type", "application/vnd.google-apps.document")
+            mime_type = kwargs.get(
+                "mime_type", "application/vnd.google-apps.document"
+            )
             max_results = kwargs.get("max_results", 100)
 
             # Construct request headers and parameters
@@ -193,10 +203,14 @@ class GoogleDriveDataConnector(DataConnectorBase):
             headers = {"Authorization": f"Bearer {self.access_token}"}
 
             # Export file as plain text
-            export_url = f"https://www.googleapis.com/drive/v3/files/{file_id}/export"
+            export_url = (
+                f"https://www.googleapis.com/drive/v3/files/{file_id}/export"
+            )
             params = {"mimeType": "text/plain"}
 
-            response = self.client.get(export_url, headers=headers, params=params)
+            response = self.client.get(
+                export_url, headers=headers, params=params
+            )
             response.raise_for_status()
 
             return response.text
@@ -231,7 +245,9 @@ class GoogleDriveDataConnector(DataConnectorBase):
             }
 
             # Prepare file content (base64 encoded)
-            media_content = base64.b64encode(data.encode("utf-8")).decode("utf-8")
+            media_content = base64.b64encode(data.encode("utf-8")).decode(
+                "utf-8"
+            )
 
             # Construct payload
             payload = {
@@ -270,10 +286,14 @@ class GoogleDriveDataConnector(DataConnectorBase):
             }
 
             # Prepare file content (base64 encoded)
-            media_content = base64.b64encode(data.encode("utf-8")).decode("utf-8")
+            media_content = base64.b64encode(data.encode("utf-8")).decode(
+                "utf-8"
+            )
 
             # Construct payload
-            payload = {"media": {"mimeType": "text/plain", "body": media_content}}
+            payload = {
+                "media": {"mimeType": "text/plain", "body": media_content}
+            }
 
             # Make request to update file
             response = self.client.patch(

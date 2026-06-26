@@ -343,7 +343,8 @@ class SshEnvelopeSigner(SigningBase):
                     continue
                 keytype = str(sig.get("keytype") or "")
                 if allowed_algs and (
-                    sig.get("alg") not in allowed_algs and keytype not in allowed_algs
+                    sig.get("alg") not in allowed_algs
+                    and keytype not in allowed_algs
                 ):
                     continue
                 if required_kids:
@@ -351,7 +352,9 @@ class SshEnvelopeSigner(SigningBase):
                     if not isinstance(kid, str) or kid not in required_kids:
                         continue
 
-                sig_path = _write_temp("ssh_sig_", bytes(sig_bytes), mode=0o600)
+                sig_path = _write_temp(
+                    "ssh_sig_", bytes(sig_bytes), mode=0o600
+                )
                 try:
                     cmd = [
                         "ssh-keygen",
@@ -395,7 +398,9 @@ class SshEnvelopeSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            digest, signatures, require=require, opts=opts
+        )
 
     async def canonicalize_envelope(
         self,
@@ -482,4 +487,6 @@ class SshEnvelopeSigner(SigningBase):
         """
 
         payload = await self.canonicalize_envelope(env, canon=canon, opts=opts)
-        return await self.verify_bytes(payload, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            payload, signatures, require=require, opts=opts
+        )

@@ -2,7 +2,9 @@ import warnings
 
 import pytest
 
-from swarmauri_distance_squared_euclidean.SquaredEuclideanDistance import SquaredEuclideanDistance
+from swarmauri_distance_squared_euclidean.SquaredEuclideanDistance import (
+    SquaredEuclideanDistance,
+)
 
 
 @pytest.mark.unit

@@ -54,7 +54,9 @@ def test_ubc_type(hyperbolic_tts_model):
 def test_serialization(hyperbolic_tts_model):
     assert (
         hyperbolic_tts_model.id
-        == HyperbolicTTS.model_validate_json(hyperbolic_tts_model.model_dump_json()).id
+        == HyperbolicTTS.model_validate_json(
+            hyperbolic_tts_model.model_dump_json()
+        ).id
     )
 
 
@@ -89,7 +91,9 @@ def test_predict(hyperbolic_tts_model, language):
         language, "Hello, this is a generic test of text-to-speech output."
     )
 
-    audio_file_path = hyperbolic_tts_model.predict(text=text, audio_path=file_path)
+    audio_file_path = hyperbolic_tts_model.predict(
+        text=text, audio_path=file_path
+    )
 
     logging.info(audio_file_path)
 

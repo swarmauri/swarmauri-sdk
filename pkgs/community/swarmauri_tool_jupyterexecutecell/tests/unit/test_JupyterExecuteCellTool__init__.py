@@ -73,4 +73,6 @@ def test_jupyter_execute_cell_tool_methods() -> None:
     # Example call. Replace with realistic test logic.
     # The test is purely demonstrative; actual tests should verify real logic.
     execute_result = tool_instance.execute_cell("print('Test')")
-    assert execute_result is not None, "execute_cell method should return a result."
+    assert execute_result is not None, (
+        "execute_cell method should return a result."
+    )

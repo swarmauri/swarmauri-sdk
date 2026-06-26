@@ -35,7 +35,9 @@ class TlsBoundJWTTokenService(JWTTokenService):
         *,
         default_issuer: Optional[str] = None,
         client_cert_der_getter: Optional[Callable[[], Optional[bytes]]] = None,
-        client_cert_x5tS256_getter: Optional[Callable[[], Optional[str]]] = None,
+        client_cert_x5tS256_getter: Optional[
+            Callable[[], Optional[str]]
+        ] = None,
     ) -> None:
         super().__init__(key_provider, default_issuer=default_issuer)
         self._get_der = client_cert_der_getter
@@ -108,7 +110,9 @@ class TlsBoundJWTTokenService(JWTTokenService):
 
         live = self._live_x5tS256()
         if not live:
-            raise ValueError("mTLS verification requires the live client certificate")
+            raise ValueError(
+                "mTLS verification requires the live client certificate"
+            )
         if live != bound:
             raise ValueError("mTLS binding mismatch (x5t#S256)")
         return claims

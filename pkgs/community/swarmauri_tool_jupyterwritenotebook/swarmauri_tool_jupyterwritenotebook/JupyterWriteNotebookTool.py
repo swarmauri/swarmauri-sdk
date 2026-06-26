@@ -62,7 +62,9 @@ class JupyterWriteNotebookTool(ToolBase):
         ]
     )
     name: str = "JupyterWriteNotebookTool"
-    description: str = "Writes a Jupyter NotebookNode to a file in JSON format."
+    description: str = (
+        "Writes a Jupyter NotebookNode to a file in JSON format."
+    )
     type: Literal["JupyterWriteNotebookTool"] = "JupyterWriteNotebookTool"
 
     def __call__(
@@ -110,18 +112,24 @@ class JupyterWriteNotebookTool(ToolBase):
             with open(output_file, "r", encoding=encoding) as f:
                 content = json.load(f)
             if not content:
-                logger.error("Notebook data verification failed: File is empty.")
+                logger.error(
+                    "Notebook data verification failed: File is empty."
+                )
                 return {
                     "error": f"Notebook data verification failed: File '{output_file}' is empty."
                 }
 
-            logger.info("Notebook data verification successful for '%s'", output_file)
+            logger.info(
+                "Notebook data verification successful for '%s'", output_file
+            )
             return {
                 "message": "Notebook written successfully",
                 "file_path": output_file,
             }
 
         except Exception as e:
-            error_msg = f"An error occurred during notebook write operation: {str(e)}"
+            error_msg = (
+                f"An error occurred during notebook write operation: {str(e)}"
+            )
             logger.error(error_msg)
             return {"error": error_msg}

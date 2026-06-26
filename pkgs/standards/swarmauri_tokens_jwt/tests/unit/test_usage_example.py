@@ -22,7 +22,9 @@ class InMemoryKeyProvider(IKeyProvider):
     def supports(self) -> dict[str, list[str]]:
         return {}
 
-    async def create_key(self, spec: KeySpec) -> KeyRef:  # pragma: no cover - unused
+    async def create_key(
+        self, spec: KeySpec
+    ) -> KeyRef:  # pragma: no cover - unused
         raise NotImplementedError
 
     async def import_key(  # pragma: no cover - unused
@@ -41,7 +43,11 @@ class InMemoryKeyProvider(IKeyProvider):
         return False
 
     async def get_key(
-        self, kid: str, version: int | None = None, *, include_secret: bool = False
+        self,
+        kid: str,
+        version: int | None = None,
+        *,
+        include_secret: bool = False,
     ) -> KeyRef:
         material = self.secret if include_secret else None
         return KeyRef(
@@ -65,7 +71,11 @@ class InMemoryKeyProvider(IKeyProvider):
 
     async def jwks(self) -> dict:
         k = base64.urlsafe_b64encode(self.secret).rstrip(b"=").decode()
-        return {"keys": [{"kty": "oct", "kid": f"{self.kid}.{self.version}", "k": k}]}
+        return {
+            "keys": [
+                {"kty": "oct", "kid": f"{self.kid}.{self.version}", "k": k}
+            ]
+        }
 
     async def random_bytes(self, n: int) -> bytes:  # pragma: no cover - unused
         return b"\x00" * n

@@ -31,14 +31,22 @@ def test_class_attributes() -> None:
     """
     tool = JupyterValidateNotebookTool()
     assert tool.version == "1.0.0", "Version attribute should be '1.0.0'."
-    assert tool.name == "JupyterValidateNotebookTool", "Name attribute mismatch."
+    assert tool.name == "JupyterValidateNotebookTool", (
+        "Name attribute mismatch."
+    )
     assert (
         tool.description
         == "Validates a Jupyter notebook structure against its JSON schema."
     )
-    assert tool.type == "JupyterValidateNotebookTool", "Type attribute mismatch."
-    assert len(tool.parameters) == 1, "Should have exactly one parameter definition."
-    assert tool.parameters[0].name == "notebook", "Parameter name should be 'notebook'."
+    assert tool.type == "JupyterValidateNotebookTool", (
+        "Type attribute mismatch."
+    )
+    assert len(tool.parameters) == 1, (
+        "Should have exactly one parameter definition."
+    )
+    assert tool.parameters[0].name == "notebook", (
+        "Parameter name should be 'notebook'."
+    )
 
 
 def test_valid_notebook_validation() -> None:
@@ -71,7 +79,9 @@ def test_invalid_notebook_validation() -> None:
     tool = JupyterValidateNotebookTool()
     result = tool(invalid_notebook)
 
-    assert result["valid"] == "False", "Invalid notebook should return 'False'."
+    assert result["valid"] == "False", (
+        "Invalid notebook should return 'False'."
+    )
     assert "Validation error:" in result["report"], (
         "Report should contain the validation error message."
     )
@@ -95,7 +105,9 @@ def test_unexpected_error_handling(monkeypatch) -> None:
 
     result = tool(notebook)
 
-    assert result["valid"] == "False", "Should return 'False' on unexpected error."
+    assert result["valid"] == "False", (
+        "Should return 'False' on unexpected error."
+    )
     assert "Unexpected error:" in result["report"], (
         "Report should indicate an unexpected error."
     )

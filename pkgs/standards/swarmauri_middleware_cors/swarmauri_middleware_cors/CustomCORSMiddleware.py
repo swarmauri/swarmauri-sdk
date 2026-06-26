@@ -146,9 +146,15 @@ class CustomCORSMiddleware(MiddlewareBase):
         Returns:
             The response object with CORS headers added.
         """
-        response.headers["Access-Control-Allow-Origin"] = ",".join(self.allow_origins)
-        response.headers["Access-Control-Allow-Methods"] = ",".join(self.allow_methods)
-        response.headers["Access-Control-Allow-Headers"] = ",".join(self.allow_headers)
+        response.headers["Access-Control-Allow-Origin"] = ",".join(
+            self.allow_origins
+        )
+        response.headers["Access-Control-Allow-Methods"] = ",".join(
+            self.allow_methods
+        )
+        response.headers["Access-Control-Allow-Headers"] = ",".join(
+            self.allow_headers
+        )
         response.headers["Access-Control-Expose-Headers"] = ",".join(
             self.expose_headers
         )

@@ -139,7 +139,9 @@ class _MultilineFormatterImpl(logging.Formatter):
             if self.indent_subsequent_lines > 0:
                 indent = " " * self.indent_subsequent_lines
                 return (
-                    first_line + "\n" + "\n".join(indent + line for line in lines[1:])
+                    first_line
+                    + "\n"
+                    + "\n".join(indent + line for line in lines[1:])
                 )
             return "\n".join(lines)
 

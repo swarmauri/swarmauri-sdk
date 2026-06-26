@@ -32,7 +32,9 @@ def test_ubc_type(openai_embedder):
 def test_serialization(openai_embedder):
     assert (
         openai_embedder.id
-        == OpenAIEmbedding.model_validate_json(openai_embedder.model_dump_json()).id
+        == OpenAIEmbedding.model_validate_json(
+            openai_embedder.model_dump_json()
+        ).id
     )
 
 

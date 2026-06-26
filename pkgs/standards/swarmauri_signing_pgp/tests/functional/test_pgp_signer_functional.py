@@ -32,5 +32,7 @@ async def test_sign_and_verify_envelope_json():
     key = await _generate_key()
     env = {"msg": "hi"}
     sigs = await signer.sign_envelope({"kind": "pgpy_key", "priv": key}, env)
-    ok = await signer.verify_envelope(env, sigs, opts={"pubkeys": [key.pubkey]})
+    ok = await signer.verify_envelope(
+        env, sigs, opts={"pubkeys": [key.pubkey]}
+    )
     assert ok

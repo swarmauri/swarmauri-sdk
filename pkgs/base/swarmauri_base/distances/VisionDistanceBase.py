@@ -15,5 +15,7 @@ warnings.warn(
 class VisionDistanceBase(ComponentBase):
     """Deprecated compatibility base for vision distance components."""
 
-    resource: Optional[str] = Field(default=ResourceTypes.DISTANCE.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.DISTANCE.value, frozen=True
+    )
     type: Literal["VisionDistanceBase"] = "VisionDistanceBase"

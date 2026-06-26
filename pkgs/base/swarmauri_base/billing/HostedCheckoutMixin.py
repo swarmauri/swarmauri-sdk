@@ -32,7 +32,9 @@ class HostedCheckoutMixin(IHostedCheckout, BaseModel):
         raw = cast(Mapping[str, Any], result)
         payload = extract_raw_payload(raw)
         return CheckoutIntentRef(
-            id=str(raw.get("id", getattr(payload, "get", lambda *_: "")("id", ""))),
+            id=str(
+                raw.get("id", getattr(payload, "get", lambda *_: "")("id", ""))
+            ),
             provider=str(raw.get("provider", "")),
             url=str(
                 raw.get("url")

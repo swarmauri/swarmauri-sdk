@@ -59,7 +59,9 @@ class GitHubOAuthLoginMixin:
         )
         return {"url": url, "state": state, "verifier": verifier}
 
-    async def _exchange_tokens(self, code: str, state: str) -> Mapping[str, Any]:
+    async def _exchange_tokens(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         payload = verify_state(self._state_secret_value(), state)
         form = {
             "client_id": self.client_id,
@@ -108,7 +110,11 @@ class GitHubOAuthLoginMixin:
                             None,
                         )
                         fallback = primary or next(
-                            (entry for entry in emails if isinstance(entry, Mapping)),
+                            (
+                                entry
+                                for entry in emails
+                                if isinstance(entry, Mapping)
+                            ),
                             None,
                         )
                         if fallback:

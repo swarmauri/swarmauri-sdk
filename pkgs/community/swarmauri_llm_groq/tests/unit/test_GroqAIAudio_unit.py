@@ -46,7 +46,10 @@ def test_groqai_type(groqai_model):
 @pytest.mark.timeout(5)
 @pytest.mark.unit
 def test_serialization(groqai_model):
-    assert groqai_model.id == LLM.model_validate_json(groqai_model.model_dump_json()).id
+    assert (
+        groqai_model.id
+        == LLM.model_validate_json(groqai_model.model_dump_json()).id
+    )
 
 
 @pytest.mark.timeout(5)

@@ -52,7 +52,9 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
             logger.info("EvaluatorPool initialised with thread-pool executor")
         except Exception as e:
             logger.exception("Initialisation failed")
-            raise RuntimeError(f"Failed to initialise evaluator pool: {e}") from e
+            raise RuntimeError(
+                f"Failed to initialise evaluator pool: {e}"
+            ) from e
 
     def shutdown(self) -> None:
         try:
@@ -64,12 +66,16 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
             logger.info("EvaluatorPool shut down")
         except Exception as e:
             logger.exception("Shutdown failed")
-            raise RuntimeError(f"Failed to shut down evaluator pool: {e}") from e
+            raise RuntimeError(
+                f"Failed to shut down evaluator pool: {e}"
+            ) from e
 
     # ────────────────────────────────────────────────────────────────────────────
     # registry ops
     # ────────────────────────────────────────────────────────────────────────────
-    def add_evaluator(self, evaluator: IEvaluate, name: Optional[str] = None) -> str:
+    def add_evaluator(
+        self, evaluator: IEvaluate, name: Optional[str] = None
+    ) -> str:
         if not isinstance(evaluator, IEvaluate):
             raise TypeError("Evaluator must implement IEvaluate")
 
@@ -103,7 +109,9 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
     # ────────────────────────────────────────────────────────────────────────────
     # evaluation API
     # ────────────────────────────────────────────────────────────────────────────
-    def evaluate(self, programs: Sequence[P], **kwargs) -> Sequence[IEvalResult]:
+    def evaluate(
+        self, programs: Sequence[P], **kwargs
+    ) -> Sequence[IEvalResult]:
         try:
             processed = self.pre_process(programs)
             results = self._dispatch(processed)
@@ -154,7 +162,10 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
                 self._create_eval_result(
                     program,
                     scores,
-                    {"evaluator_metadata": metadata, "aggregate_score": agg_score},
+                    {
+                        "evaluator_metadata": metadata,
+                        "aggregate_score": agg_score,
+                    },
                 )
             )
         return results
@@ -182,7 +193,10 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
     # result helpers / hooks
     # ────────────────────────────────────────────────────────────────────────────
     def _create_eval_result(
-        self, program: IProgram, scores: Dict[str, float], metadata: Dict[str, Any]
+        self,
+        program: IProgram,
+        scores: Dict[str, float],
+        metadata: Dict[str, Any],
     ) -> IEvalResult:
         agg_score = self.aggregate(scores.values()) if scores else 0.0
         return EvalResultBase(
@@ -194,5 +208,7 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
     def pre_process(self, programs: Sequence[P]) -> Sequence[P]:
         return programs
 
-    def post_process(self, results: Sequence[IEvalResult]) -> Sequence[IEvalResult]:
+    def post_process(
+        self, results: Sequence[IEvalResult]
+    ) -> Sequence[IEvalResult]:
         return results

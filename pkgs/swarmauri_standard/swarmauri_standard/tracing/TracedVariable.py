@@ -25,6 +25,8 @@ class TracedVariable:
 
         # Update the trace by appending the latest change to the list under a single key
         # Note that the key is now constant and does not change with each update
-        self._tracer.annotate_trace(key=f"{self.name}_changes", value=self._changes)
+        self._tracer.annotate_trace(
+            key=f"{self.name}_changes", value=self._changes
+        )
 
         self._value = new_value

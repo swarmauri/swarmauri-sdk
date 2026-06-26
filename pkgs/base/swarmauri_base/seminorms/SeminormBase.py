@@ -50,7 +50,9 @@ class SeminormBase(ISeminorm, ComponentBase):
             This method must be implemented by subclasses
         """
         logger.debug(f"Computing seminorm for input of type {type(x)}")
-        raise NotImplementedError("compute method must be implemented by subclasses")
+        raise NotImplementedError(
+            "compute method must be implemented by subclasses"
+        )
 
     def check_triangle_inequality(self, x: InputType, y: InputType) -> bool:
         """

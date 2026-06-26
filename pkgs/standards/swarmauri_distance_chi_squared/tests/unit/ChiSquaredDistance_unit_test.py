@@ -2,7 +2,9 @@ import warnings
 
 import pytest
 
-from swarmauri_distance_chi_squared.ChiSquaredDistance import ChiSquaredDistance
+from swarmauri_distance_chi_squared.ChiSquaredDistance import (
+    ChiSquaredDistance,
+)
 
 
 @pytest.mark.unit

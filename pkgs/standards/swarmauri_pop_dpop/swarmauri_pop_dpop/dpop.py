@@ -42,9 +42,9 @@ def _compute_jwk_thumbprint(jwk: Mapping[str, object]) -> str:
     else:
         raise PoPParseError(f"Unsupported JWK kty '{kty}' for thumbprint")
 
-    canonical = json.dumps(fields, separators=(",", ":"), sort_keys=True).encode(
-        "utf-8"
-    )
+    canonical = json.dumps(
+        fields, separators=(",", ":"), sort_keys=True
+    ).encode("utf-8")
     return sha256_b64u(canonical)
 
 
@@ -109,7 +109,12 @@ class DPoPVerifier(PopVerifierBase):
             header = json.loads(header_payload)
             if not isinstance(header, dict):
                 raise ValueError("Invalid DPoP header")
-        except (ValueError, TypeError, json.JSONDecodeError, binascii.Error) as exc:
+        except (
+            ValueError,
+            TypeError,
+            json.JSONDecodeError,
+            binascii.Error,
+        ) as exc:
             raise PoPParseError("DPoP header could not be parsed") from exc
 
         alg = header.get("alg")
@@ -145,7 +150,9 @@ class DPoPVerifier(PopVerifierBase):
             if key_obj is None:
                 key_obj = keys.by_thumb(cnf)
             if key_obj is None:
-                raise PoPVerificationError("No verification key available for proof")
+                raise PoPVerificationError(
+                    "No verification key available for proof"
+                )
 
         options = {
             "verify_aud": False,
@@ -156,15 +163,22 @@ class DPoPVerifier(PopVerifierBase):
         }
 
         try:
-            payload = jwt.decode(proof, key_obj, algorithms=[alg], options=options)
+            payload = jwt.decode(
+                proof, key_obj, algorithms=[alg], options=options
+            )
         except MissingRequiredClaimError as exc:
             if exc.claim == "jti":
                 raise PoPParseError("Missing jti claim") from exc
             raise PoPParseError(f"Missing {exc.claim} claim") from exc
         except InvalidTokenError as exc:
-            raise PoPVerificationError("DPoP signature verification failed") from exc
+            raise PoPVerificationError(
+                "DPoP signature verification failed"
+            ) from exc
 
-        if payload.get("htm") != context.method or payload.get("htu") != context.htu:
+        if (
+            payload.get("htm") != context.method
+            or payload.get("htu") != context.htu
+        ):
             raise PoPVerificationError("DPoP htm/htu mismatch")
 
         try:
@@ -184,7 +198,9 @@ class DPoPVerifier(PopVerifierBase):
 
         ath_claim = payload.get("ath")
         if context.policy.require_ath:
-            self._require_ath(ath_claim=ath_claim, policy=context.policy, extras=extras)
+            self._require_ath(
+                ath_claim=ath_claim, policy=context.policy, extras=extras
+            )
         elif ath_claim and "access_token" in extras:
             expected_ath = self._compute_ath(extras["access_token"])
             if expected_ath != ath_claim:
@@ -214,7 +230,9 @@ class DPoPSigner(PopSigningBase):
         include_query: bool = False,
     ) -> None:
         super().__init__(
-            kind=PoPKind.JWT_DPoP, header_name="DPoP", include_query=include_query
+            kind=PoPKind.JWT_DPoP,
+            header_name="DPoP",
+            include_query=include_query,
         )
         self._private_key = private_key
         self._public_jwk = dict(public_jwk)
@@ -240,10 +258,15 @@ class DPoPSigner(PopSigningBase):
         headers = {"typ": "dpop+jwt", "jwk": self._public_jwk}
         if kid is not None:
             headers["kid"] = (
-                kid.decode("utf-8") if isinstance(kid, (bytes, bytearray)) else str(kid)
+                kid.decode("utf-8")
+                if isinstance(kid, (bytes, bytearray))
+                else str(kid)
             )
 
         token = jwt.encode(
-            payload, self._private_key, algorithm=self._algorithm, headers=headers
+            payload,
+            self._private_key,
+            algorithm=self._algorithm,
+            headers=headers,
         )
         return token

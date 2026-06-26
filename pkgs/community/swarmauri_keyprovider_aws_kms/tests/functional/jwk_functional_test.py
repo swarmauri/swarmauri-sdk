@@ -9,7 +9,8 @@ from swarmauri_keyprovider_aws_kms import AwsKmsKeyProvider
 def test_public_jwk_from_der_rsa():
     priv = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     der = priv.public_key().public_bytes(
-        serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo
+        serialization.Encoding.DER,
+        serialization.PublicFormat.SubjectPublicKeyInfo,
     )
     provider = AwsKmsKeyProvider(region="us-east-1")
     jwk = provider._public_jwk_from_der(der, "testkid")

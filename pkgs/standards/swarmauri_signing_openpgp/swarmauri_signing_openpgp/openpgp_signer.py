@@ -99,7 +99,11 @@ def _load_public_keys(entries: Optional[Iterable[Any]]) -> list[pgpy.PGPKey]:
             kind = entry.get("kind")
             if kind == "pgpy-key":
                 data = entry.get("data")
-                blob = data.encode("utf-8") if isinstance(data, str) else bytes(data)
+                blob = (
+                    data.encode("utf-8")
+                    if isinstance(data, str)
+                    else bytes(data)
+                )
                 key, _ = pgpy.PGPKey.from_blob(blob)
                 keys.append(key)
                 continue
@@ -151,7 +155,9 @@ def _serialize_signature(
     )
 
 
-def _load_signature(artifact: Signature | Mapping[str, Any]) -> pgpy.PGPSignature:
+def _load_signature(
+    artifact: Signature | Mapping[str, Any],
+) -> pgpy.PGPSignature:
     raw: Any
     if isinstance(artifact, Signature):
         raw = artifact.artifact
@@ -162,7 +168,9 @@ def _load_signature(artifact: Signature | Mapping[str, Any]) -> pgpy.PGPSignatur
     elif isinstance(raw, (bytes, bytearray)):
         blob = bytes(raw)
     else:
-        raise TypeError("OpenPGP signatures must provide 'artifact' bytes or str")
+        raise TypeError(
+            "OpenPGP signatures must provide 'artifact' bytes or str"
+        )
     _ensure_pgpy()
     sig = pgpy.PGPSignature.from_blob(blob)
     return sig
@@ -191,7 +199,9 @@ class OpenPGPSigner(SigningBase):
         self._key_provider = provider
 
     # ------------------------------------------------------------------
-    def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
+    def supports(
+        self, key_ref: Optional[str] = None
+    ) -> Mapping[str, Iterable[str]]:
         base_caps: Mapping[str, Iterable[str]] = {
             "signs": ("bytes", "digest", "envelope", "stream"),
             "verifies": ("bytes", "digest", "envelope", "stream"),
@@ -264,7 +274,9 @@ class OpenPGPSigner(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        canonical = await self.canonicalize_envelope(env, canon=canon, opts=opts)
+        canonical = await self.canonicalize_envelope(
+            env, canon=canon, opts=opts
+        )
         return await self._sign_payload(
             key,
             canonical,
@@ -332,7 +344,9 @@ class OpenPGPSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        canonical = await self.canonicalize_envelope(env, canon=canon, opts=opts)
+        canonical = await self.canonicalize_envelope(
+            env, canon=canon, opts=opts
+        )
         return await self._verify_payload(
             canonical,
             signatures,
@@ -402,12 +416,16 @@ class OpenPGPSigner(SigningBase):
         payload_bytes = bytes(payload)
         keys = _load_public_keys((opts or {}).get("pubkeys"))
         if not keys:
-            raise RuntimeError("OpenPGP verification requires opts['pubkeys'] entries")
+            raise RuntimeError(
+                "OpenPGP verification requires opts['pubkeys'] entries"
+            )
         min_ok = _min_signers(require)
         accepted = 0
         for sig in signatures:
             meta = sig.meta if isinstance(sig, Signature) else sig.get("meta")
-            kind = meta.get("payload_kind") if isinstance(meta, Mapping) else None
+            kind = (
+                meta.get("payload_kind") if isinstance(meta, Mapping) else None
+            )
             if kind not in (None, payload_kind):
                 continue
             pgp_sig = _load_signature(sig)

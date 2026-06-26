@@ -13,7 +13,8 @@ def VariableTracer(name: str, initial_value=None):
     Context manager for tracing the declaration, modification, and usage of a variable.
     """
     global_tracer.start_trace(
-        name=f"Variable: {name}", initial_attributes={"initial_value": initial_value}
+        name=f"Variable: {name}",
+        initial_attributes={"initial_value": initial_value},
     )
     traced_variable = TracedVariable(name, initial_value, global_tracer)
 

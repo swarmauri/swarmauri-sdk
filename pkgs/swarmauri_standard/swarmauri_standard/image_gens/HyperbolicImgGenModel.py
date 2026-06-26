@@ -32,7 +32,9 @@ class HyperbolicImgGenModel(ImageGenBase):
     Link to API KEYS: https://app.hyperbolic.xyz/settings
     """
 
-    _BASE_URL: str = PrivateAttr("https://api.hyperbolic.xyz/v1/image/generation")
+    _BASE_URL: str = PrivateAttr(
+        "https://api.hyperbolic.xyz/v1/image/generation"
+    )
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
 
@@ -79,7 +81,9 @@ class HyperbolicImgGenModel(ImageGenBase):
         Gets or creates an async client instance.
         """
         if self._async_client is None or self._async_client.is_closed:
-            self._async_client = httpx.AsyncClient(headers=self._headers, timeout=30)
+            self._async_client = httpx.AsyncClient(
+                headers=self._headers, timeout=30
+            )
         return self._async_client
 
     async def _close_async_client(self):

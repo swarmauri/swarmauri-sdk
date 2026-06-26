@@ -129,7 +129,9 @@ def test_convert_to_array(lp_metric_2, vectors, matrices):
     )
 
     # Test with scalar values
-    np.testing.assert_array_equal(lp_metric_2._convert_to_array(5), np.array([5]))
+    np.testing.assert_array_equal(
+        lp_metric_2._convert_to_array(5), np.array([5])
+    )
 
     # Test with string
     np.testing.assert_array_equal(
@@ -139,7 +141,9 @@ def test_convert_to_array(lp_metric_2, vectors, matrices):
 
     # Test with unsupported type
     with pytest.raises(TypeError):
-        lp_metric_2._convert_to_array({1: 2, 3: 4})  # Dictionary is not supported
+        lp_metric_2._convert_to_array(
+            {1: 2, 3: 4}
+        )  # Dictionary is not supported
 
 
 @pytest.mark.unit
@@ -167,7 +171,9 @@ def test_distance_with_vectors(lp_metric_2, vectors):
     _, _, mock_v1, mock_v2 = vectors
 
     result = lp_metric_2.distance(mock_v1, mock_v2)
-    expected = 5.196152422706632  # Euclidean distance between [1,2,3] and [4,5,6]
+    expected = (
+        5.196152422706632  # Euclidean distance between [1,2,3] and [4,5,6]
+    )
     assert abs(result - expected) < 1e-10
 
 

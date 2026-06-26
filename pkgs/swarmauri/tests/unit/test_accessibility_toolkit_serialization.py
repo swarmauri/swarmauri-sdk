@@ -13,11 +13,16 @@ def test_accessibility_toolkit_serialization_roundtrip():
     discover_and_register_plugins()
     toolkit = AccessibilityToolkit()
     assert isinstance(
-        toolkit.tools["AutomatedReadabilityIndexTool"], AutomatedReadabilityIndexTool
+        toolkit.tools["AutomatedReadabilityIndexTool"],
+        AutomatedReadabilityIndexTool,
     )
-    assert isinstance(toolkit.tools["ColemanLiauIndexTool"], ColemanLiauIndexTool)
+    assert isinstance(
+        toolkit.tools["ColemanLiauIndexTool"], ColemanLiauIndexTool
+    )
     assert isinstance(toolkit.tools["FleschKincaidTool"], FleschKincaidTool)
-    assert isinstance(toolkit.tools["FleschReadingEaseTool"], FleschReadingEaseTool)
+    assert isinstance(
+        toolkit.tools["FleschReadingEaseTool"], FleschReadingEaseTool
+    )
     assert isinstance(toolkit.tools["GunningFogTool"], GunningFogTool)
 
     serialized = toolkit.model_dump_json()

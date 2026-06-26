@@ -15,7 +15,9 @@ class DummyService:
     def supports(self):
         return {"formats": self._formats, "algs": self._algs}
 
-    async def mint(self, claims, *, alg, **kwargs):  # pragma: no cover - unused
+    async def mint(
+        self, claims, *, alg, **kwargs
+    ):  # pragma: no cover - unused
         return "tok"
 
     async def verify(self, token, **kwargs):  # pragma: no cover - unused
@@ -31,5 +33,7 @@ def test_rfc4253_ssh_cert_routing():
     ssh_service = DummyService("SSHService", ["SSH-CERT"], ["ssh-ed25519"])
     jwt_service = DummyService("JWTTokenService", ["JWT"], ["HS256"])
     comp = CompositeTokenService([ssh_service, jwt_service])
-    svc = comp._select_service_for_verify("ssh-ed25519-cert-v01@openssh.com AAAA")
+    svc = comp._select_service_for_verify(
+        "ssh-ed25519-cert-v01@openssh.com AAAA"
+    )
     assert svc is ssh_service

@@ -37,7 +37,8 @@ def hermitian_weight_matrix() -> np.ndarray:
         A 3x3 hermitian weight matrix
     """
     return np.array(
-        [[2.0, 0.5 + 0.5j, 1.0], [0.5 - 0.5j, 3.0, 0.0], [1.0, 0.0, 1.0]], dtype=complex
+        [[2.0, 0.5 + 0.5j, 1.0], [0.5 - 0.5j, 3.0, 0.0], [1.0, 0.0, 1.0]],
+        dtype=complex,
     )
 
 
@@ -60,7 +61,9 @@ def inner_product(weight_matrix) -> TraceFormWeightedInnerProduct:
 
 
 @pytest.fixture
-def complex_inner_product(hermitian_weight_matrix) -> TraceFormWeightedInnerProduct:
+def complex_inner_product(
+    hermitian_weight_matrix,
+) -> TraceFormWeightedInnerProduct:
     """
     Fixture providing a TraceFormWeightedInnerProduct instance with complex weights.
 
@@ -243,7 +246,9 @@ def test_check_positivity_with_positive_definite_weight(inner_product):
 def test_check_positivity_with_non_positive_definite_weight():
     """Test positivity property with a non-positive definite weight matrix."""
     # Create a non-positive definite weight matrix
-    non_psd_weight = np.array([[-1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    non_psd_weight = np.array(
+        [[-1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+    )
 
     inner_product = TraceFormWeightedInnerProduct(non_psd_weight)
     a = np.array([[1.0, 0.0], [0.0, 0.0], [0.0, 0.0]])
@@ -287,13 +292,19 @@ def test_set_and_get_weight_matrix(inner_product):
 @pytest.mark.unit
 def test_serialization():
     """Test serialization and deserialization of the inner product."""
-    weight_matrix = np.array([[2.0, 0.5, 0.0], [0.5, 3.0, 0.0], [0.0, 0.0, 1.0]])
+    weight_matrix = np.array(
+        [[2.0, 0.5, 0.0], [0.5, 3.0, 0.0], [0.0, 0.0, 1.0]]
+    )
 
     inner_product = TraceFormWeightedInnerProduct(weight_matrix)
     serialized = inner_product.model_dump_json()
-    deserialized = TraceFormWeightedInnerProduct.model_validate_json(serialized)
+    deserialized = TraceFormWeightedInnerProduct.model_validate_json(
+        serialized
+    )
 
-    assert np.array_equal(inner_product.weight_matrix, deserialized.weight_matrix)
+    assert np.array_equal(
+        inner_product.weight_matrix, deserialized.weight_matrix
+    )
     assert inner_product.type == deserialized.type
     assert inner_product.resource == deserialized.resource
 
@@ -302,7 +313,9 @@ def test_serialization():
 @pytest.mark.parametrize(
     "alpha,beta", [(1.0, 1.0), (2.5, -1.5), (0.0, 3.0), (-2.0, -2.0)]
 )
-def test_linearity_with_different_coefficients(inner_product, matrix_pair, alpha, beta):
+def test_linearity_with_different_coefficients(
+    inner_product, matrix_pair, alpha, beta
+):
     """
     Test linearity with different coefficient values.
 

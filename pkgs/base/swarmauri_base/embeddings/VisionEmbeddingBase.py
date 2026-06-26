@@ -4,5 +4,7 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
 class VisionEmbeddingBase(ComponentBase):
-    resource: Optional[str] = Field(default=ResourceTypes.EMBEDDING.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.EMBEDDING.value, frozen=True
+    )
     type: Literal["VisionEmbeddingBase"] = "VisionEmbeddingBase"

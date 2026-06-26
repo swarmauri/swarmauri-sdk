@@ -12,7 +12,9 @@ import io
 @ComponentBase.register_type(ToolBase, "FoliumTool")
 class FoliumTool(ToolBase):
     type: Literal["FoliumTool"] = "FoliumTool"
-    name: str = Field("FoliumTool", description="Tool to generate maps using Folium.")
+    name: str = Field(
+        "FoliumTool", description="Tool to generate maps using Folium."
+    )
     description: str = Field(
         "Generates maps with markers using Folium.",
         description="Description of the FoliumTool",

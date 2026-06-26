@@ -30,7 +30,9 @@ def custom_formatter():
         MultilineFormatter: A customized MultilineFormatter instance
     """
     return MultilineFormatter(
-        include_timestamp=True, prefix_subsequent_lines=True, indent_subsequent_lines=4
+        include_timestamp=True,
+        prefix_subsequent_lines=True,
+        indent_subsequent_lines=4,
     )
 
 
@@ -94,9 +96,18 @@ def test_compile_formatter(basic_formatter):
     """
     formatter = basic_formatter.compile_formatter()
     assert isinstance(formatter, _MultilineFormatterImpl)
-    assert formatter.prefix_subsequent_lines == basic_formatter.prefix_subsequent_lines
-    assert formatter.subsequent_line_prefix == basic_formatter.subsequent_line_prefix
-    assert formatter.indent_subsequent_lines == basic_formatter.indent_subsequent_lines
+    assert (
+        formatter.prefix_subsequent_lines
+        == basic_formatter.prefix_subsequent_lines
+    )
+    assert (
+        formatter.subsequent_line_prefix
+        == basic_formatter.subsequent_line_prefix
+    )
+    assert (
+        formatter.indent_subsequent_lines
+        == basic_formatter.indent_subsequent_lines
+    )
 
 
 @pytest.mark.unit
@@ -130,7 +141,9 @@ def test_multiline_formatter_impl_multi_line():
     mock_record.getMessage.return_value = "First line\nSecond line"
     mock_record.levelname = "INFO"
 
-    with patch.object(formatter, "formatMessage", return_value="[INFO] First line"):
+    with patch.object(
+        formatter, "formatMessage", return_value="[INFO] First line"
+    ):
         # Format will call formatMessage and then our custom logic
         formatter.format(mock_record)
 

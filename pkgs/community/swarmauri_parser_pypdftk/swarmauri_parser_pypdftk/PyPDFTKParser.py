@@ -34,11 +34,17 @@ class PyPDFTKParser(ParserBase):
                 print(f"No data fields found in the PDF: {source}")
                 return []
 
-            fields_str = "\n".join([f"{key}: {value}" for key, value in fields.items()])
+            fields_str = "\n".join(
+                [f"{key}: {value}" for key, value in fields.items()]
+            )
 
-            document = Document(content=fields_str, metadata={"source": source})
+            document = Document(
+                content=fields_str, metadata={"source": source}
+            )
             return [document]
 
         except Exception as e:
-            print(f"An unexpected error occurred while parsing the PDF '{source}': {e}")
+            print(
+                f"An unexpected error occurred while parsing the PDF '{source}': {e}"
+            )
             return []

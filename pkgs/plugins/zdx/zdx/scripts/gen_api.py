@@ -121,9 +121,13 @@ def is_valid_package_path(package_root: str, module_file: str) -> bool:
     return True
 
 
-def module_allowed(module: str, includes: List[str], excludes: List[str]) -> bool:
+def module_allowed(
+    module: str, includes: List[str], excludes: List[str]
+) -> bool:
     inc_ok = (
-        any(fnmatch.fnmatch(module, patt) for patt in includes) if includes else True
+        any(fnmatch.fnmatch(module, patt) for patt in includes)
+        if includes
+        else True
     )
     exc_ok = (
         not any(fnmatch.fnmatch(module, patt) for patt in excludes)
@@ -300,7 +304,9 @@ def process_target(
     if not packages:
         return module_classes
 
-    top_dir = os.path.join(docs_root, "docs", api_output_dir, target.name.lower())
+    top_dir = os.path.join(
+        docs_root, "docs", api_output_dir, target.name.lower()
+    )
     ensure_home_page(top_dir)
 
     for package_name, package_root in packages:
@@ -359,7 +365,11 @@ def process_target(
         for module, classes, ckey, mtime, size, h in results:
             module_classes.setdefault(module, []).extend(classes)
             prev = cache["files"].get(ckey)
-            dirty = prev is None or prev.get("mtime") != mtime or prev.get("hash") != h
+            dirty = (
+                prev is None
+                or prev.get("mtime") != mtime
+                or prev.get("hash") != h
+            )
 
             mod_dir = os.path.join(
                 docs_root,
@@ -378,7 +388,11 @@ def process_target(
                 continue
             for cls in classes:
                 out_path = os.path.join(mod_dir, f"{cls}.md")
-                if (not changed_only) or dirty or (not os.path.exists(out_path)):
+                if (
+                    (not changed_only)
+                    or dirty
+                    or (not os.path.exists(out_path))
+                ):
                     write_class_page(out_path, module, cls)
             cache["files"][ckey] = {
                 "mtime": mtime,
@@ -403,10 +417,14 @@ def main():
         help="Path to api manifest YAML (relative to docs/)",
     )
     parser.add_argument(
-        "--docs-dir", default=".", help="Docs working directory (default: current)"
+        "--docs-dir",
+        default=".",
+        help="Docs working directory (default: current)",
     )
     parser.add_argument(
-        "--api-output-dir", default="api", help="Relative output dir under docs/docs/"
+        "--api-output-dir",
+        default="api",
+        help="Relative output dir under docs/docs/",
     )
     parser.add_argument(
         "--mkdocs-yml",

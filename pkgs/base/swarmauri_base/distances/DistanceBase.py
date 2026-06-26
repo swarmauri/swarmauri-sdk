@@ -24,7 +24,9 @@ class DistanceBase(IDistanceSimilarity, ComponentBase):
     vector-store comparators for retrieval ranking.
     """
 
-    resource: Optional[str] = Field(default=ResourceTypes.DISTANCE.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.DISTANCE.value, frozen=True
+    )
     type: Literal["DistanceBase"] = "DistanceBase"
 
     @abstractmethod
@@ -36,9 +38,13 @@ class DistanceBase(IDistanceSimilarity, ComponentBase):
         pass
 
     @abstractmethod
-    def distances(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
+    def distances(
+        self, vector_a: Vector, vectors_b: List[Vector]
+    ) -> List[float]:
         pass
 
     @abstractmethod
-    def similarities(self, vector_a: Vector, vectors_b: List[Vector]) -> List[float]:
+    def similarities(
+        self, vector_a: Vector, vectors_b: List[Vector]
+    ) -> List[float]:
         pass

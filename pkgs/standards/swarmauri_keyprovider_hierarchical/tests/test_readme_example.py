@@ -28,7 +28,9 @@ def test_readme_quickstart_example(tmp_path, monkeypatch):
     section = text[start:end]
     match = re.search(r"```python\n(.*?)\n```", section, re.DOTALL)
     if not match:
-        raise AssertionError("No python code block found in README example section")
+        raise AssertionError(
+            "No python code block found in README example section"
+        )
 
     monkeypatch.chdir(tmp_path)
     code = match.group(1)

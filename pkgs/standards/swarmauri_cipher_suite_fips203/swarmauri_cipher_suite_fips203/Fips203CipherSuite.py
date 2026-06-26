@@ -27,7 +27,9 @@ class Fips203CipherSuite(CipherSuiteBase):
     def supports(self) -> Mapping[CipherOp, Iterable[Alg]]:
         return {"wrap": _ML_KEM, "unwrap": _ML_KEM}
 
-    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+    def default_alg(
+        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+    ) -> Alg:
         return "ML-KEM-768"
 
     def policy(self) -> Mapping[str, object]:
@@ -70,7 +72,10 @@ class Fips203CipherSuite(CipherSuiteBase):
         chosen_dialect = "provider" if dialect is None else dialect
         mapped = {"provider": f"ml-kem:{chosen}"}
 
-        constraints = {"nistLevel": _ML_KEM_LEVEL[chosen], "category": "post-quantum"}
+        constraints = {
+            "nistLevel": _ML_KEM_LEVEL[chosen],
+            "category": "post-quantum",
+        }
 
         return {
             "op": op,

@@ -20,11 +20,15 @@ class EchoSkillLLM(LLMBase):
     type: Literal["EchoSkillLLM"] = "EchoSkillLLM"
 
     def predict(self, conversation, **kwargs):
-        conversation.add_message(AgentMessage(content=self._response(conversation)))
+        conversation.add_message(
+            AgentMessage(content=self._response(conversation))
+        )
         return conversation
 
     async def apredict(self, conversation, **kwargs):
-        conversation.add_message(AgentMessage(content=self._response(conversation)))
+        conversation.add_message(
+            AgentMessage(content=self._response(conversation))
+        )
         return conversation
 
     def stream(self, *args, **kwargs):
@@ -34,7 +38,10 @@ class EchoSkillLLM(LLMBase):
         yield ""
 
     def batch(self, conversations, **kwargs):
-        return [self.predict(conversation, **kwargs) for conversation in conversations]
+        return [
+            self.predict(conversation, **kwargs)
+            for conversation in conversations
+        ]
 
     async def abatch(self, conversations, **kwargs):
         return [
@@ -86,11 +93,16 @@ def review_skill():
 
 
 def make_agent(
-    *skills, turn_mode="multi", execution_mode="sequential", require_skill=False
+    *skills,
+    turn_mode="multi",
+    execution_mode="sequential",
+    require_skill=False,
 ):
     return SkillAgent(
         llm=EchoSkillLLM(),
-        conversation=MaxSystemContextConversation(system_context="", max_size=20),
+        conversation=MaxSystemContextConversation(
+            system_context="", max_size=20
+        ),
         skills=list(skills),
         turn_mode=turn_mode,
         execution_mode=execution_mode,
@@ -129,7 +141,9 @@ def test_skill_agent_component_identity(demo_skill):
     assert dumped["skill_execution_tool"]["type"] == "SkillExecutionTool"
 
 
-def test_skill_agent_roundtrip_preserves_component_types_and_behavior(tmp_path):
+def test_skill_agent_roundtrip_preserves_component_types_and_behavior(
+    tmp_path,
+):
     skill_dir = tmp_path / "demo"
     scripts_dir = skill_dir / "scripts"
     scripts_dir.mkdir(parents=True)
@@ -145,7 +159,9 @@ def test_skill_agent_roundtrip_preserves_component_types_and_behavior(tmp_path):
     )
     agent = SkillAgent(
         llm=EchoSkillLLM(),
-        conversation=MaxSystemContextConversation(system_context="", max_size=20),
+        conversation=MaxSystemContextConversation(
+            system_context="", max_size=20
+        ),
         system_context=SystemMessage(content="Base skill-agent policy."),
         skills=[skill],
     )
@@ -170,10 +186,16 @@ def test_skill_agent_roundtrip_preserves_component_types_and_behavior(tmp_path):
     )
 
     assert response == "systems=1;users=1;last=hello"
-    assert "Base skill-agent policy." in restored.conversation.system_context.content
+    assert (
+        "Base skill-agent policy."
+        in restored.conversation.system_context.content
+    )
     assert "# Skill: demo" in restored.conversation.system_context.content
     assert command_result["results"][0]["exit_code"] == 0
-    assert command_result["results"][0]["stdout"].strip() == "roundtrip skill command"
+    assert (
+        command_result["results"][0]["stdout"].strip()
+        == "roundtrip skill command"
+    )
 
 
 def test_skill_agent_has_only_skill_execution_tool(demo_skill):
@@ -199,7 +221,9 @@ def test_skill_agent_executes_skill_commands(tmp_path):
     )
     agent = make_agent(skill)
 
-    result = agent.execute_skill_commands("demo", [[sys.executable, "scripts/run.py"]])
+    result = agent.execute_skill_commands(
+        "demo", [[sys.executable, "scripts/run.py"]]
+    )
 
     assert result["results"][0]["exit_code"] == 0
     assert result["results"][0]["stdout"].strip() == "agent skill command"
@@ -227,7 +251,9 @@ def test_single_turn_does_not_mutate_persistent_history(demo_skill):
     assert agent.conversation._history == []
 
 
-def test_explicit_skill_names_selects_only_requested_skill(demo_skill, review_skill):
+def test_explicit_skill_names_selects_only_requested_skill(
+    demo_skill, review_skill
+):
     agent = make_agent(demo_skill, review_skill)
 
     result = agent.exec("generic request", skill_names=["review"])
@@ -243,14 +269,18 @@ def test_select_skills_matches_name_description_tags_and_triggers(
 ):
     agent = make_agent(demo_skill, review_skill)
 
-    assert [skill.name for skill in agent.select_skills("please use demo")] == ["demo"]
-    assert [skill.name for skill in agent.select_skills("needs Review skill")] == [
+    assert [
+        skill.name for skill in agent.select_skills("please use demo")
+    ] == ["demo"]
+    assert [
+        skill.name for skill in agent.select_skills("needs Review skill")
+    ] == ["review"]
+    assert [
+        skill.name for skill in agent.select_skills("delivery workflow")
+    ] == ["demo"]
+    assert [skill.name for skill in agent.select_skills("inspect this")] == [
         "review"
     ]
-    assert [skill.name for skill in agent.select_skills("delivery workflow")] == [
-        "demo"
-    ]
-    assert [skill.name for skill in agent.select_skills("inspect this")] == ["review"]
 
 
 def test_require_skill_raises_when_nothing_matches(demo_skill, review_skill):
@@ -280,7 +310,9 @@ def test_sync_list_inputs_process_sequentially(demo_skill):
 
 @pytest.mark.asyncio
 async def test_async_concurrent_list_inputs(demo_skill):
-    agent = make_agent(demo_skill, execution_mode="concurrent", turn_mode="single")
+    agent = make_agent(
+        demo_skill, execution_mode="concurrent", turn_mode="single"
+    )
 
     result = await agent.aexec(["one", "two"])
 

@@ -7,7 +7,9 @@ Role = Literal["server", "client"]
 
 
 class Handler(Protocol):
-    def __call__(self, *args: Any, **kwargs: Any) -> Awaitable[None] | None: ...
+    def __call__(
+        self, *args: Any, **kwargs: Any
+    ) -> Awaitable[None] | None: ...
 
 
 class IRunnable(ABC):

@@ -38,7 +38,8 @@ class BM25FScorer:
             if token:
                 tokens.append(token)
             parts = re.findall(
-                r"[A-Z]?[a-z]+|[A-Z]+(?=[A-Z]|$)|[0-9]+", raw_token.replace("_", " ")
+                r"[A-Z]?[a-z]+|[A-Z]+(?=[A-Z]|$)|[0-9]+",
+                raw_token.replace("_", " "),
             )
             for part in parts:
                 lowered = part.lower()
@@ -89,21 +90,28 @@ class BM25FScorer:
         matches.sort(key=lambda item: item[1], reverse=True)
         return matches[:top_k]
 
-    def _score_document(self, document_index: int, query_terms: List[str]) -> float:
+    def _score_document(
+        self, document_index: int, query_terms: List[str]
+    ) -> float:
         score = 0.0
         for term in query_terms:
             document_frequency = self._document_frequencies.get(term, 0)
             if document_frequency == 0:
                 continue
-            weighted_frequency = self._weighted_term_frequency(document_index, term)
+            weighted_frequency = self._weighted_term_frequency(
+                document_index, term
+            )
             if weighted_frequency <= 0:
                 continue
             score += self._idf(document_frequency) * (
-                (weighted_frequency * (self.k1 + 1.0)) / (self.k1 + weighted_frequency)
+                (weighted_frequency * (self.k1 + 1.0))
+                / (self.k1 + weighted_frequency)
             )
         return score
 
-    def _weighted_term_frequency(self, document_index: int, term: str) -> float:
+    def _weighted_term_frequency(
+        self, document_index: int, term: str
+    ) -> float:
         weighted_frequency = 0.0
         for field_name, weight in self.field_weights.items():
             field_frequency = self._field_term_frequencies[document_index][
@@ -111,16 +119,28 @@ class BM25FScorer:
             ].get(term, 0)
             if field_frequency == 0:
                 continue
-            field_length = self._field_lengths[document_index].get(field_name, 0)
-            average_length = self._average_field_lengths.get(field_name, 1.0) or 1.0
-            normalized_length = 1.0 - self.b + self.b * (field_length / average_length)
-            weighted_frequency += weight * (field_frequency / normalized_length)
+            field_length = self._field_lengths[document_index].get(
+                field_name, 0
+            )
+            average_length = (
+                self._average_field_lengths.get(field_name, 1.0) or 1.0
+            )
+            normalized_length = (
+                1.0 - self.b + self.b * (field_length / average_length)
+            )
+            weighted_frequency += weight * (
+                field_frequency / normalized_length
+            )
         return weighted_frequency
 
     def _idf(self, document_frequency: int) -> float:
         doc_count = len(self.document_fields)
         return math.log(
-            1.0 + ((doc_count - document_frequency + 0.5) / (document_frequency + 0.5))
+            1.0
+            + (
+                (doc_count - document_frequency + 0.5)
+                / (document_frequency + 0.5)
+            )
         )
 
     def to_dict(self) -> Dict:

@@ -223,7 +223,9 @@ class DeepInfraModel(LLMBase):
             formatted_messages, temperature, max_tokens, enable_json, stop
         )
 
-        response = await self._async_client.post("/chat/completions", json=payload)
+        response = await self._async_client.post(
+            "/chat/completions", json=payload
+        )
         response.raise_for_status()
 
         result = response.json()
@@ -254,10 +256,17 @@ class DeepInfraModel(LLMBase):
         """
         formatted_messages = self._format_messages(conversation.history)
         payload = self._create_request_payload(
-            formatted_messages, temperature, max_tokens, False, stop, stream=True
+            formatted_messages,
+            temperature,
+            max_tokens,
+            False,
+            stop,
+            stream=True,
         )
 
-        with self._client.stream("POST", "/chat/completions", json=payload) as response:
+        with self._client.stream(
+            "POST", "/chat/completions", json=payload
+        ) as response:
             response.raise_for_status()
             collected_content = []
 
@@ -300,7 +309,12 @@ class DeepInfraModel(LLMBase):
         """
         formatted_messages = self._format_messages(conversation.history)
         payload = self._create_request_payload(
-            formatted_messages, temperature, max_tokens, False, stop, stream=True
+            formatted_messages,
+            temperature,
+            max_tokens,
+            False,
+            stop,
+            stream=True,
         )
 
         async with self._async_client.stream(

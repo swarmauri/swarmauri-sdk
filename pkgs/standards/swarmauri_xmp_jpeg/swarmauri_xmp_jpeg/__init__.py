@@ -20,9 +20,13 @@ class JPEGXMP(EmbedXmpBase):
     XMP_HDR: ClassVar[bytes] = b"http://ns.adobe.com/xap/1.0/\x00"
 
     def supports(self, header: bytes, path: str) -> bool:
-        return header.startswith(self.SOI) or path.lower().endswith((".jpg", ".jpeg"))
+        return header.startswith(self.SOI) or path.lower().endswith(
+            (".jpg", ".jpeg")
+        )
 
-    def _iter_segments(self, data: bytes) -> Iterator[Tuple[int, int, int, int]]:
+    def _iter_segments(
+        self, data: bytes
+    ) -> Iterator[Tuple[int, int, int, int]]:
         if not data.startswith(self.SOI):
             raise ValueError("Not a JPEG payload")
         n = len(data)
@@ -58,13 +62,17 @@ class JPEGXMP(EmbedXmpBase):
                 continue
             payload = data[p_off + 2 : p_off + 2 + p_len]
             if payload.startswith(self.XMP_HDR):
-                return payload[len(self.XMP_HDR) :].decode("utf-8", errors="ignore")
+                return payload[len(self.XMP_HDR) :].decode(
+                    "utf-8", errors="ignore"
+                )
         return None
 
     def _build_app1(self, xmp_utf8: bytes) -> bytes:
         payload = self.XMP_HDR + xmp_utf8
         seglen = 2 + len(payload)
-        return b"\xff" + bytes([self.APP1]) + seglen.to_bytes(2, "big") + payload
+        return (
+            b"\xff" + bytes([self.APP1]) + seglen.to_bytes(2, "big") + payload
+        )
 
     def write_xmp(self, data: bytes, xmp_xml: str) -> bytes:
         xmp_bytes = self._ensure_xml(xmp_xml)
@@ -83,7 +91,9 @@ class JPEGXMP(EmbedXmpBase):
                 payload = data[p_off + 2 : p_off + 2 + p_len]
                 if payload.startswith(self.XMP_HDR):
                     continue
-            out.write(b"\xff" + bytes([marker]) + data[p_off : p_off + 2 + p_len])
+            out.write(
+                b"\xff" + bytes([marker]) + data[p_off : p_off + 2 + p_len]
+            )
         if not inserted:
             out.write(self._build_app1(xmp_bytes))
             out.write(data[2:])
@@ -101,7 +111,9 @@ class JPEGXMP(EmbedXmpBase):
                 payload = data[p_off + 2 : p_off + 2 + p_len]
                 if payload.startswith(self.XMP_HDR):
                     continue
-            out.write(b"\xff" + bytes([marker]) + data[p_off : p_off + 2 + p_len])
+            out.write(
+                b"\xff" + bytes([marker]) + data[p_off : p_off + 2 + p_len]
+            )
         return out.getvalue()
 
 

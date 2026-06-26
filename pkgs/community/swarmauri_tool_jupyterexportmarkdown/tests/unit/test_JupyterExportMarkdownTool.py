@@ -55,14 +55,16 @@ def test_tool_metadata(tool_instance: JupyterExportMarkdownTool) -> None:
     """
     assert tool_instance.name == "JupyterExportMarkdownTool"
     assert (
-        tool_instance.description == "Converts a Jupyter Notebook into Markdown format."
+        tool_instance.description
+        == "Converts a Jupyter Notebook into Markdown format."
     )
     assert tool_instance.version == "1.0.0"
     assert tool_instance.type == "JupyterExportMarkdownTool"
 
 
 def test_export_basic_notebook(
-    tool_instance: JupyterExportMarkdownTool, sample_notebook_json: Dict[str, Any]
+    tool_instance: JupyterExportMarkdownTool,
+    sample_notebook_json: Dict[str, Any],
 ) -> None:
     """
     Tests exporting a basic sample notebook JSON to ensure Markdown is returned without errors.
@@ -77,13 +79,16 @@ def test_export_basic_notebook(
 
 
 def test_export_with_styles(
-    tool_instance: JupyterExportMarkdownTool, sample_notebook_json: Dict[str, Any]
+    tool_instance: JupyterExportMarkdownTool,
+    sample_notebook_json: Dict[str, Any],
 ) -> None:
     """
     Tests exporting the notebook with custom CSS styles to verify that they are applied.
     """
     custom_css = "h1 { color: red; }"
-    result = tool_instance(notebook_json=sample_notebook_json, styles=custom_css)
+    result = tool_instance(
+        notebook_json=sample_notebook_json, styles=custom_css
+    )
     assert "exported_markdown" in result, (
         "Expected 'exported_markdown' in the return dictionary."
     )
@@ -94,14 +99,17 @@ def test_export_with_styles(
 
 
 def test_export_with_template(
-    tool_instance: JupyterExportMarkdownTool, sample_notebook_json: Dict[str, Any]
+    tool_instance: JupyterExportMarkdownTool,
+    sample_notebook_json: Dict[str, Any],
 ) -> None:
     """
     Tests exporting the notebook with a custom template to ensure it is utilized.
     Note: This test does not provide a real template file, but checks for error handling.
     """
     fake_template = "non_existent_template.tpl"
-    result = tool_instance(notebook_json=sample_notebook_json, template=fake_template)
+    result = tool_instance(
+        notebook_json=sample_notebook_json, template=fake_template
+    )
     # Depending on nbconvert versions, a non-existent template may or may not raise an exception internally.
     # Check if the tool handled it without crashing and returned an 'exported_markdown' or 'error'.
     if "error" in result:
@@ -112,7 +120,9 @@ def test_export_with_template(
         assert "exported_markdown" in result
 
 
-def test_export_error_handling(tool_instance: JupyterExportMarkdownTool) -> None:
+def test_export_error_handling(
+    tool_instance: JupyterExportMarkdownTool,
+) -> None:
     """
     Tests handling of invalid notebook data to ensure the method returns an error
     without raising an uncaught exception.

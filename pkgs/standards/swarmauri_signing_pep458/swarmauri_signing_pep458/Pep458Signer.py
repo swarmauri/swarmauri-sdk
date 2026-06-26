@@ -82,7 +82,9 @@ class _Sig:
     def __iter__(self):  # pragma: no cover - trivial helper
         return iter(self.data)
 
-    def __getitem__(self, key: str) -> Any:  # pragma: no cover - trivial helper
+    def __getitem__(
+        self, key: str
+    ) -> Any:  # pragma: no cover - trivial helper
         return self.data[key]
 
     def get(self, key: str, default: Any = None) -> Any:  # pragma: no cover
@@ -260,7 +262,9 @@ class Pep458Signer(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            digest, signatures, require=require, opts=opts
+        )
 
     # ------------------------------------------------------------------
     async def sign_envelope(
@@ -286,7 +290,9 @@ class Pep458Signer(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         payload = await self.canonicalize_envelope(env, canon=canon, opts=opts)
-        return await self.verify_bytes(payload, signatures, require=require, opts=opts)
+        return await self.verify_bytes(
+            payload, signatures, require=require, opts=opts
+        )
 
     # ------------------------------------------------------------------
     def _resolve_method(self, key: KeyRef, alg: Optional[Alg]) -> str:
@@ -320,14 +326,18 @@ class Pep458Signer(SigningBase):
                 seed = key.get("bytes")
                 if not isinstance(seed, (bytes, bytearray)):
                     raise TypeError("raw_ed25519_sk expects 'bytes' material")
-                return ed25519.Ed25519PrivateKey.from_private_bytes(bytes(seed[:32]))
+                return ed25519.Ed25519PrivateKey.from_private_bytes(
+                    bytes(seed[:32])
+                )
         raise ValueError("Unsupported KeyRef kind for Pep458Signer")
 
     # ------------------------------------------------------------------
     def _coerce_public_key(self, value: Any) -> Optional[Any]:
         if value is None:
             return None
-        if hasattr(value, "public_bytes") and not isinstance(value, (bytes, str)):
+        if hasattr(value, "public_bytes") and not isinstance(
+            value, (bytes, str)
+        ):
             return value
         if isinstance(value, (bytes, bytearray)):
             return load_pem_public_key(bytes(value))

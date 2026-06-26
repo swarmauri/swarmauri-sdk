@@ -26,7 +26,9 @@ def test_loads_golden_filesystem_skill_fixture():
     assert skill.tools == ["tools/tool.yaml"]
     assert skill.validation == ["validation/validate.py"]
     assert skill.type == "FileSystemSkill"
-    assert skill.root_path == str((FIXTURES / "golden_filesystem_skill").resolve())
+    assert skill.root_path == str(
+        (FIXTURES / "golden_filesystem_skill").resolve()
+    )
 
 
 def test_loads_skill_markdown_with_frontmatter(tmp_path):
@@ -34,7 +36,9 @@ def test_loads_skill_markdown_with_frontmatter(tmp_path):
     (skill_dir / "references").mkdir(parents=True)
     (skill_dir / "scripts").mkdir()
     (skill_dir / "references" / "guide.md").write_text("ref", encoding="utf-8")
-    (skill_dir / "scripts" / "run.py").write_text("print('ok')", encoding="utf-8")
+    (skill_dir / "scripts" / "run.py").write_text(
+        "print('ok')", encoding="utf-8"
+    )
     (skill_dir / "SKILL.md").write_text(
         """---
 name: demo

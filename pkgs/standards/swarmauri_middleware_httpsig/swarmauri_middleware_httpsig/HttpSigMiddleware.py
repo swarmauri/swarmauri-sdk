@@ -31,7 +31,9 @@ class HttpSigMiddleware(MiddlewareBase, ComponentBase):
     type: Literal["HttpSigMiddleware"] = "HttpSigMiddleware"
     secret_key: Optional[str] = None
     header_name: Optional[str] = "X-Signature"
-    logger: logging.Logger = Field(default_factory=lambda: logger, exclude=True)
+    logger: logging.Logger = Field(
+        default_factory=lambda: logger, exclude=True
+    )
 
     def __init__(
         self, secret_key: str, header_name: str = "X-Signature", **kwargs: Any

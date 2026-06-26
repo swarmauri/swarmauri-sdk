@@ -1,6 +1,15 @@
 import asyncio
 import json
-from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
+from typing import (
+    Any,
+    AsyncGenerator,
+    Dict,
+    Generator,
+    List,
+    Literal,
+    Optional,
+    Type,
+)
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -63,7 +72,9 @@ class OpenAIModel(LLMBase):
     name: str = "gpt-5.5"
     type: Literal["OpenAIModel"] = "OpenAIModel"
     timeout: float = 600.0
-    _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
+    _BASE_URL: str = PrivateAttr(
+        default="https://api.openai.com/v1/chat/completions"
+    )
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
     def __init__(self, **data: Dict[str, Any]) -> None:
@@ -207,7 +218,9 @@ class OpenAIModel(LLMBase):
 
         if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, promt_timer.duration)
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -263,7 +276,9 @@ class OpenAIModel(LLMBase):
 
         if self.include_usage and usage_data:
             usage = self._prepare_usage_data(usage_data, promt_timer.duration)
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -337,7 +352,9 @@ class OpenAIModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
@@ -408,7 +425,9 @@ class OpenAIModel(LLMBase):
             usage = self._prepare_usage_data(
                 usage_data, prompt_timer.duration, completion_timer.duration
             )
-            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(
+                AgentMessage(content=message_content, usage=usage)
+            )
         else:
             conversation.add_message(AgentMessage(content=message_content))
 

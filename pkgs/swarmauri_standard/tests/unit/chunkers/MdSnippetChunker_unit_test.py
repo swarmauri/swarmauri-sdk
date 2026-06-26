@@ -38,7 +38,10 @@ Here we have some text:
 ```
 """
     chunks = [("", "python", "print('hello world')")]
-    assert MdSnippetChunker(language="python").chunk_text(unchunked_text) == chunks
+    assert (
+        MdSnippetChunker(language="python").chunk_text(unchunked_text)
+        == chunks
+    )
 
 
 @pytest.mark.unit
@@ -80,5 +83,6 @@ Here we have some text:
 def test_serialization():
     chunker = MdSnippetChunker()
     assert (
-        chunker.id == MdSnippetChunker.model_validate_json(chunker.model_dump_json()).id
+        chunker.id
+        == MdSnippetChunker.model_validate_json(chunker.model_dump_json()).id
     )

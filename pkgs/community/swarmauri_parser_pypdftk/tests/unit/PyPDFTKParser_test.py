@@ -11,7 +11,9 @@ def test_parser_resource():
     Test to ensure the parser's resource attribute is correctly set.
     """
     parser = Parser()
-    assert parser.resource == "Parser", "The resource attribute should be 'Parser'."
+    assert parser.resource == "Parser", (
+        "The resource attribute should be 'Parser'."
+    )
 
 
 @pytest.mark.unit
@@ -49,14 +51,19 @@ def test_parser_success():
     # Mock the pypdftk.dump_data_fields method
     with mock.patch("pypdftk.dump_data_fields") as mock_dump_data_fields:
         # Define the mock return value
-        mock_dump_data_fields.return_value = {"Field1": "Value1", "Field2": "Value2"}
+        mock_dump_data_fields.return_value = {
+            "Field1": "Value1",
+            "Field2": "Value2",
+        }
 
         # Call the parser's parse method
         documents = parser.parse(file_path)
 
         # Assertions
         mock_dump_data_fields.assert_called_once_with(file_path)
-        assert len(documents) == 1, "Parser should return a list with one document."
+        assert len(documents) == 1, (
+            "Parser should return a list with one document."
+        )
         assert isinstance(documents[0], IDocument), (
             "Returned object should be an instance of IDocument."
         )

@@ -10,7 +10,10 @@ import pytest
 from fastapi import HTTPException, Request
 from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_signing_jws import JwsSignerVerifier
-from swarmauri_middleware_auth.AuthMiddleware import AuthMiddleware, InvalidTokenError
+from swarmauri_middleware_auth.AuthMiddleware import (
+    AuthMiddleware,
+    InvalidTokenError,
+)
 
 
 @pytest.fixture
@@ -174,7 +177,9 @@ class TestAuthMiddleware:
         call_next.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_dispatch_invalid_header_format(self, auth_middleware, mock_request):
+    async def test_dispatch_invalid_header_format(
+        self, auth_middleware, mock_request
+    ):
         """Test that invalid header format raises 401."""
         # Mock request with invalid header format
         mock_request.headers = {"Authorization": "InvalidFormat token123"}
@@ -246,7 +251,9 @@ class TestAuthMiddleware:
     ):
         """Test that token with invalid signature raises 401."""
         # Mock request with invalid signature token
-        mock_request.headers = {"Authorization": f"Bearer {invalid_signature_token}"}
+        mock_request.headers = {
+            "Authorization": f"Bearer {invalid_signature_token}"
+        }
 
         call_next = AsyncMock()
 
@@ -258,10 +265,14 @@ class TestAuthMiddleware:
         call_next.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_dispatch_malformed_token(self, auth_middleware, mock_request):
+    async def test_dispatch_malformed_token(
+        self, auth_middleware, mock_request
+    ):
         """Test that malformed token raises 401."""
         # Mock request with malformed token
-        mock_request.headers = {"Authorization": "Bearer not.a.valid.jwt.token"}
+        mock_request.headers = {
+            "Authorization": "Bearer not.a.valid.jwt.token"
+        }
 
         call_next = AsyncMock()
 
@@ -278,11 +289,15 @@ class TestAuthMiddleware:
     ):
         """Test successful authentication with audience validation."""
         # Mock request with token containing audience
-        mock_request.headers = {"Authorization": f"Bearer {token_with_audience}"}
+        mock_request.headers = {
+            "Authorization": f"Bearer {token_with_audience}"
+        }
 
         call_next = AsyncMock(return_value="success_response")
 
-        response = await auth_middleware_with_audience.dispatch(mock_request, call_next)
+        response = await auth_middleware_with_audience.dispatch(
+            mock_request, call_next
+        )
 
         assert response == "success_response"
         call_next.assert_called_once_with(mock_request)
@@ -304,7 +319,9 @@ class TestAuthMiddleware:
         call_next = AsyncMock()
 
         with pytest.raises(HTTPException) as exc_info:
-            await auth_middleware_with_audience.dispatch(mock_request, call_next)
+            await auth_middleware_with_audience.dispatch(
+                mock_request, call_next
+            )
 
         assert exc_info.value.status_code == 401
         call_next.assert_not_called()
@@ -330,7 +347,9 @@ class TestAuthMiddleware:
     ):
         """Test _validate_jwt_token with invalid signature."""
         with pytest.raises(HTTPException) as exc_info:
-            asyncio.run(auth_middleware._validate_jwt_token(invalid_signature_token))
+            asyncio.run(
+                auth_middleware._validate_jwt_token(invalid_signature_token)
+            )
         assert "Invalid token signature" in exc_info.value.detail
 
     def test_validate_custom_claims_valid(self, auth_middleware, secret_key):
@@ -353,7 +372,9 @@ class TestAuthMiddleware:
             "name": "Test User",
         }
 
-        with pytest.raises(InvalidTokenError, match="Missing required claim: sub"):
+        with pytest.raises(
+            InvalidTokenError, match="Missing required claim: sub"
+        ):
             auth_middleware._validate_custom_claims(payload)
 
     def test_validate_custom_claims_missing_iat(self, auth_middleware):
@@ -364,7 +385,9 @@ class TestAuthMiddleware:
             "name": "Test User",
         }
 
-        with pytest.raises(InvalidTokenError, match="Missing required claim: iat"):
+        with pytest.raises(
+            InvalidTokenError, match="Missing required claim: iat"
+        ):
             auth_middleware._validate_custom_claims(payload)
 
     def test_verify_token_manually_valid(self, auth_middleware, valid_token):
@@ -375,7 +398,9 @@ class TestAuthMiddleware:
         assert result["sub"] == "user123"
         assert result["name"] == "Test User"
 
-    def test_verify_token_manually_invalid(self, auth_middleware, expired_token):
+    def test_verify_token_manually_invalid(
+        self, auth_middleware, expired_token
+    ):
         """Test verify_token_manually with invalid token."""
         result = auth_middleware.verify_token_manually(expired_token)
 
@@ -404,8 +429,12 @@ class TestAuthMiddleware:
 
     def test_algorithm_configuration(self, secret_key):
         """Test that different algorithms can be configured."""
-        middleware_hs256 = AuthMiddleware(secret_key=secret_key, algorithm="HS256")
-        middleware_hs512 = AuthMiddleware(secret_key=secret_key, algorithm="HS512")
+        middleware_hs256 = AuthMiddleware(
+            secret_key=secret_key, algorithm="HS256"
+        )
+        middleware_hs512 = AuthMiddleware(
+            secret_key=secret_key, algorithm="HS512"
+        )
 
         assert middleware_hs256.algorithm == "HS256"
         assert middleware_hs512.algorithm == "HS512"

@@ -28,7 +28,9 @@ def test_readme_usage_example(tmp_path: Path) -> None:
     program.name = tmp_path.name
     program.path = str(tmp_path)
 
-    evaluator = AnyTypeUsageEvaluator(penalty_per_occurrence=0.1, max_penalty=1.0)
+    evaluator = AnyTypeUsageEvaluator(
+        penalty_per_occurrence=0.1, max_penalty=1.0
+    )
     score, metadata = evaluator.evaluate(program)
 
     assert score == pytest.approx(0.3)

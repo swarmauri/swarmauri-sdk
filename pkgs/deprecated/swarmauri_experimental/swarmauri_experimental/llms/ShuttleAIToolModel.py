@@ -1,5 +1,14 @@
 import json
-from typing import List, Dict, Any, Literal, AsyncIterator, Iterator, Optional, Union
+from typing import (
+    List,
+    Dict,
+    Any,
+    Literal,
+    AsyncIterator,
+    Iterator,
+    Optional,
+    Union,
+)
 import requests
 import aiohttp
 import asyncio
@@ -40,7 +49,9 @@ class ShuttleAIToolModel(LLMBase):
     def __init__(self, **data):
         super().__init__(**data)
         self._client = requests.Session()
-        self._client.headers.update({"Authorization": f"Bearer {self.api_key}"})
+        self._client.headers.update(
+            {"Authorization": f"Bearer {self.api_key}"}
+        )
 
     def model_dump(self, **kwargs):
         dump = super().model_dump(**kwargs)
@@ -49,9 +60,13 @@ class ShuttleAIToolModel(LLMBase):
     def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
         if not tools:
             return []
-        return [ShuttleAISchemaConverter().convert(tools[tool]) for tool in tools]
+        return [
+            ShuttleAISchemaConverter().convert(tools[tool]) for tool in tools
+        ]
 
-    def _extract_text_content(self, content: Union[str, List[contentItem]]) -> str:
+    def _extract_text_content(
+        self, content: Union[str, List[contentItem]]
+    ) -> str:
         if isinstance(content, str):
             return content
         elif isinstance(content, list):
@@ -80,7 +95,9 @@ class ShuttleAIToolModel(LLMBase):
             message_dict = {}
 
             if hasattr(message, "content"):
-                message_dict["content"] = self._extract_text_content(message.content)
+                message_dict["content"] = self._extract_text_content(
+                    message.content
+                )
 
             if hasattr(message, "role"):
                 original_role = message.role.lower()
@@ -111,7 +128,9 @@ class ShuttleAIToolModel(LLMBase):
             func_args = json.loads(tool_call["function"]["arguments"])
             func_result = func_call(**func_args)
             func_message = FunctionMessage(
-                content=func_result, name=func_name, tool_call_id=tool_call["id"]
+                content=func_result,
+                name=func_name,
+                tool_call_id=tool_call["id"],
             )
             conversation.add_message(func_message)
         return tool_calls
@@ -141,7 +160,9 @@ class ShuttleAIToolModel(LLMBase):
             "temperature": temperature,
             "top_p": top_p,
             "tool_choice": tool_choice,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
         }
 
         if raw:
@@ -200,7 +221,9 @@ class ShuttleAIToolModel(LLMBase):
             "temperature": temperature,
             "top_p": top_p,
             "tool_choice": tool_choice,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
             "stream": True,
         }
 
@@ -222,7 +245,9 @@ class ShuttleAIToolModel(LLMBase):
         for line in response.iter_lines():
             if line:
                 try:
-                    chunk = json.loads(line.decode("utf-8").split("data: ", 1)[-1])
+                    chunk = json.loads(
+                        line.decode("utf-8").split("data: ", 1)[-1]
+                    )
                     if (
                         chunk.get("choices")
                         and chunk["choices"][0].get("delta")
@@ -292,7 +317,9 @@ class ShuttleAIToolModel(LLMBase):
             "temperature": temperature,
             "top_p": top_p,
             "tool_choice": tool_choice,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
         }
 
         if raw:
@@ -357,7 +384,9 @@ class ShuttleAIToolModel(LLMBase):
             "temperature": temperature,
             "top_p": top_p,
             "tool_choice": tool_choice,
-            "tools": self._schema_convert_tools(toolkit.tools) if toolkit else None,
+            "tools": self._schema_convert_tools(toolkit.tools)
+            if toolkit
+            else None,
             "stream": True,
         }
 
@@ -389,7 +418,9 @@ class ShuttleAIToolModel(LLMBase):
                                 and chunk["choices"][0].get("delta")
                                 and chunk["choices"][0]["delta"].get("content")
                             ):
-                                content = chunk["choices"][0]["delta"]["content"]
+                                content = chunk["choices"][0]["delta"][
+                                    "content"
+                                ]
                                 full_content += content
                                 yield content
                         except json.JSONDecodeError:

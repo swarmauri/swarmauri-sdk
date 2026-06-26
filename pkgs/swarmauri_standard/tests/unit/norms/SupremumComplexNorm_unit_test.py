@@ -85,7 +85,9 @@ def test_compute_with_single_value(supremum_norm):
     """
     assert supremum_norm.compute(3 + 4j) == 3 + 4j
     assert supremum_norm.compute(0 + 0j) == 0 + 0j
-    assert supremum_norm.compute(5) == 5 + 0j  # Integer should be converted to complex
+    assert (
+        supremum_norm.compute(5) == 5 + 0j
+    )  # Integer should be converted to complex
 
 
 @pytest.mark.unit

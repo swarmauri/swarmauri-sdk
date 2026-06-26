@@ -12,7 +12,9 @@ API_KEY = os.getenv("OPENAI_API_KEY")
 @pytest.fixture(scope="module")
 def openai_image_model():
     if not API_KEY:
-        pytest.skip("Skipping due to missing OPENAI_API_KEY environment variable")
+        pytest.skip(
+            "Skipping due to missing OPENAI_API_KEY environment variable"
+        )
     model = OpenAIImgGenModel(api_key=API_KEY)
     return model
 
@@ -62,7 +64,9 @@ def test_generate_image(openai_image_model, model_name):
 
     assert isinstance(image_urls, list)
     assert len(image_urls) > 0
-    assert all(isinstance(url, str) and url.startswith("http") for url in image_urls)
+    assert all(
+        isinstance(url, str) and url.startswith("http") for url in image_urls
+    )
 
 
 @pytest.mark.asyncio
@@ -75,7 +79,9 @@ async def test_agenerate_image(openai_image_model, model_name):
 
     assert isinstance(image_urls, list)
     assert len(image_urls) > 0
-    assert all(isinstance(url, str) and url.startswith("http") for url in image_urls)
+    assert all(
+        isinstance(url, str) and url.startswith("http") for url in image_urls
+    )
 
 
 @pytest.mark.integration
@@ -92,7 +98,9 @@ def test_batch(openai_image_model):
     for result in batch_results:
         assert isinstance(result, list)
         assert len(result) > 0
-        assert all(isinstance(url, str) and url.startswith("http") for url in result)
+        assert all(
+            isinstance(url, str) and url.startswith("http") for url in result
+        )
 
 
 @pytest.mark.asyncio
@@ -110,7 +118,9 @@ async def test_abatch(openai_image_model):
     for result in batch_results:
         assert isinstance(result, list)
         assert len(result) > 0
-        assert all(isinstance(url, str) and url.startswith("http") for url in result)
+        assert all(
+            isinstance(url, str) and url.startswith("http") for url in result
+        )
 
 
 @timeout(5)

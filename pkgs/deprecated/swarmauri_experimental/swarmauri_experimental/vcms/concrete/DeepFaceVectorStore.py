@@ -4,7 +4,9 @@ import pandas as pd
 import numpy as np
 from deepface import DeepFace
 from swarmauri.vcms.base.DeepFaceBase import DeepFaceBase
-from swarmauri.vector_stores.base.VisionVectorStoreBase import VisionVectorStoreBase
+from swarmauri.vector_stores.base.VisionVectorStoreBase import (
+    VisionVectorStoreBase,
+)
 
 
 class DeepFaceVectorStore(DeepFaceBase, VisionVectorStoreBase):

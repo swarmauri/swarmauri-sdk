@@ -2,7 +2,9 @@ import warnings
 
 import pytest
 
-from swarmauri_distance_sorensen_dice.SorensenDiceDistance import SorensenDiceDistance
+from swarmauri_distance_sorensen_dice.SorensenDiceDistance import (
+    SorensenDiceDistance,
+)
 
 
 @pytest.mark.unit

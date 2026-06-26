@@ -80,15 +80,21 @@ def _subject_from_spec(spec: SubjectSpec) -> x509.Name:
     if "C" in spec:
         rdns.append(x509.NameAttribute(NameOID.COUNTRY_NAME, spec["C"]))
     if "ST" in spec:
-        rdns.append(x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, spec["ST"]))
+        rdns.append(
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, spec["ST"])
+        )
     if "L" in spec:
         rdns.append(x509.NameAttribute(NameOID.LOCALITY_NAME, spec["L"]))
     if "O" in spec:
         rdns.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, spec["O"]))
     if "OU" in spec:
-        rdns.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, spec["OU"]))
+        rdns.append(
+            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, spec["OU"])
+        )
     if "emailAddress" in spec:
-        rdns.append(x509.NameAttribute(NameOID.EMAIL_ADDRESS, spec["emailAddress"]))
+        rdns.append(
+            x509.NameAttribute(NameOID.EMAIL_ADDRESS, spec["emailAddress"])
+        )
     if "CN" in spec:
         rdns.append(x509.NameAttribute(NameOID.COMMON_NAME, spec["CN"]))
     for k, v in (spec.get("extra_rdns") or {}).items():
@@ -196,14 +202,20 @@ def _key_version_from_keyref(ref: KeyRef) -> str:
     """
 
     tags = ref.tags or {}
-    return tags.get("gcp_kms_key_version") or tags.get("kms_key_version") or ref.kid
+    return (
+        tags.get("gcp_kms_key_version")
+        or tags.get("kms_key_version")
+        or ref.kid
+    )
 
 
 @ComponentBase.register_type(CertServiceBase, "GcpKmsCertService")
 class GcpKmsCertService(CertServiceBase):
     """Certificate service using Google Cloud KMS for key operations."""
 
-    resource: Optional[str] = Field(default=ResourceTypes.CRYPTO.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.CRYPTO.value, frozen=True
+    )
     type: Literal["GcpKmsCertService"] = "GcpKmsCertService"
 
     def __init__(self, *, client=None) -> None:
@@ -234,7 +246,13 @@ class GcpKmsCertService(CertServiceBase):
         return {
             "key_algs": ("RSA-2048", "EC-P256", "Ed25519"),
             "sig_algs": ("RSA-PKCS1-SHA256", "ECDSA-P256-SHA256", "Ed25519"),
-            "features": ("csr", "self_signed", "sign_from_csr", "verify", "parse"),
+            "features": (
+                "csr",
+                "self_signed",
+                "sign_from_csr",
+                "verify",
+                "parse",
+            ),
         }
 
     async def create_csr(
@@ -276,7 +294,9 @@ class GcpKmsCertService(CertServiceBase):
             )
         csr = builder.sign(kms_priv, hashes.SHA256())
         return csr.public_bytes(
-            serialization.Encoding.DER if output_der else serialization.Encoding.PEM
+            serialization.Encoding.DER
+            if output_der
+            else serialization.Encoding.PEM
         )
 
     async def create_self_signed(
@@ -310,7 +330,9 @@ class GcpKmsCertService(CertServiceBase):
         client = self._client_or_new()
         version = _key_version_from_keyref(key)
         kms_priv = _make_kms_private_key(client, version)
-        pub_pem = client.get_public_key(request={"name": version}).pem.encode("utf-8")
+        pub_pem = client.get_public_key(request={"name": version}).pem.encode(
+            "utf-8"
+        )
 
         subject_name = _subject_from_spec(subject)
         builder = x509.CertificateBuilder()
@@ -329,7 +351,9 @@ class GcpKmsCertService(CertServiceBase):
         )
         cert = builder.sign(kms_priv, hashes.SHA256())
         return cert.public_bytes(
-            serialization.Encoding.DER if output_der else serialization.Encoding.PEM
+            serialization.Encoding.DER
+            if output_der
+            else serialization.Encoding.PEM
         )
 
     async def sign_cert(
@@ -371,9 +395,9 @@ class GcpKmsCertService(CertServiceBase):
         req = x509.load_pem_x509_csr(csr)
         subject_name = req.subject
         issuer_name = _subject_from_spec(issuer) if issuer else subject_name
-        issuer_pub = client.get_public_key(request={"name": version}).pem.encode(
-            "utf-8"
-        )
+        issuer_pub = client.get_public_key(
+            request={"name": version}
+        ).pem.encode("utf-8")
 
         builder = x509.CertificateBuilder()
         builder = builder.subject_name(subject_name).issuer_name(issuer_name)
@@ -393,7 +417,9 @@ class GcpKmsCertService(CertServiceBase):
         )
         cert = builder.sign(kms_priv, hashes.SHA256())
         return cert.public_bytes(
-            serialization.Encoding.DER if output_der else serialization.Encoding.PEM
+            serialization.Encoding.DER
+            if output_der
+            else serialization.Encoding.PEM
         )
 
     async def verify_cert(
@@ -484,7 +510,9 @@ class GcpKmsCertService(CertServiceBase):
         }
         if include_extensions:
             try:
-                bc = c.extensions.get_extension_for_class(x509.BasicConstraints).value
+                bc = c.extensions.get_extension_for_class(
+                    x509.BasicConstraints
+                ).value
                 out["is_ca"] = bool(bc.ca)
             except x509.ExtensionNotFound:
                 out["is_ca"] = False

@@ -53,7 +53,9 @@ def test_fetch_data(authenticated_connector):
 def test_insert_data(authenticated_connector, shared_file_id):
     """Test inserting data into Google Drive."""
     test_data = "Sample content for Google Drive file"
-    file_id = authenticated_connector.insert_data(test_data, filename="test_file.txt")
+    file_id = authenticated_connector.insert_data(
+        test_data, filename="test_file.txt"
+    )
     assert isinstance(file_id, str)
     shared_file_id["file_id"] = file_id
 

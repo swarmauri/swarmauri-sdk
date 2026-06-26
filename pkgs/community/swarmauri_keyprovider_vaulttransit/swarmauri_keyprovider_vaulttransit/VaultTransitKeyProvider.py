@@ -226,7 +226,8 @@ class VaultTransitKeyProvider(KeyProviderBase):
         """
         vtype, purpose = self._vault_type_for_alg(spec.alg)
         name = (
-            spec.label or f"k-{hashlib.sha256(os.urandom(16)).hexdigest()[:12]}"
+            spec.label
+            or f"k-{hashlib.sha256(os.urandom(16)).hexdigest()[:12]}"
         ).strip()
         self._transit.create_key(
             name=name,
@@ -238,7 +239,10 @@ class VaultTransitKeyProvider(KeyProviderBase):
         status = self._key_status(name)
         latest = int(status["latest_version"])
         public_pem = None
-        if purpose in ("signing", "encryption") and spec.alg != KeyAlg.AES256_GCM:
+        if (
+            purpose in ("signing", "encryption")
+            and spec.alg != KeyAlg.AES256_GCM
+        ):
             public_pem = self._export_public_pem(name, latest, purpose)
         return KeyRef(
             kid=name,
@@ -308,7 +312,9 @@ class VaultTransitKeyProvider(KeyProviderBase):
             fingerprint=self._fingerprint(public=public_pem, kid=kid),
         )
 
-    async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
+    async def destroy_key(
+        self, kid: str, version: Optional[int] = None
+    ) -> bool:
         """Destroy a key or specific key version.
 
         kid (str): Key identifier.
@@ -324,7 +330,11 @@ class VaultTransitKeyProvider(KeyProviderBase):
         return True
 
     async def get_key(
-        self, kid: str, version: Optional[int] = None, *, include_secret: bool = False
+        self,
+        kid: str,
+        version: Optional[int] = None,
+        *,
+        include_secret: bool = False,
     ) -> KeyRef:
         """Retrieve a key reference from Vault.
 
@@ -369,7 +379,9 @@ class VaultTransitKeyProvider(KeyProviderBase):
         keys = status.get("keys") or {}
         return tuple(sorted(int(v) for v in keys.keys()))
 
-    async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
+    async def get_public_jwk(
+        self, kid: str, version: Optional[int] = None
+    ) -> dict:
         """Export a public key in JWK format.
 
         kid (str): Key identifier.
@@ -381,7 +393,11 @@ class VaultTransitKeyProvider(KeyProviderBase):
             jwk = _pem_to_jwk(bytes(ref.public))
             jwk["kid"] = f"{ref.kid}.{ref.version}"
             return jwk
-        return {"kty": "oct", "alg": "A256GCM", "kid": f"{ref.kid}.{ref.version}"}
+        return {
+            "kty": "oct",
+            "alg": "A256GCM",
+            "kid": f"{ref.kid}.{ref.version}",
+        }
 
     async def jwks(self, *, prefix_kids: Optional[str] = None) -> dict:
         """Return a JWKS document with all available keys.
@@ -423,7 +439,9 @@ class VaultTransitKeyProvider(KeyProviderBase):
                 pass
         return os.urandom(n)
 
-    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+    async def hkdf(
+        self, ikm: bytes, *, salt: bytes, info: bytes, length: int
+    ) -> bytes:
         """Derive key material using HKDF-SHA256.
 
         ikm (bytes): Input keying material.

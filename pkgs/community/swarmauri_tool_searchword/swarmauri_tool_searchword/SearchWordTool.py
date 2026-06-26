@@ -24,12 +24,12 @@ class SearchWordTool(ToolBase):
     version: str = "0.1.dev1"
     name: str = "SearchWordTool"
     type: Literal["SearchWordTool"] = "SearchWordTool"
-    description: str = (
-        "Searches for a specific word or phrase in a file and highlights occurrences."
-    )
+    description: str = "Searches for a specific word or phrase in a file and highlights occurrences."
     parameters: List[str] = ["file_path", "search_word"]
 
-    def __call__(self, file_path: str, search_word: str) -> Dict[str, List[str]]:
+    def __call__(
+        self, file_path: str, search_word: str
+    ) -> Dict[str, List[str]]:
         """
         Executes the search tool and returns the occurrences of the search word.
 
@@ -49,7 +49,9 @@ class SearchWordTool(ToolBase):
                 with open(file_path, "r", encoding="utf-8") as file:
                     text = file.readlines()
 
-                occurrences, count_occurances = self.search_in_file(text, search_word)
+                occurrences, count_occurances = self.search_in_file(
+                    text, search_word
+                )
                 logger.info(
                     f"Found {count_occurances} occurrences of '{search_word}' in {file_path}."
                 )

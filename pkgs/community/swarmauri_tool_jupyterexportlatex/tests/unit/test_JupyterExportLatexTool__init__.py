@@ -6,7 +6,10 @@ and the __version__ attribute, validating the package setup and exports.
 """
 
 from typing import Any
-from swarmauri_tool_jupyterexportlatex import JupyterExportLatexTool, __version__
+from swarmauri_tool_jupyterexportlatex import (
+    JupyterExportLatexTool,
+    __version__,
+)
 
 
 def test_jupyter_export_latex_tool_imported_properly() -> None:
@@ -16,7 +19,9 @@ def test_jupyter_export_latex_tool_imported_properly() -> None:
     Verifies that the class is exposed properly through the package's __init__.py.
     """
     tool: Any = JupyterExportLatexTool()
-    assert tool is not None, "JupyterExportLatexTool was not properly instantiated."
+    assert tool is not None, (
+        "JupyterExportLatexTool was not properly instantiated."
+    )
 
 
 def test_package_version_is_exposed() -> None:

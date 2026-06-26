@@ -22,7 +22,9 @@ class AutomatedReadabilityIndexTool(ToolBase):
 
     version: str = "0.1.dev1"
     name: str = "AutomatedReadabilityIndexTool"
-    type: Literal["AutomatedReadabilityIndexTool"] = "AutomatedReadabilityIndexTool"
+    type: Literal["AutomatedReadabilityIndexTool"] = (
+        "AutomatedReadabilityIndexTool"
+    )
     description: str = (
         "Calculates the Automated Readability Index (ARI) for a given text."
     )
@@ -61,10 +63,14 @@ class AutomatedReadabilityIndexTool(ToolBase):
                 return {"ari_score": 0.0}
             characters_per_word = num_characters / num_words
             words_per_sentence = num_words / num_sentences
-            ari_score = 4.71 * characters_per_word + 0.5 * words_per_sentence - 21.43
+            ari_score = (
+                4.71 * characters_per_word + 0.5 * words_per_sentence - 21.43
+            )
             return {"ari_score": ari_score}
         else:
-            raise ValueError("Invalid input for AutomatedReadabilityIndexTool.")
+            raise ValueError(
+                "Invalid input for AutomatedReadabilityIndexTool."
+            )
 
     def count_sentences(self, text: str) -> int:
         """
@@ -78,7 +84,9 @@ class AutomatedReadabilityIndexTool(ToolBase):
         """
         sentence_endings = re.compile(r"[.!?]")
         sentences = sentence_endings.split(text)
-        return len([s for s in sentences if s.strip()])  # Count non-empty sentences
+        return len(
+            [s for s in sentences if s.strip()]
+        )  # Count non-empty sentences
 
     def count_words(self, text: str) -> int:
         """

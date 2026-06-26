@@ -80,7 +80,9 @@ _SIGN_ALGS = {
 }
 
 
-def _default_spec_for_alg(alg: JWAAlg, *, label: Optional[str] = None) -> KeySpec:
+def _default_spec_for_alg(
+    alg: JWAAlg, *, label: Optional[str] = None
+) -> KeySpec:
     """Choose a sensible :class:`KeySpec` for creating the initial signing key.
 
     alg (JWAAlg): Desired signing algorithm.
@@ -178,7 +180,9 @@ class RotatingJWTTokenService(TokenServiceBase):
         self._iss = default_issuer
 
         self._rotate_every_s = int(rotate_every_s) if rotate_every_s else None
-        self._max_tokens = int(max_tokens_per_key) if max_tokens_per_key else None
+        self._max_tokens = (
+            int(max_tokens_per_key) if max_tokens_per_key else None
+        )
         self._prev_ttl = int(previous_key_ttl_s)
 
         self._kid: str
@@ -259,14 +263,20 @@ class RotatingJWTTokenService(TokenServiceBase):
         ref = await self._kp.get_key(self._kid, self._ver, include_secret=True)
         if self._alg == JWAAlg.HS256:
             if ref.material is None:
-                raise RuntimeError("HMAC secret is not exportable under current policy")
+                raise RuntimeError(
+                    "HMAC secret is not exportable under current policy"
+                )
             key = ref.material
         else:
             key = ref.material
             if key is None:
-                raise RuntimeError("Signing key is not exportable under current policy")
+                raise RuntimeError(
+                    "Signing key is not exportable under current policy"
+                )
 
-        token = jwt.encode(payload, key, algorithm=self._alg.value, headers=hdr)
+        token = jwt.encode(
+            payload, key, algorithm=self._alg.value, headers=hdr
+        )
         self._mint_count += 1
         return token
 
@@ -289,19 +299,27 @@ class RotatingJWTTokenService(TokenServiceBase):
 
         try:
             header = jwt.get_unverified_header(token)
-        except Exception as exc:  # pragma: no cover - propagating original error
-            raise jwt.InvalidTokenError(f"Invalid JWS/JWT header: {exc}") from exc
+        except (
+            Exception
+        ) as exc:  # pragma: no cover - propagating original error
+            raise jwt.InvalidTokenError(
+                f"Invalid JWS/JWT header: {exc}"
+            ) from exc
 
         header_kid = header.get("kid")
         alg_val = header.get("alg")
         if not header_kid or alg_val is None:
-            raise jwt.InvalidTokenError("Missing or unsupported kid/alg in header")
+            raise jwt.InvalidTokenError(
+                "Missing or unsupported kid/alg in header"
+            )
         try:
             alg = JWAAlg(alg_val)
         except ValueError as exc:
             raise jwt.InvalidTokenError(f"Unsupported alg: {alg_val}") from exc
         if alg not in _SIGN_ALGS:
-            raise jwt.InvalidTokenError("Missing or unsupported kid/alg in header")
+            raise jwt.InvalidTokenError(
+                "Missing or unsupported kid/alg in header"
+            )
 
         kid, ver = _parse_kid_ver(header_kid)
 
@@ -322,7 +340,9 @@ class RotatingJWTTokenService(TokenServiceBase):
                 if jwk.get("kid") == header_kid:
                     return _jwk_to_key(jwk)
             for jwk in jwks.get("keys", []):
-                if isinstance(jwk.get("kid"), str) and jwk["kid"].startswith(kid + "."):
+                if isinstance(jwk.get("kid"), str) and jwk["kid"].startswith(
+                    kid + "."
+                ):
                     return _jwk_to_key(jwk)
             return None
 
@@ -348,19 +368,25 @@ class RotatingJWTTokenService(TokenServiceBase):
         """
 
         base = await self._kp.jwks()
-        seen = {k.get("kid") for k in base.get("keys", []) if isinstance(k, dict)}
+        seen = {
+            k.get("kid") for k in base.get("keys", []) if isinstance(k, dict)
+        }
         keys = list(base.get("keys", []))
 
         current_kid = f"{self._kid}.{self._ver}"
         try:
             if current_kid not in seen:
-                keys.append(await self._kp.get_public_jwk(self._kid, self._ver))
+                keys.append(
+                    await self._kp.get_public_jwk(self._kid, self._ver)
+                )
                 seen.add(current_kid)
         except Exception:
             pass
 
         now = _now()
-        expired = [v for v, until in self._prev_versions.items() if until <= now]
+        expired = [
+            v for v, until in self._prev_versions.items() if until <= now
+        ]
         for v in expired:
             self._prev_versions.pop(v, None)
         for v in self._prev_versions.keys():
@@ -396,9 +422,12 @@ class RotatingJWTTokenService(TokenServiceBase):
         RETURNS (None): This method does not return anything.
         """
 
-        due_time = self._next_rotate_at is not None and _now() >= self._next_rotate_at
+        due_time = (
+            self._next_rotate_at is not None and _now() >= self._next_rotate_at
+        )
         due_count = (
-            self._max_tokens is not None and self._mint_count >= self._max_tokens
+            self._max_tokens is not None
+            and self._mint_count >= self._max_tokens
         )
         if not (due_time or due_count):
             return
@@ -423,7 +452,9 @@ class RotatingJWTTokenService(TokenServiceBase):
             self._kid = base_kid
             self._ver = 1
         else:
-            spec = create_spec or _default_spec_for_alg(self._alg, label="jwt-issuer")
+            spec = create_spec or _default_spec_for_alg(
+                self._alg, label="jwt-issuer"
+            )
             ref = _sync_run(self._kp.create_key(spec))
             self._kid = ref.kid
             self._ver = ref.version

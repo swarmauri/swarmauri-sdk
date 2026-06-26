@@ -61,13 +61,18 @@ class PayPalBillingProvider(
         }
     )
     component_name: str = "paypal"
-    client_id: str | None = Field(default=None, description="PayPal REST client ID")
+    client_id: str | None = Field(
+        default=None, description="PayPal REST client ID"
+    )
     client_secret: SecretStr | None = Field(
         default=None, description="PayPal REST client secret"
     )
-    environment: str = Field(default="sandbox", description="PayPal environment")
+    environment: str = Field(
+        default="sandbox", description="PayPal environment"
+    )
     webhook_id: str | None = Field(
-        default=None, description="PayPal webhook ID for signature verification"
+        default=None,
+        description="PayPal webhook ID for signature verification",
     )
     _access_token: str | None = PrivateAttr(default=None)
 
@@ -193,7 +198,9 @@ class PayPalBillingProvider(
                         },
                         "tenure_type": "REGULAR",
                         "sequence": 1,
-                        "total_cycles": int(price_spec.resolve("total_cycles", 0)),
+                        "total_cycles": int(
+                            price_spec.resolve("total_cycles", 0)
+                        ),
                         "pricing_scheme": {
                             "fixed_price": {
                                 "value": f"{unit_amount / 100:.2f}",
@@ -217,7 +224,9 @@ class PayPalBillingProvider(
 
     # --------------------------------------------------------------- hosted flow
     def _create_checkout(self, price: Any, request: Any) -> Mapping[str, Any]:
-        success_url = request.resolve("success_url", "https://example.com/return")
+        success_url = request.resolve(
+            "success_url", "https://example.com/return"
+        )
         currency = getattr(price, "currency", None) or "USD"
         amount = int(getattr(price, "unit_amount_minor", 0) or 0) * int(
             request.quantity
@@ -240,7 +249,9 @@ class PayPalBillingProvider(
                     "paypal": {
                         "experience_context": {
                             "return_url": success_url,
-                            "cancel_url": request.resolve("cancel_url", success_url),
+                            "cancel_url": request.resolve(
+                                "cancel_url", success_url
+                            ),
                         }
                     }
                 },
@@ -273,7 +284,9 @@ class PayPalBillingProvider(
                 "intent": "CAPTURE" if req.resolve("capture") else "AUTHORIZE",
                 "purchase_units": [
                     {
-                        "reference_id": req.resolve("idempotency_key", "default"),
+                        "reference_id": req.resolve(
+                            "idempotency_key", "default"
+                        ),
                         "amount": {
                             "currency_code": currency,
                             "value": f"{amount / 100:.2f}",
@@ -314,7 +327,9 @@ class PayPalBillingProvider(
         reason: Optional[str] = None,
         idempotency_key: Optional[str] = None,
     ) -> Mapping[str, Any]:
-        raw = self._request("POST", f"/v2/payments/authorizations/{payment_id}/void")
+        raw = self._request(
+            "POST", f"/v2/payments/authorizations/{payment_id}/void"
+        )
         return {
             "id": payment_id,
             "status": raw.get("status", "VOIDED"),
@@ -363,7 +378,9 @@ class PayPalBillingProvider(
         }
 
     # ------------------------------------------------------------------ invoicing
-    def _create_invoice(self, spec: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+    def _create_invoice(
+        self, spec: Any, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
         line_items = [
             {
                 "name": item.description or item.price_id or "Invoice item",
@@ -382,11 +399,17 @@ class PayPalBillingProvider(
                 "detail": {
                     "invoice_number": idempotency_key,
                     "currency_code": (
-                        spec.line_items[0].currency if spec.line_items else "USD"
+                        spec.line_items[0].currency
+                        if spec.line_items
+                        else "USD"
                     ).upper(),
                 },
                 "primary_recipients": [
-                    {"billing_info": {"email_address": spec.resolve("customer_id")}}
+                    {
+                        "billing_info": {
+                            "email_address": spec.resolve("customer_id")
+                        }
+                    }
                 ],
                 "items": line_items,
             },
@@ -400,7 +423,9 @@ class PayPalBillingProvider(
         }
 
     def _finalize_invoice(self, invoice_id: str) -> Mapping[str, Any]:
-        raw = self._request("POST", f"/v2/invoicing/invoices/{invoice_id}/send")
+        raw = self._request(
+            "POST", f"/v2/invoicing/invoices/{invoice_id}/send"
+        )
         return {
             "invoice_id": invoice_id,
             "status": raw.get("status", "SENT"),
@@ -409,7 +434,9 @@ class PayPalBillingProvider(
         }
 
     def _void_invoice(self, invoice_id: str) -> Mapping[str, Any]:
-        raw = self._request("POST", f"/v2/invoicing/invoices/{invoice_id}/cancel")
+        raw = self._request(
+            "POST", f"/v2/invoicing/invoices/{invoice_id}/cancel"
+        )
         return {
             "invoice_id": invoice_id,
             "status": raw.get("status", "CANCELLED"),
@@ -431,7 +458,9 @@ class PayPalBillingProvider(
     ) -> Mapping[str, Any]:
         amount = req.resolve("amount_minor")
         currency = (
-            req.resolve("currency") or getattr(payment, "currency", None) or "USD"
+            req.resolve("currency")
+            or getattr(payment, "currency", None)
+            or "USD"
         )
         payload = {}
         if amount is not None:
@@ -464,7 +493,9 @@ class PayPalBillingProvider(
         }
 
     # ------------------------------------------------------------------- customer
-    def _create_customer(self, spec: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+    def _create_customer(
+        self, spec: Any, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
         return {
             "id": f"paypal_cus_{uuid4().hex[:10]}",
             "provider": self.component_name,
@@ -505,8 +536,12 @@ class PayPalBillingProvider(
             ),
         }
 
-    def _detach_payment_method(self, payment_method_id: str) -> Mapping[str, Any]:
-        return self._stub("detach_payment_method", payment_method_id=payment_method_id)
+    def _detach_payment_method(
+        self, payment_method_id: str
+    ) -> Mapping[str, Any]:
+        return self._stub(
+            "detach_payment_method", payment_method_id=payment_method_id
+        )
 
     def _list_payment_methods(
         self,
@@ -533,14 +568,18 @@ class PayPalBillingProvider(
         return items
 
     # --------------------------------------------------------------------- payouts
-    def _create_payout(self, req: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+    def _create_payout(
+        self, req: Any, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
         raw = self._request(
             "POST",
             "/v1/payments/payouts",
             payload={
                 "sender_batch_header": {
                     "sender_batch_id": idempotency_key,
-                    "email_subject": req.resolve("email_subject", "You have a payout"),
+                    "email_subject": req.resolve(
+                        "email_subject", "You have a payout"
+                    ),
                 },
                 "items": req.resolve("items", []),
             },
@@ -562,7 +601,9 @@ class PayPalBillingProvider(
         }
 
     # --------------------------------------------------------------------- reports
-    def _create_report(self, req: Any, *, idempotency_key: str) -> Mapping[str, Any]:
+    def _create_report(
+        self, req: Any, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
         return {
             "report_id": f"paypal_report_{uuid4().hex[:10]}",
             "status": "QUEUED",
@@ -598,16 +639,24 @@ class PayPalBillingProvider(
             payload={
                 "auth_algo": self._header(headers, "PAYPAL-AUTH-ALGO"),
                 "cert_url": self._header(headers, "PAYPAL-CERT-URL"),
-                "transmission_id": self._header(headers, "PAYPAL-TRANSMISSION-ID"),
-                "transmission_sig": self._header(headers, "PAYPAL-TRANSMISSION-SIG"),
-                "transmission_time": self._header(headers, "PAYPAL-TRANSMISSION-TIME"),
+                "transmission_id": self._header(
+                    headers, "PAYPAL-TRANSMISSION-ID"
+                ),
+                "transmission_sig": self._header(
+                    headers, "PAYPAL-TRANSMISSION-SIG"
+                ),
+                "transmission_time": self._header(
+                    headers, "PAYPAL-TRANSMISSION-TIME"
+                ),
                 "webhook_id": webhook_id,
                 "webhook_event": event,
             },
         )
         return raw.get("verification_status") == "SUCCESS"
 
-    def _list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
+    def _list_disputes(
+        self, *, limit: int = 50
+    ) -> Sequence[Mapping[str, Any]]:
         raw = self._request(
             "GET",
             f"/v1/customer/disputes?page_size={limit}",

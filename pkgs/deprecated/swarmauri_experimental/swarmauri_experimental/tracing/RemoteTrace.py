@@ -33,7 +33,9 @@ class RemoteAPITracer(ITracer):
     def __init__(self, api_endpoint: str):
         self.api_endpoint = api_endpoint
 
-    def start_trace(self, name: str, initial_attributes=None) -> "RemoteTraceContext":
+    def start_trace(
+        self, name: str, initial_attributes=None
+    ) -> "RemoteTraceContext":
         trace_id = str(uuid.uuid4())
         context = RemoteTraceContext(trace_id, name)
         if initial_attributes:
@@ -60,5 +62,7 @@ class RemoteAPITracer(ITracer):
                 f"Failed to send trace data to {self.api_endpoint}. Status code: {response.status_code}"
             )
 
-    def annotate_trace(self, trace_context: "RemoteTraceContext", key: str, value):
+    def annotate_trace(
+        self, trace_context: "RemoteTraceContext", key: str, value
+    ):
         trace_context.add_annotation(key, value)

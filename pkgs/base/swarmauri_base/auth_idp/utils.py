@@ -21,15 +21,21 @@ def make_pkce_pair() -> Tuple[str, str]:
     """Generate a PKCE verifier/challenge pair."""
 
     verifier = base64url_encode(secrets.token_bytes(32))
-    challenge = base64url_encode(hashlib.sha256(verifier.encode("ascii")).digest())
+    challenge = base64url_encode(
+        hashlib.sha256(verifier.encode("ascii")).digest()
+    )
     return verifier, challenge
 
 
-def sign_state(secret: bytes, payload: Dict[str, Any], ttl_sec: int = 600) -> str:
+def sign_state(
+    secret: bytes, payload: Dict[str, Any], ttl_sec: int = 600
+) -> str:
     """Sign and encode state to protect nonces and PKCE verifiers."""
 
     body = base64url_encode(
-        json.dumps({**payload, "exp": int(time.time()) + ttl_sec}).encode("utf-8")
+        json.dumps({**payload, "exp": int(time.time()) + ttl_sec}).encode(
+            "utf-8"
+        )
     )
     digest = hmac.new(secret, body.encode("ascii"), hashlib.sha256).digest()
     mac = base64url_encode(digest)

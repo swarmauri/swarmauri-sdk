@@ -18,15 +18,21 @@ from swarmauri_core.signing.types import Signature
 from swarmauri_signing_cms import CMSSigner
 
 
-def build_ephemeral_identity(common_name: str) -> tuple[dict[str, object], str]:
+def build_ephemeral_identity(
+    common_name: str,
+) -> tuple[dict[str, object], str]:
     """Return a ``KeyRef`` dictionary and PEM trust anchor for demos."""
 
-    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    private_key = rsa.generate_private_key(
+        public_exponent=65537, key_size=2048
+    )
 
     subject = x509.Name(
         [
             x509.NameAttribute(x509.NameOID.COUNTRY_NAME, "US"),
-            x509.NameAttribute(x509.NameOID.ORGANIZATION_NAME, "Swarmauri Demo"),
+            x509.NameAttribute(
+                x509.NameOID.ORGANIZATION_NAME, "Swarmauri Demo"
+            ),
             x509.NameAttribute(x509.NameOID.COMMON_NAME, common_name),
         ]
     )
@@ -40,7 +46,10 @@ def build_ephemeral_identity(common_name: str) -> tuple[dict[str, object], str]:
         .not_valid_before(now - timedelta(minutes=1))
         .not_valid_after(now + timedelta(days=7))
         .add_extension(
-            x509.SubjectKeyIdentifier.from_public_key(private_key.public_key()), False
+            x509.SubjectKeyIdentifier.from_public_key(
+                private_key.public_key()
+            ),
+            False,
         )
         .sign(private_key, hashes.SHA256())
     )
@@ -57,7 +66,9 @@ def build_ephemeral_identity(common_name: str) -> tuple[dict[str, object], str]:
         "private_key": private_key_pem,
         "certificate": certificate_pem,
     }
-    trust_anchor = certificate.public_bytes(serialization.Encoding.PEM).decode("utf-8")
+    trust_anchor = certificate.public_bytes(serialization.Encoding.PEM).decode(
+        "utf-8"
+    )
     return key_ref, trust_anchor
 
 
@@ -128,7 +139,9 @@ Swarmauri SDK
         Name="smime.p7s",
     )
     encoders.encode_base64(signature_part)
-    signature_part.add_header("Content-Disposition", "attachment", filename="smime.p7s")
+    signature_part.add_header(
+        "Content-Disposition", "attachment", filename="smime.p7s"
+    )
     envelope.attach(signature_part)
     return envelope
 
@@ -150,7 +163,9 @@ async def main() -> None:
     signature = await cms_detached_signature(signer, key_ref, [trust_anchor])
     print("Detached CMS signature produced using:", signature.alg)
 
-    smime_message = await smime_attached_message(signer, key_ref, [trust_anchor])
+    smime_message = await smime_attached_message(
+        signer, key_ref, [trust_anchor]
+    )
     print(
         "S/MIME message assembled with parts:",
         [part.get_content_type() for part in smime_message.get_payload()],

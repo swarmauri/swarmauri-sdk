@@ -45,12 +45,12 @@ class JupyterGetIOPubMessageTool(ToolBase):
         ]
     )
     name: str = "JupyterGetIOPubMessageTool"
-    description: str = (
-        "Retrieves IOPub messages from a Jupyter kernel with a specified timeout."
-    )
+    description: str = "Retrieves IOPub messages from a Jupyter kernel with a specified timeout."
     type: Literal["JupyterGetIOPubMessageTool"] = "JupyterGetIOPubMessageTool"
 
-    def __call__(self, channels_url: str, timeout: float = 5.0) -> Dict[str, Any]:
+    def __call__(
+        self, channels_url: str, timeout: float = 5.0
+    ) -> Dict[str, Any]:
         """
         Retrieve IOPub messages from the kernel's WebSocket ``channels`` endpoint.
 
@@ -100,7 +100,9 @@ class JupyterGetIOPubMessageTool(ToolBase):
             while True:
                 # Check elapsed time for timeout
                 if (time.time() - start_time) > timeout:
-                    logger.warning("Timeout exceeded while waiting for IOPub messages.")
+                    logger.warning(
+                        "Timeout exceeded while waiting for IOPub messages."
+                    )
                     return {
                         "stdout": stdout_messages,
                         "stderr": stderr_messages,
@@ -118,7 +120,9 @@ class JupyterGetIOPubMessageTool(ToolBase):
                     msg = json.loads(raw_msg)
                 except Exception as exc:
                     logger.error("Error parsing IOPub message: %s", str(exc))
-                    logs.append({"error": f"Error parsing IOPub message: {str(exc)}"})
+                    logs.append(
+                        {"error": f"Error parsing IOPub message: {str(exc)}"}
+                    )
                     continue
 
                 msg_type = msg["msg_type"]

@@ -79,7 +79,9 @@ def _min_signers(require: Optional[Mapping[str, object]]) -> int:
         return 1
 
 
-def _meta_dict(signature: Signature | Mapping[str, Any]) -> MutableMapping[str, Any]:
+def _meta_dict(
+    signature: Signature | Mapping[str, Any],
+) -> MutableMapping[str, Any]:
     if isinstance(signature, Signature):
         meta = signature.meta
     else:
@@ -116,7 +118,9 @@ class JWSSigner(SigningBase):
         self._key_provider = provider
 
     # ------------------------------------------------------------------
-    def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
+    def supports(
+        self, key_ref: Optional[str] = None
+    ) -> Mapping[str, Iterable[str]]:
         base = {
             "signs": ("bytes", "digest", "envelope", "stream"),
             "verifies": ("bytes", "digest", "envelope", "stream"),
@@ -204,7 +208,9 @@ class JWSSigner(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        canonical = await self.canonicalize_envelope(env, canon=canon, opts=opts)
+        canonical = await self.canonicalize_envelope(
+            env, canon=canon, opts=opts
+        )
         return await self._sign_payload(
             key,
             canonical,
@@ -272,7 +278,9 @@ class JWSSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        canonical = await self.canonicalize_envelope(env, canon=canon, opts=opts)
+        canonical = await self.canonicalize_envelope(
+            env, canon=canon, opts=opts
+        )
         return await self._verify_payload(
             canonical,
             signatures,
@@ -372,7 +380,9 @@ class JWSSigner(SigningBase):
                 continue
             compact = _extract_compact(sig)
             try:
-                result = await self._verify_compact(compact, allowed, verifier_opts)
+                result = await self._verify_compact(
+                    compact, allowed, verifier_opts
+                )
             except Exception:
                 continue
             if result.payload != expected:

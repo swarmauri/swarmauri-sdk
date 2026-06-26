@@ -46,10 +46,14 @@ class JupyterFromDictTool(ToolBase):
         ]
     )
     name: str = "JupyterFromDictTool"
-    description: str = "Converts a dictionary into a validated Jupyter NotebookNode."
+    description: str = (
+        "Converts a dictionary into a validated Jupyter NotebookNode."
+    )
     type: Literal["JupyterFromDictTool"] = "JupyterFromDictTool"
 
-    def __call__(self, notebook_dict: Dict) -> Dict[str, Union[str, NotebookNode]]:
+    def __call__(
+        self, notebook_dict: Dict
+    ) -> Dict[str, Union[str, NotebookNode]]:
         """
         Converts the provided dictionary into a NotebookNode, validates it against the nbformat
         schema, and returns the resulting NotebookNode in a dictionary response.

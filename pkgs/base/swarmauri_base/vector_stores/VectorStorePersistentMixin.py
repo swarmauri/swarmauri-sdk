@@ -1,7 +1,9 @@
 from typing import Optional
 from pydantic import Field, BaseModel
 
-from swarmauri_core.vector_stores.IPersistentVectorStore import IPersistentVectorStore
+from swarmauri_core.vector_stores.IPersistentVectorStore import (
+    IPersistentVectorStore,
+)
 
 
 class VectorStorePersistentMixin(IPersistentVectorStore, BaseModel):
@@ -29,5 +31,6 @@ class VectorStorePersistentMixin(IPersistentVectorStore, BaseModel):
     )
 
     vectorizer: Optional[object] = Field(
-        None, description="Vectorizer object for converting documents to vectors"
+        None,
+        description="Vectorizer object for converting documents to vectors",
     )

@@ -40,15 +40,21 @@ def _name_from_subject(spec: SubjectSpec) -> x509.Name:
     if "C" in spec and spec["C"]:
         rdns.append(x509.NameAttribute(NameOID.COUNTRY_NAME, spec["C"]))
     if "ST" in spec and spec["ST"]:
-        rdns.append(x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, spec["ST"]))
+        rdns.append(
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, spec["ST"])
+        )
     if "L" in spec and spec["L"]:
         rdns.append(x509.NameAttribute(NameOID.LOCALITY_NAME, spec["L"]))
     if "O" in spec and spec["O"]:
         rdns.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, spec["O"]))
     if "OU" in spec and spec["OU"]:
-        rdns.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, spec["OU"]))
+        rdns.append(
+            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, spec["OU"])
+        )
     if "emailAddress" in spec and spec["emailAddress"]:
-        rdns.append(x509.NameAttribute(NameOID.EMAIL_ADDRESS, spec["emailAddress"]))
+        rdns.append(
+            x509.NameAttribute(NameOID.EMAIL_ADDRESS, spec["emailAddress"])
+        )
     if "CN" in spec and spec["CN"]:
         rdns.append(x509.NameAttribute(NameOID.COMMON_NAME, spec["CN"]))
 
@@ -58,14 +64,18 @@ def _name_from_subject(spec: SubjectSpec) -> x509.Name:
             continue
         rdns.append(
             x509.NameAttribute(
-                x509.ObjectIdentifier(k) if k.count(".") >= 2 else NameOID.COMMON_NAME,
+                x509.ObjectIdentifier(k)
+                if k.count(".") >= 2
+                else NameOID.COMMON_NAME,
                 v,
             )
         )
     return x509.Name(rdns)
 
 
-def _san_from_spec(san: Optional[AltNameSpec]) -> Optional[x509.SubjectAlternativeName]:
+def _san_from_spec(
+    san: Optional[AltNameSpec],
+) -> Optional[x509.SubjectAlternativeName]:
     if not san:
         return None
     gns = []
@@ -121,7 +131,9 @@ def _bc_from_spec(
 
 
 def _choose_sig_hash(private_key) -> Optional[hashes.HashAlgorithm]:
-    if isinstance(private_key, (ed25519.Ed25519PrivateKey, ed448.Ed448PrivateKey)):
+    if isinstance(
+        private_key, (ed25519.Ed25519PrivateKey, ed448.Ed448PrivateKey)
+    ):
         return None
     return hashes.SHA256()
 
@@ -130,7 +142,9 @@ def _choose_sig_hash(private_key) -> Optional[hashes.HashAlgorithm]:
 class SelfSignedCertificate(CertServiceBase):
     """Minimal self-signed certificate builder exposed as a cert service."""
 
-    subject: SubjectSpec = Field(default_factory=lambda: SubjectSpec(CN="localhost"))
+    subject: SubjectSpec = Field(
+        default_factory=lambda: SubjectSpec(CN="localhost")
+    )
     san: Optional[AltNameSpec] = None
     extensions: Optional[CertExtensionSpec] = None
     not_before: Optional[int] = None
@@ -179,7 +193,9 @@ class SelfSignedCertificate(CertServiceBase):
                 else key.tags["passphrase"]
             )
 
-        private_key = serialization.load_pem_private_key(key.material, password=pwd)
+        private_key = serialization.load_pem_private_key(
+            key.material, password=pwd
+        )
         public_key = private_key.public_key()
 
         subject_spec = subject or self.subject
@@ -197,11 +213,17 @@ class SelfSignedCertificate(CertServiceBase):
         if na_epoch is not None:
             na = datetime.fromtimestamp(int(na_epoch), tz=timezone.utc)
         else:
-            life = lifetime_days if lifetime_days is not None else self.lifetime_days
+            life = (
+                lifetime_days
+                if lifetime_days is not None
+                else self.lifetime_days
+            )
             na = nb + timedelta(days=int(life))
 
         serial_number = (
-            serial if serial is not None else self.serial or x509.random_serial_number()
+            serial
+            if serial is not None
+            else self.serial or x509.random_serial_number()
         )
 
         builder = (
@@ -216,7 +238,11 @@ class SelfSignedCertificate(CertServiceBase):
 
         ext_spec = extensions if extensions is not None else self.extensions
 
-        bc = _bc_from_spec(ext_spec.get("basic_constraints")) if ext_spec else None
+        bc = (
+            _bc_from_spec(ext_spec.get("basic_constraints"))
+            if ext_spec
+            else None
+        )
         if bc:
             builder = builder.add_extension(bc, critical=True)
 
@@ -224,7 +250,11 @@ class SelfSignedCertificate(CertServiceBase):
         if ku:
             builder = builder.add_extension(ku, critical=True)
 
-        eku = _eku_from_spec(ext_spec.get("extended_key_usage")) if ext_spec else None
+        eku = (
+            _eku_from_spec(ext_spec.get("extended_key_usage"))
+            if ext_spec
+            else None
+        )
         if eku:
             builder = builder.add_extension(eku, critical=False)
 
@@ -244,8 +274,12 @@ class SelfSignedCertificate(CertServiceBase):
 
         if ext_spec and ext_spec.get("name_constraints"):
             nc = ext_spec["name_constraints"]
-            permitted_dns = [x509.DNSName(d) for d in (nc.get("permitted_dns") or [])]
-            excluded_dns = [x509.DNSName(d) for d in (nc.get("excluded_dns") or [])]
+            permitted_dns = [
+                x509.DNSName(d) for d in (nc.get("permitted_dns") or [])
+            ]
+            excluded_dns = [
+                x509.DNSName(d) for d in (nc.get("excluded_dns") or [])
+            ]
             permitted_ip = [
                 x509.IPAddress(ipaddress.ip_network(ip))
                 for ip in (nc.get("permitted_ip") or [])
@@ -272,11 +306,17 @@ class SelfSignedCertificate(CertServiceBase):
             builder = builder.add_extension(
                 x509.NameConstraints(
                     permitted_subtrees=(
-                        permitted_dns + permitted_ip + permitted_uri + permitted_email
+                        permitted_dns
+                        + permitted_ip
+                        + permitted_uri
+                        + permitted_email
                     )
                     or None,
                     excluded_subtrees=(
-                        excluded_dns + excluded_ip + excluded_uri + excluded_email
+                        excluded_dns
+                        + excluded_ip
+                        + excluded_uri
+                        + excluded_email
                     )
                     or None,
                 ),
@@ -351,7 +391,10 @@ class SelfSignedCertificate(CertServiceBase):
             subject_alt_name=san,
         )
         return cls(
-            subject=subject, san=san, extensions=ext, lifetime_days=lifetime_days
+            subject=subject,
+            san=san,
+            extensions=ext,
+            lifetime_days=lifetime_days,
         )
 
     @classmethod
@@ -380,5 +423,8 @@ class SelfSignedCertificate(CertServiceBase):
             subject_alt_name=san,
         )
         return cls(
-            subject=subject, san=san, extensions=ext, lifetime_days=lifetime_days
+            subject=subject,
+            san=san,
+            extensions=ext,
+            lifetime_days=lifetime_days,
         )

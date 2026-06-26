@@ -18,11 +18,15 @@ class GiteaOAuth20Login(GiteaOAuthLoginMixin, OAuth20LoginBase):
         payload = await self._auth_payload()
         return {"url": payload["url"], "state": payload["state"]}
 
-    async def exchange_and_identity(self, code: str, state: str) -> Mapping[str, Any]:
+    async def exchange_and_identity(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         tokens = await self._exchange_tokens(code, state)
         profile = await self._fetch_profile(tokens["access_token"])
         name = (
-            profile.get("full_name") or profile.get("username") or profile.get("login")
+            profile.get("full_name")
+            or profile.get("username")
+            or profile.get("login")
         )
         return {
             "issuer": "gitea-oauth2",

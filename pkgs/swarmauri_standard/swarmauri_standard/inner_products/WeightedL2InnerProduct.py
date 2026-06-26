@@ -64,7 +64,9 @@ class WeightedL2InnerProduct(InnerProductBase):
         kwargs["weight_function"] = weight_function
         super().__init__(**kwargs)
 
-        logger.info("WeightedL2InnerProduct initialized with custom weight function")
+        logger.info(
+            "WeightedL2InnerProduct initialized with custom weight function"
+        )
 
     def _validate_weight_at_points(self, points: Any) -> None:
         """
@@ -91,7 +93,9 @@ class WeightedL2InnerProduct(InnerProductBase):
             raise ValueError("Weight function must be strictly positive")
 
     def compute(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> complex:
         """
         Compute the weighted L2 inner product between two objects.
@@ -141,8 +145,12 @@ class WeightedL2InnerProduct(InnerProductBase):
 
                 # Check positivity of weights
                 if np.any(weights <= 0):
-                    logger.error("Weight function returned non-positive values")
-                    raise ValueError("Weight function must be strictly positive")
+                    logger.error(
+                        "Weight function returned non-positive values"
+                    )
+                    raise ValueError(
+                        "Weight function must be strictly positive"
+                    )
 
                 # Compute function values
                 a_values = np.array([a(xi) for xi in x])
@@ -150,7 +158,9 @@ class WeightedL2InnerProduct(InnerProductBase):
 
                 # Compute inner product with trapezoidal rule
                 dx = x[1] - x[0]
-                result = np.sum(a_values * np.conjugate(b_values) * weights) * dx
+                result = (
+                    np.sum(a_values * np.conjugate(b_values) * weights) * dx
+                )
                 return complex(result)
             except Exception as e:
                 logger.error(
@@ -159,12 +169,16 @@ class WeightedL2InnerProduct(InnerProductBase):
                 raise
 
         # Handle numpy arrays or vectors
-        elif isinstance(a, (np.ndarray, list)) and isinstance(b, (np.ndarray, list)):
+        elif isinstance(a, (np.ndarray, list)) and isinstance(
+            b, (np.ndarray, list)
+        ):
             a_array = np.array(a)
             b_array = np.array(b)
 
             if a_array.shape != b_array.shape:
-                logger.error(f"Dimension mismatch: {a_array.shape} vs {b_array.shape}")
+                logger.error(
+                    f"Dimension mismatch: {a_array.shape} vs {b_array.shape}"
+                )
                 raise ValueError(
                     f"Dimensions must match: {a_array.shape} vs {b_array.shape}"
                 )
@@ -205,7 +219,9 @@ class WeightedL2InnerProduct(InnerProductBase):
             )
 
     def check_conjugate_symmetry(
-        self, a: Union[Vector, Matrix, Callable], b: Union[Vector, Matrix, Callable]
+        self,
+        a: Union[Vector, Matrix, Callable],
+        b: Union[Vector, Matrix, Callable],
     ) -> bool:
         """
         Check if the weighted L2 inner product satisfies the conjugate symmetry property:
@@ -223,7 +239,9 @@ class WeightedL2InnerProduct(InnerProductBase):
         bool
             True if conjugate symmetry holds, False otherwise
         """
-        logger.debug(f"Checking conjugate symmetry for {type(a)} and {type(b)}")
+        logger.debug(
+            f"Checking conjugate symmetry for {type(a)} and {type(b)}"
+        )
 
         try:
             # Compute <a, b>
@@ -290,7 +308,9 @@ class WeightedL2InnerProduct(InnerProductBase):
                 left_side = self.compute(linear_combo, b)
 
                 # Compute alpha*<a1, b> + beta*<a2, b>
-                right_side = alpha * self.compute(a1, b) + beta * self.compute(a2, b)
+                right_side = alpha * self.compute(a1, b) + beta * self.compute(
+                    a2, b
+                )
 
             # For arrays
             elif (
@@ -308,7 +328,9 @@ class WeightedL2InnerProduct(InnerProductBase):
                 left_side = self.compute(linear_combo, b)
 
                 # Compute alpha*<a1, b> + beta*<a2, b>
-                right_side = alpha * self.compute(a1, b) + beta * self.compute(a2, b)
+                right_side = alpha * self.compute(a1, b) + beta * self.compute(
+                    a2, b
+                )
 
             else:
                 logger.error(
@@ -362,12 +384,16 @@ class WeightedL2InnerProduct(InnerProductBase):
             is_positive = inner_product.real >= 0
 
             # For arrays, also check if <a,a> = 0 implies a = 0
-            if isinstance(a, (np.ndarray, list)) and np.isclose(inner_product.real, 0):
+            if isinstance(a, (np.ndarray, list)) and np.isclose(
+                inner_product.real, 0
+            ):
                 a_array = np.array(a)
                 is_positive = is_positive and np.allclose(a_array, 0)
 
             if not is_positive:
-                logger.warning(f"Positivity check failed: <a,a>={inner_product.real}")
+                logger.warning(
+                    f"Positivity check failed: <a,a>={inner_product.real}"
+                )
 
             return is_positive
         except Exception as e:

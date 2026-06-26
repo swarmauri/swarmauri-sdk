@@ -18,7 +18,9 @@ class GoogleOAuth21Login(GoogleOIDCLoginMixin, OAuth21LoginBase):
         payload = await self._auth_payload()
         return {"url": payload["url"], "state": payload["state"]}
 
-    async def exchange_and_identity(self, code: str, state: str) -> Mapping[str, Any]:
+    async def exchange_and_identity(
+        self, code: str, state: str
+    ) -> Mapping[str, Any]:
         result = await self._exchange_tokens(code, state)
         tokens = result["tokens"]
         claims = result["claims"]

@@ -9,7 +9,9 @@ import pytest
 
 
 README_PATH = pathlib.Path(__file__).resolve().parents[1] / "README.md"
-EXAMPLE_PATTERN = re.compile(r"## Example.*?```python\n(?P<code>.*?)\n```", re.S)
+EXAMPLE_PATTERN = re.compile(
+    r"## Example.*?```python\n(?P<code>.*?)\n```", re.S
+)
 
 
 @pytest.mark.example

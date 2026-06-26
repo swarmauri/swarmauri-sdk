@@ -46,6 +46,10 @@ class SSASimilarity(ISimilarity):
         total_variables = state_a.union(state_b)
 
         # Calculate the SSA measure as the ratio of shared to total variables
-        ssa = len(shared_variables) / len(total_variables) if total_variables else 1
+        ssa = (
+            len(shared_variables) / len(total_variables)
+            if total_variables
+            else 1
+        )
 
         return ssa

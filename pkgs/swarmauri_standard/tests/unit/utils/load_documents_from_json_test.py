@@ -13,7 +13,10 @@ def test_load_documents_from_json_file():
     test_data = [
         {"content": "Document 1 content", "document_name": "doc1.txt"},
         {"content": "Document 2 content", "document_name": "doc2.txt"},
-        {"content": "", "document_name": "empty.txt"},  # This should be skipped
+        {
+            "content": "",
+            "document_name": "empty.txt",
+        },  # This should be skipped
     ]
 
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:

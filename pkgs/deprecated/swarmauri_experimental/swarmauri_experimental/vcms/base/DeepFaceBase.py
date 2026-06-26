@@ -45,7 +45,9 @@ class DeepFaceBase(ComponentBase, BaseModel):
 
     # Default Values
     DEFAULT_MODEL_NAME: ClassVar[str] = "VGG-Face"
-    DEFAULT_DISTANCE_METRIC: ClassVar[str] = "cosine"  # Only used in Distance class
+    DEFAULT_DISTANCE_METRIC: ClassVar[str] = (
+        "cosine"  # Only used in Distance class
+    )
     DEFAULT_DETECTOR_BACKEND: ClassVar[str] = "opencv"
     DEFAULT_ALIGN: ClassVar[bool] = True
     DEFAULT_ENFORCE_DETECTION: ClassVar[bool] = True
@@ -79,7 +81,8 @@ class DeepFaceBase(ComponentBase, BaseModel):
         description="Normalization method to apply to embeddings.",
     )
     anti_spoofing: bool = Field(
-        default=DEFAULT_ANTI_SPOOFING, description="Enable anti-spoofing measures."
+        default=DEFAULT_ANTI_SPOOFING,
+        description="Enable anti-spoofing measures.",
     )
 
     # Validators
@@ -96,7 +99,9 @@ class DeepFaceBase(ComponentBase, BaseModel):
     @model_validator(mode="before")
     @classmethod
     def validate_detector_backend(cls, values):
-        detector_backend = values.get("detector_backend", cls.DEFAULT_DETECTOR_BACKEND)
+        detector_backend = values.get(
+            "detector_backend", cls.DEFAULT_DETECTOR_BACKEND
+        )
         if detector_backend not in cls.allowed_detector_backends:
             raise ValueError(
                 f"Invalid detector backend '{detector_backend}'. Expected one of {cls.allowed_detector_backends}"

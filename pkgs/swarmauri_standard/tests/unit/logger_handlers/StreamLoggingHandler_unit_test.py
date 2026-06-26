@@ -7,7 +7,9 @@ import pytest
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 
-from swarmauri_standard.logger_handlers.StreamLoggingHandler import StreamLoggingHandler
+from swarmauri_standard.logger_handlers.StreamLoggingHandler import (
+    StreamLoggingHandler,
+)
 
 
 @pytest.fixture
@@ -62,7 +64,9 @@ def test_initialization(level, formatter, stream):
     stream : Optional[TextIO]
         Stream to test
     """
-    handler = StreamLoggingHandler(level=level, formatter=formatter, stream=stream)
+    handler = StreamLoggingHandler(
+        level=level, formatter=formatter, stream=stream
+    )
 
     assert handler.type == "StreamLoggingHandler"
     assert handler.level == level
@@ -108,7 +112,9 @@ def test_compile_handler_with_formatter_object():
     """Test compiling a handler with a FormatterBase object."""
     mock_formatter = MagicMock(spec=FormatterBase)
     mock_formatter.type = "FormatterBase"
-    mock_formatter.model_dump = MagicMock(return_value={"type": "FormatterBase"})
+    mock_formatter.model_dump = MagicMock(
+        return_value={"type": "FormatterBase"}
+    )
 
     mock_formatter_instance = MagicMock(spec=logging.Formatter)
     mock_formatter.compile_formatter.return_value = mock_formatter_instance
@@ -148,7 +154,9 @@ def test_functional_logging():
 def test_serialization_deserialization():
     """Test that the handler can be serialized and deserialized correctly."""
     original = StreamLoggingHandler(
-        level=logging.DEBUG, formatter="%(levelname)s: %(message)s", stream=None
+        level=logging.DEBUG,
+        formatter="%(levelname)s: %(message)s",
+        stream=None,
     )
 
     # Serialize to JSON

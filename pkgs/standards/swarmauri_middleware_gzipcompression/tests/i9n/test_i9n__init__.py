@@ -18,7 +18,9 @@ def test_module_import() -> None:
     spec.loader.exec_module(module)
 
     # Verify that the module has the expected components
-    assert hasattr(module, "__version__"), "Module does not have __version__ attribute"
+    assert hasattr(module, "__version__"), (
+        "Module does not have __version__ attribute"
+    )
     assert hasattr(module, "__all__"), "Module does not have __all__ attribute"
 
 

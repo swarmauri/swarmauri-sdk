@@ -16,4 +16,6 @@ class SchemaConverterBase(ISchemaConvert, ComponentBase):
 
     @abstractmethod
     def convert(self, tool: ITool) -> Dict[str, Any]:
-        raise NotImplementedError("Subclasses must implement the convert method.")
+        raise NotImplementedError(
+            "Subclasses must implement the convert method."
+        )

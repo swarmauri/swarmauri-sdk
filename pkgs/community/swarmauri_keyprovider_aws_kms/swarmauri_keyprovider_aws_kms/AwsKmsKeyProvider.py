@@ -98,31 +98,48 @@ class AwsKmsKeyProvider(KeyProviderBase):
     def _alias_version(self, kid: str, version: int) -> str:
         return f"alias/{self._alias_prefix}/{kid}/v{version}"
 
-    def _create_or_update_alias(self, alias_name: str, target_key_id: str) -> None:
+    def _create_or_update_alias(
+        self, alias_name: str, target_key_id: str
+    ) -> None:
         try:
-            self._kms.create_alias(AliasName=alias_name, TargetKeyId=target_key_id)
+            self._kms.create_alias(
+                AliasName=alias_name, TargetKeyId=target_key_id
+            )
         except ClientError as e:
-            if e.response.get("Error", {}).get("Code") == "AlreadyExistsException":
-                self._kms.update_alias(AliasName=alias_name, TargetKeyId=target_key_id)
+            if (
+                e.response.get("Error", {}).get("Code")
+                == "AlreadyExistsException"
+            ):
+                self._kms.update_alias(
+                    AliasName=alias_name, TargetKeyId=target_key_id
+                )
             else:
                 raise
 
     def _kms_spec_for_alg(self, spec: KeySpec) -> _KmsSpec:
         if spec.klass == KeyClass.symmetric:
             if spec.alg != KeyAlg.AES256_GCM:
-                raise ValueError(f"Unsupported symmetric alg for AWS KMS: {spec.alg}")
-            return _KmsSpec(KeySpec="SYMMETRIC_DEFAULT", KeyUsage="ENCRYPT_DECRYPT")
+                raise ValueError(
+                    f"Unsupported symmetric alg for AWS KMS: {spec.alg}"
+                )
+            return _KmsSpec(
+                KeySpec="SYMMETRIC_DEFAULT", KeyUsage="ENCRYPT_DECRYPT"
+            )
 
         if spec.alg == KeyAlg.RSA_OAEP_SHA256:
             bits = spec.size_bits or 3072
             if bits not in (2048, 3072, 4096):
-                raise ValueError("AWS KMS RSA supports 2048/3072/4096 bit sizes")
+                raise ValueError(
+                    "AWS KMS RSA supports 2048/3072/4096 bit sizes"
+                )
             return _KmsSpec(KeySpec=f"RSA_{bits}", KeyUsage="ENCRYPT_DECRYPT")
 
         if spec.alg == KeyAlg.RSA_PSS_SHA256:
             bits = spec.size_bits or 3072
             if bits not in (2048, 3072, 4096):
-                raise ValueError("AWS KMS RSA supports 2048/3072/4096 bit sizes")
+                raise ValueError(
+                    "AWS KMS RSA supports 2048/3072/4096 bit sizes"
+                )
             return _KmsSpec(KeySpec=f"RSA_{bits}", KeyUsage="SIGN_VERIFY")
 
         if spec.alg == KeyAlg.ECDSA_P256_SHA256:
@@ -230,7 +247,9 @@ class AwsKmsKeyProvider(KeyProviderBase):
             ],
         }
         if spec.label:
-            kwargs["Tags"].append({"TagKey": "saur:label", "TagValue": spec.label})
+            kwargs["Tags"].append(
+                {"TagKey": "saur:label", "TagValue": spec.label}
+            )
         if self._key_policy:
             kwargs["Policy"] = self._key_policy
 
@@ -267,11 +286,15 @@ class AwsKmsKeyProvider(KeyProviderBase):
 
         alg = KeyAlg(current_alg)
         size_bits = (spec_overrides or {}).get("size_bits")
-        label = (spec_overrides or {}).get("label", current_tags.get("saur:label"))
+        label = (spec_overrides or {}).get(
+            "label", current_tags.get("saur:label")
+        )
         uses = ()
         new_spec = KeySpec(
             klass=(
-                KeyClass.symmetric if alg == KeyAlg.AES256_GCM else KeyClass.asymmetric
+                KeyClass.symmetric
+                if alg == KeyAlg.AES256_GCM
+                else KeyClass.asymmetric
             ),
             alg=alg,
             size_bits=size_bits,
@@ -306,7 +329,9 @@ class AwsKmsKeyProvider(KeyProviderBase):
         resp = self._kms.create_key(**kwargs)
         new_key_id = resp["KeyMetadata"]["KeyId"]
 
-        self._create_or_update_alias(self._alias_version(kid, next_version), new_key_id)
+        self._create_or_update_alias(
+            self._alias_version(kid, next_version), new_key_id
+        )
         self._create_or_update_alias(self._alias_latest(kid), new_key_id)
 
         return self._keyref_from_key_id(
@@ -316,7 +341,9 @@ class AwsKmsKeyProvider(KeyProviderBase):
             tags={t["TagKey"]: t["TagValue"] for t in kwargs["Tags"]},
         )
 
-    async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
+    async def destroy_key(
+        self, kid: str, version: Optional[int] = None
+    ) -> bool:
         try:
             if version is None:
                 for ver in await self.list_versions(kid):
@@ -337,10 +364,16 @@ class AwsKmsKeyProvider(KeyProviderBase):
             return False
 
     async def get_key(
-        self, kid: str, version: Optional[int] = None, *, include_secret: bool = False
+        self,
+        kid: str,
+        version: Optional[int] = None,
+        *,
+        include_secret: bool = False,
     ) -> KeyRef:
         alias_name = (
-            self._alias_version(kid, version) if version else self._alias_latest(kid)
+            self._alias_version(kid, version)
+            if version
+            else self._alias_latest(kid)
         )
         alias_desc = self._find_alias(alias_name)
         key_id = alias_desc["TargetKeyId"]
@@ -370,9 +403,13 @@ class AwsKmsKeyProvider(KeyProviderBase):
         out.sort()
         return tuple(out)
 
-    async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
+    async def get_public_jwk(
+        self, kid: str, version: Optional[int] = None
+    ) -> dict:
         alias_name = (
-            self._alias_version(kid, version) if version else self._alias_latest(kid)
+            self._alias_version(kid, version)
+            if version
+            else self._alias_latest(kid)
         )
         alias_desc = self._find_alias(alias_name)
         key_id = alias_desc["TargetKeyId"]
@@ -388,7 +425,10 @@ class AwsKmsKeyProvider(KeyProviderBase):
             return self._public_jwk_from_der(pk, jwk_kid)
         except ClientError as e:
             code = e.response.get("Error", {}).get("Code")
-            if code in ("UnsupportedOperationException", "IncorrectKeySpecException"):
+            if code in (
+                "UnsupportedOperationException",
+                "IncorrectKeySpecException",
+            ):
                 return {"kty": "oct", "alg": "A256GCM", "kid": jwk_kid}
             raise
 
@@ -424,7 +464,9 @@ class AwsKmsKeyProvider(KeyProviderBase):
     async def random_bytes(self, n: int) -> bytes:
         return os.urandom(n)
 
-    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+    async def hkdf(
+        self, ikm: bytes, *, salt: bytes, info: bytes, length: int
+    ) -> bytes:
         from cryptography.hazmat.primitives.kdf.hkdf import HKDF
         from cryptography.hazmat.primitives import hashes
 
