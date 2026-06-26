@@ -1,10 +1,8 @@
 import httpx
 import yaml
 from typing import Dict, List, Optional, Any, Literal
-from pydantic import Field, PrivateAttr, TypeAdapter
+from pydantic import Field, PrivateAttr
 from importlib import import_module
-
-from swarmauri_base import SubclassUnion
 
 from swarmauri_standard.tools.Parameter import Parameter
 from swarmauri_base.tools.ToolBase import ToolBase
@@ -85,6 +83,16 @@ class HTTPLoadedTool(ToolBase):
                     import_module(f"swarmauri_standard.tools.{comp_type}")
                 except Exception:  # pragma: no cover - optional import failure
                     pass
-            adapter = TypeAdapter(SubclassUnion[ToolBase])
-            loaded_components.append(adapter.validate_python(entry))
+            loaded_components.append(self._hydrate_tool(entry))
         return loaded_components
+
+    @staticmethod
+    def _hydrate_tool(entry: Dict[str, Any]) -> ToolBase:
+        comp_type = entry.get("type")
+        tool_registry = ToolBase._registry.get("ToolBase", {})
+        tool_cls = tool_registry.get("subtypes", {}).get(comp_type)
+        if tool_cls is None and comp_type == "ToolBase":
+            tool_cls = tool_registry.get("model_cls", ToolBase)
+        if tool_cls is None:
+            raise ValueError(f"Unknown tool component type: {comp_type}")
+        return tool_cls.model_validate(entry)
